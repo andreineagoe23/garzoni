@@ -11,6 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        # Create the User instance
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
@@ -18,7 +19,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name']
         )
+        
+        UserProfile.objects.create(user=user)
+        
         return user
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

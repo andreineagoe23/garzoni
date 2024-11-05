@@ -13,6 +13,27 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import UserProgress
 from .serializers import UserProgressSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .serializers import UserProfileSerializer
+
+# User profile view
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the logged-in user's data
+        user = request.user
+        user_data = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "username": user.username,
+        }
+        return Response(user_data)
+
 
 # User registration view
 class RegisterView(generics.CreateAPIView):
