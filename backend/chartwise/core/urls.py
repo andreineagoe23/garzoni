@@ -4,6 +4,8 @@ from rest_framework.routers import DefaultRouter
 from .views import UserProfileViewSet, CourseViewSet, LessonViewSet, QuizViewSet, PathViewSet, RegisterView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import UserProgressViewSet
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet)
@@ -18,4 +20,4 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
