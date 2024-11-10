@@ -40,9 +40,8 @@ function Dashboard() {
       {user && (
         <div>
           <h2>
-            Hello, {user.first_name} {user.last_name}!
+            Hello, {user.username}!
           </h2>
-          <p>Email: {user.email}</p>
         </div>
       )}
 
