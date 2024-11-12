@@ -21,9 +21,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = ['id', 'user', 'earned_money']
+
+    def get_user(self, obj):
+        return {
+            "id": obj.user.id,
+            "username": obj.user.username,
+            "email": obj.user.email,
+        }
 
 class QuizSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,21 +40,22 @@ class QuizSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class LessonSerializer(serializers.ModelSerializer):
-    quizzes = QuizSerializer(many=True, read_only=True)  # Changed for detailed quiz info
+    quizzes = QuizSerializer(many=True, read_only=True)
 
     class Meta:
         model = Lesson
-        fields = ['id', 'course', 'title', 'content', 'quizzes', 'short_description', 'image']
+        fields = ['id', 'course', 'title', 'detailed_content', 'quizzes', 'short_description', 'image', 'video_url']
+
 
 class CourseSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(many=True, read_only=True)  # Changed for detailed lesson info
+    lessons = LessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'path', 'title', 'description', 'lessons']
 
 class PathSerializer(serializers.ModelSerializer):
-    courses = CourseSerializer(many=True, read_only=True)  # Changed for detailed course info
+    courses = CourseSerializer(many=True, read_only=True)
 
     class Meta:
         model = Path

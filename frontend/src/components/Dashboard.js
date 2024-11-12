@@ -1,4 +1,3 @@
-// src/components/Dashboard.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -7,6 +6,7 @@ import LearningPathList from "./LearningPathList";
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [learningPaths, setLearningPaths] = useState([]);
+  const [activePathId, setActivePathId] = useState(null); // Track the currently active path
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,9 +18,17 @@ function Dashboard() {
         .get("http://localhost:8000/api/userprofiles/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
-        .then((response) => setUser(response.data))
+        .then((response) => {
+          console.log("User profile response:", response.data); // Log response
+          const userProfile = response.data[0]; // Access the first user profile in the array
+          if (userProfile) {
+            setUser(userProfile.user); // Extract and set the nested user object
+          } else {
+            console.error("No user profile found in the response.");
+          }
+        })
         .catch((error) => console.error("Failed to fetch user data:", error));
-
+  
       axios
         .get("http://localhost:8000/api/paths/", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -31,11 +39,20 @@ function Dashboard() {
         );
     }
   }, [navigate]);
+  
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     navigate("/");
+  };
+
+  const handleCourseClick = (courseId) => {
+    navigate(`/lessons/${courseId}`);
+  };
+
+  const togglePath = (pathId) => {
+    setActivePathId((prevPathId) => (prevPathId === pathId ? null : pathId)); // Toggle visibility
   };
 
   return (
@@ -44,8 +61,12 @@ function Dashboard() {
       <button onClick={handleLogout}>Logout</button>
       {user && <h2>Hello, {user.username}!</h2>}
 
-      {/* Learning Paths Section */}
-      <LearningPathList learningPaths={learningPaths} />
+      <LearningPathList
+        learningPaths={learningPaths}
+        activePathId={activePathId}
+        onTogglePath={togglePath}
+        onCourseClick={handleCourseClick}
+      />
     </div>
   );
 }

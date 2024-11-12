@@ -1,24 +1,22 @@
-// src/components/LearningPathList.js
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
-function LearningPathList({ learningPaths }) {
-  const navigate = useNavigate();
-
-  const handlePathClick = (pathId) => {
-    navigate(`/courses/${pathId}`);
-  };
-
+function LearningPathList({ learningPaths, activePathId, onTogglePath, onCourseClick }) {
   return (
-    <div>
-      <h3>Your Learning Paths</h3>
-      <ul>
-        {learningPaths.map((path) => (
-          <li key={path.id} onClick={() => handlePathClick(path.id)}>
-            {path.name}
-          </li>
-        ))}
-      </ul>
+    <div className="learning-paths">
+      {learningPaths.map((path) => (
+        <div key={path.id} className="learning-path">
+          <h3 onClick={() => onTogglePath(path.id)}>{path.title}</h3>
+          {activePathId === path.id && (
+            <ul>
+              {path.courses.map((course) => (
+                <li key={course.id} onClick={() => onCourseClick(course.id)}>
+                  {course.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

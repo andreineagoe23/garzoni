@@ -71,6 +71,14 @@ class CourseViewSet(viewsets.ModelViewSet):
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        course_id = self.request.query_params.get("course", None)
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+        return queryset
 
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
