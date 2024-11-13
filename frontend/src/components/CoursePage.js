@@ -1,4 +1,3 @@
-// src/components/CoursePage.js
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -16,7 +15,7 @@ function CoursePage() {
   }, [pathId]);
 
   return (
-    <div>
+    <div className="course-page">
       <h2>Courses</h2>
       <CourseList courses={courses} />
     </div>

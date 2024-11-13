@@ -1,0 +1,49 @@
+.lessonBoxItem {
+  padding: 20px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lessonBoxItem:hover {
+  cursor: pointer;
+  background-color: rgba(65, 105, 225, 0.1);
+}
+
+.lessonBoxItem.completed {
+  background-color: #d4edda;
+}
+
+.lessonBoxItem.incomplete {
+  background-color: rgba(65, 105, 225, 0.3);
+}
+
+.lessonBoxItem.locked {
+  background-color: rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+}
+
+.lessonContent {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+button {
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}

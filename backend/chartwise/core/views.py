@@ -1,23 +1,14 @@
-from rest_framework import viewsets
-from .models import UserProfile, Course, Lesson, Quiz
-from .serializers import UserProfileSerializer, CourseSerializer, LessonSerializer, QuizSerializer
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Path
-from .serializers import PathSerializer
-from rest_framework import generics
-from .serializers import RegisterSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.permissions import AllowAny
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import UserProgress
-from .serializers import UserProgressSerializer
+from rest_framework import viewsets, serializers, generics, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .serializers import UserProfileSerializer
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress
+from .serializers import (
+    UserProfileSerializer, CourseSerializer, LessonSerializer, 
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer
+)
 
 # User profile view
 class UserProfileView(APIView):
@@ -80,19 +71,59 @@ class LessonViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(course_id=course_id)
         return queryset
 
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def with_progress(self, request):
+        course_id = request.query_params.get("course", None)
+        if not course_id:
+            return Response({"error": "Course ID is required."}, status=400)
+
+        lessons = self.get_queryset().filter(course_id=course_id)
+        user_progress = UserProgress.objects.filter(user=request.user, course_id=course_id).first()
+
+        completed_count = user_progress.completed_lessons if user_progress else 0
+        lesson_data = []
+        
+        for i, lesson in enumerate(lessons):
+            lesson_data.append({
+                "id": lesson.id,
+                "title": lesson.title,
+                "short_description": lesson.short_description,
+                "accessible": i <= completed_count,
+            })
+        
+        return Response(lesson_data)
+
+
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
+
 class UserProgressViewSet(viewsets.ModelViewSet):
-    queryset = UserProgress.objects.all()  # Add this line to set the queryset
+    queryset = UserProgress.objects.all()
     serializer_class = UserProgressSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        # Filter to only show the logged-in user's progress records
-        return self.queryset.filter(user=self.request.user)
+    @action(detail=False, methods=['post'], url_path='complete')
+    def complete(self, request):
+        lesson_id = request.data.get('lesson_id')
+        if not lesson_id:
+            return Response({"error": "lesson_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        # Automatically assign the user field to the logged-in user when creating a record
-        serializer.save(user=self.request.user)
+        try:
+            lesson = Lesson.objects.get(id=lesson_id)
+        except Lesson.DoesNotExist:
+            return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Proceed with marking the lesson as completed for the logged-in user
+        user_progress, created = UserProgress.objects.get_or_create(
+            user=request.user,
+            course=lesson.course
+        )
+
+        user_progress.completed_lessons += 1
+        if user_progress.completed_lessons == lesson.course.lessons.count():
+            user_progress.is_course_complete = True
+        user_progress.save()
+
+        return Response({"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete}, status=status.HTTP_200_OK)

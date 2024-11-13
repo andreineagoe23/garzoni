@@ -1,12 +1,19 @@
-# core/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserProfileViewSet, CourseViewSet, LessonViewSet, QuizViewSet, PathViewSet, RegisterView
+from .views import (
+    UserProfileViewSet,
+    CourseViewSet,
+    LessonViewSet,
+    QuizViewSet,
+    PathViewSet,
+    RegisterView,
+    UserProgressViewSet,
+)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import UserProgressViewSet
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Set up routers
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet)
 router.register(r'userprofiles', UserProfileViewSet)
@@ -20,4 +27,5 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

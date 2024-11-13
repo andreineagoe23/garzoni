@@ -1,0 +1,40 @@
+/* src/styles/LearningPathList.css */
+.learning-paths {
+  margin-top: 20px;
+}
+
+.learning-path {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+}
+
+.learning-path.active {
+  background-color: #e0f7fa;
+  border-color: #4caf50;
+}
+
+.learning-path h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+  cursor: pointer;
+}
+
+.learning-path ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.learning-path ul li {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.learning-path ul li:hover {
+  color: #333;
+  cursor: pointer;
+}

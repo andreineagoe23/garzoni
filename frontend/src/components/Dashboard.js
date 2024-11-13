@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import LearningPathList from "./LearningPathList";
+import "../styles/Dashboard.css"; // Import the Dashboard page CSS
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -28,7 +29,7 @@ function Dashboard() {
           }
         })
         .catch((error) => console.error("Failed to fetch user data:", error));
-  
+
       axios
         .get("http://localhost:8000/api/paths/", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -39,7 +40,6 @@ function Dashboard() {
         );
     }
   }, [navigate]);
-  
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -61,12 +61,14 @@ function Dashboard() {
       <button onClick={handleLogout}>Logout</button>
       {user && <h2>Hello, {user.username}!</h2>}
 
-      <LearningPathList
-        learningPaths={learningPaths}
-        activePathId={activePathId}
-        onTogglePath={togglePath}
-        onCourseClick={handleCourseClick}
-      />
+      <div className="learning-path-container">
+        <LearningPathList
+          learningPaths={learningPaths}
+          activePathId={activePathId}
+          onTogglePath={togglePath}
+          onCourseClick={handleCourseClick}
+        />
+      </div>
     </div>
   );
 }
