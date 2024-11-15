@@ -15,7 +15,7 @@ from django.conf.urls.static import static
 
 # Set up routers
 router = DefaultRouter()
-router.register(r'userprogress', UserProgressViewSet)
+router.register(r'userprogress', UserProgressViewSet, basename='userprogress')
 router.register(r'userprofiles', UserProfileViewSet)
 router.register(r'courses', CourseViewSet)
 router.register(r'lessons', LessonViewSet)

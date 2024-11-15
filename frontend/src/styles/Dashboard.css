@@ -72,3 +72,17 @@
   color: #333;
   cursor: pointer;
 }
+
+.content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.main-section {
+  flex: 1;
+}
+
+.progress-box {
+  flex-shrink: 0;
+  margin-left: 20px;
+}

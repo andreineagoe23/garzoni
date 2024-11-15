@@ -134,3 +134,23 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             {"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete},
             status=status.HTTP_200_OK
         )
+
+    @action(detail=False, methods=["get"])
+    def progress_summary(self, request):
+        user = request.user
+        progress_data = []
+
+        user_progress = UserProgress.objects.filter(user=user)
+        for progress in user_progress:
+            total_lessons = progress.course.lessons.count()
+            completed_lessons = progress.completed_lessons.count()
+            percent_complete = (completed_lessons / total_lessons) * 100 if total_lessons > 0 else 0
+
+            progress_data.append({
+                "path": progress.course.path.title if progress.course.path else None,
+                "course": progress.course.title,
+                "percent_complete": percent_complete,
+            })
+
+        return Response({"overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
+                         "paths": progress_data})

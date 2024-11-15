@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import LearningPathList from "./LearningPathList";
-import "../styles/Dashboard.css"; // Import the Dashboard page CSS
+import "../styles/Dashboard.css";
+import UserProgressBox from "./UserProgressBox";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -57,17 +58,22 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <h1>Welcome to Your Dashboard</h1>
-      <button onClick={handleLogout}>Logout</button>
-      {user && <h2>Hello, {user.username}!</h2>}
+      <div className="content">
+        <div className="main-section">
+          <h1>Welcome to Your Dashboard</h1>
+          <button onClick={handleLogout}>Logout</button>
+          {user && <h2>Hello, {user.username}!</h2>}
 
-      <div className="learning-path-container">
-        <LearningPathList
-          learningPaths={learningPaths}
-          activePathId={activePathId}
-          onTogglePath={togglePath}
-          onCourseClick={handleCourseClick}
-        />
+          <div className="learning-path-container">
+            <LearningPathList
+              learningPaths={learningPaths}
+              activePathId={activePathId}
+              onTogglePath={togglePath}
+              onCourseClick={handleCourseClick}
+            />
+          </div>
+        </div>
+        <UserProgressBox /> {/* Add Progress Box */}
       </div>
     </div>
   );
