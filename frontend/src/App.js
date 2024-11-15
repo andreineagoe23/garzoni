@@ -7,18 +7,24 @@ import Welcome from "./components/Welcome";
 import CoursePage from "./components/CoursePage";
 import LessonPage from "./components/LessonPage";
 import Dashboard from "./components/Dashboard";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Welcome />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/courses/:pathId" element={<CoursePage />} />
-        <Route path="/lessons/:courseId" element={<LessonPage />} />
-      </Routes>
+      <div style={{ display: "flex" }}>
+        <Navbar />
+        <div style={{ marginLeft: "250px", padding: "20px", width: "100%" }}>
+          <Routes>
+            <Route path="/" element={<Welcome />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/courses/:pathId" element={<CoursePage />} />
+            <Route path="/lessons/:courseId" element={<LessonPage />} />
+          </Routes>
+        </div>
+      </div>
     </Router>
   );
 }

@@ -4,13 +4,14 @@ import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
 
 function LessonPage() {
-  const { courseId } = useParams();
+  const { courseId } = useParams(); // Get courseId from URL params
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completedLessons, setCompletedLessons] = useState([]);
-  const [selectedLesson, setSelectedLesson] = useState(null); // Track the selected lesson for viewing content
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
+  // UseEffect to fetch lessons and completed lessons
   useEffect(() => {
     const fetchLessons = async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -22,12 +23,13 @@ function LessonPage() {
 
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/lessons/?course=${courseId}`,
+          `http://localhost:8000/api/lessons/with_progress/?course=${courseId}`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
-        setLessons(response.data);
+        console.log("Fetched lessons:", response.data); // Debug: Ensure detailed_content is present
+        setLessons(response.data); // Save lessons, including detailed_content
       } catch (err) {
         console.error("Failed to fetch lessons:", err);
         setError("Failed to load lessons. Please try again.");
@@ -37,21 +39,34 @@ function LessonPage() {
     };
 
     const fetchProgress = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken) {
-        try {
-          const response = await axios.get(
-            "http://localhost:8000/api/userprogress/",
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          );
-          const completedLessons = response.data
-            .filter((progress) => progress.is_course_complete)
-            .map((progress) => progress.completed_lessons);
-          setCompletedLessons(completedLessons);
-        } catch (err) {
-          console.error("Failed to fetch progress:", err);
+      const storedProgress = localStorage.getItem(
+        `completedLessons_${courseId}`
+      );
+      if (storedProgress) {
+        setCompletedLessons(JSON.parse(storedProgress)); // Get progress from localStorage
+      } else {
+        // Fetch from the backend if nothing is stored
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+          try {
+            const response = await axios.get(
+              "http://localhost:8000/api/userprogress/",
+              {
+                headers: { Authorization: `Bearer ${accessToken}` },
+              }
+            );
+            const completedLessons = response.data
+              .filter((progress) => progress.is_course_complete)
+              .map((progress) => progress.completed_lessons);
+            setCompletedLessons(completedLessons);
+            // Store in localStorage
+            localStorage.setItem(
+              `completedLessons_${courseId}`,
+              JSON.stringify(completedLessons)
+            );
+          } catch (err) {
+            console.error("Failed to fetch progress:", err);
+          }
         }
       }
     };
@@ -75,7 +90,14 @@ function LessonPage() {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
-      setCompletedLessons((prev) => [...prev, lessonId]);
+      setCompletedLessons((prev) => {
+        const newCompletedLessons = [...prev, lessonId];
+        localStorage.setItem(
+          `completedLessons_${courseId}`,
+          JSON.stringify(newCompletedLessons)
+        );
+        return newCompletedLessons;
+      });
       // Automatically unlock next lesson after completing the current one
       const nextLessonId = lessons.find((lesson) => lesson.id === lessonId + 1);
       if (nextLessonId) {
@@ -106,7 +128,6 @@ function LessonPage() {
 
   return (
     <div>
-      <h3>Lessons</h3>
       <div className="lessons-container">
         <div className={styles.lessonBox}>
           {lessons.length > 0 ? (
@@ -135,9 +156,12 @@ function LessonPage() {
                   {/* Show full content when the lesson is clicked */}
                   {selectedLesson === lesson.id && (
                     <div className={styles.lessonContent}>
-                      <p>{lesson.detailed_content}</p>{" "}
-                      {/* Show the detailed content here */}
-                      {/* Complete button only appears at the end of the content */}
+                      {/* Debugging: Log to ensure detailed content exists */}
+                      {lesson.detailed_content ? (
+                        <p>{lesson.detailed_content}</p>
+                      ) : (
+                        <p>No detailed content available.</p>
+                      )}
                       {!isCompleted && (
                         <button onClick={() => handleCompleteLesson(lesson.id)}>
                           Complete Lesson

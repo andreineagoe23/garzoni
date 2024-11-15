@@ -64,13 +64,6 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        course_id = self.request.query_params.get("course", None)
-        if course_id:
-            queryset = queryset.filter(course_id=course_id)
-        return queryset
-
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def with_progress(self, request):
         course_id = request.query_params.get("course", None)
@@ -80,19 +73,23 @@ class LessonViewSet(viewsets.ModelViewSet):
         lessons = self.get_queryset().filter(course_id=course_id)
         user_progress = UserProgress.objects.filter(user=request.user, course_id=course_id).first()
 
-        completed_count = user_progress.completed_lessons if user_progress else 0
-        lesson_data = []
-        
-        for i, lesson in enumerate(lessons):
-            lesson_data.append({
+        completed_lesson_ids = (
+            user_progress.completed_lessons.values_list("id", flat=True) if user_progress else []
+        )
+
+        lesson_data = [
+            {
                 "id": lesson.id,
                 "title": lesson.title,
                 "short_description": lesson.short_description,
-                "accessible": i <= completed_count,
-            })
-        
-        return Response(lesson_data)
+                "detailed_content": lesson.detailed_content,
+                "accessible": lesson.id in completed_lesson_ids or lesson.id == lessons.first().id,
+                "is_completed": lesson.id in completed_lesson_ids,
+            }
+            for lesson in lessons
+        ]
 
+        return Response(lesson_data)
 
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
@@ -115,15 +112,25 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Proceed with marking the lesson as completed for the logged-in user
+        course = lesson.course
+
+        # Create a UserProgress entry for the course if it doesn't already exist
         user_progress, created = UserProgress.objects.get_or_create(
             user=request.user,
-            course=lesson.course
+            course=course
         )
 
-        user_progress.completed_lessons += 1
-        if user_progress.completed_lessons == lesson.course.lessons.count():
+        # Add the completed lesson to the progress
+        user_progress.completed_lessons.add(lesson)
+
+        # Check if all lessons are completed for the current course
+        all_lessons = course.lessons.all()
+        if set(user_progress.completed_lessons.all()) == set(all_lessons):
             user_progress.is_course_complete = True
+
         user_progress.save()
 
-        return Response({"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete}, status=status.HTTP_200_OK)
+        return Response(
+            {"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete},
+            status=status.HTTP_200_OK
+        )

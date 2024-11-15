@@ -13,7 +13,7 @@
 }
 
 .welcome-container button {
-  background-color: #4caf50;
+  background-color: #1abc9c;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -24,5 +24,5 @@
 }
 
 .welcome-container button:hover {
-  background-color: #45a049;
+  background-color: #1abc9c;
 }

@@ -64,9 +64,9 @@ class Quiz(models.Model):
 
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="progress")
-    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="user_progress")
-    completed_lessons = models.IntegerField(default=0) 
-    is_course_complete = models.BooleanField(default=False) 
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="user_progress")
+    completed_lessons = models.ManyToManyField(Lesson, blank=True)
+    is_course_complete = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title}"
@@ -74,3 +74,4 @@ class UserProgress(models.Model):
     class Meta:
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
+

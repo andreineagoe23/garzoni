@@ -1,75 +1,74 @@
 /* src/styles/Dashboard.css */
 .dashboard {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .dashboard h1 {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  .dashboard button {
-    background-color: #4caf50;
-    color: white;
-    padding: 12px 20px;
-    font-size: 1.2rem;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-bottom: 20px;
-  }
-  
-  .dashboard button:hover {
-    background-color: #45a049;
-  }
-  
-  .dashboard h2 {
-    font-size: 1.5rem;
-    color: #333;
-  }
-  
-  .learning-path-container {
-    margin-top: 30px;
-  }
-  
-  .learning-path {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border: 1px solid #ddd;
-  }
-  
-  .learning-path.active {
-    background-color: #e0f7fa;
-    border-color: #4caf50;
-  }
-  
-  .learning-path h3 {
-    font-size: 1.3rem;
-    color: #333;
-    margin: 0;
-  }
-  
-  .learning-path ul {
-    margin-top: 10px;
-    padding-left: 20px;
-  }
-  
-  .learning-path ul li {
-    font-size: 1.1rem;
-    color: #666;
-  }
-  
-  .learning-path ul li:hover {
-    color: #333;
-    cursor: pointer;
-  }
-  
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.dashboard button {
+  background-color: #1abc9c;
+  color: white;
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.dashboard button:hover {
+  background-color: #1abc9c;
+}
+
+.dashboard h2 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.learning-path-container {
+  margin-top: 30px;
+}
+
+.learning-path {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+}
+
+.learning-path.active {
+  background-color: #e0f7fa;
+  border-color: #1abc9c;
+}
+
+.learning-path h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+}
+
+.learning-path ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.learning-path ul li {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.learning-path ul li:hover {
+  color: #333;
+  cursor: pointer;
+}

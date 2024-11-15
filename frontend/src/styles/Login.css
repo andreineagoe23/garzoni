@@ -36,7 +36,7 @@
 .login-container button {
   width: 100%;
   padding: 12px;
-  background-color: #4caf50;
+  background-color: #1abc9c;
   color: white;
   font-size: 1.2rem;
   border: none;
@@ -46,5 +46,5 @@
 }
 
 .login-container button:hover {
-  background-color: #45a049;
+  background-color: #1abc9c;
 }
