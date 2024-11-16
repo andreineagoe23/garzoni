@@ -28,4 +28,6 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
+    path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
+    path('userprofiles/', UserProfileViewSet.as_view({'get': 'list'}), name='user-profile-list'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

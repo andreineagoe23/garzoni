@@ -9,6 +9,7 @@ from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer
 )
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # User profile view
 class UserProfileView(APIView):
@@ -54,6 +55,30 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    @action(detail=False, methods=["put"], url_path="update")
+    def update_profile(self, request):
+        user = request.user
+        data = request.data
+
+        # Update User fields
+        user.username = data.get("username", user.username)
+        user.email = data.get("email", user.email)
+        user.first_name = data.get("first_name", user.first_name)
+        user.last_name = data.get("last_name", user.last_name)
+
+        # Update profile picture if provided
+        profile = user.userprofile
+        if "profile_picture" in request.FILES:
+            profile.profile_picture = request.FILES["profile_picture"]
+
+        user.save()
+        profile.save()
+
+        return Response({"message": "Profile updated successfully!"}, status=200)
+
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()

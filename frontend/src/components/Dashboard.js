@@ -73,7 +73,7 @@ function Dashboard() {
             />
           </div>
         </div>
-        <UserProgressBox /> {/* Add Progress Box */}
+        <UserProgressBox />
       </div>
     </div>
   );
