@@ -25,7 +25,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'earned_money']
+        fields = ['id', 'user', 'earned_money', 'email_reminders']
 
     def get_user(self, obj):
         return {

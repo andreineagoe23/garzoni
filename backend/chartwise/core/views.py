@@ -16,15 +16,23 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Get the logged-in user's data
-        user = request.user
+        user_profile = request.user.userprofile
         user_data = {
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "username": user.username,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "email": request.user.email,
+            "username": request.user.username,
+            "email_reminders": user_profile.email_reminders,  # Include in response
         }
         return Response(user_data)
+
+    def patch(self, request):
+        user_profile = request.user.userprofile
+        email_reminders = request.data.get('email_reminders')
+        if email_reminders is not None:
+            user_profile.email_reminders = email_reminders
+            user_profile.save()
+        return Response({"message": "Profile updated successfully."})
 
 
 # User registration view

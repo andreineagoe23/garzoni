@@ -9,6 +9,7 @@ import LessonPage from "./components/LessonPage";
 import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar";
 import Profile from "./components/Profile";
+import Settings from "./components/Settings";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/courses/:pathId" element={<CoursePage />} />
             <Route path="/lessons/:courseId" element={<LessonPage />} />
           </Routes>
