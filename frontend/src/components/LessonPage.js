@@ -95,6 +95,7 @@ function LessonPage() {
     }
 
     try {
+      // Mark lesson as complete
       await axios.post(
         `http://localhost:8000/api/progress/complete/`,
         { lesson_id: lessonId },
@@ -102,6 +103,8 @@ function LessonPage() {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
+
+      // Update completed lessons state immediately
       setCompletedLessons((prev) => {
         const newCompletedLessons = [...prev, lessonId];
         localStorage.setItem(
@@ -111,8 +114,15 @@ function LessonPage() {
         return newCompletedLessons;
       });
 
+      // Trigger success message immediately
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
+
+      // Hide the success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
+
+      // Force a re-render by updating the selectedLesson state
+      setSelectedLesson(null); // Deselect the current lesson to force re-render
+      setLessons((prevLessons) => [...prevLessons]); // Trigger re-render by updating lessons
     } catch (err) {
       console.error("Failed to complete lesson:", err);
       setError("Failed to complete lesson. Please try again.");
