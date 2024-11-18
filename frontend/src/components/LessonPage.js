@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
 import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
 
 function LessonPage() {
-  const { courseId } = useParams(); // Get courseId from URL params
+  const { courseId } = useParams();
+  const navigate = useNavigate(); // To navigate to another page
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [courseCompleted, setCourseCompleted] = useState(false); // Track if the course is completed
 
-  // UseEffect to fetch lessons and completed lessons
   useEffect(() => {
     const fetchLessons = async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -24,12 +26,15 @@ function LessonPage() {
       try {
         const response = await axios.get(
           `http://localhost:8000/api/lessons/with_progress/?course=${courseId}`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        console.log("Fetched lessons:", response.data); // Debug: Ensure detailed_content is present
-        setLessons(response.data); // Save lessons, including detailed_content
+        const lessonsWithProgress = response.data;
+        setLessons(lessonsWithProgress);
+        setCompletedLessons(
+          lessonsWithProgress
+            .filter((lesson) => lesson.is_completed)
+            .map((l) => l.id)
+        );
       } catch (err) {
         console.error("Failed to fetch lessons:", err);
         setError("Failed to load lessons. Please try again.");
@@ -43,9 +48,8 @@ function LessonPage() {
         `completedLessons_${courseId}`
       );
       if (storedProgress) {
-        setCompletedLessons(JSON.parse(storedProgress)); // Get progress from localStorage
+        setCompletedLessons(JSON.parse(storedProgress));
       } else {
-        // Fetch from the backend if nothing is stored
         const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
           try {
@@ -59,7 +63,6 @@ function LessonPage() {
               .filter((progress) => progress.is_course_complete)
               .map((progress) => progress.completed_lessons);
             setCompletedLessons(completedLessons);
-            // Store in localStorage
             localStorage.setItem(
               `completedLessons_${courseId}`,
               JSON.stringify(completedLessons)
@@ -74,6 +77,15 @@ function LessonPage() {
     fetchLessons();
     fetchProgress();
   }, [courseId]);
+
+  useEffect(() => {
+    // Check if all lessons are completed
+    if (lessons.length > 0 && completedLessons.length === lessons.length) {
+      setCourseCompleted(true);
+      console.log("Lessons fetched:", lessons);
+      console.log("Completed lessons:", completedLessons);
+    }
+  }, [lessons, completedLessons]);
 
   const handleCompleteLesson = async (lessonId) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -98,23 +110,24 @@ function LessonPage() {
         );
         return newCompletedLessons;
       });
-      // Automatically unlock next lesson after completing the current one
-      const nextLessonId = lessons.find((lesson) => lesson.id === lessonId + 1);
-      if (nextLessonId) {
-        setSelectedLesson(nextLessonId.id); // Automatically select next lesson
-      }
+
+      setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Failed to complete lesson:", err);
       setError("Failed to complete lesson. Please try again.");
     }
   };
 
+  const handleCourseCompletion = () => {
+    navigate(`/quiz/${courseId}`); // Navigate to the quiz page for the course
+  };
+
   const handleLessonClick = (lessonId) => {
-    // Toggle the visibility of lesson content
     if (selectedLesson === lessonId) {
-      setSelectedLesson(null); // Deselect if it's already selected
+      setSelectedLesson(null);
     } else {
-      setSelectedLesson(lessonId); // Set selected lesson to the clicked one
+      setSelectedLesson(lessonId);
     }
   };
 
@@ -129,13 +142,17 @@ function LessonPage() {
   return (
     <div>
       <div className="lessons-container">
+        {successMessage && (
+          <p className={styles.successMessage}>{successMessage}</p>
+        )}
+
         <div className={styles.lessonBox}>
           {lessons.length > 0 ? (
             lessons.map((lesson, index) => {
               const isCompleted = completedLessons.includes(lesson.id);
               const isAccessible =
                 index === 0 ||
-                completedLessons.includes(lessons[index - 1]?.id); // Check if lesson is unlocked
+                completedLessons.includes(lessons[index - 1]?.id);
 
               return (
                 <div
@@ -153,10 +170,8 @@ function LessonPage() {
                   </h4>
                   <p>{lesson.short_description}</p>
 
-                  {/* Show full content when the lesson is clicked */}
                   {selectedLesson === lesson.id && (
                     <div className={styles.lessonContent}>
-                      {/* Debugging: Log to ensure detailed content exists */}
                       {lesson.detailed_content ? (
                         <p>{lesson.detailed_content}</p>
                       ) : (
@@ -177,6 +192,16 @@ function LessonPage() {
             <p>No lessons available for this course.</p>
           )}
         </div>
+
+        {/* Show course completion section */}
+        {courseCompleted && (
+          <div className={styles.courseCompletion}>
+            <h3>Congratulations! You've completed the course.</h3>
+            <button onClick={handleCourseCompletion}>
+              Take the Course Quiz
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
-        fields = '__all__'
+        fields = ['id', 'course', 'title', 'question', 'choices', 'correct_answer']
 
 class LessonSerializer(serializers.ModelSerializer):
     quizzes = QuizSerializer(many=True, read_only=True)
@@ -49,10 +49,11 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
+    quizzes = QuizSerializer(many=True, read_only=True)  # Add quizzes here
 
     class Meta:
         model = Course
-        fields = ['id', 'path', 'title', 'description', 'lessons']
+        fields = ['id', 'path', 'title', 'description', 'lessons', 'quizzes']
 
 class PathSerializer(serializers.ModelSerializer):
     courses = CourseSerializer(many=True, read_only=True)

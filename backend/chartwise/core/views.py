@@ -127,7 +127,20 @@ class LessonViewSet(viewsets.ModelViewSet):
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        course_id = self.request.query_params.get("course")
+        if not course_id:
+            return Quiz.objects.none()
+
+        # Check if the user has completed the course
+        user_progress = UserProgress.objects.filter(user=user, course_id=course_id, is_course_complete=True).first()
+        if user_progress:
+            return Quiz.objects.filter(course_id=course_id)
+        return Quiz.objects.none()
+            
 
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()

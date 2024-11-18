@@ -10,6 +10,7 @@ import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar";
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
+import QuizPage from "./components/QuizPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/courses/:pathId" element={<CoursePage />} />
             <Route path="/lessons/:courseId" element={<LessonPage />} />
+            <Route path="/quiz/:courseId" element={<QuizPage />} />
           </Routes>
         </div>
       </div>

@@ -56,16 +56,21 @@ class Lesson(models.Model):
         verbose_name_plural = "Lessons"
 
 class Quiz(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="quizzes")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
+    title = models.CharField(max_length=200)
     question = models.TextField()
+    choices = models.JSONField()  # To store multiple choice options as a JSON object
     correct_answer = models.CharField(max_length=200)
 
     def __str__(self):
-        return f"Quiz for {self.lesson.title}: {self.question[:50]}"
+        question_preview = self.question[:50] if self.question else "No question available"
+        return f"{self.title}: {question_preview}"
+
 
     class Meta:
         verbose_name = "Quiz"
         verbose_name_plural = "Quizzes"
+
 
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="progress")

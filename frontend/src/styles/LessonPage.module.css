@@ -47,3 +47,27 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+.successMessage {
+  color: green;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.courseCompletion {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.courseCompletion button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.courseCompletion button:hover {
+  background-color: #45a049;
+}
