@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -9,9 +10,10 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
-
-    def __str__(self):
-        return self.user.username
+    def add_money(self, amount):
+        amount = Decimal(str(amount))
+        self.earned_money += amount
+        self.save()
 
     class Meta:
         verbose_name = "User Profile"

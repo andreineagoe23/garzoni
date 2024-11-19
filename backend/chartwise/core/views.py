@@ -22,7 +22,8 @@ class UserProfileView(APIView):
             "last_name": request.user.last_name,
             "email": request.user.email,
             "username": request.user.username,
-            "email_reminders": user_profile.email_reminders,  # Include in response
+            "email_reminders": user_profile.email_reminders,
+            "earned_money": user_profile.earned_money, 
         }
         return Response(user_data)
 
@@ -135,11 +136,31 @@ class QuizViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Quiz.objects.none()
 
-        # Check if the user has completed the course
         user_progress = UserProgress.objects.filter(user=user, course_id=course_id, is_course_complete=True).first()
         if user_progress:
             return Quiz.objects.filter(course_id=course_id)
         return Quiz.objects.none()
+
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    def complete(self, request):
+        quiz_id = request.data.get("quiz_id")
+        selected_answer = request.data.get("selected_answer")
+
+        if not quiz_id or not selected_answer:
+            return Response({"error": "Quiz ID and selected answer are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if quiz.correct_answer == selected_answer:
+            # Award money for quiz completion
+            user_profile = request.user.userprofile
+            user_profile.add_money(10.00)  # Adjust the reward as needed
+            return Response({"message": "Quiz completed successfully!", "earned_money": 10.00}, status=status.HTTP_200_OK)
+
+        return Response({"message": "Incorrect answer. Try again!"}, status=status.HTTP_400_BAD_REQUEST)
             
 
 class UserProgressViewSet(viewsets.ModelViewSet):
@@ -159,20 +180,23 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
 
         course = lesson.course
+        user_profile = request.user.userprofile  # Get the user's profile
 
-        # Create a UserProgress entry for the course if it doesn't already exist
-        user_progress, created = UserProgress.objects.get_or_create(
-            user=request.user,
-            course=course
-        )
+        # Create or get the UserProgress entry for the course
+        user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
 
         # Add the completed lesson to the progress
         user_progress.completed_lessons.add(lesson)
 
-        # Check if all lessons are completed for the current course
+        # Award money for lesson completion
+        user_profile.add_money(5.00)  # Earn money per lesson completed, adjust as needed
+
+        # Check if all lessons are completed for the course
         all_lessons = course.lessons.all()
         if set(user_progress.completed_lessons.all()) == set(all_lessons):
             user_progress.is_course_complete = True
+            # Award bonus money for completing the course
+            user_profile.add_money(20.00)  # Earn a bonus for course completion, adjust as needed
 
         user_progress.save()
 

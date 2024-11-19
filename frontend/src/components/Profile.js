@@ -1,4 +1,3 @@
-// src/components/Profile.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
@@ -9,6 +8,7 @@ function Profile() {
     email: "",
     first_name: "",
     last_name: "",
+    earned_money: 0.0, // Add default balance
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [message, setMessage] = useState("");
@@ -20,42 +20,41 @@ function Profile() {
         const response = await axios.get(
           "http://localhost:8000/api/userprofiles/",
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
-        const userProfile = response.data[0].user;
-        setProfileData(userProfile);
+        const data = response.data;
+
+        setProfileData({
+          username: data.username || "",
+          email: data.email || "",
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          earned_money: data.earned_money || 0.0,
+        });
       } catch (error) {
-        console.error("Error fetching user profile:", error);
+        console.error("Error fetching profile:", error);
       }
     };
+
     fetchProfile();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData({ ...profileData, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    setProfilePicture(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleProfileUpdate = async () => {
     const token = localStorage.getItem("accessToken");
     const formData = new FormData();
     formData.append("username", profileData.username);
     formData.append("email", profileData.email);
     formData.append("first_name", profileData.first_name);
     formData.append("last_name", profileData.last_name);
-    if (profilePicture) {
-      formData.append("profile_picture", profilePicture);
-    }
+    formData.append("earned_money", profileData.earned_money); // Include earned_money
+    if (profilePicture) formData.append("profile_picture", profilePicture);
 
     try {
-      await axios.put(
-        "http://localhost:8000/api/userprofiles/update/",
+      const response = await axios.put(
+        "http://localhost:8000/api/userprofiles/",
         formData,
         {
           headers: {
@@ -65,59 +64,83 @@ function Profile() {
         }
       );
       setMessage("Profile updated successfully!");
+
+      // Update the frontend state with the new data
+      setProfileData((prevData) => ({
+        ...prevData,
+        earned_money: parseFloat(response.data.earned_money),
+      }));
     } catch (error) {
       console.error("Error updating profile:", error);
-      setMessage("Failed to update profile. Please try again.");
+      setMessage("Failed to update profile.");
     }
   };
 
   return (
-    <div className="profile">
-      <h1>User Profile</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Username:
+    <div className="profile-container">
+      <h2>Profile</h2>
+      <div>
+        <h3>Balance:</h3>
+        <p>
+          {profileData.earned_money
+            ? profileData.earned_money.toFixed(2)
+            : "0.00"}
+        </p>
+      </div>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div>
+          <label>First Name:</label>
           <input
             type="text"
-            name="username"
-            value={profileData.username}
-            onChange={handleInputChange}
+            value={profileData.first_name}
+            onChange={(e) =>
+              setProfileData({ ...profileData, first_name: e.target.value })
+            }
           />
-        </label>
-        <label>
-          Email:
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input
+            type="text"
+            value={profileData.last_name}
+            onChange={(e) =>
+              setProfileData({ ...profileData, last_name: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            value={profileData.username}
+            onChange={(e) =>
+              setProfileData({ ...profileData, username: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label>Email:</label>
           <input
             type="email"
-            name="email"
             value={profileData.email}
-            onChange={handleInputChange}
+            onChange={(e) =>
+              setProfileData({ ...profileData, email: e.target.value })
+            }
           />
-        </label>
-        <label>
-          First Name:
+        </div>
+        <div>
+          <label>Profile Picture:</label>
           <input
-            type="text"
-            name="first_name"
-            value={profileData.first_name}
-            onChange={handleInputChange}
+            type="file"
+            accept="image/*"
+            onChange={(e) => setProfilePicture(e.target.files[0])}
           />
-        </label>
-        <label>
-          Last Name:
-          <input
-            type="text"
-            name="last_name"
-            value={profileData.last_name}
-            onChange={handleInputChange}
-          />
-        </label>
-        <label>
-          Profile Picture:
-          <input type="file" onChange={handleFileChange} />
-        </label>
-        <button type="submit">Update Profile</button>
+        </div>
+        <button type="button" onClick={handleProfileUpdate}>
+          Save Changes
+        </button>
+        {message && <p>{message}</p>}
       </form>
-      {message && <p>{message}</p>}
     </div>
   );
 }
