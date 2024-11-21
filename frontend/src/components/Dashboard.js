@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import LearningPathList from "./LearningPathList";
-import "../styles/Dashboard.css";
 import UserProgressBox from "./UserProgressBox";
+import "../styles/Dashboard.css";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [learningPaths, setLearningPaths] = useState([]);
-  const [activePathId, setActivePathId] = useState(null); // Track the currently active path
+  const [activePathId, setActivePathId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +21,11 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log("User profile response:", response.data); // Log response
-          const userProfile = response.data[0]; // Access the first user profile in the array
+          const userProfile = response.data[0];
           if (userProfile) {
-            setUser(userProfile.user); // Extract and set the nested user object
+            setUser(userProfile.user);
           } else {
-            console.error("No user profile found in the response.");
+            console.error("No user profile found.");
           }
         })
         .catch((error) => console.error("Failed to fetch user data:", error));
@@ -53,15 +52,17 @@ function Dashboard() {
   };
 
   const togglePath = (pathId) => {
-    setActivePathId((prevPathId) => (prevPathId === pathId ? null : pathId)); // Toggle visibility
+    setActivePathId((prevPathId) => (prevPathId === pathId ? null : pathId));
   };
 
   return (
     <div className="dashboard">
-      <div className="content">
+      <div className="dashboard-container">
         <div className="main-section">
           <h1>Welcome to Your Dashboard</h1>
-          <button onClick={handleLogout}>Logout</button>
+          <button onClick={handleLogout} className="btn btn-danger">
+            Logout
+          </button>
           {user && <h2>Hello, {user.username}!</h2>}
 
           <div className="learning-path-container">

@@ -7,11 +7,10 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
-# User profile view
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -157,7 +156,8 @@ class QuizViewSet(viewsets.ModelViewSet):
         if quiz.correct_answer == selected_answer:
             # Award money for quiz completion
             user_profile = request.user.userprofile
-            user_profile.add_money(10.00)  # Adjust the reward as needed
+            user_profile.add_money(10.00)
+            user_profile.add_points(20)
             return Response({"message": "Quiz completed successfully!", "earned_money": 10.00}, status=status.HTTP_200_OK)
 
         return Response({"message": "Incorrect answer. Try again!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -180,24 +180,17 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
 
         course = lesson.course
-        user_profile = request.user.userprofile  # Get the user's profile
-
-        # Create or get the UserProgress entry for the course
+        user_profile = request.user.userprofile
         user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
-
-        # Add the completed lesson to the progress
         user_progress.completed_lessons.add(lesson)
-
-        # Award money for lesson completion
-        user_profile.add_money(5.00)  # Earn money per lesson completed, adjust as needed
-
-        # Check if all lessons are completed for the course
+        user_profile.add_money(5.00) 
+        user_profile.add_points(10)
         all_lessons = course.lessons.all()
+
         if set(user_progress.completed_lessons.all()) == set(all_lessons):
             user_progress.is_course_complete = True
-            # Award bonus money for completing the course
-            user_profile.add_money(20.00)  # Earn a bonus for course completion, adjust as needed
-
+            user_profile.add_money(20.00)
+            user_profile.add_points(50)
         user_progress.save()
 
         return Response(
@@ -224,3 +217,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         return Response({"overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
                          "paths": progress_data})
+
+class LeaderboardViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        top_users = UserProfile.objects.order_by('-points')[:10]
+        serializer = LeaderboardSerializer(top_users, many=True)
+        return Response(serializer.data)

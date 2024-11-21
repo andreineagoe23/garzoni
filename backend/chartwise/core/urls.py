@@ -8,6 +8,7 @@ from .views import (
     PathViewSet,
     RegisterView,
     UserProgressViewSet,
+    LeaderboardViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -26,8 +27,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='login'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
-    path('userprofiles/', UserProfileViewSet.as_view({'get': 'list'}), name='user-profile-list'),
+    path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

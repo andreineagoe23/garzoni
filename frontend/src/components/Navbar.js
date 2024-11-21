@@ -20,18 +20,10 @@ function Navbar() {
 
           <li>
             <NavLink
-              to="/learn"
+              to="/leaderboards"
               className={({ isActive }) => (isActive ? styles.active : "")}
             >
-              Learn
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/standings"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Standings
+              Leaderboards
             </NavLink>
           </li>
           <li>

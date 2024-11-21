@@ -67,3 +67,18 @@ class UserProgressSerializer(serializers.ModelSerializer):
         model = UserProgress
         fields = ['id', 'user', 'course', 'completed_lessons', 'is_course_complete']
         read_only_fields = ['user']
+
+
+class LeaderboardSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'points']
+
+    def get_user(self, obj):
+        return {
+            "id": obj.user.id,
+            "username": obj.user.username,
+            "email": obj.user.email,
+        }

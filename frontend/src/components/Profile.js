@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Profile.css";
+import "../styles/Profile.css"; // Include your custom styles
+import "bootstrap/dist/css/bootstrap.min.css"; // Include Bootstrap styles
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -8,7 +9,7 @@ function Profile() {
     email: "",
     first_name: "",
     last_name: "",
-    earned_money: 0.0, // Add default balance
+    earned_money: 0.0,
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [message, setMessage] = useState("");
@@ -49,7 +50,7 @@ function Profile() {
     formData.append("email", profileData.email);
     formData.append("first_name", profileData.first_name);
     formData.append("last_name", profileData.last_name);
-    formData.append("earned_money", profileData.earned_money); // Include earned_money
+    formData.append("earned_money", profileData.earned_money);
     if (profilePicture) formData.append("profile_picture", profilePicture);
 
     try {
@@ -65,7 +66,6 @@ function Profile() {
       );
       setMessage("Profile updated successfully!");
 
-      // Update the frontend state with the new data
       setProfileData((prevData) => ({
         ...prevData,
         earned_money: parseFloat(response.data.earned_money),
@@ -77,70 +77,87 @@ function Profile() {
   };
 
   return (
-    <div className="profile-container">
-      <h2>Profile</h2>
-      <div>
-        <h3>Balance:</h3>
-        <p>
-          {profileData.earned_money
-            ? profileData.earned_money.toFixed(2)
-            : "0.00"}
-        </p>
+    <div className="container profile-container my-5">
+      <div className="card p-4 shadow-sm">
+        <h2 className="text-center mb-4">Profile</h2>
+
+        <div className="mb-3">
+          <h4 className="text-muted">Balance:</h4>
+          <p className="h5 balance">
+            ${profileData.earned_money ? profileData.earned_money.toFixed(2) : "0.00"}
+          </p>
+        </div>
+
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className="mb-3">
+            <label className="form-label">First Name</label>
+            <input
+              type="text"
+              className="form-control"
+              value={profileData.first_name}
+              onChange={(e) =>
+                setProfileData({ ...profileData, first_name: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Last Name</label>
+            <input
+              type="text"
+              className="form-control"
+              value={profileData.last_name}
+              onChange={(e) =>
+                setProfileData({ ...profileData, last_name: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Username</label>
+            <input
+              type="text"
+              className="form-control"
+              value={profileData.username}
+              onChange={(e) =>
+                setProfileData({ ...profileData, username: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              value={profileData.email}
+              onChange={(e) =>
+                setProfileData({ ...profileData, email: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Profile Picture</label>
+            <input
+              type="file"
+              className="form-control"
+              accept="image/*"
+              onChange={(e) => setProfilePicture(e.target.files[0])}
+            />
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-primary w-100"
+            onClick={handleProfileUpdate}
+          >
+            Save Changes
+          </button>
+
+          {message && <p className="mt-3 text-center text-success">{message}</p>}
+        </form>
       </div>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div>
-          <label>First Name:</label>
-          <input
-            type="text"
-            value={profileData.first_name}
-            onChange={(e) =>
-              setProfileData({ ...profileData, first_name: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input
-            type="text"
-            value={profileData.last_name}
-            onChange={(e) =>
-              setProfileData({ ...profileData, last_name: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={profileData.username}
-            onChange={(e) =>
-              setProfileData({ ...profileData, username: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={profileData.email}
-            onChange={(e) =>
-              setProfileData({ ...profileData, email: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label>Profile Picture:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setProfilePicture(e.target.files[0])}
-          />
-        </div>
-        <button type="button" onClick={handleProfileUpdate}>
-          Save Changes
-        </button>
-        {message && <p>{message}</p>}
-      </form>
     </div>
   );
 }

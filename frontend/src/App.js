@@ -11,6 +11,7 @@ import Navbar from "./components/Navbar";
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import QuizPage from "./components/QuizPage";
+import Leaderboards from "./components/Leaderboard";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/courses/:pathId" element={<CoursePage />} />
             <Route path="/lessons/:courseId" element={<LessonPage />} />
             <Route path="/quiz/:courseId" element={<QuizPage />} />
+            <Route path="/leaderboards" element={<Leaderboards />} />
           </Routes>
         </div>
       </div>
