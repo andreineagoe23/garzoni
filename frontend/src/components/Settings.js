@@ -2,32 +2,56 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 function Settings() {
-    const [emailReminders, setEmailReminders] = useState(false);
+  const [emailReminders, setEmailReminders] = useState(false);
 
-    useEffect(() => {
-        axios.get("/api/userprofiles/me/").then((response) => {
-            setEmailReminders(response.data.email_reminders);
-        });
-    }, []);
-
-    const handleToggle = () => {
-        axios.patch("/api/userprofiles/me/", { email_reminders: !emailReminders })
-            .then(() => setEmailReminders(!emailReminders));
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const token = localStorage.getItem("accessToken");
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/user/settings/",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setEmailReminders(response.data.email_reminders || false);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
     };
 
-    return (
-        <div>
-            <h2>Notification Settings</h2>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={emailReminders}
-                    onChange={handleToggle}
-                />
-                Receive Email Reminders
-            </label>
-        </div>
-    );
+    fetchSettings();
+  }, []);
+
+  const handleToggle = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      await axios.patch(
+        "http://localhost:8000/api/user/settings/",
+        { email_reminders: !emailReminders },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEmailReminders((prev) => !prev);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Notification Settings</h2>
+      <label>
+        <input
+          type="checkbox"
+          checked={emailReminders}
+          onChange={handleToggle}
+        />
+        Receive Email Reminders
+      </label>
+    </div>
+  );
 }
 
 export default Settings;

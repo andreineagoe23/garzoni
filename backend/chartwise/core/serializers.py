@@ -82,3 +82,8 @@ class LeaderboardSerializer(serializers.ModelSerializer):
             "username": obj.user.username,
             "email": obj.user.email,
         }
+
+class UserProfileSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['email_reminders']

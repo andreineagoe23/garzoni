@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer,
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -225,3 +225,21 @@ class LeaderboardViewSet(APIView):
         top_users = UserProfile.objects.order_by('-points')[:10]
         serializer = LeaderboardSerializer(top_users, many=True)
         return Response(serializer.data)
+
+class UserSettingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSettingsSerializer(user_profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSettingsSerializer(
+            user_profile, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)

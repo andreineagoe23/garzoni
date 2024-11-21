@@ -9,6 +9,7 @@ from .views import (
     RegisterView,
     UserProgressViewSet,
     LeaderboardViewSet,
+    UserSettingsView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -32,4 +33,5 @@ urlpatterns = [
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
+    path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
