@@ -6,6 +6,7 @@ import "../styles/Login.css"; // Import the Login page CSS
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // Add error state for invalid login
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -20,6 +21,7 @@ function Login() {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed", error);
+      setError("Invalid username or password");
     }
   };
 
@@ -33,6 +35,7 @@ function Login() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
         </div>
         <div>
@@ -41,10 +44,20 @@ function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
+        {error && <p className="error-message">{error}</p>}{" "}
+        {/* Display error message if login fails */}
         <button type="submit">Login</button>
       </form>
+
+      {/* Add Forgot Password link */}
+      <div className="forgot-password">
+        <a href="http://localhost:8000/api/password-reset/">
+          Forgot your password?
+        </a>
+      </div>
     </div>
   );
 }
