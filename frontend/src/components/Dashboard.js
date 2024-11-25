@@ -17,16 +17,12 @@ function Dashboard() {
       navigate("/login");
     } else {
       axios
-        .get("http://localhost:8000/api/userprofiles/", {
+        .get("http://localhost:8000/api/userprofile/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          const userProfile = response.data[0];
-          if (userProfile) {
-            setUser(userProfile.user);
-          } else {
-            console.error("No user profile found.");
-          }
+          console.log("API Response:", response.data);
+          setUser(response.data); // Directly set the user data
         })
         .catch((error) => console.error("Failed to fetch user data:", error));
 
@@ -63,7 +59,7 @@ function Dashboard() {
           <button onClick={handleLogout} className="btn btn-danger">
             Logout
           </button>
-          {user && <h2>Hello, {user.username}!</h2>}
+          {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
 
           <div className="learning-path-container">
             <LearningPathList

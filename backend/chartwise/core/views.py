@@ -22,15 +22,15 @@ class UserProfileView(APIView):
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
             "email": request.user.email,
-            "username": request.user.username,
+            "username": request.user.username,  # Verify this is correct
             "email_reminders": user_profile.email_reminders,
             "earned_money": float(user_profile.earned_money),
-            "points": user_profile.points,  # Include points here
+            "points": user_profile.points,
         }
+        print("User Data:", user_data)  # Debug log
         return Response(user_data)
-    
-        print("API Response Data:", data)
-        return Response(data)
+
+
 
     def patch(self, request):
         user_profile = request.user.userprofile

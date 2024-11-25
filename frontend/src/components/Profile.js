@@ -22,7 +22,7 @@ function Profile() {
 
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/userprofiles/",
+          "http://localhost:8000/api/userprofile/", // Ensure this endpoint returns the current user data
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -32,25 +32,14 @@ function Profile() {
 
         console.log("Profile data fetched:", response.data);
 
-        const profiles = response.data; // Assuming the API returns an array
-        // Find the current user's profile based on their username or email
-        const loggedInUserEmail = localStorage.getItem("userEmail"); // Replace with how you store user info
-        const userProfile = profiles.find(
-          (profile) => profile.user.email === loggedInUserEmail
-        );
-
-        if (userProfile) {
-          setProfileData({
-            username: userProfile.user.username || "",
-            email: userProfile.user.email || "",
-            first_name: userProfile.user.first_name || "",
-            last_name: userProfile.user.last_name || "",
-            earned_money: parseFloat(userProfile.earned_money) || 0.0,
-            points: userProfile.points || 0,
-          });
-        } else {
-          console.error("No matching profile found for the logged-in user.");
-        }
+        setProfileData({
+          username: response.data.username || "",
+          email: response.data.email || "",
+          first_name: response.data.first_name || "",
+          last_name: response.data.last_name || "",
+          earned_money: parseFloat(response.data.earned_money) || 0.0,
+          points: response.data.points || 0,
+        });
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -78,7 +67,7 @@ function Profile() {
 
     try {
       const response = await axios.put(
-        "http://localhost:8000/api/userprofiles/update/",
+        "http://localhost:8000/api/userprofiles/update/", // Endpoint to update the profile
         formData,
         {
           headers: {
@@ -90,12 +79,11 @@ function Profile() {
 
       console.log("Profile updated successfully:", response.data);
       setMessage("Profile updated successfully!");
-
-      setProfileData((prevData) => ({
-        ...prevData,
+      setProfileData({
+        ...profileData,
         earned_money: parseFloat(response.data.earned_money),
         points: response.data.points,
-      }));
+      });
     } catch (error) {
       console.error("Error updating profile:", error);
       setMessage("Failed to update profile.");

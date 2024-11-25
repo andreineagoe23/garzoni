@@ -34,7 +34,10 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
-    path('userprofiles/', UserProfileView.as_view(), name='user-profile'),
+
+    path("userprofile/", UserProfileView.as_view(), name="userprofile"),  # For logged-in user
+    path("userprofiles/", include(router.urls)),  # For admin or general list
+
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
     path('password-reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
