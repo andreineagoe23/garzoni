@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Profile.css"; // Include your custom styles
-import "bootstrap/dist/css/bootstrap.min.css"; // Include Bootstrap styles
+import "../styles/Profile.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -10,6 +10,7 @@ function Profile() {
     first_name: "",
     last_name: "",
     earned_money: 0.0,
+    points: 0,
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [message, setMessage] = useState("");
@@ -17,6 +18,8 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("accessToken");
+      console.log("Fetching profile data...");
+
       try {
         const response = await axios.get(
           "http://localhost:8000/api/userprofiles/",
@@ -26,17 +29,30 @@ function Profile() {
             },
           }
         );
-        const data = response.data;
 
-        setProfileData({
-          username: data.username || "",
-          email: data.email || "",
-          first_name: data.first_name || "",
-          last_name: data.last_name || "",
-          earned_money: data.earned_money || 0.0,
-        });
+        console.log("Profile data fetched:", response.data);
+
+        const profiles = response.data; // Assuming the API returns an array
+        // Find the current user's profile based on their username or email
+        const loggedInUserEmail = localStorage.getItem("userEmail"); // Replace with how you store user info
+        const userProfile = profiles.find(
+          (profile) => profile.user.email === loggedInUserEmail
+        );
+
+        if (userProfile) {
+          setProfileData({
+            username: userProfile.user.username || "",
+            email: userProfile.user.email || "",
+            first_name: userProfile.user.first_name || "",
+            last_name: userProfile.user.last_name || "",
+            earned_money: parseFloat(userProfile.earned_money) || 0.0,
+            points: userProfile.points || 0,
+          });
+        } else {
+          console.error("No matching profile found for the logged-in user.");
+        }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching profile data:", error);
       }
     };
 
@@ -50,12 +66,19 @@ function Profile() {
     formData.append("email", profileData.email);
     formData.append("first_name", profileData.first_name);
     formData.append("last_name", profileData.last_name);
-    formData.append("earned_money", profileData.earned_money);
     if (profilePicture) formData.append("profile_picture", profilePicture);
+
+    console.log("Updating profile with data:", {
+      username: profileData.username,
+      email: profileData.email,
+      first_name: profileData.first_name,
+      last_name: profileData.last_name,
+      profilePicture,
+    });
 
     try {
       const response = await axios.put(
-        "http://localhost:8000/api/userprofiles/",
+        "http://localhost:8000/api/userprofiles/update/",
         formData,
         {
           headers: {
@@ -64,11 +87,14 @@ function Profile() {
           },
         }
       );
+
+      console.log("Profile updated successfully:", response.data);
       setMessage("Profile updated successfully!");
 
       setProfileData((prevData) => ({
         ...prevData,
         earned_money: parseFloat(response.data.earned_money),
+        points: response.data.points,
       }));
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -84,8 +110,16 @@ function Profile() {
         <div className="mb-3">
           <h4 className="text-muted">Balance:</h4>
           <p className="h5 balance">
-            ${profileData.earned_money ? profileData.earned_money.toFixed(2) : "0.00"}
+            $
+            {isNaN(profileData.earned_money)
+              ? "0.00"
+              : profileData.earned_money.toFixed(2)}
           </p>
+        </div>
+
+        <div className="mb-3">
+          <h4 className="text-muted">Points:</h4>
+          <p className="h5">{profileData.points || 0}</p>
         </div>
 
         <form onSubmit={(e) => e.preventDefault()}>
@@ -94,7 +128,7 @@ function Profile() {
             <input
               type="text"
               className="form-control"
-              value={profileData.first_name}
+              value={profileData.first_name || ""}
               onChange={(e) =>
                 setProfileData({ ...profileData, first_name: e.target.value })
               }
@@ -155,7 +189,9 @@ function Profile() {
             Save Changes
           </button>
 
-          {message && <p className="mt-3 text-center text-success">{message}</p>}
+          {message && (
+            <p className="mt-3 text-center text-success">{message}</p>
+          )}
         </form>
       </div>
     </div>

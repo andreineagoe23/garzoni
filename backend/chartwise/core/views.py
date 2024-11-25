@@ -11,20 +11,26 @@ from .serializers import (
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_profile = request.user.userprofile
+        user_profile = UserProfile.objects.get(user=request.user)
+        serializer = UserProfileSerializer(user_profile)
         user_data = {
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
             "email": request.user.email,
             "username": request.user.username,
             "email_reminders": user_profile.email_reminders,
-            "earned_money": user_profile.earned_money, 
+            "earned_money": float(user_profile.earned_money),
+            "points": user_profile.points,  # Include points here
         }
         return Response(user_data)
+    
+        print("API Response Data:", data)
+        return Response(data)
 
     def patch(self, request):
         user_profile = request.user.userprofile
@@ -33,7 +39,6 @@ class UserProfileView(APIView):
             user_profile.email_reminders = email_reminders
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
-
 
 # User registration view
 class RegisterView(generics.CreateAPIView):
@@ -154,7 +159,6 @@ class QuizViewSet(viewsets.ModelViewSet):
             return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if quiz.correct_answer == selected_answer:
-            # Award money for quiz completion
             user_profile = request.user.userprofile
             user_profile.add_money(10.00)
             user_profile.add_points(20)
@@ -163,6 +167,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         return Response({"message": "Incorrect answer. Try again!"}, status=status.HTTP_400_BAD_REQUEST)
             
 
+# views.py
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()
     serializer_class = UserProgressSerializer
@@ -183,7 +188,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         user_profile = request.user.userprofile
         user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
         user_progress.completed_lessons.add(lesson)
-        user_profile.add_money(5.00) 
+        user_profile.add_money(5.00)
         user_profile.add_points(10)
         all_lessons = course.lessons.all()
 
@@ -197,6 +202,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             {"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete},
             status=status.HTTP_200_OK
         )
+
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):

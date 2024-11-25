@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
 
 function LessonPage() {
   const { courseId } = useParams();
-  const navigate = useNavigate(); // To navigate to another page
+  const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [courseCompleted, setCourseCompleted] = useState(false); // Track if the course is completed
+  const [courseCompleted, setCourseCompleted] = useState(false);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -79,7 +79,6 @@ function LessonPage() {
   }, [courseId]);
 
   useEffect(() => {
-    // Check if all lessons are completed
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
       setCourseCompleted(true);
       console.log("Lessons fetched:", lessons);
@@ -95,7 +94,6 @@ function LessonPage() {
     }
 
     try {
-      // Mark lesson as complete
       await axios.post(
         `http://localhost:8000/api/progress/complete/`,
         { lesson_id: lessonId },
@@ -104,7 +102,6 @@ function LessonPage() {
         }
       );
 
-      // Update completed lessons state immediately
       setCompletedLessons((prev) => {
         const newCompletedLessons = [...prev, lessonId];
         localStorage.setItem(
@@ -114,15 +111,10 @@ function LessonPage() {
         return newCompletedLessons;
       });
 
-      // Trigger success message immediately
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
-
-      // Hide the success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
-
-      // Force a re-render by updating the selectedLesson state
-      setSelectedLesson(null); // Deselect the current lesson to force re-render
-      setLessons((prevLessons) => [...prevLessons]); // Trigger re-render by updating lessons
+      setSelectedLesson(null);
+      setLessons((prevLessons) => [...prevLessons]);
     } catch (err) {
       console.error("Failed to complete lesson:", err);
       setError("Failed to complete lesson. Please try again.");
@@ -130,7 +122,7 @@ function LessonPage() {
   };
 
   const handleCourseCompletion = () => {
-    navigate(`/quiz/${courseId}`); // Navigate to the quiz page for the course
+    navigate(`/quiz/${courseId}`);
   };
 
   const handleLessonClick = (lessonId) => {
@@ -203,7 +195,6 @@ function LessonPage() {
           )}
         </div>
 
-        {/* Show course completion section */}
         {courseCompleted && (
           <div className={styles.courseCompletion}>
             <h3>Congratulations! You've completed the course.</h3>

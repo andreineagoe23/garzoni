@@ -10,6 +10,7 @@ from .views import (
     UserProgressViewSet,
     LeaderboardViewSet,
     UserSettingsView,
+    UserProfileView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -33,6 +34,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
+    path('userprofiles/', UserProfileView.as_view(), name='user-profile'),
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
     path('password-reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),

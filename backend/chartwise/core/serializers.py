@@ -20,12 +20,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         UserProfile.objects.create(user=user)
         return user
 
+# serializers.py
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'earned_money', 'email_reminders']
+        fields = ['id', 'user', 'earned_money', 'email_reminders', 'points']
 
     def get_user(self, obj):
         return {
@@ -49,7 +50,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
-    quizzes = QuizSerializer(many=True, read_only=True)  # Add quizzes here
+    quizzes = QuizSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
