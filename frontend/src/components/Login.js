@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/monevo.png"; // Add your logo image here
 import "../styles/Login.css";
 
 function Login() {
@@ -27,6 +28,8 @@ function Login() {
 
   return (
     <div className="login-container">
+      {/* Logo */}
+      <img src={logo} alt="Logo" className="logo" />
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div>
@@ -47,12 +50,10 @@ function Login() {
             required
           />
         </div>
-        {error && <p className="error-message">{error}</p>}{" "}
-        {/* Display error message if login fails */}
+        {error && <p className="error-message">{error}</p>}
         <button type="submit">Login</button>
       </form>
 
-      {/* Add Forgot Password link */}
       <div className="forgot-password">
         <a href="http://localhost:8000/api/password-reset/">
           Forgot your password?

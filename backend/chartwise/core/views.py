@@ -45,32 +45,9 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
-    def create(self, validated_data):
-        user = super().create(validated_data)
-        mission_templates = MissionTemplate.objects.all()
-        for template in mission_templates:
-            Mission.objects.create(template=template, user=user)
-        return user
-
 class PathViewSet(viewsets.ModelViewSet):
     queryset = Path.objects.all()
     serializer_class = PathSerializer
-
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-        return user
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -204,13 +181,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         missions = Mission.objects.filter(
             user=request.user,
             status='not_started',
-            template__condition_type='complete_lesson',
-            template__condition_value=str(lesson.id)
         )
         for mission in missions:
             mission.status = 'completed'
             mission.save()
-            user_profile.add_points(mission.template.points_reward)
             user_profile.save()
 
         return Response(

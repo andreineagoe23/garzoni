@@ -1,8 +1,18 @@
 /* src/styles/Welcome.css */
+body,
+html {
+  height: 100%;
+  margin: 0;
+}
+
 .welcome-container {
   text-align: center;
   padding: 50px;
   background-color: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
   height: 100vh;
 }
 
@@ -24,5 +34,11 @@
 }
 
 .welcome-container button:hover {
-  background-color: #1abc9c;
+  background-color: #16a085;
+}
+
+/* Add logo styles if needed */
+.logo {
+  max-width: 200px;
+  margin-bottom: 20px;
 }

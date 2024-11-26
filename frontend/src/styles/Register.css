@@ -1,11 +1,21 @@
 /* src/styles/Register.css */
+body,
+html {
+  height: 100%;
+  margin: 0;
+}
+
 .register-container {
   max-width: 500px;
-  margin: 0 auto;
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
 }
 
 .register-container h2 {
@@ -46,5 +56,12 @@
 }
 
 .register-container button:hover {
-  background-color: #1abc9c;
+  background-color: #16a085;
+}
+
+/* Add logo styles if needed */
+.logo {
+  max-width: 150px;
+  margin-bottom: 20px;
+  margin-left: 80px;
 }

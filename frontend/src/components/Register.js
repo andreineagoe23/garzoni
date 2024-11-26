@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Register.css"; // Import the Register page CSS
+import logo from "../assets/monevo.png"; // Add your logo image here
+import "../styles/Register.css";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -20,10 +21,8 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      // Register the user
       await axios.post("http://localhost:8000/api/register/", formData);
 
-      // Automatically log in the user after successful registration
       const loginResponse = await axios.post(
         "http://localhost:8000/api/login/",
         {
@@ -32,11 +31,9 @@ function Register() {
         }
       );
 
-      // Store the tokens
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
-      // Redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
       console.error("Registration or login failed", error);
@@ -45,6 +42,8 @@ function Register() {
 
   return (
     <div className="register-container">
+      {/* Logo */}
+      <img src={logo} alt="Logo" className="logo" />
       <h2>Register</h2>
       <form onSubmit={handleRegister}>
         <div>
