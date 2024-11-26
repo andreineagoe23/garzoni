@@ -12,6 +12,7 @@ import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import QuizPage from "./components/QuizPage";
 import Leaderboards from "./components/Leaderboard";
+import Missions from "./components/Missions";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/lessons/:courseId" element={<LessonPage />} />
             <Route path="/quiz/:courseId" element={<QuizPage />} />
             <Route path="/leaderboards" element={<Leaderboards />} />
+            <Route path="/missions" element={<Missions />} />
           </Routes>
         </div>
       </div>

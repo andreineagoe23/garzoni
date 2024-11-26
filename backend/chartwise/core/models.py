@@ -92,3 +92,20 @@ class UserProgress(models.Model):
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
 
+class Mission(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    points_reward = models.IntegerField()
+    status_choices = [
+        ('not_started', 'Not Started'),
+        ('completed', 'Completed'),
+    ]
+    status = models.CharField(
+        max_length=20, choices=status_choices, default='not_started'
+    )
+    user = models.ForeignKey(User, related_name='missions', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+

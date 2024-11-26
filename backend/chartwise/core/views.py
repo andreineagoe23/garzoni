@@ -4,10 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer,
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -44,6 +44,13 @@ class UserProfileView(APIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+
+    def create(self, validated_data):
+        user = super().create(validated_data)
+        mission_templates = MissionTemplate.objects.all()
+        for template in mission_templates:
+            Mission.objects.create(template=template, user=user)
+        return user
 
 class PathViewSet(viewsets.ModelViewSet):
     queryset = Path.objects.all()
@@ -184,22 +191,30 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Mark lesson as completed
         course = lesson.course
         user_profile = request.user.userprofile
         user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
         user_progress.completed_lessons.add(lesson)
         user_profile.add_money(5.00)
         user_profile.add_points(10)
-        all_lessons = course.lessons.all()
-
-        if set(user_progress.completed_lessons.all()) == set(all_lessons):
-            user_progress.is_course_complete = True
-            user_profile.add_money(20.00)
-            user_profile.add_points(50)
         user_progress.save()
 
+        # Check for mission completion
+        missions = Mission.objects.filter(
+            user=request.user,
+            status='not_started',
+            template__condition_type='complete_lesson',
+            template__condition_value=str(lesson.id)
+        )
+        for mission in missions:
+            mission.status = 'completed'
+            mission.save()
+            user_profile.add_points(mission.template.points_reward)
+            user_profile.save()
+
         return Response(
-            {"status": "Lesson completed", "is_course_complete": user_progress.is_course_complete},
+            {"status": "Lesson completed", "missions_completed": len(missions)},
             status=status.HTTP_200_OK
         )
 
@@ -249,3 +264,30 @@ class UserSettingsView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+class MissionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_missions = Mission.objects.filter(user=request.user)
+        missions_data = [
+            {
+                "id": mission.id,
+                "name": mission.name,
+                "description": mission.description,
+                "status": mission.status,
+                "points_reward": mission.points_reward,
+            }
+            for mission in user_missions
+        ]
+        return Response(missions_data)
+
+    def post(self, request, mission_id):
+        try:
+            mission = Mission.objects.get(id=mission_id, user=request.user)
+            mission.status = 'completed'
+            mission.save()
+
+            return Response({"message": "Mission completed!"}, status=status.HTTP_200_OK)
+        except Mission.DoesNotExist:
+            return Response({"error": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)

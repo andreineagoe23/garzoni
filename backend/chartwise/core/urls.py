@@ -11,6 +11,7 @@ from .views import (
     LeaderboardViewSet,
     UserSettingsView,
     UserProfileView,
+    MissionView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -40,6 +41,10 @@ urlpatterns = [
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
+
+    path("missions/", MissionView.as_view(), name="mission-list"),
+    path("missions/<int:mission_id>/complete/", MissionView.as_view(), name="mission-complete"),
+
     path('password-reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
