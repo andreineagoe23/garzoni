@@ -1,0 +1,71 @@
+/* Missions.css */
+.missions-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.missions-container h2 {
+  color: #002d0b; /* Dark forest green */
+  font-weight: bold;
+}
+
+.list-group-item {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.list-group-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item h5 {
+  margin: 0;
+  color: #002d0b; /* Dark forest green */
+}
+
+.list-group-item p {
+  margin: 5px 0 10px;
+  color: #555;
+}
+
+.list-group-item small {
+  color: #777;
+}
+
+.btn-primary {
+  background-color: #004b1f; /* A richer green for the button */
+  border-color: #004b1f;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #002d0b; /* Match the dark forest green */
+  border-color: #002d0b;
+}
+
+.text-success {
+  color: #28a745 !important;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .list-group-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .list-group-item button {
+    margin-top: 10px;
+    width: 100%;
+  }
+}

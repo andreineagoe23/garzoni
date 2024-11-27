@@ -1,4 +1,4 @@
-/* Navbar styling */
+/* src/styles/Navbar.module.css */
 .navbar {
   width: 250px;
   height: 100vh;
@@ -10,20 +10,17 @@
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 1000; /* Ensure it stays on top of the content */
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Logo styling */
 .logo {
   color: #1abc9c;
   font-size: 28px;
   font-weight: bold;
   margin: 20px 0;
-  margin-bottom: 5rem; /* Space between the logo and the links */
+  margin-bottom: 5rem;
 }
 
-/* Navigation links list styling */
 .navLinks {
   list-style: none;
   padding: 0;
@@ -31,7 +28,6 @@
   width: 100%;
 }
 
-/* Navigation link styling */
 .navLinks li {
   width: 100%;
 }
@@ -42,29 +38,12 @@
   display: block;
   padding: 15px 20px;
   transition: background 0.3s;
-  font-size: 1.1rem;
 }
 
 .navLinks a:hover {
   background-color: #34495e;
 }
 
-/* Active link styling */
 .active {
   background-color: #1abc9c;
-}
-
-/* For responsive screens */
-@media (max-width: 768px) {
-  .navbar {
-    width: 200px; /* Adjust width for smaller screens */
-  }
-
-  .logo {
-    font-size: 24px;
-  }
-
-  .navLinks a {
-    font-size: 1rem;
-  }
 }

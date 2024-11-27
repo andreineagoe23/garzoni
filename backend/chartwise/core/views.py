@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer
@@ -175,20 +175,29 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         user_progress.save()
 
         # Check for mission completion
-        missions = Mission.objects.filter(
-            user=request.user,
-            status='not_started',
-        )
-        for mission in missions:
-            mission.status = 'completed'
-            mission.save()
-            user_profile.save()
+        missions_completed = self.check_and_complete_missions(request.user)
 
         return Response(
-            {"status": "Lesson completed", "missions_completed": len(missions)},
+            {"status": "Lesson completed", "missions_completed": missions_completed},
             status=status.HTTP_200_OK
         )
 
+    def check_and_complete_missions(self, user):
+        """
+        This method checks for missions that are marked as 'not_started' and completes them.
+        """
+        mission_completions = MissionCompletion.objects.filter(
+            user=user,
+            status='not_started',
+        )
+        completed_count = 0
+        for mission_completion in mission_completions:
+            mission_completion.status = 'completed'
+            mission_completion.save()
+            user.userprofile.add_points(mission_completion.mission.points_reward)
+            completed_count += 1
+        user.userprofile.save()
+        return completed_count
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
@@ -209,6 +218,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         return Response({"overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
                          "paths": progress_data})
+
 
 class LeaderboardViewSet(APIView):
     permission_classes = [IsAuthenticated]
@@ -240,25 +250,48 @@ class MissionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_missions = Mission.objects.filter(user=request.user)
-        missions_data = [
-            {
-                "id": mission.id,
-                "name": mission.name,
-                "description": mission.description,
-                "status": mission.status,
-                "points_reward": mission.points_reward,
-            }
-            for mission in user_missions
-        ]
-        return Response(missions_data)
+        user = request.user
+        try:
+            # Fetch all missions and their completion status for the current user
+            missions = Mission.objects.all()
+            completed_missions = MissionCompletion.objects.filter(user=user)
+
+            # Map completed missions for the user to a set
+            completed_mission_ids = {completion.mission.id for completion in completed_missions}
+
+            missions_data = [
+                {
+                    "id": mission.id,
+                    "name": mission.name,
+                    "description": mission.description,
+                    "points_reward": mission.points_reward,
+                    "status": "completed" if mission.id in completed_mission_ids else "not_started",
+                }
+                for mission in missions
+            ]
+            return Response(missions_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Log the error for debugging purposes
+            print(f"Error fetching missions: {e}")
+            return Response({"error": "An error occurred while fetching missions."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, mission_id):
+        user = request.user
         try:
-            mission = Mission.objects.get(id=mission_id, user=request.user)
-            mission.status = 'completed'
-            mission.save()
+            mission = Mission.objects.get(id=mission_id)
 
+            # Check if the mission is already completed
+            mission_completion, created = MissionCompletion.objects.get_or_create(user=user, mission=mission)
+            if not created:
+                return Response({"message": "Mission already completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Mark as completed and reward the user
+            mission_completion.status = "completed"
+            mission_completion.save()
+            user.userprofile.add_points(mission.points_reward)
             return Response({"message": "Mission completed!"}, status=status.HTTP_200_OK)
         except Mission.DoesNotExist:
             return Response({"error": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Error completing mission: {e}")
+            return Response({"error": "An error occurred while completing the mission."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

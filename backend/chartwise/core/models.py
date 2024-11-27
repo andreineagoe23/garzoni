@@ -96,6 +96,14 @@ class Mission(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     points_reward = models.IntegerField()
+
+    def __str__(self):
+        return self.name
+
+
+class MissionCompletion(models.Model):
+    user = models.ForeignKey(User, related_name="completed_missions", on_delete=models.CASCADE)
+    mission = models.ForeignKey(Mission, related_name="completions", on_delete=models.CASCADE)
     status_choices = [
         ('not_started', 'Not Started'),
         ('completed', 'Completed'),
@@ -103,9 +111,7 @@ class Mission(models.Model):
     status = models.CharField(
         max_length=20, choices=status_choices, default='not_started'
     )
-    user = models.ForeignKey(User, related_name='missions', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
-
+        return f"{self.user.username} - {self.mission.name} - {self.status}"
 
