@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from django.conf import settings
 from django.conf.urls.static import static
+import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'chartwise.urls'
@@ -85,6 +87,7 @@ WSGI_APPLICATION = 'chartwise.wsgi.application'
 
 DATABASES = {
     'default': {
+        'default': dj_database_url.config(default='sqlite:///db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'chartwise_db', 
         'USER': 'chartwise_user',          
@@ -92,6 +95,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '3306',                     
     }
+    
 }
 
 
@@ -159,6 +163,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://andreineagoe23.github.io",
+    "https://monevo.onrender.com",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -180,3 +185,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'neagoeandrei23@gmail.com'
 EMAIL_HOST_PASSWORD = 'zdji npku nuld gfaj'
+
+ALLOWED_HOSTS = ['https://monevo.onrender.com', 'https://andreineagoe23.github.io/monevo/']
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
