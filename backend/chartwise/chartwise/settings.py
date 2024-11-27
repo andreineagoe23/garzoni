@@ -158,6 +158,7 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://andreineagoe23.github.io",
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
