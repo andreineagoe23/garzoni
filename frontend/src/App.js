@@ -19,6 +19,7 @@ import Leaderboards from "./components/Leaderboard";
 import Missions from "./components/Missions";
 
 // A wrapper to allow the useLocation hook
+// App.js
 function AppContent() {
   const location = useLocation(); // Get current location/path
 
@@ -26,11 +27,16 @@ function AppContent() {
   const noNavbarPaths = ["/", "/login", "/register"];
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Conditionally render Navbar based on the current route */}
       {!noNavbarPaths.includes(location.pathname) && <Navbar />}
 
-      <div style={{ marginLeft: "250px", padding: "20px", width: "100%" }}>
+      <div
+        className={
+          noNavbarPaths.includes(location.pathname) ? "page-without-navbar" : ""
+        }
+        style={{ padding: "20px", width: "100%", flexGrow: 1 }}
+      >
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />

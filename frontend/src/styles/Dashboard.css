@@ -1,21 +1,50 @@
+/* Dashboard.css */
+.dashboard {
+  display: flex;
+  height: 100vh;
+  overflow: hidden; /* Prevent content overflow */
+}
+
+.main-content {
+  flex: 1; /* Take up the remaining space */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Make the main content scrollable */
+  margin-left: 250px; /* Adjust for the fixed navbar width */
+  padding: 20px;
+}
+
 .dashboard-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start; /* Align items at the top */
+  justify-content: flex-start;
   gap: 20px;
+  width: 100%; /* Ensure container takes up full width */
 }
 
 .main-section {
-  flex: 2; /* Take up more space for pathways */
+  flex: 2;
+  max-width: calc(
+    100% - 320px
+  ); /* Ensure main section does not exceed available space */
+  padding-right: 320px; /* Padding to prevent overlap with user progress section */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-y: auto; /* Allow vertical scrolling if necessary */
 }
 
 .learning-path-container {
   margin-top: 20px;
 }
 
-.progress-box {
-  flex: 1; /* Less space for the progress box */
-  max-width: 300px; /* Limit the width */
+/* User Progress section */
+.user-progress {
+  width: 320px;
+  padding: 20px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: #f4f4f4;
+  overflow-y: auto; /* Ensure user progress section is scrollable vertically */
 }
 
 .dashboard h1 {
@@ -32,10 +61,11 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin-bottom: 20px;
 }
 
 .dashboard button:hover {
-  background-color: #1abc9c;
+  background-color: #16a085;
 }
 
 .dashboard h2 {

@@ -10,6 +10,7 @@
   margin-bottom: 10px;
   cursor: pointer;
   border: 1px solid #ddd;
+  transition: all 0.3s ease;
 }
 
 .learning-path.active {
@@ -18,23 +19,49 @@
 }
 
 .learning-path h3 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   color: #333;
   margin: 0;
   cursor: pointer;
+  font-weight: bold;
+  transition: color 0.3s ease;
 }
 
-.learning-path ul {
-  margin-top: 10px;
-  padding-left: 20px;
+.learning-path h3:hover {
+  color: #1abc9c;
 }
 
-.learning-path ul li {
-  font-size: 1.1rem;
-  color: #666;
+.courses {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns for courses */
+  gap: 20px;
+  max-height: 500px; /* Prevent the courses from overflowing */
+  overflow-y: auto; /* Make the courses scrollable */
 }
 
-.learning-path ul li:hover {
-  color: #333;
+.course-card {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.course-info h4 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.course-info p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 10px;
 }

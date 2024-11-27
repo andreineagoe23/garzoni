@@ -40,7 +40,7 @@ function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    navigate("/");
+    navigate("/welcome");
   };
 
   const handleCourseClick = (courseId) => {
@@ -53,23 +53,27 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-container">
-        <div className="main-section">
-          <h1>Welcome to Your Dashboard</h1>
-          <button onClick={handleLogout} className="btn btn-danger">
-            Logout
-          </button>
-          {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
+      <div className="main-content">
+        <div className="dashboard-container">
+          <div className="main-section">
+            <h1>Welcome to Your Dashboard</h1>
+            <button onClick={handleLogout} className="btn btn-danger">
+              Logout
+            </button>
+            {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
 
-          <div className="learning-path-container">
-            <LearningPathList
-              learningPaths={learningPaths}
-              activePathId={activePathId}
-              onTogglePath={togglePath}
-              onCourseClick={handleCourseClick}
-            />
+            <div className="learning-path-container">
+              <LearningPathList
+                learningPaths={learningPaths}
+                activePathId={activePathId}
+                onTogglePath={togglePath}
+                onCourseClick={handleCourseClick}
+              />
+            </div>
           </div>
         </div>
+      </div>
+      <div className="user-progress">
         <UserProgressBox />
       </div>
     </div>

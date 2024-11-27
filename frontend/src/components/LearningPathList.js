@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/LearningPathList.css"; // Import the corresponding CSS file if you have it
+import "../styles/LearningPathList.css";
 
 function LearningPathList({
   learningPaths,
@@ -18,13 +18,20 @@ function LearningPathList({
         >
           <h3 onClick={() => onTogglePath(path.id)}>{path.title}</h3>
           {activePathId === path.id && (
-            <ul>
+            <div className="courses">
               {path.courses.map((course) => (
-                <li key={course.id} onClick={() => onCourseClick(course.id)}>
-                  {course.title}
-                </li>
+                <div
+                  key={course.id}
+                  className="course-card"
+                  onClick={() => onCourseClick(course.id)}
+                >
+                  <div className="course-info">
+                    <h4>{course.title}</h4>
+                    <p>{course.description}</p>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       ))}

@@ -113,6 +113,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return Response(lesson_data)
 
+
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -124,10 +125,8 @@ class QuizViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Quiz.objects.none()
 
-        user_progress = UserProgress.objects.filter(user=user, course_id=course_id, is_course_complete=True).first()
-        if user_progress:
-            return Quiz.objects.filter(course_id=course_id)
-        return Quiz.objects.none()
+        quizzes = Quiz.objects.filter(course_id=course_id)
+        return quizzes
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
@@ -149,9 +148,7 @@ class QuizViewSet(viewsets.ModelViewSet):
             return Response({"message": "Quiz completed successfully!", "earned_money": 10.00}, status=status.HTTP_200_OK)
 
         return Response({"message": "Incorrect answer. Try again!"}, status=status.HTTP_400_BAD_REQUEST)
-            
 
-# views.py
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()
     serializer_class = UserProgressSerializer

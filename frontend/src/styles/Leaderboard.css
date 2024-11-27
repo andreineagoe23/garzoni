@@ -1,25 +1,78 @@
-.leaderboard {
-  width: 80%;
-  margin: 0 auto;
-  text-align: center;
+/* Overall container styling */
+
+/* Ensure content is not overlapped by the navbar */
+body {
+  padding-left: 250px; /* Match the width of the navbar */
+  padding-top: 80px; /* Adjust this value based on the height of your navbar */
 }
 
-table {
+/* For smaller screens, adjust padding-left */
+@media (max-width: 768px) {
+  body {
+    padding-left: 200px; /* Adjust for smaller screen size */
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Leaderboard header */
+h1 {
+  font-size: 2.5rem;
+  color: #002d0b; /* Dark forest green */
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+/* Table styling */
+.table {
   width: 100%;
   border-collapse: collapse;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
 }
 
-th,
-td {
-  padding: 10px;
+.table th,
+.table td {
+  padding: 15px;
   border: 1px solid #ddd;
+  font-size: 1rem;
 }
 
-th {
-  background-color: #f4f4f4;
-  font-weight: bold;
+/* Header background and text styling */
+.table th {
+  background-color: #002d0b; /* Dark forest green */
+  color: white;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
-tr:nth-child(even) {
+/* Alternating row colors */
+.table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+/* Hover effect for rows */
+.table tbody tr:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+/* Adding style for rank cell */
+.table td:first-child {
+  font-weight: bold;
+  color: #007b5e; /* Greenish for ranks */
+}
+
+/* Loading text style */
+.loading {
+  font-size: 1.5rem;
+  color: #555;
+  text-align: center;
+  padding: 30px;
 }

@@ -9,8 +9,10 @@ body,
 html {
   height: 100%;
   font-family: Arial, sans-serif;
+  background-color: #f4f4f4; /* Light background color for contrast */
 }
 
+/* Main Container for App Layout */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -21,43 +23,108 @@ html {
 .main-content {
   padding: 20px;
   width: 100%;
-  flex-grow: 1; /* Allow content to grow and fill available space */
+  flex-grow: 1;
 }
 
-.welcome-container,
-.login-container,
-.register-container {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+/* Prevent overflow for body */
+body {
+  overflow-x: hidden;
 }
 
-/* Full-page height */
-.welcome-container,
-.login-container,
-.register-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.welcome-container h1,
-.login-container h2,
-.register-container h2 {
-  font-size: 2.5rem;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-button,
-.logo {
-  margin-bottom: 20px;
-}
-
-/* Navbar space adjustment when not shown */
+/* Centered container for pages that don't have the navbar */
 .page-without-navbar {
   margin-left: 0;
+}
+
+/* Global Button Styles */
+button {
+  padding: 10px 20px;
+  background-color: #002d0b; /* Dark Forest Green */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1d5330; /* Slightly lighter green on hover */
+}
+
+/* Input and Textarea Styling */
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #002d0b; /* Dark Forest Green */
+  box-shadow: 0 0 5px rgba(0, 45, 11, 0.3);
+}
+
+/* Link Styling */
+a {
+  text-decoration: none;
+  color: #002d0b; /* Dark Forest Green */
+}
+
+a:hover {
+  color: #1d5330; /* Slightly lighter green on hover */
+}
+
+/* Margin and padding helpers */
+.mt-2 {
+  margin-top: 20px;
+}
+
+.mb-2 {
+  margin-bottom: 20px;
+}
+
+.m-2 {
+  margin: 20px;
+}
+
+.pt-2 {
+  padding-top: 20px;
+}
+
+.pb-2 {
+  padding-bottom: 20px;
+}
+
+/* App.css */
+
+/* Global Reset and Full Height */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Adjusting full-page layout for pages without navbar */
+.page-without-navbar {
+  margin-left: 0;
+  padding-left: 0;
+  width: 100%;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px; /* Adjust to match the navbar width */
+  background-color: #002d0b; /* Your dark forest green */
+  color: #fff;
+  padding: 20px;
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
 }

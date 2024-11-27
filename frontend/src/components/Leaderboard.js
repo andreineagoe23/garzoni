@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/Leaderboard.css";
 
 const Leaderboards = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -36,7 +37,7 @@ const Leaderboards = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading...</div>; // Styled loading message
   }
 
   return (

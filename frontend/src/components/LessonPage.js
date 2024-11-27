@@ -81,8 +81,6 @@ function LessonPage() {
   useEffect(() => {
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
       setCourseCompleted(true);
-      console.log("Lessons fetched:", lessons);
-      console.log("Completed lessons:", completedLessons);
     }
   }, [lessons, completedLessons]);
 
@@ -172,15 +170,23 @@ function LessonPage() {
                   </h4>
                   <p>{lesson.short_description}</p>
 
-                  {selectedLesson === lesson.id && (
+                  {selectedLesson === lesson.id && isAccessible && (
                     <div className={styles.lessonContent}>
                       {lesson.detailed_content ? (
-                        <p>{lesson.detailed_content}</p>
+                        <div
+                          className={styles.detailedContent}
+                          dangerouslySetInnerHTML={{
+                            __html: lesson.detailed_content,
+                          }}
+                        />
                       ) : (
                         <p>No detailed content available.</p>
                       )}
                       {!isCompleted && (
-                        <button onClick={() => handleCompleteLesson(lesson.id)}>
+                        <button
+                          onClick={() => handleCompleteLesson(lesson.id)}
+                          disabled={isCompleted || !isAccessible}
+                        >
                           Complete Lesson
                         </button>
                       )}
