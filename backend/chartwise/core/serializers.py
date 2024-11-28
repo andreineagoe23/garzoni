@@ -1,7 +1,7 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,3 +88,8 @@ class UserProfileSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['email_reminders']
+
+class QuestionnaireSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Questionnaire
+        fields = ['goal', 'experience', 'preferred_style']

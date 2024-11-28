@@ -115,3 +115,11 @@ class MissionCompletion(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.mission.name} - {self.status}"
 
+class Questionnaire(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="questionnaire")
+    goal = models.CharField(max_length=255, blank=True, null=True)
+    experience = models.CharField(max_length=50, choices=[("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")], blank=True, null=True)
+    preferred_style = models.CharField(max_length=50, choices=[("Visual", "Visual"), ("Auditory", "Auditory"), ("Kinesthetic", "Kinesthetic")], blank=True, null=True)
+
+    def __str__(self):
+        return f"Questionnaire for {self.user.username}"

@@ -4,10 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -295,3 +295,30 @@ class MissionView(APIView):
         except Exception as e:
             print(f"Error completing mission: {e}")
             return Response({"error": "An error occurred while completing the mission."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class QuestionnaireView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Retrieve the user's questionnaire data
+        try:
+            questionnaire = Questionnaire.objects.get(user=request.user)
+            serializer = QuestionnaireSerializer(questionnaire)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Questionnaire.DoesNotExist:
+            return Response({"message": "Questionnaire not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        # Create or update the user's questionnaire
+        try:
+            questionnaire, created = Questionnaire.objects.get_or_create(user=request.user)
+            serializer = QuestionnaireSerializer(questionnaire, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

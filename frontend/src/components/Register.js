@@ -34,7 +34,8 @@ function Register() {
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
-      navigate("/dashboard");
+      // Redirect to questionnaire after registration
+      navigate("/questionnaire");
     } catch (error) {
       console.error("Registration or login failed", error);
     }

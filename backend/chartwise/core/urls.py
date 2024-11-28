@@ -12,6 +12,7 @@ from .views import (
     UserSettingsView,
     UserProfileView,
     MissionView,
+    QuestionnaireView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -49,4 +50,6 @@ urlpatterns = [
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
+    path('questionnaire/', QuestionnaireView.as_view(), name='questionnaire'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

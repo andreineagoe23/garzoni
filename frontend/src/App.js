@@ -17,13 +17,12 @@ import Settings from "./components/Settings";
 import QuizPage from "./components/QuizPage";
 import Leaderboards from "./components/Leaderboard";
 import Missions from "./components/Missions";
+import Questionnaire from "./components/Questionnaire";
 
-// A wrapper to allow the useLocation hook
-// App.js
+
 function AppContent() {
-  const location = useLocation(); // Get current location/path
+  const location = useLocation(); 
 
-  // List of paths where the navbar should not be shown
   const noNavbarPaths = ["/", "/login", "/register"];
 
   return (
@@ -49,6 +48,7 @@ function AppContent() {
           <Route path="/quiz/:courseId" element={<QuizPage />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/missions" element={<Missions />} />
+          <Route path="/questionnaire" element={<Questionnaire />} />
         </Routes>
       </div>
     </div>
