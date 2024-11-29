@@ -42,7 +42,7 @@ html {
 
 /* Logo styles specific to the Welcome page */
 .welcome-container .logo {
-  max-width: 200px;
+  max-width: 300px;
   margin-bottom: 20px;
   margin-left: auto;
   margin-right: auto; /* Center the logo */

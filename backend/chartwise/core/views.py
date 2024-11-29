@@ -174,7 +174,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         user_profile.add_points(10)
         user_progress.save()
 
-        # Check for mission completion
+        # Check for mission completion and complete eligible missions
         missions_completed = self.check_and_complete_missions(request.user)
 
         return Response(
@@ -198,6 +198,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             completed_count += 1
         user.userprofile.save()
         return completed_count
+
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
@@ -246,55 +247,73 @@ class UserSettingsView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
+
+
 class MissionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         try:
-            # Fetch all missions and their completion status for the current user
-            missions = Mission.objects.all()
-            completed_missions = MissionCompletion.objects.filter(user=user)
+            # Fetch and reset missions where needed
+            completions = MissionCompletion.objects.filter(user=user)
+            for completion in completions:
+                completion.reset_daily_missions()
+                completion.reset_monthly_missions()
 
-            # Map completed missions for the user to a set
-            completed_mission_ids = {completion.mission.id for completion in completed_missions}
+            # Categorize missions
+            daily_missions = Mission.objects.filter(mission_type="daily")
+            monthly_missions = Mission.objects.filter(mission_type="monthly")
 
-            missions_data = [
-                {
+            def format_mission(mission, user):
+                completion = MissionCompletion.objects.filter(user=user, mission=mission).first()
+                return {
                     "id": mission.id,
                     "name": mission.name,
                     "description": mission.description,
                     "points_reward": mission.points_reward,
-                    "status": "completed" if mission.id in completed_mission_ids else "not_started",
+                    "status": completion.status if completion else "not_started",
                 }
-                for mission in missions
-            ]
-            return Response(missions_data, status=status.HTTP_200_OK)
+
+            response_data = {
+                "daily": [format_mission(mission, user) for mission in daily_missions],
+                "monthly": [format_mission(mission, user) for mission in monthly_missions],
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
         except Exception as e:
-            # Log the error for debugging purposes
-            print(f"Error fetching missions: {e}")
-            return Response({"error": "An error occurred while fetching missions."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"Error fetching missions: {e}")  # Add this line for debugging
+            return Response(
+                {"error": "An error occurred while fetching missions."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request, mission_id):
         user = request.user
         try:
+            # Fetch the mission
             mission = Mission.objects.get(id=mission_id)
-
-            # Check if the mission is already completed
-            mission_completion, created = MissionCompletion.objects.get_or_create(user=user, mission=mission)
-            if not created:
-                return Response({"message": "Mission already completed."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Mark as completed and reward the user
-            mission_completion.status = "completed"
-            mission_completion.save()
-            user.userprofile.add_points(mission.points_reward)
-            return Response({"message": "Mission completed!"}, status=status.HTTP_200_OK)
         except Mission.DoesNotExist:
-            return Response({"error": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            print(f"Error completing mission: {e}")
-            return Response({"error": "An error occurred while completing the mission."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the mission is already completed
+        mission_completion, created = MissionCompletion.objects.get_or_create(
+            user=user, mission=mission
+        )
+
+        if mission_completion.status == "completed":
+            return Response({"message": "Mission already completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark the mission as completed
+        mission_completion.status = "completed"
+        mission_completion.save()
+
+        # Update user's profile points
+        user.userprofile.add_points(mission.points_reward)
+        user.userprofile.save()
+
+        return Response({"message": "Mission completed successfully!"}, status=status.HTTP_200_OK)
+
 
 
 class QuestionnaireView(APIView):

@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
+from django.utils import timezone
+from datetime import timedelta
+from ckeditor.fields import RichTextField
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -51,7 +54,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
     short_description = models.TextField(blank=True)
-    detailed_content = models.TextField()
+    detailed_content = RichTextField()
     image = models.ImageField(upload_to='lesson_images/', blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
 
@@ -92,13 +95,21 @@ class UserProgress(models.Model):
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
 
+
 class Mission(models.Model):
+    MISSION_TYPES = [
+        ('daily', 'Daily'),
+        ('monthly', 'Monthly'),
+    ]
     name = models.CharField(max_length=100)
     description = models.TextField()
     points_reward = models.IntegerField()
+    mission_type = models.CharField(
+        max_length=10, choices=MISSION_TYPES, default='daily'
+    )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.mission_type})"
 
 
 class MissionCompletion(models.Model):
@@ -111,9 +122,24 @@ class MissionCompletion(models.Model):
     status = models.CharField(
         max_length=20, choices=status_choices, default='not_started'
     )
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.mission.name} - {self.status}"
+
+    def reset_daily_missions(self):
+        """Reset all daily missions for this user."""
+        if self.mission.mission_type == 'daily' and self.completed_at and timezone.now() - self.completed_at > timedelta(days=1):
+            self.status = 'not_started'
+            self.completed_at = None
+            self.save()
+
+    def reset_monthly_missions(self):
+        """Reset all monthly missions at the start of a new month."""
+        if self.mission.mission_type == 'monthly' and self.completed_at and self.completed_at.month != timezone.now().month:
+            self.status = 'not_started'
+            self.completed_at = None
+            self.save()
 
 class Questionnaire(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="questionnaire")

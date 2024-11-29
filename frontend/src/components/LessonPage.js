@@ -3,6 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
 
+function fixImagePaths(content) {
+  const mediaUrl = "http://localhost:8000/media/";
+  return content.replace(/src="\/([^"]+)"/g, (match, p1) => {
+    return `src="${mediaUrl}${p1}"`;
+  });
+}
+
 function LessonPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -176,12 +183,13 @@ function LessonPage() {
                         <div
                           className={styles.detailedContent}
                           dangerouslySetInnerHTML={{
-                            __html: lesson.detailed_content,
+                            __html: fixImagePaths(lesson.detailed_content), // Applying fixImagePaths
                           }}
                         />
                       ) : (
                         <p>No detailed content available.</p>
                       )}
+
                       {!isCompleted && (
                         <button
                           onClick={() => handleCompleteLesson(lesson.id)}

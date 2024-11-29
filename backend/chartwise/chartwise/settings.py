@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'django_rest_passwordreset',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [
@@ -163,9 +164,20 @@ CORS_ALLOWED_ORIGINS = [
     "https://andreineagoe23.github.io",
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Full',
+        'height': 300,
+        'width': '100%',
+        'extraPlugins': 'codesnippet,uploadimage',
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+    },
+}
+
+CKEDITOR_UPLOAD_PATH = 'uploads/ckeditor/'
 # Celery Settings
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']

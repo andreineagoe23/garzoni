@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Lesson</title>
+    <script type="text/javascript" src="{% static 'tinymce/tinymce.min.js' %}"></script>
+</head>
+<body>
+    <h1>Edit Lesson</h1>
+    <form method="POST" action="{% url 'lesson-save-content' lesson.id %}">
+        {% csrf_token %}
+        <textarea name="content">{{ lesson.detailed_content }}</textarea>  <!-- This is the TinyMCE editor -->
+        <button type="submit">Save</button>
+    </form>
+
+    <script type="text/javascript">
+        tinymce.init({
+            selector: 'textarea',  // This tells TinyMCE to turn the textarea into an editor
+            theme: 'silver',       // Use the "silver" theme
+            plugins: 'link image code',
+            toolbar: 'undo redo | bold italic | link image | code',
+        });
+    </script>
+</body>
+</html>
