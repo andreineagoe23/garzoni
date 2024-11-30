@@ -162,20 +162,25 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://andreineagoe23.github.io",
+    "http://localhost:8000",
 ]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+print(f"MEDIA_URL: {settings.MEDIA_URL}")
+print(f"MEDIA_ROOT: {settings.MEDIA_ROOT}")
+
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Full',
         'height': 300,
-        'width': '100%',
-        'extraPlugins': 'codesnippet,uploadimage',
+        'width': 'auto',
+        'extraPlugins': 'uploadimage',
         'filebrowserUploadUrl': '/ckeditor/upload/',
     },
 }
+
 
 CKEDITOR_UPLOAD_PATH = 'uploads/ckeditor/'
 # Celery Settings

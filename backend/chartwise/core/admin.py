@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Path, Course, Lesson, Quiz, UserProfile, UserProgress, Mission, MissionCompletion
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course', 'short_description')
+    list_display = ('title', 'course', 'short_description', 'image', 'video_url')
     fields = ('title', 'course', 'short_description', 'detailed_content', 'image', 'video_url')
 
 class MissionAdmin(admin.ModelAdmin):

@@ -102,11 +102,12 @@ class LessonViewSet(viewsets.ModelViewSet):
         lesson_data = [
             {
                 "id": lesson.id,
-                "title": lesson.title,
-                "short_description": lesson.short_description,
-                "detailed_content": lesson.detailed_content,
-                "accessible": lesson.id in completed_lesson_ids or lesson.id == lessons.first().id,
-                "is_completed": lesson.id in completed_lesson_ids,
+        "title": lesson.title,
+        "short_description": lesson.short_description,
+        "detailed_content": lesson.detailed_content,
+        "video_url": lesson.video_url,  # Include this
+        "accessible": lesson.id in completed_lesson_ids or lesson.id == lessons.first().id,
+        "is_completed": lesson.id in completed_lesson_ids,
             }
             for lesson in lessons
         ]

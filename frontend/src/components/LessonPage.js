@@ -5,9 +5,15 @@ import styles from "../styles/LessonPage.module.css";
 
 function fixImagePaths(content) {
   const mediaUrl = "http://localhost:8000/media/";
-  return content.replace(/src="\/([^"]+)"/g, (match, p1) => {
-    return `src="${mediaUrl}${p1}"`;
-  });
+  const updatedContent = content.replace(
+    /src="\/media\/([^"]+)"/g,
+    (match, p1) => {
+      const updatedPath = `${mediaUrl}${p1}`;
+      console.log(`Updated image path: ${updatedPath}`); // Log for verification
+      return `src="${updatedPath}"`;
+    }
+  );
+  return updatedContent;
 }
 
 function LessonPage() {
@@ -50,39 +56,7 @@ function LessonPage() {
       }
     };
 
-    const fetchProgress = async () => {
-      const storedProgress = localStorage.getItem(
-        `completedLessons_${courseId}`
-      );
-      if (storedProgress) {
-        setCompletedLessons(JSON.parse(storedProgress));
-      } else {
-        const accessToken = localStorage.getItem("accessToken");
-        if (accessToken) {
-          try {
-            const response = await axios.get(
-              "http://localhost:8000/api/userprogress/",
-              {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              }
-            );
-            const completedLessons = response.data
-              .filter((progress) => progress.is_course_complete)
-              .map((progress) => progress.completed_lessons);
-            setCompletedLessons(completedLessons);
-            localStorage.setItem(
-              `completedLessons_${courseId}`,
-              JSON.stringify(completedLessons)
-            );
-          } catch (err) {
-            console.error("Failed to fetch progress:", err);
-          }
-        }
-      }
-    };
-
     fetchLessons();
-    fetchProgress();
   }, [courseId]);
 
   useEffect(() => {
@@ -109,17 +83,12 @@ function LessonPage() {
 
       setCompletedLessons((prev) => {
         const newCompletedLessons = [...prev, lessonId];
-        localStorage.setItem(
-          `completedLessons_${courseId}`,
-          JSON.stringify(newCompletedLessons)
-        );
         return newCompletedLessons;
       });
 
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
       setTimeout(() => setSuccessMessage(""), 3000);
       setSelectedLesson(null);
-      setLessons((prevLessons) => [...prevLessons]);
     } catch (err) {
       console.error("Failed to complete lesson:", err);
       setError("Failed to complete lesson. Please try again.");
@@ -183,11 +152,37 @@ function LessonPage() {
                         <div
                           className={styles.detailedContent}
                           dangerouslySetInnerHTML={{
-                            __html: fixImagePaths(lesson.detailed_content), // Applying fixImagePaths
+                            __html: fixImagePaths(lesson.detailed_content),
                           }}
                         />
                       ) : (
                         <p>No detailed content available.</p>
+                      )}
+
+                      {lesson.video_url && (
+                        <div className={styles.videoPlayer}>
+                          {lesson.video_url.includes("youtube.com") ||
+                          lesson.video_url.includes("youtu.be") ? (
+                            // Embed YouTube video
+                            <iframe
+                              width="100%"
+                              height="500"
+                              src={`https://www.youtube.com/embed/${new URLSearchParams(
+                                new URL(lesson.video_url).search
+                              ).get("v")}`}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title="YouTube Video"
+                            ></iframe>
+                          ) : (
+                            // Fallback for direct video files
+                            <video controls>
+                              <source src={lesson.video_url} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
                       )}
 
                       {!isCompleted && (
