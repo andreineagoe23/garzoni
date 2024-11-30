@@ -55,6 +55,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
+
     @action(detail=False, methods=["put"], url_path="update")
     def update_profile(self, request):
         user = request.user

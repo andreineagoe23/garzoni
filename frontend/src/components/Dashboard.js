@@ -37,38 +37,54 @@ function Dashboard() {
           console.error("Failed to fetch learning paths:", error)
         );
 
-      // Fetch questionnaire data and determine recommended path
+      // Fetch user profile to check if the questionnaire is completed
       axios
-        .get("http://localhost:8000/api/questionnaire/", {
+        .get("http://localhost:8000/api/userprofile/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          const { question1, question2, question3 } = response.data;
-
-          // Personalized recommendation logic
-          if (question1 === "Save and budget effectively") {
-            setRecommendedPath("Basic Finance");
-          } else if (
-            question1 === "Start investing" &&
-            question2 === "Beginner"
-          ) {
-            setRecommendedPath("Basic Finance");
-          } else if (question1 === "Achieve financial independence") {
-            setRecommendedPath("Real Estate");
-          } else if (question3 === "Interactive and hands-on") {
-            setRecommendedPath("Crypto");
-          } else if (question2 === "Advanced") {
-            setRecommendedPath("Forex");
-          } else {
-            setRecommendedPath("General Financial Literacy");
+          const userProfile = response.data;
+          if (userProfile.is_questionnaire_completed) {
+            // Skip the questionnaire fetch if completed
+            return;
           }
 
-          // Hide recommendation after 10 seconds
-          setTimeout(() => setShowRecommendation(false), 10000);
+          // If the questionnaire is not completed, fetch it
+          axios
+            .get("http://localhost:8000/api/questionnaire/", {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+            .then((response) => {
+              const { question1, question2, question3 } = response.data;
+
+              // Personalized recommendation logic
+              if (question1 === "Save and budget effectively") {
+                setRecommendedPath("Basic Finance");
+              } else if (
+                question1 === "Start investing" &&
+                question2 === "Beginner"
+              ) {
+                setRecommendedPath("Basic Finance");
+              } else if (question1 === "Achieve financial independence") {
+                setRecommendedPath("Real Estate");
+              } else if (question3 === "Interactive and hands-on") {
+                setRecommendedPath("Crypto");
+              } else if (question2 === "Advanced") {
+                setRecommendedPath("Forex");
+              } else {
+                setRecommendedPath("General Financial Literacy");
+              }
+
+              // Hide recommendation after 10 seconds
+              setTimeout(() => setShowRecommendation(false), 10000);
+            })
+            .catch((error) =>
+              console.error("Failed to fetch questionnaire data:", error)
+            );
         })
-        .catch((error) =>
-          console.error("Failed to fetch questionnaire data:", error)
-        );
+        .catch((error) => {
+          console.error("Failed to fetch user profile:", error);
+        });
     }
   }, [navigate]);
 

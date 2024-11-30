@@ -87,6 +87,7 @@ class UserProgress(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="user_progress")
     completed_lessons = models.ManyToManyField(Lesson, blank=True)
     is_course_complete = models.BooleanField(default=False)
+    is_questionnaire_completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title}"

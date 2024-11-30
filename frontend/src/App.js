@@ -19,9 +19,8 @@ import Leaderboards from "./components/Leaderboard";
 import Missions from "./components/Missions";
 import Questionnaire from "./components/Questionnaire";
 
-
 function AppContent() {
-  const location = useLocation(); 
+  const location = useLocation();
 
   const noNavbarPaths = ["/", "/login", "/register"];
 
@@ -49,6 +48,7 @@ function AppContent() {
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/welcome" element={<Welcome />} />
         </Routes>
       </div>
     </div>
