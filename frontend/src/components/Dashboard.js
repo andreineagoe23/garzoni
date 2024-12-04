@@ -4,6 +4,7 @@ import axios from "axios";
 import LearningPathList from "./LearningPathList";
 import UserProgressBox from "./UserProgressBox";
 import "../styles/Dashboard.css";
+import Chatbot from "./Chatbot";
 
 function Dashboard() {
   const [user, setUser] = useState(null); // For user info
@@ -134,6 +135,7 @@ function Dashboard() {
       <div className="user-progress">
         <UserProgressBox />
       </div>
+      <Chatbot />
     </div>
   );
 }

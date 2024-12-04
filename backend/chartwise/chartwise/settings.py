@@ -197,3 +197,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'neagoeandrei23@gmail.com'
 EMAIL_HOST_PASSWORD = 'zdji npku nuld gfaj'
+
+GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'

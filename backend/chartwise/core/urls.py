@@ -13,6 +13,7 @@ from .views import (
     UserProfileView,
     MissionView,
     QuestionnaireView,
+    ChatbotView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -54,4 +55,6 @@ urlpatterns = [
     path('questionnaire/', QuestionnaireView.as_view(), name='questionnaire'),
 
     path('ckeditor/', include('ckeditor_uploader.urls')),
+
+    path('chatbot/', ChatbotView.as_view(), name='chatbot'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

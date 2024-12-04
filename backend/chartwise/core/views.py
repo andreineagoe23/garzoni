@@ -10,7 +10,7 @@ from .serializers import (
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from core.dialogflow import detect_intent_from_text
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -343,3 +343,23 @@ class QuestionnaireView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class ChatbotView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user_input = request.data.get("text", "")
+        session_id = str(request.user.id)
+        
+        if not user_input:
+            return Response({"error": "No input provided"}, status=400)
+
+        try:
+            response_text = detect_intent_from_text(
+                project_id="monevo-443011", 
+                text=user_input, 
+                session_id=session_id
+            )
+            return Response({"response": response_text}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
