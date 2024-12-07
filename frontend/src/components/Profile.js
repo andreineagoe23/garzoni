@@ -11,6 +11,7 @@ function Profile() {
     last_name: "",
     earned_money: 0.0,
     points: 0,
+    streak: 0, // Added streak property
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [message, setMessage] = useState("");
@@ -39,6 +40,7 @@ function Profile() {
           last_name: response.data.last_name || "",
           earned_money: parseFloat(response.data.earned_money) || 0.0,
           points: response.data.points || 0,
+          streak: response.data.streak || 0, // Setting the streak value
         });
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -83,6 +85,7 @@ function Profile() {
         ...profileData,
         earned_money: parseFloat(response.data.earned_money),
         points: response.data.points,
+        streak: response.data.streak, // Update streak as well
       });
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -108,6 +111,11 @@ function Profile() {
         <div className="mb-3">
           <h4 className="text-muted">Points:</h4>
           <p className="h5">{profileData.points || 0}</p>
+        </div>
+
+        <div className="mb-3">
+          <h4 className="text-muted">Streak:</h4>
+          <p className="h5">{profileData.streak || 0}</p>
         </div>
 
         <form onSubmit={(e) => e.preventDefault()}>

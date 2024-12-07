@@ -134,6 +134,12 @@ function Dashboard() {
       </div>
       <div className="user-progress">
         <UserProgressBox />
+        <div className="streak-section">
+          <h4 className="text-muted">Streak:</h4>
+          <p className="h5">
+            {user ? (user.streak || 0) : 0} days
+          </p>
+        </div>
       </div>
       <Chatbot />
     </div>

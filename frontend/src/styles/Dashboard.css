@@ -47,6 +47,10 @@
   overflow-y: auto; /* Ensure user progress section is scrollable vertically */
 }
 
+.streak-section {
+  margin-top: 20px;
+}
+
 .dashboard h1 {
   font-size: 2rem;
   color: #333;

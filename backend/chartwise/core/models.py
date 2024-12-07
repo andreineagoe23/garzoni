@@ -88,6 +88,10 @@ class UserProgress(models.Model):
     completed_lessons = models.ManyToManyField(Lesson, blank=True)
     is_course_complete = models.BooleanField(default=False)
     is_questionnaire_completed = models.BooleanField(default=False)
+    
+    # Streak fields
+    last_completed_date = models.DateField(null=True, blank=True)
+    streak = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title}"
@@ -95,6 +99,22 @@ class UserProgress(models.Model):
     class Meta:
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
+
+    def update_streak(self):
+        today = timezone.now().date()
+        if self.last_completed_date:
+            # Check if it is a new day
+            if today > self.last_completed_date:
+                self.streak += 1
+            else:
+                # Reset streak if the last completed date is not the previous day
+                self.streak = 1
+        else:
+            self.streak = 1
+        
+        self.last_completed_date = today
+        self.save()
+
 
 
 class Mission(models.Model):

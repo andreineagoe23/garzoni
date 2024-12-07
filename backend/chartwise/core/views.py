@@ -176,11 +176,14 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         user_profile.add_points(10)
         user_progress.save()
 
+        # Update streak
+        user_progress.update_streak()
+
         # Check for mission completion and complete eligible missions
         missions_completed = self.check_and_complete_missions(request.user)
 
         return Response(
-            {"status": "Lesson completed", "missions_completed": missions_completed},
+            {"status": "Lesson completed", "missions_completed": missions_completed, "streak": user_progress.streak},
             status=status.HTTP_200_OK
         )
 
