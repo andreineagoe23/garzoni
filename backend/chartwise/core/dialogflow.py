@@ -6,10 +6,6 @@ from google.api_core.exceptions import InvalidArgument
 # Set environment variable for Dialogflow credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "G:/monevo/backend/chartwise/monevocredentials.json"
 
-# Google Custom Search API Configuration
-CSE_ID = "***REDACTED_CSE_ID***"
-API_KEY = "***REDACTED_GOOGLE_API_KEY***"
-
 def detect_intent_from_text(project_id, text, session_id, language_code='en'):
     try:
         # Dialogflow session setup
