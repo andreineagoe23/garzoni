@@ -11,6 +11,7 @@ from .serializers import (
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from core.dialogflow import detect_intent_from_text
+from core.dialogflow import perform_web_search
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -347,22 +348,55 @@ class QuestionnaireView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ChatbotView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user_input = request.data.get("text", "")
         session_id = str(request.user.id)
-        
+
         if not user_input:
             return Response({"error": "No input provided"}, status=400)
 
         try:
+            # Check if this input requires a Dialogflow intent response
             response_text = detect_intent_from_text(
-                project_id="monevo-443011", 
-                text=user_input, 
+                project_id="monevo-443011",
+                text=user_input,
                 session_id=session_id
             )
             return Response({"response": response_text}, status=200)
+
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+    @staticmethod
+    def dialogflow_webhook(request):
+        """
+        Handle requests from Dialogflow's webhook.
+        """
+        try:
+            # Parse the request body
+            req = json.loads(request.body)
+
+            # Extract intent name
+            intent_name = req.get("queryResult", {}).get("intent", {}).get("displayName")
+
+            # Process specific intents
+            if intent_name == "SearchTheWeb":
+                search_query = req.get("queryResult", {}).get("queryText", "")
+                response_text = perform_web_search(search_query)
+            else:
+                response_text = f"Intent '{intent_name}' is not implemented yet."
+
+            # Send a response back to Dialogflow
+            return JsonResponse({
+                "fulfillmentText": response_text
+            })
+
+        except Exception as e:
+            # Handle exceptions during webhook processing
+            return JsonResponse({
+                "fulfillmentText": f"An error occurred: {str(e)}"
+            })

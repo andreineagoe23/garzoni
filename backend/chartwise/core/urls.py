@@ -57,4 +57,5 @@ urlpatterns = [
     path('ckeditor/', include('ckeditor_uploader.urls')),
 
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
+    path('chatbot/webhook/', ChatbotView.dialogflow_webhook, name='chatbot-webhook'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
