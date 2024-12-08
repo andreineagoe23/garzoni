@@ -38,8 +38,8 @@ urlpatterns = [
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
 
-    path("userprofile/", UserProfileView.as_view(), name="userprofile"),  # For logged-in user
-    path("userprofiles/", include(router.urls)),  # For admin or general list
+    path("userprofile/", UserProfileView.as_view(), name="userprofile"),
+    path("userprofiles/", include(router.urls)),  
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),

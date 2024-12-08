@@ -69,7 +69,7 @@ class Quiz(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
     title = models.CharField(max_length=200)
     question = models.TextField()
-    choices = models.JSONField()  # To store multiple choice options as a JSON object
+    choices = models.JSONField()
     correct_answer = models.CharField(max_length=200)
 
     def __str__(self):
