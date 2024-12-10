@@ -14,6 +14,7 @@ from .views import (
     MissionView,
     QuestionnaireView,
     ChatbotView,
+    ToolsView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -58,4 +59,5 @@ urlpatterns = [
 
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
     path('chatbot/webhook/', ChatbotView.dialogflow_webhook, name='chatbot-webhook'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -163,6 +163,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://andreineagoe23.github.io",
     "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 MEDIA_URL = '/media/'
@@ -199,3 +200,5 @@ EMAIL_HOST_USER = 'neagoeandrei23@gmail.com'
 EMAIL_HOST_PASSWORD = 'zdji npku nuld gfaj'
 
 GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'
+
+ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')

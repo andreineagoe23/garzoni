@@ -36,10 +36,10 @@ function Navbar() {
           </li>
           <li>
             <NavLink
-              to="/store"
+              to="/tools"
               className={({ isActive }) => (isActive ? styles.active : "")}
             >
-              Store
+              Tools
             </NavLink>
           </li>
           <li>

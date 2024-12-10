@@ -21,10 +21,10 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8000/api/register/", formData);
+      await axios.post("http://127.0.0.1:8000/api/register/", formData);
 
       const loginResponse = await axios.post(
-        "http://localhost:8000/api/login/",
+        "http://127.0.0.1:8000/api/login/",
         {
           username: formData.username,
           password: formData.password,

@@ -18,6 +18,7 @@ import QuizPage from "./components/QuizPage";
 import Leaderboards from "./components/Leaderboard";
 import Missions from "./components/Missions";
 import Questionnaire from "./components/Questionnaire";
+import Tools from "./components/Tools";
 
 function AppContent() {
   const location = useLocation();
@@ -48,6 +49,7 @@ function AppContent() {
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/tools" element={<Tools />} /> 
           <Route path="/welcome" element={<Welcome />} />
         </Routes>
       </div>
