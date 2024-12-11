@@ -1,7 +1,7 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -93,3 +93,10 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
         fields = ['goal', 'experience', 'preferred_style']
+
+class ToolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tool
+        fields = ['id', 'name', 'description', 'url', 'category', 'icon']
+
+

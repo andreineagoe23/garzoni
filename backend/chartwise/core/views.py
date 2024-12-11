@@ -4,14 +4,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from core.dialogflow import detect_intent_from_text
 from core.dialogflow import perform_web_search
+from rest_framework.viewsets import ModelViewSet
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -401,3 +402,70 @@ class ChatbotView(APIView):
                 "fulfillmentText": f"An error occurred: {str(e)}"
             })
 
+class ToolListView(APIView):
+    """
+    API Endpoint to list tools grouped by category.
+    """
+    def get(self, request):
+        tools = [
+            {
+                "category": "Forex Tools",
+                "items": [
+                    {"name": "Currency Converter", "description": "Convert currencies in real-time."},
+                    {"name": "Economic Calendar", "description": "Upcoming financial events."},
+                    # Add more tools as needed
+                ],
+            },
+            {
+                "category": "Crypto Tools",
+                "items": [
+                    {"name": "Crypto Price Tracker", "description": "Track crypto prices in real-time."},
+                    {"name": "Portfolio Manager", "description": "Manage your crypto portfolio."},
+                    # Add more tools as needed
+                ],
+            },
+            {
+                "category": "Real Estate Tools",
+                "items": [
+                    {"name": "Mortgage Calculator", "description": "Calculate monthly mortgage payments."},
+                    {"name": "Rental Yield Calculator", "description": "Assess rental property profitability."},
+                    # Add more tools as needed
+                ],
+            },
+            {
+                "category": "Basic Finance & Budgeting Tools",
+                "items": [
+                    {"name": "Savings Goal Calculator", "description": "Plan your savings effectively."},
+                    {"name": "Budget Planner", "description": "Track and manage your budget."},
+                    # Add more tools as needed
+                ],
+            },
+        ]
+        return Response(tools)
+
+
+class SavingsGoalCalculatorView(APIView):
+    """
+    API Endpoint to calculate savings goals based on compound interest.
+    """
+    def post(self, request):
+        try:
+            data = request.data
+            savings_goal = float(data.get('savings_goal', 0))
+            initial_investment = float(data.get('initial_investment', 0))
+            years_to_grow = float(data.get('years_to_grow', 0))
+            annual_interest_rate = float(data.get('annual_interest_rate', 0)) / 100
+            compound_frequency = int(data.get('compound_frequency', 1))
+
+            if years_to_grow <= 0 or compound_frequency <= 0:
+                return Response({"error": "Invalid input for years or frequency."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Calculate the final savings using compound interest formula
+            final_savings = initial_investment * ((1 + annual_interest_rate / compound_frequency) ** (compound_frequency * years_to_grow))
+
+            return Response({
+                "final_savings": round(final_savings, 2),
+                "message": f"To achieve your savings goal of {savings_goal}, your estimated final savings would be {round(final_savings, 2)}."
+            })
+        except ValueError:
+            return Response({"error": "Invalid input values."}, status=status.HTTP_400_BAD_REQUEST)

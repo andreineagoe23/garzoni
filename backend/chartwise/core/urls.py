@@ -14,7 +14,8 @@ from .views import (
     MissionView,
     QuestionnaireView,
     ChatbotView,
-    ToolsView,
+    ToolListView,
+    SavingsGoalCalculatorView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -60,4 +61,6 @@ urlpatterns = [
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
     path('chatbot/webhook/', ChatbotView.dialogflow_webhook, name='chatbot-webhook'),
 
+    path('tools/', ToolListView.as_view(), name='tool-list'),
+    path('calculate-savings-goal/', SavingsGoalCalculatorView.as_view(), name='calculate_savings_goal'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

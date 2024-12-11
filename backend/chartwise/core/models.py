@@ -170,3 +170,15 @@ class Questionnaire(models.Model):
 
     def __str__(self):
         return f"Questionnaire for {self.user.username}"
+
+class Tool(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=[
+        ('basic_finance', 'Basic Finance'),
+        ('real_estate', 'Real Estate'),
+        ('crypto', 'Crypto'),
+        ('forex', 'Forex'),
+    ])
+    url = models.URLField(blank=True, null=True)
+    icon = models.CharField(max_length=50, blank=True, null=True)
