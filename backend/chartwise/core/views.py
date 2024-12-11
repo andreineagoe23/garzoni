@@ -405,42 +405,14 @@ class ChatbotView(APIView):
 
 class ToolListView(APIView):
     """
-    API Endpoint to list tools grouped by category.
+    API Endpoint to list tool categories only.
     """
     def get(self, request):
         tools = [
-            {
-                "category": "Forex Tools",
-                "items": [
-                    {"name": "Currency Converter", "description": "Convert currencies in real-time."},
-                    {"name": "Economic Calendar", "description": "Upcoming financial events."},
-                    # Add more tools as needed
-                ],
-            },
-            {
-                "category": "Crypto Tools",
-                "items": [
-                    {"name": "Crypto Price Tracker", "description": "Track crypto prices in real-time."},
-                    {"name": "Portfolio Manager", "description": "Manage your crypto portfolio."},
-                    # Add more tools as needed
-                ],
-            },
-            {
-                "category": "Real Estate Tools",
-                "items": [
-                    {"name": "Mortgage Calculator", "description": "Calculate monthly mortgage payments."},
-                    {"name": "Rental Yield Calculator", "description": "Assess rental property profitability."},
-                    # Add more tools as needed
-                ],
-            },
-            {
-                "category": "Basic Finance & Budgeting Tools",
-                "items": [
-                    {"name": "Savings Goal Calculator", "description": "Plan your savings effectively."},
-                    {"name": "Budget Planner", "description": "Track and manage your budget."},
-                    # Add more tools as needed
-                ],
-            },
+            {"category": "Forex Tools"},
+            {"category": "Crypto Tools"},
+            {"category": "News & Calendars"},
+            {"category": "Basic Finance & Budgeting Tools"},
         ]
         return Response(tools)
 

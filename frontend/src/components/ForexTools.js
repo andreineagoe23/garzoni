@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const ForexTools = () => {
   useEffect(() => {
@@ -9,7 +10,7 @@ const ForexTools = () => {
       const initializePositionSizeCalculator = () => {
         const container = document.getElementById(containerId);
         if (container) {
-          container.innerHTML = ""; // Clear previous widget content
+          container.innerHTML = "";
         }
 
         if (window.RemoteCalc) {
@@ -26,7 +27,7 @@ const ForexTools = () => {
                 "dGV4dC1hbGlnbjogbGVmdDsgZm9udC1zaXplOiA0MHB4OyBmb250LXdlaWdodDogNTAwOw==",
               TextboxStyle:
                 "YmFja2dyb3VuZC1jb2xvcjogd2hpdGU7IGNvbG9yOiBibGFjazsgYm9yZGVyOiBzb2xpZCAxcHggI2FhYWFhYQ==",
-              ContainerWidth: "665",
+              ContainerWidth: "800",
               HighlightColor: "#ffff00",
               IsDisplayTitle: false,
               IsShowChartLinks: true,
@@ -45,6 +46,7 @@ const ForexTools = () => {
         }
       };
 
+      // Check if the script is already loaded to avoid duplicate script tags
       if (!document.getElementById(scriptId)) {
         const script = document.createElement("script");
         script.src =
@@ -57,85 +59,34 @@ const ForexTools = () => {
       }
     };
 
-    const loadEconomicCalendar = () => {
-      const scriptId = "cashbackforex-calendar-script";
-      const containerId = "economic-calendar-729729";
-
-      const initializeEconomicCalendar = () => {
-        const existingWidget = document.getElementById(containerId);
-        if (existingWidget) {
-          existingWidget.innerHTML = ""; // Clear previous widget content
-        }
-
-        if (window.RemoteCalendar) {
-          try {
-            window.RemoteCalendar({
-              Lang: "en",
-              DefaultTime: "today",
-              DefaultTheme: "plain",
-              Url: "https://www.cashbackforex.com",
-              SubPath: "economic-calendar",
-              IsShowEmbedButton: true,
-              DefaultCountries:
-                "AE,CA,CH,CN,DE,ES,EU,FR,GB,IL,IN,JP,RO,RU,SA,US,UK,EMU",
-              DefaultImpacts: "HIGH,MEDIUM,LOW,NONE",
-              ContainerId: containerId,
-            });
-          } catch (error) {
-            console.error("Error initializing Economic Calendar:", error);
-          }
-        }
-      };
-
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement("script");
-        script.src =
-          "https://www.cashbackforex.com/Content/remote/remote-calendar-widget.js";
-        script.id = scriptId;
-        script.onload = initializeEconomicCalendar;
-        document.body.appendChild(script);
-      } else {
-        initializeEconomicCalendar();
-      }
-    };
-
     loadPositionSizeCalculator();
-    loadEconomicCalendar();
 
     return () => {
       const calculatorContainer = document.getElementById(
         "position-size-calculator-524750"
       );
-      const calendarContainer = document.getElementById(
-        "economic-calendar-729729"
-      );
-
       if (calculatorContainer) {
         calculatorContainer.innerHTML = "";
-      }
-      if (calendarContainer) {
-        calendarContainer.innerHTML = "";
       }
     };
   }, []);
 
   return (
-    <div className="forex-tools">
-      <div className="tool-section">
-        <h3>Position Size Calculator</h3>
-        <p>
-          Calculate the ideal position size for your trades based on risk
-          management principles.
-        </p>
-        <div id="position-size-calculator-524750"></div>
-      </div>
-      <div className="tool-section">
-        <h3>Economic Calendar</h3>
-        <p>
-          Stay informed about global economic events and their potential impact
-          on currency markets.
-        </p>
-        <div id="economic-calendar-729729"></div>
+    <div className="container mt-5">
+      <div className="card">
+        <div className="card-header bg-primary text-white">
+          <h3 className="card-title mb-0">Position Size Calculator</h3>
+        </div>
+        <div className="card-body">
+          <p className="card-text">
+            Calculate the ideal position size for your trades based on risk
+            management principles.
+          </p>
+          <div
+            id="position-size-calculator-524750"
+            className="text-center"
+          ></div>
+        </div>
       </div>
     </div>
   );

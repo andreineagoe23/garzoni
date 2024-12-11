@@ -3,6 +3,8 @@ import axios from "axios";
 import ForexTools from "./ForexTools";
 import CryptoTools from "./CryptoTools";
 import BasicFinanceTools from "./BasicFinanceTools";
+import NewsCalendars from "./NewsCalendars";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const ToolsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -32,25 +34,53 @@ const ToolsPage = () => {
   };
 
   return (
-    <div className="tools-container">
-      <h1>Tools</h1>
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">Financial Tools</h1>
       {error ? (
-        <p className="error-message">Error: {error}</p>
+        <div className="alert alert-danger text-center" role="alert">
+          {error}
+        </div>
       ) : (
-        categories.map((category, index) => (
-          <div key={index} className="category">
-            <h2 onClick={() => toggleCategory(index)}>{category.category}</h2>
-            {activeCategory === index && (
-              <div className="tool-section">
-                {category.category === "Forex Tools" && <ForexTools />}
-                {category.category === "Crypto Tools" && <CryptoTools />}
-                {category.category === "Basic Finance & Budgeting Tools" && (
-                  <BasicFinanceTools />
-                )}
+        <div className="accordion" id="toolsAccordion">
+          {categories.map((category, index) => (
+            <div key={index} className="accordion-item mb-3">
+              <h2 className="accordion-header" id={`heading-${index}`}>
+                <button
+                  className={`accordion-button ${
+                    activeCategory === index ? "" : "collapsed"
+                  }`}
+                  type="button"
+                  onClick={() => toggleCategory(index)}
+                  data-bs-toggle="collapse"
+                  data-bs-target={`#collapse-${index}`}
+                  aria-expanded={activeCategory === index}
+                  aria-controls={`collapse-${index}`}
+                >
+                  {category.category}
+                </button>
+              </h2>
+              <div
+                id={`collapse-${index}`}
+                className={`accordion-collapse collapse ${
+                  activeCategory === index ? "show" : ""
+                }`}
+                aria-labelledby={`heading-${index}`}
+                data-bs-parent="#toolsAccordion"
+              >
+                <div className="accordion-body">
+                  {category.category === "Forex Tools" && <ForexTools />}
+                  {category.category === "Crypto Tools" && <CryptoTools />}
+                  {category.category === "News & Calendars" && (
+                    <NewsCalendars />
+                  )}
+                  {category.category === "Basic Finance & Budgeting Tools" && (
+                    <BasicFinanceTools />
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        ))
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
