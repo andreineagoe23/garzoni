@@ -1,0 +1,32 @@
+.forex-tools {
+  margin: 20px;
+}
+
+.forex-tools h2 {
+  color: #002d0b; /* Dark forest green */
+  font-size: 2rem;
+}
+
+.forex-tools .description {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.forex-tools .tool-section {
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f9f9f9;
+}
+
+.forex-tools .tool-section h3 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.forex-tools .tool-section p {
+  margin-bottom: 15px;
+  font-size: 1rem;
+}

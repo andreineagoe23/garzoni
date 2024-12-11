@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import SavingsGoalCalculator from "./SavingsGoalCalculator";
-import "../styles/SavingsGoalCalculator.css";
+import ForexTools from "./ForexTools";
+import CryptoTools from "./CryptoTools";
+import BasicFinanceTools from "./BasicFinanceTools";
 
 const ToolsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -40,16 +41,13 @@ const ToolsPage = () => {
           <div key={index} className="category">
             <h2 onClick={() => toggleCategory(index)}>{category.category}</h2>
             {activeCategory === index && (
-              <ul className="tool-list">
-                {category.items.map((tool, idx) => (
-                  <li key={idx}>
-                    <strong>{tool.name}</strong>: {tool.description}
-                  </li>
-                ))}
+              <div className="tool-section">
+                {category.category === "Forex Tools" && <ForexTools />}
+                {category.category === "Crypto Tools" && <CryptoTools />}
                 {category.category === "Basic Finance & Budgeting Tools" && (
-                  <SavingsGoalCalculator />
+                  <BasicFinanceTools />
                 )}
-              </ul>
+              </div>
             )}
           </div>
         ))
