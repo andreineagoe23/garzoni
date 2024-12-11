@@ -8,10 +8,10 @@ import Chatbot from "./Chatbot";
 
 function Dashboard() {
   const [user, setUser] = useState(null); // For user info
-  const [learningPaths, setLearningPaths] = useState([]); // For paths list
-  const [activePathId, setActivePathId] = useState(null); // Tracks selected path
-  const [recommendedPath, setRecommendedPath] = useState(null); // Recommendation
-  const [showRecommendation, setShowRecommendation] = useState(true); // Toggle recommendation display
+  const [learningPaths, setLearningPaths] = useState([]);
+  const [activePathId, setActivePathId] = useState(null);
+  const [recommendedPath, setRecommendedPath] = useState(null);
+  const [showRecommendation, setShowRecommendation] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,11 +40,12 @@ function Dashboard() {
 
       // Fetch user profile to check if the questionnaire is completed
       axios
-        .get("http://localhost:8000/api/userprofile/", {
+        .get("http://localhost:8000/api/questionnaire/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
           const userProfile = response.data;
+
           if (userProfile.is_questionnaire_completed) {
             // Skip the questionnaire fetch if completed
             return;
@@ -56,21 +57,21 @@ function Dashboard() {
               headers: { Authorization: `Bearer ${accessToken}` },
             })
             .then((response) => {
-              const { question1, question2, question3 } = response.data;
+              const { goal, experience, preferred_style } = response.data;
 
               // Personalized recommendation logic
-              if (question1 === "Save and budget effectively") {
+              if (goal === "Save and budget effectively") {
                 setRecommendedPath("Basic Finance");
               } else if (
-                question1 === "Start investing" &&
-                question2 === "Beginner"
+                goal === "Start investing" &&
+                experience === "Beginner"
               ) {
                 setRecommendedPath("Basic Finance");
-              } else if (question1 === "Achieve financial independence") {
+              } else if (goal === "Achieve financial independence") {
                 setRecommendedPath("Real Estate");
-              } else if (question3 === "Interactive and hands-on") {
+              } else if (preferred_style === "Interactive and hands-on") {
                 setRecommendedPath("Crypto");
-              } else if (question2 === "Advanced") {
+              } else if (experience === "Advanced") {
                 setRecommendedPath("Forex");
               } else {
                 setRecommendedPath("General Financial Literacy");
@@ -136,9 +137,7 @@ function Dashboard() {
         <UserProgressBox />
         <div className="streak-section">
           <h4 className="text-muted">Streak:</h4>
-          <p className="h5">
-            {user ? (user.streak || 0) : 0} days
-          </p>
+          <p className="h5">{user ? user.streak || 0 : 0} days</p>
         </div>
       </div>
       <Chatbot />
