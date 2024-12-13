@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/Missions.css";
+import Chatbot from "./Chatbot";
 
 function Missions() {
   const [dailyMissions, setDailyMissions] = useState([]);
@@ -145,6 +146,7 @@ function Missions() {
           )}
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 }

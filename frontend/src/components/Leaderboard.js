@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/Leaderboard.css";
+import Chatbot from "./Chatbot";
 
 const Leaderboards = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -63,6 +64,7 @@ const Leaderboards = () => {
           </tbody>
         </table>
       </div>
+      <Chatbot />
     </div>
   );
 };

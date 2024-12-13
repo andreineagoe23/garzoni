@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Chatbot from "./Chatbot";
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -11,28 +12,26 @@ function Profile() {
     last_name: "",
     earned_money: 0.0,
     points: 0,
-    streak: 0, // Added streak property
+    streak: 0,
   });
   const [profilePicture, setProfilePicture] = useState(null);
-  const [message, setMessage] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState(
+    localStorage.getItem("avatarUrl") || null
+  );
 
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("accessToken");
-      console.log("Fetching profile data...");
-
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/userprofile/", // Ensure this endpoint returns the current user data
+          "http://localhost:8000/api/userprofile/",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-
-        console.log("Profile data fetched:", response.data);
-
         setProfileData({
           username: response.data.username || "",
           email: response.data.email || "",
@@ -40,7 +39,7 @@ function Profile() {
           last_name: response.data.last_name || "",
           earned_money: parseFloat(response.data.earned_money) || 0.0,
           points: response.data.points || 0,
-          streak: response.data.streak || 0, // Setting the streak value
+          streak: response.data.streak || 0,
         });
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -50,46 +49,32 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  const handleProfileUpdate = async () => {
-    const token = localStorage.getItem("accessToken");
-    const formData = new FormData();
-    formData.append("username", profileData.username);
-    formData.append("email", profileData.email);
-    formData.append("first_name", profileData.first_name);
-    formData.append("last_name", profileData.last_name);
-    if (profilePicture) formData.append("profile_picture", profilePicture);
-
-    console.log("Updating profile with data:", {
-      username: profileData.username,
-      email: profileData.email,
-      first_name: profileData.first_name,
-      last_name: profileData.last_name,
-      profilePicture,
-    });
-
+  const handleAvatarChange = async () => {
     try {
-      const response = await axios.put(
-        "http://localhost:8000/api/userprofiles/update/", // Endpoint to update the profile
-        formData,
+      // Authentication setup for Recraft.ai API
+      const response = await axios.post(
+        "https://external.api.recraft.ai/v1/images/generations",
+        {
+          prompt,
+          style: "digital_illustration",
+          model: "recraftv3",
+        },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
+            Authorization: `Bearer 4PGE2S5ROOZ0fsYiN1sNgByBZQU3xeuYuScmdZqJ57jqeXTd7U4ESHj2D9eIhh8a`, // Replace with your Recraft API token
           },
         }
       );
 
-      console.log("Profile updated successfully:", response.data);
-      setMessage("Profile updated successfully!");
-      setProfileData({
-        ...profileData,
-        earned_money: parseFloat(response.data.earned_money),
-        points: response.data.points,
-        streak: response.data.streak, // Update streak as well
-      });
+      const imageData = response.data.data[0].url;
+      const imgBlob = await fetch(imageData).then((res) => res.blob());
+      const imgUrl = URL.createObjectURL(imgBlob);
+
+      setImageUrl(imgUrl);
+      localStorage.setItem("avatarUrl", imgUrl);
     } catch (error) {
-      console.error("Error updating profile:", error);
-      setMessage("Failed to update profile.");
+      console.error("Error generating image:", error);
     }
   };
 
@@ -98,98 +83,45 @@ function Profile() {
       <div className="card p-4 shadow-sm">
         <h2 className="text-center mb-4">Profile</h2>
 
+        <div className="text-center mb-4">
+          <img
+            src={imageUrl || "/default-avatar.png"}
+            alt="Avatar"
+            className="rounded-circle"
+            width="150"
+            height="150"
+          />
+          <div className="mt-3">
+            <input
+              type="text"
+              placeholder="Enter image prompt"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="form-control"
+            />
+            <button
+              onClick={handleAvatarChange}
+              className="btn btn-primary mt-2"
+            >
+              Generate Avatar
+            </button>
+          </div>
+        </div>
+
         <div className="mb-3">
           <h4 className="text-muted">Balance:</h4>
-          <p className="h5 balance">
-            $
-            {isNaN(profileData.earned_money)
-              ? "0.00"
-              : profileData.earned_money.toFixed(2)}
-          </p>
+          <p className="h5">${profileData.earned_money.toFixed(2)}</p>
         </div>
-
         <div className="mb-3">
           <h4 className="text-muted">Points:</h4>
-          <p className="h5">{profileData.points || 0}</p>
+          <p className="h5">{profileData.points}</p>
         </div>
-
         <div className="mb-3">
           <h4 className="text-muted">Streak:</h4>
-          <p className="h5">{profileData.streak || 0}</p>
+          <p className="h5">{profileData.streak}</p>
         </div>
-
-        <form onSubmit={(e) => e.preventDefault()}>
-          <div className="mb-3">
-            <label className="form-label">First Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={profileData.first_name || ""}
-              onChange={(e) =>
-                setProfileData({ ...profileData, first_name: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Last Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={profileData.last_name}
-              onChange={(e) =>
-                setProfileData({ ...profileData, last_name: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              className="form-control"
-              value={profileData.username}
-              onChange={(e) =>
-                setProfileData({ ...profileData, username: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={profileData.email}
-              onChange={(e) =>
-                setProfileData({ ...profileData, email: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Profile Picture</label>
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={(e) => setProfilePicture(e.target.files[0])}
-            />
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-primary w-100"
-            onClick={handleProfileUpdate}
-          >
-            Save Changes
-          </button>
-
-          {message && (
-            <p className="mt-3 text-center text-success">{message}</p>
-          )}
-        </form>
       </div>
+      <Chatbot />
     </div>
   );
 }

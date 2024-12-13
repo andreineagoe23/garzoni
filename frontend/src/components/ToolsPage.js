@@ -5,6 +5,7 @@ import CryptoTools from "./CryptoTools";
 import BasicFinanceTools from "./BasicFinanceTools";
 import NewsCalendars from "./NewsCalendars";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Chatbot from "./Chatbot";
 
 const ToolsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -82,6 +83,7 @@ const ToolsPage = () => {
           ))}
         </div>
       )}
+      <Chatbot />
     </div>
   );
 };

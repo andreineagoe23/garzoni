@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
+import Chatbot from "./Chatbot";
 
 function fixImagePaths(content) {
   const mediaUrl = "http://localhost:8000/media/";
@@ -213,6 +214,7 @@ function LessonPage() {
           </div>
         )}
       </div>
+      <Chatbot />
     </div>
   );
 }
