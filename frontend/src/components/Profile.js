@@ -14,7 +14,6 @@ function Profile() {
     points: 0,
     streak: 0,
   });
-  const [profilePicture, setProfilePicture] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState(
     localStorage.getItem("avatarUrl") || null
@@ -51,7 +50,9 @@ function Profile() {
 
   const handleAvatarChange = async () => {
     try {
-      // Authentication setup for Recraft.ai API
+      const apiKey = process.env.REACT_APP_RECRAFT_API_KEY;
+      const token = localStorage.getItem("accessToken");
+
       const response = await axios.post(
         "https://external.api.recraft.ai/v1/images/generations",
         {
@@ -62,17 +63,27 @@ function Profile() {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer 4PGE2S5ROOZ0fsYiN1sNgByBZQU3xeuYuScmdZqJ57jqeXTd7U4ESHj2D9eIhh8a`, // Replace with your Recraft API token
+            Authorization: `Bearer ${apiKey}`,
           },
         }
       );
 
       const imageData = response.data.data[0].url;
-      const imgBlob = await fetch(imageData).then((res) => res.blob());
-      const imgUrl = URL.createObjectURL(imgBlob);
 
-      setImageUrl(imgUrl);
-      localStorage.setItem("avatarUrl", imgUrl);
+      // Save to backend
+      await axios.post(
+        "http://localhost:8000/api/userprofiles/save-avatar/",
+        { avatar_url: imageData },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Update local state
+      setImageUrl(imageData);
+      localStorage.setItem("avatarUrl", imageData);
     } catch (error) {
       console.error("Error generating image:", error);
     }

@@ -14,7 +14,10 @@ from pathlib import Path
 import os
 from django.conf import settings
 from django.conf.urls.static import static
+from dotenv import load_dotenv
 
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -197,8 +200,9 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'neagoeandrei23@gmail.com'
-EMAIL_HOST_PASSWORD = 'zdji npku nuld gfaj'
+EMAIL_HOST_PASSWORD = 'bzas jnyj mmkx ehtx'
+DEFAULT_FROM_EMAIL = 'neagoeandrei23@gmail.com'
 
 GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'
 
-ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")

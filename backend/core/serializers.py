@@ -26,7 +26,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'earned_money', 'email_reminders', 'points']
+        fields = ["user", "email_reminders", "earned_money", "points", "profile_picture", "profile_avatar", "generated_images"]
 
     def get_user(self, obj):
         return {
@@ -34,6 +34,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "username": obj.user.username,
             "email": obj.user.email,
         }
+
 
 class QuizSerializer(serializers.ModelSerializer):
     class Meta:
