@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+
+# Backend
+/backend/.env
+
+# Frontend
+/frontend/.env
+
 # Distribution / packaging
 .Python
 build/
@@ -169,3 +176,4 @@ node_modules
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+backend/monevocredentials.json

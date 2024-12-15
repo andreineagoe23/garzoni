@@ -10,9 +10,10 @@ from .serializers import (
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
-from core.dialogflow import detect_intent_from_text
-from core.dialogflow import perform_web_search
-from rest_framework.viewsets import ModelViewSet
+from core.dialogflow import detect_intent_from_text, perform_web_search
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -24,12 +25,12 @@ class UserProfileView(APIView):
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
             "email": request.user.email,
-            "username": request.user.username,  # Verify this is correct
+            "username": request.user.username,
             "email_reminders": user_profile.email_reminders,
             "earned_money": float(user_profile.earned_money),
             "points": user_profile.points,
         }
-        print("User Data:", user_data)  # Debug log
+        print("User Data:", user_data)
         return Response(user_data)
 
 
@@ -57,28 +58,38 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
+    @action(detail=False, methods=["post"], url_path="add-generated-image")
+    def add_generated_image(self, request):
+        user_profile = request.user.userprofile
+        image = request.FILES.get('image')
 
-    @action(detail=False, methods=["put"], url_path="update")
-    def update_profile(self, request):
-        user = request.user
-        data = request.data
+        if not image:
+            return Response({"error": "No image file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update User fields
-        user.username = data.get("username", user.username)
-        user.email = data.get("email", user.email)
-        user.first_name = data.get("first_name", user.first_name)
-        user.last_name = data.get("last_name", user.last_name)
+        # Save image to storage
+        file_path = default_storage.save(f'generated_images/{image.name}', ContentFile(image.read()))
 
-        # Update profile picture if provided
-        profile = user.userprofile
-        if "profile_picture" in request.FILES:
-            profile.profile_picture = request.FILES["profile_picture"]
+        # Add file path to user's profile
+        user_profile.add_generated_image(file_path)
 
-        user.save()
-        profile.save()
+        return Response({"message": "Image added successfully!", "file_path": file_path}, status=status.HTTP_200_OK)
 
-        return Response({"message": "Profile updated successfully!"}, status=200)
+    @action(detail=False, methods=["get"], url_path="get-generated-images")
+    def get_generated_images(self, request):
+        user_profile = request.user.userprofile
+        return Response({"generated_images": user_profile.generated_images})
 
+    @action(detail=False, methods=["post"], url_path="save-avatar")
+    def save_avatar(self, request):
+        user_profile = request.user.userprofile
+        avatar_url = request.data.get("avatar_url")
+
+        if not avatar_url:
+            return Response({"error": "Avatar URL is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_profile.profile_avatar = avatar_url
+        user_profile.save()
+        return Response({"message": "Avatar saved successfully.", "avatar_url": avatar_url})
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
