@@ -19,6 +19,8 @@ import Leaderboards from "./components/Leaderboard";
 import Missions from "./components/Missions";
 import Questionnaire from "./components/Questionnaire";
 import ToolsPage from "./components/ToolsPage";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 function AppContent() {
   const location = useLocation();
@@ -51,6 +53,8 @@ function AppContent() {
           <Route path="/questionnaire" element={<Questionnaire />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/welcome" element={<Welcome />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/password-reset/:uidb64/:token" element={<ResetPassword />} />
         </Routes>
       </div>
     </div>

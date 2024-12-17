@@ -3,17 +3,23 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.conf import settings
 from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer,
 )
-from rest_framework.parsers import MultiPartParser, FormParser
 from core.dialogflow import detect_intent_from_text, perform_web_search
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -453,3 +459,72 @@ class SavingsGoalCalculatorView(APIView):
             })
         except ValueError:
             return Response({"error": "Invalid input values."}, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            token = PasswordResetTokenGenerator().make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = f"http://localhost:3000/monevo#/password-reset/{uid}/{token}"
+
+            # Render the email content
+            context = {
+                'user': user,
+                'reset_link': reset_link,
+            }
+            subject = "Password Reset Request"
+            html_content = render_to_string("emails/password_reset.html", context)
+            text_content = strip_tags(html_content)  # Fallback for plain-text email clients
+
+            # Send the email
+            email_message = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send()
+
+            return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated users
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if PasswordResetTokenGenerator().check_token(user, token):
+            return Response({"message": "Token is valid, proceed with password reset."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        if not new_password or new_password != confirm_password:
+            return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
+

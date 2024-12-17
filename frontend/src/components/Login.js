@@ -28,7 +28,6 @@ function Login() {
 
   return (
     <div className="login-container">
-      {/* Logo */}
       <img src={logo} alt="Logo" className="logo" />
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
@@ -55,9 +54,12 @@ function Login() {
       </form>
 
       <div className="forgot-password">
-        <a href="http://localhost:8000/api/password-reset/">
+        <button
+          className="link-button"
+          onClick={() => navigate("/forgot-password")}
+        >
           Forgot your password?
-        </a>
+        </button>
       </div>
     </div>
   );

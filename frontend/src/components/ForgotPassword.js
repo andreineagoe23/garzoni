@@ -8,13 +8,17 @@ function ForgotPassword() {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post("http://localhost:8000/password-reset/", { email });
 
-      setMessage("If the email exists, a reset link has been sent.");
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/password-reset/",
+        { email }
+      );
+      setMessage(response.data.message);
       setError("");
     } catch (error) {
-      setError("Failed to send reset link. Please try again.");
+      console.error("Forgot Password Error:", error);
+      setError(error.response?.data?.error || "An error occurred.");
       setMessage("");
     }
   };
