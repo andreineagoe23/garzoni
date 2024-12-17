@@ -195,6 +195,10 @@ CELERY_TASK_SERIALIZER = 'json'
 # For periodic tasks, use Django-Celery-Beat
 INSTALLED_APPS += ['django_celery_beat']
 
+GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'
+
+RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -203,6 +207,18 @@ EMAIL_HOST_USER = 'neagoeandrei23@gmail.com'
 EMAIL_HOST_PASSWORD = 'bzas jnyj mmkx ehtx'
 DEFAULT_FROM_EMAIL = 'neagoeandrei23@gmail.com'
 
-GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'
-
-RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'core/templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]

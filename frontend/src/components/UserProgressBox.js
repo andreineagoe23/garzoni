@@ -8,6 +8,10 @@ function UserProgressBox() {
   useEffect(() => {
     const fetchProgress = async () => {
       const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        // If the user is not logged in, do not fetch progress data
+        return;
+      }
       try {
         const response = await axios.get(
           "http://localhost:8000/api/userprogress/progress_summary/",
@@ -21,7 +25,9 @@ function UserProgressBox() {
     fetchProgress();
   }, []);
 
-  if (!progressData) return <div>Loading progress...</div>;
+  if (!progressData) {
+    return <div>Loading progress...</div>;
+  }
 
   return (
     <div className="progress-box">
