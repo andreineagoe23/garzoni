@@ -3,18 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../styles/LessonPage.module.css";
 import Chatbot from "./Chatbot";
+import DragAndDropExercise from "./DragAndDropExercise";
 
 function fixImagePaths(content) {
   const mediaUrl = "http://localhost:8000/media/";
-  const updatedContent = content.replace(
-    /src="\/media\/([^"]+)"/g,
-    (match, p1) => {
-      const updatedPath = `${mediaUrl}${p1}`;
-      console.log(`Updated image path: ${updatedPath}`); // Log for verification
-      return `src="${updatedPath}"`;
-    }
-  );
-  return updatedContent;
+  return content.replace(/src="\/media\/([^"]+)"/g, (match, p1) => {
+    return `src="${mediaUrl}${p1}"`;
+  });
 }
 
 function LessonPage() {
@@ -43,6 +38,7 @@ function LessonPage() {
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         const lessonsWithProgress = response.data;
+        console.log("Lessons fetched:", lessonsWithProgress); // Log lessons data
         setLessons(lessonsWithProgress);
         setCompletedLessons(
           lessonsWithProgress
@@ -101,10 +97,22 @@ function LessonPage() {
   };
 
   const handleLessonClick = (lessonId) => {
-    if (selectedLesson === lessonId) {
-      setSelectedLesson(null);
-    } else {
-      setSelectedLesson(lessonId);
+    setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
+  };
+
+  const renderExercise = (exerciseType, exerciseData) => {
+    console.log("Exercise Type:", exerciseType); // Log exercise type
+    console.log("Exercise Data:", exerciseData); // Log exercise data
+
+    if (!exerciseData || Object.keys(exerciseData).length === 0) {
+      return <p>No exercise available for this lesson.</p>;
+    }
+
+    switch (exerciseType) {
+      case "drag-and-drop":
+        return <DragAndDropExercise data={exerciseData} />;
+      default:
+        return <p>No exercise available for this lesson.</p>;
     }
   };
 
@@ -164,7 +172,6 @@ function LessonPage() {
                         <div className={styles.videoPlayer}>
                           {lesson.video_url.includes("youtube.com") ||
                           lesson.video_url.includes("youtu.be") ? (
-                            // Embed YouTube video
                             <iframe
                               width="100%"
                               height="500"
@@ -177,13 +184,22 @@ function LessonPage() {
                               title="YouTube Video"
                             ></iframe>
                           ) : (
-                            // Fallback for direct video files
                             <video controls>
                               <source src={lesson.video_url} type="video/mp4" />
                               Your browser does not support the video tag.
                             </video>
                           )}
                         </div>
+                      )}
+
+                      {lesson.exercise_type && (
+                        <>
+                          {console.log("Rendering exercise for:", lesson.title)}
+                          {renderExercise(
+                            lesson.exercise_type,
+                            lesson.exercise_data
+                          )}
+                        </>
                       )}
 
                       {!isCompleted && (
