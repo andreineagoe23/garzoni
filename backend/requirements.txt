@@ -1,7 +1,10 @@
-Django==4.2
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.2.2
-mysqlclient==2.1.1
+Django>=4.2.0
+djangorestframework>=3.14.0
+mysqlclient>=2.1.0
+drf-yasg>=1.21.5
+Pillow>=9.5.0
+django-cors-headers>=4.0.0
+djangorestframework-simplejwt>=5.2.2
+django-dbbackup>=4.0.0
 celery
-django_cors_headers
-Pillow
+dotenv

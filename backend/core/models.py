@@ -62,12 +62,25 @@ class Course(models.Model):
         verbose_name_plural = "Courses"
 
 class Lesson(models.Model):
+    EXERCISE_CHOICES = [
+        ('drag-and-drop', 'Drag and Drop'),
+        ('multiple-choice', 'Multiple Choice'),
+        ('quiz', 'Quiz'),
+    ]
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
     short_description = models.TextField(blank=True)
     detailed_content = RichTextField()
     image = models.ImageField(upload_to='lesson_images/', blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
+    exercise_type = models.CharField(
+        max_length=50, 
+        choices=EXERCISE_CHOICES,
+        blank=True, 
+        null=True
+    )
+    exercise_data = models.JSONField(blank=True, null=True) 
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"

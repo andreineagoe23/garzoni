@@ -85,7 +85,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'chartwise.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -93,7 +92,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'chartwise_db', 
-        'USER': 'chartwise_user',          
+        'USER': 'andreineagoe23',          
         'PASSWORD': 'Loredana123$',        
         'HOST': 'localhost',
         'PORT': '3306',                     
