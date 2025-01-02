@@ -1,50 +1,101 @@
+/* DragAndDropExercise.module.css */
+
+/* Container Styles */
 .exerciseContainer {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin: 30px;
+  gap: 30px;
 }
 
-.itemsContainer,
-.targetsContainer {
+/* Items Container (draggable items) */
+.itemsContainer {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  width: 30%;
 }
 
 .draggableItem {
-  padding: 10px;
-  margin: 5px;
   background-color: #f0f0f0;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin: 5px 0;
   cursor: move;
-  border-radius: 5px;
-  transition: transform 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.draggableItem.dragging {
-  opacity: 0.5;
-  transform: scale(1.1);
+.draggableItem:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+}
+
+/* Targets Container (droppable areas) */
+.targetsContainer {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
 }
 
 .droppableTarget {
-  padding: 10px;
-  background-color: #e0e0e0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  text-align: center;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  min-height: 80px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.droppableTarget:hover {
+  background-color: #f9f9f9;
 }
 
 .droppableTarget.over {
-  background-color: #d0ffd0;
-  border-color: #40c040;
+  background-color: #f2f2f2;
+  border-color: #b5b5b5;
 }
 
+.droppableTarget.dropped {
+  background-color: #e0f7fa; /* Light cyan to show the item was dropped */
+  border-color: #4caf50;
+  color: #333;
+}
+
+/* Styling for Dropped Items */
+.droppedItemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.droppedItem {
+  margin-top: 5px;
+  padding: 8px 15px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Styling for feedback */
 .submitButton {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: #4caf50;
   color: white;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
 }
 
 .submitButton:hover {
@@ -55,4 +106,13 @@
   margin-top: 20px;
   font-size: 16px;
   color: #333;
+}
+
+/* Correct/Incorrect Feedback */
+.feedback.correct {
+  color: #4caf50; /* Green for correct answers */
+}
+
+.feedback.incorrect {
+  color: #f44336; /* Red for incorrect answers */
 }
