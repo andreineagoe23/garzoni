@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styles from "../styles/DragAndDropExercise.module.css";
 
-const DragAndDropExercise = ({ data }) => {
+const DragAndDropExercise = ({ data, exerciseId }) => {
   const { items, targets } = data;
 
+  // States for tracking answers and feedback
   const [userAnswers, setUserAnswers] = useState({});
   const [feedback, setFeedback] = useState("");
+  const [feedbackClass, setFeedbackClass] = useState("");
+  const [updatedTargets, setUpdatedTargets] = useState(targets);
+  const [isCompleted, setIsCompleted] = useState(false);
 
+  // Load saved answers from localStorage when component mounts
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem(`exercise-${exerciseId}`);
+    if (savedAnswers) {
+      const parsedAnswers = JSON.parse(savedAnswers);
+      setUserAnswers(parsedAnswers.answers);
+      setIsCompleted(parsedAnswers.completed);
+    }
+  }, [exerciseId]);
+
+  // Handle item drop on a target
   const handleDrop = (target, item) => {
     setUserAnswers((prevAnswers) => ({
       ...prevAnswers,
@@ -16,19 +31,47 @@ const DragAndDropExercise = ({ data }) => {
     }));
   };
 
+  // Handle submit and validate answers
   const handleSubmit = () => {
     let correct = 0;
-    targets.forEach((target) => {
-      if (userAnswers[target.id] === target.id) {
+
+    const newTargets = updatedTargets.map((target) => {
+      const isCorrect = userAnswers[target.id] === target.id;
+      if (isCorrect) {
         correct++;
       }
+      return {
+        ...target,
+        isCorrect,
+        droppedColor: isCorrect ? "#4caf50" : "#f44336",
+      };
     });
 
-    if (correct === targets.length) {
-      setFeedback("All answers are correct! Great job!");
+    setFeedbackClass(correct === updatedTargets.length ? "correct" : "incorrect");
+
+    if (correct === updatedTargets.length) {
+      setFeedback("You completed the exercise!");
+      setIsCompleted(true);
+      // Save completion state to localStorage
+      localStorage.setItem(
+        `exercise-${exerciseId}`,
+        JSON.stringify({ answers: userAnswers, completed: true })
+      );
     } else {
-      setFeedback(`${correct} out of ${targets.length} answers are correct.`);
+      setFeedback("Try Again!");
     }
+
+    setFeedback(`${correct} out of ${updatedTargets.length} answers are correct.`);
+    setUpdatedTargets(newTargets);
+  };
+
+  // Clear answers and allow retry
+  const handleRetry = () => {
+    setUserAnswers({});
+    setFeedback("");
+    setFeedbackClass("");
+    setUpdatedTargets(targets.map((target) => ({ ...target, droppedColor: null })));
+    setIsCompleted(false);
   };
 
   return (
@@ -40,18 +83,28 @@ const DragAndDropExercise = ({ data }) => {
           ))}
         </div>
         <div className={styles.targetsContainer}>
-          {targets.map((target) => (
+          {updatedTargets.map((target) => (
             <DroppableTarget
               key={target.id}
               target={target}
               onDrop={handleDrop}
+              droppedColor={target.droppedColor}
+              userAnswer={userAnswers[target.id]} // Show dropped item ID
             />
           ))}
         </div>
-        <button className={styles.submitButton} onClick={handleSubmit}>
-          Submit Answers
-        </button>
-        {feedback && <p className={styles.feedback}>{feedback}</p>}
+        {!isCompleted ? (
+          <button className={styles.submitButton} onClick={handleSubmit}>
+            Submit Answers
+          </button>
+        ) : (
+          <button className={styles.retryButton} onClick={handleRetry}>
+            Retry Exercise
+          </button>
+        )}
+        {feedback && (
+          <p className={`${styles.feedback} ${feedbackClass}`}>{feedback}</p>
+        )}
       </div>
     </DndProvider>
   );
@@ -60,7 +113,7 @@ const DragAndDropExercise = ({ data }) => {
 const DraggableItem = ({ item }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "ITEM",
-    item: { id: item.id, text: item.text },
+    item: { id: item.id, text: item.text, color: item.color }, // Include color
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -70,13 +123,14 @@ const DraggableItem = ({ item }) => {
     <div
       ref={drag}
       className={`${styles.draggableItem} ${isDragging ? styles.dragging : ""}`}
+      style={{ backgroundColor: item.color }}
     >
       {item.text}
     </div>
   );
 };
 
-const DroppableTarget = ({ target, onDrop }) => {
+const DroppableTarget = ({ target, onDrop, droppedColor, userAnswer }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "ITEM",
     drop: (item) => onDrop(target, item),
@@ -88,9 +142,15 @@ const DroppableTarget = ({ target, onDrop }) => {
   return (
     <div
       ref={drop}
-      className={`${styles.droppableTarget} ${isOver ? styles.over : ""}`}
+      className={`${styles.droppableTarget} ${isOver ? styles.over : ""} ${
+        droppedColor ? "dropped" : ""
+      }`}
+      style={{ backgroundColor: droppedColor }}
     >
       {target.text}
+      {userAnswer && (
+        <div className={styles.droppedItem}>Answer: {userAnswer}</div>
+      )}
     </div>
   );
 };

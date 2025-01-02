@@ -1,13 +1,13 @@
 /* LessonPage.module.css */
 
-/* Make sure the lessons container starts after the navbar */
+/* Ensure the lessons container starts below the navbar */
 .lessons-container {
-  margin-top: 80px; /* Adjust this value to the height of your navbar */
+  margin-top: 80px; /* Adjust this value to match the height of your navbar */
   padding: 20px;
   box-sizing: border-box;
 }
 
-/* For the lesson box, ensure it is centered and spaced */
+/* Center and space out the lesson items */
 .lessonBox {
   display: flex;
   flex-direction: column;
@@ -23,10 +23,12 @@
   padding: 20px;
   transition: all 0.3s ease;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .lessonBoxItem:hover {
   background-color: #f0f0f0;
+  transform: translateY(-5px);
 }
 
 /* Styling for completed lessons */
@@ -50,15 +52,18 @@
 
 /* Success message styling */
 .successMessage {
-  color: green;
+  color: #4caf50;
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 20px;
 }
 
-/* Lesson content styling */
+/* Styling for lesson content */
 .lessonContent {
   margin-top: 10px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 .lessonContent button {
@@ -68,11 +73,12 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .lessonContent button:hover {
   background-color: #45a049;
+  transform: translateY(-3px);
 }
 
 .lessonContent button:disabled {
@@ -80,10 +86,13 @@
   cursor: not-allowed;
 }
 
-/* Styling for course completion section */
+/* Course completion section */
 .courseCompletion {
   margin-top: 30px;
   text-align: center;
+  padding: 20px;
+  background-color: #e9f7e9;
+  border-radius: 8px;
 }
 
 .courseCompletion h3 {
@@ -105,7 +114,7 @@
   background-color: #0056b3;
 }
 
-/* Ensure content is responsive */
+/* Responsive design adjustments */
 @media (max-width: 768px) {
   .lessonBox {
     padding: 10px;
@@ -120,13 +129,7 @@
   }
 }
 
-.lessonContent {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin-top: 20px;
-}
-
+/* Detailed content styling */
 .detailedContent {
   font-size: 1.1rem;
   line-height: 1.6;
