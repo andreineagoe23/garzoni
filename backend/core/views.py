@@ -136,6 +136,36 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return Response(lesson_data)
 
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def complete(self, request):
+        """
+        Mark a lesson as complete and update related missions.
+        """
+        lesson_id = request.data.get('lesson_id')
+        user = request.user
+
+        try:
+            # Fetch the lesson and user progress
+            lesson = Lesson.objects.get(id=lesson_id)
+            user_progress, created = UserProgress.objects.get_or_create(
+                user=user, course=lesson.course
+            )
+            user_progress.completed_lessons.add(lesson)
+            user_progress.save()
+
+            # Update related missions
+            mission_completions = MissionCompletion.objects.filter(
+                user=user,
+                mission__goal_type='complete_lesson'
+            )
+            for mission_completion in mission_completions:
+                mission_completion.update_progress(user)
+
+            return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
+
+        except Lesson.DoesNotExist:
+            return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
@@ -273,42 +303,36 @@ class UserSettingsView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-
-
 class MissionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         try:
-            # Fetch and reset missions where needed
             completions = MissionCompletion.objects.filter(user=user)
-            for completion in completions:
-                completion.reset_daily_missions()
-                completion.reset_monthly_missions()
-
-            # Categorize missions
             daily_missions = Mission.objects.filter(mission_type="daily")
-            monthly_missions = Mission.objects.filter(mission_type="monthly")
+            weekly_missions = Mission.objects.filter(mission_type="weekly")
 
             def format_mission(mission, user):
-                completion = MissionCompletion.objects.filter(user=user, mission=mission).first()
+                completion = completions.filter(mission=mission).first()
                 return {
                     "id": mission.id,
                     "name": mission.name,
                     "description": mission.description,
                     "points_reward": mission.points_reward,
+                    "goal_type": mission.goal_type,
                     "status": completion.status if completion else "not_started",
+                    "progress": completion.progress if completion else 0,
                 }
 
             response_data = {
                 "daily": [format_mission(mission, user) for mission in daily_missions],
-                "monthly": [format_mission(mission, user) for mission in monthly_missions],
+                "weekly": [format_mission(mission, user) for mission in weekly_missions],
             }
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(f"Error fetching missions: {e}")  # Add this line for debugging
+            print(f"Error fetching missions: {e}")
             return Response(
                 {"error": "An error occurred while fetching missions."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -317,29 +341,33 @@ class MissionView(APIView):
     def post(self, request, mission_id):
         user = request.user
         try:
-            # Fetch the mission
-            mission = Mission.objects.get(id=mission_id)
+            mission_completion, created = MissionCompletion.objects.get_or_create(
+                user=user, mission_id=mission_id
+            )
+            action_type = request.data.get("action_type")
+            increment = 0
+
+            if mission_completion.mission.goal_type == "complete_lesson":
+                increment = 100  # Fully complete when lesson is done
+            elif mission_completion.mission.goal_type == "complete_exercise":
+                increment = 50  # Partial progress for an exercise
+            elif mission_completion.mission.goal_type == "complete_course":
+                course_progress = UserProgress.objects.filter(
+                    user=user,
+                    course_id=mission_completion.mission.goal_id,
+                ).first()
+                if course_progress:
+                    increment = course_progress.completed_lessons.count() / \
+                                course_progress.course.lessons.count() * 100
+
+            mission_completion.update_progress(increment)
+            return Response(
+                {"message": "Progress updated!", "progress": mission_completion.progress},
+                status=status.HTTP_200_OK,
+            )
+
         except Mission.DoesNotExist:
-            return Response({"message": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        # Check if the mission is already completed
-        mission_completion, created = MissionCompletion.objects.get_or_create(
-            user=user, mission=mission
-        )
-
-        if mission_completion.status == "completed":
-            return Response({"message": "Mission already completed."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Mark the mission as completed
-        mission_completion.status = "completed"
-        mission_completion.save()
-
-        # Update user's profile points
-        user.userprofile.add_points(mission.points_reward)
-        user.userprofile.save()
-
-        return Response({"message": "Mission completed successfully!"}, status=status.HTTP_200_OK)
-
+            return Response({"error": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class QuestionnaireView(APIView):

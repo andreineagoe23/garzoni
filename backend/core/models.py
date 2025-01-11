@@ -144,7 +144,7 @@ class UserProgress(models.Model):
 class Mission(models.Model):
     MISSION_TYPES = [
         ('daily', 'Daily'),
-        ('monthly', 'Monthly'),
+        ('weekly', 'Weekly'),
     ]
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -152,6 +152,14 @@ class Mission(models.Model):
     mission_type = models.CharField(
         max_length=10, choices=MISSION_TYPES, default='daily'
     )
+    goal_type = models.CharField(
+        max_length=50, choices=[
+            ('complete_lesson', 'Complete Lesson'),
+            ('complete_exercise', 'Complete Exercise'),
+            ('complete_course', 'Complete Course'),
+        ], default='complete_lesson'
+    )
+    goal_id = models.IntegerField(null=True, blank=True)  # Links to lesson/course ID
 
     def __str__(self):
         return f"{self.name} ({self.mission_type})"
@@ -160,8 +168,10 @@ class Mission(models.Model):
 class MissionCompletion(models.Model):
     user = models.ForeignKey(User, related_name="completed_missions", on_delete=models.CASCADE)
     mission = models.ForeignKey(Mission, related_name="completions", on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
     status_choices = [
         ('not_started', 'Not Started'),
+        ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     ]
     status = models.CharField(
@@ -169,22 +179,38 @@ class MissionCompletion(models.Model):
     )
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.mission.name} - {self.status}"
-
-    def reset_daily_missions(self):
-        """Reset all daily missions for this user."""
-        if self.mission.mission_type == 'daily' and self.completed_at and timezone.now() - self.completed_at > timedelta(days=1):
+    def update_progress(self):
+        """Dynamically calculate progress based on user activity."""
+        if self.mission.goal_type == 'complete_lesson':
+            # Check lessons completed by the user
+            user_progress = UserProgress.objects.filter(user=self.user).first()
+            if user_progress:
+                self.progress = 100 if user_progress.completed_lessons.exists() else 0
+        elif self.mission.goal_type == 'complete_exercise':
+            # Example logic for exercises
+            self.progress = 100 if some_exercise_completion_logic() else 0
+        elif self.mission.goal_type == 'complete_course':
+            # Calculate progress for a course
+            user_progress = UserProgress.objects.filter(
+                user=self.user, course_id=self.mission.goal_id
+            ).first()
+            if user_progress:
+                total_lessons = user_progress.course.lessons.count()
+                completed_lessons = user_progress.completed_lessons.count()
+                self.progress = int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
+        
+        # Update status
+        if self.progress >= 100:
+            self.status = 'completed'
+            self.completed_at = timezone.now()
+        elif self.progress > 0:
+            self.status = 'in_progress'
+        else:
             self.status = 'not_started'
-            self.completed_at = None
-            self.save()
 
-    def reset_monthly_missions(self):
-        """Reset all monthly missions at the start of a new month."""
-        if self.mission.mission_type == 'monthly' and self.completed_at and self.completed_at.month != timezone.now().month:
-            self.status = 'not_started'
-            self.completed_at = None
-            self.save()
+        self.save()
+
+
 
 class Questionnaire(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="questionnaire")
