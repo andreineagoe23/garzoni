@@ -1,49 +1,82 @@
 /* src/styles/Welcome.css */
 
-/* Reset body and html styles */
+/* Reset styles */
 body,
 html {
-  height: 100%;
   margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4; /* Light neutral background */
 }
 
+/* Center the Welcome page content */
 .welcome-container {
-  text-align: center;
-  padding: 50px;
-  background-color: #f4f4f4;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
+}
+
+.welcome-content {
+  text-align: center;
+  max-width: 600px;
+  padding: 20px;
+  background-color: #fff; /* Clean white card background */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow for elevation */
+  border-radius: 8px; /* Rounded corners */
+}
+
+/* Logo styling */
+.welcome-logo {
+  max-width: 180px;
+  margin-bottom: 20px;
+}
+
+/* Heading styling */
+.welcome-heading {
+  font-size: 1.8rem;
+  color: #002d0b; /* Dark Forest Green */
+  margin-bottom: 20px;
+  line-height: 1.4;
+  font-weight: bold;
+}
+
+/* Button Group Styling */
+.button-group {
+  display: flex;
   flex-direction: column;
-  height: 100vh;
+  gap: 15px; /* Space between buttons */
 }
 
-.welcome-container h1 {
-  font-size: 2.5rem;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.welcome-container button {
-  background-color: #002d0b; /* Dark Forest Green */
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  margin: 10px;
+/* Button Styling */
+.welcome-btn {
+  padding: 15px 20px;
+  font-size: 1.1rem;
   border-radius: 5px;
-  transition: background-color 0.3s ease;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
-.welcome-container button:hover {
-  background-color: #16a085; /* Lighter green on hover */
+/* Primary Button */
+.btn-primary {
+  background-color: #002d0b; /* Dark Forest Green */
+  color: #fff;
 }
 
-/* Logo styles specific to the Welcome page */
-.welcome-container .logo {
-  max-width: 300px;
-  margin-bottom: 20px;
-  margin-left: auto;
-  margin-right: auto; /* Center the logo */
+.btn-primary:hover {
+  background-color: #1d5330; /* Slightly lighter green */
+  transform: translateY(-3px); /* Subtle upward motion */
+}
+
+/* Alternate Primary Button */
+.btn-primary-alt {
+  background-color: #1d5330; /* Slightly lighter green */
+  color: #fff;
+}
+
+.btn-primary-alt:hover {
+  background-color: #002d0b; /* Reverses the color scheme */
+  transform: translateY(-3px);
 }

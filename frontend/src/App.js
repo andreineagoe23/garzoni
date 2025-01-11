@@ -5,6 +5,7 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Welcome from "./components/Welcome";
@@ -25,7 +26,7 @@ import ResetPassword from "./components/ResetPassword";
 function AppContent() {
   const location = useLocation();
 
-  const noNavbarPaths = ["/", "/login", "/register"];
+  const noNavbarPaths = ["/", "/login", "/register", "/welcome"];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -54,7 +55,10 @@ function AppContent() {
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/password-reset/:uidb64/:token" element={<ResetPassword />} />
+          <Route
+            path="/password-reset/:uidb64/:token"
+            element={<ResetPassword />}
+          />
         </Routes>
       </div>
     </div>

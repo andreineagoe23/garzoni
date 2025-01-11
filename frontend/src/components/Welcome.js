@@ -1,26 +1,38 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/monevo.png"; // Make sure you add your logo image here
+import logo from "../assets/monevo.png"; // Ensure the logo image exists
 import "../styles/Welcome.css";
 
 function Welcome() {
   const navigate = useNavigate();
 
-  const handleGetStarted = () => {
-    navigate("/register");
-  };
-
-  const handleLogin = () => {
-    navigate("/login");
-  };
-
   return (
     <div className="welcome-container">
-      {/* Logo */}
-      <img src={logo} alt="Logo" className="logo" />
-      <h1>The free, fun, and effective way to learn about finance topics!</h1>
-      <button onClick={handleGetStarted}>Get Started</button>
-      <button onClick={handleLogin}>Already Have an Account?</button>
+      <div className="welcome-content">
+        {/* Logo */}
+        <img src={logo} alt="Monevo Logo" className="welcome-logo" />
+
+        {/* Main Heading */}
+        <h1 className="welcome-heading">
+          The free, fun, and effective way to learn about finance topics!
+        </h1>
+
+        {/* Action Buttons */}
+        <div className="button-group">
+          <button
+            className="btn-primary welcome-btn"
+            onClick={() => navigate("/register")}
+          >
+            Get Started
+          </button>
+          <button
+            className="btn-primary-alt welcome-btn"
+            onClick={() => navigate("/login")}
+          >
+            Already Have an Account?
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

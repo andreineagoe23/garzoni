@@ -71,18 +71,12 @@ function LessonPage() {
 
     try {
       await axios.post(
-        `http://localhost:8000/api/progress/complete/`,
+        "http://localhost:8000/api/lessons/complete/",
         { lesson_id: lessonId },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      setCompletedLessons((prev) => {
-        const newCompletedLessons = [...prev, lessonId];
-        return newCompletedLessons;
-      });
-
+      setCompletedLessons((prev) => [...prev, lessonId]);
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
       setTimeout(() => setSuccessMessage(""), 3000);
       setSelectedLesson(null);
