@@ -1,82 +1,29 @@
-/* src/styles/Welcome.css */
+/* Welcome.css */
 
-/* Reset styles */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4; /* Light neutral background */
-}
-
-/* Center the Welcome page content */
+/* Center the Page */
 .welcome-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: 100vh;
+  background-color: #f4f4f4;
 }
 
 .welcome-content {
   text-align: center;
-  max-width: 600px;
-  padding: 20px;
-  background-color: #fff; /* Clean white card background */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow for elevation */
-  border-radius: 8px; /* Rounded corners */
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Logo styling */
 .welcome-logo {
-  max-width: 180px;
-  margin-bottom: 20px;
+  max-width: 150px;
+  margin-bottom: 1.5rem;
 }
 
-/* Heading styling */
 .welcome-heading {
-  font-size: 1.8rem;
-  color: #002d0b; /* Dark Forest Green */
-  margin-bottom: 20px;
-  line-height: 1.4;
-  font-weight: bold;
-}
-
-/* Button Group Styling */
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Space between buttons */
-}
-
-/* Button Styling */
-.welcome-btn {
-  padding: 15px 20px;
-  font-size: 1.1rem;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-}
-
-/* Primary Button */
-.btn-primary {
-  background-color: #002d0b; /* Dark Forest Green */
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background-color: #1d5330; /* Slightly lighter green */
-  transform: translateY(-3px); /* Subtle upward motion */
-}
-
-/* Alternate Primary Button */
-.btn-primary-alt {
-  background-color: #1d5330; /* Slightly lighter green */
-  color: #fff;
-}
-
-.btn-primary-alt:hover {
-  background-color: #002d0b; /* Reverses the color scheme */
-  transform: translateY(-3px);
+  font-size: 1.5rem;
+  color: #002d0b;
+  margin-bottom: 1.5rem;
 }

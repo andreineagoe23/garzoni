@@ -1,78 +1,70 @@
 /* src/styles/Register.css */
 
-/* Reset body and html styles */
-body,
-html {
-  height: 100%;
-  margin: 0;
-}
-
+/* Page Container */
 .register-container {
   max-width: 500px;
-  padding: 20px;
-  background-color: #fff;
+  padding: 2rem;
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  text-align: center; /* Center text for register form */
+  text-align: center;
 }
 
+/* Heading */
 .register-container h2 {
-  font-size: 2rem;
-  color: #002d0b; /* Dark Forest Green */
-  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #1d5330; /* Dark Forest Green */
+  margin-bottom: 1.5rem;
+  font-weight: bold;
 }
 
-.register-container form div {
-  margin-bottom: 20px; /* Added more spacing between form fields */
+/* Form */
+.register-container form {
+  width: 100%;
 }
 
 .register-container label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 0.5rem;
   font-size: 1rem;
   color: #333;
+  text-align: left;
 }
 
 .register-container input {
   width: 100%;
-  padding: 12px; /* Increased padding for better spacing */
-  font-size: 1rem;
+  padding: 0.8rem;
+  margin-bottom: 1.5rem;
   border: 1px solid #ddd;
   border-radius: 5px;
+  font-size: 1rem;
   transition: border-color 0.3s ease;
 }
 
 .register-container input:focus {
-  border-color: #002d0b; /* Dark Forest Green on focus */
+  border-color: #1d5330; /* Highlight on focus */
   outline: none;
+  box-shadow: 0 0 5px rgba(29, 83, 48, 0.3);
 }
 
-.register-container button {
-  width: 100%;
-  padding: 12px;
-  background-color: #002d0b; /* Dark Forest Green */
-  color: white;
-  font-size: 1.2rem;
-  border: none;
-  cursor: pointer;
-  margin-top: 10px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-
-.register-container button:hover {
-  background-color: #1d5330; /* Lighter green on hover */
-}
-
-/* Add logo styles specific to Register page */
+/* Logo */
 .register-container .logo {
   max-width: 150px;
-  margin-bottom: 20px;
-  margin-left: auto;
-  margin-right: auto; /* Center the logo */
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 1.5rem;
+  }
+
+  .register-container h2 {
+    font-size: 1.25rem;
+  }
 }

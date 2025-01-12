@@ -5,6 +5,7 @@ import CryptoTools from "./CryptoTools";
 import BasicFinanceTools from "./BasicFinanceTools";
 import NewsCalendars from "./NewsCalendars";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/ToolsPage.css"; // New CSS file
 import Chatbot from "./Chatbot";
 
 const ToolsPage = () => {
@@ -20,7 +21,21 @@ const ToolsPage = () => {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         });
-        setCategories(response.data);
+
+        // Move "Crypto Tools" to the top
+        const reorderedCategories = response.data.sort((a, b) => {
+          if (a.category === "Crypto Tools") return -1;
+          if (b.category === "Crypto Tools") return 1;
+          return 0;
+        });
+
+        setCategories(reorderedCategories);
+
+        // Automatically expand the first category
+        const defaultActiveIndex = reorderedCategories.findIndex(
+          (cat) => cat.category === "Crypto Tools"
+        );
+        setActiveCategory(defaultActiveIndex);
       } catch (error) {
         console.error("Error fetching tools:", error);
         setError(error.message || "Error fetching tools.");
@@ -35,17 +50,15 @@ const ToolsPage = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Financial Tools</h1>
+    <div className="tools-page">
+      <h1 className="tools-title">Financial Tools</h1>
       {error ? (
-        <div className="alert alert-danger text-center" role="alert">
-          {error}
-        </div>
+        <div className="alert alert-danger text-center">{error}</div>
       ) : (
         <div className="accordion" id="toolsAccordion">
           {categories.map((category, index) => (
-            <div key={index} className="accordion-item mb-3">
-              <h2 className="accordion-header" id={`heading-${index}`}>
+            <div key={index} className="accordion-item">
+              <h2 className="accordion-header">
                 <button
                   className={`accordion-button ${
                     activeCategory === index ? "" : "collapsed"
@@ -65,8 +78,6 @@ const ToolsPage = () => {
                 className={`accordion-collapse collapse ${
                   activeCategory === index ? "show" : ""
                 }`}
-                aria-labelledby={`heading-${index}`}
-                data-bs-parent="#toolsAccordion"
               >
                 <div className="accordion-body">
                   {category.category === "Forex Tools" && <ForexTools />}

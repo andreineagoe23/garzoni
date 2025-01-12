@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/monevo.png"; // Add your logo image here
 import "../styles/Register.css";
+import "../styles/CustomStyles.css";
+import logo from "../assets/monevo.png";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ function Register() {
     first_name: "",
     last_name: "",
   });
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,78 +23,81 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
+      // Register the user
       await axios.post("http://127.0.0.1:8000/api/register/", formData);
 
+      // Automatically log in the user
       const loginResponse = await axios.post(
-        "http://127.0.0.1:8000/api/login/",
+        "http://127.0.0.1:8000/api/token/",
         {
           username: formData.username,
           password: formData.password,
         }
       );
 
+      // Save tokens to localStorage
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
-      // Redirect to questionnaire after registration
+      // Redirect to the Questionnaire page
       navigate("/questionnaire");
     } catch (error) {
-      console.error("Registration or login failed", error);
+      console.error("Registration failed", error);
+      setErrorMessage(
+        error.response?.data?.detail || "An error occurred. Please try again."
+      );
     }
   };
 
   return (
     <div className="register-container">
-      {/* Logo */}
       <img src={logo} alt="Logo" className="logo" />
-      <h2>Register</h2>
+      <h2>Create Your Account</h2>
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
       <form onSubmit={handleRegister}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>First Name:</label>
-          <input
-            type="text"
-            name="first_name"
-            value={formData.first_name}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input
-            type="text"
-            name="last_name"
-            value={formData.last_name}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Register</button>
+        <label>Username</label>
+        <input
+          type="text"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+        />
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+        <label>Password</label>
+        <input
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
+        <label>First Name</label>
+        <input
+          type="text"
+          name="first_name"
+          value={formData.first_name}
+          onChange={handleChange}
+          required
+        />
+        <label>Last Name</label>
+        <input
+          type="text"
+          name="last_name"
+          value={formData.last_name}
+          onChange={handleChange}
+          required
+        />
+        <button type="submit" className="button button--primary button--large">
+          Register
+        </button>
       </form>
     </div>
   );

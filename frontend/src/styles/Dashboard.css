@@ -2,77 +2,106 @@
 .dashboard {
   display: flex;
   height: 100vh;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
+/* Main Content Area */
 .main-content {
-  flex: 1; 
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  margin-left: 250px; 
+  flex: 1;
+  margin-left: 250px; /* Adjust for navbar width */
+  margin-right: 320px; /* Adjust for progress box width */
   padding: 20px;
+  overflow-y: auto;
 }
 
+/* Dashboard Container */
 .dashboard-container {
   display: flex;
-  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 20px;
-  width: 100%; 
 }
 
-.main-section {
-  flex: 2;
-  max-width: calc(
-    100% - 320px
-  ); 
-  padding-right: 320px; 
-  overflow-x: hidden; 
-  overflow-y: auto;
-}
-
-.learning-path-container {
+/* Recommendation Message */
+.recommendation-message {
   margin-top: 20px;
+  background-color: #e9f7e9;
+  color: #155724;
+  padding: 10px 15px;
+  border-left: 5px solid #1d5330;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
-/* User Progress section */
+/* User Progress Section */
 .user-progress {
   width: 320px;
   padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow-y: auto;
   position: fixed;
   right: 0;
   top: 0;
-  bottom: 0;
-  background-color: #f4f4f4;
-  overflow-y: auto; 
+  height: 100vh;
 }
 
-.streak-section {
-  margin-top: 20px;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .user-progress {
+    width: 100%;
+    height: auto;
+    position: relative;
+    margin-top: 20px;
+  }
 }
 
-.dashboard h1 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 20px;
+.learning-paths-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.dashboard button {
-  background-color: #004b1f;
-  color: white;
-  padding: 10px 15px;
+.learning-path-card {
+  flex: 1 1 calc(50% - 20px);
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.learning-path-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.learning-path-card h3 {
+  font-size: 1.5rem;
+  color: #1d5330; /* Green title */
+  margin-bottom: 10px;
+}
+
+.path-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.learning-path-card p {
   font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 20px;
+  color: #666;
+  margin-bottom: 15px;
 }
 
-.dashboard button:hover {
-  background-color: #16a085;
-}
-
-.dashboard h2 {
-  font-size: 1.3rem;
-  color: #333;
+.learning-path-card .button {
+  margin-top: 10px;
 }

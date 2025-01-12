@@ -6,10 +6,41 @@ import UserProgressBox from "./UserProgressBox";
 import "../styles/Dashboard.css";
 import Chatbot from "./Chatbot";
 
+// Import images from src/assets
+import BasicFinanceImage from "../assets/basicfinance.png";
+import CryptoImage from "../assets/crypto.png";
+import RealEstateImage from "../assets/realestate.png";
+import ForexImage from "../assets/forex.png";
+
 function Dashboard() {
-  const [user, setUser] = useState(null); // For user info
-  const [learningPaths, setLearningPaths] = useState([]);
-  const [activePathId, setActivePathId] = useState(null);
+  const [user, setUser] = useState(null);
+  const [learningPaths, setLearningPaths] = useState([
+    {
+      id: 1,
+      title: "Basic Finance",
+      description:
+        "Learn the essentials of budgeting, saving, and financial planning.",
+      image: BasicFinanceImage,
+    },
+    {
+      id: 2,
+      title: "Crypto",
+      description: "Explore cryptocurrency, blockchain, and digital assets.",
+      image: CryptoImage,
+    },
+    {
+      id: 3,
+      title: "Real Estate",
+      description: "Understand real estate investment and property management.",
+      image: RealEstateImage,
+    },
+    {
+      id: 4,
+      title: "Forex",
+      description: "Dive into foreign exchange markets and currency trading.",
+      image: ForexImage,
+    },
+  ]);
   const [recommendedPath, setRecommendedPath] = useState(null);
   const [showRecommendation, setShowRecommendation] = useState(true);
   const navigate = useNavigate();
@@ -33,12 +64,38 @@ function Dashboard() {
         .get("http://localhost:8000/api/paths/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
-        .then((response) => setLearningPaths(response.data))
+        .then((response) => {
+          const fetchedPaths = response.data;
+
+          // Merge images with fetched paths
+          const pathsWithImages = fetchedPaths.map((path) => {
+            let image;
+            switch (path.title) {
+              case "Basic Finance":
+                image = BasicFinanceImage;
+                break;
+              case "Crypto":
+                image = CryptoImage;
+                break;
+              case "Real Estate":
+                image = RealEstateImage;
+                break;
+              case "Forex":
+                image = ForexImage;
+                break;
+              default:
+                image = null; // Fallback if no matching title
+            }
+            return { ...path, image };
+          });
+
+          setLearningPaths(pathsWithImages);
+        })
         .catch((error) =>
           console.error("Failed to fetch learning paths:", error)
         );
 
-      // Fetch user profile to check if the questionnaire is completed
+      // Fetch questionnaire
       axios
         .get("http://localhost:8000/api/questionnaire/", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -47,11 +104,9 @@ function Dashboard() {
           const userProfile = response.data;
 
           if (userProfile.is_questionnaire_completed) {
-            // Skip the questionnaire fetch if completed
             return;
           }
 
-          // If the questionnaire is not completed, fetch it
           axios
             .get("http://localhost:8000/api/questionnaire/", {
               headers: { Authorization: `Bearer ${accessToken}` },
@@ -59,7 +114,6 @@ function Dashboard() {
             .then((response) => {
               const { goal, experience, preferred_style } = response.data;
 
-              // Personalized recommendation logic
               if (goal === "Save and budget effectively") {
                 setRecommendedPath("Basic Finance");
               } else if (
@@ -77,21 +131,26 @@ function Dashboard() {
                 setRecommendedPath("General Financial Literacy");
               }
 
-              // Hide recommendation after 10 seconds
               setTimeout(() => setShowRecommendation(false), 10000);
             })
             .catch((error) =>
               console.error("Failed to fetch questionnaire data:", error)
             );
         })
-        .catch((error) => {
-          console.error("Failed to fetch user profile:", error);
-        });
+        .catch((error) =>
+          console.error("Failed to fetch user profile:", error)
+        );
     }
   }, [navigate]);
 
   const togglePath = (pathId) => {
-    setActivePathId((prevPathId) => (prevPathId === pathId ? null : pathId));
+    setLearningPaths((prevPaths) =>
+      prevPaths.map((path) =>
+        path.id === pathId
+          ? { ...path, isExpanded: !path.isExpanded }
+          : { ...path, isExpanded: false }
+      )
+    );
   };
 
   const handleCourseClick = (courseId) => {
@@ -109,8 +168,7 @@ function Dashboard() {
       <div className="main-content">
         <div className="dashboard-container">
           <div className="main-section">
-            <h1>Welcome to Your Dashboard</h1>
-            <button onClick={handleLogout} className="btn btn-danger">
+            <button onClick={handleLogout} className="button button--secondary">
               Logout
             </button>
             {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
@@ -122,24 +180,41 @@ function Dashboard() {
               </p>
             )}
 
-            <div className="learning-path-container">
-              <LearningPathList
-                learningPaths={learningPaths}
-                activePathId={activePathId}
-                onTogglePath={togglePath}
-                onCourseClick={handleCourseClick}
-              />
+            <div className="learning-paths-container">
+              {learningPaths.map((path) => (
+                <div key={path.id} className="learning-path-card">
+                  <h3>{path.title}</h3>
+                  <img
+                    src={path.image}
+                    alt={path.title}
+                    className="path-image"
+                  />
+                  <p>{path.description}</p>
+                  <button
+                    className="button button--primary"
+                    onClick={() => togglePath(path.id)}
+                  >
+                    View Courses
+                  </button>
+                  {path.isExpanded && (
+                    <LearningPathList
+                      learningPaths={[path]}
+                      activePathId={path.id}
+                      onTogglePath={togglePath}
+                      onCourseClick={handleCourseClick}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
       <div className="user-progress">
         <UserProgressBox />
-        <div className="streak-section">
-          <h4 className="text-muted">Streak:</h4>
-          <p className="h5">{user ? user.streak || 0 : 0} days</p>
-        </div>
       </div>
+
       <Chatbot />
     </div>
   );

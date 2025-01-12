@@ -1,42 +1,96 @@
+/* Missions Page Container */
 .missions-container {
-  background-color: #f9f9f9;
-  border-radius: 10px;
+  margin-left: 250px; /* Adjust for left-side navbar */
   padding: 20px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
+/* Missions Title */
+.missions-title {
+  font-size: 2.5rem;
+  color: #002d0b; /* Dark forest green */
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+/* Missions Section */
 .missions-section {
   margin-top: 20px;
 }
 
+.missions-section h3 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Mission Card */
 .mission-card {
   background-color: #ffffff;
   border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
+.mission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Mission Header */
 .mission-header h5 {
-  color: #002d0b;
-  margin: 0;
+  font-size: 1.2rem;
+  color: #1d5330;
+  margin-bottom: 10px;
 }
 
 .mission-header p {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #555;
 }
 
+/* Progress Bar */
+.progress-bar-custom .progress-bar {
+  background-color: #1d5330; /* Dark forest green */
+}
+
+/* Completed Badge */
 .completed-badge {
   margin-top: 10px;
-  color: #4caf50;
+  font-size: 1rem;
+  color: #4caf50; /* Green */
   font-weight: bold;
   text-align: center;
 }
 
+/* Error Message */
 .error-message {
-  color: #f44336;
+  font-size: 1.2rem;
+  color: #f44336; /* Red */
   text-align: center;
   margin-top: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .missions-container {
+    margin-left: 0; /* Full-width for smaller screens */
+  }
+
+  .missions-title {
+    font-size: 2rem;
+  }
+
+  .missions-section h3 {
+    font-size: 1.5rem;
+  }
+
+  .mission-card {
+    padding: 15px;
+  }
 }

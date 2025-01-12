@@ -1,78 +1,89 @@
-/* Overall container styling */
-
-/* Ensure content is not overlapped by the navbar */
-body {
-  padding-left: 250px; /* Match the width of the navbar */
-  padding-top: 80px; /* Adjust this value based on the height of your navbar */
-}
-
-/* For smaller screens, adjust padding-left */
-@media (max-width: 768px) {
-  body {
-    padding-left: 200px; /* Adjust for smaller screen size */
-  }
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+/* Leaderboard Container */
+.leaderboard-container {
+  margin-left: 250px; /* Adjust for left-side navbar */
   padding: 20px;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
-/* Leaderboard header */
-h1 {
+/* Leaderboard Title */
+.leaderboard-title {
   font-size: 2.5rem;
   color: #002d0b; /* Dark forest green */
   font-weight: bold;
   margin-bottom: 30px;
 }
 
-/* Table styling */
-.table {
+/* Table Styling */
+.leaderboard-table {
   width: 100%;
-  border-collapse: collapse;
   background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.table th,
-.table td {
-  padding: 15px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
-}
-
-/* Header background and text styling */
-.table th {
+/* Table Header */
+.leaderboard-table th {
   background-color: #002d0b; /* Dark forest green */
-  color: white;
-  text-transform: uppercase;
-  font-weight: 700;
+  color: #ffffff;
   font-size: 1.1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 15px;
 }
 
-/* Alternating row colors */
-.table tbody tr:nth-child(even) {
+/* Table Rows */
+.leaderboard-table td {
+  padding: 15px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+}
+
+/* Row Hover Effect */
+.leaderboard-table tbody tr:hover {
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Alternating Row Colors */
+.leaderboard-table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
-/* Hover effect for rows */
-.table tbody tr:hover {
-  background-color: #f1f1f1;
-  cursor: pointer;
-}
-
-/* Adding style for rank cell */
-.table td:first-child {
+/* Rank Styling */
+.rank-gold td {
   font-weight: bold;
-  color: #007b5e; /* Greenish for ranks */
+  color: #ffd700; /* Gold */
 }
 
-/* Loading text style */
+.rank-silver td {
+  font-weight: bold;
+  color: #c0c0c0; /* Silver */
+}
+
+.rank-bronze td {
+  font-weight: bold;
+  color: #cd7f32; /* Bronze */
+}
+
+/* Loading Text */
 .loading {
   font-size: 1.5rem;
   color: #555;
   text-align: center;
   padding: 30px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .leaderboard-container {
+    margin-left: 0;
+  }
+
+  .leaderboard-title {
+    font-size: 2rem;
+  }
 }
