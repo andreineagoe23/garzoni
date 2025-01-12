@@ -18,6 +18,7 @@ function Profile() {
   const [imageUrl, setImageUrl] = useState(
     localStorage.getItem("avatarUrl") || null
   );
+  const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -40,6 +41,16 @@ function Profile() {
           points: response.data.points || 0,
           streak: response.data.streak || 0,
         });
+
+        // Fetch recent activity (mocked for now)
+        setRecentActivity([
+          {
+            id: 1,
+            activity: "Completed Basic Finance Course",
+            date: "2025-01-10",
+          },
+          { id: 2, activity: "Earned 50 points", date: "2025-01-08" },
+        ]);
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -89,6 +100,32 @@ function Profile() {
     }
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const token = localStorage.getItem("accessToken");
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/userprofiles/upload-avatar/",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      setImageUrl(response.data.avatar_url);
+      localStorage.setItem("avatarUrl", response.data.avatar_url);
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+    }
+  };
+
   return (
     <div className="container profile-container my-5">
       <div className="card p-4 shadow-sm">
@@ -116,6 +153,9 @@ function Profile() {
             >
               Generate Avatar
             </button>
+            <div className="mt-3">
+              <input type="file" onChange={handleAvatarUpload} />
+            </div>
           </div>
         </div>
 
@@ -129,8 +169,18 @@ function Profile() {
         </div>
         <div className="mb-3">
           <h4 className="text-muted">Streak:</h4>
-          <p className="h5">{profileData.streak}</p>
+          <p className="h5">{profileData.streak} days</p>
         </div>
+
+        <h3 className="mt-4">Recent Activity</h3>
+        <ul className="list-group">
+          {recentActivity.map((activity) => (
+            <li key={activity.id} className="list-group-item">
+              <strong>{activity.activity}</strong>
+              <span className="text-muted float-end">{activity.date}</span>
+            </li>
+          ))}
+        </ul>
       </div>
       <Chatbot />
     </div>

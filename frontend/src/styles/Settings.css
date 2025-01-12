@@ -1,25 +1,65 @@
-/* Settings page container */
+/* Settings Page Container */
 .settings-container {
+  margin-left: 250px; /* Space for the left-side navbar */
+  padding: 20px;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Card Styling */
+.settings-card {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.settings-container h2 {
-  font-size: 1.8rem;
+/* Title Styling */
+.settings-title {
+  font-size: 2rem;
+  color: #002d0b;
+  text-align: center;
   margin-bottom: 20px;
+}
+
+.notifications-title {
+  font-size: 1.5rem;
   color: #333;
+  margin-top: 30px;
+  margin-bottom: 10px;
 }
 
+/* Form Styling */
 .form-group {
-  display: flex;
-  align-items: center;
   margin-bottom: 20px;
 }
 
+.form-label {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #1d5330; /* Dark forest green */
+  box-shadow: 0 0 5px rgba(29, 83, 48, 0.2);
+}
+
+/* Form Check */
 .form-check-label {
   font-size: 1.2rem;
   color: #555;
@@ -29,7 +69,29 @@
   margin-right: 10px;
 }
 
-.message {
+/* Success Message */
+.success-message {
   font-size: 1rem;
-  color: green;
+  color: #4caf50;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-container {
+    margin-left: 0; /* Full-width for smaller screens */
+  }
+
+  .settings-card {
+    padding: 15px;
+  }
+
+  .settings-title {
+    font-size: 1.8rem;
+  }
+
+  .notifications-title {
+    font-size: 1.3rem;
+  }
 }

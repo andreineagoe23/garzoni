@@ -1,96 +1,56 @@
-/* CustomStyles.css: Reusable Styles */
+/* CustomStyles.css */
 
-/* Button Styles */
-.btn-primary {
-  background-color: #002d0b; /* Dark Forest Green */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: #1d5330; /* Slightly lighter green */
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background-color: #6c757d; /* Bootstrap-like Secondary Gray */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-/* Input and Textarea Styling */
-.input-field {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: #002d0b; /* Dark Forest Green */
-  box-shadow: 0 0 5px rgba(0, 45, 11, 0.3);
-}
-
-/* Card Component */
-.card-custom {
-  border: 1px solid #dee2e6;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-custom:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-/* Link Styling */
-.link-custom {
-  color: #002d0b; /* Dark Forest Green */
+/* Base Button Styles */
+.button {
+  display: inline-block;
+  background-color: #1d5330; /* Default green */
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  text-align: center;
   text-decoration: none;
-  transition: color 0.3s ease;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 24px; /* Default padding */
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #1d5330; /* Button shadow for 3D effect */
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-.link-custom:hover {
-  color: #1d5330; /* Slightly lighter green */
+/* Active State */
+.button:active {
+  box-shadow: none;
+  transform: translateY(5px); /* "Press down" effect */
 }
 
-/* Utility Classes */
-.mt-2 {
-  margin-top: 20px;
+/* Variants */
+.button--primary {
+  background-color: #1d5330;
+  box-shadow: 0 5px 0 #134822; /* Darker green shadow */
 }
 
-.mb-2 {
-  margin-bottom: 20px;
+.button--secondary {
+  background-color: #004b1f;
+  box-shadow: 0 5px 0 #003b17;
 }
 
-.m-2 {
-  margin: 20px;
+/* Size Modifiers */
+.button--large {
+  padding: 16px 32px;
+  font-size: 1.25rem;
 }
 
-.pt-2 {
-  padding-top: 20px;
+.button--small {
+  padding: 8px 16px;
+  font-size: 0.875rem;
 }
 
-.pb-2 {
-  padding-bottom: 20px;
+/* Disabled State */
+.button:disabled {
+  background-color: #ddd;
+  color: #aaa;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }

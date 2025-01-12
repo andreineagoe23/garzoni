@@ -1,22 +1,26 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/monevo.png"; // Add your logo image here
-import "../styles/Login.css";
+import "../styles/Login.css"; // Import Login-specific styles
+import "../styles/CustomStyles.css"; // Import global button styles
+import logo from "../assets/monevo.png";
 
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/api/login/", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/login/",
+        formData
+      );
       localStorage.setItem("accessToken", response.data.access);
       localStorage.setItem("refreshToken", response.data.refresh);
       navigate("/dashboard");
@@ -29,36 +33,35 @@ function Login() {
   return (
     <div className="login-container">
       <img src={logo} alt="Logo" className="logo" />
-      <h2>Login</h2>
+      <h2>Login to Your Account</h2>
       <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <label>Username</label>
+        <input
+          type="text"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+        />
+        <label>Password</label>
+        <input
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
         {error && <p className="error-message">{error}</p>}
-        <button type="submit">Login</button>
+        <button type="submit" className="button button--primary button--large">
+          Login
+        </button>
       </form>
-
       <div className="forgot-password">
         <button
-          className="link-button"
+          className="button button--secondary button--small"
           onClick={() => navigate("/forgot-password")}
         >
-          Forgot your password?
+          Forgot Password?
         </button>
       </div>
     </div>

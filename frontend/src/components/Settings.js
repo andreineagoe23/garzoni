@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/Settings.css"; // New CSS file
 import Chatbot from "./Chatbot";
 
 function Settings() {
@@ -11,6 +12,7 @@ function Settings() {
     first_name: "",
     last_name: "",
   });
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -23,6 +25,7 @@ function Settings() {
           }
         );
         setEmailReminders(response.data.email_reminders || false);
+        setProfileData(response.data.profile || {});
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
@@ -40,6 +43,8 @@ function Settings() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEmailReminders((prev) => !prev);
+      setSuccessMessage("Notification settings updated!");
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating settings:", error);
     }
@@ -51,12 +56,16 @@ function Settings() {
   };
 
   return (
-    <div className="container my-5">
-      <div className="card p-4 shadow-sm">
-        <h2 className="text-center mb-4">Settings</h2>
+    <div className="settings-container">
+      <div className="settings-card">
+        <h2 className="settings-title">Settings</h2>
+
+        {successMessage && (
+          <p className="success-message">{successMessage}</p>
+        )}
 
         <form>
-          <div className="mb-3">
+          <div className="form-group">
             <label className="form-label">First Name</label>
             <input
               type="text"
@@ -67,7 +76,7 @@ function Settings() {
             />
           </div>
 
-          <div className="mb-3">
+          <div className="form-group">
             <label className="form-label">Last Name</label>
             <input
               type="text"
@@ -78,7 +87,7 @@ function Settings() {
             />
           </div>
 
-          <div className="mb-3">
+          <div className="form-group">
             <label className="form-label">Username</label>
             <input
               type="text"
@@ -89,7 +98,7 @@ function Settings() {
             />
           </div>
 
-          <div className="mb-3">
+          <div className="form-group">
             <label className="form-label">Email</label>
             <input
               type="email"
@@ -101,16 +110,18 @@ function Settings() {
           </div>
         </form>
 
-        <h3 className="mt-4">Notification Settings</h3>
-        <label className="form-check-label">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            checked={emailReminders}
-            onChange={handleToggle}
-          />
-          Receive Email Reminders
-        </label>
+        <h3 className="notifications-title">Notification Settings</h3>
+        <div className="form-check">
+          <label className="form-check-label">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              checked={emailReminders}
+              onChange={handleToggle}
+            />
+            Receive Email Reminders
+          </label>
+        </div>
       </div>
       <Chatbot />
     </div>

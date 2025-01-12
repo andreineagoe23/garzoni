@@ -1,57 +1,58 @@
-/* General profile page container */
+/* General Profile Page Container */
 .profile-container {
-  max-width: 800px; /* Allow a wider content area on larger screens */
-  margin: 0 auto;
+  margin-left: 250px; /* Adjust for left-side navbar */
   padding: 20px;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
+/* Card Styling */
 .card {
   border-radius: 15px;
   border: none;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 25px;
+  background-color: #ffffff;
 }
 
+/* Title Styling */
 h2 {
   font-size: 2rem;
   font-weight: bold;
   color: #333;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-/* Balance Section Styling */
-.balance {
-  color: #28a745;
-  font-size: 1.5rem;
-  font-weight: bold;
+/* Avatar Styling */
+img.rounded-circle {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
 }
 
-/* Points Section Styling */
-.mb-3 h4 {
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.mb-3 p {
-  font-size: 1.25rem;
-  color: #333;
-  font-weight: 600;
-}
-
-/* Form input fields */
-.form-control {
+.mt-3 input[type="text"] {
+  width: 100%;
   padding: 10px;
   font-size: 1rem;
-  border-radius: 5px;
   border: 1px solid #ced4da;
+  border-radius: 5px;
+  margin-bottom: 10px;
   transition: border-color 0.3s;
 }
 
-.form-control:focus {
+.mt-3 input[type="text"]:focus {
   border-color: #1abc9c;
   box-shadow: 0 0 5px rgba(26, 188, 156, 0.5);
 }
 
-/* Button Styles */
+.mt-3 input[type="file"] {
+  font-size: 1rem;
+  margin-top: 10px;
+  padding: 5px;
+}
+
+/* Button Styling */
 .btn-primary {
   background-color: #1abc9c;
   border: none;
@@ -71,27 +72,50 @@ h2 {
   transform: translateY(2px);
 }
 
-.text-success {
-  font-size: 1.1rem;
-  color: #28a745;
+/* Profile Information Section */
+.mb-3 h4 {
+  font-size: 1.2rem;
+  color: #6c757d;
+  font-weight: 500;
 }
 
-/* File Input */
-input[type="file"] {
-  padding: 5px;
+.mb-3 p {
+  font-size: 1.25rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Recent Activity */
+.list-group-item {
+  padding: 10px 15px;
   font-size: 1rem;
+  border: 1px solid #ddd;
   border-radius: 5px;
-  border: 1px solid #ced4da;
-  transition: border-color 0.3s;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-input[type="file"]:focus {
-  border-color: #1abc9c;
+.list-group-item strong {
+  color: #333;
+}
+
+.list-group-item .text-muted {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+/* Success Message */
+.success-message {
+  font-size: 1rem;
+  color: #28a745; /* Green */
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .profile-container {
+    margin-left: 0; /* Full-width for smaller screens */
     padding: 15px;
   }
 
@@ -99,17 +123,21 @@ input[type="file"]:focus {
     font-size: 1.75rem;
   }
 
-  .balance {
-    font-size: 1.25rem;
+  .mb-3 h4 {
+    font-size: 1.1rem;
   }
 
-  .form-control {
-    font-size: 0.95rem;
-    padding: 8px;
+  .mb-3 p {
+    font-size: 1.1rem;
   }
 
   .btn-primary {
-    font-size: 1rem;
+    font-size: 0.9rem;
     padding: 10px;
+  }
+
+  .list-group-item {
+    padding: 8px 10px;
+    font-size: 0.95rem;
   }
 }

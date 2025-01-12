@@ -8,7 +8,6 @@ function Missions() {
   const [weeklyMissions, setWeeklyMissions] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Fetch missions periodically
   useEffect(() => {
     const fetchMissions = async () => {
       const token = localStorage.getItem("accessToken");
@@ -40,7 +39,11 @@ function Missions() {
         <h5>{mission.name}</h5>
         <p>{mission.description}</p>
       </div>
-      <ProgressBar now={mission.progress} label={`${mission.progress}%`} />
+      <ProgressBar
+        now={mission.progress}
+        label={`${mission.progress}%`}
+        className="progress-bar-custom"
+      />
       {mission.status === "completed" && (
         <p className="completed-badge">Completed!</p>
       )}
@@ -48,8 +51,8 @@ function Missions() {
   );
 
   return (
-    <div className="container missions-container">
-      <h2 className="text-center">Missions</h2>
+    <div className="missions-container">
+      <h2 className="text-center missions-title">Missions</h2>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
 
       <div className="missions-section">
@@ -63,7 +66,7 @@ function Missions() {
         </div>
       </div>
 
-      <div className="missions-section mt-5">
+      <div className="missions-section">
         <h3>Weekly Missions</h3>
         <div className="missions-list">
           {weeklyMissions.length > 0 ? (

@@ -38,31 +38,44 @@ const Leaderboards = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading">Loading...</div>; // Styled loading message
+    return <div className="loading">Loading...</div>;
   }
 
   return (
-    <div className="container my-5">
-      <h1 className="text-center mb-4">Leaderboard</h1>
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover text-center">
-          <thead className="table-light">
-            <tr>
-              <th>Rank</th>
-              <th>Username</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.map((userData, index) => (
-              <tr key={userData.user.id}>
-                <td>{index + 1}</td>
-                <td>{userData.user.username}</td>
-                <td>{userData.points}</td>
+    <div className="leaderboard-container">
+      <div className="container">
+        <h1 className="leaderboard-title text-center">Leaderboard</h1>
+        <div className="table-responsive">
+          <table className="table leaderboard-table text-center">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {leaderboard.map((userData, index) => (
+                <tr
+                  key={userData.user.id}
+                  className={`rank-${
+                    index === 0
+                      ? "gold"
+                      : index === 1
+                      ? "silver"
+                      : index === 2
+                      ? "bronze"
+                      : ""
+                  }`}
+                >
+                  <td>{index + 1}</td>
+                  <td>{userData.user.username}</td>
+                  <td>{userData.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <Chatbot />
     </div>

@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/monevo.png"; // Ensure the logo image exists
-import "../styles/Welcome.css";
+import logo from "../assets/monevo.png"; // Replace with your logo path
+import "../styles/CustomStyles.css"; // Import reusable button styles
+import "../styles/Welcome.css"; // Import page-specific styles
 
 function Welcome() {
   const navigate = useNavigate();
@@ -12,21 +13,21 @@ function Welcome() {
         {/* Logo */}
         <img src={logo} alt="Monevo Logo" className="welcome-logo" />
 
-        {/* Main Heading */}
+        {/* Heading */}
         <h1 className="welcome-heading">
           The free, fun, and effective way to learn about finance topics!
         </h1>
 
-        {/* Action Buttons */}
-        <div className="button-group">
+        {/* Buttons */}
+        <div className="d-grid gap-3">
           <button
-            className="btn-primary welcome-btn"
+            className="button button--primary button--large"
             onClick={() => navigate("/register")}
           >
             Get Started
           </button>
           <button
-            className="btn-primary-alt welcome-btn"
+            className="button button--secondary button--large"
             onClick={() => navigate("/login")}
           >
             Already Have an Account?

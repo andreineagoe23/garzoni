@@ -29,16 +29,13 @@ function AppContent() {
   const noNavbarPaths = ["/", "/login", "/register", "/welcome"];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Conditionally render Navbar based on the current route */}
+    <div
+      className={`app-layout ${
+        noNavbarPaths.includes(location.pathname) ? "no-navbar" : "with-navbar"
+      }`}
+    >
       {!noNavbarPaths.includes(location.pathname) && <Navbar />}
-
-      <div
-        className={
-          noNavbarPaths.includes(location.pathname) ? "page-without-navbar" : ""
-        }
-        style={{ padding: "20px", width: "100%", flexGrow: 1 }}
-      >
+      <div className="content">
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />

@@ -38,7 +38,6 @@ function LessonPage() {
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         const lessonsWithProgress = response.data;
-        console.log("Lessons fetched:", lessonsWithProgress); // Log lessons data
         setLessons(lessonsWithProgress);
         setCompletedLessons(
           lessonsWithProgress
@@ -95,9 +94,6 @@ function LessonPage() {
   };
 
   const renderExercise = (exerciseType, exerciseData) => {
-    console.log("Exercise Type:", exerciseType); // Log exercise type
-    console.log("Exercise Data:", exerciseData); // Log exercise data
-
     if (!exerciseData || Object.keys(exerciseData).length === 0) {
       return <p>No exercise available for this lesson.</p>;
     }
@@ -119,111 +115,102 @@ function LessonPage() {
   }
 
   return (
-    <div>
-      <div className="lessons-container">
-        {successMessage && (
-          <p className={styles.successMessage}>{successMessage}</p>
-        )}
+    <div className={styles.lessonPageContainer}>
+      {successMessage && (
+        <p className={styles.successMessage}>{successMessage}</p>
+      )}
 
-        <div className={styles.lessonBox}>
-          {lessons.length > 0 ? (
-            lessons.map((lesson, index) => {
-              const isCompleted = completedLessons.includes(lesson.id);
-              const isAccessible =
-                index === 0 ||
-                completedLessons.includes(lessons[index - 1]?.id);
+      <div className={styles.lessonBox}>
+        {lessons.length > 0 ? (
+          lessons.map((lesson, index) => {
+            const isCompleted = completedLessons.includes(lesson.id);
+            const isAccessible =
+              index === 0 || completedLessons.includes(lessons[index - 1]?.id);
 
-              return (
-                <div
-                  key={lesson.id}
-                  className={`${styles.lessonBoxItem} ${
-                    isCompleted
-                      ? styles.completed
-                      : isAccessible
-                      ? styles.incomplete
-                      : styles.locked
-                  }`}
-                >
-                  <h4 onClick={() => handleLessonClick(lesson.id)}>
-                    {lesson.title}
-                  </h4>
-                  <p>{lesson.short_description}</p>
+            return (
+              <div
+                key={lesson.id}
+                className={`${styles.lessonBoxItem} ${
+                  isCompleted
+                    ? styles.completed
+                    : isAccessible
+                    ? styles.incomplete
+                    : styles.locked
+                }`}
+              >
+                <h4 onClick={() => handleLessonClick(lesson.id)}>
+                  {lesson.title}
+                </h4>
+                <p>{lesson.short_description}</p>
 
-                  {selectedLesson === lesson.id && isAccessible && (
-                    <div className={styles.lessonContent}>
-                      {lesson.detailed_content ? (
-                        <div
-                          className={styles.detailedContent}
-                          dangerouslySetInnerHTML={{
-                            __html: fixImagePaths(lesson.detailed_content),
-                          }}
-                        />
-                      ) : (
-                        <p>No detailed content available.</p>
+                {selectedLesson === lesson.id && isAccessible && (
+                  <div className={styles.lessonContent}>
+                    {lesson.detailed_content ? (
+                      <div
+                        className={styles.detailedContent}
+                        dangerouslySetInnerHTML={{
+                          __html: fixImagePaths(lesson.detailed_content),
+                        }}
+                      />
+                    ) : (
+                      <p>No detailed content available.</p>
+                    )}
+
+                    {lesson.video_url && (
+                      <div className={styles.videoPlayer}>
+                        {lesson.video_url.includes("youtube.com") ||
+                        lesson.video_url.includes("youtu.be") ? (
+                          <iframe
+                            width="100%"
+                            height="500"
+                            src={`https://www.youtube.com/embed/${new URLSearchParams(
+                              new URL(lesson.video_url).search
+                            ).get("v")}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title="YouTube Video"
+                          ></iframe>
+                        ) : (
+                          <video controls>
+                            <source src={lesson.video_url} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                      </div>
+                    )}
+
+                    {lesson.exercise_type &&
+                      renderExercise(
+                        lesson.exercise_type,
+                        lesson.exercise_data
                       )}
 
-                      {lesson.video_url && (
-                        <div className={styles.videoPlayer}>
-                          {lesson.video_url.includes("youtube.com") ||
-                          lesson.video_url.includes("youtu.be") ? (
-                            <iframe
-                              width="100%"
-                              height="500"
-                              src={`https://www.youtube.com/embed/${new URLSearchParams(
-                                new URL(lesson.video_url).search
-                              ).get("v")}`}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              title="YouTube Video"
-                            ></iframe>
-                          ) : (
-                            <video controls>
-                              <source src={lesson.video_url} type="video/mp4" />
-                              Your browser does not support the video tag.
-                            </video>
-                          )}
-                        </div>
-                      )}
-
-                      {lesson.exercise_type && (
-                        <>
-                          {console.log("Rendering exercise for:", lesson.title)}
-                          {renderExercise(
-                            lesson.exercise_type,
-                            lesson.exercise_data
-                          )}
-                        </>
-                      )}
-
-                      {!isCompleted && (
-                        <button
-                          onClick={() => handleCompleteLesson(lesson.id)}
-                          disabled={isCompleted || !isAccessible}
-                        >
-                          Complete Lesson
-                        </button>
-                      )}
-                      {isCompleted && <p>This lesson is completed.</p>}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <p>No lessons available for this course.</p>
-          )}
-        </div>
-
-        {courseCompleted && (
-          <div className={styles.courseCompletion}>
-            <h3>Congratulations! You've completed the course.</h3>
-            <button onClick={handleCourseCompletion}>
-              Take the Course Quiz
-            </button>
-          </div>
+                    {!isCompleted && (
+                      <button
+                        onClick={() => handleCompleteLesson(lesson.id)}
+                        disabled={!isAccessible}
+                      >
+                        Complete Lesson
+                      </button>
+                    )}
+                    {isCompleted && <p>This lesson is completed.</p>}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <p>No lessons available for this course.</p>
         )}
       </div>
+
+      {courseCompleted && (
+        <div className={styles.courseCompletion}>
+          <h3>Congratulations! You've completed the course.</h3>
+          <button onClick={handleCourseCompletion}>Take the Course Quiz</button>
+        </div>
+      )}
       <Chatbot />
     </div>
   );

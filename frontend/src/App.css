@@ -11,7 +11,7 @@ body,
 html {
   height: 100%;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4; /* Light background color for contrast */
+  background-color: #f4f4f4;
   overflow-x: hidden;
 }
 
@@ -22,25 +22,29 @@ html {
   min-height: 100vh;
 }
 
-/* Adjusting full-page layout for pages without navbar */
-.page-without-navbar {
-  margin-left: 0;
-  padding: 20px;
+.app-layout {
+  display: flex;
+  height: 100vh;
   width: 100%;
 }
 
-/* Navbar Styles */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 250px;
-  background-color: #002d0b; /* Dark Forest Green */
-  color: #fff;
+.with-navbar .content {
+  margin-left: 250px; /* Space for visible navbar */
   padding: 20px;
-  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+  flex-grow: 1;
 }
+
+.no-navbar .content {
+  margin-left: 0; /* Full width without navbar */
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.content {
+  overflow-y: auto;
+  background-color: #f4f4f4;
+}
+
 
 /* Global Margins and Padding */
 .mt-2 {

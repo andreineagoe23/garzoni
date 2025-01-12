@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/UserProgressBox.css"; // New CSS file
+import "../styles/UserProgressBox.css"; // Updated CSS file
 
 function UserProgressBox() {
   const [progressData, setProgressData] = useState(null);
@@ -26,7 +26,7 @@ function UserProgressBox() {
   }, []);
 
   if (!progressData) {
-    return <div>Loading progress...</div>;
+    return <div className="progress-box">Loading progress...</div>;
   }
 
   return (
@@ -34,14 +34,18 @@ function UserProgressBox() {
       <h3>Overall Progress</h3>
       <div className="overall-progress">
         <p>{progressData.overall_progress.toFixed(1)}% Complete</p>
+        <div className="progress-bar">
+          <div
+            className="progress-fill"
+            style={{ width: `${progressData.overall_progress}%` }}
+          ></div>
+        </div>
       </div>
 
       <h4>Learning Path Progress</h4>
       {progressData.paths.map((path, index) => (
         <div key={index} className="path-progress">
-          <h5>
-            {path.path} - {path.course}
-          </h5>
+          <h5>{path.path} - {path.course}</h5>
           <div className="progress-bar">
             <div
               className="progress-fill"
