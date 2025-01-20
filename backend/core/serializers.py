@@ -1,7 +1,7 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -127,3 +127,18 @@ class SimulatedSavingsAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = SimulatedSavingsAccount
         fields = ["id", "user", "balance"]
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = '__all__'
+
+class UserResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserResponse
+        fields = '__all__'
+
+class PathRecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PathRecommendation
+        fields = '__all__'

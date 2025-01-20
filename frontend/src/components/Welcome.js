@@ -22,10 +22,11 @@ function Welcome() {
         <div className="d-grid gap-3">
           <button
             className="button button--primary button--large"
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/questionnaire")}
           >
             Get Started
           </button>
+
           <button
             className="button button--secondary button--large"
             onClick={() => navigate("/login")}

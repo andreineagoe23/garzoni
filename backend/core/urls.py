@@ -20,6 +20,8 @@ from .views import (
     PasswordResetConfirmView,
     SavingsAccountView,
     FinanceFactView,
+    RecommendationView,
+    QuestionnaireSubmitView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -58,6 +60,8 @@ urlpatterns = [
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     path('questionnaire/', QuestionnaireView.as_view(), name='questionnaire'),
+    path('questionnaire/submit/', QuestionnaireSubmitView.as_view(), name='questionnaire-submit'),
+    path('recommendation/<int:user_id>/', RecommendationView.as_view(), name='recommendation'),
 
     path('ckeditor/', include('ckeditor_uploader.urls')),
 

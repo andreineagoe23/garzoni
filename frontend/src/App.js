@@ -26,7 +26,15 @@ import ResetPassword from "./components/ResetPassword";
 function AppContent() {
   const location = useLocation();
 
-  const noNavbarPaths = ["/", "/login", "/register", "/welcome"];
+  const noNavbarPaths = [
+    "/",
+    "/login",
+    "/register",
+    "/welcome",
+    "/forgot-password",
+    "/password-reset",
+    "/questionnaire",
+  ];
 
   return (
     <div
@@ -38,6 +46,7 @@ function AppContent() {
       <div className="content">
         <Routes>
           <Route path="/" element={<Welcome />} />
+          <Route path="/questionnaire" element={<Questionnaire />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -48,7 +57,6 @@ function AppContent() {
           <Route path="/quiz/:courseId" element={<QuizPage />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/missions" element={<Missions />} />
-          <Route path="/questionnaire" element={<Questionnaire />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
