@@ -18,6 +18,8 @@ from .views import (
     SavingsGoalCalculatorView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
+    SavingsAccountView,
+    FinanceFactView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -47,8 +49,10 @@ urlpatterns = [
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
 
-    path("missions/", MissionView.as_view(), name="mission-list"),
-    path("missions/<int:mission_id>/complete/", MissionView.as_view(), name="mission-complete"),
+    path("missions/", MissionView.as_view(), name="missions"),
+    path("missions/<int:mission_id>/update/", MissionView.as_view(), name="mission-update"),
+    path("savings-account/", SavingsAccountView.as_view(), name="savings-account"),
+    path("finance-fact/", FinanceFactView.as_view(), name="finance-fact"),
 
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),

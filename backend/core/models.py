@@ -4,6 +4,10 @@ from decimal import Decimal
 from django.utils import timezone
 from datetime import timedelta
 from ckeditor.fields import RichTextField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils.timezone import now
+from celery import shared_task
 
 class UserProfile(models.Model):
     
@@ -140,74 +144,90 @@ class UserProgress(models.Model):
         self.save()
 
 
-
 class Mission(models.Model):
-    MISSION_TYPES = [
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
+    MISSION_TYPES = [('daily', 'Daily'), ('weekly', 'Weekly')]
+    GOAL_TYPES = [
+        ('complete_lesson', 'Complete Lesson'),
+        ('add_savings', 'Add Savings'),
+        ('read_fact', 'Read Finance Fact'),
     ]
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     points_reward = models.IntegerField()
-    mission_type = models.CharField(
-        max_length=10, choices=MISSION_TYPES, default='daily'
-    )
-    goal_type = models.CharField(
-        max_length=50, choices=[
-            ('complete_lesson', 'Complete Lesson'),
-            ('complete_exercise', 'Complete Exercise'),
-            ('complete_course', 'Complete Course'),
-        ], default='complete_lesson'
-    )
-    goal_id = models.IntegerField(null=True, blank=True)  # Links to lesson/course ID
+    mission_type = models.CharField(max_length=10, choices=MISSION_TYPES, default='daily')
+    goal_type = models.CharField(max_length=50, choices=GOAL_TYPES, default='complete_lesson')
+    goal_reference = models.JSONField(null=True, blank=True)  # Store additional goal metadata
 
     def __str__(self):
         return f"{self.name} ({self.mission_type})"
 
 
 class MissionCompletion(models.Model):
-    user = models.ForeignKey(User, related_name="completed_missions", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="mission_completions", on_delete=models.CASCADE)
     mission = models.ForeignKey(Mission, related_name="completions", on_delete=models.CASCADE)
     progress = models.IntegerField(default=0)
-    status_choices = [
-        ('not_started', 'Not Started'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-    ]
     status = models.CharField(
-        max_length=20, choices=status_choices, default='not_started'
+        max_length=20,
+        choices=[
+            ('not_started', 'Not Started'),
+            ('in_progress', 'In Progress'),
+            ('completed', 'Completed'),
+        ],
+        default='not_started'
     )
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    def update_progress(self):
-        """Dynamically calculate progress based on user activity."""
-        if self.mission.goal_type == 'complete_lesson':
-            # Check lessons completed by the user
-            user_progress = UserProgress.objects.filter(user=self.user).first()
-            if user_progress:
-                self.progress = 100 if user_progress.completed_lessons.exists() else 0
-        elif self.mission.goal_type == 'complete_exercise':
-            # Example logic for exercises
-            self.progress = 100 if some_exercise_completion_logic() else 0
-        elif self.mission.goal_type == 'complete_course':
-            # Calculate progress for a course
-            user_progress = UserProgress.objects.filter(
-                user=self.user, course_id=self.mission.goal_id
-            ).first()
-            if user_progress:
-                total_lessons = user_progress.course.lessons.count()
-                completed_lessons = user_progress.completed_lessons.count()
-                self.progress = int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
+    def update_progress(self, increment=0, total=100):
+        """
+        Update progress and mark mission as completed if progress reaches the required goal.
+        """
+        if not isinstance(increment, int):
+            raise ValueError("increment must be an integer")
         
-        # Update status
-        if self.progress >= 100:
+        self.progress = min(self.progress + increment, total)
+        if self.progress >= total:
             self.status = 'completed'
-            self.completed_at = timezone.now()
+            self.completed_at = now()
         elif self.progress > 0:
             self.status = 'in_progress'
         else:
             self.status = 'not_started'
 
+        self.save()
+
+
+@receiver(post_save, sender=User)
+def assign_missions_to_new_user(sender, instance, created, **kwargs):
+    """
+    Automatically assign daily missions to newly created users.
+    """
+    if created:  # Only assign missions for newly created users
+        daily_missions = Mission.objects.filter(mission_type="daily")
+        for mission in daily_missions:
+            MissionCompletion.objects.get_or_create(
+                user=instance,
+                mission=mission,
+                defaults={"progress": 0, "status": "not_started"},
+            )
+        print(f"Daily missions assigned to new user: {instance.username}")
+
+@shared_task
+def reset_daily_missions():
+    today = now().date()
+    completions = MissionCompletion.objects.filter(
+        mission__mission_type="daily"
+    )
+    completions.update(progress=0, status="not_started", completed_at=None)
+    return f"Daily missions reset at {today}"
+
+
+class SimulatedSavingsAccount(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def add_to_balance(self, amount):
+        self.balance += amount
         self.save()
 
 

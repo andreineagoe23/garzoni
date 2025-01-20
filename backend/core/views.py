@@ -14,12 +14,15 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer,
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
+from django.utils import timezone
+from django.utils.timezone import now
+import logging
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -159,12 +162,19 @@ class LessonViewSet(viewsets.ModelViewSet):
                 mission__goal_type='complete_lesson'
             )
             for mission_completion in mission_completions:
-                mission_completion.update_progress(user)
+                lessons_required = 3
+                increment = int(99 / lessons_required)
+                mission_completion.update_progress(increment=increment, total=99)
 
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
 
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Log unexpected errors
+            print(f"Error completing lesson: {e}")
+            return Response({"error": "An error occurred while completing the lesson."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class QuizViewSet(viewsets.ModelViewSet):
@@ -309,65 +319,104 @@ class MissionView(APIView):
     def get(self, request):
         user = request.user
         try:
-            completions = MissionCompletion.objects.filter(user=user)
-            daily_missions = Mission.objects.filter(mission_type="daily")
-            weekly_missions = Mission.objects.filter(mission_type="weekly")
+            # Fetch daily missions
+            completions = MissionCompletion.objects.filter(
+                user=user, mission__mission_type="daily"
+            )
 
-            def format_mission(mission, user):
-                completion = completions.filter(mission=mission).first()
-                return {
-                    "id": mission.id,
-                    "name": mission.name,
-                    "description": mission.description,
-                    "points_reward": mission.points_reward,
-                    "goal_type": mission.goal_type,
-                    "status": completion.status if completion else "not_started",
-                    "progress": completion.progress if completion else 0,
-                }
+            response_data = []
+            for completion in completions:
+                response_data.append({
+                    "id": completion.mission.id,
+                    "name": completion.mission.name,
+                    "description": completion.mission.description,
+                    "points_reward": completion.mission.points_reward,
+                    "progress": completion.progress,
+                    "status": completion.status,
+                    "goal_type": completion.mission.goal_type,  # Add goal_type here
+                })
 
-            response_data = {
-                "daily": [format_mission(mission, user) for mission in daily_missions],
-                "weekly": [format_mission(mission, user) for mission in weekly_missions],
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+            return Response({"daily_missions": response_data}, status=200)
 
         except Exception as e:
-            print(f"Error fetching missions: {e}")
             return Response(
                 {"error": "An error occurred while fetching missions."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=500,
             )
 
     def post(self, request, mission_id):
         user = request.user
         try:
-            mission_completion, created = MissionCompletion.objects.get_or_create(
-                user=user, mission_id=mission_id
-            )
-            action_type = request.data.get("action_type")
-            increment = 0
+            # Find the specific MissionCompletion record
+            mission_completion = MissionCompletion.objects.get(user=user, mission_id=mission_id)
+            increment = request.data.get("progress", 0)
 
-            if mission_completion.mission.goal_type == "complete_lesson":
-                increment = 100  # Fully complete when lesson is done
-            elif mission_completion.mission.goal_type == "complete_exercise":
-                increment = 50  # Partial progress for an exercise
-            elif mission_completion.mission.goal_type == "complete_course":
-                course_progress = UserProgress.objects.filter(
-                    user=user,
-                    course_id=mission_completion.mission.goal_id,
-                ).first()
-                if course_progress:
-                    increment = course_progress.completed_lessons.count() / \
-                                course_progress.course.lessons.count() * 100
+            if not isinstance(increment, int):
+                return Response({"error": "Progress must be an integer."}, status=400)
 
+            # Update mission progress
             mission_completion.update_progress(increment)
-            return Response(
-                {"message": "Progress updated!", "progress": mission_completion.progress},
-                status=status.HTTP_200_OK,
-            )
+            return Response({"message": "Mission progress updated.", "progress": mission_completion.progress}, status=200)
 
-        except Mission.DoesNotExist:
-            return Response({"error": "Mission not found."}, status=status.HTTP_404_NOT_FOUND)
+        except MissionCompletion.DoesNotExist:
+            return Response({"error": "Mission not found for this user."}, status=404)
+        except Exception as e:
+            logging.error(f"Error updating mission progress for user {user.username}: {str(e)}")
+            return Response({"error": "An error occurred while updating mission progress."}, status=500)
+
+
+class SavingsAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
+        return Response({"balance": account.balance}, status=200)
+
+    def post(self, request):
+        amount = request.data.get("amount", 0)
+        try:
+            account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
+            account.add_to_balance(amount)
+
+            # Update savings-related missions
+            mission_completions = MissionCompletion.objects.filter(
+                user=request.user,
+                mission__goal_type="add_savings"
+            )
+            for mission_completion in mission_completions:
+                if mission_completion.progress < 100 and amount >= 5:
+                    mission_completion.update_progress(100, total=100)
+
+            return Response(
+                {"message": "Savings added successfully!", "balance": account.balance},
+                status=200,
+            )
+        except Exception as e:
+            logging.error(f"Error updating savings for user {request.user.username}: {str(e)}")
+            return Response({"error": "An error occurred while updating savings."}, status=500)
+
+
+
+class FinanceFactView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Update fact-related missions
+            mission_completions = MissionCompletion.objects.filter(
+                user=request.user,
+                mission__goal_type="read_fact"
+            )
+            for mission_completion in mission_completions:
+                if mission_completion.progress < 100:
+                    mission_completion.update_progress(100, total=100)
+
+            return Response({"message": "Fact read successfully!"}, status=200)
+        except Exception as e:
+            logging.error(f"Error marking fact read for user {request.user.username}: {str(e)}")
+            return Response({"error": "An error occurred while marking the fact as read."}, status=500)
+
+
 
 
 class QuestionnaireView(APIView):
