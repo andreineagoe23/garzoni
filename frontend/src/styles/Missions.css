@@ -13,6 +13,7 @@
   color: #002d0b; /* Dark forest green */
   font-weight: bold;
   margin-bottom: 30px;
+  text-align: center;
 }
 
 /* Missions Section */
@@ -44,14 +45,16 @@
 
 /* Mission Header */
 .mission-header h5 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #1d5330;
   margin-bottom: 10px;
+  font-weight: bold;
 }
 
 .mission-header p {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #555;
+  line-height: 1.5;
 }
 
 /* Progress Bar */
@@ -62,7 +65,7 @@
 /* Completed Badge */
 .completed-badge {
   margin-top: 10px;
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: #4caf50; /* Green */
   font-weight: bold;
   text-align: center;
@@ -74,6 +77,78 @@
   color: #f44336; /* Red */
   text-align: center;
   margin-top: 20px;
+}
+
+/* Buttons */
+.update-progress-btn {
+  margin-top: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.update-progress-btn:hover {
+  background-color: #218838;
+}
+
+.update-progress-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Savings Modal */
+.modal-header {
+  background-color: #1d5330;
+  color: white;
+  border-bottom: none;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+}
+
+.modal-body input {
+  font-size: 1rem;
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.modal-footer button {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.modal-footer .btn-secondary {
+  background-color: #ccc;
+  color: #555;
+}
+
+.modal-footer .btn-primary {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #218838;
+}
+
+/* Finance Fact Display */
+.finance-fact {
+  font-size: 1rem;
+  font-style: italic;
+  color: #555;
+  margin-top: 15px;
+  padding: 10px;
+  border-left: 4px solid #1d5330;
+  background-color: #f9f9f9;
+  border-radius: 5px;
 }
 
 /* Responsive Adjustments */
@@ -92,5 +167,65 @@
 
   .mission-card {
     padding: 15px;
+  }
+
+  .modal-body input {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .modal-footer button {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
+}
+
+/* Savings Dropdown */
+.savings-menu {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.savings-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.add-savings-btn {
+  width: 100%;
+  background-color: #28a745;
+  color: white;
+  font-size: 1rem;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-savings-btn:hover {
+  background-color: #218838;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .savings-menu {
+    padding: 10px;
+  }
+
+  .savings-input {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .add-savings-btn {
+    font-size: 0.9rem;
+    padding: 8px;
   }
 }

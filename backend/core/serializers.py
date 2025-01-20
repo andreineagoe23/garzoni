@@ -1,7 +1,7 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -104,3 +104,26 @@ class ToolSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'url', 'category', 'icon']
 
 
+class MissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mission
+        fields = ['id', 'name', 'description', 'points_reward', 'mission_type', 'goal_type', 'goal_reference']
+
+
+class MissionCompletionSerializer(serializers.ModelSerializer):
+    goal_type = serializers.CharField(source="mission.goal_type")
+
+    class Meta:
+        model = MissionCompletion
+        fields = [
+            "id",
+            "mission",
+            "goal_type",  # Include goal_type in the response
+            "progress",
+            "status",
+        ]
+
+class SimulatedSavingsAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SimulatedSavingsAccount
+        fields = ["id", "user", "balance"]
