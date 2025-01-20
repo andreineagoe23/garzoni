@@ -252,3 +252,28 @@ class Tool(models.Model):
     ])
     url = models.URLField(blank=True, null=True)
     icon = models.CharField(max_length=50, blank=True, null=True)
+
+class Question(models.Model):
+    text = models.TextField()
+    options = models.JSONField()
+    order = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.text
+
+class UserResponse(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.TextField()
+
+    def __str__(self):
+        return f"{self.user.username if self.user else 'Anonymous'} - {self.question.text}"
+
+
+class PathRecommendation(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    criteria = models.JSONField()
+
+    def __str__(self):
+        return self.name

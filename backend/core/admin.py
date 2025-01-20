@@ -9,6 +9,7 @@ from .models import (
     Mission,
     MissionCompletion,
     SimulatedSavingsAccount,
+    Question,
 )
 
 class LessonAdmin(admin.ModelAdmin):
@@ -43,6 +44,12 @@ class SimulatedSavingsAccountAdmin(admin.ModelAdmin):
     fields = ('user', 'balance')
     search_fields = ('user__username',)
 
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ('text', 'order')
+    fields = ('text', 'options', 'order')
+    list_filter = ('order',)
+    search_fields = ('text',)
+
 # Register models in the admin panel
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(Path)
@@ -53,3 +60,4 @@ admin.site.register(UserProgress)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(MissionCompletion, MissionCompletionAdmin)
 admin.site.register(SimulatedSavingsAccount, SimulatedSavingsAccountAdmin)
+admin.site.register(Question, QuestionAdmin)

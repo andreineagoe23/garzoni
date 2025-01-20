@@ -14,10 +14,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
+    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -56,6 +57,11 @@ class UserProfileView(APIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        UserResponse.objects.filter(user=None).update(user=user)
+
 
 class PathViewSet(viewsets.ModelViewSet):
     queryset = Path.objects.all()
@@ -418,35 +424,6 @@ class FinanceFactView(APIView):
 
 
 
-
-class QuestionnaireView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # Retrieve the user's questionnaire data
-        try:
-            questionnaire = Questionnaire.objects.get(user=request.user)
-            serializer = QuestionnaireSerializer(questionnaire)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Questionnaire.DoesNotExist:
-            return Response({"message": "Questionnaire not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    def post(self, request):
-        # Create or update the user's questionnaire
-        try:
-            questionnaire, created = Questionnaire.objects.get_or_create(user=request.user)
-            serializer = QuestionnaireSerializer(questionnaire, data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 class ChatbotView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -607,3 +584,56 @@ class PasswordResetConfirmView(APIView):
 
         return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
+class QuestionnaireView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # Fetch all questions
+        questions = Question.objects.order_by('order')
+        serializer = QuestionSerializer(questions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        # Save user's answers (anonymous if not authenticated)
+        answers = request.data.get('answers', {})
+        user = request.user if request.user.is_authenticated else None
+
+        for question_id, answer in answers.items():
+            try:
+                question = Question.objects.get(id=question_id)
+                UserResponse.objects.create(user=user, question=question, answer=answer)
+            except Question.DoesNotExist:
+                return Response({"error": f"Question {question_id} does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
+
+
+
+class RecommendationView(APIView):
+    def get(self, request, user_id):
+        # Calculate the recommended path
+        responses = UserResponse.objects.filter(user_id=user_id)
+        # Logic to calculate path based on responses
+        # For now, return a dummy recommendation
+        recommendation = PathRecommendation.objects.first()
+        return Response({
+            "path": recommendation.name,
+            "description": recommendation.description
+        })
+
+class QuestionnaireSubmitView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        # Save user's answers (anonymous if not authenticated)
+        answers = request.data.get('answers', {})
+        user = request.user if request.user.is_authenticated else None
+
+        for question_id, answer in answers.items():
+            try:
+                question = Question.objects.get(id=question_id)
+                UserResponse.objects.create(user=user, question=question, answer=answer)
+            except Question.DoesNotExist:
+                return Response({"error": f"Question {question_id} does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)

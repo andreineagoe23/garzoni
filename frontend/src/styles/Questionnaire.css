@@ -5,37 +5,26 @@
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 h2 {
   font-size: 24px;
   color: #002d0b; /* Dark forest green */
   text-align: center;
+  margin-bottom: 20px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
+.progress-bar {
+  height: 10px;
+  background-color: #4caf50;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  transition: width 0.3s ease;
 }
 
-h3 {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #555;
-}
-
-input[type="radio"] {
-  margin-right: 10px;
-}
-
-button[type="submit"] {
+.question-option {
   background-color: #002d0b;
   color: white;
   border: none;
@@ -43,9 +32,31 @@ button[type="submit"] {
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
+  margin: 10px auto;
+  display: block;
+  width: 80%;
+  transition: background-color 0.3s;
+}
+
+.question-option:hover {
+  background-color: #014d16;
+}
+
+.loading-message {
+  font-size: 18px;
+  color: #777;
+  text-align: center;
+}
+
+.question-box {
   margin-top: 20px;
 }
 
-button[type="submit"]:hover {
-  background-color: #014d16;
+.button-container {
+  margin-top: 20px;
+}
+
+.question-option:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
