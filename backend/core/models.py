@@ -12,12 +12,24 @@ from celery import shared_task
 class UserProfile(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    email_reminders = models.BooleanField(default=True)
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     points = models.PositiveIntegerField(default=0)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     profile_avatar = models.URLField(null=True, blank=True)  # To store avatar URL
     generated_images = models.JSONField(default=list, blank=True) 
+
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ]
+
+    email_reminders = models.BooleanField(default=True)
+    email_frequency = models.CharField(
+        max_length=10,
+        choices=FREQUENCY_CHOICES,
+        default='daily',
+    )
 
     def add_generated_image(self, image_path):
         """Append an image to the generated_images field."""
