@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../styles/Settings.css"; // New CSS file
-import Chatbot from "./Chatbot";
+import "../styles/Settings.css"; // Ensure your styles are in place
 
 function Settings() {
   const [emailReminders, setEmailReminders] = useState(false);
+  const [emailFrequency, setEmailFrequency] = useState("daily");
   const [profileData, setProfileData] = useState({
     username: "",
     email: "",
@@ -17,6 +17,11 @@ function Settings() {
   useEffect(() => {
     const fetchSettings = async () => {
       const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No access token found. Please log in.");
+        return;
+      }
+
       try {
         const response = await axios.get(
           "http://localhost:8000/api/user/settings/",
@@ -24,8 +29,16 @@ function Settings() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setEmailReminders(response.data.email_reminders || false);
-        setProfileData(response.data.profile || {});
+
+        const profile = response.data?.profile || {}; // Ensure profile exists
+        setEmailReminders(response.data?.email_reminders || false);
+        setEmailFrequency(response.data?.email_frequency || "daily");
+        setProfileData({
+          username: profile.username || "",
+          email: profile.email || "",
+          first_name: profile.first_name || "",
+          last_name: profile.last_name || "",
+        });
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
@@ -34,16 +47,18 @@ function Settings() {
     fetchSettings();
   }, []);
 
-  const handleToggle = async () => {
+  const handleSaveSettings = async () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axios.patch(
         "http://localhost:8000/api/user/settings/",
-        { email_reminders: !emailReminders },
+        {
+          email_reminders: emailReminders,
+          email_frequency: emailFrequency,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setEmailReminders((prev) => !prev);
-      setSuccessMessage("Notification settings updated!");
+      setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating settings:", error);
@@ -57,73 +72,78 @@ function Settings() {
 
   return (
     <div className="settings-container">
-      <div className="settings-card">
-        <h2 className="settings-title">Settings</h2>
+      <h2>Settings</h2>
 
-        {successMessage && (
-          <p className="success-message">{successMessage}</p>
-        )}
+      {successMessage && <p className="success-message">{successMessage}</p>}
 
-        <form>
-          <div className="form-group">
-            <label className="form-label">First Name</label>
-            <input
-              type="text"
-              name="first_name"
-              className="form-control"
-              value={profileData.first_name}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Last Name</label>
-            <input
-              type="text"
-              name="last_name"
-              className="form-control"
-              value={profileData.last_name}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              name="username"
-              className="form-control"
-              value={profileData.username}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={profileData.email}
-              onChange={handleInputChange}
-            />
-          </div>
-        </form>
-
-        <h3 className="notifications-title">Notification Settings</h3>
-        <div className="form-check">
-          <label className="form-check-label">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              checked={emailReminders}
-              onChange={handleToggle}
-            />
-            Receive Email Reminders
-          </label>
+      <form>
+        <div className="form-group">
+          <label>First Name</label>
+          <input
+            type="text"
+            name="first_name"
+            className="form-control"
+            value={profileData.first_name}
+            onChange={handleInputChange}
+          />
         </div>
+
+        <div className="form-group">
+          <label>Last Name</label>
+          <input
+            type="text"
+            name="last_name"
+            className="form-control"
+            value={profileData.last_name}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Username</label>
+          <input
+            type="text"
+            name="username"
+            className="form-control"
+            value={profileData.username}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            className="form-control"
+            value={profileData.email}
+            onChange={handleInputChange}
+          />
+        </div>
+      </form>
+
+      <div className="form-group">
+        <label>Email Reminders</label>
+        <input
+          type="checkbox"
+          checked={emailReminders}
+          onChange={(e) => setEmailReminders(e.target.checked)}
+        />
       </div>
-      <Chatbot />
+
+      <div className="form-group">
+        <label>Email Frequency</label>
+        <select
+          value={emailFrequency}
+          onChange={(e) => setEmailFrequency(e.target.value)}
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+
+      <button onClick={handleSaveSettings}>Save Settings</button>
     </div>
   );
 }

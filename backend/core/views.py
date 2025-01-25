@@ -305,19 +305,33 @@ class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSettingsSerializer(user_profile)
-        return Response(serializer.data)
+        user_profile = UserProfile.objects.get(user=request.user)
+        return Response({
+            "email_reminders": user_profile.email_reminders,
+            "email_frequency": user_profile.email_frequency,
+            "profile": {
+                "username": request.user.username,
+                "email": request.user.email,
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name,
+            },
+        })
 
     def patch(self, request):
-        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSettingsSerializer(
-            user_profile, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        user_profile = request.user.userprofile
+        email_reminders = request.data.get('email_reminders')
+        email_frequency = request.data.get('email_frequency')
+
+        if email_reminders is not None:
+            user_profile.email_reminders = email_reminders
+
+        if email_frequency in ['daily', 'weekly', 'monthly']:
+            user_profile.email_frequency = email_frequency
+
+        user_profile.save()
+        return Response({"message": "Settings updated successfully."})
+
+
 
 class MissionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -608,18 +622,31 @@ class QuestionnaireView(APIView):
         return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
 
 
-
 class RecommendationView(APIView):
     def get(self, request, user_id):
-        # Calculate the recommended path
         responses = UserResponse.objects.filter(user_id=user_id)
-        # Logic to calculate path based on responses
-        # For now, return a dummy recommendation
-        recommendation = PathRecommendation.objects.first()
+        recommended_path = None
+
+        for response in responses:
+            if "budget" in response.answer.lower() or "save" in response.answer.lower():
+                recommended_path = "Basic Finance"
+            elif "crypto" in response.answer.lower() or "blockchain" in response.answer.lower():
+                recommended_path = "Crypto"
+            elif "real estate" in response.answer.lower() or "property" in response.answer.lower():
+                recommended_path = "Real Estate"
+            elif "forex" in response.answer.lower() or "currency" in response.answer.lower():
+                recommended_path = "Forex"
+
+        if not recommended_path:
+            recommended_path = "Basic Finance"  # Default fallback
+
         return Response({
-            "path": recommendation.name,
-            "description": recommendation.description
+            "path": recommended_path,
+            "description": f"The {recommended_path} learning path is designed to help you achieve your goals."
         })
+
+
+
 
 class QuestionnaireSubmitView(APIView):
     permission_classes = [AllowAny]

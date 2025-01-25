@@ -42,16 +42,15 @@ function Dashboard() {
     },
   ]);
   const [recommendedPath, setRecommendedPath] = useState(null);
-  const [showRecommendation, setShowRecommendation] = useState(true);
   const navigate = useNavigate();
 
+  // Fetch user info and learning paths
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
       navigate("/login");
     } else {
-      // Fetch user info
       axios
         .get("http://localhost:8000/api/userprofile/", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -59,7 +58,6 @@ function Dashboard() {
         .then((response) => setUser(response.data))
         .catch((error) => console.error("Failed to fetch user data:", error));
 
-      // Fetch learning paths
       axios
         .get("http://localhost:8000/api/paths/", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -67,7 +65,6 @@ function Dashboard() {
         .then((response) => {
           const fetchedPaths = response.data;
 
-          // Merge images with fetched paths
           const pathsWithImages = fetchedPaths.map((path) => {
             let image;
             switch (path.title) {
@@ -84,7 +81,7 @@ function Dashboard() {
                 image = ForexImage;
                 break;
               default:
-                image = null; // Fallback if no matching title
+                image = null;
             }
             return { ...path, image };
           });
@@ -94,54 +91,27 @@ function Dashboard() {
         .catch((error) =>
           console.error("Failed to fetch learning paths:", error)
         );
+    }
+  }, [navigate]);
 
-      // Fetch questionnaire
+  // Fetch recommendation after user data is loaded
+  useEffect(() => {
+    if (user?.id) {
+      const accessToken = localStorage.getItem("accessToken");
+
       axios
-        .get("http://localhost:8000/api/questionnaire/", {
+        .get(`http://localhost:8000/recommendation/${user.id}/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          const userProfile = response.data;
-
-          if (userProfile.is_questionnaire_completed) {
-            return;
-          }
-
-          axios
-            .get("http://localhost:8000/api/questionnaire/", {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            })
-            .then((response) => {
-              const { goal, experience, preferred_style } = response.data;
-
-              if (goal === "Save and budget effectively") {
-                setRecommendedPath("Basic Finance");
-              } else if (
-                goal === "Start investing" &&
-                experience === "Beginner"
-              ) {
-                setRecommendedPath("Basic Finance");
-              } else if (goal === "Achieve financial independence") {
-                setRecommendedPath("Real Estate");
-              } else if (preferred_style === "Interactive and hands-on") {
-                setRecommendedPath("Crypto");
-              } else if (experience === "Advanced") {
-                setRecommendedPath("Forex");
-              } else {
-                setRecommendedPath("General Financial Literacy");
-              }
-
-              setTimeout(() => setShowRecommendation(false), 10000);
-            })
-            .catch((error) =>
-              console.error("Failed to fetch questionnaire data:", error)
-            );
+          console.log("Recommendation Data:", response.data);
+          setRecommendedPath(response.data.path);
         })
         .catch((error) =>
-          console.error("Failed to fetch user profile:", error)
+          console.error("Failed to fetch recommendation data:", error)
         );
     }
-  }, [navigate]);
+  }, [user]);
 
   const togglePath = (pathId) => {
     setLearningPaths((prevPaths) =>
@@ -173,11 +143,18 @@ function Dashboard() {
             </button>
             {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
 
-            {showRecommendation && recommendedPath && (
-              <p className="recommendation-message">
-                Based on your answers, we recommend starting with:{" "}
-                <strong>{recommendedPath}</strong>
-              </p>
+            {recommendedPath ? (
+              <div className="recommendation-message">
+                <p>Based on your answers, we recommend starting with:</p>
+                <h3>{recommendedPath}</h3>
+              </div>
+            ) : (
+              <div className="recommendation-message">
+                <p>
+                  We couldn't determine a recommendation. Explore our learning
+                  paths to get started!
+                </p>
+              </div>
             )}
 
             <div className="learning-paths-container">
