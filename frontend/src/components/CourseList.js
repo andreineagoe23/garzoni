@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/CourseList.css"; // Import the corresponding CSS file for styling
+import "../styles/CourseList.css";
 
 function CourseList({ courses }) {
   const navigate = useNavigate();

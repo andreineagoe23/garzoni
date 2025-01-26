@@ -6,14 +6,12 @@ import styles from "../styles/DragAndDropExercise.module.css";
 const DragAndDropExercise = ({ data, exerciseId }) => {
   const { items, targets } = data;
 
-  // States for tracking answers and feedback
   const [userAnswers, setUserAnswers] = useState({});
   const [feedback, setFeedback] = useState("");
   const [feedbackClass, setFeedbackClass] = useState("");
   const [updatedTargets, setUpdatedTargets] = useState(targets);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Load saved answers from localStorage when component mounts
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`exercise-${exerciseId}`);
     if (savedAnswers) {
@@ -23,7 +21,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     }
   }, [exerciseId]);
 
-  // Handle item drop on a target
   const handleDrop = (target, item) => {
     setUserAnswers((prevAnswers) => ({
       ...prevAnswers,
@@ -31,7 +28,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     }));
   };
 
-  // Handle submit and validate answers
   const handleSubmit = () => {
     let correct = 0;
 
@@ -47,12 +43,13 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       };
     });
 
-    setFeedbackClass(correct === updatedTargets.length ? "correct" : "incorrect");
+    setFeedbackClass(
+      correct === updatedTargets.length ? "correct" : "incorrect"
+    );
 
     if (correct === updatedTargets.length) {
       setFeedback("You completed the exercise!");
       setIsCompleted(true);
-      // Save completion state to localStorage
       localStorage.setItem(
         `exercise-${exerciseId}`,
         JSON.stringify({ answers: userAnswers, completed: true })
@@ -61,16 +58,19 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       setFeedback("Try Again!");
     }
 
-    setFeedback(`${correct} out of ${updatedTargets.length} answers are correct.`);
+    setFeedback(
+      `${correct} out of ${updatedTargets.length} answers are correct.`
+    );
     setUpdatedTargets(newTargets);
   };
 
-  // Clear answers and allow retry
   const handleRetry = () => {
     setUserAnswers({});
     setFeedback("");
     setFeedbackClass("");
-    setUpdatedTargets(targets.map((target) => ({ ...target, droppedColor: null })));
+    setUpdatedTargets(
+      targets.map((target) => ({ ...target, droppedColor: null }))
+    );
     setIsCompleted(false);
   };
 
@@ -89,7 +89,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
               target={target}
               onDrop={handleDrop}
               droppedColor={target.droppedColor}
-              userAnswer={userAnswers[target.id]} // Show dropped item ID
+              userAnswer={userAnswers[target.id]}
             />
           ))}
         </div>
@@ -113,7 +113,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 const DraggableItem = ({ item }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "ITEM",
-    item: { id: item.id, text: item.text, color: item.color }, // Include color
+    item: { id: item.id, text: item.text, color: item.color },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),

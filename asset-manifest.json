@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/monevo/static/css/main.b8195a03.css",
-    "main.js": "/monevo/static/js/main.c10d298f.js",
+    "main.css": "/monevo/static/css/main.65ca95f0.css",
+    "main.js": "/monevo/static/js/main.f0ca5f88.js",
     "static/js/488.e75445ad.chunk.js": "/monevo/static/js/488.e75445ad.chunk.js",
     "static/media/crypto.png": "/monevo/static/media/crypto.c50cba256c934a4cf2dd.png",
     "static/media/realestate.png": "/monevo/static/media/realestate.46cabd2f711600777b5b.png",
@@ -10,12 +10,12 @@
     "static/media/monevo.png": "/monevo/static/media/monevo.e5979e74d99c46808d02.png",
     "index.html": "/monevo/index.html",
     "static/media/burgermenu.svg": "/monevo/static/media/burgermenu.390b9556fdc744d00080b71bea9f9d28.svg",
-    "main.b8195a03.css.map": "/monevo/static/css/main.b8195a03.css.map",
-    "main.c10d298f.js.map": "/monevo/static/js/main.c10d298f.js.map",
+    "main.65ca95f0.css.map": "/monevo/static/css/main.65ca95f0.css.map",
+    "main.f0ca5f88.js.map": "/monevo/static/js/main.f0ca5f88.js.map",
     "488.e75445ad.chunk.js.map": "/monevo/static/js/488.e75445ad.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.b8195a03.css",
-    "static/js/main.c10d298f.js"
+    "static/css/main.65ca95f0.css",
+    "static/js/main.f0ca5f88.js"
   ]
 }
