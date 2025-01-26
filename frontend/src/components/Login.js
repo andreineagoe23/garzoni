@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Login.css"; // Import Login-specific styles
-import "../styles/CustomStyles.css"; // Import global button styles
+import "../styles/Login.css";
+import "../styles/CustomStyles.css";
 import logo from "../assets/monevo.png";
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -17,10 +19,7 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/login/",
-        formData
-      );
+      const response = await axios.post(`${API_BASE_URL}/api/login/`, formData);
       localStorage.setItem("accessToken", response.data.access);
       localStorage.setItem("refreshToken", response.data.refresh);
       navigate("/dashboard");

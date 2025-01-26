@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Questionnaire.css";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -11,9 +13,8 @@ const Questionnaire = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch questions from the backend
     axios
-      .get("http://localhost:8000/api/questionnaire/")
+      .get(`${API_BASE_URL}/api/questionnaire/`)
       .then((response) => {
         setQuestions(response.data);
       })
@@ -29,24 +30,21 @@ const Questionnaire = () => {
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswer = (questionId, answer) => {
-    // Save answer locally
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);
 
-    // Update progress
     const newProgress = ((currentQuestionIndex + 1) / questions.length) * 100;
     setProgress(newProgress);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Submit answers and redirect to dashboard
       axios
-        .post("http://localhost:8000/api/questionnaire/submit/", {
+        .post(`${API_BASE_URL}/api/questionnaire/submit/`, {
           answers: updatedAnswers,
         })
         .then(() => {
-          navigate("/register"); // Redirect to registration after submission
+          navigate("/register");
         })
         .catch((error) => {
           console.error("Error submitting questionnaire:", error);
