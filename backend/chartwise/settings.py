@@ -169,8 +169,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://kind-gently-ostrich.ngrok-free.app",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
