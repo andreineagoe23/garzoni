@@ -37,6 +37,7 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
+          console.log("Learning paths response:", response.data); // Log the response
           if (Array.isArray(response.data)) {
             const pathsWithImages = response.data.map((path) => {
               let image;
@@ -60,7 +61,10 @@ function Dashboard() {
             });
             setLearningPaths(pathsWithImages);
           } else {
-            console.error("Invalid response format for learning paths.");
+            console.error(
+              "Invalid response format for learning paths:",
+              response.data
+            );
           }
         })
         .catch((error) =>
