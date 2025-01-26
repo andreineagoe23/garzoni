@@ -34,17 +34,27 @@ function UserProgressBox() {
     <div className="progress-box">
       <h3>Overall Progress</h3>
       <div className="overall-progress">
-        <p>{progressData.overall_progress.toFixed(1)}% Complete</p>
+        <p>
+          {progressData.overall_progress !== undefined
+            ? `${progressData.overall_progress.toFixed(1)}% Complete`
+            : "Progress unavailable"}
+        </p>
         <div className="progress-bar">
           <div
             className="progress-fill"
-            style={{ width: `${progressData.overall_progress}%` }}
+            style={{
+              width: `${
+                progressData.overall_progress !== undefined
+                  ? progressData.overall_progress
+                  : 0
+              }%`,
+            }}
           ></div>
         </div>
       </div>
 
       <h4>Learning Path Progress</h4>
-      {progressData.paths.map((path, index) => (
+      {progressData.paths?.map((path, index) => (
         <div key={index} className="path-progress">
           <h5>
             {path.path} - {path.course}
