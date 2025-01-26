@@ -167,7 +167,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://kind-gently-ostrich.ngrok-free.app",
-    "https://be43-82-13-219-80.ngrok-free.app"
+    "https://9b7c-82-13-219-80.ngrok-free.app",
+    "https://andreineagoe23.github.io/monevo/",
 ]
 
 MEDIA_URL = '/media/'
@@ -228,5 +229,5 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'kind-gently-ostrich.ngrok-free.app',
-    'be43-82-13-219-80.ngrok-free.app',
+    '9b7c-82-13-219-80.ngrok-free.app',
 ]
