@@ -6,11 +6,12 @@ import UserProgressBox from "./UserProgressBox";
 import "../styles/Dashboard.css";
 import Chatbot from "./Chatbot";
 
-// Import images from src/assets
 import BasicFinanceImage from "../assets/basicfinance.png";
 import CryptoImage from "../assets/crypto.png";
 import RealEstateImage from "../assets/realestate.png";
 import ForexImage from "../assets/forex.png";
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -44,7 +45,6 @@ function Dashboard() {
   const [recommendedPath, setRecommendedPath] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch user info and learning paths
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -52,14 +52,14 @@ function Dashboard() {
       navigate("/login");
     } else {
       axios
-        .get("http://localhost:8000/api/userprofile/", {
+        .get(`${API_BASE_URL}/api/userprofile/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => setUser(response.data))
         .catch((error) => console.error("Failed to fetch user data:", error));
 
       axios
-        .get("http://localhost:8000/api/paths/", {
+        .get(`${API_BASE_URL}/api/paths/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
@@ -94,13 +94,12 @@ function Dashboard() {
     }
   }, [navigate]);
 
-  // Fetch recommendation after user data is loaded
   useEffect(() => {
     if (user?.id) {
       const accessToken = localStorage.getItem("accessToken");
 
       axios
-        .get(`http://localhost:8000/recommendation/${user.id}/`, {
+        .get(`${API_BASE_URL}/recommendation/${user.id}/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
