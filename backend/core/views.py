@@ -602,7 +602,6 @@ class QuestionnaireView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Fetch all questions
         questions = Question.objects.order_by('order')
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
