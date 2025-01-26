@@ -15,33 +15,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function Dashboard() {
   const [user, setUser] = useState(null);
-  const [learningPaths, setLearningPaths] = useState([
-    {
-      id: 1,
-      title: "Basic Finance",
-      description:
-        "Learn the essentials of budgeting, saving, and financial planning.",
-      image: BasicFinanceImage,
-    },
-    {
-      id: 2,
-      title: "Crypto",
-      description: "Explore cryptocurrency, blockchain, and digital assets.",
-      image: CryptoImage,
-    },
-    {
-      id: 3,
-      title: "Real Estate",
-      description: "Understand real estate investment and property management.",
-      image: RealEstateImage,
-    },
-    {
-      id: 4,
-      title: "Forex",
-      description: "Dive into foreign exchange markets and currency trading.",
-      image: ForexImage,
-    },
-  ]);
+  const [learningPaths, setLearningPaths] = useState([]);
   const [recommendedPath, setRecommendedPath] = useState(null);
   const navigate = useNavigate();
 
@@ -63,30 +37,31 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          const fetchedPaths = response.data;
-
-          const pathsWithImages = fetchedPaths.map((path) => {
-            let image;
-            switch (path.title) {
-              case "Basic Finance":
-                image = BasicFinanceImage;
-                break;
-              case "Crypto":
-                image = CryptoImage;
-                break;
-              case "Real Estate":
-                image = RealEstateImage;
-                break;
-              case "Forex":
-                image = ForexImage;
-                break;
-              default:
-                image = null;
-            }
-            return { ...path, image };
-          });
-
-          setLearningPaths(pathsWithImages);
+          if (Array.isArray(response.data)) {
+            const pathsWithImages = response.data.map((path) => {
+              let image;
+              switch (path.title) {
+                case "Basic Finance":
+                  image = BasicFinanceImage;
+                  break;
+                case "Crypto":
+                  image = CryptoImage;
+                  break;
+                case "Real Estate":
+                  image = RealEstateImage;
+                  break;
+                case "Forex":
+                  image = ForexImage;
+                  break;
+                default:
+                  image = null;
+              }
+              return { ...path, image };
+            });
+            setLearningPaths(pathsWithImages);
+          } else {
+            console.error("Invalid response format for learning paths.");
+          }
         })
         .catch((error) =>
           console.error("Failed to fetch learning paths:", error)
@@ -103,7 +78,6 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log("Recommendation Data:", response.data);
           setRecommendedPath(response.data.path);
         })
         .catch((error) =>
