@@ -10,8 +10,6 @@ __pycache__/
 # Backend
 /backend/.env
 
-# Frontend
-/frontend/.env
 
 # Distribution / packaging
 .Python
@@ -127,9 +125,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.venv
-env/
 venv/
 ENV/
 env.bak/
