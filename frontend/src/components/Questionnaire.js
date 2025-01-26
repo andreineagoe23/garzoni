@@ -10,18 +10,29 @@ const Questionnaire = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/questionnaire/`)
       .then((response) => {
-        setQuestions(response.data);
+        if (response.data && Array.isArray(response.data)) {
+          setQuestions(response.data);
+        } else {
+          setErrorMessage("Unexpected API response format.");
+          console.error("Unexpected API response:", response.data);
+        }
       })
       .catch((error) => {
+        setErrorMessage("Failed to fetch questions. Please try again later.");
         console.error("Error fetching questions:", error);
       });
   }, []);
+
+  if (errorMessage) {
+    return <div className="error-message">{errorMessage}</div>;
+  }
 
   if (questions.length === 0) {
     return <div>Loading questions...</div>;
@@ -47,6 +58,7 @@ const Questionnaire = () => {
           navigate("/register");
         })
         .catch((error) => {
+          setErrorMessage("Failed to submit questionnaire. Please try again.");
           console.error("Error submitting questionnaire:", error);
         });
     }
@@ -55,9 +67,9 @@ const Questionnaire = () => {
   return (
     <div className="questionnaire-container">
       <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-      <h2>{currentQuestion.text}</h2>
+      <h2>{currentQuestion?.text || "No question available."}</h2>
       <div>
-        {currentQuestion.options.map((option, index) => (
+        {currentQuestion?.options?.map((option, index) => (
           <button
             key={index}
             className="question-option"
