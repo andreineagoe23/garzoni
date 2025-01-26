@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/monevo.png"; // Replace with your logo path
-import "../styles/CustomStyles.css"; // Import reusable button styles
-import "../styles/Welcome.css"; // Import page-specific styles
+import logo from "../assets/monevo.png";
+import "../styles/CustomStyles.css";
+import "../styles/Welcome.css";
 
 function Welcome() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function Welcome() {
         <div className="d-grid gap-3">
           <button
             className="button button--primary button--large"
-            onClick={() => navigate("/questionnaire")}
+            onClick={() => navigate("/register")} // Changed from "/questionnaire"
           >
             Get Started
           </button>
