@@ -37,7 +37,7 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log("Learning paths response:", response.data); // Log the response
+          console.log("Learning paths response:", response.data);
           if (Array.isArray(response.data)) {
             const pathsWithImages = response.data.map((path) => {
               let image;
