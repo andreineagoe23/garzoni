@@ -64,8 +64,9 @@ class RegisterView(generics.CreateAPIView):
 
 
 class PathViewSet(viewsets.ModelViewSet):
-    queryset = Path.objects.all()
+    queryset = Path.objects.prefetch_related("courses")
     serializer_class = PathSerializer
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
