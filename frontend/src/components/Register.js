@@ -5,8 +5,6 @@ import "../styles/Register.css";
 import "../styles/CustomStyles.css";
 import logo from "../assets/monevo.png";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 function Register() {
   const [formData, setFormData] = useState({
     username: "",
@@ -25,15 +23,23 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/api/register/`, formData);
-      const loginResponse = await axios.post(`${API_BASE_URL}/api/token/`, {
-        username: formData.username,
-        password: formData.password,
-      });
+      // Register the user
+      await axios.post("http://127.0.0.1:8000/api/register/", formData);
 
+      // Automatically log in the user
+      const loginResponse = await axios.post(
+        "http://127.0.0.1:8000/api/token/",
+        {
+          username: formData.username,
+          password: formData.password,
+        }
+      );
+
+      // Save tokens to localStorage
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
+      // Redirect to the Dashboard page
       navigate("/dashboard");
     } catch (error) {
       console.error("Registration failed", error);
