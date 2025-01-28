@@ -5,10 +5,8 @@ import styles from "../styles/LessonPage.module.css";
 import Chatbot from "./Chatbot";
 import DragAndDropExercise from "./DragAndDropExercise";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 function fixImagePaths(content) {
-  const mediaUrl = `${API_BASE_URL}/media/`;
+  const mediaUrl = "http://localhost:8000/media/";
   return content.replace(/src="\/media\/([^"]+)"/g, (match, p1) => {
     return `src="${mediaUrl}${p1}"`;
   });
@@ -36,7 +34,7 @@ function LessonPage() {
 
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/lessons/with_progress/?course=${courseId}`,
+          `http://localhost:8000/api/lessons/with_progress/?course=${courseId}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         const lessonsWithProgress = response.data;
@@ -72,7 +70,7 @@ function LessonPage() {
 
     try {
       await axios.post(
-        `${API_BASE_URL}/api/lessons/complete/`,
+        "http://localhost:8000/api/lessons/complete/",
         { lesson_id: lessonId },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );

@@ -64,9 +64,8 @@ class RegisterView(generics.CreateAPIView):
 
 
 class PathViewSet(viewsets.ModelViewSet):
-    queryset = Path.objects.prefetch_related("courses")
+    queryset = Path.objects.all()
     serializer_class = PathSerializer
-
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -603,6 +602,7 @@ class QuestionnaireView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        # Fetch all questions
         questions = Question.objects.order_by('order')
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

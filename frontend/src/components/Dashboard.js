@@ -6,19 +6,45 @@ import UserProgressBox from "./UserProgressBox";
 import "../styles/Dashboard.css";
 import Chatbot from "./Chatbot";
 
+// Import images from src/assets
 import BasicFinanceImage from "../assets/basicfinance.png";
 import CryptoImage from "../assets/crypto.png";
 import RealEstateImage from "../assets/realestate.png";
 import ForexImage from "../assets/forex.png";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 function Dashboard() {
   const [user, setUser] = useState(null);
-  const [learningPaths, setLearningPaths] = useState([]);
+  const [learningPaths, setLearningPaths] = useState([
+    {
+      id: 1,
+      title: "Basic Finance",
+      description:
+        "Learn the essentials of budgeting, saving, and financial planning.",
+      image: BasicFinanceImage,
+    },
+    {
+      id: 2,
+      title: "Crypto",
+      description: "Explore cryptocurrency, blockchain, and digital assets.",
+      image: CryptoImage,
+    },
+    {
+      id: 3,
+      title: "Real Estate",
+      description: "Understand real estate investment and property management.",
+      image: RealEstateImage,
+    },
+    {
+      id: 4,
+      title: "Forex",
+      description: "Dive into foreign exchange markets and currency trading.",
+      image: ForexImage,
+    },
+  ]);
   const [recommendedPath, setRecommendedPath] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch user info and learning paths
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -26,46 +52,41 @@ function Dashboard() {
       navigate("/login");
     } else {
       axios
-        .get(`${API_BASE_URL}/api/userprofile/`, {
+        .get("http://localhost:8000/api/userprofile/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => setUser(response.data))
         .catch((error) => console.error("Failed to fetch user data:", error));
 
       axios
-        .get(`${API_BASE_URL}/api/paths/`, {
+        .get("http://localhost:8000/api/paths/", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
-          console.log("Learning paths response:", response.data);
-          if (Array.isArray(response.data)) {
-            const pathsWithImages = response.data.map((path) => {
-              let image;
-              switch (path.title) {
-                case "Basic Finance":
-                  image = BasicFinanceImage;
-                  break;
-                case "Crypto":
-                  image = CryptoImage;
-                  break;
-                case "Real Estate":
-                  image = RealEstateImage;
-                  break;
-                case "Forex":
-                  image = ForexImage;
-                  break;
-                default:
-                  image = null;
-              }
-              return { ...path, image };
-            });
-            setLearningPaths(pathsWithImages);
-          } else {
-            console.error(
-              "Invalid response format for learning paths:",
-              response.data
-            );
-          }
+          const fetchedPaths = response.data;
+
+          const pathsWithImages = fetchedPaths.map((path) => {
+            let image;
+            switch (path.title) {
+              case "Basic Finance":
+                image = BasicFinanceImage;
+                break;
+              case "Crypto":
+                image = CryptoImage;
+                break;
+              case "Real Estate":
+                image = RealEstateImage;
+                break;
+              case "Forex":
+                image = ForexImage;
+                break;
+              default:
+                image = null;
+            }
+            return { ...path, image };
+          });
+
+          setLearningPaths(pathsWithImages);
         })
         .catch((error) =>
           console.error("Failed to fetch learning paths:", error)
@@ -73,15 +94,17 @@ function Dashboard() {
     }
   }, [navigate]);
 
+  // Fetch recommendation after user data is loaded
   useEffect(() => {
     if (user?.id) {
       const accessToken = localStorage.getItem("accessToken");
 
       axios
-        .get(`${API_BASE_URL}/recommendation/${user.id}/`, {
+        .get(`http://localhost:8000/recommendation/${user.id}/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((response) => {
+          console.log("Recommendation Data:", response.data);
           setRecommendedPath(response.data.path);
         })
         .catch((error) =>
