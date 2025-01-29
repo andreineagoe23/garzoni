@@ -1,0 +1,60 @@
+/* Premium Recommendation Message */
+.recommendation-message {
+  margin-top: 20px;
+  background: #002d0b; /* Dark Forest Green */
+  color: #ffd700; /* Gold Text */
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Premium Learning Paths */
+.premium-path-card {
+  background: #003a12;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+  border: 2px solid #ffd700;
+}
+
+.premium-path-card:hover {
+  transform: translateY(-5px);
+}
+
+.premium-path-image {
+  width: 90%;
+  height: auto;
+  border-radius: 10px;
+  border: 3px solid #ffd700;
+}
+
+.premium-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.premium-description {
+  font-size: 1rem;
+}
+
+/* Premium Button */
+.button--premium {
+  background: #ffd700;
+  color: #002d0b;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  transition: 0.3s;
+  border: none;
+}
+
+.button--premium:hover {
+  background: #e6c200;
+}

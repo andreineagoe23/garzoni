@@ -693,9 +693,6 @@ class QuestionnaireSubmitView(APIView):
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-
 class PersonalizedPathView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -724,16 +721,32 @@ class PersonalizedPathView(APIView):
             "Financial Mindset": ["mindset", "psychology", "discipline"]
         }
 
-        path_scores = {path: 0 for path in Path.objects.all()}
+        path_scores = {path.title: 0 for path in Path.objects.all()}
+        recommendation_message = ""
 
         for response in responses:
             for path, keywords in path_keywords.items():
                 if any(keyword in response.answer.lower() for keyword in keywords):
-                    path_scores[Path.objects.get(title=path)] += 1
+                    path_scores[path] += 1
 
         # Sort paths by score in descending order
-        sorted_paths = sorted(path_scores.keys(), key=lambda p: path_scores[p], reverse=True)
+        sorted_paths = sorted(path_scores.items(), key=lambda x: x[1], reverse=True)
 
-        serializer = PathSerializer(sorted_paths, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Select top recommended paths
+        recommended_paths = []
+        for path_name, score in sorted_paths[:2]:  # Top 2 recommendations
+            path_obj = Path.objects.filter(title=path_name).first()
+            if path_obj:
+                recommended_paths.append(path_obj)
+
+        # Generate a recommendation message
+        if recommended_paths:
+            top_path = recommended_paths[0]
+            recommendation_message = f"We've selected **{top_path.title}** as your best starting point based on your answers."
+
+        serializer = PathSerializer(recommended_paths, many=True)
+        return Response({
+            "recommended_paths": serializer.data,
+            "recommendation_message": recommendation_message
+        }, status=status.HTTP_200_OK)
 

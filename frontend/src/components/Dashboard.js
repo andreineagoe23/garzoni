@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import LearningPathList from "./LearningPathList";
+import LearningPathList from "./LearningPathList"; // ✅ Ensure courses & lessons display properly
 import UserProgressBox from "./UserProgressBox";
-import "../styles/Dashboard.css";
 import Chatbot from "./Chatbot";
+import "../styles/Dashboard.css";
+import "../styles/PersonalizedPath.css"; // ✅ Premium UI styling
 
 // Import images
 import BasicFinanceImage from "../assets/basicfinance.png";
@@ -14,10 +15,20 @@ import ForexImage from "../assets/forex.png";
 import PersonalFinanceImage from "../assets/personalfinance.png";
 import MindsetImage from "../assets/mindset.png";
 
+const imageMap = {
+  "Basic Finance": BasicFinanceImage,
+  Crypto: CryptoImage,
+  "Real Estate": RealEstateImage,
+  Forex: ForexImage,
+  "Personal Finance": PersonalFinanceImage,
+  "Financial Mindset": MindsetImage,
+};
+
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [learningPaths, setLearningPaths] = useState([]);
   const [personalizedPaths, setPersonalizedPaths] = useState([]);
+  const [recommendationMessage, setRecommendationMessage] = useState("");
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
   const [activePage, setActivePage] = useState("all-topics");
@@ -33,7 +44,6 @@ function Dashboard() {
       }
 
       try {
-        // Fetch user profile and check questionnaire completion
         const profileResponse = await axios.get(
           "http://localhost:8000/api/userprofile/",
           {
@@ -44,9 +54,8 @@ function Dashboard() {
         setUser(profileResponse.data.user);
         setIsQuestionnaireCompleted(
           profileResponse.data.is_questionnaire_completed
-        ); // ✅ Now updating properly
+        );
 
-        // Fetch all topics
         const pathsResponse = await axios.get(
           "http://localhost:8000/api/paths/",
           {
@@ -54,36 +63,14 @@ function Dashboard() {
           }
         );
 
-        const fetchedPaths = pathsResponse.data.map((path) => {
-          let image;
-          switch (path.title) {
-            case "Basic Finance":
-              image = BasicFinanceImage;
-              break;
-            case "Crypto":
-              image = CryptoImage;
-              break;
-            case "Real Estate":
-              image = RealEstateImage;
-              break;
-            case "Forex":
-              image = ForexImage;
-              break;
-            case "Personal Finance":
-              image = PersonalFinanceImage;
-              break;
-            case "Financial Mindset":
-              image = MindsetImage;
-              break;
-            default:
-              image = null;
-          }
-          return { ...path, image };
-        });
+        const fetchedPaths = pathsResponse.data.map((path) => ({
+          ...path,
+          image: imageMap[path.title] || null,
+          isExpanded: false, // Ensure paths start collapsed
+        }));
 
         setLearningPaths(fetchedPaths);
 
-        // ✅ Fetch personalized paths only if questionnaire is completed
         if (profileResponse.data.is_questionnaire_completed) {
           const personalizedResponse = await axios.get(
             "http://localhost:8000/api/personalized-path/",
@@ -91,7 +78,19 @@ function Dashboard() {
               headers: { Authorization: `Bearer ${accessToken}` },
             }
           );
-          setPersonalizedPaths(personalizedResponse.data);
+
+          const sortedPaths = personalizedResponse.data.recommended_paths.map(
+            (path) => ({
+              ...path,
+              image: imageMap[path.title] || null,
+              isExpanded: false,
+            })
+          );
+
+          setPersonalizedPaths(sortedPaths);
+          setRecommendationMessage(
+            personalizedResponse.data.recommendation_message
+          );
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -99,10 +98,18 @@ function Dashboard() {
     };
 
     fetchUserData();
-  }, [activePage, navigate]);
+  }, [navigate]);
 
   const togglePath = (pathId) => {
     setLearningPaths((prevPaths) =>
+      prevPaths.map((path) =>
+        path.id === pathId
+          ? { ...path, isExpanded: !path.isExpanded }
+          : { ...path, isExpanded: false }
+      )
+    );
+
+    setPersonalizedPaths((prevPaths) =>
       prevPaths.map((path) =>
         path.id === pathId
           ? { ...path, isExpanded: !path.isExpanded }
@@ -115,42 +122,10 @@ function Dashboard() {
     navigate(`/lessons/${courseId}`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    navigate("/welcome");
-  };
-
-  const renderPaths = (paths, isPersonalized = false) =>
-    paths.map((path) => (
-      <div key={path.id} className="learning-path-card">
-        <h3>{isPersonalized ? `Recommended: ${path.title}` : path.title}</h3>
-        <img src={path.image} alt={path.title} className="path-image" />
-        <p>{path.description}</p>
-        <button
-          className="button button--primary"
-          onClick={() => togglePath(path.id)}
-        >
-          View Courses
-        </button>
-        {path.isExpanded && (
-          <LearningPathList
-            learningPaths={[path]}
-            activePathId={path.id}
-            onTogglePath={togglePath}
-            onCourseClick={handleCourseClick}
-          />
-        )}
-      </div>
-    ));
-
   return (
     <div className="dashboard">
       <div className="main-content">
         <div className="dashboard-container">
-          <button onClick={handleLogout} className="button button--secondary">
-            Logout
-          </button>
           <h2>Hello, {user?.username || "User"}!</h2>
 
           <div className="dashboard-buttons">
@@ -169,11 +144,12 @@ function Dashboard() {
             <button
               className={`button ${
                 isQuestionnaireCompleted
-                  ? "button--primary"
+                  ? "button--premium"
                   : "button--disabled"
               }`}
               onClick={() => {
                 if (isQuestionnaireCompleted) {
+                  setActivePage("personalized-path");
                   navigate("/personalized-path");
                 } else {
                   navigate("/questionnaire");
@@ -181,15 +157,69 @@ function Dashboard() {
               }}
             >
               {isQuestionnaireCompleted
-                ? "Personalized Path"
+                ? "Premium Personalized Path"
                 : "Unlock Personalized Path"}
             </button>
           </div>
 
+          {activePage === "personalized-path" && recommendationMessage && (
+            <div className="recommendation-message">
+              <p>{recommendationMessage}</p>
+            </div>
+          )}
+
           <div className="learning-paths-container">
             {activePage === "all-topics"
-              ? renderPaths(learningPaths)
-              : renderPaths(personalizedPaths)}
+              ? learningPaths.map((path) => (
+                  <div key={path.id} className="learning-path-card">
+                    <h3>{path.title}</h3>
+                    <img
+                      src={path.image}
+                      alt={path.title}
+                      className="path-image"
+                    />
+                    <p>{path.description}</p>
+                    <button
+                      className="button button--primary"
+                      onClick={() => togglePath(path.id)}
+                    >
+                      {path.isExpanded ? "Hide Courses" : "View Courses"}
+                    </button>
+                    {path.isExpanded && (
+                      <LearningPathList
+                        learningPaths={[path]} // ✅ Now correctly loads courses & lessons
+                        activePathId={path.id}
+                        onTogglePath={togglePath}
+                        onCourseClick={handleCourseClick}
+                      />
+                    )}
+                  </div>
+                ))
+              : personalizedPaths.map((path) => (
+                  <div key={path.id} className="premium-path-card">
+                    <h3 className="premium-title">{path.title}</h3>
+                    <img
+                      src={path.image}
+                      alt={path.title}
+                      className="premium-path-image"
+                    />
+                    <p className="premium-description">{path.description}</p>
+                    <button
+                      className="button button--premium"
+                      onClick={() => togglePath(path.id)}
+                    >
+                      {path.isExpanded ? "Hide Courses" : "View Courses"}
+                    </button>
+                    {path.isExpanded && (
+                      <LearningPathList
+                        learningPaths={[path]} // ✅ Ensures premium paths show courses & lessons
+                        activePathId={path.id}
+                        onTogglePath={togglePath}
+                        onCourseClick={handleCourseClick}
+                      />
+                    )}
+                  </div>
+                ))}
           </div>
         </div>
       </div>
