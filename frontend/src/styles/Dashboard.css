@@ -8,6 +8,7 @@
 .main-content {
   flex: 1;
   margin-left: 250px;
+  margin-right: 350px;
   padding: 20px;
   overflow-y: auto;
   background-color: #f9f9f9;
@@ -20,7 +21,6 @@
   gap: 20px;
 }
 
-/* Recommendation Message */
 .recommendation-message {
   margin-top: 20px;
   background-color: #e9f7e9;
@@ -83,7 +83,7 @@
 
 .learning-path-card h3 {
   font-size: 1.5rem;
-  color: #1d5330; /* Green title */
+  color: #1d5330;
   margin-bottom: 10px;
 }
 
@@ -111,54 +111,24 @@
   color: #666;
 }
 
-/* Premium Recommendation Message */
-.recommendation-message {
-  margin-top: 20px;
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-  color: #fff;
-  padding: 15px;
-  border-radius: 10px;
+.dashboard-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-left: 480px;
+}
+
+.button--logout {
+  background: #ffd700;
+  color: #002d0b;
+  padding: 10px 15px;
+  height: 50px;
+  border: none;
   font-weight: bold;
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-/* Premium Learning Paths */
-.premium-path-card {
-  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.premium-path-card:hover {
-  transform: translateY(-5px);
-}
-
-.premium-path-image {
-  width: 90%;
-  height: auto;
-  border-radius: 10px;
-}
-
-.premium-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fff;
-}
-
-.premium-description {
-  font-size: 1rem;
-  color: #fff;
-}
-
-.button--premium {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-  color: white;
-  padding: 10px 20px;
-  font-weight: bold;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: 0.3s;
+}
+
+.button--logout:hover {
+  background: #e6c200;
 }

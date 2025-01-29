@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import LearningPathList from "./LearningPathList"; // ✅ Ensure courses & lessons display properly
+import LearningPathList from "./LearningPathList";
 import UserProgressBox from "./UserProgressBox";
 import Chatbot from "./Chatbot";
 import "../styles/Dashboard.css";
-import "../styles/PersonalizedPath.css"; // ✅ Premium UI styling
+import "../styles/PersonalizedPath.css";
 
 // Import images
 import BasicFinanceImage from "../assets/basicfinance.png";
@@ -66,7 +66,7 @@ function Dashboard() {
         const fetchedPaths = pathsResponse.data.map((path) => ({
           ...path,
           image: imageMap[path.title] || null,
-          isExpanded: false, // Ensure paths start collapsed
+          isExpanded: false,
         }));
 
         setLearningPaths(fetchedPaths);
@@ -100,6 +100,11 @@ function Dashboard() {
     fetchUserData();
   }, [navigate]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    navigate("/login");
+  };
+
   const togglePath = (pathId) => {
     setLearningPaths((prevPaths) =>
       prevPaths.map((path) =>
@@ -126,6 +131,9 @@ function Dashboard() {
     <div className="dashboard">
       <div className="main-content">
         <div className="dashboard-container">
+          <button className="button button--logout" onClick={handleLogout}>
+            Logout
+          </button>
           <h2>Hello, {user?.username || "User"}!</h2>
 
           <div className="dashboard-buttons">
@@ -157,8 +165,8 @@ function Dashboard() {
               }}
             >
               {isQuestionnaireCompleted
-                ? "Premium Personalized Path"
-                : "Unlock Personalized Path"}
+                ? "Personalized Path"
+                : "Personalized Path"}
             </button>
           </div>
 
@@ -187,7 +195,7 @@ function Dashboard() {
                     </button>
                     {path.isExpanded && (
                       <LearningPathList
-                        learningPaths={[path]} // ✅ Now correctly loads courses & lessons
+                        learningPaths={[path]}
                         activePathId={path.id}
                         onTogglePath={togglePath}
                         onCourseClick={handleCourseClick}
@@ -212,7 +220,7 @@ function Dashboard() {
                     </button>
                     {path.isExpanded && (
                       <LearningPathList
-                        learningPaths={[path]} // ✅ Ensures premium paths show courses & lessons
+                        learningPaths={[path]}
                         activePathId={path.id}
                         onTogglePath={togglePath}
                         onCourseClick={handleCourseClick}
