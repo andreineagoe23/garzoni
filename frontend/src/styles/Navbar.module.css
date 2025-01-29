@@ -1,22 +1,19 @@
 /* src/styles/Navbar.module.css */
 
-/* Navbar Container */
 .navbar {
   width: 250px;
   height: 100vh;
-  background-color: #34495e; /* Neutral dark blue-gray */
-  color: #ecf0f1; /* Light gray for text */
+  background-color: #34495e;
+  color: #ecf0f1;
   position: fixed;
   top: 0;
   left: 0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  transform: translateX(0); /* Default visible */
-  transition: transform 0.3s ease-in-out;
 }
 
 /* Hidden State */

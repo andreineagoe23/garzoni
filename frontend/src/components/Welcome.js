@@ -22,7 +22,7 @@ function Welcome() {
         <div className="d-grid gap-3">
           <button
             className="button button--primary button--large"
-            onClick={() => navigate("/questionnaire")}
+            onClick={() => navigate("/register")}
           >
             Get Started
           </button>

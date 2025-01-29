@@ -4,23 +4,23 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation
 
 class RegisterSerializer(serializers.ModelSerializer):
+    wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
+
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name']
+        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'wants_personalized_path']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
+        wants_personalized_path = validated_data.pop('wants_personalized_path', False)
+        user = User.objects.create_user(**validated_data)
         UserProfile.objects.create(user=user)
+
+        # Update UserProfile with the user's choice
+        user.userprofile.wants_personalized_path = wants_personalized_path
+        user.userprofile.save()
         return user
 
-# serializers.py
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 

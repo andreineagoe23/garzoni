@@ -12,12 +12,20 @@ function Register() {
     email: "",
     first_name: "",
     last_name: "",
+    wants_personalized_path: false, // Default to "No"
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRadioChange = (e) => {
+    setFormData({
+      ...formData,
+      wants_personalized_path: e.target.value === "true",
+    });
   };
 
   const handleRegister = async (e) => {
@@ -39,8 +47,12 @@ function Register() {
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
-      // Redirect to the Dashboard page
-      navigate("/dashboard");
+      // Redirect based on the user's choice
+      if (formData.wants_personalized_path) {
+        navigate("/questionnaire"); // Redirect to questionnaire
+      } else {
+        navigate("/dashboard"); // Redirect to All Topics
+      }
     } catch (error) {
       console.error("Registration failed", error);
       setErrorMessage(
@@ -95,6 +107,29 @@ function Register() {
           onChange={handleChange}
           required
         />
+        <label>Do you want a personalized learning path?</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="wants_personalized_path"
+              value="true"
+              onChange={handleRadioChange}
+              required
+            />
+            Yes
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="wants_personalized_path"
+              value="false"
+              onChange={handleRadioChange}
+              required
+            />
+            No
+          </label>
+        </div>
         <button type="submit" className="button button--primary button--large">
           Register
         </button>

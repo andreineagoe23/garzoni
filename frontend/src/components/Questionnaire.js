@@ -11,7 +11,6 @@ const Questionnaire = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch questions from the backend
     axios
       .get("http://localhost:8000/api/questionnaire/")
       .then((response) => {
@@ -29,24 +28,37 @@ const Questionnaire = () => {
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswer = (questionId, answer) => {
-    // Save answer locally
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);
 
-    // Update progress
     const newProgress = ((currentQuestionIndex + 1) / questions.length) * 100;
     setProgress(newProgress);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Submit answers and redirect to dashboard
+      // ✅ Get token from localStorage
+      const accessToken = localStorage.getItem("accessToken");
+
+      if (!accessToken) {
+        console.error("User is not authenticated!");
+        navigate("/login");
+        return;
+      }
+
       axios
-        .post("http://localhost:8000/api/questionnaire/submit/", {
-          answers: updatedAnswers,
-        })
+        .post(
+          "http://localhost:8000/api/questionnaire/submit/",
+          { answers: updatedAnswers },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        )
         .then(() => {
-          navigate("/register"); // Redirect to registration after submission
+          navigate("/personalized-path");
         })
         .catch((error) => {
           console.error("Error submitting questionnaire:", error);
