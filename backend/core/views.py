@@ -18,7 +18,7 @@ from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Missi
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
-    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer
+    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, 
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -31,6 +31,10 @@ class UserProfileView(APIView):
     def get(self, request):
         user_profile = UserProfile.objects.get(user=request.user)
         serializer = UserProfileSerializer(user_profile)
+        progress = UserProgress.objects.filter(user=request.user).first()
+
+        is_completed = UserResponse.objects.filter(user=request.user).exists()
+
         user_data = {
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
@@ -40,9 +44,11 @@ class UserProfileView(APIView):
             "earned_money": float(user_profile.earned_money),
             "points": user_profile.points,
         }
-        print("User Data:", user_data)
-        return Response(user_data)
 
+        return Response({
+            "user_data": user_data,
+            "is_questionnaire_completed": is_completed, 
+        })
 
 
     def patch(self, request):
@@ -53,14 +59,17 @@ class UserProfileView(APIView):
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
 
-# User registration view
+
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         user = serializer.save()
-        UserResponse.objects.filter(user=None).update(user=user)
+        if user.userprofile.wants_personalized_path:
+            # Redirect user to the questionnaire if they opted in
+            return Response({"next": "/questionnaire/"}, status=status.HTTP_201_CREATED)
+        return Response({"next": "/dashboard/"}, status=status.HTTP_201_CREATED)
 
 
 class PathViewSet(viewsets.ModelViewSet):
@@ -627,40 +636,104 @@ class RecommendationView(APIView):
         responses = UserResponse.objects.filter(user_id=user_id)
         recommended_path = None
 
+        # Assign recommendations based on user responses
+        recommendations = {
+            "Basic Finance": "It looks like you're interested in budgeting and saving. Start with Basic Finance to build strong financial habits!",
+            "Crypto": "You've mentioned crypto or blockchain. Our Crypto path will guide you through the fundamentals of digital assets.",
+            "Real Estate": "Since you showed interest in real estate, we recommend the Real Estate path to explore property investment.",
+            "Forex": "Your responses indicate interest in currency trading. The Forex path will help you master trading strategies.",
+            "Personal Finance": "Want to improve overall financial wellness? The Personal Finance path is the best place to start!",
+            "Financial Mindset": "A strong mindset is key to financial success! Learn about wealth psychology with the Financial Mindset path."
+        }
+
         for response in responses:
-            if "budget" in response.answer.lower() or "save" in response.answer.lower():
-                recommended_path = "Basic Finance"
-            elif "crypto" in response.answer.lower() or "blockchain" in response.answer.lower():
-                recommended_path = "Crypto"
-            elif "real estate" in response.answer.lower() or "property" in response.answer.lower():
-                recommended_path = "Real Estate"
-            elif "forex" in response.answer.lower() or "currency" in response.answer.lower():
-                recommended_path = "Forex"
+            for path, message in recommendations.items():
+                if path.lower() in response.answer.lower():
+                    recommended_path = path
+                    recommendation_message = message
+                    break
 
         if not recommended_path:
-            recommended_path = "Basic Finance"  # Default fallback
+            recommended_path = "Basic Finance"
+            recommendation_message = "Start with Basic Finance to strengthen your foundation in money management."
 
         return Response({
             "path": recommended_path,
-            "description": f"The {recommended_path} learning path is designed to help you achieve your goals."
+            "message": recommendation_message
         })
 
 
-
-
 class QuestionnaireSubmitView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Save user's answers (anonymous if not authenticated)
+        user = request.user
         answers = request.data.get('answers', {})
-        user = request.user if request.user.is_authenticated else None
 
-        for question_id, answer in answers.items():
-            try:
+        if not answers:
+            return Response({"error": "No answers provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # ✅ Ensure that we only store user responses (no `course_id`)
+            for question_id, answer in answers.items():
                 question = Question.objects.get(id=question_id)
                 UserResponse.objects.create(user=user, question=question, answer=answer)
-            except Question.DoesNotExist:
-                return Response({"error": f"Question {question_id} does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
+            # ✅ Update `is_questionnaire_completed` directly in UserProfile instead of UserProgress
+            user_profile = UserProfile.objects.get(user=user)
+            user_profile.wants_personalized_path = True
+            user_profile.save()
+
+            return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
+
+        except Question.DoesNotExist:
+            return Response({"error": "Invalid question ID."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Error in QuestionnaireSubmitView: {e}")  # Debugging
+            return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+class PersonalizedPathView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if not user.userprofile.wants_personalized_path:
+            return Response(
+                {"error": "User has not completed the questionnaire."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        responses = UserResponse.objects.filter(user=user)
+        if not responses.exists():
+            return Response(
+                {"error": "No questionnaire responses found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        path_keywords = {
+            "Basic Finance": ["budget", "saving", "debt", "finance"],
+            "Crypto": ["crypto", "bitcoin", "blockchain"],
+            "Real Estate": ["real estate", "property", "housing"],
+            "Forex": ["forex", "currency", "trading"],
+            "Personal Finance": ["retirement", "invest", "money management"],
+            "Financial Mindset": ["mindset", "psychology", "discipline"]
+        }
+
+        path_scores = {path: 0 for path in Path.objects.all()}
+
+        for response in responses:
+            for path, keywords in path_keywords.items():
+                if any(keyword in response.answer.lower() for keyword in keywords):
+                    path_scores[Path.objects.get(title=path)] += 1
+
+        # Sort paths by score in descending order
+        sorted_paths = sorted(path_scores.keys(), key=lambda p: path_scores[p], reverse=True)
+
+        serializer = PathSerializer(sorted_paths, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

@@ -27,7 +27,7 @@ function Navbar() {
         <ul className={styles.navLinks}>
           <li>
             <NavLink
-              to="/dashboard"
+              to="/all-topics"
               className={({ isActive }) => (isActive ? styles.active : "")}
             >
               Dashboard

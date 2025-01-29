@@ -6,112 +6,100 @@ import UserProgressBox from "./UserProgressBox";
 import "../styles/Dashboard.css";
 import Chatbot from "./Chatbot";
 
-// Import images from src/assets
+// Import images
 import BasicFinanceImage from "../assets/basicfinance.png";
 import CryptoImage from "../assets/crypto.png";
 import RealEstateImage from "../assets/realestate.png";
 import ForexImage from "../assets/forex.png";
+import PersonalFinanceImage from "../assets/personalfinance.png";
+import MindsetImage from "../assets/mindset.png";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
-  const [learningPaths, setLearningPaths] = useState([
-    {
-      id: 1,
-      title: "Basic Finance",
-      description:
-        "Learn the essentials of budgeting, saving, and financial planning.",
-      image: BasicFinanceImage,
-    },
-    {
-      id: 2,
-      title: "Crypto",
-      description: "Explore cryptocurrency, blockchain, and digital assets.",
-      image: CryptoImage,
-    },
-    {
-      id: 3,
-      title: "Real Estate",
-      description: "Understand real estate investment and property management.",
-      image: RealEstateImage,
-    },
-    {
-      id: 4,
-      title: "Forex",
-      description: "Dive into foreign exchange markets and currency trading.",
-      image: ForexImage,
-    },
-  ]);
-  const [recommendedPath, setRecommendedPath] = useState(null);
+  const [learningPaths, setLearningPaths] = useState([]);
+  const [personalizedPaths, setPersonalizedPaths] = useState([]);
+  const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
+    useState(false);
+  const [activePage, setActivePage] = useState("all-topics");
   const navigate = useNavigate();
 
-  // Fetch user info and learning paths
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-
-    if (!accessToken) {
-      navigate("/login");
-    } else {
-      axios
-        .get("http://localhost:8000/api/userprofile/", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => setUser(response.data))
-        .catch((error) => console.error("Failed to fetch user data:", error));
-
-      axios
-        .get("http://localhost:8000/api/paths/", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          const fetchedPaths = response.data;
-
-          const pathsWithImages = fetchedPaths.map((path) => {
-            let image;
-            switch (path.title) {
-              case "Basic Finance":
-                image = BasicFinanceImage;
-                break;
-              case "Crypto":
-                image = CryptoImage;
-                break;
-              case "Real Estate":
-                image = RealEstateImage;
-                break;
-              case "Forex":
-                image = ForexImage;
-                break;
-              default:
-                image = null;
-            }
-            return { ...path, image };
-          });
-
-          setLearningPaths(pathsWithImages);
-        })
-        .catch((error) =>
-          console.error("Failed to fetch learning paths:", error)
-        );
-    }
-  }, [navigate]);
-
-  // Fetch recommendation after user data is loaded
-  useEffect(() => {
-    if (user?.id) {
+    const fetchUserData = async () => {
       const accessToken = localStorage.getItem("accessToken");
 
-      axios
-        .get(`http://localhost:8000/recommendation/${user.id}/`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        .then((response) => {
-          console.log("Recommendation Data:", response.data);
-          setRecommendedPath(response.data.path);
-        })
-        .catch((error) =>
-          console.error("Failed to fetch recommendation data:", error)
+      if (!accessToken) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        // Fetch user profile and check questionnaire completion
+        const profileResponse = await axios.get(
+          "http://localhost:8000/api/userprofile/",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
         );
-    }
-  }, [user]);
+
+        setUser(profileResponse.data.user);
+        setIsQuestionnaireCompleted(
+          profileResponse.data.is_questionnaire_completed
+        ); // ✅ Now updating properly
+
+        // Fetch all topics
+        const pathsResponse = await axios.get(
+          "http://localhost:8000/api/paths/",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        const fetchedPaths = pathsResponse.data.map((path) => {
+          let image;
+          switch (path.title) {
+            case "Basic Finance":
+              image = BasicFinanceImage;
+              break;
+            case "Crypto":
+              image = CryptoImage;
+              break;
+            case "Real Estate":
+              image = RealEstateImage;
+              break;
+            case "Forex":
+              image = ForexImage;
+              break;
+            case "Personal Finance":
+              image = PersonalFinanceImage;
+              break;
+            case "Financial Mindset":
+              image = MindsetImage;
+              break;
+            default:
+              image = null;
+          }
+          return { ...path, image };
+        });
+
+        setLearningPaths(fetchedPaths);
+
+        // ✅ Fetch personalized paths only if questionnaire is completed
+        if (profileResponse.data.is_questionnaire_completed) {
+          const personalizedResponse = await axios.get(
+            "http://localhost:8000/api/personalized-path/",
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+          setPersonalizedPaths(personalizedResponse.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [activePage, navigate]);
 
   const togglePath = (pathId) => {
     setLearningPaths((prevPaths) =>
@@ -133,65 +121,81 @@ function Dashboard() {
     navigate("/welcome");
   };
 
+  const renderPaths = (paths, isPersonalized = false) =>
+    paths.map((path) => (
+      <div key={path.id} className="learning-path-card">
+        <h3>{isPersonalized ? `Recommended: ${path.title}` : path.title}</h3>
+        <img src={path.image} alt={path.title} className="path-image" />
+        <p>{path.description}</p>
+        <button
+          className="button button--primary"
+          onClick={() => togglePath(path.id)}
+        >
+          View Courses
+        </button>
+        {path.isExpanded && (
+          <LearningPathList
+            learningPaths={[path]}
+            activePathId={path.id}
+            onTogglePath={togglePath}
+            onCourseClick={handleCourseClick}
+          />
+        )}
+      </div>
+    ));
+
   return (
     <div className="dashboard">
       <div className="main-content">
         <div className="dashboard-container">
-          <div className="main-section">
-            <button onClick={handleLogout} className="button button--secondary">
-              Logout
+          <button onClick={handleLogout} className="button button--secondary">
+            Logout
+          </button>
+          <h2>Hello, {user?.username || "User"}!</h2>
+
+          <div className="dashboard-buttons">
+            <button
+              className={`button ${
+                activePage === "all-topics" ? "button--primary" : ""
+              }`}
+              onClick={() => {
+                setActivePage("all-topics");
+                navigate("/all-topics");
+              }}
+            >
+              All Topics
             </button>
-            {user ? <h2>Hello, {user.username}!</h2> : <h2>Loading...</h2>}
 
-            {recommendedPath ? (
-              <div className="recommendation-message">
-                <p>Based on your answers, we recommend starting with:</p>
-                <h3>{recommendedPath}</h3>
-              </div>
-            ) : (
-              <div className="recommendation-message">
-                <p>
-                  We couldn't determine a recommendation. Explore our learning
-                  paths to get started!
-                </p>
-              </div>
-            )}
+            <button
+              className={`button ${
+                isQuestionnaireCompleted
+                  ? "button--primary"
+                  : "button--disabled"
+              }`}
+              onClick={() => {
+                if (isQuestionnaireCompleted) {
+                  navigate("/personalized-path");
+                } else {
+                  navigate("/questionnaire");
+                }
+              }}
+            >
+              {isQuestionnaireCompleted
+                ? "Personalized Path"
+                : "Unlock Personalized Path"}
+            </button>
+          </div>
 
-            <div className="learning-paths-container">
-              {learningPaths.map((path) => (
-                <div key={path.id} className="learning-path-card">
-                  <h3>{path.title}</h3>
-                  <img
-                    src={path.image}
-                    alt={path.title}
-                    className="path-image"
-                  />
-                  <p>{path.description}</p>
-                  <button
-                    className="button button--primary"
-                    onClick={() => togglePath(path.id)}
-                  >
-                    View Courses
-                  </button>
-                  {path.isExpanded && (
-                    <LearningPathList
-                      learningPaths={[path]}
-                      activePathId={path.id}
-                      onTogglePath={togglePath}
-                      onCourseClick={handleCourseClick}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+          <div className="learning-paths-container">
+            {activePage === "all-topics"
+              ? renderPaths(learningPaths)
+              : renderPaths(personalizedPaths)}
           </div>
         </div>
       </div>
-
       <div className="user-progress">
         <UserProgressBox />
       </div>
-
       <Chatbot />
     </div>
   );

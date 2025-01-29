@@ -22,6 +22,7 @@ from .views import (
     FinanceFactView,
     RecommendationView,
     QuestionnaireSubmitView,
+    PersonalizedPathView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -62,6 +63,7 @@ urlpatterns = [
     path('questionnaire/', QuestionnaireView.as_view(), name='questionnaire'),
     path('questionnaire/submit/', QuestionnaireSubmitView.as_view(), name='questionnaire-submit'),
     path('recommendation/<int:user_id>/', RecommendationView.as_view(), name='recommendation'),
+    path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
 
     path('ckeditor/', include('ckeditor_uploader.urls')),
 

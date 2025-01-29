@@ -50,6 +50,21 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/all-topics"
+            element={<Dashboard key="all-topics" activePage="all-topics" />}
+          />
+          <Route
+            path="/personalized-path"
+            element={
+              <Dashboard
+                key="personalized-path"
+                activePage="personalized-path"
+              />
+            }
+          />
+
+          <Route path="/questionnaire" element={<Questionnaire />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/courses/:pathId" element={<CoursePage />} />

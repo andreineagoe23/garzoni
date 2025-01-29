@@ -10,12 +10,12 @@ from django.utils.timezone import now
 from celery import shared_task
 
 class UserProfile(models.Model):
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     points = models.PositiveIntegerField(default=0)
+    wants_personalized_path = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    profile_avatar = models.URLField(null=True, blank=True)  # To store avatar URL
+    profile_avatar = models.URLField(null=True, blank=True)
     generated_images = models.JSONField(default=list, blank=True) 
 
     FREQUENCY_CHOICES = [
@@ -123,13 +123,12 @@ class Quiz(models.Model):
 
 
 class UserProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="progress")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="user_progress")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_progress")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="progress_courses")
     completed_lessons = models.ManyToManyField(Lesson, blank=True)
     is_course_complete = models.BooleanField(default=False)
     is_questionnaire_completed = models.BooleanField(default=False)
-    
-    # Streak fields
+
     last_completed_date = models.DateField(null=True, blank=True)
     streak = models.PositiveIntegerField(default=0)
 
@@ -274,7 +273,7 @@ class Question(models.Model):
         return self.text
 
 class UserResponse(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_responses", null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField()
 
