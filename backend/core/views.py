@@ -412,8 +412,9 @@ class SavingsAccountView(APIView):
                 user=request.user,
                 mission__goal_type="add_savings"
             )
+            total_added = account.balance
             for mission_completion in mission_completions:
-                if mission_completion.progress < 100 and amount >= 5:
+                if mission_completion.progress < 100 and total_added >= 5:
                     mission_completion.update_progress(100, total=100)
 
             return Response(
@@ -691,62 +692,101 @@ class QuestionnaireSubmitView(APIView):
         except Exception as e:
             print(f"Error in QuestionnaireSubmitView: {e}")  # Debugging
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+import logging
+import json
+from collections import defaultdict
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Course, Path, UserResponse, UserProfile
+from .serializers import CourseSerializer
 
+logger = logging.getLogger(__name__)  # ✅ Create a logger
 
 class PersonalizedPathView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
+        user_profile = UserProfile.objects.get(user=user)
 
-        if not user.userprofile.wants_personalized_path:
-            return Response(
-                {"error": "User has not completed the questionnaire."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # ✅ Log the request
+        logger.info(f"Fetching personalized path for user: {user.username}")
 
+        # ✅ Check if user already has stored courses
+        if user_profile.generated_images:
+            stored_courses = json.loads(user_profile.generated_images[0])
+            logger.info(f"Returning stored courses for {user.username}: {len(stored_courses)} courses")
+            return Response({
+                "personalized_courses": stored_courses,
+                "message": "We've assembled a custom learning path based on your interests."
+            })
+
+        # ✅ Get the user's responses from the questionnaire
         responses = UserResponse.objects.filter(user=user)
         if not responses.exists():
-            return Response(
-                {"error": "No questionnaire responses found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            logger.warning(f"No questionnaire responses found for {user.username}")
+            return Response({"error": "No questionnaire responses found."}, status=404)
 
+        # ✅ Define path relevance keywords
         path_keywords = {
-            "Basic Finance": ["budget", "saving", "debt", "finance"],
+            "Financial Mindset": ["mindset", "psychology", "discipline", "growth"],
+            "Personal Finance": ["budget", "saving", "spending", "invest"],
+            "Forex": ["forex", "currency", "trading"],
             "Crypto": ["crypto", "bitcoin", "blockchain"],
             "Real Estate": ["real estate", "property", "housing"],
-            "Forex": ["forex", "currency", "trading"],
-            "Personal Finance": ["retirement", "invest", "money management"],
-            "Financial Mindset": ["mindset", "psychology", "discipline"]
+            "Basic Finance": ["finance", "credit", "debt", "investment"],
         }
 
-        path_scores = {path.title: 0 for path in Path.objects.all()}
-        recommendation_message = ""
-
+        # ✅ Assign relevance scores to paths based on responses
+        path_scores = defaultdict(int)
         for response in responses:
             for path, keywords in path_keywords.items():
                 if any(keyword in response.answer.lower() for keyword in keywords):
                     path_scores[path] += 1
 
-        # Sort paths by score in descending order
         sorted_paths = sorted(path_scores.items(), key=lambda x: x[1], reverse=True)
+        logger.info(f"Paths sorted by relevance: {sorted_paths}")
 
-        # Select top recommended paths
-        recommended_paths = []
-        for path_name, score in sorted_paths[:2]:  # Top 2 recommendations
+        selected_courses = []
+        used_paths = set()
+        total_courses_needed = 10
+
+        # ✅ Step 1: Select courses from the most relevant paths
+        for path_name, _ in sorted_paths:
             path_obj = Path.objects.filter(title=path_name).first()
-            if path_obj:
-                recommended_paths.append(path_obj)
+            if path_obj and path_obj.id not in used_paths:
+                courses = list(Course.objects.filter(path=path_obj)[:2])  # Pick 2 courses per path
+                logger.info(f"Found {len(courses)} courses in {path_name}")
+                selected_courses.extend(courses)
+                used_paths.add(path_obj.id)
 
-        # Generate a recommendation message
-        if recommended_paths:
-            top_path = recommended_paths[0]
-            recommendation_message = f"We've selected **{top_path.title}** as your best starting point based on your answers."
+            if len(selected_courses) >= total_courses_needed:
+                break  # Stop once we have 10 courses
 
-        serializer = PathSerializer(recommended_paths, many=True)
+        logger.info(f"After selecting from relevant paths: {len(selected_courses)} courses selected.")
+
+        # ✅ Step 2: If still fewer than 10 courses, add more from other paths
+        if len(selected_courses) < total_courses_needed:
+            remaining_courses = list(
+                Course.objects.exclude(id__in=[c.id for c in selected_courses])[:total_courses_needed - len(selected_courses)]
+            )
+            selected_courses.extend(remaining_courses)
+
+        logger.info(f"After adding additional courses: {len(selected_courses)} courses selected.")
+
+        if not selected_courses:
+            logger.error(f"No courses found for {user.username}")
+            return Response({"error": "No suitable courses found for your preferences."}, status=404)
+
+        logger.info(f"Final selection: {len(selected_courses)} courses for {user.username}")
+
+        # ✅ Store selected courses in user profile so they remain consistent
+        serializer = CourseSerializer(selected_courses, many=True)
+        user_profile.generated_images = [json.dumps(serializer.data)]
+        user_profile.save()
+
         return Response({
-            "recommended_paths": serializer.data,
-            "recommendation_message": recommendation_message
-        }, status=status.HTTP_200_OK)
-
+            "personalized_courses": serializer.data,
+            "message": "We've assembled a custom learning path based on your interests."
+        })
