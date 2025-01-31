@@ -23,7 +23,7 @@ function Login() {
       );
       localStorage.setItem("accessToken", response.data.access);
       localStorage.setItem("refreshToken", response.data.refresh);
-      navigate("/dashboard");
+      navigate("/all-topics");
     } catch (error) {
       console.error("Login failed", error);
       setError("Invalid username or password");

@@ -12,7 +12,7 @@ function Register() {
     email: "",
     first_name: "",
     last_name: "",
-    wants_personalized_path: false, // Default to "No"
+    wants_personalized_path: false,
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -43,15 +43,13 @@ function Register() {
         }
       );
 
-      // Save tokens to localStorage
       localStorage.setItem("accessToken", loginResponse.data.access);
       localStorage.setItem("refreshToken", loginResponse.data.refresh);
 
-      // Redirect based on the user's choice
       if (formData.wants_personalized_path) {
-        navigate("/questionnaire"); // Redirect to questionnaire
+        navigate("/questionnaire");
       } else {
-        navigate("/dashboard"); // Redirect to All Topics
+        navigate("/all-topics");
       }
     } catch (error) {
       console.error("Registration failed", error);
