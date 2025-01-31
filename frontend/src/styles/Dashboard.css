@@ -115,7 +115,6 @@
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin-left: 480px;
 }
 
 .button--logout {

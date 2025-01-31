@@ -1,7 +1,122 @@
-/* Premium Recommendation Message */
+/* Container for the personalized path */
+.personalized-path {
+  margin-left: 260px; /* Adjust for navbar */
+  margin-right: 320px; /* Adjust for user progress */
+  padding: 20px;
+  height: 90vh;
+  overflow-y: auto; /* Enable scrolling */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Path container (vertical layout) */
+.path-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 20px 0;
+  gap: 40px;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Left and Right Course Placement */
+.path-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+/* Left side */
+.path-item.left {
+  justify-content: flex-start;
+  flex-direction: row;
+}
+
+/* Right side */
+.path-item.right {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+/* Arrows Between Courses */
+.path-arrow {
+  font-size: 2rem;
+  color: #ffd700;
+  text-align: center;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.arrow-left {
+  left: -40px;
+}
+
+.arrow-right {
+  right: -40px;
+}
+
+/* Individual course boxes */
+.course-box {
+  width: 260px;
+  padding: 15px;
+  background: #003a12;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ffd700;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect */
+.course-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Course images */
+.course-image {
+  width: 80%;
+  height: auto;
+  border-radius: 8px;
+  border: 3px solid #ffd700;
+}
+
+/* Course info */
+.course-info h4 {
+  font-size: 1.4rem;
+  color: #ffd700;
+  margin-bottom: 5px;
+}
+
+.course-info p {
+  font-size: 1rem;
+  color: #ddd;
+}
+
+/* Scrollbar customization */
+.personalized-path::-webkit-scrollbar {
+  width: 8px;
+}
+
+.personalized-path::-webkit-scrollbar-thumb {
+  background: #ffd700;
+  border-radius: 4px;
+}
+
+.personalized-path::-webkit-scrollbar-track {
+  background: #002d0b;
+}
+
+/* Recommendation Message */
 .recommendation-message {
   margin-top: 30px;
-  margin-left: 27%;
   background: #002d0b;
   color: #ffd700;
   padding: 15px;
@@ -10,51 +125,4 @@
   text-align: center;
   font-size: 1.2rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.premium-path-card {
-  background: #003a12;
-  padding: 10px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
-  border: 2px solid #ffd700;
-}
-
-.premium-path-card:hover {
-  transform: translateY(-5px);
-}
-
-.premium-path-image {
-  width: 80%;
-  height: auto;
-  border-radius: 10px;
-  border: 3px solid #ffd700;
-}
-
-.premium-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ffd700;
-  margin-bottom: 10px;
-}
-
-.premium-description {
-  font-size: 1rem;
-}
-
-/* Premium Button */
-.button--premium {
-  background: #ffd700;
-  color: #002d0b;
-  padding: 10px 20px;
-  font-weight: bold;
-  border-radius: 8px;
-  transition: 0.3s;
-  border: none;
-}
-
-.button--premium:hover {
-  background: #e6c200;
 }
