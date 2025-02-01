@@ -52,7 +52,7 @@ function Dashboard() {
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
 
-        setUser(profileResponse.data.user);
+        setUser(profileResponse.data.user_data);
         setIsQuestionnaireCompleted(
           profileResponse.data.is_questionnaire_completed
         );
@@ -76,27 +76,34 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <div className="main-content">
-        <button className="button button--logout" onClick={handleLogout}>
-          Logout
-        </button>
-        <h2>Hello, {user?.username || "User"}!</h2>
+        {/* ==== Dashboard Header Section ==== */}
+        <div className="dashboard-header">
+          <h2 className="dashboard-greeting">
+            Welcome back, {user?.username || "User"}!
+          </h2>
+          <button className="button button--logout" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
 
+        {/* ==== Button Row for "All Topics" & "Personalized Path" ==== */}
         <div className="dashboard-buttons">
           <button
-            className={`button ${
-              activePage === "all-topics" ? "button--primary" : ""
+            className={`button button--nav ${
+              activePage === "all-topics" ? "button--active" : ""
             }`}
-            onClick={() => navigate("/all-topics")} // ✅ Updates the URL
+            onClick={() => navigate("/all-topics")}
           >
             All Topics
           </button>
+
           <button
-            className={`button ${
-              isQuestionnaireCompleted ? "button--premium" : "button--disabled"
-            }`}
+            className={`button button--nav ${
+              isQuestionnaireCompleted ? "" : "button--disabled"
+            } ${activePage === "personalized-path" ? "button--active" : ""}`}
             onClick={() => {
               if (isQuestionnaireCompleted) {
-                navigate("/personalized-path"); // ✅ Updates the URL
+                navigate("/personalized-path");
               } else {
                 navigate("/questionnaire");
               }
@@ -106,7 +113,7 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* ✅ Renders the correct component based on URL */}
+        {/* ==== Render the correct component based on URL ==== */}
         {activePage === "all-topics" ? (
           <AllTopics onCourseClick={handleCourseClick} imageMap={imageMap} />
         ) : (

@@ -1,45 +1,23 @@
-/* Lesson Page Container */
-.lessonPageContainer {
-  margin-left: 250px; /* Space for the left-side navbar */
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-/* Lesson Cards Container */
-.lessonBox {
+/* 
+  Container for the entire lesson page layout.
+  Splits into two columns: .lessonMain (flex:1) and .lessonProgress (fixed width).
+*/
+.lessonLayout {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  margin-left: 250px;
 }
 
-/* Individual Lesson Card */
-.lessonBoxItem {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+/* ==== MAIN LESSON AREA (Left) ==== */
+.lessonMain {
+  flex: 1;
   padding: 20px;
-  background: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-.lessonBoxItem:hover {
-  transform: translateY(-5px);
-}
-
-/* Completed Lesson Styling */
-.completed {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-}
-
-/* Locked Lesson Styling */
-.locked {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-/* Success Message */
+/* Optional success message for completed lessons. */
 .successMessage {
   background-color: #e9f7e9;
   color: #155724;
@@ -50,14 +28,89 @@
   font-size: 1rem;
 }
 
-/* Lesson Content */
+/* Container holding all lesson "cards" */
+.lessonBox {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Individual Lesson "Card" */
+.lessonBoxItem {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.lessonBoxItem:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Lesson States */
+.completed {
+  background-color: #d4edda; /* Light green */
+  border: 1px solid #c3e6cb;
+  cursor: default;
+}
+
+.locked {
+  background-color: #f8d7da; /* Light red */
+  border: 1px solid #f5c6cb;
+  cursor: not-allowed;
+}
+
+/* Lesson Card Titles (the <h4> user clicks) */
+.lessonBoxItem h4 {
+  font-size: 1.3rem;
+  color: #1d5330;
+  margin-bottom: 8px;
+}
+
+/* Short description */
+.lessonBoxItem p {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Detailed lesson content (expands when user clicks) */
 .lessonContent {
   margin-top: 15px;
 }
 
+/* Embedded video styling */
 .videoPlayer {
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 800px; /* Optional max width */
+  height: auto;
+}
+
+/* "Complete Lesson" button if you want local styling 
+   or reuse your global .button--primary as shown in the .js
+*/
+.completeLessonBtn {
+  margin-top: 15px;
+  background-color: #002d0b; /* Dark green */
+  color: #ffd700; /* Gold */
+  border: 2px solid #ffd700;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+/* Hover effect for "Complete Lesson" */
+.completeLessonBtn:hover {
+  background-color: #ffd700;
+  color: #002d0b;
 }
 
 /* Course Completion Section */
@@ -88,4 +141,53 @@
 
 .courseCompletion button:hover {
   background-color: #14522d;
+}
+
+/* ==== RIGHT PANEL: PROGRESS BOX ==== */
+.lessonProgress {
+  width: 350px;
+  padding: 20px;
+  box-sizing: border-box;
+  border-left: 1px solid #ddd;
+  background-color: #fff;
+  position: relative;
+}
+
+/* 
+  If you want the progress box fixed on large screens, 
+  uncomment these lines:
+  
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  overflow-y: auto;
+  
+  and remove the "border-left: 1px solid #ddd;" if desired.
+*/
+
+/* Responsive: stack the progress box below lessons on smaller screens */
+@media (max-width: 992px) {
+  .lessonLayout {
+    flex-direction: column; /* stack them */
+  }
+
+  .lessonProgress {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #ddd;
+    position: static; /* Not fixed */
+    height: auto;
+  }
+}
+
+/* Further smaller breakpoints if needed */
+@media (max-width: 600px) {
+  .lessonMain {
+    padding: 10px;
+  }
+
+  .lessonBoxItem {
+    padding: 15px;
+  }
 }

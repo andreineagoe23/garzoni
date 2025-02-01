@@ -1,9 +1,85 @@
+/* AllTopics.css */
+
+/* Wrapper for All Topics content */
 .all-topics {
-    padding: 20px;
-  }
-  
-  .all-topics h3 {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-  
+  padding: 20px;
+}
+
+/* Title styling */
+.all-topics h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #1d5330; /* A dark green color */
+}
+
+/* Container for all learning path cards */
+.learning-paths-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Individual path cards */
+.learning-path-card {
+  flex: 1 1 calc(50% - 20px); /* 2 cards per row, adjustable as needed */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect for each card */
+.learning-path-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Card title */
+.learning-path-card h3 {
+  font-size: 1.5rem;
+  color: #1d5330;
+  margin-bottom: 10px;
+}
+
+/* Image on each card */
+.path-image {
+  width: 80%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Description text */
+.learning-path-card p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+/* Button spacing on each card */
+.learning-path-card .button {
+  margin-top: 10px;
+}
+
+/* Example primary button style 
+   (Same style as your "All Topics" / "Personalized Path" if you like consistency) */
+.button--primary {
+  background-color: #002d0b; /* Dark Green */
+  color: #ffd700; /* Gold */
+  border: 2px solid #ffd700;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+/* Hover effect for the primary button */
+.button--primary:hover {
+  background-color: #ffd700;
+  color: #002d0b;
+}

@@ -1,69 +1,98 @@
-/* Container for the personalized path */
+/* Container for the personalized path page */
 .personalized-path {
-  margin-left: 260px; /* Adjust for navbar */
-  margin-right: 320px; /* Adjust for user progress */
+  margin-left: 260px; /* Adjust these if you have sidebars */
+  margin-right: 320px;
   padding: 20px;
-  height: 90vh;
-  overflow-y: auto; /* Enable scrolling */
+  min-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Path container (vertical layout) */
+/* Recommendation Message Styling */
+.recommendation-message {
+  margin-top: 10px;
+  background: #002d0b;
+  color: #ffd700;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* The container holding the vertical "road." */
 .path-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   position: relative;
-  padding: 20px 0;
-  gap: 40px;
   width: 100%;
   max-width: 700px;
+  margin-top: 30px; /* space above timeline */
+  padding: 20px 0;
 }
 
-/* Left and Right Course Placement */
-.path-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  position: relative;
-}
-
-/* Left side */
-.path-item.left {
-  justify-content: flex-start;
-  flex-direction: row;
-}
-
-/* Right side */
-.path-item.right {
-  justify-content: flex-end;
-  flex-direction: row-reverse;
-}
-
-/* Arrows Between Courses */
-.path-arrow {
-  font-size: 2rem;
-  color: #ffd700;
-  text-align: center;
-  font-weight: bold;
+/* Draw the vertical "road" line down the center. */
+.path-container::before {
+  content: "";
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px; /* thickness of the road line */
+  background: #ffd700;
+  z-index: 1;
 }
 
-.arrow-left {
-  left: -40px;
+/* Each item is placed either on the left or right half */
+.path-item {
+  position: relative;
+  width: 50%;
+  padding: 20px 40px;
+  box-sizing: border-box;
 }
 
-.arrow-right {
-  right: -40px;
+/* Left items sit on the left half (0%) */
+.path-item.left {
+  left: 0;
+  text-align: right; /* So text is right-aligned if you want */
 }
 
-/* Individual course boxes */
+/* Right items sit on the right half (50%) */
+.path-item.right {
+  left: 50%;
+  text-align: left;
+}
+
+/* 
+  A circle/dot marker that sits on the "road line" for each item,
+  using a pseudo-element. 
+*/
+.path-item.left::before,
+.path-item.right::before {
+  content: "";
+  position: absolute;
+  top: 30px; /* adjust to center on the box */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffd700; /* dot color */
+  border: 2px solid #003a12; /* optional border color for the dot */
+  z-index: 2;
+}
+
+/* Position the dot at the connecting line center for left items */
+.path-item.left::before {
+  right: -10px; /* half of width to center it on the vertical line */
+}
+
+/* Position the dot at the connecting line center for right items */
+.path-item.right::before {
+  left: -10px;
+}
+
+/* Course boxes keep their style and animation */
 .course-box {
-  width: 260px;
   padding: 15px;
   background: #003a12;
   border-radius: 12px;
@@ -72,15 +101,15 @@
   border: 2px solid #ffd700;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative; /* ensures layering above the timeline line */
+  z-index: 2; /* placed above the "road" */
 }
 
-/* Hover effect */
 .course-box:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* Course images */
 .course-image {
   width: 80%;
   height: auto;
@@ -88,7 +117,6 @@
   border: 3px solid #ffd700;
 }
 
-/* Course info */
 .course-info h4 {
   font-size: 1.4rem;
   color: #ffd700;
@@ -100,29 +128,14 @@
   color: #ddd;
 }
 
-/* Scrollbar customization */
+/* Scrollbar customization (optional) */
 .personalized-path::-webkit-scrollbar {
   width: 8px;
 }
-
 .personalized-path::-webkit-scrollbar-thumb {
   background: #ffd700;
   border-radius: 4px;
 }
-
 .personalized-path::-webkit-scrollbar-track {
   background: #002d0b;
-}
-
-/* Recommendation Message */
-.recommendation-message {
-  margin-top: 30px;
-  background: #002d0b;
-  color: #ffd700;
-  padding: 15px;
-  border-radius: 10px;
-  font-weight: bold;
-  text-align: center;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }

@@ -37,7 +37,6 @@ function AllTopics({ onCourseClick, imageMap }) {
 
   return (
     <div className="all-topics">
-      <h3>All Learning Topics</h3>
       <div className="learning-paths-container">
         {learningPaths.map((path) => (
           <div key={path.id} className="learning-path-card">
