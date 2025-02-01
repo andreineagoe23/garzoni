@@ -1,10 +1,11 @@
 /* src/styles/Navbar.module.css */
 
+/* SIDEBAR NAVBAR BASE */
 .navbar {
   width: 250px;
   height: 100vh;
-  background-color: #34495e;
-  color: #ecf0f1;
+  background-color: #002d0b; /* Dark Green */
+  color: #ffd700; /* Gold text */
   position: fixed;
   top: 0;
   left: 0;
@@ -14,24 +15,20 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
+  transition: transform 0.3s ease;
 }
 
-/* Hidden State */
-.navbar.hidden {
-  transform: translateX(-100%);
-}
-
-/* Logo */
+/* LOGO */
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #1abc9c; /* Vibrant green accent */
+  color: #ffd700; /* Gold accent */
   text-transform: uppercase;
   margin-bottom: 2rem;
   cursor: pointer;
 }
 
-/* Navigation Links */
+/* NAVIGATION LINKS */
 .navLinks {
   list-style: none;
   padding: 0;
@@ -39,13 +36,15 @@
   width: 100%;
 }
 
+/* Each link item */
 .navLinks li {
   margin: 0.5rem 0;
 }
 
+/* Link styling */
 .navLinks a {
   text-decoration: none;
-  color: #ecf0f1; /* Light text */
+  color: #ffd700; /* Gold */
   font-size: 1rem;
   padding: 0.8rem 1.5rem;
   display: block;
@@ -53,20 +52,22 @@
   transition: background-color 0.3s, transform 0.2s;
 }
 
+/* Hover state */
 .navLinks a:hover {
-  background-color: #2c3e50; /* Slightly darker than navbar */
+  background-color: #01370f; /* Slightly darker green */
   transform: translateX(5px);
 }
 
+/* Active link state */
 .navLinks a.active {
-  background-color: #1abc9c; /* Vibrant green for active links */
-  color: #ffffff;
+  background-color: #ffd700; /* Gold background */
+  color: #002d0b; /* Dark green text */
   font-weight: bold;
 }
 
-/* Burger Menu */
+/* BURGER MENU (Hamburger icon) */
 .burgerMenu {
-  display: none;
+  display: none; /* Hidden on desktop by default */
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -81,26 +82,25 @@
   height: 30px;
 }
 
-/* Responsive Design */
+/* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
-  .navbar {
-    transform: translateX(-100%);
-  }
-
+  /* Show burger menu on smaller screens */
   .burgerMenu {
     display: block;
   }
 
+  /* The sidebar is hidden by default */
+  .navbar {
+    transform: translateX(-100%);
+  }
+
+  /* When toggled, show it */
   .navbar.show {
     transform: translateX(0);
   }
 
+  /* Center the nav links if you prefer */
   .navLinks {
-    padding: 0;
     text-align: center;
-  }
-
-  .navLinks li {
-    margin: 1rem 0;
   }
 }

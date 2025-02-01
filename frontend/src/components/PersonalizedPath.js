@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/PersonalizedPath.css";
-import { motion } from "framer-motion"; // ✅ Import animations
+import { motion } from "framer-motion";
 
 function PersonalizedPath({ onCourseClick, imageMap }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -43,31 +43,18 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
 
   return (
     <div className="personalized-path">
-      <h3>Your Personalized Learning Path</h3>
-
       {isLoading ? (
         <p>Loading your personalized courses...</p>
       ) : (
         <>
           <p className="recommendation-message">{recommendationMessage}</p>
+
           <div className="path-container">
             {personalizedCourses.map((course, index) => (
               <div
                 key={course.id}
                 className={`path-item ${index % 2 === 0 ? "left" : "right"}`}
               >
-                {index !== 0 && (
-                  <motion.div
-                    className={`path-arrow ${
-                      index % 2 === 0 ? "arrow-left" : "arrow-right"
-                    }`}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    ➤
-                  </motion.div>
-                )}
                 <motion.div
                   className="course-box"
                   whileHover={{ scale: 1.05 }}
