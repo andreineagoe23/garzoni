@@ -25,7 +25,7 @@ const Chatbot = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/chatbot/",
+        `${process.env.REACT_APP_BACKEND_URL}/chatbot/`,
         { text: userInput },
         {
           headers: {
@@ -64,7 +64,7 @@ const Chatbot = () => {
           bottom: "20px",
           right: "50px",
           zIndex: 1000,
-          backgroundColor: "#002D0B", // Dark forest green
+          backgroundColor: "#002D0B",
           color: "#fff",
           border: "none",
           borderRadius: "50%",

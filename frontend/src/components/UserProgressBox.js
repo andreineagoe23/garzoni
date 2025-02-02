@@ -4,9 +4,8 @@ import "../styles/UserProgressBox.css";
 
 function UserProgressBox() {
   const [progressData, setProgressData] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(true); // default expanded on desktop
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  // Collapse by default on screens ≤ 768px
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth <= 768) {
@@ -16,10 +15,8 @@ function UserProgressBox() {
       }
     };
 
-    // Run on mount
     handleResize();
 
-    // Listen for window resize
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -28,12 +25,11 @@ function UserProgressBox() {
     const fetchProgress = async () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
-        // If the user is not logged in, do not fetch progress data
         return;
       }
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/userprogress/progress_summary/",
+          `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         setProgressData(response.data);
@@ -61,7 +57,6 @@ function UserProgressBox() {
         <span className={`arrow ${isExpanded ? "arrow-up" : "arrow-down"}`} />
       </div>
 
-      {/* Only show details if expanded */}
       {isExpanded && (
         <div className="progress-content">
           <h4>Overall Progress</h4>

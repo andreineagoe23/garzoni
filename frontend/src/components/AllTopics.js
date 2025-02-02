@@ -12,14 +12,13 @@ function AllTopics({ onCourseClick, imageMap }) {
     const fetchPaths = async () => {
       const accessToken = localStorage.getItem("accessToken");
       try {
-        const response = await axios.get("http://localhost:8000/api/paths/", {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/paths/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
-        // ✅ Ensure images are assigned properly
         const updatedPaths = response.data.map((path) => ({
           ...path,
-          image: imageMap[path.title] || null, // Attach image to each path
+          image: imageMap[path.title] || null,
         }));
 
         setLearningPaths(updatedPaths);
@@ -42,7 +41,6 @@ function AllTopics({ onCourseClick, imageMap }) {
           <div key={path.id} className="learning-path-card">
             <h3>{path.title}</h3>
 
-            {/* ✅ Display Image */}
             {path.image && (
               <img src={path.image} alt={path.title} className="path-image" />
             )}

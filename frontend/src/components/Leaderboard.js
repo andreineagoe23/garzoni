@@ -19,7 +19,7 @@ const Leaderboards = () => {
         }
 
         const response = await axios.get(
-          "http://localhost:8000/api/leaderboard/",
+          `${process.env.REACT_APP_BACKEND_URL}/leaderboard/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

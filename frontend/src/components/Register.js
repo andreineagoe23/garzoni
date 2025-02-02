@@ -32,7 +32,7 @@ function Register() {
     e.preventDefault();
     try {
       // Register the user
-      await axios.post("http://127.0.0.1:8000/api/register/", formData);
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/register/`, formData);
 
       // Automatically log in the user
       const loginResponse = await axios.post(

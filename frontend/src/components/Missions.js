@@ -34,7 +34,7 @@ function Missions() {
   const fetchMissions = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const response = await axios.get("http://localhost:8000/api/missions/", {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/missions/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Fetched missions:", response.data); // Log fetched missions
@@ -49,7 +49,7 @@ function Missions() {
     const token = localStorage.getItem("accessToken");
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/savings-account/",
+        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("Fetched savings balance:", response.data.balance);
@@ -68,7 +68,7 @@ function Missions() {
     const token = localStorage.getItem("accessToken");
     try {
       await axios.post(
-        "http://localhost:8000/api/savings-account/",
+        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         { amount: parseFloat(savingsAmount) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,7 +85,7 @@ function Missions() {
     const token = localStorage.getItem("accessToken");
     try {
       await axios.post(
-        "http://localhost:8000/api/finance-fact/",
+        `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

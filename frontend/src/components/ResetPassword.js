@@ -21,7 +21,7 @@ function ResetPassword() {
 
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/password-reset-confirm/${uidb64}/${token}/`,
+        `${process.env.REACT_APP_BACKEND_URL}/password-reset-confirm/${uidb64}/${token}/`,
         { new_password: password, confirm_password: confirmPassword }
       );
       setMessage(response.data.message || "Password reset successful.");
