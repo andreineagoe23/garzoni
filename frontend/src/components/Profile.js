@@ -25,7 +25,7 @@ function Profile() {
       const token = localStorage.getItem("accessToken");
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/userprofile/",
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ function Profile() {
 
       // Save to backend
       await axios.post(
-        "http://localhost:8000/api/userprofiles/save-avatar/",
+        `${process.env.REACT_APP_BACKEND_URL}/userprofiles/save-avatar/`,
         { avatar_url: imageData },
         {
           headers: {
@@ -110,7 +110,7 @@ function Profile() {
     const token = localStorage.getItem("accessToken");
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/userprofiles/upload-avatar/",
+        `${process.env.REACT_APP_BACKEND_URL}/userprofiles/upload-avatar/`,
         formData,
         {
           headers: {

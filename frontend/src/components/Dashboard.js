@@ -29,7 +29,7 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
-  const [showProgress, setShowProgress] = useState(false); // <-- controls side panel on small screens
+  const [showProgress, setShowProgress] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,7 +50,7 @@ function Dashboard() {
 
       try {
         const profileResponse = await axios.get(
-          "http://localhost:8000/api/userprofile/",
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
 
@@ -75,7 +75,6 @@ function Dashboard() {
     navigate("/login");
   };
 
-  // For mobile, toggles the slide-in progress box
   const toggleProgressPanel = () => {
     setShowProgress((prev) => !prev);
   };
@@ -93,7 +92,6 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* ==== Button Row for "All Topics" & "Personalized Path" ==== */}
         <div className="dashboard-buttons">
           <button
             className={`button button--nav ${
@@ -120,7 +118,6 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* ==== Render the correct component based on URL ==== */}
         {activePage === "all-topics" ? (
           <AllTopics onCourseClick={handleCourseClick} imageMap={imageMap} />
         ) : (
@@ -131,25 +128,14 @@ function Dashboard() {
         )}
       </div>
 
-      {/* 
-        ===== User Progress (Desktop) =====
-        We'll hide this .user-progress on screens <= 768px via CSS.
-      */}
       <div className="user-progress">
         <UserProgressBox />
       </div>
 
-      {/* 
-        ===== Floating Button (Mobile only) =====
-        Toggles the slide-in progress panel 
-      */}
       <button className="floating-progress-btn" onClick={toggleProgressPanel}>
         Progress
       </button>
 
-      {/* 
-        ===== Slide-In Panel for Progress (Mobile) =====
-      */}
       {showProgress && (
         <div className="progress-panel">
           <button className="close-panel-btn" onClick={toggleProgressPanel}>

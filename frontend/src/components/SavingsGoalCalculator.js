@@ -25,7 +25,7 @@ const SavingsGoalCalculator = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/calculate-savings-goal/",
+        `${process.env.REACT_APP_BACKEND_URL}/calculate-savings-goal/`,
         formData,
         {
           headers: {
@@ -44,7 +44,6 @@ const SavingsGoalCalculator = () => {
     <div className="calculator-container">
       <h3>Savings Goal Calculator</h3>
       <form onSubmit={handleSubmit} className="calculator-form">
-        {/* Step 1: Savings Goal */}
         <div className="form-group">
           <label>Savings Goal</label>
           <input

@@ -12,7 +12,8 @@ const Questionnaire = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/questionnaire/")
+      .get(`${process.env.REACT_APP_BACKEND_URL}/questionnaire/`)
+
       .then((response) => {
         setQuestions(response.data);
       })

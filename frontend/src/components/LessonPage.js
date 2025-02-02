@@ -6,9 +6,6 @@ import Chatbot from "./Chatbot";
 import DragAndDropExercise from "./DragAndDropExercise";
 import UserProgressBox from "./UserProgressBox";
 
-/**
- * Utility function to fix local media paths for images in lesson content.
- */
 function fixImagePaths(content) {
   const mediaUrl = "http://localhost:8000/media/";
   return content.replace(/src="\/media\/([^"]+)"/g, (match, p1) => {
@@ -38,7 +35,7 @@ function LessonPage() {
 
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/lessons/with_progress/?course=${courseId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         const lessonsWithProgress = response.data;
@@ -60,7 +57,6 @@ function LessonPage() {
   }, [courseId]);
 
   useEffect(() => {
-    // Check if all lessons in this course are completed
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
       setCourseCompleted(true);
     }
@@ -75,7 +71,7 @@ function LessonPage() {
 
     try {
       await axios.post(
-        "http://localhost:8000/api/lessons/complete/",
+        `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
         { lesson_id: lessonId },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
@@ -91,12 +87,10 @@ function LessonPage() {
   };
 
   const handleCourseCompletion = () => {
-    // Navigate to the quiz page
     navigate(`/quiz/${courseId}`);
   };
 
   const handleLessonClick = (lessonId) => {
-    // Toggle the lesson details
     setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
   };
 
@@ -108,7 +102,6 @@ function LessonPage() {
     switch (exerciseType) {
       case "drag-and-drop":
         return <DragAndDropExercise data={exerciseData} />;
-      // Add more cases if you have different exercise types
       default:
         return <p>No exercise available for this lesson.</p>;
     }

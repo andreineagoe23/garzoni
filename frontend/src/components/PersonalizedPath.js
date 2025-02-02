@@ -15,7 +15,7 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
     const fetchPersonalizedPath = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/personalized-path/",
+          `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
 

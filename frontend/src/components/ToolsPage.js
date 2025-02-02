@@ -16,7 +16,7 @@ const ToolsPage = () => {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/tools/", {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/tools/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },

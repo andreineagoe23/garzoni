@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../styles/Settings.css"; // Ensure your styles are in place
+import "../styles/Settings.css";
 
 function Settings() {
   const [emailReminders, setEmailReminders] = useState(false);
@@ -24,13 +24,13 @@ function Settings() {
 
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/user/settings/",
+          `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        const profile = response.data?.profile || {}; // Ensure profile exists
+        const profile = response.data?.profile || {};
         setEmailReminders(response.data?.email_reminders || false);
         setEmailFrequency(response.data?.email_frequency || "daily");
         setProfileData({
@@ -51,7 +51,7 @@ function Settings() {
     const token = localStorage.getItem("accessToken");
     try {
       await axios.patch(
-        "http://localhost:8000/api/user/settings/",
+        `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
         {
           email_reminders: emailReminders,
           email_frequency: emailFrequency,

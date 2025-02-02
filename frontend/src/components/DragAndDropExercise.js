@@ -52,7 +52,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     if (correct === updatedTargets.length) {
       setFeedback("You completed the exercise!");
       setIsCompleted(true);
-      // Save completion state to localStorage
       localStorage.setItem(
         `exercise-${exerciseId}`,
         JSON.stringify({ answers: userAnswers, completed: true })
@@ -89,7 +88,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
               target={target}
               onDrop={handleDrop}
               droppedColor={target.droppedColor}
-              userAnswer={userAnswers[target.id]} // Show dropped item ID
+              userAnswer={userAnswers[target.id]}
             />
           ))}
         </div>
@@ -113,7 +112,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 const DraggableItem = ({ item }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "ITEM",
-    item: { id: item.id, text: item.text, color: item.color }, // Include color
+    item: { id: item.id, text: item.text, color: item.color },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),

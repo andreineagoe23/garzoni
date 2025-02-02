@@ -17,7 +17,7 @@ function QuizPage() {
       try {
         const accessToken = localStorage.getItem("accessToken");
         const response = await axios.get(
-          `http://localhost:8000/api/quizzes/?course=${courseId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}/`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
 
@@ -51,19 +51,19 @@ function QuizPage() {
     const accessToken = localStorage.getItem("accessToken");
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/quizzes/complete/",
+        `${process.env.REACT_APP_BACKEND_URL}/quizzes/complete/`,
         { quiz_id: quiz.id, selected_answer: selectedAnswer },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      console.log("Quiz Response: ", response.data); // Log response for debugging
+      console.log("Quiz Response: ", response.data);
 
       setFeedback(response.data.message);
       if (response.data.earned_money) {
         setEarnedMoney(response.data.earned_money);
       }
     } catch (err) {
-      console.error("Error submitting answer:", err); // Log error for debugging
+      console.error("Error submitting answer:", err);
       setFeedback(
         err.response?.data?.message || "Something went wrong. Try again."
       );

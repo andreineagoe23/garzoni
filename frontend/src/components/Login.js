@@ -18,7 +18,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/login/",
+        `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData
       );
       localStorage.setItem("accessToken", response.data.access);
