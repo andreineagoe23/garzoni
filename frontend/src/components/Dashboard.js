@@ -82,7 +82,6 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <div className="main-content">
-        {/* ==== Dashboard Header Section ==== */}
         <div className="dashboard-header">
           <h2 className="dashboard-greeting">
             Welcome back, {user?.username || "User"}!

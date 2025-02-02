@@ -1,11 +1,9 @@
-/* src/styles/Navbar.module.css */
-
 /* SIDEBAR NAVBAR BASE */
 .navbar {
   width: 250px;
   height: 100vh;
   background-color: #002d0b; /* Dark Green */
-  color: #ffd700; /* Gold text */
+  color: #ffd700; /* Gold */
   position: fixed;
   top: 0;
   left: 0;
@@ -15,20 +13,20 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease;
 }
 
 /* LOGO */
 .logo {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #ffd700; /* Gold accent */
+  color: #ffd700;
   text-transform: uppercase;
   margin-bottom: 2rem;
   cursor: pointer;
 }
 
-/* NAVIGATION LINKS */
+/* NAV LINKS */
 .navLinks {
   list-style: none;
   padding: 0;
@@ -36,15 +34,13 @@
   width: 100%;
 }
 
-/* Each link item */
 .navLinks li {
   margin: 0.5rem 0;
 }
 
-/* Link styling */
 .navLinks a {
   text-decoration: none;
-  color: #ffd700; /* Gold */
+  color: #ffd700;
   font-size: 1rem;
   padding: 0.8rem 1.5rem;
   display: block;
@@ -52,22 +48,20 @@
   transition: background-color 0.3s, transform 0.2s;
 }
 
-/* Hover state */
 .navLinks a:hover {
-  background-color: #01370f; /* Slightly darker green */
+  background-color: #01370f;
   transform: translateX(5px);
 }
 
-/* Active link state */
 .navLinks a.active {
-  background-color: #ffd700; /* Gold background */
-  color: #002d0b; /* Dark green text */
+  background-color: #ffd700;
+  color: #002d0b;
   font-weight: bold;
 }
 
-/* BURGER MENU (Hamburger icon) */
+/* BURGER MENU */
 .burgerMenu {
-  display: none; /* Hidden on desktop by default */
+  display: none; /* hidden on desktop */
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -82,24 +76,53 @@
   height: 30px;
 }
 
-/* RESPONSIVE DESIGN */
+/* 
+   Breakpoints to gradually shrink 
+   the sidebar width 
+*/
+
+/* ~1200px */
+@media (max-width: 1200px) {
+  .navbar {
+    width: 200px;
+  }
+  .logo {
+    font-size: 1.6rem;
+  }
+  .navLinks a {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
+}
+
+/* ~992px */
+@media (max-width: 992px) {
+  .navbar {
+    width: 180px;
+  }
+  .logo {
+    font-size: 1.4rem;
+  }
+  .navLinks a {
+    font-size: 0.9rem;
+    padding: 0.7rem 1rem;
+  }
+}
+
+/* ~768px -> burger menu */
 @media (max-width: 768px) {
-  /* Show burger menu on smaller screens */
   .burgerMenu {
     display: block;
   }
 
-  /* The sidebar is hidden by default */
   .navbar {
     transform: translateX(-100%);
+    width: 180px;
   }
-
-  /* When toggled, show it */
   .navbar.show {
     transform: translateX(0);
   }
 
-  /* Center the nav links if you prefer */
   .navLinks {
     text-align: center;
   }

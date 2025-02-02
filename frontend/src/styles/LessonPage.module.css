@@ -2,7 +2,9 @@
   display: flex;
   min-height: 100vh;
   background-color: #f9f9f9;
+  /* By default, margin-left: 250px if you have the left navbar. */
   margin-left: 250px;
+  /* We'll handle right margin in breakpoints if we want a pinned 300px panel. */
 }
 
 .lessonMain {
@@ -10,17 +12,39 @@
   padding: 20px;
   overflow-y: auto;
   box-sizing: border-box;
+  /* margin-right: 300px to accommodate pinned progress, if you want that approach. */
+  margin-right: 300px;
 }
 
+/* Pinned progress on the right. For large screens, 300px wide. */
 .lessonProgress {
-  width: 350px;
+  width: 300px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
   padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow-y: auto;
   box-sizing: border-box;
-  border-left: 1px solid #ddd;
-  background-color: #fff;
 }
 
-/* Lessons Container */
+/* On mobile, hide pinned progress so we use the float button + panel instead. */
+@media (max-width: 768px) {
+  .lessonLayout {
+    margin-left: 0; /* no left nav? or do you still have the burger menu? */
+  }
+  .lessonMain {
+    margin-right: 0; /* hide pinned progress */
+  }
+  .lessonProgress {
+    display: none;
+  }
+}
+
+/* The rest: lesson cards, etc. */
 .lessonBox {
   display: flex;
   flex-direction: column;
@@ -55,6 +79,16 @@
   border: 1px solid #f5c6cb;
   cursor: not-allowed;
 }
+
+.lessonContent img {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin: 15px 0;
+  object-fit: cover; 
+}
+
 
 .lessonBoxItem h4 {
   font-size: 1.3rem;
@@ -135,42 +169,23 @@
   font-size: 1rem;
 }
 
-@media (max-width: 100px) {
-  .lessonProgress {
-    display: none;
-  }
-
-  .lessonLayout {
-    margin-left: 0;
-  }
-  
-}
-
-/* Stack on smaller screens */
+/* Stack on smaller screens <= 992px */
 @media (max-width: 992px) {
   .lessonLayout {
     flex-direction: column;
     margin-left: 0;
   }
+  .lessonMain {
+    margin-right: 0;
+  }
   .lessonProgress {
-    width: 100%;
-    border-left: none;
-    border-top: 1px solid #ddd;
-    position: static;
-    height: auto;
-    margin-top: 20px;
+    display: none;
+    /* We'll rely on the floating button + progress-panel. */
   }
 }
 
-/* Further reduce padding/fonts on very small screens */
+/* Very small screens <= 600px: reduce padding, etc. */
 @media (max-width: 600px) {
-
-  .lessonLayout {
-    margin-left: 0;
-  }
-  .lessonBox {
-    max-width: 70%;
-  }
   .lessonMain {
     padding: 10px;
   }
@@ -185,3 +200,4 @@
     font-size: 0.9rem;
   }
 }
+

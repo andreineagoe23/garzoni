@@ -1,6 +1,6 @@
 /* src/styles/Register.css */
 
-/* Page Container */
+/* Container */
 .register-container {
   max-width: 500px;
   padding: 2rem;
@@ -18,14 +18,22 @@
 /* Heading */
 .register-container h2 {
   font-size: 1.5rem;
-  color: #1d5330; /* Dark Forest Green */
+  color: #1d5330;
   margin-bottom: 1.5rem;
   font-weight: bold;
+}
+
+/* Error Message */
+.error-message {
+  color: #f44336;
+  margin-bottom: 1rem;
 }
 
 /* Form */
 .register-container form {
   width: 100%;
+  text-align: left;
+  margin-top: 1rem;
 }
 
 .register-container label {
@@ -33,7 +41,6 @@
   margin-bottom: 0.5rem;
   font-size: 1rem;
   color: #333;
-  text-align: left;
 }
 
 .register-container input {
@@ -47,9 +54,24 @@
 }
 
 .register-container input:focus {
-  border-color: #1d5330; /* Highlight on focus */
+  border-color: #1d5330;
   outline: none;
   box-shadow: 0 0 5px rgba(29, 83, 48, 0.3);
+}
+
+/* Radio Buttons */
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Buttons row for Register + Home */
+.form-button-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 /* Logo */
@@ -58,7 +80,7 @@
   margin-bottom: 1.5rem;
 }
 
-/* Responsive Adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .register-container {
     padding: 1.5rem;

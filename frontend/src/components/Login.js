@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Login.css"; // Import Login-specific styles
-import "../styles/CustomStyles.css"; // Import global button styles
+import "../styles/Login.css";
+import "../styles/CustomStyles.css";
 import logo from "../assets/monevo.png";
 
 function Login() {
@@ -34,6 +34,7 @@ function Login() {
     <div className="login-container">
       <img src={logo} alt="Logo" className="logo" />
       <h2>Login to Your Account</h2>
+
       <form onSubmit={handleLogin}>
         <label>Username</label>
         <input
@@ -43,6 +44,7 @@ function Login() {
           onChange={handleChange}
           required
         />
+
         <label>Password</label>
         <input
           type="password"
@@ -51,11 +53,19 @@ function Login() {
           onChange={handleChange}
           required
         />
+
         {error && <p className="error-message">{error}</p>}
-        <button type="submit" className="button button--primary button--large">
-          Login
-        </button>
+
+        <div className="form-button-row">
+          <button 
+            type="submit"
+            className="button button--primary button--large"
+          >
+            Login
+          </button>
+        </div>
       </form>
+
       <div className="forgot-password">
         <button
           className="button button--secondary button--small"

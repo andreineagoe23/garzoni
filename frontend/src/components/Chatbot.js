@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "../styles/Chatbot.css"; // <-- new stylesheet
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Chatbot = () => {
@@ -60,19 +61,6 @@ const Chatbot = () => {
       {/* Chatbot Toggle Button */}
       <button
         className="chatbot-toggle position-fixed"
-        style={{
-          bottom: "20px",
-          right: "50px",
-          zIndex: 1000,
-          backgroundColor: "#002D0B",
-          color: "#fff",
-          border: "none",
-          borderRadius: "50%",
-          width: "80px",
-          height: "80px",
-          fontSize: "24px",
-          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
-        }}
         onClick={() => setIsVisible(!isVisible)}
       >
         💬
@@ -80,40 +68,12 @@ const Chatbot = () => {
 
       {/* Chatbot Container */}
       {isVisible && (
-        <div
-          className="chatbot-container position-fixed"
-          style={{
-            bottom: "90px",
-            right: "20px",
-            width: "400px",
-            height: "500px",
-            zIndex: 1000,
-            backgroundColor: "#f8f9fa", // Light grey
-            borderRadius: "12px",
-            boxShadow: "0px 8px 15px rgba(0, 0, 0, 0.2)",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        <div className="chatbot-container position-fixed">
           {/* Chatbot Header */}
-          <div
-            className="chatbot-header d-flex align-items-center justify-content-between px-3 py-2"
-            style={{
-              backgroundColor: "#00471b",
-              color: "#fff",
-              fontWeight: "bold",
-            }}
-          >
+          <div className="chatbot-header d-flex align-items-center justify-content-between px-3 py-2">
             <span>Monevo Assistant</span>
             <button
-              className="btn btn-sm"
-              style={{
-                backgroundColor: "transparent",
-                color: "#fff",
-                border: "none",
-                fontSize: "18px",
-              }}
+              className="btn btn-sm chatbot-close"
               onClick={() => setIsVisible(false)}
             >
               ✖
@@ -121,30 +81,13 @@ const Chatbot = () => {
           </div>
 
           {/* Chat History */}
-          <div
-            className="chat-history p-3 flex-grow-1"
-            style={{
-              overflowY: "auto",
-              backgroundColor: "#e9ecef", // Soft grey
-              padding: "10px",
-              display: "flex",
-              flexDirection: "column", // Flex column to stack messages
-            }}
-          >
+          <div className="chat-history p-3 flex-grow-1">
             {chatHistory.map((msg, idx) => (
               <div
                 key={idx}
-                className="mb-2"
-                style={{
-                  maxWidth: "70%",
-                  alignSelf: msg.sender === "user" ? "flex-end" : "flex-start", // Align right for user, left for bot
-                  backgroundColor:
-                    msg.sender === "user" ? "#00471b" : "#dee2e6", // Green for user, light grey for bot
-                  color: msg.sender === "user" ? "#fff" : "#000",
-                  padding: "10px 15px",
-                  borderRadius: "15px",
-                  boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                }}
+                className={`chat-message mb-2 ${
+                  msg.sender === "user" ? "chat-user" : "chat-bot"
+                }`}
               >
                 {msg.text}
               </div>
@@ -152,33 +95,16 @@ const Chatbot = () => {
           </div>
 
           {/* Chat Input */}
-          <div
-            className="chat-input-container d-flex p-2 border-top"
-            style={{ backgroundColor: "#f8f9fa" }}
-          >
+          <div className="chat-input-container d-flex p-2 border-top">
             <input
               type="text"
-              className="form-control me-2"
+              className="form-control me-2 chat-input"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type your message..."
-              style={{
-                borderRadius: "30px",
-                padding: "10px 15px",
-                border: "1px solid #ced4da",
-              }}
             />
-            <button
-              className="btn"
-              style={{
-                backgroundColor: "#002D0B",
-                color: "#fff",
-                borderRadius: "30px",
-                padding: "10px 20px",
-              }}
-              onClick={handleMessageSend}
-            >
+            <button className="btn chatbot-send" onClick={handleMessageSend}>
               Send
             </button>
           </div>
