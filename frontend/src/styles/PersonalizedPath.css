@@ -1,6 +1,10 @@
-/* Container for the personalized path page */
+/* ===========================
+   PersonalizedPath.css
+=========================== */
+
+/* ----- Base / Large Screens (width >= 1200px) ----- */
 .personalized-path {
-  margin-left: 260px; /* Adjust these if you have sidebars */
+  margin-left: 260px; /* Wide sidebars for large screens */
   margin-right: 320px;
   padding: 20px;
   min-height: 90vh;
@@ -10,7 +14,6 @@
   align-items: center;
 }
 
-/* Recommendation Message Styling */
 .recommendation-message {
   margin-top: 10px;
   background: #002d0b;
@@ -23,28 +26,28 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* The container holding the vertical "road." */
+/* The main container that holds the "road" line and items */
 .path-container {
   position: relative;
   width: 100%;
-  max-width: 700px;
-  margin-top: 30px; /* space above timeline */
+  max-width: 900px; /* Slightly larger max-width for big screens */
+  margin-top: 30px;
   padding: 20px 0;
 }
 
-/* Draw the vertical "road" line down the center. */
+/* Vertical "road" line down the center */
 .path-container::before {
   content: "";
   position: absolute;
   left: 50%;
   top: 0;
   bottom: 0;
-  width: 4px; /* thickness of the road line */
+  width: 4px;
   background: #ffd700;
   z-index: 1;
 }
 
-/* Each item is placed either on the left or right half */
+/* Each item is 50% width, so it sits on the left or right of the line */
 .path-item {
   position: relative;
   width: 50%;
@@ -52,46 +55,41 @@
   box-sizing: border-box;
 }
 
-/* Left items sit on the left half (0%) */
+/* Left items on the left half */
 .path-item.left {
   left: 0;
-  text-align: right; /* So text is right-aligned if you want */
+  text-align: right;
 }
 
-/* Right items sit on the right half (50%) */
+/* Right items on the right half (start at 50%) */
 .path-item.right {
   left: 50%;
   text-align: left;
 }
 
-/* 
-  A circle/dot marker that sits on the "road line" for each item,
-  using a pseudo-element. 
-*/
+/* The "dot" on the line for each item */
 .path-item.left::before,
 .path-item.right::before {
   content: "";
   position: absolute;
-  top: 30px; /* adjust to center on the box */
+  top: 30px; /* adjust vertical alignment of the dot */
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #ffd700; /* dot color */
-  border: 2px solid #003a12; /* optional border color for the dot */
+  background: #ffd700;
+  border: 2px solid #003a12;
   z-index: 2;
 }
 
-/* Position the dot at the connecting line center for left items */
 .path-item.left::before {
-  right: -10px; /* half of width to center it on the vertical line */
+  right: -10px;
 }
 
-/* Position the dot at the connecting line center for right items */
 .path-item.right::before {
   left: -10px;
 }
 
-/* Course boxes keep their style and animation */
+/* Course boxes themselves */
 .course-box {
   padding: 15px;
   background: #003a12;
@@ -101,8 +99,8 @@
   border: 2px solid #ffd700;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative; /* ensures layering above the timeline line */
-  z-index: 2; /* placed above the "road" */
+  position: relative;
+  z-index: 2;
 }
 
 .course-box:hover {
@@ -128,7 +126,7 @@
   color: #ddd;
 }
 
-/* Scrollbar customization (optional) */
+/* OPTIONAL: Scrollbar customization */
 .personalized-path::-webkit-scrollbar {
   width: 8px;
 }
@@ -138,4 +136,96 @@
 }
 .personalized-path::-webkit-scrollbar-track {
   background: #002d0b;
+}
+
+/* =========================================
+   Breakpoint #1: Large Laptops (max-width: 1200px)
+   - Reduce side margins
+========================================= */
+@media (max-width: 1980px) {
+  .personalized-path {
+    margin-left: 100px;
+    margin-right: 100px;
+  }
+
+  .path-container {
+    max-width: 700px; /* narrower container */
+  }
+}
+
+/* =========================================
+   Breakpoint #2: Tablets & Small Laptops (max-width: 992px)
+   - Further reduce side margins
+========================================= */
+@media (max-width: 992px) {
+  .personalized-path {
+    margin-left: 50px;
+    margin-right: 50px;
+  }
+
+  .path-container {
+    max-width: 600px;
+  }
+}
+
+/* =========================================
+   Breakpoint #3: Mobile & Very Small Screens (max-width: 768px)
+   - Switch to single-column, stack items
+========================================= */
+@media (max-width: 768px) {
+  .personalized-path {
+    margin-left: 20px; /* or 0, if you prefer */
+    margin-right: 20px;
+    padding: 10px;
+  }
+
+  .path-container {
+    max-width: 500px;
+    padding: 0;
+  }
+
+  /* Move the line to the left or keep center—your choice.
+     Let's keep it near the left for a "timeline" look. */
+  .path-container::before {
+    left: 20px; /* Road line pinned to left side */
+  }
+
+  /* Each item spans the full width in single-column layout */
+  .path-item {
+    width: 100%;
+    left: 0 !important; /* override .left, .right positioning */
+    text-align: left; /* or center, your preference */
+    padding: 15px 30px;
+    margin-bottom: 30px; /* space between items */
+  }
+
+  /* Dot alignment on the left "road" */
+  .path-item.left::before,
+  .path-item.right::before {
+    left: -30px;
+    right: auto;
+  }
+}
+
+/* =========================================
+   Breakpoint #4: Extra Small (max-width: 576px)
+   - Final tweaks for very narrow phones
+========================================= */
+@media (max-width: 576px) {
+  .path-container {
+    max-width: 100%;
+  }
+
+  .path-item {
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  .course-box {
+    padding: 10px;
+  }
+
+  .course-info h4 {
+    font-size: 1.2rem;
+  }
 }

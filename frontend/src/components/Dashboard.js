@@ -29,10 +29,12 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
+  const [showProgress, setShowProgress] = useState(false); // <-- controls side panel on small screens
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Set active tab based on the URL
+  // Determine active tab
   const activePage = location.pathname.includes("personalized-path")
     ? "personalized-path"
     : "all-topics";
@@ -71,6 +73,11 @@ function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     navigate("/login");
+  };
+
+  // For mobile, toggles the slide-in progress box
+  const toggleProgressPanel = () => {
+    setShowProgress((prev) => !prev);
   };
 
   return (
@@ -124,9 +131,33 @@ function Dashboard() {
         )}
       </div>
 
+      {/* 
+        ===== User Progress (Desktop) =====
+        We'll hide this .user-progress on screens <= 768px via CSS.
+      */}
       <div className="user-progress">
         <UserProgressBox />
       </div>
+
+      {/* 
+        ===== Floating Button (Mobile only) =====
+        Toggles the slide-in progress panel 
+      */}
+      <button className="floating-progress-btn" onClick={toggleProgressPanel}>
+        Progress
+      </button>
+
+      {/* 
+        ===== Slide-In Panel for Progress (Mobile) =====
+      */}
+      {showProgress && (
+        <div className="progress-panel">
+          <button className="close-panel-btn" onClick={toggleProgressPanel}>
+            Close
+          </button>
+          <UserProgressBox />
+        </div>
+      )}
 
       <Chatbot />
     </div>

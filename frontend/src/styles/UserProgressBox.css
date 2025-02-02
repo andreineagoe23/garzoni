@@ -1,66 +1,47 @@
-/* User Progress Box */
+/* =======================================
+   UserProgressBox.css
+   - A dark-green box with gold accents
+   - Responsive from large desktop to mobile
+======================================= */
+
+/* ----- Base Style (desktop) ----- */
 .progress-box {
-  width: 300px;
-  background-color: #ffffff;
+  width: 350px;
+  background-color: #002d0b; /* Dark green background */
+  color: #ffd700; /* Gold text */
+  border: 2px solid #ffd700; /* Gold border */
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   padding: 20px;
   overflow-y: auto;
+  box-sizing: border-box;
+  /* We'll let it remain in a fixed/floated layout in your app's main CSS. */
 }
 
-/* Progress Title */
+/* Headings */
 .progress-box h3 {
   font-size: 1.5rem;
-  color: #1d5330;
   margin-bottom: 15px;
-}
-
-/* Progress Bars */
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background-color: #ddd;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #1abc9c;
-  border-radius: 6px;
-  transition: width 0.3s ease;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 1024px) {
-  .progress-box {
-    width: 100%;
-    margin-bottom: 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .progress-box {
-    width: 100%;
-    position: relative;
-    margin-top: 10px;
-  }
-}
-
-.progress-box h3 {
-  font-size: 1.5rem;
-  color: #1d5330; /* Dark Forest Green */
-  margin-bottom: 15px;
+  color: #ffd700; /* Gold for consistency */
+  text-align: center;
 }
 
 .progress-box h4 {
   font-size: 1.2rem;
-  color: #333;
+  color: #ffd700;
   margin-top: 20px;
   margin-bottom: 10px;
+  text-align: left;
 }
 
+.progress-box h5 {
+  font-size: 1rem;
+  color: #ffd700;
+  margin-bottom: 5px;
+  /* align left or adjust as you wish */
+}
+
+/* Overall Progress Section */
 .overall-progress {
   margin-bottom: 20px;
   text-align: center;
@@ -68,39 +49,113 @@
 
 .overall-progress p {
   font-size: 1.2rem;
-  color: #1abc9c; /* Light Green */
   font-weight: bold;
+  margin-bottom: 10px;
+  color: #ffd700;
 }
 
-.progress-fill {
-  height: 100%;
-  background-color: #1abc9c;
-  border-radius: 6px;
-  transition: width 0.3s ease;
-}
-
-/* Path Progress */
+/* Path Progress Container */
 .path-progress {
   margin-bottom: 20px;
 }
 
-.path-progress h5 {
-  font-size: 1rem;
-  color: #666;
-  margin-bottom: 5px;
-}
-
+/* Path Completion Text */
 .path-progress p {
   font-size: 0.9rem;
-  color: #333;
+  color: #ffd700; /* or #ddd if you want less emphasis */
   margin-top: 5px;
   text-align: right;
 }
 
-/* Responsive Adjustments */
+/* Progress Bar Container */
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #003a12; /* Slightly lighter green for the track */
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+/* Progress Fill */
+.progress-fill {
+  height: 100%;
+  background-color: #ffd700;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+/* 
+   ====================================
+   Responsive Breakpoints
+   We'll start from large desktops 
+   and go down to mobile.
+   ====================================
+*/
+
+/* =========== Large Desktop (up to 1980px) =========== */
+/* If you want a wider box on very large screens, 
+   you can set it here. Otherwise, the default 350px is fine. */
+@media (max-width: 1980px) {
+  .progress-box {
+    width: 320px;
+  }
+}
+
+/* Medium Desktop / Laptop (max-width: 1200px) */
+@media (max-width: 1200px) {
+  .progress-box {
+    width: 260px;
+  }
+}
+
+/* Tablet / Small Laptop (max-width: 992px) */
+@media (max-width: 992px) {
+  .progress-box {
+    width: 240px;
+  }
+}
+
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
   .progress-box {
     width: 100%;
     margin-bottom: 20px;
+    border: 2px solid #ffd700;
+  }
+
+  .progress-content {
+    padding: 15px;
+  }
+
+  .progress-header h3 {
+    font-size: 1.2rem;
+  }
+}
+
+/* =========== Extra Small (max-width: 576px) =========== */
+@media (max-width: 576px) {
+  .progress-box {
+    padding: 15px;
+  }
+
+  .progress-box h3 {
+    font-size: 1.3rem;
+  }
+
+  .progress-box h4 {
+    font-size: 1.1rem;
+  }
+
+  .progress-box h5 {
+    font-size: 0.95rem;
+  }
+
+  .overall-progress p {
+    font-size: 1.1rem;
+  }
+
+  .path-progress p {
+    font-size: 0.85rem;
   }
 }

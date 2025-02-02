@@ -83,3 +83,9 @@
   background-color: #ffd700;
   color: #002d0b;
 }
+
+@media (max-width: 768px) {
+  .learning-path-card {
+    flex: 1 1 100% !important; 
+  }
+}
