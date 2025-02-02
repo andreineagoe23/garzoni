@@ -10,7 +10,6 @@ function Welcome() {
   return (
     <div className="welcome-container">
       <div className="welcome-content">
-
         <img src={logo} alt="Monevo Logo" className="welcome-logo" />
 
         <h1 className="welcome-heading">
@@ -26,7 +25,7 @@ function Welcome() {
           </button>
 
           <button
-            className="button button--secondary button--large"
+            className="button button--primary button--large"
             onClick={() => navigate("/login")}
           >
             Already Have an Account?

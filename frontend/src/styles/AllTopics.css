@@ -9,7 +9,7 @@
 .all-topics h3 {
   font-size: 22px;
   margin-bottom: 10px;
-  color: #1d5330; /* A dark green color */
+  color: #1d5330;
 }
 
 /* Container for all learning path cards */
@@ -19,9 +19,12 @@
   gap: 20px;
 }
 
-/* Individual path cards */
+/* 
+  Two columns by default:
+  each card: 50% minus the gap
+*/
 .learning-path-card {
-  flex: 1 1 calc(50% - 20px); /* 2 cards per row, adjustable as needed */
+  flex: 1 1 calc(50% - 20px);
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -30,20 +33,20 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover effect for each card */
+/* Hover effect */
 .learning-path-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Card title */
+/* Card Title */
 .learning-path-card h3 {
   font-size: 1.5rem;
   color: #1d5330;
   margin-bottom: 10px;
 }
 
-/* Image on each card */
+/* Image */
 .path-image {
   width: 80%;
   height: 250px;
@@ -64,28 +67,22 @@
   margin-top: 10px;
 }
 
-/* Example primary button style 
-   (Same style as your "All Topics" / "Personalized Path" if you like consistency) */
-.button--primary {
-  background-color: #002d0b; /* Dark Green */
-  color: #ffd700; /* Gold */
-  border: 2px solid #ffd700;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s ease;
+/* 
+  Below 1200px => single column
+*/
+@media (max-width: 1200px) {
+  .learning-path-card {
+    flex: 1 1 100% !important;
+  }
 }
 
-/* Hover effect for the primary button */
-.button--primary:hover {
-  background-color: #ffd700;
-  color: #002d0b;
-}
-
+/* 
+  If you also want a tighter layout 
+  below 768px (like your other files),
+  keep or remove as needed:
+*/
 @media (max-width: 768px) {
   .learning-path-card {
-    flex: 1 1 100% !important; 
+    flex: 1 1 100% !important; /* already single column, so same rule is fine */
   }
 }

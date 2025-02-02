@@ -1,14 +1,10 @@
-/* DragAndDropExercise.module.css */
-
-/* Container Styles */
 .exerciseContainer {
   display: flex;
   justify-content: space-between;
-  margin: 30px;
   gap: 30px;
+  margin: 30px;
 }
 
-/* Items Container (draggable items) */
 .itemsContainer {
   display: flex;
   flex-direction: column;
@@ -26,13 +22,11 @@
   font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .draggableItem:hover {
   background-color: #e0e0e0;
   transform: scale(1.05);
 }
 
-/* Targets Container (droppable areas) */
 .targetsContainer {
   display: flex;
   flex-direction: column;
@@ -52,29 +46,20 @@
   justify-content: center;
   font-size: 16px;
 }
-
 .droppableTarget:hover {
   background-color: #f9f9f9;
 }
-
 .droppableTarget.over {
   background-color: #f2f2f2;
   border-color: #b5b5b5;
 }
-
 .droppableTarget.dropped {
-  background-color: #e0f7fa; /* Light cyan to show the item was dropped */
+  background-color: #e0f7fa;
   border-color: #4caf50;
   color: #333;
 }
 
-/* Styling for Dropped Items */
-.droppedItemsList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* Dropped items inside a target */
 .droppedItem {
   margin-top: 5px;
   padding: 8px 15px;
@@ -85,8 +70,8 @@
   text-align: center;
 }
 
-/* Styling for feedback */
-.submitButton {
+.submitButton,
+.retryButton {
   padding: 12px 24px;
   background-color: #4caf50;
   color: white;
@@ -97,8 +82,8 @@
   margin-top: 20px;
   transition: background-color 0.3s ease;
 }
-
-.submitButton:hover {
+.submitButton:hover,
+.retryButton:hover {
   background-color: #45a049;
 }
 
@@ -107,12 +92,22 @@
   font-size: 16px;
   color: #333;
 }
-
-/* Correct/Incorrect Feedback */
 .feedback.correct {
   color: #4caf50; /* Green for correct answers */
 }
-
 .feedback.incorrect {
   color: #f44336; /* Red for incorrect answers */
+}
+
+/* Responsive breakpoints: stack containers on smaller screens */
+@media (max-width: 768px) {
+  .exerciseContainer {
+    flex-direction: column;
+    margin: 20px;
+  }
+  .itemsContainer,
+  .targetsContainer {
+    width: 100%;
+    margin-bottom: 20px;
+  }
 }

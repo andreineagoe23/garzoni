@@ -1,47 +1,93 @@
-/* =======================================
-   UserProgressBox.css
-   - A dark-green box with gold accents
-   - Responsive from large desktop to mobile
-======================================= */
+/* ============================
+   Base Pinned Box (Desktop)
+============================ */
 
-/* ----- Base Style (desktop) ----- */
+/* 
+  The outer container that pins the box to the right 
+  in Dashboard.js: <div className="user-progress"><UserProgressBox/></div>
+*/
+.user-progress {
+  width: 300px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow-y: auto;
+  z-index: 1000; /* Ensure it stays above main content */
+  box-sizing: border-box;
+}
+
+/* The collapsible progress box inside. 
+   Dark green background w/ gold text. 
+*/
 .progress-box {
-  width: 350px;
-  background-color: #002d0b; /* Dark green background */
-  color: #ffd700; /* Gold text */
-  border: 2px solid #ffd700; /* Gold border */
+  width: 100%;
+  background-color: #002d0b;
+  color: #ffd700;
+  border: 2px solid #ffd700;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  padding: 20px;
   overflow-y: auto;
   box-sizing: border-box;
-  /* We'll let it remain in a fixed/floated layout in your app's main CSS. */
 }
 
-/* Headings */
-.progress-box h3 {
-  font-size: 1.5rem;
-  margin-bottom: 15px;
-  color: #ffd700; /* Gold for consistency */
-  text-align: center;
+/* Header for toggling collapse */
+.progress-header {
+  background-color: #002d0b;
+  color: #ffd700;
+  cursor: pointer;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.progress-box h4 {
+.progress-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+/* Arrow for expand/collapse */
+.arrow {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  transition: transform 0.3s ease;
+}
+
+.arrow-up {
+  border-bottom: 8px solid #ffd700;
+}
+
+.arrow-down {
+  border-top: 8px solid #ffd700;
+}
+
+/* Content inside the box when expanded */
+.progress-content {
+  padding: 20px;
+}
+
+/* Headings inside .progress-content */
+.progress-content h4 {
   font-size: 1.2rem;
   color: #ffd700;
   margin-top: 20px;
   margin-bottom: 10px;
-  text-align: left;
 }
 
-.progress-box h5 {
+.progress-content h5 {
   font-size: 1rem;
   color: #ffd700;
   margin-bottom: 5px;
-  /* align left or adjust as you wish */
 }
 
-/* Overall Progress Section */
 .overall-progress {
   margin-bottom: 20px;
   text-align: center;
@@ -54,30 +100,27 @@
   color: #ffd700;
 }
 
-/* Path Progress Container */
 .path-progress {
   margin-bottom: 20px;
 }
 
-/* Path Completion Text */
 .path-progress p {
   font-size: 0.9rem;
-  color: #ffd700; /* or #ddd if you want less emphasis */
+  color: #ffd700;
   margin-top: 5px;
   text-align: right;
 }
 
-/* Progress Bar Container */
+/* Progress Bars */
 .progress-bar {
   width: 100%;
   height: 12px;
-  background-color: #003a12; /* Slightly lighter green for the track */
+  background-color: #003a12;
   border-radius: 6px;
   overflow: hidden;
   margin-top: 5px;
 }
 
-/* Progress Fill */
 .progress-fill {
   height: 100%;
   background-color: #ffd700;
@@ -85,52 +128,40 @@
   transition: width 0.3s ease;
 }
 
-/* 
-   ====================================
-   Responsive Breakpoints
-   We'll start from large desktops 
-   and go down to mobile.
-   ====================================
-*/
-
-/* =========== Large Desktop (up to 1980px) =========== */
-/* If you want a wider box on very large screens, 
-   you can set it here. Otherwise, the default 350px is fine. */
+/* =========== Large Desktop (max-width: 1980px) =========== */
 @media (max-width: 1980px) {
-  .progress-box {
-    width: 320px;
+  .user-progress {
+    width: 280px;
   }
 }
 
-/* Medium Desktop / Laptop (max-width: 1200px) */
+/* =========== Medium Desktop (max-width: 1200px) =========== */
 @media (max-width: 1200px) {
-  .progress-box {
+  .user-progress {
     width: 260px;
   }
 }
 
-/* Tablet / Small Laptop (max-width: 992px) */
+/* =========== Tablet / Small Laptop (max-width: 992px) =========== */
 @media (max-width: 992px) {
-  .progress-box {
+  .user-progress {
     width: 240px;
   }
 }
 
-/* Mobile (max-width: 768px) */
+/* =========== Mobile (max-width: 768px) =========== 
+   Hide pinned user progress on phones.
+*/
 @media (max-width: 768px) {
+  .user-progress {
+    display: none;
+  }
+
   .progress-box {
     width: 100%;
-    margin-bottom: 20px;
-    border: 2px solid #ffd700;
   }
 
-  .progress-content {
-    padding: 15px;
-  }
-
-  .progress-header h3 {
-    font-size: 1.2rem;
-  }
+  
 }
 
 /* =========== Extra Small (max-width: 576px) =========== */
@@ -143,11 +174,11 @@
     font-size: 1.3rem;
   }
 
-  .progress-box h4 {
+  .progress-content h4 {
     font-size: 1.1rem;
   }
 
-  .progress-box h5 {
+  .progress-content h5 {
     font-size: 0.95rem;
   }
 

@@ -24,6 +24,9 @@ function LessonPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [courseCompleted, setCourseCompleted] = useState(false);
 
+  // NEW: For mobile, toggles the slide-in panel
+  const [showProgress, setShowProgress] = useState(false);
+
   useEffect(() => {
     const fetchLessons = async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -107,17 +110,12 @@ function LessonPage() {
     }
   };
 
-  if (loading) {
-    return <p>Loading lessons...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (loading) return <p>Loading lessons...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className={styles.lessonLayout}>
-      {/* ===== LEFT: Main Lesson Content ===== */}
+      {/* LEFT: Main Lesson Content */}
       <div className={styles.lessonMain}>
         {successMessage && (
           <p className={styles.successMessage}>{successMessage}</p>
@@ -127,7 +125,6 @@ function LessonPage() {
           {lessons.length > 0 ? (
             lessons.map((lesson, index) => {
               const isCompleted = completedLessons.includes(lesson.id);
-              // A lesson is accessible if it's the first OR the previous lesson is completed
               const isAccessible =
                 index === 0 ||
                 completedLessons.includes(lessons[index - 1]?.id);
@@ -148,7 +145,7 @@ function LessonPage() {
                   </h4>
                   <p>{lesson.short_description}</p>
 
-                  {/* If the user clicks to expand and the lesson is accessible */}
+                  {/* Expandable content */}
                   {selectedLesson === lesson.id && isAccessible && (
                     <div className={styles.lessonContent}>
                       {lesson.detailed_content ? (
@@ -224,9 +221,31 @@ function LessonPage() {
         <Chatbot />
       </div>
 
+      {/* PINNED PROGRESS on desktop */}
       <div className={styles.lessonProgress}>
         <UserProgressBox />
       </div>
+
+      {/* FLOATING PROGRESS BTN (mobile) */}
+      <button
+        className="floating-progress-btn"
+        onClick={() => setShowProgress((p) => !p)}
+      >
+        Progress
+      </button>
+
+      {/* SLIDE-IN PANEL (mobile) */}
+      {showProgress && (
+        <div className="progress-panel show">
+          <button
+            className="close-panel-btn"
+            onClick={() => setShowProgress(false)}
+          >
+            Close
+          </button>
+          <UserProgressBox />
+        </div>
+      )}
     </div>
   );
 }

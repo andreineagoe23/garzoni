@@ -23,6 +23,8 @@
 
 .login-container form {
   width: 100%;
+  text-align: left;
+  margin-top: 1rem;
 }
 
 .login-container label {
@@ -30,7 +32,6 @@
   margin-bottom: 0.5rem;
   font-size: 1rem;
   color: #333;
-  text-align: left;
 }
 
 .login-container input {
@@ -49,13 +50,27 @@
   box-shadow: 0 0 5px rgba(29, 83, 48, 0.3);
 }
 
-.login-container .logo {
-  max-width: 150px;
-  margin-bottom: 1.5rem;
+.error-message {
+  color: #f44336;
+  margin-bottom: 1rem;
+}
+
+/* Center the main form button */
+.form-button-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  gap: 1rem;
 }
 
 .forgot-password {
   margin-top: 1rem;
+  text-align: center;
+}
+
+.login-container .logo {
+  max-width: 150px;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 768px) {

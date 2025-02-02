@@ -31,12 +31,14 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      // Register the user
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/register/`, formData);
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/register/`,
+        formData
+      );
 
-      // Automatically log in the user
+      // Auto-login
       const loginResponse = await axios.post(
-        "http://127.0.0.1:8000/api/token/",
+        `${process.env.REACT_APP_BACKEND_URL}/api/token/`,
         {
           username: formData.username,
           password: formData.password,
@@ -64,6 +66,7 @@ function Register() {
       <img src={logo} alt="Logo" className="logo" />
       <h2>Create Your Account</h2>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
+
       <form onSubmit={handleRegister}>
         <label>Username</label>
         <input
@@ -73,6 +76,7 @@ function Register() {
           onChange={handleChange}
           required
         />
+
         <label>Email</label>
         <input
           type="email"
@@ -81,6 +85,7 @@ function Register() {
           onChange={handleChange}
           required
         />
+
         <label>Password</label>
         <input
           type="password"
@@ -89,6 +94,7 @@ function Register() {
           onChange={handleChange}
           required
         />
+
         <label>First Name</label>
         <input
           type="text"
@@ -97,6 +103,7 @@ function Register() {
           onChange={handleChange}
           required
         />
+
         <label>Last Name</label>
         <input
           type="text"
@@ -105,8 +112,9 @@ function Register() {
           onChange={handleChange}
           required
         />
+
         <label>Do you want a personalized learning path?</label>
-        <div>
+        <div className="radio-group">
           <label>
             <input
               type="radio"
@@ -128,9 +136,23 @@ function Register() {
             No
           </label>
         </div>
-        <button type="submit" className="button button--primary button--large">
-          Register
-        </button>
+
+        <div className="form-button-row">
+          <button
+            type="submit"
+            className="button button--primary button--large"
+          >
+            Register
+          </button>
+
+          <button
+            type="button"
+            className="button button--primary button--large"
+            onClick={() => navigate("/welcome")}
+          >
+            Home
+          </button>
+        </div>
       </form>
     </div>
   );
