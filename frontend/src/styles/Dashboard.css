@@ -94,6 +94,7 @@
 
 /* =======================
    User Progress Panel
+   (Pinned on Desktop)
 ======================= */
 .user-progress {
   width: 350px;
@@ -108,19 +109,90 @@
   height: 100vh;
 }
 
+/* ==========================
+   Floating Button (Mobile)
+========================== */
+.floating-progress-btn {
+  display: none; /* hidden by default on desktop */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #ffd700; /* gold */
+  color: #002d0b; /* dark green */
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2000; /* above main content */
+}
+
+.floating-progress-btn:hover {
+  background-color: #e6c200;
+}
+
+/* 
+   Slide-in panel for user progress on mobile.
+   By default, it's hidden unless toggled in React.
+*/
+.progress-panel {
+  display: none; /* we show it conditionally in React via inline conditions or class toggles */
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 80%;
+  max-width: 350px;
+  height: 100vh;
+  background-color: #f9f9f9;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+  z-index: 3000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Close button inside the panel */
+.progress-panel button.close-panel-btn {
+  background: #ffd700;
+  color: #002d0b;
+  border: none;
+  padding: 10px 15px;
+  font-weight: bold;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.progress-panel.show {
+  display: block;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
 /* =====================
    Responsive Adjust
 ===================== */
 @media (max-width: 768px) {
+  .user-progress {
+    display: none;
+  }
+
+  /* Show floating button on mobile */
+  .floating-progress-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 100px;
+  }
+
+  .progress-panel {
+    display: block;
+  }
+
   .main-content {
     margin-left: 0;
     margin-right: 0;
-  }
-
-  .user-progress {
-    width: 100%;
-    height: auto;
-    position: relative;
-    margin-top: 20px;
   }
 }
