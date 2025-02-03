@@ -1,13 +1,34 @@
+# Django and REST framework
 Django>=4.2.0
 djangorestframework>=3.14.0
+
+# Database client
 mysqlclient>=2.1.0
+
+# API documentation
 drf-yasg>=1.21.5
+
+# Image processing
 Pillow>=9.5.0
+
+# CORS support
 django-cors-headers>=4.0.0
+
+# JWT Authentication for DRF
 djangorestframework-simplejwt>=5.2.2
+
+# Django database backup utility
 django-dbbackup>=4.0.0
+
+# Task queue management
 celery
+
+# Environment variable management
 dotenv
-python-dotenv 
-google-cloud-dialogflow 
+python-dotenv
+
+# Google Dialogflow integration
+google-cloud-dialogflow
+
+# HTTP requests library
 requests
