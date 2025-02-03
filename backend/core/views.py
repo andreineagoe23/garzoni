@@ -24,6 +24,7 @@ from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
 from django.utils.timezone import now
 import logging
+import os
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -459,16 +460,19 @@ class ChatbotView(APIView):
             return Response({"error": "No input provided"}, status=400)
 
         try:
-            # Check if this input requires a Dialogflow intent response
+            project_id = os.environ.get("DIALOGFLOW_PROJECT_ID", "monevo-443011")
+
             response_text = detect_intent_from_text(
-                project_id="monevo-443011",
+                project_id=project_id,
                 text=user_input,
                 session_id=session_id
             )
             return Response({"response": response_text}, status=200)
-
         except Exception as e:
+            print("Dialogflow Error:", e)
             return Response({"error": str(e)}, status=500)
+
+
 
     @staticmethod
     def dialogflow_webhook(request):
