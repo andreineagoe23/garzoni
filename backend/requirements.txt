@@ -24,7 +24,6 @@ django-dbbackup>=4.0.0
 celery
 
 # Environment variable management
-dotenv
 python-dotenv
 
 # Google Dialogflow integration
