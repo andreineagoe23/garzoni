@@ -8,3 +8,6 @@ djangorestframework-simplejwt>=5.2.2
 django-dbbackup>=4.0.0
 celery
 dotenv
+python-dotenv 
+google-cloud-dialogflow 
+requests

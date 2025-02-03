@@ -449,6 +449,14 @@ class FinanceFactView(APIView):
 
 
 
+import os
+import json
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .dialogflow import detect_intent_from_text, perform_web_search
+
 class ChatbotView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -461,7 +469,6 @@ class ChatbotView(APIView):
 
         try:
             project_id = os.environ.get("DIALOGFLOW_PROJECT_ID", "monevo-443011")
-
             response_text = detect_intent_from_text(
                 project_id=project_id,
                 text=user_input,
@@ -472,37 +479,30 @@ class ChatbotView(APIView):
             print("Dialogflow Error:", e)
             return Response({"error": str(e)}, status=500)
 
-
-
     @staticmethod
     def dialogflow_webhook(request):
         """
         Handle requests from Dialogflow's webhook.
         """
         try:
-            # Parse the request body
             req = json.loads(request.body)
-
-            # Extract intent name
             intent_name = req.get("queryResult", {}).get("intent", {}).get("displayName")
 
-            # Process specific intents
             if intent_name == "SearchTheWeb":
                 search_query = req.get("queryResult", {}).get("queryText", "")
                 response_text = perform_web_search(search_query)
             else:
                 response_text = f"Intent '{intent_name}' is not implemented yet."
 
-            # Send a response back to Dialogflow
             return JsonResponse({
                 "fulfillmentText": response_text
             })
 
         except Exception as e:
-            # Handle exceptions during webhook processing
             return JsonResponse({
                 "fulfillmentText": f"An error occurred: {str(e)}"
             })
+
 
 class ToolListView(APIView):
     """

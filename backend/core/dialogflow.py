@@ -25,6 +25,7 @@ def detect_intent_from_text(project_id, text, session_id, language_code='en'):
             request={"session": session_path, "query_input": query_input}
         )
 
+        # If the detected intent is "SearchTheWeb", call perform_web_search
         if response.query_result.intent.display_name == "SearchTheWeb":
             search_query = response.query_result.query_text
             return perform_web_search(search_query)
@@ -39,8 +40,6 @@ def detect_intent_from_text(project_id, text, session_id, language_code='en'):
 def perform_web_search(query):
     """
     Perform a Google Custom Search using the API.
-    We'll read 'API_KEY' and 'CSE_ID' from environment variables
-    if not already set above.
     """
     global API_KEY, CSE_ID
     if not API_KEY or not CSE_ID:
