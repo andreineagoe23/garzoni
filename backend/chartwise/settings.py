@@ -19,6 +19,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print("DIALOGFLOW_PROJECT_ID =>", os.getenv("DIALOGFLOW_PROJECT_ID"))
+print("GOOGLE_APPLICATION_CREDENTIALS =>", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -195,7 +199,12 @@ CELERY_TASK_SERIALIZER = 'json'
 # For periodic tasks, use Django-Celery-Beat
 INSTALLED_APPS += ['django_celery_beat']
 
-GOOGLE_APPLICATION_CREDENTIALS = '/monevocredentials.json'
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/monevocredentials.json")
+
+DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID", "monevo-443011")
+CSE_ID = os.getenv("CSE_ID", "")
+API_KEY = os.getenv("API_KEY", "")
+
 
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
 
