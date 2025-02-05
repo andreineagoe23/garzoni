@@ -32,11 +32,13 @@ function Missions() {
   }, []);
 
   const fetchMissions = async () => {
-    const token = localStorage.getItem("accessToken");
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/missions/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        {
+          withCredentials: true, // ✅ Use cookies for authentication
+        }
+      );
       console.log("Fetched missions:", response.data); // Log fetched missions
       setDailyMissions(response.data.daily_missions || []);
     } catch (error) {
@@ -46,11 +48,10 @@ function Missions() {
   };
 
   const fetchSavingsBalance = async () => {
-    const token = localStorage.getItem("accessToken");
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
       console.log("Fetched savings balance:", response.data.balance);
       setSavingsBalance(response.data.balance);
@@ -65,12 +66,11 @@ function Missions() {
       alert("Please enter a valid amount.");
       return;
     }
-    const token = localStorage.getItem("accessToken");
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         { amount: parseFloat(savingsAmount) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
       setSavingsAmount("");
       fetchSavingsBalance();
@@ -82,12 +82,11 @@ function Missions() {
   };
 
   const markFactRead = async () => {
-    const token = localStorage.getItem("accessToken");
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
       fetchMissions();
     } catch (error) {

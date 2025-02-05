@@ -23,14 +23,10 @@ function UserProgressBox() {
 
   useEffect(() => {
     const fetchProgress = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) {
-        return;
-      }
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          { withCredentials: true }
         );
         setProgressData(response.data);
       } catch (error) {

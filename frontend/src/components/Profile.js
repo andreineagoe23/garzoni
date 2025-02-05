@@ -14,24 +14,17 @@ function Profile() {
     points: 0,
     streak: 0,
   });
-  const [prompt, setPrompt] = useState("");
-  const [imageUrl, setImageUrl] = useState(
-    localStorage.getItem("avatarUrl") || null
-  );
+  const [imageUrl, setImageUrl] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem("accessToken");
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { withCredentials: true } // ✅ Use cookies for authentication
         );
+
         setProfileData({
           username: response.data.username || "",
           email: response.data.email || "",
@@ -41,6 +34,9 @@ function Profile() {
           points: response.data.points || 0,
           streak: response.data.streak || 0,
         });
+
+        // Fetch avatar URL
+        setImageUrl(response.data.avatar_url || "/default-avatar.png");
 
         // Fetch recent activity (mocked for now)
         setRecentActivity([
@@ -59,73 +55,6 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  const handleAvatarChange = async () => {
-    try {
-      const apiKey = process.env.REACT_APP_RECRAFT_API_KEY;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await axios.post(
-        "https://external.api.recraft.ai/v1/images/generations",
-        {
-          prompt,
-          style: "digital_illustration",
-          model: "recraftv3",
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-        }
-      );
-
-      const imageData = response.data.data[0].url;
-
-      // Save to backend
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/userprofiles/save-avatar/`,
-        { avatar_url: imageData },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Update local state
-      setImageUrl(imageData);
-      localStorage.setItem("avatarUrl", imageData);
-    } catch (error) {
-      console.error("Error generating image:", error);
-    }
-  };
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("avatar", file);
-
-    const token = localStorage.getItem("accessToken");
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/userprofiles/upload-avatar/`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      setImageUrl(response.data.avatar_url);
-      localStorage.setItem("avatarUrl", response.data.avatar_url);
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-    }
-  };
-
   return (
     <div className="container profile-container my-5">
       <div className="card p-4 shadow-sm">
@@ -133,43 +62,35 @@ function Profile() {
 
         <div className="text-center mb-4">
           <img
-            src={imageUrl || "/default-avatar.png"}
+            src={imageUrl}
             alt="Avatar"
             className="rounded-circle"
             width="150"
             height="150"
           />
-          <div className="mt-3">
-            <input
-              type="text"
-              placeholder="Enter image prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="form-control"
-            />
-            <button
-              onClick={handleAvatarChange}
-              className="btn btn-primary mt-2"
-            >
-              Generate Avatar
-            </button>
-            <div className="mt-3">
-              <input type="file" onChange={handleAvatarUpload} />
-            </div>
-          </div>
         </div>
 
-        <div className="mb-3">
-          <h4 className="text-muted">Balance:</h4>
-          <p className="h5">${profileData.earned_money.toFixed(2)}</p>
-        </div>
-        <div className="mb-3">
-          <h4 className="text-muted">Points:</h4>
-          <p className="h5">{profileData.points}</p>
-        </div>
-        <div className="mb-3">
-          <h4 className="text-muted">Streak:</h4>
-          <p className="h5">{profileData.streak} days</p>
+        <div className="profile-details">
+          <h3 className="mt-4 text-center">
+            {profileData.first_name} {profileData.last_name}
+          </h3>
+          <p className="text-center text-muted">@{profileData.username}</p>
+          <p className="text-center text-muted">{profileData.email}</p>
+
+          <div className="stats-section">
+            <div className="stat-box">
+              <h4>Balance</h4>
+              <p>${profileData.earned_money.toFixed(2)}</p>
+            </div>
+            <div className="stat-box">
+              <h4>Points</h4>
+              <p>{profileData.points}</p>
+            </div>
+            <div className="stat-box">
+              <h4>Streak</h4>
+              <p>{profileData.streak} days</p>
+            </div>
+          </div>
         </div>
 
         <h3 className="mt-4">Recent Activity</h3>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import axios from "axios";
 import styles from "../styles/DragAndDropExercise.module.css";
 
 const DragAndDropExercise = ({ data, exerciseId }) => {
@@ -13,14 +14,25 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   const [updatedTargets, setUpdatedTargets] = useState(targets);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Load saved answers from localStorage when component mounts
+  // Load saved progress from backend when component mounts
   useEffect(() => {
-    const savedAnswers = localStorage.getItem(`exercise-${exerciseId}`);
-    if (savedAnswers) {
-      const parsedAnswers = JSON.parse(savedAnswers);
-      setUserAnswers(parsedAnswers.answers);
-      setIsCompleted(parsedAnswers.completed);
-    }
+    const fetchExerciseProgress = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/exercises/progress/${exerciseId}/`,
+          { withCredentials: true } // ✅ Use cookies for authentication
+        );
+
+        if (response.data.completed) {
+          setUserAnswers(response.data.answers);
+          setIsCompleted(true);
+        }
+      } catch (error) {
+        console.error("Error fetching exercise progress:", error);
+      }
+    };
+
+    fetchExerciseProgress();
   }, [exerciseId]);
 
   // Handle item drop on a target
@@ -32,7 +44,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   };
 
   // Handle submit and validate answers
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     let correct = 0;
 
     const newTargets = updatedTargets.map((target) => {
@@ -47,20 +59,31 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       };
     });
 
-    setFeedbackClass(correct === updatedTargets.length ? "correct" : "incorrect");
+    setFeedbackClass(
+      correct === updatedTargets.length ? "correct" : "incorrect"
+    );
 
     if (correct === updatedTargets.length) {
       setFeedback("You completed the exercise!");
       setIsCompleted(true);
-      localStorage.setItem(
-        `exercise-${exerciseId}`,
-        JSON.stringify({ answers: userAnswers, completed: true })
-      );
+
+      // Save progress to backend instead of localStorage
+      try {
+        await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/exercises/complete/`,
+          { exercise_id: exerciseId, answers: userAnswers },
+          { withCredentials: true } // ✅ Use cookies for authentication
+        );
+      } catch (error) {
+        console.error("Error saving exercise progress:", error);
+      }
     } else {
       setFeedback("Try Again!");
     }
 
-    setFeedback(`${correct} out of ${updatedTargets.length} answers are correct.`);
+    setFeedback(
+      `${correct} out of ${updatedTargets.length} answers are correct.`
+    );
     setUpdatedTargets(newTargets);
   };
 
@@ -69,7 +92,9 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     setUserAnswers({});
     setFeedback("");
     setFeedbackClass("");
-    setUpdatedTargets(targets.map((target) => ({ ...target, droppedColor: null })));
+    setUpdatedTargets(
+      targets.map((target) => ({ ...target, droppedColor: null }))
+    );
     setIsCompleted(false);
   };
 

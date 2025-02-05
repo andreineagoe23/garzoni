@@ -10,13 +10,12 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
 
   useEffect(() => {
     console.log("📡 Fetching personalized courses...");
-    const accessToken = localStorage.getItem("accessToken");
 
     const fetchPersonalizedPath = async () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          { withCredentials: true }
         );
 
         const courses = response.data?.personalized_courses || [];

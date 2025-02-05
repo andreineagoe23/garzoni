@@ -31,32 +31,36 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/register/`,
-        formData
-      );
+      console.log("Sending registration data:", formData); // Debug log
 
-      // Auto-login
-      const loginResponse = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/token/`,
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/register/`,
+        formData,
         {
-          username: formData.username,
-          password: formData.password,
+          headers: { "Content-Type": "application/json" }, // Ensure JSON format
+          withCredentials: true, // Important for setting cookies
         }
       );
 
-      localStorage.setItem("accessToken", loginResponse.data.access);
-      localStorage.setItem("refreshToken", loginResponse.data.refresh);
+      console.log("Registration Success:", response.data);
 
-      if (formData.wants_personalized_path) {
-        navigate("/questionnaire");
-      } else {
-        navigate("/all-topics");
-      }
+      // Auto-login after registration
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/login/`,
+        {
+          username: formData.username,
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
+
+      navigate(
+        formData.wants_personalized_path ? "/questionnaire" : "/all-topics"
+      );
     } catch (error) {
-      console.error("Registration failed", error);
+      console.error("Registration failed", error.response?.data || error);
       setErrorMessage(
-        error.response?.data?.detail || "An error occurred. Please try again."
+        error.response?.data?.error || "An error occurred. Please try again."
       );
     }
   };
@@ -143,14 +147,6 @@ function Register() {
             className="button button--primary button--large"
           >
             Register
-          </button>
-
-          <button
-            type="button"
-            className="button button--primary button--large"
-            onClick={() => navigate("/welcome")}
-          >
-            Home
           </button>
         </div>
       </form>

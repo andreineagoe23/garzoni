@@ -10,7 +10,11 @@ function CoursePage() {
   useEffect(() => {
     axios
       .get(
-        `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`)
+        `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`,
+        {
+          withCredentials: true,
+        }
+      )
       .then((response) => setCourses(response.data))
       .catch((error) => console.error("Failed to fetch courses:", error));
   }, [pathId]);
