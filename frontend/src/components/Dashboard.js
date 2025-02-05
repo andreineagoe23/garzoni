@@ -27,6 +27,7 @@ const imageMap = {
 
 function Dashboard() {
   const [user, setUser] = useState(null);
+  const [userProgress, setUserProgress] = useState(null);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
   const [showProgress, setShowProgress] = useState(false);
@@ -39,12 +40,13 @@ function Dashboard() {
     ? "personalized-path"
     : "all-topics";
 
+  // Fetch user data and progress
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true }
+          { withCredentials: true } // ✅ Use cookies for authentication
         );
 
         setUser(profileResponse.data.user_data);
@@ -53,17 +55,27 @@ function Dashboard() {
         );
       } catch (error) {
         console.error("Error fetching user data:", error);
-        navigate("/login");
+        navigate("/login"); // Redirect if not authenticated
+      }
+    };
+
+    const fetchUserProgress = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
+          { withCredentials: true } // ✅ Use cookies for authentication
+        );
+        setUserProgress(response.data);
+      } catch (error) {
+        console.error("Error fetching user progress:", error);
       }
     };
 
     fetchUserData();
+    fetchUserProgress();
   }, [navigate]);
 
-  const handleCourseClick = (courseId) => {
-    navigate(`/lessons/${courseId}`);
-  };
-
+  // Handle logout with HTTP-only cookies
   const handleLogout = async () => {
     try {
       await axios.post(
@@ -71,10 +83,14 @@ function Dashboard() {
         {},
         { withCredentials: true }
       );
-      navigate("/login");
+      window.location.href = "/login"; // ✅ Refresh session to clear state
     } catch (error) {
       console.error("Logout failed", error);
     }
+  };
+
+  const handleCourseClick = (courseId) => {
+    navigate(`/lessons/${courseId}`);
   };
 
   const toggleProgressPanel = () => {
@@ -129,8 +145,13 @@ function Dashboard() {
         )}
       </div>
 
+      {/* Display user progress if available */}
       <div className="user-progress">
-        <UserProgressBox />
+        {userProgress ? (
+          <UserProgressBox userProgress={userProgress} />
+        ) : (
+          <p>Loading progress...</p>
+        )}
       </div>
 
       <button className="floating-progress-btn" onClick={toggleProgressPanel}>
@@ -142,7 +163,7 @@ function Dashboard() {
           <button className="close-panel-btn" onClick={toggleProgressPanel}>
             Close
           </button>
-          <UserProgressBox />
+          <UserProgressBox userProgress={userProgress} />
         </div>
       )}
 
