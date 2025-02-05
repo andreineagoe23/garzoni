@@ -16,17 +16,11 @@ function Settings() {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No access token found. Please log in.");
-        return;
-      }
-
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true, // ✅ Use cookies for authentication
           }
         );
 
@@ -48,7 +42,6 @@ function Settings() {
   }, []);
 
   const handleSaveSettings = async () => {
-    const token = localStorage.getItem("accessToken");
     try {
       await axios.patch(
         `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
@@ -56,7 +49,7 @@ function Settings() {
           email_reminders: emailReminders,
           email_frequency: emailFrequency,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
       setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);

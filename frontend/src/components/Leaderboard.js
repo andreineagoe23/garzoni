@@ -11,20 +11,9 @@ const Leaderboards = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-
-        if (!token) {
-          console.log("No token found, user needs to log in.");
-          return;
-        }
-
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/leaderboard/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { withCredentials: true } // ✅ Use cookies for authentication
         );
         setLeaderboard(response.data);
       } catch (error) {

@@ -4,17 +4,18 @@ import LearningPathList from "./LearningPathList";
 import "../styles/AllTopics.css";
 
 function AllTopics({ onCourseClick, imageMap }) {
-  // ✅ Receive imageMap
   const [learningPaths, setLearningPaths] = useState([]);
   const [activePathId, setActivePathId] = useState(null);
 
   useEffect(() => {
     const fetchPaths = async () => {
-      const accessToken = localStorage.getItem("accessToken");
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/paths/`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/paths/`,
+          {
+            withCredentials: true,
+          }
+        );
 
         const updatedPaths = response.data.map((path) => ({
           ...path,
@@ -23,7 +24,10 @@ function AllTopics({ onCourseClick, imageMap }) {
 
         setLearningPaths(updatedPaths);
       } catch (error) {
-        console.error("Error fetching learning paths:", error);
+        console.error(
+          "❌ Error fetching learning paths:",
+          error.response?.data || error
+        );
       }
     };
 

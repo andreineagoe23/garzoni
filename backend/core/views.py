@@ -66,16 +66,68 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        user = serializer.save()
-        if user.userprofile.wants_personalized_path:
-            # Redirect user to the questionnaire if they opted in
-            return Response({"next": "/questionnaire/"}, status=status.HTTP_201_CREATED)
-        return Response({"next": "/dashboard/"}, status=status.HTTP_201_CREATED)
+        try:
+            user = serializer.save()
+            if user.userprofile.wants_personalized_path:
+                return Response({"next": "/questionnaire/"}, status=status.HTTP_201_CREATED)
+            return Response({"next": "/dashboard/"}, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            print("Validation Error:", e.detail)  # Log the validation error
+            return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print("Unexpected Error:", str(e))  # Log unexpected errors
+            return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.http import JsonResponse
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from core.tokens import set_jwt_cookies, delete_jwt_cookies
+
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    """Handles Login and Stores JWT in HTTP-only Cookies"""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            access_token = response.data.get('access')
+            refresh_token = response.data.get('refresh')
+            response = set_jwt_cookies(response, access_token, refresh_token)
+        else:
+            return JsonResponse({'error': 'Invalid credentials'}, status=401)
+        return response
+
+
+class LogoutView(APIView):
+    """Handles Logout and Clears JWT Cookies"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = JsonResponse({"message": "Logout successful."})
+        return delete_jwt_cookies(response)
+
+
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 
 class PathViewSet(viewsets.ModelViewSet):
     queryset = Path.objects.all()
     serializer_class = PathSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        # 🔥 Log cookies received by Django
+        print("🔍 Incoming Request Cookies:", request.COOKIES)
+
+        if settings.SIMPLE_JWT['AUTH_COOKIE'] not in request.COOKIES:
+            print("❌ JWT Token Missing from Cookies!")
+
+        return super().list(request, *args, **kwargs)
+
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()

@@ -16,11 +16,10 @@ const ToolsPage = () => {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/tools/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/tools/`,
+          { withCredentials: true } // ✅ Use cookies for authentication
+        );
 
         // Move "Crypto Tools" to the top
         const reorderedCategories = response.data.sort((a, b) => {
@@ -45,10 +44,6 @@ const ToolsPage = () => {
     fetchTools();
   }, []);
 
-  const toggleCategory = (index) => {
-    setActiveCategory(activeCategory === index ? null : index);
-  };
-
   return (
     <div className="tools-page">
       <h1 className="tools-title">Financial Tools</h1>
@@ -60,21 +55,15 @@ const ToolsPage = () => {
             <div key={index} className="accordion-item">
               <h2 className="accordion-header">
                 <button
-                  className={`accordion-button ${
-                    activeCategory === index ? "" : "collapsed"
-                  }`}
+                  className="accordion-button"
                   type="button"
-                  onClick={() => toggleCategory(index)}
-                  data-bs-toggle="collapse"
-                  data-bs-target={`#collapse-${index}`}
+                  onClick={() => setActiveCategory(index)}
                   aria-expanded={activeCategory === index}
-                  aria-controls={`collapse-${index}`}
                 >
                   {category.category}
                 </button>
               </h2>
               <div
-                id={`collapse-${index}`}
                 className={`accordion-collapse collapse ${
                   activeCategory === index ? "show" : ""
                 }`}

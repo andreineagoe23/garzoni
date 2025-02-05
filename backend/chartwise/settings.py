@@ -15,13 +15,9 @@ import os
 from django.conf import settings
 from django.conf.urls.static import static
 from dotenv import load_dotenv
-
+from datetime import timedelta
 
 load_dotenv()
-
-print("DIALOGFLOW_PROJECT_ID =>", os.getenv("DIALOGFLOW_PROJECT_ID"))
-print("GOOGLE_APPLICATION_CREDENTIALS =>", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,15 +54,15 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "corsheaders.middleware.CorsMiddleware",  # 🔥 Ensure this is at the top
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'chartwise.urls'
@@ -148,13 +144,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'core.authentication.CookieJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny',
     ),
 }
+
+
+from datetime import timedelta
 
 from datetime import timedelta
 
@@ -163,21 +161,38 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_COOKIE': 'access_token',
+    'AUTH_COOKIE_REFRESH': 'refresh_token', 
+    'AUTH_COOKIE_SECURE': False,  
+    'AUTH_COOKIE_HTTPONLY': True,  
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:3000",  
     "https://andreineagoe23.github.io",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://kind-gently-ostrich.ngrok-free.app", 
+    "https://kind-gently-ostrich.ngrok-free.app",
 ]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-requested-with',
+    'accept',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-xsrf-token',
+]
+
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-print(f"MEDIA_URL: {settings.MEDIA_URL}")
-print(f"MEDIA_ROOT: {settings.MEDIA_ROOT}")
 
 CKEDITOR_CONFIGS = {
     'default': {
@@ -236,4 +251,9 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'kind-gently-ostrich.ngrok-free.app',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://andreineagoe23.github.io",
 ]

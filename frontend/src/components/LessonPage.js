@@ -29,17 +29,10 @@ function LessonPage() {
 
   useEffect(() => {
     const fetchLessons = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) {
-        setError("You are not logged in. Please log in to view lessons.");
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          { withCredentials: true } // ✅ Use cookies instead of localStorage
         );
         const lessonsWithProgress = response.data;
         setLessons(lessonsWithProgress);
@@ -66,17 +59,11 @@ function LessonPage() {
   }, [lessons, completedLessons]);
 
   const handleCompleteLesson = async (lessonId) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      setError("You are not logged in. Please log in to complete the lesson.");
-      return;
-    }
-
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
         { lesson_id: lessonId },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
 
       setCompletedLessons((prev) => [...prev, lessonId]);

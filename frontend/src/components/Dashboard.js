@@ -41,17 +41,10 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-
-      if (!accessToken) {
-        navigate("/login");
-        return;
-      }
-
       try {
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          { withCredentials: true }
         );
 
         setUser(profileResponse.data.user_data);
@@ -60,6 +53,7 @@ function Dashboard() {
         );
       } catch (error) {
         console.error("Error fetching user data:", error);
+        navigate("/login");
       }
     };
 
@@ -70,9 +64,17 @@ function Dashboard() {
     navigate(`/lessons/${courseId}`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/logout/`,
+        {},
+        { withCredentials: true }
+      );
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   const toggleProgressPanel = () => {

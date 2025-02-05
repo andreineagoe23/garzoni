@@ -38,25 +38,11 @@ const Questionnaire = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // ✅ Get token from localStorage
-      const accessToken = localStorage.getItem("accessToken");
-
-      if (!accessToken) {
-        console.error("User is not authenticated!");
-        navigate("/login");
-        return;
-      }
-
       axios
         .post(
           "http://localhost:8000/api/questionnaire/submit/",
           { answers: updatedAnswers },
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
+          { withCredentials: true } // ✅ Use cookies for authentication
         )
         .then(() => {
           navigate("/personalized-path");

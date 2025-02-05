@@ -29,9 +29,7 @@ const Chatbot = () => {
         `${process.env.REACT_APP_BACKEND_URL}/chatbot/`,
         { text: userInput },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
+          withCredentials: true, // ✅ Use cookies for authentication
         }
       );
 

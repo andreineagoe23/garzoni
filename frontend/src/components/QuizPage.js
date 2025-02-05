@@ -15,10 +15,9 @@ function QuizPage() {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken");
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}/`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}`,
+          { withCredentials: true } // ✅ Use cookies for authentication
         );
 
         console.log(response.data); // Log the response to inspect its structure
@@ -48,12 +47,11 @@ function QuizPage() {
       return;
     }
 
-    const accessToken = localStorage.getItem("accessToken");
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/quizzes/complete/`,
         { quiz_id: quiz.id, selected_answer: selectedAnswer },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        { withCredentials: true } // ✅ Use cookies for authentication
       );
 
       console.log("Quiz Response: ", response.data);
