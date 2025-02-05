@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Chatbot.css"; // <-- new stylesheet
+import "../styles/Chatbot.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Chatbot = () => {
@@ -12,7 +12,7 @@ const Chatbot = () => {
     if (isVisible) {
       const greetingMessage = {
         sender: "bot",
-        text: "Hello! How can I assist you today?",
+        text: "Hello! How can I assist you with finance today?",
       };
       setChatHistory((prev) => [...prev, greetingMessage]);
     }
@@ -21,27 +21,45 @@ const Chatbot = () => {
   const handleMessageSend = async () => {
     if (!userInput.trim()) return;
 
+    console.log("🔍 OpenAI API Key:", process.env.REACT_APP_OPENAI_API_KEY);
+
     const newMessage = { sender: "user", text: userInput };
     setChatHistory((prev) => [...prev, newMessage]);
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/chatbot/`,
-        { text: userInput },
+        "https://api.openai.com/v1/chat/completions",
         {
-          withCredentials: true, // ✅ Use cookies for authentication
+          model: "gpt-3.5-turbo", // ✅ Use free-tier model
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a financial assistant helping users learn about finance.",
+            },
+            { role: "user", content: userInput },
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      const botMessage = { sender: "bot", text: response.data.response };
+      console.log("✅ OpenAI Response:", response.data);
+      const botMessage = {
+        sender: "bot",
+        text: response.data.choices[0].message.content,
+      };
       setChatHistory((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error("Error sending message to chatbot:", error);
-      const errorMessage = {
-        sender: "bot",
-        text: "An error occurred. Please try again later.",
-      };
-      setChatHistory((prev) => [...prev, errorMessage]);
+      console.error("❌ Error sending message to OpenAI:", error);
+      setChatHistory((prev) => [
+        ...prev,
+        { sender: "bot", text: "Error connecting to AI. Try again later." },
+      ]);
     }
 
     setUserInput("");
@@ -56,7 +74,6 @@ const Chatbot = () => {
 
   return (
     <div>
-      {/* Chatbot Toggle Button */}
       <button
         className="chatbot-toggle position-fixed"
         onClick={() => setIsVisible(!isVisible)}
@@ -64,12 +81,10 @@ const Chatbot = () => {
         💬
       </button>
 
-      {/* Chatbot Container */}
       {isVisible && (
         <div className="chatbot-container position-fixed">
-          {/* Chatbot Header */}
           <div className="chatbot-header d-flex align-items-center justify-content-between px-3 py-2">
-            <span>Monevo Assistant</span>
+            <span>Finance Assistant</span>
             <button
               className="btn btn-sm chatbot-close"
               onClick={() => setIsVisible(false)}
@@ -78,7 +93,6 @@ const Chatbot = () => {
             </button>
           </div>
 
-          {/* Chat History */}
           <div className="chat-history p-3 flex-grow-1">
             {chatHistory.map((msg, idx) => (
               <div
@@ -92,7 +106,6 @@ const Chatbot = () => {
             ))}
           </div>
 
-          {/* Chat Input */}
           <div className="chat-input-container d-flex p-2 border-top">
             <input
               type="text"
@@ -100,7 +113,7 @@ const Chatbot = () => {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder="Ask me anything about finance..."
             />
             <button className="btn chatbot-send" onClick={handleMessageSend}>
               Send
