@@ -12,7 +12,7 @@ __pycache__/
 
 # Frontend
 /frontend/.env
-
+.env
 # Distribution / packaging
 .Python
 develop-eggs/
