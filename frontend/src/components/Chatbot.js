@@ -8,40 +8,47 @@ const Chatbot = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [hasGreeted, setHasGreeted] = useState(false); // ✅ Track if greeting has been shown
+  const [hasGreeted, setHasGreeted] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
 
   const HF_API_KEY = process.env.REACT_APP_HF_API_KEY;
-  const HF_MODEL = "HuggingFaceH4/zephyr-7b-alpha"; // ✅ Use a finance-friendly model
+  const HF_MODEL = "HuggingFaceH4/zephyr-7b-alpha";
 
   useEffect(() => {
     if (isVisible && !hasGreeted) {
-      setChatHistory((prev) => [
-        ...prev,
+      setChatHistory([
         {
           sender: "bot",
           text: "Hello! How can I assist you with finance today?",
         },
       ]);
-      setHasGreeted(true); // ✅ Ensure greeting appears only once
+      setHasGreeted(true);
     }
   }, [isVisible, hasGreeted]);
 
-  // ✅ Function to check if user asked about stock/crypto data
+  const speakResponse = (text) => {
+    if (isSpeechEnabled) {
+      const speech = new SpeechSynthesisUtterance();
+      speech.text = text;
+      speech.voice = window.speechSynthesis.getVoices()[0];
+      window.speechSynthesis.speak(speech);
+    }
+  };
+
   const checkFinancialQuery = async (message) => {
     if (message.toLowerCase().includes("stock price")) {
-      const stockSymbol = message.split(" ").pop().toUpperCase(); // Extract last word as stock symbol
+      const stockSymbol = message.split(" ").pop().toUpperCase();
       return await fetchStockPrice(stockSymbol);
     }
     if (
       message.toLowerCase().includes("crypto") ||
       message.toLowerCase().includes("bitcoin")
     ) {
-      return await fetchCryptoPrice("bitcoin"); // Default to Bitcoin
+      return await fetchCryptoPrice("bitcoin");
     }
-    return null; // No financial query detected
+    return null;
   };
 
-  // ✅ Fetch stock price using CoinGecko API
   const fetchStockPrice = async (symbol) => {
     try {
       const response = await axios.get(
@@ -60,7 +67,6 @@ const Chatbot = () => {
     }
   };
 
-  // ✅ Fetch crypto price using CoinGecko API
   const fetchCryptoPrice = async (cryptoId) => {
     try {
       const response = await axios.get(
@@ -75,31 +81,29 @@ const Chatbot = () => {
     }
   };
 
-  // ✅ AI + Financial Data Integration
   const handleMessageSend = async () => {
     if (!userInput.trim()) return;
 
     setChatHistory((prev) => [...prev, { sender: "user", text: userInput }]);
     setIsTyping(true);
 
-    // ✅ Check if user is asking for stock or crypto data
     const financialResponse = await checkFinancialQuery(userInput);
     if (financialResponse) {
       setChatHistory((prev) => [
         ...prev,
         { sender: "bot", text: financialResponse },
       ]);
+      speakResponse(financialResponse);
       setIsTyping(false);
       setUserInput("");
       return;
     }
 
     try {
-      // ✅ Call AI API if no financial data request detected
       const response = await axios.post(
         `https://api-inference.huggingface.co/models/${HF_MODEL}`,
         {
-          inputs: `User: ${userInput}\n\nAssistant: (respond in 2-3 sentences, be concise and clear)`,
+          inputs: `User: ${userInput}\nAssistant: (respond in 2-3 sentences, be concise and clear)`,
           parameters: { max_new_tokens: 200, temperature: 0.5, top_p: 0.8 },
         },
         {
@@ -119,6 +123,7 @@ const Chatbot = () => {
         .trim();
 
       setChatHistory((prev) => [...prev, { sender: "bot", text: aiResponse }]);
+      speakResponse(aiResponse); // ✅ Speak response if enabled
     } catch (error) {
       console.error("❌ Error sending message to Hugging Face:", error);
       setChatHistory((prev) => [
@@ -129,6 +134,19 @@ const Chatbot = () => {
 
     setIsTyping(false);
     setUserInput("");
+  };
+
+  // ✅ Voice Input (Speech-to-Text)
+  const startVoiceRecognition = () => {
+    const recognition = new window.webkitSpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setUserInput(transcript);
+      handleMessageSend();
+    };
   };
 
   return (
@@ -152,6 +170,17 @@ const Chatbot = () => {
             </button>
           </div>
 
+          <div className="tts-toggle-container">
+            <label className="switch">
+              <input
+                type="checkbox"
+                onChange={() => setIsSpeechEnabled(!isSpeechEnabled)}
+              />
+              <span className="slider"></span>
+            </label>
+            <span>🔊 Speak Answers</span>
+          </div>
+
           <div className="chat-history p-3 flex-grow-1">
             {chatHistory.map((msg, idx) => (
               <div
@@ -163,10 +192,16 @@ const Chatbot = () => {
                 {msg.text}
               </div>
             ))}
-            {isTyping && <p className="chat-bot">Typing...</p>}
+            {isTyping && <p className="chat-bot typing-animation">Typing...</p>}
           </div>
 
           <div className="chat-input-container d-flex p-2 border-top">
+            <button
+              className="btn btn-sm voice-button"
+              onClick={startVoiceRecognition}
+            >
+              🎙
+            </button>
             <input
               type="text"
               className="form-control me-2 chat-input"
