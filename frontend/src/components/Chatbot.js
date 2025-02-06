@@ -10,6 +10,8 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [voices, setVoices] = useState([]);
+  const [selectedVoice, setSelectedVoice] = useState(null);
 
   const HF_API_KEY = process.env.REACT_APP_HF_API_KEY;
   const HF_MODEL = "HuggingFaceH4/zephyr-7b-alpha";
@@ -26,29 +28,55 @@ const Chatbot = () => {
     }
   }, [isVisible, hasGreeted]);
 
-  const speakResponse = (text) => {
-    if (isSpeechEnabled) {
-      const speech = new SpeechSynthesisUtterance();
-      speech.text = text;
-
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        speech.voice = voices[0];
-      } else {
-        window.speechSynthesis.onvoiceschanged = () => {
-          speech.voice = window.speechSynthesis.getVoices()[0];
-          window.speechSynthesis.speak(speech);
-        };
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+        setSelectedVoice((prev) => prev || availableVoices[0]);
       }
+    };
 
-      window.speechSynthesis.speak(speech);
+    if (window.speechSynthesis.onvoiceschanged !== null) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    setTimeout(loadVoices, 500);
+  }, []);
+
+  const speakResponse = (text) => {
+    if (isSpeechEnabled && selectedVoice) {
+      const MAX_CHAR_LIMIT = 200;
+      const sentences = text.match(
+        new RegExp(`.{1,${MAX_CHAR_LIMIT}}(\\s|$)`, "g")
+      );
+
+      if (!sentences) return;
+
+      window.speechSynthesis.cancel();
+
+      let index = 0;
+      const speakNextSentence = () => {
+        if (index < sentences.length) {
+          const speech = new SpeechSynthesisUtterance(sentences[index]);
+          speech.voice = selectedVoice;
+
+          speech.onend = () => {
+            index++;
+            speakNextSentence();
+          };
+
+          window.speechSynthesis.speak(speech);
+        }
+      };
+
+      speakNextSentence();
     }
   };
 
   const checkFinancialQuery = async (message) => {
     if (message.toLowerCase().includes("stock price")) {
-      const stockSymbol = message.split(" ").pop().toUpperCase();
-      return await fetchStockPrice(stockSymbol);
+      return await fetchStockPrice(message.split(" ").pop().toUpperCase());
     }
     if (
       message.toLowerCase().includes("crypto") ||
@@ -56,7 +84,26 @@ const Chatbot = () => {
     ) {
       return await fetchCryptoPrice("bitcoin");
     }
+    if (
+      message.toLowerCase().includes("forex") ||
+      message.toLowerCase().includes("currency")
+    ) {
+      return await fetchForexRate("usd", "eur"); // ✅ Add Forex Support
+    }
     return null;
+  };
+
+  const fetchForexRate = async (from, to) => {
+    try {
+      const response = await axios.get(
+        `https://api.exchangerate-api.com/v4/latest/${from}`
+      );
+      return `The exchange rate from ${from.toUpperCase()} to ${to.toUpperCase()} is ${
+        response.data.rates[to.toUpperCase()]
+      }`;
+    } catch (error) {
+      return "Sorry, I couldn't fetch Forex rates at the moment.";
+    }
   };
 
   const fetchStockPrice = async (symbol) => {
@@ -97,6 +144,7 @@ const Chatbot = () => {
     setChatHistory((prev) => [...prev, { sender: "user", text: userInput }]);
     setIsTyping(true);
 
+    // ✅ Check for financial data before calling AI
     const financialResponse = await checkFinancialQuery(userInput);
     if (financialResponse) {
       setChatHistory((prev) => [
@@ -113,8 +161,8 @@ const Chatbot = () => {
       const response = await axios.post(
         `https://api-inference.huggingface.co/models/${HF_MODEL}`,
         {
-          inputs: `User: ${userInput}\nAssistant: (respond in 2-3 sentences, be concise and clear)`,
-          parameters: { max_new_tokens: 200, temperature: 0.5, top_p: 0.8 },
+          inputs: `You are a finance expert. Answer only finance-related questions. Keep responses clear, structured, and under 3 sentences.\n\nUser: ${userInput}\nAssistant:`,
+          parameters: { max_new_tokens: 200, temperature: 0.3, top_p: 0.8 },
         },
         {
           headers: {
@@ -125,15 +173,22 @@ const Chatbot = () => {
       );
 
       let aiResponse = response.data[0].generated_text.trim();
+
+      // ✅ Ensure AI response is clean and relevant
       aiResponse = aiResponse
-        .replace("User:", "")
-        .replace(userInput, "")
-        .replace("Assistant:", "")
-        .replace("(respond in 2-3 sentences, be concise and clear)", "")
+        .replace(/User:.*?Assistant:/s, "")
+        .replace(/Assistant:/g, "")
+        .replace(/(You are a finance expert.*?\.)/s, "")
+        .replace(/(\n\n)/g, "\n")
+        .replace(/(\n\s+)/g, "\n")
+        .replace(
+          /Answer only finance-related questions. Keep responses clear, structured, and under 3 sentences./g,
+          ""
+        )
         .trim();
 
       setChatHistory((prev) => [...prev, { sender: "bot", text: aiResponse }]);
-      speakResponse(aiResponse); // ✅ Speak response if enabled
+      speakResponse(aiResponse);
     } catch (error) {
       console.error("❌ Error sending message to Hugging Face:", error);
       setChatHistory((prev) => [
@@ -146,7 +201,6 @@ const Chatbot = () => {
     setUserInput("");
   };
 
-  // ✅ Voice Input (Speech-to-Text)
   const startVoiceRecognition = () => {
     const recognition = new window.webkitSpeechRecognition();
     recognition.lang = "en-US";
@@ -189,6 +243,22 @@ const Chatbot = () => {
               <span className="slider"></span>
             </label>
             <span>🔊 Speak Answers</span>
+
+            <select
+              onChange={(e) =>
+                setSelectedVoice(voices.find((v) => v.name === e.target.value))
+              }
+            >
+              {voices.length > 0 ? (
+                voices.map((voice, index) => (
+                  <option key={index} value={voice.name}>
+                    {voice.name}
+                  </option>
+                ))
+              ) : (
+                <option>Loading voices...</option>
+              )}
+            </select>
           </div>
 
           <div className="chat-history p-3 flex-grow-1">
