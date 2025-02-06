@@ -30,7 +30,17 @@ const Chatbot = () => {
     if (isSpeechEnabled) {
       const speech = new SpeechSynthesisUtterance();
       speech.text = text;
-      speech.voice = window.speechSynthesis.getVoices()[0];
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        speech.voice = voices[0];
+      } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+          speech.voice = window.speechSynthesis.getVoices()[0];
+          window.speechSynthesis.speak(speech);
+        };
+      }
+
       window.speechSynthesis.speak(speech);
     }
   };
