@@ -20,17 +20,19 @@ function Profile() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
+        // Fetch profile data
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { withCredentials: true }
         );
-        
+
         setProfileData({
           username: profileResponse.data.user_data.username || "",
           email: profileResponse.data.user_data.email || "",
           first_name: profileResponse.data.user_data.first_name || "",
           last_name: profileResponse.data.user_data.last_name || "",
-          earned_money: parseFloat(profileResponse.data.user_data.earned_money) || 0.0,
+          earned_money:
+            parseFloat(profileResponse.data.user_data.earned_money) || 0.0,
           points: profileResponse.data.user_data.points || 0,
           streak: profileResponse.data.streak || 0,
         });
@@ -39,18 +41,25 @@ function Profile() {
           profileResponse.data.profile_avatar || "/default-avatar.png"
         );
 
-        const progressResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
+        // Fetch recent activity
+        const activityResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
           { withCredentials: true }
         );
 
-        setRecentActivity(
-          progressResponse.data.map((p) => ({
-            id: p.id,
-            activity: `Completed ${p.course.title}`,
-            date: new Date(p.last_completed_date).toLocaleDateString(),
-          }))
+        // Format activity data
+        const formattedActivities = activityResponse.data.recent_activities.map(
+          (activity) => ({
+            id: `${activity.type}-${activity.timestamp}`,
+            type: activity.type,
+            title: activity.title || activity.name,
+            action: activity.action,
+            timestamp: new Date(activity.timestamp).toLocaleString(),
+            details: activity.course ? `in ${activity.course}` : "",
+          })
         );
+
+        setRecentActivity(formattedActivities);
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -58,6 +67,22 @@ function Profile() {
 
     fetchProfileData();
   }, []);
+
+  // Helper function to format activity text
+  const formatActivityText = (activity) => {
+    switch (activity.type) {
+      case "lesson":
+        return `Completed lesson: ${activity.title} ${activity.details}`;
+      case "quiz":
+        return `Completed quiz: ${activity.title}`;
+      case "mission":
+        return `Completed mission: ${activity.title}`;
+      case "course":
+        return `Completed course: ${activity.title}`;
+      default:
+        return `Activity: ${activity.title}`;
+    }
+  };
 
   return (
     <div className="container profile-container my-5">
@@ -99,12 +124,20 @@ function Profile() {
 
         <h3 className="mt-4">Recent Activity</h3>
         <ul className="list-group">
-          {recentActivity.map((activity) => (
-            <li key={activity.id} className="list-group-item">
-              <strong>{activity.activity}</strong>
-              <span className="text-muted float-end">{activity.date}</span>
-            </li>
-          ))}
+          {recentActivity.length > 0 ? (
+            recentActivity.map((activity) => (
+              <li key={activity.id} className="list-group-item">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{formatActivityText(activity)}</strong>
+                  </div>
+                  <span className="text-muted">{activity.timestamp}</span>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="list-group-item">No recent activity</li>
+          )}
         </ul>
       </div>
       <Chatbot />
