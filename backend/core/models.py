@@ -168,7 +168,7 @@ class Mission(models.Model):
     points_reward = models.IntegerField()
     mission_type = models.CharField(max_length=10, choices=MISSION_TYPES, default='daily')
     goal_type = models.CharField(max_length=50, choices=GOAL_TYPES, default='complete_lesson')
-    goal_reference = models.JSONField(null=True, blank=True)  # Store additional goal metadata
+    goal_reference = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.mission_type})"
@@ -200,6 +200,7 @@ class MissionCompletion(models.Model):
         if self.progress >= total:
             self.status = 'completed'
             self.completed_at = now()
+            self.user.userprofile.add_points(self.mission.points_reward)
         elif self.progress > 0:
             self.status = 'in_progress'
         else:
@@ -208,29 +209,29 @@ class MissionCompletion(models.Model):
         self.save()
 
 
-@receiver(post_save, sender=User)
-def assign_missions_to_new_user(sender, instance, created, **kwargs):
-    """
-    Automatically assign daily missions to newly created users.
-    """
-    if created:  # Only assign missions for newly created users
-        daily_missions = Mission.objects.filter(mission_type="daily")
-        for mission in daily_missions:
-            MissionCompletion.objects.get_or_create(
-                user=instance,
-                mission=mission,
-                defaults={"progress": 0, "status": "not_started"},
-            )
-        print(f"Daily missions assigned to new user: {instance.username}")
+    @receiver(post_save, sender=User)
+    def assign_missions_to_new_user(sender, instance, created, **kwargs):
+        """
+        Automatically assign daily missions to newly created users.
+        """
+        if created:
+            daily_missions = Mission.objects.filter(mission_type="daily")
+            for mission in daily_missions:
+                MissionCompletion.objects.get_or_create(
+                    user=instance,
+                    mission=mission,
+                    defaults={"progress": 0, "status": "not_started"},
+                )
+            print(f"Daily missions assigned to new user: {instance.username}")
 
-@shared_task
-def reset_daily_missions():
-    today = now().date()
-    completions = MissionCompletion.objects.filter(
-        mission__mission_type="daily"
-    )
-    completions.update(progress=0, status="not_started", completed_at=None)
-    return f"Daily missions reset at {today}"
+    @shared_task
+    def reset_daily_missions():
+        today = now().date()
+        completions = MissionCompletion.objects.filter(
+            mission__mission_type="daily"
+        )
+        completions.update(progress=0, status="not_started", completed_at=None)
+        return f"Daily missions reset at {today}"
 
 
 class SimulatedSavingsAccount(models.Model):

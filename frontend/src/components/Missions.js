@@ -36,10 +36,10 @@ function Missions() {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/missions/`,
         {
-          withCredentials: true, // ✅ Use cookies for authentication
+          withCredentials: true,
         }
       );
-      console.log("Fetched missions:", response.data); // Log fetched missions
+      console.log("Fetched missions:", response.data);
       setDailyMissions(response.data.daily_missions || []);
     } catch (error) {
       console.error("Error fetching missions:", error);
@@ -51,7 +51,7 @@ function Missions() {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
-        { withCredentials: true } // ✅ Use cookies for authentication
+        { withCredentials: true }
       );
       console.log("Fetched savings balance:", response.data.balance);
       setSavingsBalance(response.data.balance);
@@ -70,7 +70,7 @@ function Missions() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         { amount: parseFloat(savingsAmount) },
-        { withCredentials: true } // ✅ Use cookies for authentication
+        { withCredentials: true }
       );
       setSavingsAmount("");
       fetchSavingsBalance();
@@ -86,7 +86,7 @@ function Missions() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
         {},
-        { withCredentials: true } // ✅ Use cookies for authentication
+        { withCredentials: true }
       );
       fetchMissions();
     } catch (error) {

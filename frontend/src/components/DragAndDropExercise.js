@@ -14,13 +14,17 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   const [updatedTargets, setUpdatedTargets] = useState(targets);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Load saved progress from backend when component mounts
   useEffect(() => {
     const fetchExerciseProgress = async () => {
       try {
+        if (!exerciseId) {
+          console.error("Exercise ID is undefined.");
+          return;
+        }
+
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/exercises/progress/${exerciseId}/`,
-          { withCredentials: true } // ✅ Use cookies for authentication
+          { withCredentials: true }
         );
 
         if (response.data.completed) {
@@ -35,7 +39,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     fetchExerciseProgress();
   }, [exerciseId]);
 
-  // Handle item drop on a target
   const handleDrop = (target, item) => {
     setUserAnswers((prevAnswers) => ({
       ...prevAnswers,
@@ -43,7 +46,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     }));
   };
 
-  // Handle submit and validate answers
   const handleSubmit = async () => {
     let correct = 0;
 
@@ -67,12 +69,11 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       setFeedback("You completed the exercise!");
       setIsCompleted(true);
 
-      // Save progress to backend instead of localStorage
       try {
         await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/exercises/complete/`,
-          { exercise_id: exerciseId, answers: userAnswers },
-          { withCredentials: true } // ✅ Use cookies for authentication
+          `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
+          { lesson_id: exerciseId },
+          { withCredentials: true }
         );
       } catch (error) {
         console.error("Error saving exercise progress:", error);
@@ -87,7 +88,6 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     setUpdatedTargets(newTargets);
   };
 
-  // Clear answers and allow retry
   const handleRetry = () => {
     setUserAnswers({});
     setFeedback("");

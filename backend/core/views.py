@@ -216,7 +216,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         user = request.user
 
         try:
-            # Fetch the lesson and user progress
             lesson = Lesson.objects.get(id=lesson_id)
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, course=lesson.course
@@ -224,22 +223,20 @@ class LessonViewSet(viewsets.ModelViewSet):
             user_progress.completed_lessons.add(lesson)
             user_progress.save()
 
-            # Update related missions
             mission_completions = MissionCompletion.objects.filter(
                 user=user,
                 mission__goal_type='complete_lesson'
             )
             for mission_completion in mission_completions:
-                lessons_required = 3
-                increment = int(99 / lessons_required)
-                mission_completion.update_progress(increment=increment, total=99)
+                lessons_required = 2
+                increment = 100 // lessons_required 
+                mission_completion.update_progress(increment=increment, total=100)
 
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
 
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # Log unexpected errors
             print(f"Error completing lesson: {e}")
             return Response({"error": "An error occurred while completing the lesson."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -315,24 +312,6 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             {"status": "Lesson completed", "missions_completed": missions_completed, "streak": user_progress.streak},
             status=status.HTTP_200_OK
         )
-
-    def check_and_complete_missions(self, user):
-        """
-        This method checks for missions that are marked as 'not_started' and completes them.
-        """
-        mission_completions = MissionCompletion.objects.filter(
-            user=user,
-            status='not_started',
-        )
-        completed_count = 0
-        for mission_completion in mission_completions:
-            mission_completion.status = 'completed'
-            mission_completion.save()
-            user.userprofile.add_points(mission_completion.mission.points_reward)
-            completed_count += 1
-        user.userprofile.save()
-        return completed_count
-
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
@@ -465,10 +444,8 @@ class SavingsAccountView(APIView):
                 user=request.user,
                 mission__goal_type="add_savings"
             )
-            total_added = account.balance
             for mission_completion in mission_completions:
-                if mission_completion.progress < 100 and total_added >= 5:
-                    mission_completion.update_progress(100, total=100)
+                mission_completion.update_progress(increment=amount, total=100)
 
             return Response(
                 {"message": "Savings added successfully!", "balance": account.balance},
@@ -846,3 +823,26 @@ class PersonalizedPathView(APIView):
             "personalized_courses": serializer.data,
             "message": "We've assembled a custom learning path based on your interests."
         })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Lesson, UserProgress
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_exercise_progress(request, exercise_id):
+    try:
+        lesson = Lesson.objects.get(id=exercise_id)
+        user_progress = UserProgress.objects.filter(user=request.user, course=lesson.course).first()
+
+        if user_progress:
+            return Response({
+                "completed": lesson in user_progress.completed_lessons.all(),
+                "answers": {}  # Add logic to fetch saved answers if applicable
+            })
+        else:
+            return Response({"completed": False, "answers": {}})
+    except Lesson.DoesNotExist:
+        return Response({"error": "Exercise not found."}, status=404)
