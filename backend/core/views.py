@@ -48,6 +48,8 @@ class UserProfileView(APIView):
 
         return Response({
             "user_data": user_data,
+            "streak": progress.streak if progress else 0,
+            "profile_avatar": user_profile.profile_avatar,
             "is_questionnaire_completed": is_completed, 
         })
 

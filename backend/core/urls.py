@@ -10,7 +10,7 @@ from .views import (
     UserProgressViewSet,
     LeaderboardViewSet,
     UserSettingsView,
-    UserProfileView,
+    UserProfileView,  # Ensure this is imported
     MissionView,
     QuestionnaireView,
     ChatbotView,
@@ -29,7 +29,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views import CookieTokenObtainPairView, LogoutView
-
 
 # Set up routers
 router = DefaultRouter()
@@ -52,7 +51,7 @@ urlpatterns = [
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
 
-    path("userprofile/", UserProfileView.as_view(), name="userprofile"),
+    path("userprofile/", UserProfileView.as_view(), name="userprofile"),  # Ensure this is mapped
     path("userprofiles/", include(router.urls)),  
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
