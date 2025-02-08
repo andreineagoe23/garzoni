@@ -18,11 +18,11 @@ function Profile() {
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUserProgress = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true } // ✅ Use cookies for authentication
+          `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
+          { withCredentials: true }
         );
 
         setProfileData({
@@ -52,7 +52,26 @@ function Profile() {
       }
     };
 
-    fetchProfile();
+    fetchUserProgress();
+  }, []);
+
+  // Replace hardcoded activity with real data
+  useEffect(() => {
+    const fetchActivity = async () => {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
+        { withCredentials: true }
+      );
+      // Transform progress data into activity items
+      setRecentActivity(
+        response.data.map((p) => ({
+          id: p.id,
+          activity: `Completed ${p.course.title}`,
+          date: new Date(p.last_completed_date).toLocaleDateString(),
+        }))
+      );
+    };
+    fetchActivity();
   }, []);
 
   return (

@@ -84,14 +84,16 @@ function LessonPage() {
     setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
   };
 
-  const renderExercise = (exerciseType, exerciseData) => {
+  const renderExercise = (exerciseType, exerciseData, lessonId) => {
     if (!exerciseData || Object.keys(exerciseData).length === 0) {
       return <p>No exercise available for this lesson.</p>;
     }
 
     switch (exerciseType) {
       case "drag-and-drop":
-        return <DragAndDropExercise data={exerciseData} />;
+        return (
+          <DragAndDropExercise data={exerciseData} exerciseId={lessonId} />
+        );
       default:
         return <p>No exercise available for this lesson.</p>;
     }
@@ -173,7 +175,8 @@ function LessonPage() {
                       {lesson.exercise_type &&
                         renderExercise(
                           lesson.exercise_type,
-                          lesson.exercise_data
+                          lesson.exercise_data,
+                          lesson.id
                         )}
 
                       {!isCompleted && (
@@ -208,12 +211,10 @@ function LessonPage() {
         <Chatbot />
       </div>
 
-      {/* PINNED PROGRESS on desktop */}
       <div className={styles.lessonProgress}>
         <UserProgressBox />
       </div>
 
-      {/* FLOATING PROGRESS BTN (mobile) */}
       <button
         className="floating-progress-btn"
         onClick={() => setShowProgress((p) => !p)}
@@ -221,7 +222,6 @@ function LessonPage() {
         Progress
       </button>
 
-      {/* SLIDE-IN PANEL (mobile) */}
       {showProgress && (
         <div className="progress-panel show">
           <button
