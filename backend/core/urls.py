@@ -24,6 +24,7 @@ from .views import (
     QuestionnaireSubmitView,
     PersonalizedPathView,
     get_exercise_progress,
+    RecentActivityView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -79,4 +80,5 @@ urlpatterns = [
     path('calculate-savings-goal/', SavingsGoalCalculatorView.as_view(), name='calculate_savings_goal'),
 
     path('exercises/progress/<int:exercise_id>/', get_exercise_progress, name='exercise-progress'),
+    path('recent-activity/', RecentActivityView.as_view(), name='recent-activity'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

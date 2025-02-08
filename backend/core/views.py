@@ -14,7 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, LessonCompletion, QuizCompletion
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
@@ -222,7 +222,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, course=lesson.course
             )
-            user_progress.completed_lessons.add(lesson)
+            user_progress.completed_lessons.add(lesson)  # Correctly placed here
             user_progress.save()
 
             mission_completions = MissionCompletion.objects.filter(
@@ -241,7 +241,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"Error completing lesson: {e}")
             return Response({"error": "An error occurred while completing the lesson."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 class QuizViewSet(viewsets.ModelViewSet):
@@ -272,6 +271,7 @@ class QuizViewSet(viewsets.ModelViewSet):
             return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if quiz.correct_answer == selected_answer:
+            QuizCompletion.objects.create(user=request.user, quiz=quiz)
             user_profile = request.user.userprofile
             user_profile.add_money(10.00)
             user_profile.add_points(20)
@@ -848,3 +848,69 @@ def get_exercise_progress(request, exercise_id):
             return Response({"completed": False, "answers": {}})
     except Lesson.DoesNotExist:
         return Response({"error": "Exercise not found."}, status=404)
+
+
+class RecentActivityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        activities = []
+
+        # Lesson completions
+        lesson_completions = LessonCompletion.objects.filter(
+            user_progress__user=user
+        ).select_related('lesson', 'user_progress__course')
+        for lc in lesson_completions:
+            activities.append({
+                "type": "lesson",
+                "action": "completed",
+                "title": lc.lesson.title,
+                "course": lc.user_progress.course.title,
+                "timestamp": lc.completed_at
+            })
+
+        # Quiz completions
+        quiz_completions = QuizCompletion.objects.filter(user=user).select_related('quiz')
+        for qc in quiz_completions:
+            activities.append({
+                "type": "quiz",
+                "action": "completed",
+                "title": qc.quiz.title,
+                "timestamp": qc.completed_at
+            })
+
+        # Mission completions
+        missions = MissionCompletion.objects.filter(
+            user=user, 
+            status='completed'
+        ).exclude(completed_at__isnull=True)
+        for mc in missions:
+            activities.append({
+                "type": "mission",
+                "action": "completed",
+                "name": mc.mission.name,
+                "timestamp": mc.completed_at
+            })
+
+        # Course completions
+        course_completions = UserProgress.objects.filter(
+            user=user,
+            is_course_complete=True
+        ).exclude(course_completed_at__isnull=True)
+        for cc in course_completions:
+            activities.append({
+                "type": "course",
+                "action": "completed",
+                "title": cc.course.title,
+                "timestamp": cc.course_completed_at
+            })
+
+        # Sort and limit to 15 activities
+        sorted_activities = sorted(
+            activities, 
+            key=lambda x: x["timestamp"], 
+            reverse=True
+        )[:15]
+
+        return Response({"recent_activities": sorted_activities})

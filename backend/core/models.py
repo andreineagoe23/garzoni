@@ -125,9 +125,14 @@ class Quiz(models.Model):
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_progress")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="progress_courses")
-    completed_lessons = models.ManyToManyField(Lesson, blank=True)
+    completed_lessons = models.ManyToManyField(
+        Lesson, 
+        through='LessonCompletion',
+        blank=True
+    )
     is_course_complete = models.BooleanField(default=False)
     is_questionnaire_completed = models.BooleanField(default=False)
+    course_completed_at = models.DateTimeField(null=True, blank=True)
 
     last_completed_date = models.DateField(null=True, blank=True)
     streak = models.PositiveIntegerField(default=0)
@@ -142,17 +147,34 @@ class UserProgress(models.Model):
     def update_streak(self):
         today = timezone.now().date()
         if self.last_completed_date:
-            # Check if it is a new day
             if today > self.last_completed_date:
                 self.streak += 1
             else:
-                # Reset streak if the last completed date is not the previous day
                 self.streak = 1
         else:
             self.streak = 1
         
         self.last_completed_date = today
         self.save()
+
+    def mark_course_complete(self):
+        self.is_course_complete = True
+        self.course_completed_at = now()
+        self.save()
+
+
+class LessonCompletion(models.Model):
+    user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+class QuizCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'quiz')
 
 
 class Mission(models.Model):
