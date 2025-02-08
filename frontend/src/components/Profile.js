@@ -18,60 +18,50 @@ function Profile() {
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
-    const fetchUserProgress = async () => {
+    const fetchProfileData = async () => {
       try {
-        const response = await axios.get(
+        // Fetch UserProfile data
+        const profileResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+          { withCredentials: true }
+        );
+
+        // Set profile data
+        setProfileData({
+          username: profileResponse.data.user.username || "",
+          email: profileResponse.data.user.email || "",
+          first_name: profileResponse.data.user.first_name || "",
+          last_name: profileResponse.data.user.last_name || "",
+          earned_money: parseFloat(profileResponse.data.earned_money) || 0.0,
+          points: profileResponse.data.points || 0,
+          streak: profileResponse.data.streak || 0,
+        });
+
+        // Fetch avatar URL
+        setImageUrl(
+          profileResponse.data.profile_avatar || "/default-avatar.png"
+        );
+
+        // Fetch recent activity
+        const progressResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
           { withCredentials: true }
         );
 
-        setProfileData({
-          username: response.data.username || "",
-          email: response.data.email || "",
-          first_name: response.data.first_name || "",
-          last_name: response.data.last_name || "",
-          earned_money: parseFloat(response.data.earned_money) || 0.0,
-          points: response.data.points || 0,
-          streak: response.data.streak || 0,
-        });
-
-        // Fetch avatar URL
-        setImageUrl(response.data.avatar_url || "/default-avatar.png");
-
-        // Fetch recent activity (mocked for now)
-        setRecentActivity([
-          {
-            id: 1,
-            activity: "Completed Basic Finance Course",
-            date: "2025-01-10",
-          },
-          { id: 2, activity: "Earned 50 points", date: "2025-01-08" },
-        ]);
+        // Transform progress data into activity items
+        setRecentActivity(
+          progressResponse.data.map((p) => ({
+            id: p.id,
+            activity: `Completed ${p.course.title}`,
+            date: new Date(p.last_completed_date).toLocaleDateString(),
+          }))
+        );
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
 
-    fetchUserProgress();
-  }, []);
-
-  // Replace hardcoded activity with real data
-  useEffect(() => {
-    const fetchActivity = async () => {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
-        { withCredentials: true }
-      );
-      // Transform progress data into activity items
-      setRecentActivity(
-        response.data.map((p) => ({
-          id: p.id,
-          activity: `Completed ${p.course.title}`,
-          date: new Date(p.last_completed_date).toLocaleDateString(),
-        }))
-      );
-    };
-    fetchActivity();
+    fetchProfileData();
   }, []);
 
   return (
