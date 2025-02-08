@@ -20,35 +20,30 @@ function Profile() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        // Fetch UserProfile data
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { withCredentials: true }
         );
-
-        // Set profile data
+        
         setProfileData({
-          username: profileResponse.data.user.username || "",
-          email: profileResponse.data.user.email || "",
-          first_name: profileResponse.data.user.first_name || "",
-          last_name: profileResponse.data.user.last_name || "",
-          earned_money: parseFloat(profileResponse.data.earned_money) || 0.0,
-          points: profileResponse.data.points || 0,
+          username: profileResponse.data.user_data.username || "",
+          email: profileResponse.data.user_data.email || "",
+          first_name: profileResponse.data.user_data.first_name || "",
+          last_name: profileResponse.data.user_data.last_name || "",
+          earned_money: parseFloat(profileResponse.data.user_data.earned_money) || 0.0,
+          points: profileResponse.data.user_data.points || 0,
           streak: profileResponse.data.streak || 0,
         });
 
-        // Fetch avatar URL
         setImageUrl(
           profileResponse.data.profile_avatar || "/default-avatar.png"
         );
 
-        // Fetch recent activity
         const progressResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
           { withCredentials: true }
         );
 
-        // Transform progress data into activity items
         setRecentActivity(
           progressResponse.data.map((p) => ({
             id: p.id,
