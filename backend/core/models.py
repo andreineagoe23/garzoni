@@ -179,6 +179,7 @@ class Mission(models.Model):
         ('complete_lesson', 'Complete Lesson'),
         ('add_savings', 'Add Savings'),
         ('read_fact', 'Read Finance Fact'),
+        ('complete_path', 'Complete Path'),
     ]
 
     name = models.CharField(max_length=100)
@@ -208,21 +209,28 @@ class MissionCompletion(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def update_progress(self, increment=0, total=100):
-        """
-        Update progress and mark mission as completed if progress reaches the required goal.
-        """
+        
         if not isinstance(increment, int):
             raise ValueError("increment must be an integer")
-        
-        self.progress = min(self.progress + increment, total)
-        if self.progress >= total:
-            self.status = 'completed'
-            self.completed_at = now()
-            self.user.userprofile.add_points(self.mission.points_reward)
-        elif self.progress > 0:
-            self.status = 'in_progress'
+
+        if self.mission.goal_type == "complete_path":
+            # Check if the user has completed a path
+            user_progress = UserProgress.objects.filter(user=self.user, is_course_complete=True)
+            if user_progress.exists():
+                self.progress = 100  # Mark as completed
+                self.status = 'completed'
+                self.completed_at = now()
+                self.user.userprofile.add_points(self.mission.points_reward)
         else:
-            self.status = 'not_started'
+            self.progress = min(self.progress + increment, total)
+            if self.progress >= total:
+                self.status = 'completed'
+                self.completed_at = now()
+                self.user.userprofile.add_points(self.mission.points_reward)
+            elif self.progress > 0:
+                self.status = 'in_progress'
+            else:
+                self.status = 'not_started'
 
         self.save()
 
@@ -230,9 +238,10 @@ class MissionCompletion(models.Model):
     @receiver(post_save, sender=User)
     def assign_missions_to_new_user(sender, instance, created, **kwargs):
         """
-        Automatically assign daily missions to newly created users.
+        Automatically assign daily and weekly missions to newly created users.
         """
         if created:
+            # Assign daily missions
             daily_missions = Mission.objects.filter(mission_type="daily")
             for mission in daily_missions:
                 MissionCompletion.objects.get_or_create(
@@ -242,6 +251,16 @@ class MissionCompletion(models.Model):
                 )
             print(f"Daily missions assigned to new user: {instance.username}")
 
+            # Assign weekly missions
+            weekly_missions = Mission.objects.filter(mission_type="weekly")
+            for mission in weekly_missions:
+                MissionCompletion.objects.get_or_create(
+                    user=instance,
+                    mission=mission,
+                    defaults={"progress": 0, "status": "not_started"},
+                )
+            print(f"Weekly missions assigned to new user: {instance.username}")
+
     @shared_task
     def reset_daily_missions():
         today = now().date()
@@ -250,6 +269,18 @@ class MissionCompletion(models.Model):
         )
         completions.update(progress=0, status="not_started", completed_at=None)
         return f"Daily missions reset at {today}"
+        
+    @shared_task
+    def reset_weekly_missions():
+        """
+        Reset weekly missions for all users at the start of the week.
+        """
+        today = now().date()
+        completions = MissionCompletion.objects.filter(
+            mission__mission_type="weekly"
+        )
+        completions.update(progress=0, status="not_started", completed_at=None)
+        return f"Weekly missions reset at {today}"
 
 
 class SimulatedSavingsAccount(models.Model):

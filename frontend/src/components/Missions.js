@@ -5,6 +5,7 @@ import "../styles/Missions.css";
 
 function Missions() {
   const [dailyMissions, setDailyMissions] = useState([]);
+  const [weeklyMissions, setWeeklyMissions] = useState([]);
   const [savingsBalance, setSavingsBalance] = useState(0);
   const [showSavingsMenu, setShowSavingsMenu] = useState(false);
   const [savingsAmount, setSavingsAmount] = useState("");
@@ -41,6 +42,7 @@ function Missions() {
       );
       console.log("Fetched missions:", response.data);
       setDailyMissions(response.data.daily_missions || []);
+      setWeeklyMissions(response.data.weekly_missions || []);
     } catch (error) {
       console.error("Error fetching missions:", error);
       setErrorMessage("Failed to load missions. Please try again.");
@@ -166,6 +168,15 @@ function Missions() {
           dailyMissions.map(renderMission)
         ) : (
           <p>No daily missions available. Check back later!</p>
+        )}
+      </div>
+
+      <h2 className="text-center missions-title">Weekly Missions</h2>
+      <div className="missions-list">
+        {weeklyMissions.length > 0 ? (
+          weeklyMissions.map(renderMission)
+        ) : (
+          <p>No weekly missions available. Check back later!</p>
         )}
       </div>
     </div>
