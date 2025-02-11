@@ -382,24 +382,43 @@ class MissionView(APIView):
     def get(self, request):
         user = request.user
         try:
-            # Fetch daily missions
-            completions = MissionCompletion.objects.filter(
+            # Fetch daily and weekly missions
+            daily_completions = MissionCompletion.objects.filter(
                 user=user, mission__mission_type="daily"
             )
+            weekly_completions = MissionCompletion.objects.filter(
+                user=user, mission__mission_type="weekly"
+            )
 
-            response_data = []
-            for completion in completions:
-                response_data.append({
+            daily_missions = []
+            weekly_missions = []
+
+            for completion in daily_completions:
+                daily_missions.append({
                     "id": completion.mission.id,
                     "name": completion.mission.name,
                     "description": completion.mission.description,
                     "points_reward": completion.mission.points_reward,
                     "progress": completion.progress,
                     "status": completion.status,
-                    "goal_type": completion.mission.goal_type,  # Add goal_type here
+                    "goal_type": completion.mission.goal_type,
                 })
 
-            return Response({"daily_missions": response_data}, status=200)
+            for completion in weekly_completions:
+                weekly_missions.append({
+                    "id": completion.mission.id,
+                    "name": completion.mission.name,
+                    "description": completion.mission.description,
+                    "points_reward": completion.mission.points_reward,
+                    "progress": completion.progress,
+                    "status": completion.status,
+                    "goal_type": completion.mission.goal_type,
+                })
+
+            return Response({
+                "daily_missions": daily_missions,
+                "weekly_missions": weekly_missions,
+            }, status=200)
 
         except Exception as e:
             return Response(
