@@ -55,16 +55,28 @@ class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField() 
+    completed_lessons = serializers.SerializerMethodField()
+    total_lessons = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'path', 'title', 'description', 'lessons', 'quizzes', 'image']
+        fields = ['id', 'path', 'title', 'description', 'lessons', 'quizzes', 'image', 'completed_lessons', 'total_lessons']
 
     def get_image(self, obj):
         if obj.image:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.image.url)
         return None
+
+    def get_completed_lessons(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            progress = UserProgress.objects.filter(user=user, course=obj).first()
+            return progress.completed_lessons.count() if progress else 0
+        return 0
+
+    def get_total_lessons(self, obj):
+        return obj.lessons.count()
 
 class PathSerializer(serializers.ModelSerializer):
     courses = CourseSerializer(many=True, read_only=True)
