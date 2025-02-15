@@ -56,41 +56,44 @@ function PersonalizedPath({ onCourseClick }) {
 
           <div className="path-container">
             {personalizedCourses.map((course, index) => (
-              <div
-                key={course.id}
-                className={`path-item ${index % 2 === 0 ? "left" : "right"}`}
-              >
-                <div className="course-circle">
-                  {course.image && (
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="course-image"
-                      onError={(e) => {
-                        console.error("❌ Image failed to load:", course.image);
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  )}
+              <React.Fragment key={course.id}>
+                <div
+                  className={`path-item ${index % 2 === 0 ? "left" : "right"}`}
+                >
+                  <div className="course-node">
+                    <div className="course-circle">
+                      {course.image && (
+                        <img
+                          src={course.image}
+                          alt={course.title}
+                          className="course-image"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="horizontal-connector"></div>
+                  </div>
+
+                  <motion.div
+                    className="course-box"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => onCourseClick(course.id)}
+                  >
+                    <h4>{course.title}</h4>
+                    <p className="course-progress">
+                      {course.completed_lessons || 0}/
+                      {course.total_lessons || 0} Lessons
+                    </p>
+                  </motion.div>
                 </div>
 
-                <motion.div
-                  className="course-box"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onCourseClick(course.id)}
-                >
-                  <h4>{course.title}</h4>
-                  <p className="course-progress">
-                    {course.completed_lessons || 0}/{course.total_lessons || 0}{" "}
-                    Lessons Completed
-                  </p>
-                </motion.div>
-
                 {index < personalizedCourses.length - 1 && (
-                  <div className="connecting-line"></div>
+                  <div className="vertical-connector"></div>
                 )}
-              </div>
+              </React.Fragment>
             ))}
           </div>
         </>

@@ -752,18 +752,10 @@ logger = logging.getLogger(__name__)
 
 class PersonalizedPathView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         user = request.user
         user_profile = UserProfile.objects.get(user=user)
-
-        # Temporarily disable caching to force fresh serialization
-        # if user_profile.generated_images:
-        #     stored_courses = json.loads(user_profile.generated_images[0])
-        #     return Response({
-        #         "personalized_courses": stored_courses,
-        #         "message": "We've assembled a custom learning path based on your interests."
-        #     })
 
         responses = UserResponse.objects.filter(user=user)
         if not responses.exists():
@@ -809,22 +801,12 @@ class PersonalizedPathView(APIView):
         if not selected_courses:
             return Response({"error": "No suitable courses found for your preferences."}, status=404)
         
-        # Logging selected courses and their image data
-        print("DEBUG: Selected courses:")
-        for course in selected_courses:
-            print("DEBUG: Course ID:", course.id, "Title:", course.title, "Image:", course.image)
 
         serializer = CourseSerializer(
             selected_courses, 
             many=True, 
             context={'request': request}
         )
-
-        print("DEBUG: Serialized data:", serializer.data)
-
-        # For now, don't cache so we always see fresh data
-        # user_profile.generated_images = [json.dumps(serializer.data)]
-        # user_profile.save()
 
         return Response({
             "personalized_courses": serializer.data,
