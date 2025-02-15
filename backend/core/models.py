@@ -57,6 +57,7 @@ class UserProfile(models.Model):
 class Path(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    image = models.ImageField(upload_to='path_images/', blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -69,6 +70,7 @@ class Course(models.Model):
     path = models.ForeignKey(Path, on_delete=models.CASCADE, related_name="courses", null=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
+    image = models.ImageField(upload_to='course_images/', blank=True, null=True)
     
     def __str__(self):
         return self.title
