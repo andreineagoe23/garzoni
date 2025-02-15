@@ -9,7 +9,8 @@ __pycache__/
 
 # Backend
 /backend/.env
-
+backend/cache/__pycache__/
+.pyc
 # Frontend
 /frontend/.env
 .env
