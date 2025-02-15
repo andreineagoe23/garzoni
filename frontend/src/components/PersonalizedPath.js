@@ -3,7 +3,7 @@ import axios from "axios";
 import "../styles/PersonalizedPath.css";
 import { motion } from "framer-motion";
 
-function PersonalizedPath({ onCourseClick, imageMap }) {
+function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
   const [recommendationMessage, setRecommendationMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -18,14 +18,20 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
           { withCredentials: true }
         );
 
+        console.log("✅ API Response:", response.data);
+
         const courses = response.data?.personalized_courses || [];
         const message = response.data?.message || "";
 
-        console.log("✅ Fetched courses:", courses.length);
+        console.log("Fetched courses:", courses);
+        console.log(
+          "Image URLs:",
+          courses.map((course) => course.image)
+        );
 
         const updatedCourses = courses.map((course) => ({
           ...course,
-          image: imageMap[course.title] || null,
+          image: course.image,
         }));
 
         setPersonalizedCourses(updatedCourses);
@@ -38,7 +44,7 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
     };
 
     fetchPersonalizedPath();
-  }, [imageMap]);
+  }, []);
 
   return (
     <div className="personalized-path">
@@ -54,24 +60,36 @@ function PersonalizedPath({ onCourseClick, imageMap }) {
                 key={course.id}
                 className={`path-item ${index % 2 === 0 ? "left" : "right"}`}
               >
+                <div className="course-circle">
+                  {course.image && (
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      className="course-image"
+                      onError={(e) => {
+                        console.error("❌ Image failed to load:", course.image);
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  )}
+                </div>
+
                 <motion.div
                   className="course-box"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onCourseClick(course.id)}
                 >
-                  {course.image && (
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="course-image"
-                    />
-                  )}
-                  <div className="course-info">
-                    <h4>{course.title}</h4>
-                    <p>{course.description}</p>
-                  </div>
+                  <h4>{course.title}</h4>
+                  <p className="course-progress">
+                    {course.completed_lessons || 0}/{course.total_lessons || 0}{" "}
+                    Lessons Completed
+                  </p>
                 </motion.div>
+
+                {index < personalizedCourses.length - 1 && (
+                  <div className="connecting-line"></div>
+                )}
               </div>
             ))}
           </div>

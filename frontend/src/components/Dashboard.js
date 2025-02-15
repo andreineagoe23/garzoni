@@ -8,23 +8,6 @@ import Chatbot from "./Chatbot";
 import "../styles/Dashboard.css";
 import "../styles/PersonalizedPath.css";
 
-// Import images
-import BasicFinanceImage from "../assets/basicfinance.png";
-import CryptoImage from "../assets/crypto.png";
-import RealEstateImage from "../assets/realestate.png";
-import ForexImage from "../assets/forex.png";
-import PersonalFinanceImage from "../assets/personalfinance.png";
-import MindsetImage from "../assets/mindset.png";
-
-const imageMap = {
-  "Basic Finance": BasicFinanceImage,
-  Crypto: CryptoImage,
-  "Real Estate": RealEstateImage,
-  Forex: ForexImage,
-  "Personal Finance": PersonalFinanceImage,
-  "Financial Mindset": MindsetImage,
-};
-
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [userProgress, setUserProgress] = useState(null);
@@ -35,18 +18,16 @@ function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Determine active tab
   const activePage = location.pathname.includes("personalized-path")
     ? "personalized-path"
     : "all-topics";
 
-  // Fetch user data and progress
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true } // ✅ Use cookies for authentication
+          { withCredentials: true }
         );
 
         setUser(profileResponse.data.user_data);
@@ -55,7 +36,7 @@ function Dashboard() {
         );
       } catch (error) {
         console.error("Error fetching user data:", error);
-        navigate("/login"); // Redirect if not authenticated
+        navigate("/login");
       }
     };
 
@@ -63,7 +44,7 @@ function Dashboard() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
-          { withCredentials: true } // ✅ Use cookies for authentication
+          { withCredentials: true }
         );
         setUserProgress(response.data);
       } catch (error) {
@@ -75,7 +56,6 @@ function Dashboard() {
     fetchUserProgress();
   }, [navigate]);
 
-  // Handle logout with HTTP-only cookies
   const handleLogout = async () => {
     try {
       await axios.post(
@@ -83,7 +63,7 @@ function Dashboard() {
         {},
         { withCredentials: true }
       );
-      window.location.href = "/login"; // ✅ Refresh session to clear state
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -136,16 +116,12 @@ function Dashboard() {
         </div>
 
         {activePage === "all-topics" ? (
-          <AllTopics onCourseClick={handleCourseClick} imageMap={imageMap} />
+          <AllTopics onCourseClick={handleCourseClick} />
         ) : (
-          <PersonalizedPath
-            onCourseClick={handleCourseClick}
-            imageMap={imageMap}
-          />
+          <PersonalizedPath onCourseClick={handleCourseClick} />
         )}
       </div>
 
-      {/* Display user progress if available */}
       <div className="user-progress">
         {userProgress ? (
           <UserProgressBox userProgress={userProgress} />

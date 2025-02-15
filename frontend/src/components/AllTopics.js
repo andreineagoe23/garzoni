@@ -3,7 +3,7 @@ import axios from "axios";
 import LearningPathList from "./LearningPathList";
 import "../styles/AllTopics.css";
 
-function AllTopics({ onCourseClick, imageMap }) {
+function AllTopics({ onCourseClick }) {
   const [learningPaths, setLearningPaths] = useState([]);
   const [activePathId, setActivePathId] = useState(null);
 
@@ -19,7 +19,7 @@ function AllTopics({ onCourseClick, imageMap }) {
 
         const updatedPaths = response.data.map((path) => ({
           ...path,
-          image: imageMap[path.title] || null,
+          image: path.image ? path.image : null,
         }));
 
         setLearningPaths(updatedPaths);
@@ -32,7 +32,7 @@ function AllTopics({ onCourseClick, imageMap }) {
     };
 
     fetchPaths();
-  }, [imageMap]);
+  }, []);
 
   const handleTogglePath = (pathId) => {
     setActivePathId((prevId) => (prevId === pathId ? null : pathId));
@@ -63,6 +63,7 @@ function AllTopics({ onCourseClick, imageMap }) {
                 activePathId={path.id}
                 onTogglePath={handleTogglePath}
                 onCourseClick={onCourseClick}
+                showCourseImages={false}
               />
             )}
           </div>

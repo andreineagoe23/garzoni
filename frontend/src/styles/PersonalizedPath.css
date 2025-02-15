@@ -2,9 +2,8 @@
    PersonalizedPath.css
 =========================== */
 
-/* ----- Base / Large Screens (width >= 1200px) ----- */
 .personalized-path {
-  margin-left: 260px; /* Wide sidebars for large screens */
+  margin-left: 260px;
   margin-right: 320px;
   padding: 20px;
   min-height: 90vh;
@@ -24,18 +23,19 @@
   text-align: center;
   font-size: 1.2rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 900px;
 }
 
-/* The main container that holds the "road" line and items */
 .path-container {
   position: relative;
   width: 100%;
-  max-width: 900px; /* Slightly larger max-width for big screens */
+  max-width: 900px;
   margin-top: 30px;
   padding: 20px 0;
 }
 
-/* Vertical "road" line down the center */
+/* Vertical connection line */
 .path-container::before {
   content: "";
   position: absolute;
@@ -44,188 +44,238 @@
   bottom: 0;
   width: 4px;
   background: #ffd700;
+  transform: translateX(-50%);
   z-index: 1;
 }
 
-/* Each item is 50% width, so it sits on the left or right of the line */
 .path-item {
   position: relative;
   width: 50%;
   padding: 20px 40px;
   box-sizing: border-box;
+  min-height: 150px;
 }
 
-/* Left items on the left half */
 .path-item.left {
   left: 0;
   text-align: right;
 }
 
-/* Right items on the right half (start at 50%) */
 .path-item.right {
   left: 50%;
   text-align: left;
 }
 
-/* The "dot" on the line for each item */
-.path-item.left::before,
-.path-item.right::before {
-  content: "";
+/* Course Image Container */
+.course-image-container {
   position: absolute;
-  top: 30px; /* adjust vertical alignment of the dot */
-  width: 20px;
-  height: 20px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: #ffd700;
-  border: 2px solid #003a12;
+  overflow: hidden;
+  border: 3px solid #ffd700;
   z-index: 2;
+  top: 20%;
 }
 
-.path-item.left::before {
-  right: -10px;
+.path-item.left .course-image-container {
+  right: -120px;
 }
 
-.path-item.right::before {
-  left: -10px;
+.path-item.right .course-image-container {
+  left: -120px;
 }
 
-/* Course boxes themselves */
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Course Box Styling */
 .course-box {
-  padding: 15px;
+  padding: 20px;
   background: #003a12;
   border-radius: 12px;
-  text-align: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   border: 2px solid #ffd700;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
   position: relative;
   z-index: 2;
 }
 
 .course-box:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Title Styling */
+.course-box h4 {
+  color: #ffd700 !important;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
+}
+
+/* Progress Styling */
+.course-progress {
+  color: #c0c0c0;
+  font-size: 0.9rem;
+}
+
+/* Connection Dots */
+.path-item::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: #002d0b;
+  border: 3px solid #ffd700;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+.path-item.left::after {
+  right: -60px;
+}
+
+.path-item.right::after {
+  left: -60px;
+}
+
+/* Connection Lines Between Items */
+.path-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  background: #ffd700;
+  z-index: 1;
+  height: 2px;
+  width: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.path-item.left:not(:last-child)::before {
+  right: -80px;
+}
+
+.path-item.right:not(:last-child)::before {
+  left: -80px;
+}
+
+/* PersonalizedPath.css */
+.course-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
 }
 
 .course-image {
-  width: 80%;
-  height: auto;
-  border-radius: 8px;
-  border: 3px solid #ffd700;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.course-info h4 {
-  font-size: 1.4rem;
-  color: #ffd700;
-  margin-bottom: 5px;
+.connecting-line {
+  height: 50px;
+  width: 2px;
+  background: #666;
+  margin: 0 auto;
 }
 
-.course-info p {
-  font-size: 1rem;
-  color: #ddd;
+.path-item {
+  margin: 2rem 0;
+  text-align: center;
 }
 
-/* OPTIONAL: Scrollbar customization */
-.personalized-path::-webkit-scrollbar {
-  width: 8px;
-}
-.personalized-path::-webkit-scrollbar-thumb {
-  background: #ffd700;
-  border-radius: 4px;
-}
-.personalized-path::-webkit-scrollbar-track {
-  background: #002d0b;
-}
-
-/* =========================================
-   Breakpoint #1: Large Laptops (max-width: 1200px)
-   - Reduce side margins
-========================================= */
+/* Responsive Adjustments */
 @media (max-width: 1980px) {
   .personalized-path {
     margin-left: 100px;
     margin-right: 100px;
   }
-
-  .path-container {
-    max-width: 700px; /* narrower container */
-  }
 }
 
-/* =========================================
-   Breakpoint #2: Tablets & Small Laptops (max-width: 992px)
-   - Further reduce side margins
-========================================= */
 @media (max-width: 992px) {
   .personalized-path {
     margin-left: 50px;
     margin-right: 50px;
   }
-
-  .path-container {
-    max-width: 600px;
-  }
 }
 
-/* =========================================
-   Breakpoint #3: Mobile & Very Small Screens (max-width: 768px)
-   - Switch to single-column, stack items
-========================================= */
 @media (max-width: 768px) {
   .personalized-path {
-    margin-left: 20px; /* or 0, if you prefer */
+    margin-left: 20px;
     margin-right: 20px;
-    padding: 10px;
   }
 
-  .path-container {
-    max-width: 500px;
-    padding: 0;
-  }
-
-  /* Move the line to the left or keep center—your choice.
-     Let's keep it near the left for a "timeline" look. */
   .path-container::before {
-    left: 20px; /* Road line pinned to left side */
+    display: none;
   }
 
-  /* Each item spans the full width in single-column layout */
   .path-item {
-    width: 100%;
-    left: 0 !important; /* override .left, .right positioning */
-    text-align: left; /* or center, your preference */
-    padding: 15px 30px;
-    margin-bottom: 30px; /* space between items */
+    width: 100% !important;
+    left: 0 !important;
+    text-align: center !important;
+    padding: 40px 20px !important;
   }
 
-  /* Dot alignment on the left "road" */
-  .path-item.left::before,
-  .path-item.right::before {
-    left: -30px;
-    right: auto;
+  .course-image-container {
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto 20px !important;
+  }
+
+  .path-item::after,
+  .path-item::before {
+    display: none;
   }
 }
 
-/* =========================================
-   Breakpoint #4: Extra Small (max-width: 576px)
-   - Final tweaks for very narrow phones
-========================================= */
 @media (max-width: 576px) {
-  .path-container {
-    max-width: 100%;
+  .course-image-container {
+    width: 80px;
+    height: 80px;
   }
 
-  .path-item {
-    padding: 10px;
-    margin-bottom: 20px;
-  }
-
-  .course-box {
-    padding: 10px;
-  }
-
-  .course-info h4 {
+  .course-box h4 {
     font-size: 1.2rem;
   }
+}
+
+/* PersonalizedPath.css */
+.course-thumbnail {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.course-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #2c3e50;
+  margin: 0 auto 1rem;
+}
+
+.course-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.connecting-line {
+  height: 40px;
+  width: 2px;
+  background: #2c3e50;
+  margin: 0 auto;
 }

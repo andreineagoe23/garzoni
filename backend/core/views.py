@@ -121,12 +121,6 @@ class PathViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        # 🔥 Log cookies received by Django
-        print("🔍 Incoming Request Cookies:", request.COOKIES)
-
-        if settings.SIMPLE_JWT['AUTH_COOKIE'] not in request.COOKIES:
-            print("❌ JWT Token Missing from Cookies!")
-
         return super().list(request, *args, **kwargs)
 
 
@@ -627,7 +621,7 @@ class PasswordResetRequestView(APIView):
             return Response({"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND)
 
 class PasswordResetConfirmView(APIView):
-    permission_classes = [AllowAny]  # Allow unauthenticated users
+    permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
         try:
@@ -666,13 +660,13 @@ class QuestionnaireView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Fetch all questions
+
         questions = Question.objects.order_by('order')
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        # Save user's answers (anonymous if not authenticated)
+
         answers = request.data.get('answers', {})
         user = request.user if request.user.is_authenticated else None
 
@@ -691,7 +685,6 @@ class RecommendationView(APIView):
         responses = UserResponse.objects.filter(user_id=user_id)
         recommended_path = None
 
-        # Assign recommendations based on user responses
         recommendations = {
             "Basic Finance": "It looks like you're interested in budgeting and saving. Start with Basic Finance to build strong financial habits!",
             "Crypto": "You've mentioned crypto or blockchain. Our Crypto path will guide you through the fundamentals of digital assets.",
@@ -729,12 +722,11 @@ class QuestionnaireSubmitView(APIView):
             return Response({"error": "No answers provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # ✅ Ensure that we only store user responses (no `course_id`)
+
             for question_id, answer in answers.items():
                 question = Question.objects.get(id=question_id)
                 UserResponse.objects.create(user=user, question=question, answer=answer)
 
-            # ✅ Update `is_questionnaire_completed` directly in UserProfile instead of UserProgress
             user_profile = UserProfile.objects.get(user=user)
             user_profile.wants_personalized_path = True
             user_profile.save()
@@ -744,8 +736,9 @@ class QuestionnaireSubmitView(APIView):
         except Question.DoesNotExist:
             return Response({"error": "Invalid question ID."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Error in QuestionnaireSubmitView: {e}")  # Debugging
+            print(f"Error in QuestionnaireSubmitView: {e}")
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 import logging
 import json
 from collections import defaultdict
@@ -755,34 +748,27 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Course, Path, UserResponse, UserProfile
 from .serializers import CourseSerializer
 
-logger = logging.getLogger(__name__)  # ✅ Create a logger
+logger = logging.getLogger(__name__)
 
 class PersonalizedPathView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
         user = request.user
         user_profile = UserProfile.objects.get(user=user)
 
-        # ✅ Log the request
-        logger.info(f"Fetching personalized path for user: {user.username}")
+        # Temporarily disable caching to force fresh serialization
+        # if user_profile.generated_images:
+        #     stored_courses = json.loads(user_profile.generated_images[0])
+        #     return Response({
+        #         "personalized_courses": stored_courses,
+        #         "message": "We've assembled a custom learning path based on your interests."
+        #     })
 
-        # ✅ Check if user already has stored courses
-        if user_profile.generated_images:
-            stored_courses = json.loads(user_profile.generated_images[0])
-            logger.info(f"Returning stored courses for {user.username}: {len(stored_courses)} courses")
-            return Response({
-                "personalized_courses": stored_courses,
-                "message": "We've assembled a custom learning path based on your interests."
-            })
-
-        # ✅ Get the user's responses from the questionnaire
         responses = UserResponse.objects.filter(user=user)
         if not responses.exists():
-            logger.warning(f"No questionnaire responses found for {user.username}")
             return Response({"error": "No questionnaire responses found."}, status=404)
 
-        # ✅ Define path relevance keywords
         path_keywords = {
             "Financial Mindset": ["mindset", "psychology", "discipline", "growth"],
             "Personal Finance": ["budget", "saving", "spending", "invest"],
@@ -792,7 +778,6 @@ class PersonalizedPathView(APIView):
             "Basic Finance": ["finance", "credit", "debt", "investment"],
         }
 
-        # ✅ Assign relevance scores to paths based on responses
         path_scores = defaultdict(int)
         for response in responses:
             for path, keywords in path_keywords.items():
@@ -800,45 +785,46 @@ class PersonalizedPathView(APIView):
                     path_scores[path] += 1
 
         sorted_paths = sorted(path_scores.items(), key=lambda x: x[1], reverse=True)
-        logger.info(f"Paths sorted by relevance: {sorted_paths}")
 
         selected_courses = []
         used_paths = set()
         total_courses_needed = 10
 
-        # ✅ Step 1: Select courses from the most relevant paths
         for path_name, _ in sorted_paths:
             path_obj = Path.objects.filter(title=path_name).first()
             if path_obj and path_obj.id not in used_paths:
-                courses = list(Course.objects.filter(path=path_obj)[:2])  # Pick 2 courses per path
-                logger.info(f"Found {len(courses)} courses in {path_name}")
+                courses = list(Course.objects.filter(path=path_obj)[:2])
                 selected_courses.extend(courses)
                 used_paths.add(path_obj.id)
 
             if len(selected_courses) >= total_courses_needed:
-                break  # Stop once we have 10 courses
+                break 
 
-        logger.info(f"After selecting from relevant paths: {len(selected_courses)} courses selected.")
-
-        # ✅ Step 2: If still fewer than 10 courses, add more from other paths
         if len(selected_courses) < total_courses_needed:
             remaining_courses = list(
                 Course.objects.exclude(id__in=[c.id for c in selected_courses])[:total_courses_needed - len(selected_courses)]
             )
             selected_courses.extend(remaining_courses)
 
-        logger.info(f"After adding additional courses: {len(selected_courses)} courses selected.")
-
         if not selected_courses:
-            logger.error(f"No courses found for {user.username}")
             return Response({"error": "No suitable courses found for your preferences."}, status=404)
+        
+        # Logging selected courses and their image data
+        print("DEBUG: Selected courses:")
+        for course in selected_courses:
+            print("DEBUG: Course ID:", course.id, "Title:", course.title, "Image:", course.image)
 
-        logger.info(f"Final selection: {len(selected_courses)} courses for {user.username}")
+        serializer = CourseSerializer(
+            selected_courses, 
+            many=True, 
+            context={'request': request}
+        )
 
-        # ✅ Store selected courses in user profile so they remain consistent
-        serializer = CourseSerializer(selected_courses, many=True)
-        user_profile.generated_images = [json.dumps(serializer.data)]
-        user_profile.save()
+        print("DEBUG: Serialized data:", serializer.data)
+
+        # For now, don't cache so we always see fresh data
+        # user_profile.generated_images = [json.dumps(serializer.data)]
+        # user_profile.save()
 
         return Response({
             "personalized_courses": serializer.data,
