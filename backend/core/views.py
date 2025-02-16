@@ -903,19 +903,20 @@ class RecentActivityView(APIView):
 
         return Response({"recent_activities": sorted_activities})
 
-# views.py
 class RewardViewSet(viewsets.ModelViewSet):
     serializer_class = RewardSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        reward_type = self.request.query_params.get('type')
+        reward_type = self.kwargs.get('type', None)
         queryset = Reward.objects.filter(is_active=True)
         
         if reward_type in ['shop', 'donate']:
             queryset = queryset.filter(type=reward_type)
             
         return queryset
+
+        
 class UserPurchaseViewSet(viewsets.ModelViewSet):
     serializer_class = UserPurchaseSerializer
     permission_classes = [IsAuthenticated]
@@ -924,27 +925,38 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
         return UserPurchase.objects.filter(user=self.request.user)
 
     def create(self, request):
-        reward_id = request.data.get('reward_id')
         try:
-            reward = Reward.objects.get(id=reward_id, is_active=True)
+            # Validate required fields
+            reward_id = request.data.get('reward_id')
+            if not reward_id:
+                return Response({"error": "Missing reward_id"}, status=400)
+
+            # Get objects
             user_profile = request.user.userprofile
-            
-            # Check if user has enough currency
+            reward = Reward.objects.get(id=reward_id, is_active=True)
+
+            # Validate balance
             if user_profile.earned_money < reward.cost:
-                return Response({"error": "Insufficient funds"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Deduct currency
+                return Response({"error": "Insufficient funds"}, status=400)
+
+            # Process transaction
             user_profile.earned_money -= reward.cost
             user_profile.save()
-            
+
             # Create purchase record
-            purchase = UserPurchase.objects.create(user=request.user, reward=reward)
-            
+            purchase = UserPurchase.objects.create(
+                user=request.user,
+                reward=reward
+            )
+
             return Response({
-                "message": "Purchase successful!",
+                "message": "Transaction successful!",
                 "remaining_balance": float(user_profile.earned_money),
                 "purchase": UserPurchaseSerializer(purchase).data
-            }, status=status.HTTP_201_CREATED)
-            
+            }, status=201)
+
         except Reward.DoesNotExist:
-            return Response({"error": "Reward not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Reward not found or inactive"}, status=404)
+        except Exception as e:
+            logger.error(f"Purchase error: {str(e)}")
+            return Response({"error": "Server error processing transaction"}, status=500)

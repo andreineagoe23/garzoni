@@ -41,8 +41,6 @@ router.register(r'courses', CourseViewSet)
 router.register(r'lessons', LessonViewSet)
 router.register(r'quizzes', QuizViewSet)
 router.register(r'paths', PathViewSet)
-router.register(r'rewards', RewardViewSet, basename='rewards')
-router.register(r'purchases', UserPurchaseViewSet, basename='purchases')
 
 urlpatterns = [
     path('', include(router.urls)),

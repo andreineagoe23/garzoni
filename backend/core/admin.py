@@ -10,6 +10,7 @@ from .models import (
     MissionCompletion,
     SimulatedSavingsAccount,
     Question,
+    Reward,
 )
 
 class LessonAdmin(admin.ModelAdmin):
@@ -50,6 +51,18 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ('order',)
     search_fields = ('text',)
 
+class RewardAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type', 'cost', 'is_active')
+    list_filter = ('type', 'is_active')
+    fieldsets = (
+        (None, {'fields': ('name', 'description', 'cost', 'type', 'image', 'is_active')}),
+        ('Donation Specific', {
+            'fields': ('donation_organization',),
+            'classes': ('collapse',),
+            'description': 'Only fill for donation causes'
+        }),
+    )
+
 # Register models in the admin panel
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(Path)
@@ -61,3 +74,4 @@ admin.site.register(Mission, MissionAdmin)
 admin.site.register(MissionCompletion, MissionCompletionAdmin)
 admin.site.register(SimulatedSavingsAccount, SimulatedSavingsAccountAdmin)
 admin.site.register(Question, QuestionAdmin)
+admin.site.register(Reward, RewardAdmin)
