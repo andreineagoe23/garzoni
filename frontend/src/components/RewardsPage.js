@@ -14,9 +14,13 @@ function RewardsPage() {
         `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
         { withCredentials: true }
       );
-      setBalance(response.data.earned_money);
+      // Match the Profile.js data structure
+      setBalance(parseFloat(response.data.user_data.earned_money).toFixed(2));
     } catch (error) {
       console.error("Error fetching balance:", error);
+      if (error.response?.status === 401) {
+        alert("Please login to view balance");
+      }
     }
   };
 
