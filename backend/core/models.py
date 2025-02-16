@@ -340,3 +340,30 @@ class PathRecommendation(models.Model):
 
     def __str__(self):
         return self.name
+
+# models.py
+class Reward(models.Model):
+    REWARD_TYPES = [
+        ('shop', 'Shop Item'),
+        ('donate', 'Donation Cause')
+    ]
+    
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    type = models.CharField(max_length=10, choices=REWARD_TYPES)
+    image = models.ImageField(upload_to='rewards/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    donation_organization = models.CharField(max_length=200, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class UserPurchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reward = models.ForeignKey(Reward, on_delete=models.CASCADE)
+    purchased_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.reward.name}"
