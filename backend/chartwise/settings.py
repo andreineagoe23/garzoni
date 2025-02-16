@@ -178,6 +178,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://kind-gently-ostrich.ngrok-free.app",
 ]
 
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+]
+
 CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',

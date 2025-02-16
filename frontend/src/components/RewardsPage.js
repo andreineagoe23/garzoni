@@ -8,18 +8,19 @@ function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
   const [balance, setBalance] = useState(0);
 
+  const fetchBalance = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+        { withCredentials: true }
+      );
+      setBalance(response.data.earned_money);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true }
-        );
-        setBalance(response.data.earned_money);
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    };
     fetchBalance();
   }, []);
 
@@ -49,12 +50,8 @@ function RewardsPage() {
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "shop" && (
-          <ShopItems onPurchase={() => setBalance(balance - 5)} />
-        )}
-        {activeTab === "donate" && (
-          <DonationCauses onDonate={() => setBalance(balance - 10)} />
-        )}
+        {activeTab === "shop" && <ShopItems onPurchase={fetchBalance} />}
+        {activeTab === "donate" && <DonationCauses onDonate={fetchBalance} />}
       </div>
     </div>
   );

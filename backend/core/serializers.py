@@ -167,8 +167,17 @@ class RewardSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'cost', 'type', 'image', 'donation_organization']
 
 class UserPurchaseSerializer(serializers.ModelSerializer):
-    reward = RewardSerializer(read_only=True)
-    
+    reward = RewardSerializer(read_only=True) 
+
     class Meta:
         model = UserPurchase
         fields = ['id', 'reward', 'purchased_at']
+        read_only_fields = ['reward', 'purchased_at']
+
+    def create(self, validated_data):
+
+        reward = validated_data.get('reward')
+        return UserPurchase.objects.create(
+            user=self.context['request'].user,
+            reward=reward
+        )
