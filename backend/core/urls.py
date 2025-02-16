@@ -25,6 +25,8 @@ from .views import (
     PersonalizedPathView,
     get_exercise_progress,
     RecentActivityView,
+    RewardViewSet,
+    UserPurchaseViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -39,6 +41,8 @@ router.register(r'courses', CourseViewSet)
 router.register(r'lessons', LessonViewSet)
 router.register(r'quizzes', QuizViewSet)
 router.register(r'paths', PathViewSet)
+router.register(r'rewards', RewardViewSet, basename='rewards')
+router.register(r'purchases', UserPurchaseViewSet, basename='purchases')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -81,4 +85,8 @@ urlpatterns = [
 
     path('exercises/progress/<int:exercise_id>/', get_exercise_progress, name='exercise-progress'),
     path('recent-activity/', RecentActivityView.as_view(), name='recent-activity'),
+
+    path('rewards/shop/', RewardViewSet.as_view({'get': 'list'}), {'type': 'shop'}, name='shop-rewards'),
+    path('rewards/donate/', RewardViewSet.as_view({'get': 'list'}), {'type': 'donate'}, name='donate-rewards'),
+    path('purchases/', UserPurchaseViewSet.as_view({'post': 'create'}), name='purchases-create'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,151 @@
+/* RewardsPage.module.css */
+.rewardsPage {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.tabButtons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.tabButton {
+  padding: 12px 24px;
+  margin: 0 15px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.tabButton.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.tabButton:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.shopContainer,
+.donateContainer {
+  margin-top: 20px;
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  padding: 0 20px;
+}
+
+.itemCard {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 25px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.itemCard:hover {
+  transform: translateY(-5px);
+}
+
+.itemImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.itemFooter {
+  margin-top: auto;
+  padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.itemCost {
+  font-weight: bold;
+  color: #007bff;
+  font-size: 1.2rem;
+}
+
+.organization {
+  font-size: 1em;
+  color: #666;
+}
+
+.buyButton,
+.donateButton {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+@media (max-width: 1200px) {
+  .rewardsPage {
+    margin-left: 200px;
+  }
+
+  .itemsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .rewardsPage {
+    margin-left: 180px;
+  }
+
+  .itemCard {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rewardsPage {
+    margin-left: 0;
+    padding-top: 70px;
+  }
+
+  .itemsGrid {
+    grid-template-columns: 1fr;
+    padding: 0 10px;
+  }
+
+  .itemCard {
+    min-height: auto;
+  }
+
+  .tabButton {
+    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .tabButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tabButton {
+    width: 100%;
+    margin: 0;
+  }
+}

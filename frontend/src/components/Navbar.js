@@ -73,6 +73,14 @@ function Navbar() {
               Settings
             </NavLink>
           </li>
+          <li>
+            <NavLink
+              to="/rewards"
+              className={({ isActive }) => (isActive ? styles.active : "")}
+            >
+              Rewards
+            </NavLink>
+          </li>
         </ul>
       </div>
     </div>

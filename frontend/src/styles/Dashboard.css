@@ -7,11 +7,8 @@
 
 .main-content {
   flex: 1;
-  /* Default: match the 250px (navbar) + 320px (user progress) => 570 total.
-     We'll override at breakpoints to match the navbar changes 
-     and a smaller pinned progress box. */
   margin-left: 250px;
-  margin-right: 300px; /* pinned user progress is 300px now */
+  margin-right: 300px;
   padding: 20px;
   overflow-y: auto;
   background-color: #f9f9f9;

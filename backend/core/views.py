@@ -14,11 +14,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, LessonCompletion, QuizCompletion
+from .models import (UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
+LessonCompletion, QuizCompletion, Reward, UserPurchase)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
-    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, 
+    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -901,3 +902,49 @@ class RecentActivityView(APIView):
         )[:15]
 
         return Response({"recent_activities": sorted_activities})
+
+# views.py
+class RewardViewSet(viewsets.ModelViewSet):
+    serializer_class = RewardSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        reward_type = self.request.query_params.get('type')
+        queryset = Reward.objects.filter(is_active=True)
+        
+        if reward_type in ['shop', 'donate']:
+            queryset = queryset.filter(type=reward_type)
+            
+        return queryset
+class UserPurchaseViewSet(viewsets.ModelViewSet):
+    serializer_class = UserPurchaseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserPurchase.objects.filter(user=self.request.user)
+
+    def create(self, request):
+        reward_id = request.data.get('reward_id')
+        try:
+            reward = Reward.objects.get(id=reward_id, is_active=True)
+            user_profile = request.user.userprofile
+            
+            # Check if user has enough currency
+            if user_profile.earned_money < reward.cost:
+                return Response({"error": "Insufficient funds"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Deduct currency
+            user_profile.earned_money -= reward.cost
+            user_profile.save()
+            
+            # Create purchase record
+            purchase = UserPurchase.objects.create(user=request.user, reward=reward)
+            
+            return Response({
+                "message": "Purchase successful!",
+                "remaining_balance": float(user_profile.earned_money),
+                "purchase": UserPurchaseSerializer(purchase).data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Reward.DoesNotExist:
+            return Response({"error": "Reward not found"}, status=status.HTTP_404_NOT_FOUND)

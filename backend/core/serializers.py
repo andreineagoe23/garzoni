@@ -1,7 +1,7 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation
+from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase
 
 class RegisterSerializer(serializers.ModelSerializer):
     wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
@@ -21,19 +21,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.userprofile.save()
         return user
 
+# serializers.py
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
+    balance = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
-        fields = ["user", "email_reminders", "earned_money", "points", "profile_picture", "profile_avatar", "generated_images"]
+        fields = ["user", "email_reminders", "earned_money", "points", "profile_picture", 
+                 "profile_avatar", "generated_images", "balance"]
 
-    def get_user(self, obj):
-        return {
-            "id": obj.user.id,
-            "username": obj.user.username,
-            "email": obj.user.email,
-        }
+    def get_balance(self, obj):
+        return float(obj.earned_money)
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -160,3 +159,16 @@ class PathRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PathRecommendation
         fields = '__all__'
+
+
+class RewardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reward
+        fields = ['id', 'name', 'description', 'cost', 'type', 'image', 'donation_organization']
+
+class UserPurchaseSerializer(serializers.ModelSerializer):
+    reward = RewardSerializer(read_only=True)
+    
+    class Meta:
+        model = UserPurchase
+        fields = ['id', 'reward', 'purchased_at']

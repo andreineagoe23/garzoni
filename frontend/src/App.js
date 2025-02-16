@@ -22,6 +22,7 @@ import Questionnaire from "./components/Questionnaire";
 import ToolsPage from "./components/ToolsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import RewardsPage from './components/RewardsPage';
 
 function AppContent() {
   const location = useLocation();
@@ -67,6 +68,7 @@ function AppContent() {
           <Route path="/questionnaire" element={<Questionnaire />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/rewards" element={<RewardsPage />} />
           <Route path="/courses/:pathId" element={<CoursePage />} />
           <Route path="/lessons/:courseId" element={<LessonPage />} />
           <Route path="/quiz/:courseId" element={<QuizPage />} />
