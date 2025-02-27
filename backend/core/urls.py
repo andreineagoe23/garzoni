@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from . import views
 from .views import (
     UserProfileViewSet,
     CourseViewSet,
@@ -30,6 +31,7 @@ from .views import (
     get_csrf_token,
     UserBadgeViewSet,
     BadgeViewSet,
+    update_avatar,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -59,8 +61,9 @@ urlpatterns = [
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
 
-    path("userprofile/", UserProfileView.as_view(), name="userprofile"),  # Ensure this is mapped
+    path("userprofile/", UserProfileView.as_view(), name="userprofile"),
     path("userprofiles/", include(router.urls)),  
+    path('update-avatar/', views.update_avatar, name='update_avatar'),
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),

@@ -195,13 +195,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
     badges = UserBadgeSerializer(many=True, read_only=True, source='user.earned_badges')
-
+    
     class Meta:
         model = UserProfile
         fields = [
             "user", "email_reminders", "earned_money", "points", "profile_picture",
             "profile_avatar", "generated_images", "balance", "badges"
         ]
-
+    
     def get_balance(self, obj):
         return float(obj.earned_money)

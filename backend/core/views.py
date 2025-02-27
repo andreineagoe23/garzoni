@@ -176,6 +176,31 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_avatar(request):
+    """Update user's avatar"""
+    avatar_url = request.data.get('profile_avatar')
+    
+    if not avatar_url or not (
+        avatar_url.startswith('https://avatars.dicebear.com/') or 
+        avatar_url.startswith('https://api.dicebear.com/')
+    ):
+        return Response(
+            {"error": "Invalid avatar URL. Only DiceBear avatars are allowed."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user_profile = request.user.userprofile
+    user_profile.profile_avatar = avatar_url
+    user_profile.save()
+    
+    return Response({"status": "success", "avatar_url": avatar_url})
 
 from .utils import check_and_award_badge
 
