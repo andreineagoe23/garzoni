@@ -16,11 +16,12 @@ function Profile() {
   });
   const [imageUrl, setImageUrl] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [badges, setBadges] = useState([]);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        // Fetch profile data
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { withCredentials: true }
@@ -41,13 +42,11 @@ function Profile() {
           profileResponse.data.profile_avatar || "/default-avatar.png"
         );
 
-        // Fetch recent activity
         const activityResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
           { withCredentials: true }
         );
 
-        // Format activity data
         const formattedActivities = activityResponse.data.recent_activities.map(
           (activity) => ({
             id: `${activity.type}-${activity.timestamp}`,
@@ -60,15 +59,34 @@ function Profile() {
         );
 
         setRecentActivity(formattedActivities);
+
+        const badgesResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/user-badges/`,
+          { withCredentials: true }
+        );
+
+        setBadges(badgesResponse.data);
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
 
     fetchProfileData();
+
+    // Listen for navbar toggle events
+    const handleNavToggle = (e) => {
+      if (e.detail && typeof e.detail.isOpen === "boolean") {
+        setIsNavOpen(e.detail.isOpen);
+      }
+    };
+
+    window.addEventListener("navToggle", handleNavToggle);
+
+    return () => {
+      window.removeEventListener("navToggle", handleNavToggle);
+    };
   }, []);
 
-  // Helper function to format activity text
   const formatActivityText = (activity) => {
     switch (activity.type) {
       case "lesson":
@@ -85,7 +103,11 @@ function Profile() {
   };
 
   return (
-    <div className="container profile-container my-5">
+    <div
+      className={`container profile-container my-5 ${
+        isNavOpen ? "nav-open" : ""
+      }`}
+    >
       <div className="card p-4 shadow-sm">
         <h2 className="text-center mb-4">Profile</h2>
 
@@ -122,12 +144,30 @@ function Profile() {
           </div>
         </div>
 
+        <h3 className="mt-4">Earned Badges</h3>
+        <div className="badges-section d-flex flex-wrap justify-content-center">
+          {badges.length > 0 ? (
+            badges.map((userBadge) => (
+              <div key={userBadge.badge.id} className="badge-card">
+                <img
+                  src={userBadge.badge.image_url}
+                  alt={userBadge.badge.name}
+                  className="badge-image"
+                />
+                <p className="badge-name">{userBadge.badge.name}</p>
+              </div>
+            ))
+          ) : (
+            <p>No badges earned yet</p>
+          )}
+        </div>
+
         <h3 className="mt-4">Recent Activity</h3>
         <ul className="list-group">
           {recentActivity.length > 0 ? (
             recentActivity.map((activity) => (
               <li key={activity.id} className="list-group-item">
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-center w-100">
                   <div>
                     <strong>{formatActivityText(activity)}</strong>
                   </div>

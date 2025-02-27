@@ -1,10 +1,15 @@
 /* General Profile Page Container */
 .profile-container {
-  margin-left: 250px; /* Adjust for left-side navbar */
+  margin-left: 250px;
   padding: 20px;
   background-color: #f4f4f4;
   min-height: 100vh;
   box-sizing: border-box;
+  transition: margin-left 0.3s ease;
+  width: calc(100% - 250px);
+  position: relative;
+  top: 0;
+  left: 0;
 }
 
 /* Card Styling */
@@ -14,6 +19,9 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 25px;
   background-color: #ffffff;
+  max-width: 1500px;
+  margin: 0 auto;
+  margin-top: 20px;
 }
 
 /* Title Styling */
@@ -29,70 +37,113 @@ h2 {
 img.rounded-circle {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 15px;
-}
-
-.mt-3 input[type="text"] {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  transition: border-color 0.3s;
-}
-
-.mt-3 input[type="text"]:focus {
-  border-color: #1abc9c;
-  box-shadow: 0 0 5px rgba(26, 188, 156, 0.5);
-}
-
-.mt-3 input[type="file"] {
-  font-size: 1rem;
-  margin-top: 10px;
-  padding: 5px;
-}
-
-/* Button Styling */
-.btn-primary {
-  background-color: #1abc9c;
-  border: none;
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, transform 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #16a085;
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  background-color: #1abc9c;
-  transform: translateY(2px);
+  border: 3px solid #002d0b; /* Match navbar color */
 }
 
 /* Profile Information Section */
-.mb-3 h4 {
-  font-size: 1.2rem;
-  color: #6c757d;
-  font-weight: 500;
+.profile-details {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-.mb-3 p {
-  font-size: 1.25rem;
+.profile-details h3 {
+  font-size: 1.5rem;
   color: #333;
+  margin-bottom: 5px;
+}
+
+.profile-details p {
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+/* Stats Section */
+.stats-section {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 0 15px;
+  flex: 1;
+}
+
+.stat-box h4 {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.stat-box p {
+  font-size: 1.25rem;
+  color: #002d0b; /* Match navbar color */
   font-weight: 600;
 }
 
-/* Recent Activity */
+/* Badges Section */
+.badges-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+}
+
+.badge-card {
+  text-align: center;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 120px;
+  transition: transform 0.2s ease;
+}
+
+.badge-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+.badge-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Recent Activity Section */
+.recent-activity {
+  margin-top: 30px;
+}
+
+.list-group {
+  margin-top: 15px;
+}
+
 .list-group-item {
-  padding: 10px 15px;
+  padding: 12px 15px;
   font-size: 1rem;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .list-group-item strong {
@@ -104,18 +155,56 @@ img.rounded-circle {
   color: #777;
 }
 
-/* Success Message */
-.success-message {
-  font-size: 1rem;
-  color: #28a745; /* Green */
-  text-align: center;
-  margin-bottom: 20px;
+/* Override Bootstrap container on large screens */
+@media (min-width: 1200px) {
+  .container.profile-container {
+    max-width: none;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .card {
+    margin-top: 30px;
+  }
 }
 
-/* Responsive Design */
+/* Responsive Design - Match with navbar media queries */
+@media (max-width: 1200px) {
+  .profile-container {
+    margin-left: 200px; /* Match navbar width */
+    width: calc(100% - 200px);
+  }
+}
+
+@media (max-width: 992px) {
+  .profile-container {
+    margin-left: 180px; /* Match navbar width */
+    width: calc(100% - 180px);
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  .card {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-container {
-    margin-left: 0; /* Full-width for smaller screens */
+    margin-left: 0; /* Full width when navbar is hidden */
+    width: 100%;
+    padding: 15px;
+    padding-top: 60px; /* Make space for burger menu */
+  }
+
+  .profile-container.nav-open {
+    margin-left: 180px; /* When navbar is shown */
+    width: calc(100% - 180px);
+  }
+
+  .card {
     padding: 15px;
   }
 
@@ -123,21 +212,70 @@ img.rounded-circle {
     font-size: 1.75rem;
   }
 
-  .mb-3 h4 {
-    font-size: 1.1rem;
+  .stats-section {
+    flex-direction: column;
+    gap: 15px;
   }
 
-  .mb-3 p {
-    font-size: 1.1rem;
+  .stat-box {
+    padding: 10px 0;
   }
 
-  .btn-primary {
-    font-size: 0.9rem;
+  .badges-section {
+    gap: 10px;
+  }
+
+  .badge-card {
+    width: 100px;
     padding: 10px;
   }
 
+  .badge-image {
+    width: 60px;
+    height: 60px;
+  }
+
   .list-group-item {
-    padding: 8px 10px;
+    padding: 10px;
     font-size: 0.95rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .list-group-item .text-muted {
+    margin-top: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .profile-details h3 {
+    font-size: 1.3rem;
+  }
+
+  .badges-section {
+    gap: 8px;
+  }
+
+  .badge-card {
+    width: 90px;
+    padding: 8px;
+  }
+
+  .badge-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  img.rounded-circle {
+    width: 120px;
+    height: 120px;
   }
 }
