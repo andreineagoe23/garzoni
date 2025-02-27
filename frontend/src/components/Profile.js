@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
+import "../styles/AvatarSelector.css"; // Import the avatar CSS
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
+import AvatarSelector from "./AvatarSelector";
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -18,6 +20,10 @@ function Profile() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
   const [isNavOpen, setIsNavOpen] = useState(false);
+
+  const handleAvatarChange = (newAvatarUrl) => {
+    setImageUrl(newAvatarUrl);
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -111,14 +117,20 @@ function Profile() {
       <div className="card p-4 shadow-sm">
         <h2 className="text-center mb-4">Profile</h2>
 
-        <div className="text-center mb-4">
-          <img
-            src={imageUrl}
-            alt="Avatar"
-            className="rounded-circle"
-            width="150"
-            height="150"
-          />
+        <div className="text-center">
+          <div className="profile-avatar-container">
+            <img
+              src={imageUrl || "/default-avatar.png"}
+              alt="Avatar"
+              className="rounded-circle profile-picture avatar-preview"
+              width="150"
+              height="150"
+            />
+            <AvatarSelector
+              currentAvatar={imageUrl}
+              onAvatarChange={handleAvatarChange}
+            />
+          </div>
         </div>
 
         <div className="profile-details">

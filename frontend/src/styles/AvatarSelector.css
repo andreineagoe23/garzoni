@@ -1,0 +1,149 @@
+/* styles/AvatarSelector.css */
+
+/* Avatar preview styling */
+.avatar-preview {
+    border: 3px solid #5e72e4;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    object-fit: cover;
+    background-color: #f8f9fa;
+  }
+  
+  .avatar-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Change avatar button styling */
+  .change-avatar-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #5e72e4;
+    color: white;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+  
+  .change-avatar-btn:hover {
+    background-color: #324cdd;
+    transform: scale(1.1);
+  }
+  
+  .change-avatar-btn i {
+    font-size: 1rem;
+  }
+  
+  /* Profile avatar container positioning */
+  .profile-avatar-container {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto;
+  }
+  
+  /* Quick options avatar gallery */
+  .avatar-examples {
+    margin-top: 15px;
+  }
+  
+  .avatar-example {
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .avatar-example:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .avatar-example.selected {
+    border: 2px solid #5e72e4;
+    box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.3);
+  }
+  
+  /* Modal styling */
+  .modal-content {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .modal-title {
+    color: #32325d;
+    font-weight: 600;
+  }
+  
+  /* Form controls */
+  .form-control:focus, .form-select:focus {
+    border-color: #5e72e4;
+    box-shadow: 0 0 0 0.25rem rgba(94, 114, 228, 0.25);
+  }
+  
+  /* Quick options header */
+  h5.mt-4 {
+    color: #32325d;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 576px) {
+    .avatar-example {
+      width: 50px;
+      height: 50px;
+    }
+    
+    .change-avatar-btn {
+      width: 35px;
+      height: 35px;
+    }
+  }
+  
+  /* Profile stats section enhancement */
+  .stats-section {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-box {
+    text-align: center;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+  }
+  
+  .stat-box h4 {
+    font-size: 0.9rem;
+    color: #8898aa;
+    margin-bottom: 5px;
+  }
+  
+  .stat-box p {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #32325d;
+    margin-bottom: 0;
+  }
