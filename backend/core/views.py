@@ -26,6 +26,13 @@ from django.utils import timezone
 from django.utils.timezone import now
 import logging
 import os
+from decimal import Decimal
+from django.middleware.csrf import get_token
+from django.http import JsonResponse
+
+def get_csrf_token(request):
+    token = get_token(request)
+    return JsonResponse({"csrfToken": token})
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -75,10 +82,10 @@ class RegisterView(generics.CreateAPIView):
                 return Response({"next": "/questionnaire/"}, status=status.HTTP_201_CREATED)
             return Response({"next": "/dashboard/"}, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
-            print("Validation Error:", e.detail)  # Log the validation error
+            print("Validation Error:", e.detail)
             return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print("Unexpected Error:", str(e))  # Log unexpected errors
+            print("Unexpected Error:", str(e))
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -206,9 +213,6 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):
-        """
-        Mark a lesson as complete and update related missions.
-        """
         lesson_id = request.data.get('lesson_id')
         user = request.user
 
@@ -217,25 +221,22 @@ class LessonViewSet(viewsets.ModelViewSet):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, course=lesson.course
             )
-            user_progress.completed_lessons.add(lesson)  # Correctly placed here
+            user_progress.completed_lessons.add(lesson)
             user_progress.save()
 
-            mission_completions = MissionCompletion.objects.filter(
-                user=user,
-                mission__goal_type='complete_lesson'
-            )
-            for mission_completion in mission_completions:
-                lessons_required = 2
-                increment = 100 // lessons_required 
-                mission_completion.update_progress(increment=increment, total=100)
+            user_profile = user.userprofile
+            user_profile.add_money(5.00)  
+            user_profile.add_points(10)    
+            user_profile.save()
+
+            total_lessons = lesson.course.lessons.count()
+            completed_lessons = user_progress.completed_lessons.count()
+            if completed_lessons == total_lessons:
+                user_progress.mark_course_complete()
 
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
-
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            print(f"Error completing lesson: {e}")
-            return Response({"error": "An error occurred while completing the lesson."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class QuizViewSet(viewsets.ModelViewSet):
@@ -257,27 +258,46 @@ class QuizViewSet(viewsets.ModelViewSet):
         quiz_id = request.data.get("quiz_id")
         selected_answer = request.data.get("selected_answer")
 
-        if not quiz_id or not selected_answer:
-            return Response({"error": "Quiz ID and selected answer are required."}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
             quiz = Quiz.objects.get(id=quiz_id)
+            if quiz.correct_answer == selected_answer:
+                QuizCompletion.objects.create(user=request.user, quiz=quiz)
+
+                user_profile = request.user.userprofile
+                user_profile.add_money(10.00) 
+                user_profile.add_points(20)    
+                user_profile.save()
+
+                return Response({"message": "Quiz completed!"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Incorrect answer."}, status=status.HTTP_400_BAD_REQUEST)
         except Quiz.DoesNotExist:
             return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if quiz.correct_answer == selected_answer:
-            QuizCompletion.objects.create(user=request.user, quiz=quiz)
-            user_profile = request.user.userprofile
-            user_profile.add_money(10.00)
-            user_profile.add_points(20)
-            return Response({"message": "Quiz completed successfully!", "earned_money": 10.00}, status=status.HTTP_200_OK)
-
-        return Response({"message": "Incorrect answer. Try again!"}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()
     serializer_class = UserProgressSerializer
     permission_classes = [IsAuthenticated]
+
+
+    def check_path_completion(self, user, course):
+        path = course.path
+        if not path:
+            return
+
+        courses_in_path = Course.objects.filter(path=path)
+        completed_courses = UserProgress.objects.filter(
+            user=user,
+            course__in=courses_in_path,
+            is_course_complete=True
+        ).count()
+
+        if completed_courses == courses_in_path.count():
+            user_profile = user.userprofile
+            user_profile.add_money(100.00) 
+            user_profile.add_points(200)    
+            user_profile.save()
 
     @action(detail=False, methods=['post'], url_path='complete')
     def complete(self, request):
@@ -287,28 +307,44 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         try:
             lesson = Lesson.objects.get(id=lesson_id)
+            course = lesson.course
+            user_profile = request.user.userprofile
+            user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
+            user_progress.completed_lessons.add(lesson)
+            user_profile.add_money(Decimal('5.00'))
+            user_profile.save()
+
+            total_lessons = course.lessons.count()
+            completed_lessons = user_progress.completed_lessons.count()
+            if completed_lessons == total_lessons:
+
+                user_profile.add_money(Decimal('50.00'))
+                user_profile.add_points(50)
+                user_profile.save()
+
+                path = course.path
+                if path:
+                    courses_in_path = Course.objects.filter(path=path)
+                    completed_courses = UserProgress.objects.filter(
+                        user=request.user,
+                        course__in=courses_in_path,
+                        is_course_complete=True
+                    ).count()
+
+                    if completed_courses == courses_in_path.count():
+                        user_profile.add_money(Decimal('100.00'))
+                        user_profile.add_points(100)
+                        user_profile.save()
+
+            user_progress.update_streak()
+            self.check_path_completion(user, course)
+
+            return Response(
+                {"status": "Lesson completed", "streak": user_progress.streak},
+                status=status.HTTP_200_OK
+            )
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Mark lesson as completed
-        course = lesson.course
-        user_profile = request.user.userprofile
-        user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
-        user_progress.completed_lessons.add(lesson)
-        user_profile.add_money(5.00)
-        user_profile.add_points(10)
-        user_progress.save()
-
-        # Update streak
-        user_progress.update_streak()
-
-        # Check for mission completion and complete eligible missions
-        missions_completed = self.check_and_complete_missions(request.user)
-
-        return Response(
-            {"status": "Lesson completed", "missions_completed": missions_completed, "streak": user_progress.streak},
-            status=status.HTTP_200_OK
-        )
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):

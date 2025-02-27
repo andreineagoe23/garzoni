@@ -27,6 +27,7 @@ from .views import (
     RecentActivityView,
     RewardViewSet,
     UserPurchaseViewSet,
+    get_csrf_token,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -45,6 +46,7 @@ router.register(r'paths', PathViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
+    path('csrf/', get_csrf_token, name='get_csrf_token'),
 
     path('login/', CookieTokenObtainPairView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
