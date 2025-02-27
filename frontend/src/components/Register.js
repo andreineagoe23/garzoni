@@ -33,11 +33,21 @@ function Register() {
     try {
       console.log("Sending registration data:", formData); // Debug log
 
+      // Fetch CSRF token from the backend
+      const csrfResponse = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/csrf/`, // Add a CSRF endpoint in your backend
+        { withCredentials: true }
+      );
+      const csrfToken = csrfResponse.data.csrfToken;
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
         {
-          headers: { "Content-Type": "application/json" }, // Ensure JSON format
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken, // Add CSRF token to headers
+          },
           withCredentials: true, // Important for setting cookies
         }
       );

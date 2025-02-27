@@ -219,7 +219,7 @@ class MissionCompletion(models.Model):
             # Check if the user has completed a path
             user_progress = UserProgress.objects.filter(user=self.user, is_course_complete=True)
             if user_progress.exists():
-                self.progress = 100  # Mark as completed
+                self.progress = 100
                 self.status = 'completed'
                 self.completed_at = now()
                 self.user.userprofile.add_points(self.mission.points_reward)
