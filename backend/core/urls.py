@@ -10,7 +10,7 @@ from .views import (
     UserProgressViewSet,
     LeaderboardViewSet,
     UserSettingsView,
-    UserProfileView,  # Ensure this is imported
+    UserProfileView,
     MissionView,
     QuestionnaireView,
     ChatbotView,
@@ -28,13 +28,14 @@ from .views import (
     RewardViewSet,
     UserPurchaseViewSet,
     get_csrf_token,
+    UserBadgeViewSet,
+    BadgeViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views import CookieTokenObtainPairView, LogoutView
 
-# Set up routers
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet, basename='userprogress')
 router.register(r'userprofiles', UserProfileViewSet)
@@ -42,6 +43,8 @@ router.register(r'courses', CourseViewSet)
 router.register(r'lessons', LessonViewSet)
 router.register(r'quizzes', QuizViewSet)
 router.register(r'paths', PathViewSet)
+router.register(r'badges', BadgeViewSet, basename='badge')
+router.register(r'user-badges', UserBadgeViewSet, basename='userbadge')
 
 urlpatterns = [
     path('', include(router.urls)),

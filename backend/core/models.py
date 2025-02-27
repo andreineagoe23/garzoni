@@ -143,6 +143,7 @@ class UserProgress(models.Model):
 
 
     def update_streak(self):
+
         today = timezone.now().date()
         if self.last_completed_date:
             if today > self.last_completed_date:
@@ -153,12 +154,16 @@ class UserProgress(models.Model):
             self.streak = 1
         
         self.last_completed_date = today
+        from core.utils import check_and_award_badge
+        check_and_award_badge(self.user, 'streak_days')
         self.save()
 
     def mark_course_complete(self):
         self.is_course_complete = True
-        self.course_completed_at = now()
+        from core.utils import check_and_award_badge
+        check_and_award_badge(self.user, 'courses_completed')
         self.save()
+
 
 
 class LessonCompletion(models.Model):
@@ -229,10 +234,8 @@ class MissionCompletion(models.Model):
                 self.status = 'completed'
                 self.completed_at = now()
                 self.user.userprofile.add_points(self.mission.points_reward)
-            elif self.progress > 0:
-                self.status = 'in_progress'
-            else:
-                self.status = 'not_started'
+                from core.utils import check_and_award_badge
+                check_and_award_badge(self.user, 'missions_completed')
 
         self.save()
 
@@ -367,3 +370,42 @@ class UserPurchase(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.reward.name}"
+
+
+class Badge(models.Model):
+    BADGE_LEVELS = [
+        ('bronze', 'Bronze'),
+        ('silver', 'Silver'),
+        ('gold', 'Gold'),
+    ]
+    CRITERIA_TYPES = [
+        ('lessons_completed', 'Lessons Completed'),
+        ('courses_completed', 'Courses Completed'),
+        ('streak_days', 'Streak Days'),
+        ('points_earned', 'Points Earned'),
+        ('missions_completed', 'Missions Completed'),
+        ('savings_balance', 'Savings Balance'),
+    ]
+
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    image = models.ImageField(upload_to='badges/', null=False, blank=False)
+    criteria_type = models.CharField(max_length=50, choices=CRITERIA_TYPES)
+    threshold = models.IntegerField()
+    badge_level = models.CharField(max_length=10, choices=BADGE_LEVELS, default='bronze')
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UserBadge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='earned_badges')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'badge')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"

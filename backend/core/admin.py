@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import (
     Path,
     Course,
@@ -11,6 +12,8 @@ from .models import (
     SimulatedSavingsAccount,
     Question,
     Reward,
+    Badge,
+    UserBadge
 )
 
 class LessonAdmin(admin.ModelAdmin):
@@ -63,7 +66,21 @@ class RewardAdmin(admin.ModelAdmin):
         }),
     )
 
-# Register models in the admin panel
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'badge_level', 'criteria_type', 'threshold', 'is_active', 'badge_image')
+    fields = ('name', 'description', 'image', 'criteria_type', 'threshold', 'badge_level', 'is_active')
+    list_filter = ('badge_level', 'criteria_type', 'is_active')
+    search_fields = ('name', 'criteria_type')
+
+    def badge_image(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" width="50" height="50" />'.format(obj.image.url))
+        return "No Image"
+
+    badge_image.allow_tags = True
+    badge_image.short_description = "Badge Image"
+
+admin.site.register(Badge, BadgeAdmin)
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(Path)
 admin.site.register(Course)

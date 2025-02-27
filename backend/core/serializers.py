@@ -1,7 +1,8 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase
+from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, 
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge )
 
 class RegisterSerializer(serializers.ModelSerializer):
     wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
@@ -21,18 +22,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.userprofile.save()
         return user
 
-# serializers.py
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    balance = serializers.SerializerMethodField()
-
-    class Meta:
-        model = UserProfile
-        fields = ["user", "email_reminders", "earned_money", "points", "profile_picture", 
-                 "profile_avatar", "generated_images", "balance"]
-
-    def get_balance(self, obj):
-        return float(obj.earned_money)
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -181,3 +170,38 @@ class UserPurchaseSerializer(serializers.ModelSerializer):
             user=self.context['request'].user,
             reward=reward
         )
+
+class BadgeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Badge
+        fields = ['id', 'name', 'description', 'image_url', 'criteria_type', 'threshold', 'badge_level']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+class UserBadgeSerializer(serializers.ModelSerializer):
+    badge = BadgeSerializer(read_only=True)
+    
+    class Meta:
+        model = UserBadge
+        fields = ['badge', 'earned_at']
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    balance = serializers.SerializerMethodField()
+    badges = UserBadgeSerializer(many=True, read_only=True, source='user.earned_badges')
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user", "email_reminders", "earned_money", "points", "profile_picture",
+            "profile_avatar", "generated_images", "balance", "badges"
+        ]
+
+    def get_balance(self, obj):
+        return float(obj.earned_money)

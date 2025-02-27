@@ -15,11 +15,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from .models import (UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
-LessonCompletion, QuizCompletion, Reward, UserPurchase)
+LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
-    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer
+    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer, UserBadgeSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -176,6 +176,9 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+
+from .utils import check_and_award_badge
+
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
@@ -189,6 +192,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         lessons = self.get_queryset().filter(course_id=course_id)
         user_progress = UserProgress.objects.filter(user=request.user, course_id=course_id).first()
+        check_and_award_badge(request.user, 'lessons_completed')
 
         completed_lesson_ids = (
             user_progress.completed_lessons.values_list("id", flat=True) if user_progress else []
@@ -930,12 +934,11 @@ class RecentActivityView(APIView):
                 "timestamp": cc.course_completed_at
             })
 
-        # Sort and limit to 15 activities
         sorted_activities = sorted(
             activities, 
             key=lambda x: x["timestamp"], 
             reverse=True
-        )[:15]
+        )[:5]
 
         return Response({"recent_activities": sorted_activities})
 
@@ -996,3 +999,19 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Purchase error: {str(e)}")
             return Response({"error": "Server error processing transaction"}, status=500)
+
+
+class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Badge.objects.filter(is_active=True)
+    serializer_class = BadgeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+class UserBadgeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = UserBadgeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserBadge.objects.filter(user=self.request.user)
