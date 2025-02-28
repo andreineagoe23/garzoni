@@ -8,6 +8,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 from celery import shared_task
+import uuid
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -17,6 +18,13 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     profile_avatar = models.URLField(null=True, blank=True)
     generated_images = models.JSONField(default=list, blank=True) 
+    referral_code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=False,
+        null=True, 
+    )
+    referral_points = models.PositiveIntegerField(default=0)
 
     FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
@@ -49,6 +57,13 @@ class UserProfile(models.Model):
     def add_points(self, points):
         self.points += points
         self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code or self.referral_code.strip() == '':
+            self.referral_code = None
+        if not self.referral_code:
+            self.referral_code = uuid.uuid4().hex[:8].upper()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "User Profile"
@@ -409,3 +424,41 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"
+
+class Referral(models.Model):
+    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals_made')
+    referred_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral_received')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.referrer.username} -> {self.referred_user.username}"
+
+referral_code = models.CharField(max_length=20, unique=True, blank=True)
+referral_points = models.PositiveIntegerField(default=0)
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        profile = UserProfile.objects.create(user=instance)
+        # Generate referral code
+        profile.referral_code = uuid.uuid4().hex[:8].upper()
+        profile.save()
+
+
+class FriendRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_requests')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('sender', 'receiver')
+
+    def __str__(self):
+        return f"{self.sender.username} -> {self.receiver.username}"

@@ -15,11 +15,13 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from .models import (UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
-LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge)
+LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, ToolSerializer, SimulatedSavingsAccountSerializer,
-    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer, UserBadgeSerializer
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, 
+    ToolSerializer, SimulatedSavingsAccountSerializer,
+    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
+    UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -29,6 +31,11 @@ import os
 from decimal import Decimal
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+import logging
+from django.db import transaction
+from django.db.models import F
+
+logger = logging.getLogger(__name__)
 
 def get_csrf_token(request):
     token = get_token(request)
@@ -59,6 +66,7 @@ class UserProfileView(APIView):
             "streak": progress.streak if progress else 0,
             "profile_avatar": user_profile.profile_avatar,
             "is_questionnaire_completed": is_completed, 
+            "referral_code": user_profile.referral_code,
         })
 
 
@@ -75,18 +83,33 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
         try:
+            referral_code = serializer.validated_data.pop('referral_code', None)
             user = serializer.save()
-            if user.userprofile.wants_personalized_path:
-                return Response({"next": "/questionnaire/"}, status=status.HTTP_201_CREATED)
-            return Response({"next": "/dashboard/"}, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            print("Validation Error:", e.detail)
-            return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if referral_code:
+                try:
+                    referrer_profile = UserProfile.objects.get(referral_code=referral_code)
+                    Referral.objects.create(
+                        referrer=referrer_profile.user,
+                        referred_user=user
+                    )
+                    # Award points
+                    referrer_profile.add_points(100)
+                    user.userprofile.add_points(50)
+                except UserProfile.DoesNotExist:
+                    pass
+
+            return Response({
+                "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
+            }, status=status.HTTP_201_CREATED)
+        
         except Exception as e:
-            print("Unexpected Error:", str(e))
-            return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -400,9 +423,13 @@ class LeaderboardViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        top_users = UserProfile.objects.order_by('-points')[:10]
-        serializer = LeaderboardSerializer(top_users, many=True)
-        return Response(serializer.data)
+        try:
+            top_profiles = UserProfile.objects.all().order_by('-points')[:10]
+            serializer = LeaderboardSerializer(top_profiles, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Leaderboard error: {str(e)}")
+            return Response({"error": str(e)}, status=500)
 
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1040,3 +1067,158 @@ class UserBadgeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return UserBadge.objects.filter(user=self.request.user)
+
+
+class ReferralView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            referrals = Referral.objects.filter(referrer=request.user)
+            serializer = ReferralSerializer(referrals, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error fetching referrals: {str(e)}")
+            return Response({"error": "Error fetching referrals"}, status=500)
+
+    def post(self, request):
+        referral_code = request.data.get('referral_code', '').strip().upper()
+        
+        if not referral_code:
+            return Response({"error": "Referral code is required"}, status=400)
+
+        try:
+            referrer_profile = UserProfile.objects.get(referral_code=referral_code)
+            
+            if referrer_profile.user == request.user:
+                return Response({"error": "You cannot use your own referral code"}, status=400)
+            
+            if Referral.objects.filter(referred_user=request.user).exists():
+                return Response({"error": "You already used a referral code"}, status=400)
+
+            # Create referral
+            Referral.objects.create(
+                referrer=referrer_profile.user,
+                referred_user=request.user
+            )
+
+            # Add points using atomic transactions
+            with transaction.atomic():
+                UserProfile.objects.filter(pk=referrer_profile.pk).update(
+                    points=F('points') + 100
+                )
+                UserProfile.objects.filter(user=request.user).update(
+                    points=F('points') + 50
+                )
+
+            return Response({"message": "Referral applied successfully!"})
+            
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Invalid referral code"}, status=400)
+        except Exception as e:
+            logger.error(f"Referral error: {str(e)}")
+            return Response({"error": "Server error processing referral"}, status=500)
+
+class UserSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            search_query = request.query_params.get('search', '').strip()
+            
+            if not search_query or len(search_query) < 3:
+                return Response({"error": "Search query must be at least 3 characters"}, status=400)
+
+            users = User.objects.filter(
+                username__icontains=search_query
+            ).exclude(id=request.user.id)[:5]
+            
+            serializer = UserSearchSerializer(users, many=True)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"User search error: {str(e)}")
+            return Response({"error": "Error processing search"}, status=500)
+
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import FriendRequest
+
+class FriendRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get pending requests where the current user is the receiver
+        requests = FriendRequest.objects.filter(
+            receiver=request.user,
+            status='pending'
+        )
+        serializer = FriendRequestSerializer(requests, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        receiver_id = request.data.get("receiver")  # Ensure correct key
+
+        if not receiver_id:
+            return Response({"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            receiver = User.objects.get(id=receiver_id)
+
+            # Prevent sending requests to oneself
+            if request.user == receiver:
+                return Response({"error": "You cannot send a request to yourself"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if a request already exists
+            existing_request = FriendRequest.objects.filter(sender=request.user, receiver=receiver, status="pending")
+            if existing_request.exists():
+                return Response({"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create a new friend request
+            FriendRequest.objects.create(sender=request.user, receiver=receiver)
+            return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
+
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        action = request.data.get("action") 
+
+        if action not in ["accept", "reject"]:
+            return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            friend_request = FriendRequest.objects.get(id=pk, receiver=request.user)
+
+            if action == "accept":
+                friend_request.status = "accepted"
+                friend_request.save()
+                return Response({"message": "Friend request accepted."}, status=status.HTTP_200_OK)
+
+            elif action == "reject":
+                friend_request.status = "rejected"
+                friend_request.save()
+                return Response({"message": "Friend request rejected."}, status=status.HTTP_200_OK)
+
+        except FriendRequest.DoesNotExist:
+            return Response({"error": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class FriendsLeaderboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        friends = User.objects.filter(
+            id__in=FriendRequest.objects.filter(
+                sender=request.user, status="accepted"
+            ).values_list("receiver_id", flat=True)
+        ) | User.objects.filter(
+            id__in=FriendRequest.objects.filter(
+                receiver=request.user, status="accepted"
+            ).values_list("sender_id", flat=True)
+        )
+
+        friend_profiles = UserProfile.objects.filter(user__in=friends).order_by("-points")
+        serializer = LeaderboardSerializer(friend_profiles, many=True)
+        return Response(serializer.data)
