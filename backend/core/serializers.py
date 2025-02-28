@@ -2,25 +2,35 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, 
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge )
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest )
 
 class RegisterSerializer(serializers.ModelSerializer):
     wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
+    referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'wants_personalized_path']
+        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'wants_personalized_path', 'referral_code']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        referral_code = validated_data.pop('referral_code', None)
         wants_personalized_path = validated_data.pop('wants_personalized_path', False)
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user)
+        user_profile = UserProfile.objects.create(user=user)
 
-        # Update UserProfile with the user's choice
-        user.userprofile.wants_personalized_path = wants_personalized_path
-        user.userprofile.save()
+        if referral_code:
+            try:
+                referrer_profile = UserProfile.objects.get(referral_code=referral_code)
+                Referral.objects.create(referrer=referrer_profile.user, referred_user=user)
+                referrer_profile.add_points(100)
+                user_profile.add_points(50)
+                user_profile.save()
+            except UserProfile.DoesNotExist:
+                raise serializers.ValidationError({"referral_code": "Invalid referral code"})
+
         return user
+
 
 
 
@@ -195,13 +205,54 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
     badges = UserBadgeSerializer(many=True, read_only=True, source='user.earned_badges')
+    referral_code = serializers.CharField(read_only=True) 
     
     class Meta:
         model = UserProfile
         fields = [
             "user", "email_reminders", "earned_money", "points", "profile_picture",
-            "profile_avatar", "generated_images", "balance", "badges"
+            "profile_avatar", "generated_images", "balance", "badges", "referral_code"
         ]
     
     def get_balance(self, obj):
         return float(obj.earned_money)
+
+class ReferralSerializer(serializers.ModelSerializer):
+    referred_user = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = Referral
+        fields = ['referred_user', 'created_at']
+
+    def get_referred_user(self, obj):
+        return {
+            "id": obj.referred_user.id,
+            "username": obj.referred_user.username
+        }
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+        
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    sender = serializers.SerializerMethodField()
+    receiver = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FriendRequest
+        fields = ['id', 'sender', 'receiver', 'status', 'created_at']
+
+    def get_sender(self, obj):
+        return {
+            "id": obj.sender.id,
+            "username": obj.sender.username
+        }
+
+    def get_receiver(self, obj):
+        return {
+            "id": obj.receiver.id,
+            "username": obj.receiver.username
+        }

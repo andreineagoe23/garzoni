@@ -32,6 +32,10 @@ from .views import (
     UserBadgeViewSet,
     BadgeViewSet,
     update_avatar,
+    ReferralView,
+    UserSearchView,
+    FriendRequestView,
+    FriendsLeaderboardView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -95,4 +99,15 @@ urlpatterns = [
     path('rewards/shop/', RewardViewSet.as_view({'get': 'list'}), {'type': 'shop'}, name='shop-rewards'),
     path('rewards/donate/', RewardViewSet.as_view({'get': 'list'}), {'type': 'donate'}, name='donate-rewards'),
     path('purchases/', UserPurchaseViewSet.as_view({'post': 'create'}), name='purchases-create'),
+
+    path('referrals/', ReferralView.as_view(), name='referrals'),
+    path('search-users/', UserSearchView.as_view(), name='user-search'),
+    path('friend-requests/', FriendRequestView.as_view(), name='friend-requests'),
+    path('friend-requests/<int:pk>/accept/', FriendRequestView.as_view(), name='accept-friend-request'),
+    path('friend-requests/<int:pk>/reject/', FriendRequestView.as_view(), name='reject-friend-request'),
+    path('friend-requests/<int:pk>/<str:action>/', FriendRequestView.as_view(), name='friend-request-action'),
+    path('friend-requests/<int:pk>/', FriendRequestView.as_view(), name='friend-request-action'),
+    path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
+
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -13,9 +13,15 @@ from .models import (
     Question,
     Reward,
     Badge,
-    UserBadge
+    UserBadge,
+    Referral
 )
 
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ('referrer', 'referred_user', 'created_at')
+    
 class LessonAdmin(admin.ModelAdmin):
     list_display = ('title', 'course', 'short_description', 'exercise_type', 'image', 'video_url')
     fields = (

@@ -13,6 +13,7 @@ function Register() {
     first_name: "",
     last_name: "",
     wants_personalized_path: false,
+    referral_code: "", // Add referral code field
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -35,20 +36,21 @@ function Register() {
 
       // Fetch CSRF token from the backend
       const csrfResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/csrf/`, // Add a CSRF endpoint in your backend
+        `${process.env.REACT_APP_BACKEND_URL}/csrf/`,
         { withCredentials: true }
       );
       const csrfToken = csrfResponse.data.csrfToken;
 
+      // Include referral code in the registration request
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
         {
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken, // Add CSRF token to headers
+            "X-CSRFToken": csrfToken,
           },
-          withCredentials: true, // Important for setting cookies
+          withCredentials: true,
         }
       );
 
@@ -125,6 +127,14 @@ function Register() {
           value={formData.last_name}
           onChange={handleChange}
           required
+        />
+
+        <label>Referral Code (optional)</label>
+        <input
+          type="text"
+          name="referral_code"
+          value={formData.referral_code}
+          onChange={handleChange}
         />
 
         <label>Do you want a personalized learning path?</label>
