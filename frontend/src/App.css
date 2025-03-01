@@ -1,25 +1,51 @@
 /* App.css */
-
 /* Global Reset and Full Height */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 body,
 html {
   height: 100%;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
   overflow-x: hidden;
 }
 
-/* Main Container for App Layout */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --border-color: #dddddd;
+  --primary-color: #1d5330;
+  --secondary-color: #2e7d32;
+  --accent-color: #ffd700;
+  --success-color: #4caf50;
+  --error-color: #dc3545;
+}
+
+.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --card-bg: #2d2d2d;
+  --input-bg: #3d3d3d;
+  --border-color: #555555;
+  --primary-color: #2e7d32;
+  --secondary-color: #388e3c;
+  --success-color: #388e3c;
+}
+
+/* Main Layout Styles */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .app-layout {
@@ -29,40 +55,83 @@ html {
 }
 
 .with-navbar .content {
-  margin-left: 250px; /* Space for visible navbar */
+  margin-left: 250px;
   padding: 20px;
   flex-grow: 1;
 }
 
 .no-navbar .content {
-  margin-left: 0; /* Full width without navbar */
+  margin-left: 0;
   padding: 20px;
   flex-grow: 1;
 }
 
 .content {
   overflow-y: auto;
-  background-color: #f4f4f4;
+  background-color: var(--bg-color);
 }
 
-
-/* Global Margins and Padding */
+/* Global Utilities */
 .mt-2 {
   margin-top: 20px;
 }
-
 .mb-2 {
   margin-bottom: 20px;
 }
-
 .m-2 {
   margin: 20px;
 }
-
 .pt-2 {
   padding-top: 20px;
 }
-
 .pb-2 {
   padding-bottom: 20px;
+}
+
+/* Component Patterns */
+.card-style {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.button-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.input-style {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Bootstrap Overrides */
+.navbar {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.form-control {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px rgba(29, 83, 48, 0.2);
+}
+
+.modal-content {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
 }

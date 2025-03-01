@@ -1,5 +1,7 @@
 /* RewardsPage.module.css */
 .rewardsPage {
+  background-color: var(--bg-color);
+  color: var(--text-color);
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
@@ -14,10 +16,11 @@
 }
 
 .tabButton {
+  background-color: var(--input-bg);
+  color: var(--text-color);
   padding: 12px 24px;
   margin: 0 15px;
   border: none;
-  background-color: #f0f0f0;
   cursor: pointer;
   font-size: 18px;
   border-radius: 8px;
@@ -25,7 +28,7 @@
 }
 
 .tabButton.active {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
 }
 
@@ -47,6 +50,9 @@
 }
 
 .itemCard {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-color);
   border: 1px solid #ddd;
   border-radius: 12px;
   padding: 25px;
@@ -80,7 +86,7 @@
 
 .itemCost {
   font-weight: bold;
-  color: #007bff;
+  color: var(--primary-color);
   font-size: 1.2rem;
 }
 

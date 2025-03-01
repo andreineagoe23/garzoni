@@ -77,6 +77,70 @@
   margin-bottom: 20px;
 }
 
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+}
+
+.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --card-bg: #2d2d2d;
+  --input-bg: #3d3d3d;
+}
+
+.settings-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.settings-card {
+  background-color: var(--card-bg);
+}
+
+.form-control {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-color: var(--text-color);
+}
+
+.settings-container {
+  margin-left: 250px;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.settings-card {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-group label {
+  color: var(--text-color);
+}
+
+.dark-mode-toggle {
+  padding: 15px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+
+.save-button:hover {
+  background-color: var(--primary-color);
+  opacity: 0.9;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .settings-container {

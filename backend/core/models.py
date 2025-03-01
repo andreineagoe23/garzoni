@@ -25,6 +25,7 @@ class UserProfile(models.Model):
         null=True, 
     )
     referral_points = models.PositiveIntegerField(default=0)
+    dark_mode = models.BooleanField(default=False)
 
     FREQUENCY_CHOICES = [
         ('daily', 'Daily'),

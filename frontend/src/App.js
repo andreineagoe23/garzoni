@@ -23,6 +23,7 @@ import ToolsPage from "./components/ToolsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import RewardsPage from './components/RewardsPage';
+import { ThemeProvider } from "../src/components/ThemeContext";
 
 function AppContent() {
   const location = useLocation();
@@ -45,6 +46,7 @@ function AppContent() {
     >
       {!noNavbarPaths.includes(location.pathname) && <Navbar />}
       <div className="content">
+        <ThemeProvider>
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/questionnaire" element={<Questionnaire />} />
@@ -82,6 +84,7 @@ function AppContent() {
             element={<ResetPassword />}
           />
         </Routes>
+        </ThemeProvider>
       </div>
     </div>
   );
