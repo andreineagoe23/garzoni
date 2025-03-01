@@ -67,7 +67,6 @@ const Leaderboards = () => {
     return <div className="loading">Loading...</div>;
   }
 
-  // Filter leaderboard data based on search query
   const filteredLeaderboard = (
     activeTab === "global" ? globalLeaderboard : friendsLeaderboard
   ).filter((userData) =>
@@ -93,23 +92,6 @@ const Leaderboards = () => {
         {/* Friend Requests Section - conditionally shown */}
         {showFriendRequests && <FriendRequests />}
 
-        {/* Centralized Leaderboard Toggle */}
-        <div className="leaderboard-toggle-container">
-          <div className="leaderboard-toggle">
-            <button
-              onClick={() => setActiveTab("global")}
-              className={activeTab === "global" ? "active" : ""}
-            >
-              Global Leaderboard
-            </button>
-            <button
-              onClick={() => setActiveTab("friends")}
-              className={activeTab === "friends" ? "active" : ""}
-            >
-              Friends Leaderboard
-            </button>
-          </div>
-        </div>
 
         {/* Search Bar */}
         <div className="search-bar">
@@ -128,6 +110,24 @@ const Leaderboards = () => {
             ? "Global Leaderboard"
             : "Friends Leaderboard"}
         </h1>
+
+        {/* Centralized Leaderboard Toggle */}
+        <div className="leaderboard-toggle-container">
+          <div className="leaderboard-toggle">
+            <button
+              onClick={() => setActiveTab("global")}
+              className={activeTab === "global" ? "active" : ""}
+            >
+              Global Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveTab("friends")}
+              className={activeTab === "friends" ? "active" : ""}
+            >
+              Friends Leaderboard
+            </button>
+          </div>
+        </div>
 
         {/* Leaderboard Table */}
         <div className="table-responsive">

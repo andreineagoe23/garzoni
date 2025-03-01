@@ -211,7 +211,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             "user", "email_reminders", "earned_money", "points", "profile_picture",
-            "profile_avatar", "generated_images", "balance", "badges", "referral_code"
+            "profile_avatar", "generated_images", "balance", "badges", "referral_code", "dark_mode"
         ]
     
     def get_balance(self, obj):

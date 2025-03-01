@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useTheme } from "./ThemeContext";
+import Cookies from 'js-cookie';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/Settings.css";
 
 function Settings() {
+  const { darkMode, toggleDarkMode } = useTheme();
   const [emailReminders, setEmailReminders] = useState(false);
   const [emailFrequency, setEmailFrequency] = useState("daily");
   const [profileData, setProfileData] = useState({
@@ -19,27 +22,31 @@ function Settings() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
-          {
-            withCredentials: true, // ✅ Use cookies for authentication
-          }
+          { withCredentials: true }
         );
 
+        // Update all settings from backend
         const profile = response.data?.profile || {};
-        setEmailReminders(response.data?.email_reminders || false);
-        setEmailFrequency(response.data?.email_frequency || "daily");
+        setEmailReminders(response.data.email_reminders);
+        setEmailFrequency(response.data.email_frequency);
         setProfileData({
-          username: profile.username || "",
-          email: profile.email || "",
-          first_name: profile.first_name || "",
-          last_name: profile.last_name || "",
+          username: profile.username,
+          email: profile.email,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
         });
+
+        // Sync dark mode with backend and cookies
+        const serverDarkMode = response.data.dark_mode;
+        Cookies.set('darkMode', serverDarkMode.toString(), { expires: 365, sameSite: 'strict' });
+        toggleDarkMode(serverDarkMode);
+
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
     };
-
     fetchSettings();
-  }, []);
+  }, [toggleDarkMode]);
 
   const handleSaveSettings = async () => {
     try {
@@ -48,14 +55,21 @@ function Settings() {
         {
           email_reminders: emailReminders,
           email_frequency: emailFrequency,
+          dark_mode: darkMode,
         },
-        { withCredentials: true } // ✅ Use cookies for authentication
+        { withCredentials: true }
       );
       setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating settings:", error);
     }
+  };
+
+  const handleDarkModeToggle = (e) => {
+    const newDarkMode = e.target.checked;
+    toggleDarkMode(newDarkMode);
+    Cookies.set('darkMode', newDarkMode.toString(), { expires: 365, sameSite: 'strict' });
   };
 
   const handleInputChange = (e) => {
@@ -66,10 +80,10 @@ function Settings() {
   return (
     <div className="settings-container">
       <h2>Settings</h2>
-
       {successMessage && <p className="success-message">{successMessage}</p>}
 
       <form>
+        {/* Existing form fields */}
         <div className="form-group">
           <label>First Name</label>
           <input
@@ -136,7 +150,18 @@ function Settings() {
         </select>
       </div>
 
-      <button onClick={handleSaveSettings}>Save Settings</button>
+      <div className="form-group dark-mode-toggle">
+        <label>Dark Mode</label>
+        <input
+          type="checkbox"
+          checked={darkMode}
+          onChange={handleDarkModeToggle}
+        />
+      </div>
+
+      <button className="save-button" onClick={handleSaveSettings}>
+        Save Settings
+      </button>
     </div>
   );
 }

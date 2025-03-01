@@ -444,6 +444,7 @@ class UserSettingsView(APIView):
                 "email": request.user.email,
                 "first_name": request.user.first_name,
                 "last_name": request.user.last_name,
+                "dark_mode": user_profile.dark_mode,
             },
         })
 
@@ -451,6 +452,11 @@ class UserSettingsView(APIView):
         user_profile = request.user.userprofile
         email_reminders = request.data.get('email_reminders')
         email_frequency = request.data.get('email_frequency')
+        dark_mode = request.data.get('dark_mode')
+        
+        if dark_mode is not None:
+            user_profile.dark_mode = dark_mode
+            user_profile.save()
 
         if email_reminders is not None:
             user_profile.email_reminders = email_reminders
