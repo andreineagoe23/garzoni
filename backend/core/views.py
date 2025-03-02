@@ -15,13 +15,13 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from .models import (UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
-LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest)
+LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, 
     ToolSerializer, SimulatedSavingsAccountSerializer,
     QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
-    UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer
+    UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer, ExerciseSerializer, UserExerciseProgressSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
@@ -1228,3 +1228,56 @@ class FriendsLeaderboardView(APIView):
         friend_profiles = UserProfile.objects.filter(user__in=friends).order_by("-points")
         serializer = LeaderboardSerializer(friend_profiles, many=True)
         return Response(serializer.data)
+
+
+# Add to views.py
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+class ExerciseViewSet(viewsets.ModelViewSet):
+    queryset = Exercise.objects.all()
+    serializer_class = ExerciseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        exercise_type = self.request.query_params.get('type')
+        category = self.request.query_params.get('category')
+        difficulty = self.request.query_params.get('difficulty')
+        
+        if exercise_type:
+            queryset = queryset.filter(type=exercise_type)
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        if difficulty:
+            queryset = queryset.filter(difficulty__iexact=difficulty)
+        return queryset
+
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        exercise = self.get_object()
+        user_answer = request.data.get('user_answer')
+        
+        progress, created = UserExerciseProgress.objects.get_or_create(
+            user=request.user,
+            exercise=exercise,
+            defaults={'user_answer': user_answer}
+        )
+        
+        progress.attempts += 1
+        progress.user_answer = user_answer
+        progress.completed = (user_answer == exercise.correct_answer)
+        progress.save()
+        
+        return Response({
+            'correct': progress.completed,
+            'correct_answer': exercise.correct_answer,
+            'attempts': progress.attempts
+        })
+
+class UserExerciseProgressViewSet(viewsets.ModelViewSet):
+    serializer_class = UserExerciseProgressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserExerciseProgress.objects.filter(user=self.request.user)

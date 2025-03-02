@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, 
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest )
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress)
 
 class RegisterSerializer(serializers.ModelSerializer):
     wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
@@ -256,3 +256,14 @@ class FriendRequestSerializer(serializers.ModelSerializer):
             "id": obj.receiver.id,
             "username": obj.receiver.username
         }
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = ['id', 'type', 'question', 'exercise_data', 'category', 'difficulty']
+
+class UserExerciseProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserExerciseProgress
+        fields = ['exercise', 'completed', 'attempts', 'user_answer']
+        read_only_fields = ['user']
