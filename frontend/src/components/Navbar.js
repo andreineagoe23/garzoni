@@ -41,6 +41,16 @@ function Navbar() {
               Leaderboards
             </NavLink>
           </li>
+
+          <li>
+            <NavLink
+              to="/exercises"
+              className={({ isActive }) => (isActive ? styles.active : "")}
+            >
+              Exercises
+            </NavLink>
+          </li>
+
           <li>
             <NavLink
               to="/missions"

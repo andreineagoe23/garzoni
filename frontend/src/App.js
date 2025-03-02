@@ -24,6 +24,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import RewardsPage from './components/RewardsPage';
 import { ThemeProvider } from "../src/components/ThemeContext";
+import ExercisePage from "./components/ExercisePage";
 
 function AppContent() {
   const location = useLocation();
@@ -83,6 +84,7 @@ function AppContent() {
             path="/password-reset/:uidb64/:token"
             element={<ResetPassword />}
           />
+          <Route path="/exercises" element={<ExercisePage />} />
         </Routes>
         </ThemeProvider>
       </div>

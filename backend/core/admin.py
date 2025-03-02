@@ -14,7 +14,9 @@ from .models import (
     Reward,
     Badge,
     UserBadge,
-    Referral
+    Referral,
+    Exercise,
+    UserExerciseProgress
 )
 
 
@@ -85,6 +87,18 @@ class BadgeAdmin(admin.ModelAdmin):
 
     badge_image.allow_tags = True
     badge_image.short_description = "Badge Image"
+
+@admin.register(Exercise)
+class ExerciseAdmin(admin.ModelAdmin):
+    list_display = ('type', 'category', 'difficulty', 'created_at')
+    list_filter = ('type', 'category', 'difficulty')
+    search_fields = ('question', 'category')
+
+@admin.register(UserExerciseProgress)
+class UserExerciseProgressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'exercise', 'completed', 'attempts')
+    list_filter = ('completed', 'exercise__type')
+    search_fields = ('user__username', 'exercise__question')
 
 admin.site.register(Badge, BadgeAdmin)
 admin.site.register(Lesson, LessonAdmin)

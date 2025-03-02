@@ -36,6 +36,8 @@ from .views import (
     UserSearchView,
     FriendRequestView,
     FriendsLeaderboardView,
+    UserExerciseProgressViewSet,
+    ExerciseViewSet,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -51,6 +53,8 @@ router.register(r'quizzes', QuizViewSet)
 router.register(r'paths', PathViewSet)
 router.register(r'badges', BadgeViewSet, basename='badge')
 router.register(r'user-badges', UserBadgeViewSet, basename='userbadge')
+router.register(r'exercises', ExerciseViewSet, basename='exercise')
+router.register(r'exercise-progress', UserExerciseProgressViewSet, basename='exercise-progress')
 
 urlpatterns = [
     path('', include(router.urls)),
