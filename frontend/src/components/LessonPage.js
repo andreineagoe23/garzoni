@@ -7,7 +7,8 @@ import DragAndDropExercise from "./DragAndDropExercise";
 import UserProgressBox from "./UserProgressBox";
 
 function fixImagePaths(content) {
-  const mediaUrl = "http://localhost:8000/media/";
+  if (!content) return "";
+  const mediaUrl = process.env.REACT_APP_BACKEND_URL + "/media/";
   return content.replace(/src="\/media\/([^"]+)"/g, (match, p1) => {
     return `src="${mediaUrl}${p1}"`;
   });
@@ -20,29 +21,47 @@ function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completedLessons, setCompletedLessons] = useState([]);
+  const [completedSections, setCompletedSections] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [courseCompleted, setCourseCompleted] = useState(false);
-
-  // NEW: For mobile, toggles the slide-in panel
   const [showProgress, setShowProgress] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     const fetchLessons = async () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
-          { withCredentials: true } // ✅ Use cookies instead of localStorage
+          { withCredentials: true }
         );
-        const lessonsWithProgress = response.data;
-        setLessons(lessonsWithProgress);
+
+        const lessonsWithSections = response.data.map((lesson) => ({
+          ...lesson,
+          sections: (lesson.sections || [])
+            .map((section) => ({
+              ...section,
+              text_content: section.text_content ? fixImagePaths(section.text_content) : "",
+              video_url: section.video_url || "",
+              exercise_data: section.exercise_data || {},
+              order: section.order || 0,
+            }))
+            .sort((a, b) => a.order - b.order),
+        }));
+
+        setLessons(lessonsWithSections);
         setCompletedLessons(
-          lessonsWithProgress
+          lessonsWithSections
             .filter((lesson) => lesson.is_completed)
             .map((l) => l.id)
         );
+
+        const completed = response.data
+          .flatMap((lesson) => lesson.sections || [])
+          .filter((section) => section.is_completed)
+          .map((s) => s.id);
+        setCompletedSections(completed);
       } catch (err) {
-        console.error("Failed to fetch lessons:", err);
         setError("Failed to load lessons. Please try again.");
       } finally {
         setLoading(false);
@@ -58,20 +77,33 @@ function LessonPage() {
     }
   }, [lessons, completedLessons]);
 
+  const handleCompleteSection = async (sectionId) => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete-section/`,
+        { section_id: sectionId },
+        { withCredentials: true }
+      );
+      setCompletedSections((prev) => [...prev, sectionId]);
+    } catch (err) {
+      console.error("Failed to complete section:", err);
+    }
+  };
+
   const handleCompleteLesson = async (lessonId) => {
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
         { lesson_id: lessonId },
-        { withCredentials: true } // ✅ Use cookies for authentication
+        { withCredentials: true }
       );
 
       setCompletedLessons((prev) => [...prev, lessonId]);
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
       setTimeout(() => setSuccessMessage(""), 3000);
       setSelectedLesson(null);
+      setActiveTab(0);
     } catch (err) {
-      console.error("Failed to complete lesson:", err);
       setError("Failed to complete lesson. Please try again.");
     }
   };
@@ -82,41 +114,179 @@ function LessonPage() {
 
   const handleLessonClick = (lessonId) => {
     setSelectedLesson((prev) => (prev === lessonId ? null : lessonId));
+    setActiveTab(0);
   };
 
-  const renderExercise = (exerciseType, exerciseData, lessonId) => {
-    if (!exerciseData || Object.keys(exerciseData).length === 0) {
-      return <p>No exercise available for this lesson.</p>;
-    }
+  const renderSectionContent = (section) => {
+    const isCompleted = completedSections.includes(section.id);
 
-    switch (exerciseType) {
-      case "drag-and-drop":
-        return (
-          <DragAndDropExercise data={exerciseData} exerciseId={lessonId} />
-        );
-      default:
-        return <p>No exercise available for this lesson.</p>;
-    }
+    return (
+      <div className={styles.sectionContent}>
+        {section.content_type === "text" && section.text_content && (
+          <div
+            className={styles.textContent}
+            dangerouslySetInnerHTML={{ __html: section.text_content }}
+          />
+        )}
+
+        {section.content_type === "video" && section.video_url && (
+          <div className={styles.videoContainer}>
+            {section.video_url.includes("youtube.com") ||
+            section.video_url.includes("youtu.be") ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${getYouTubeId(section.video_url)}`}
+                title={section.title}
+                allowFullScreen
+              />
+            ) : (
+              <video controls>
+                <source src={section.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )}
+          </div>
+        )}
+
+        {section.content_type === "exercise" && section.exercise_data && (
+          <div className={styles.exerciseContainer}>
+            <DragAndDropExercise
+              data={section.exercise_data}
+              exerciseId={section.id}
+              onComplete={() => handleCompleteSection(section.id)}
+              isCompleted={isCompleted}
+            />
+            {section.text_content && (
+              <div
+                className={styles.exerciseInstructions}
+                dangerouslySetInnerHTML={{ __html: section.text_content }}
+              />
+            )}
+          </div>
+        )}
+
+        {isCompleted && (
+          <div className={styles.completionBadge}>✓ Section Completed</div>
+        )}
+      </div>
+    );
   };
 
-  if (loading) return <p>Loading lessons...</p>;
-  if (error) return <p>{error}</p>;
+  const getYouTubeId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  const renderLessonContent = (lesson) => {
+    const hasSections = lesson.sections?.length > 0;
+    const currentSection = lesson.sections?.[activeTab];
+    const isLastTab = activeTab === (lesson.sections?.length || 0) - 1;
+
+    return (
+      <div className={styles.lessonContent}>
+        {hasSections && (
+          <div className={styles.tabContainer}>
+            {lesson.sections.map((section, index) => (
+              <button
+                key={section.id || index}
+                className={`${styles.tab} ${
+                  activeTab === index ? styles.activeTab : ""
+                } button button--secondary`}
+                onClick={() => setActiveTab(index)}
+              >
+                {section.title || `Section ${index + 1}`}
+                {completedSections.includes(section.id) && (
+                  <span className={styles.completedIndicator}>✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={styles.tabContent}>
+          {hasSections ? (
+            currentSection ? (
+              renderSectionContent(currentSection)
+            ) : (
+              <p>No content available for this section</p>
+            )
+          ) : (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: fixImagePaths(lesson.detailed_content) || "No lesson content available",
+              }}
+            />
+          )}
+        </div>
+
+        {hasSections && (
+          <div className={styles.tabControls}>
+            {activeTab > 0 && (
+              <button
+                className="button button--secondary"
+                onClick={() => setActiveTab((prev) => prev - 1)}
+              >
+                Previous
+              </button>
+            )}
+
+            {!isLastTab ? (
+              <button
+                className="button button--secondary"
+                onClick={() => setActiveTab((prev) => prev + 1)}
+              >
+                Next
+              </button>
+            ) : (
+              <div className={styles.lessonCompletion}>
+                {!lesson.is_completed && (
+                  <button
+                    className="button button--primary"
+                    onClick={() => handleCompleteLesson(lesson.id)}
+                  >
+                    Complete Lesson
+                  </button>
+                )}
+                <p className={styles.endMessage}>
+                  You've reached the end of this lesson
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!hasSections && lesson.exercise_type && (
+          <div className={styles.exerciseContainer}>
+            {lesson.exercise_type === "drag-and-drop" ? (
+              <DragAndDropExercise
+                data={lesson.exercise_data}
+                exerciseId={lesson.id}
+                onComplete={() => handleCompleteLesson(lesson.id)}
+              />
+            ) : (
+              <p>Exercise type not supported</p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) return <div className={styles.loading}>Loading lessons...</div>;
+  if (error) return <div className={styles.error}>{error}</div>;
 
   return (
     <div className={styles.lessonLayout}>
-      {/* LEFT: Main Lesson Content */}
       <div className={styles.lessonMain}>
         {successMessage && (
-          <p className={styles.successMessage}>{successMessage}</p>
+          <div className={styles.successMessage}>{successMessage}</div>
         )}
 
         <div className={styles.lessonBox}>
           {lessons.length > 0 ? (
             lessons.map((lesson, index) => {
               const isCompleted = completedLessons.includes(lesson.id);
-              const isAccessible =
-                index === 0 ||
-                completedLessons.includes(lessons[index - 1]?.id);
+              const isAccessible = index === 0 || completedLessons.includes(lessons[index - 1]?.id);
 
               return (
                 <div
@@ -129,68 +299,12 @@ function LessonPage() {
                       : styles.locked
                   }`}
                 >
-                  <h4 onClick={() => handleLessonClick(lesson.id)}>
+                  <h4 onClick={() => isAccessible && handleLessonClick(lesson.id)}>
                     {lesson.title}
                   </h4>
                   <p>{lesson.short_description}</p>
 
-                  {/* Expandable content */}
-                  {selectedLesson === lesson.id && isAccessible && (
-                    <div className={styles.lessonContent}>
-                      {lesson.detailed_content ? (
-                        <div
-                          className={styles.detailedContent}
-                          dangerouslySetInnerHTML={{
-                            __html: fixImagePaths(lesson.detailed_content),
-                          }}
-                        />
-                      ) : (
-                        <p>No detailed content available.</p>
-                      )}
-
-                      {lesson.video_url && (
-                        <div className={styles.videoPlayer}>
-                          {lesson.video_url.includes("youtube.com") ||
-                          lesson.video_url.includes("youtu.be") ? (
-                            <iframe
-                              width="100%"
-                              height="400"
-                              src={`https://www.youtube.com/embed/${new URLSearchParams(
-                                new URL(lesson.video_url).search
-                              ).get("v")}`}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              title="YouTube Video"
-                            ></iframe>
-                          ) : (
-                            <video controls>
-                              <source src={lesson.video_url} type="video/mp4" />
-                              Your browser does not support the video tag.
-                            </video>
-                          )}
-                        </div>
-                      )}
-
-                      {lesson.exercise_type &&
-                        renderExercise(
-                          lesson.exercise_type,
-                          lesson.exercise_data,
-                          lesson.id
-                        )}
-
-                      {!isCompleted && (
-                        <button
-                          className={`${styles.completeLessonBtn} button button--primary`}
-                          onClick={() => handleCompleteLesson(lesson.id)}
-                          disabled={!isAccessible}
-                        >
-                          Complete Lesson
-                        </button>
-                      )}
-                      {isCompleted && <p>This lesson is completed.</p>}
-                    </div>
-                  )}
+                  {selectedLesson === lesson.id && isAccessible && renderLessonContent(lesson)}
                 </div>
               );
             })
@@ -202,7 +316,7 @@ function LessonPage() {
         {courseCompleted && (
           <div className={styles.courseCompletion}>
             <h3>Congratulations! You've completed the course.</h3>
-            <button onClick={handleCourseCompletion}>
+            <button className="button button--primary" onClick={handleCourseCompletion}>
               Take the Course Quiz
             </button>
           </div>
@@ -216,16 +330,16 @@ function LessonPage() {
       </div>
 
       <button
-        className="floating-progress-btn"
+        className="button button--secondary floatingProgressBtn"
         onClick={() => setShowProgress((p) => !p)}
       >
         Progress
       </button>
 
       {showProgress && (
-        <div className="progress-panel show">
+        <div className={styles.progressPanel}>
           <button
-            className="close-panel-btn"
+            className="button button--secondary"
             onClick={() => setShowProgress(false)}
           >
             Close

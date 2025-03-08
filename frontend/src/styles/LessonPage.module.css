@@ -1,203 +1,297 @@
+/* LessonPage.module.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --primary-green: #1d5330;
+  --secondary-gold: #ffd700;
+  --success-bg: #d4edda;
+  --locked-bg: #f8d7da;
+  --text-dark: #2d3748;
+}
+
 .lessonLayout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 300px; 
+  gap: 2rem;
   min-height: 100vh;
   background-color: #f9f9f9;
-  /* By default, margin-left: 250px if you have the left navbar. */
-  margin-left: 250px;
-  /* We'll handle right margin in breakpoints if we want a pinned 300px panel. */
+  padding: 2rem 4rem;
+  margin: 0 auto;
+  max-width: fit-content;
+  margin-left: 250px; 
 }
 
 .lessonMain {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  box-sizing: border-box;
-  /* margin-right: 300px to accommodate pinned progress, if you want that approach. */
-  margin-right: 300px;
-}
-
-/* Pinned progress on the right. For large screens, 300px wide. */
-.lessonProgress {
-  width: 300px;
-  position: fixed;
-  right: 0;
-  top: 0;
-  height: 100vh;
-  padding: 20px;
-  background-color: #ffffff;
+  grid-column: 1;
+  background: white;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  padding: 2rem;
+}
+
+/* Pinned Progress Panel */
+.lessonProgress {
+  position: sticky;
+  top: 2rem;
+  height: calc(100vh - 4rem);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
-/* On mobile, hide pinned progress so we use the float button + panel instead. */
-@media (max-width: 768px) {
-  .lessonLayout {
-    margin-left: 0; /* no left nav? or do you still have the burger menu? */
-  }
-  .lessonMain {
-    margin-right: 0; /* hide pinned progress */
-  }
-  .lessonProgress {
-    display: none;
-  }
-}
-
-/* The rest: lesson cards, etc. */
+/* Lesson Cards */
 .lessonBox {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.5rem;
 }
 
-/* Each Lesson Card */
 .lessonBoxItem {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
   background: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  transition: 0.3s ease;
-  cursor: pointer;
-  margin-bottom: 5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .lessonBoxItem:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
-
-.completed {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  cursor: default;
-}
-
-.locked {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  cursor: not-allowed;
-}
-
-.lessonContent img {
-  max-width: 100%;
-  height: auto;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  margin: 15px 0;
-  object-fit: cover; 
-}
-
 
 .lessonBoxItem h4 {
-  font-size: 1.3rem;
-  color: #1d5330;
-  margin-bottom: 8px;
+  font-size: 1.4rem;
+  color: var(--primary-green);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lessonBoxItem h4::before {
+  content: "📘";
+  font-size: 1.2em;
 }
 
 .lessonBoxItem p {
-  font-size: 1rem;
-  color: #333;
+  color: var(--text-dark);
+  line-height: 1.6;
 }
 
-.lessonContent {
-  margin-top: 15px;
+/* Status Indicators */
+.completed {
+  background: var(--success-bg);
+  border-color: #c3e6cb;
 }
 
-.videoPlayer {
-  margin: 20px 0;
-  width: 100%;
-  max-width: 800px;
-  height: auto;
+.locked {
+  background: var(--locked-bg);
+  border-color: #f5c6cb;
+  position: relative;
 }
 
-.completeLessonBtn {
-  margin-top: 15px;
-  background-color: #002d0b;
-  color: #ffd700;
-  border: 2px solid #ffd700;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
+.locked::after {
+  content: "🔒";
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+}
+
+/* Section Tabs */
+.tabContainer {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #e9f7e9;
+  border-radius: 2rem;
+  color: var(--primary-green);
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.completeLessonBtn:hover {
-  background-color: #ffd700;
-  color: #002d0b;
+.tab::before {
+  content: "📑";
 }
 
+.activeTab {
+  background: var(--primary-green);
+  color: white;
+}
+
+.activeTab::before {
+  content: "📌";
+}
+
+/* Video Container */
+.videoContainer {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  background: #000;
+}
+
+.videoContainer iframe,
+.videoContainer video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Navigation Controls */
+.tabControls {
+  display: flex;
+  justify-content: space-between;
+  margin: 2rem 0;
+}
+
+.navButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navButton.prev::before {
+  content: "⬅️";
+}
+
+.navButton.next::after {
+  content: "➡️";
+}
+
+/* Course Completion */
 .courseCompletion {
   text-align: center;
-  margin-top: 40px;
-  padding: 20px;
-  background-color: #e9f7e9;
-  border: 1px solid #c3e6cb;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  background: var(--success-bg);
+  border-radius: 12px;
+  margin-top: 2rem;
 }
 
 .courseCompletion h3 {
-  color: #155724;
-  margin-bottom: 20px;
+  color: var(--primary-green);
+  margin-bottom: 1.5rem;
 }
 
-.courseCompletion button {
-  background-color: #1d5330;
-  color: #fff;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.courseCompletion button::after {
+  content: "🏆";
+  margin-left: 0.5rem;
 }
 
-.courseCompletion button:hover {
-  background-color: #14522d;
+/* Mobile Progress Panel */
+.floatingProgressBtn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 1rem;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.successMessage {
-  background-color: #e9f7e9;
-  color: #155724;
-  padding: 10px 15px;
-  border-left: 5px solid #1d5330;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 1rem;
+.floatingProgressBtn::before {
+  content: "📊";
+  font-size: 1.2rem;
 }
 
-/* Stack on smaller screens <= 992px */
-@media (max-width: 992px) {
+.progressPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 90%;
+  max-width: 320px;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
   .lessonLayout {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .lessonProgress {
+    position: static;
+    height: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .lessonLayout {
+    padding: 1rem;
     margin-left: 0;
   }
-  .lessonMain {
-    margin-right: 0;
-  }
-  .lessonProgress {
-    display: none;
-    /* We'll rely on the floating button + progress-panel. */
-  }
-}
 
-/* Very small screens <= 600px: reduce padding, etc. */
-@media (max-width: 600px) {
   .lessonMain {
-    padding: 10px;
+    padding: 1rem;
   }
-  .lessonBoxItem {
-    padding: 10px;
-  }
-  .videoPlayer {
-    max-width: 100%;
-  }
-  .completeLessonBtn {
-    padding: 8px 16px;
+
+  .tab {
+    padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
   }
+
+  .floatingProgressBtn {
+    display: flex;
+  }
 }
 
+/* Button Styles */
+.completeLessonBtn,
+.navButton,
+.courseCompletion button,
+.floatingProgressBtn {
+  background-color: var(--primary-green);
+  color: var(--secondary-gold);
+  border: 2px solid var(--secondary-gold);
+  box-shadow: 0 4px 0 #01370f;
+  transition: all 0.2s ease;
+}
+
+.completeLessonBtn:hover,
+.navButton:hover,
+.courseCompletion button:hover,
+.floatingProgressBtn:hover {
+  background-color: var(--secondary-gold);
+  color: var(--primary-green);
+  transform: translateY(-2px);
+}
+
+.completeLessonBtn:active,
+.navButton:active,
+.courseCompletion button:active,
+.floatingProgressBtn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #01370f;
+}

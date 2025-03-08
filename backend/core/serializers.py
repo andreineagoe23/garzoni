@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, 
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress)
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection)
 
 class RegisterSerializer(serializers.ModelSerializer):
     wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
@@ -16,8 +16,14 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         referral_code = validated_data.pop('referral_code', None)
         wants_personalized_path = validated_data.pop('wants_personalized_path', False)
+        
+        # Only create User here - profile is created by signal
         user = User.objects.create_user(**validated_data)
-        user_profile = UserProfile.objects.create(user=user)
+        
+        # Access profile created by signal
+        user_profile = user.userprofile
+        user_profile.wants_personalized_path = wants_personalized_path
+        user_profile.save()
 
         if referral_code:
             try:
@@ -25,13 +31,10 @@ class RegisterSerializer(serializers.ModelSerializer):
                 Referral.objects.create(referrer=referrer_profile.user, referred_user=user)
                 referrer_profile.add_points(100)
                 user_profile.add_points(50)
-                user_profile.save()
             except UserProfile.DoesNotExist:
-                raise serializers.ValidationError({"referral_code": "Invalid referral code"})
+                pass
 
         return user
-
-
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -39,15 +42,23 @@ class QuizSerializer(serializers.ModelSerializer):
         model = Quiz
         fields = ['id', 'course', 'title', 'question', 'choices', 'correct_answer']
 
-class LessonSerializer(serializers.ModelSerializer):
-    quizzes = QuizSerializer(many=True, read_only=True)
+class LessonSectionSerializer(serializers.ModelSerializer):
+    content_type = serializers.CharField()
+    
+    class Meta:
+        model = LessonSection
+        fields = [
+            'id', 'order', 'title', 'content_type',
+            'text_content', 'video_url', 'exercise_type', 'exercise_data'
+        ]
 
+class LessonSerializer(serializers.ModelSerializer):
+    sections = LessonSectionSerializer(many=True, read_only=True)
+    is_completed = serializers.BooleanField(read_only=True)
+    
     class Meta:
         model = Lesson
-        fields = [
-            'id', 'course', 'title', 'detailed_content', 'quizzes', 
-            'short_description', 'image', 'video_url', 'exercise_type', 'exercise_data'
-        ]
+        fields = ['id', 'title', 'short_description', 'sections', 'is_completed']
 
 class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)

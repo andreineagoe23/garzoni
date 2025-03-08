@@ -40,9 +40,18 @@ const Questionnaire = () => {
     } else {
       axios
         .post(
-          "http://localhost:8000/api/questionnaire/submit/",
+          `${process.env.REACT_APP_BACKEND_URL}/questionnaire/submit/`,
           { answers: updatedAnswers },
-          { withCredentials: true } // ✅ Use cookies for authentication
+          {
+            withCredentials: true,
+            headers: {
+              "X-CSRFToken":
+                document.cookie
+                  .split("; ")
+                  .find((row) => row.startsWith("csrftoken="))
+                  ?.split("=")[1] || "",
+            },
+          }
         )
         .then(() => {
           navigate("/personalized-path");

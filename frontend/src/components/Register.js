@@ -29,50 +29,40 @@ function Register() {
     });
   };
 
+  // Register.js
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      console.log("Sending registration data:", formData); // Debug log
+      // Get CSRF token
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
+        withCredentials: true,
+      });
 
-      // Fetch CSRF token from the backend
-      const csrfResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/csrf/`,
-        { withCredentials: true }
-      );
-      const csrfToken = csrfResponse.data.csrfToken;
-
-      // Include referral code in the registration request
+      // Submit registration
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
         {
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
+            "X-CSRFToken":
+              document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("csrftoken="))
+                ?.split("=")[1] || "",
           },
           withCredentials: true,
         }
       );
 
-      console.log("Registration Success:", response.data);
-
-      // Auto-login after registration
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/login/`,
-        {
-          username: formData.username,
-          password: formData.password,
-        },
-        { withCredentials: true }
-      );
-
-      navigate(
-        formData.wants_personalized_path ? "/questionnaire" : "/all-topics"
-      );
+      // Handle successful registration
+      if (response.data.next) {
+        navigate(response.data.next);
+      }
     } catch (error) {
-      console.error("Registration failed", error.response?.data || error);
+      console.error("Registration failed", error);
       setErrorMessage(
-        error.response?.data?.error || "An error occurred. Please try again."
+        error.response?.data?.error || "Registration failed. Please try again."
       );
     }
   };

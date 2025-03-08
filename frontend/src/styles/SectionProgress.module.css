@@ -1,0 +1,23 @@
+.progressContainer {
+    margin: 20px 0;
+  }
+  
+  .progressBar {
+    height: 8px;
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progressFill {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+  }
+  
+  .progressText {
+    text-align: center;
+    margin-top: 8px;
+    color: #666;
+    font-size: 0.9rem;
+  }
