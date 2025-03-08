@@ -16,28 +16,41 @@ from .models import (
     UserBadge,
     Referral,
     Exercise,
-    UserExerciseProgress
+    UserExerciseProgress,
+    LessonSection
 )
-
 
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
     list_display = ('referrer', 'referred_user', 'created_at')
-    
+
+class LessonSectionInline(admin.TabularInline):
+    model = LessonSection
+    extra = 1
+    fieldsets = [
+        (None, {
+            'fields': ('order', 'title', 'content_type')
+        }),
+        ('Text Content', {
+            'fields': ('text_content',),
+            'classes': ('collapse',),
+        }),
+        ('Video Content', {
+            'fields': ('video_url',),
+            'classes': ('collapse',),
+        }),
+        ('Exercise Content', {
+            'fields': ('exercise_type', 'exercise_data'),
+            'classes': ('collapse',),
+        }),
+    ]
+
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course', 'short_description', 'exercise_type', 'image', 'video_url')
-    fields = (
-        'title',
-        'course',
-        'short_description',
-        'detailed_content',
-        'image',
-        'video_url',
-        'exercise_type',
-        'exercise_data',
-    )
-    list_filter = ('course', 'exercise_type')  
-    search_fields = ('title', 'short_description', 'exercise_type')
+    inlines = [LessonSectionInline]
+    list_display = ('title', 'course', 'section_count')
+    
+    def section_count(self, obj):
+        return obj.sections.count()
 
 class MissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'mission_type', 'goal_type', 'points_reward')

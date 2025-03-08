@@ -37,6 +37,9 @@ from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+@ensure_csrf_cookie
 def get_csrf_token(request):
     token = get_token(request)
     return JsonResponse({"csrfToken": token})
@@ -79,9 +82,11 @@ class UserProfileView(APIView):
         return Response({"message": "Profile updated successfully."})
 
 
+# views.py (Django)
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -91,6 +96,7 @@ class RegisterView(generics.CreateAPIView):
             referral_code = serializer.validated_data.pop('referral_code', None)
             user = serializer.save()
             
+            # Remove manual profile creation
             if referral_code:
                 try:
                     referrer_profile = UserProfile.objects.get(referral_code=referral_code)
@@ -98,7 +104,6 @@ class RegisterView(generics.CreateAPIView):
                         referrer=referrer_profile.user,
                         referred_user=user
                     )
-                    # Award points
                     referrer_profile.add_points(100)
                     user.userprofile.add_points(50)
                 except UserProfile.DoesNotExist:
@@ -107,10 +112,8 @@ class RegisterView(generics.CreateAPIView):
             return Response({
                 "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
             }, status=status.HTTP_201_CREATED)
-        
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.http import JsonResponse
@@ -232,34 +235,49 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=True, methods=['post'])
+    def complete_section(self, request, pk=None):
+        lesson = self.get_object()
+        section_id = request.data.get('section_id')
+        
+        # Track progress
+        progress, _ = UserProgress.objects.get_or_create(
+            user=request.user,
+            course=lesson.course
+        )
+        progress.completed_sections.add(section_id)
+        progress.save()
+        
+        return Response({"message": "Section completed!", "next_section": get_next_section()})
+
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def with_progress(self, request):
         course_id = request.query_params.get("course", None)
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
 
-        lessons = self.get_queryset().filter(course_id=course_id)
-        user_progress = UserProgress.objects.filter(user=request.user, course_id=course_id).first()
-        check_and_award_badge(request.user, 'lessons_completed')
+        # Get user's completed sections
+        try:
+            user_progress = UserProgress.objects.get(
+                user=request.user,
+                course_id=course_id
+            )
+            completed_sections = user_progress.completed_sections.values_list('id', flat=True)
+        except UserProgress.DoesNotExist:
+            completed_sections = []
 
-        completed_lesson_ids = (
-            user_progress.completed_lessons.values_list("id", flat=True) if user_progress else []
-        )
+        # Fetch lessons with sections
+        lessons = self.get_queryset().filter(course_id=course_id).prefetch_related('sections')
+        serializer = self.get_serializer(lessons, many=True)
+        lesson_data = serializer.data  # Now includes sections via LessonSerializer
 
-        lesson_data = [
-            {
-                "id": lesson.id,
-                "title": lesson.title,
-                "short_description": lesson.short_description,
-                "detailed_content": lesson.detailed_content,
-                "video_url": lesson.video_url,
-                "exercise_type": lesson.exercise_type,
-                "exercise_data": lesson.exercise_data,
-                "accessible": lesson.id in completed_lesson_ids or lesson.id == lessons.first().id,
-                "is_completed": lesson.id in completed_lesson_ids,
-            }
-            for lesson in lessons
-        ]
+        # Add progress data to each lesson
+        for lesson in lesson_data:
+            total = len(lesson['sections'])
+            completed = sum(1 for s in lesson['sections'] if s['id'] in completed_sections)
+            lesson['total_sections'] = total
+            lesson['completed_sections'] = completed
+            lesson['progress'] = f"{(completed / total * 100) if total > 0 else 0}%"
 
         return Response(lesson_data)
 
@@ -289,6 +307,41 @@ class LessonViewSet(viewsets.ModelViewSet):
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
+
+# views.py
+class CompleteSectionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        section_id = request.data.get('section_id')
+        lesson_id = request.data.get('lesson_id')
+        
+        try:
+            section = LessonSection.objects.get(id=section_id, lesson_id=lesson_id)
+            progress, _ = UserProgress.objects.get_or_create(
+                user=request.user,
+                course=section.lesson.course
+            )
+            progress.completed_sections.add(section)
+            return Response({"status": "Section completed"})
+        except LessonSection.DoesNotExist:
+            return Response({"error": "Invalid section"}, status=400)
+
+class LessonWithSectionsView(viewsets.ModelViewSet):
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.request.query_params.get('course')
+        return Lesson.objects.filter(course_id=course_id).prefetch_related('sections')
+
+class LessonWithProgressViewSet(viewsets.ModelViewSet):
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.request.query_params.get('course')
+        return Lesson.objects.filter(course_id=course_id).prefetch_related('sections')
 
 
 class QuizViewSet(viewsets.ModelViewSet):
@@ -417,6 +470,27 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         return Response({"overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
                          "paths": progress_data})
+
+    @action(detail=True, methods=['post'])
+    def complete_section(self, request, pk=None):
+        lesson = self.get_object()
+        section_id = request.data.get('section_id')
+        
+        try:
+            section = LessonSection.objects.get(id=section_id, lesson=lesson)
+            progress, _ = UserProgress.objects.get_or_create(
+                user=request.user,
+                course=lesson.course
+            )
+            progress.completed_sections.add(section)
+            
+            # Check if all sections are completed
+            if progress.completed_sections.count() == lesson.sections.count():
+                progress.completed_lessons.add(lesson)
+                
+            return Response({"message": "Section completed!"})
+        except LessonSection.DoesNotExist:
+            return Response({"error": "Section not found"}, status=404)
 
 
 class LeaderboardViewSet(APIView):

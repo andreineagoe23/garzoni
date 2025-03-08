@@ -123,23 +123,35 @@ class Lesson(models.Model):
         verbose_name = "Lesson"
         verbose_name_plural = "Lessons"
 
-class Quiz(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
+class LessonSection(models.Model):
+    CONTENT_TYPES = [
+        ('text', 'Text Content'),
+        ('video', 'Video'),
+        ('exercise', 'Interactive Exercise'),
+    ]
+    
+    EXERCISE_TYPES = [
+        ('drag-and-drop', 'Drag and Drop'),
+        ('multiple-choice', 'Multiple Choice'),
+        ('budget-allocation', 'Budget Allocation'),
+    ]
+    
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='sections')
+    order = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
-    question = models.TextField()
-    choices = models.JSONField()
-    correct_answer = models.CharField(max_length=200)
-
-    def __str__(self):
-        question_preview = self.question[:50] if self.question else "No question available"
-        return f"{self.title}: {question_preview}"
-
-
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='text')
+    
+    # Content fields
+    text_content = RichTextField(blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True)
+    exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
+    exercise_data = models.JSONField(blank=True, null=True)
+    
     class Meta:
-        verbose_name = "Quiz"
-        verbose_name_plural = "Quizzes"
+        ordering = ['order']
+        unique_together = ('lesson', 'order')
 
-
+        
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user_progress")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="progress_courses")
@@ -149,6 +161,7 @@ class UserProgress(models.Model):
     course_completed_at = models.DateTimeField(null=True, blank=True)
     last_completed_date = models.DateField(null=True, blank=True)
     streak = models.PositiveIntegerField(default=0)
+    completed_sections = models.ManyToManyField(LessonSection, through='SectionCompletion', blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title}"
@@ -180,12 +193,32 @@ class UserProgress(models.Model):
         check_and_award_badge(self.user, 'courses_completed')
         self.save()
 
-
-
 class LessonCompletion(models.Model):
     user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
+
+class SectionCompletion(models.Model):
+    user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
+    section = models.ForeignKey(LessonSection, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+class Quiz(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
+    title = models.CharField(max_length=200)
+    question = models.TextField()
+    choices = models.JSONField()
+    correct_answer = models.CharField(max_length=200)
+
+    def __str__(self):
+        question_preview = self.question[:50] if self.question else "No question available"
+        return f"{self.title}: {question_preview}"
+
+
+    class Meta:
+        verbose_name = "Quiz"
+        verbose_name_plural = "Quizzes"
+
 
 class QuizCompletion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -440,10 +473,10 @@ referral_points = models.PositiveIntegerField(default=0)
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        profile = UserProfile.objects.create(user=instance)
-        # Generate referral code
-        profile.referral_code = uuid.uuid4().hex[:8].upper()
-        profile.save()
+        profile, created = UserProfile.objects.get_or_create(user=instance)
+        if created:
+            profile.referral_code = uuid.uuid4().hex[:8].upper()
+            profile.save()
 
 
 class FriendRequest(models.Model):
