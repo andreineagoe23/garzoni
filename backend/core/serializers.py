@@ -61,6 +61,7 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'short_description', 'sections', 'is_completed']
 
 class CourseSerializer(serializers.ModelSerializer):
+    path_title = serializers.CharField(source='path.title')
     lessons = LessonSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField() 
@@ -69,7 +70,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'path', 'title', 'description', 'lessons', 'quizzes', 'image', 'completed_lessons', 'total_lessons']
+        fields = ['id', 'path', 'path_title', 'title', 'description', 'lessons', 'quizzes', 'image', 'completed_lessons', 'total_lessons']
 
     def get_image(self, obj):
         if obj.image:
@@ -158,12 +159,21 @@ class SimulatedSavingsAccountSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = [
+            'id',
+            'text', 
+            'type',
+            'options',
+            'explanation',
+            'order'
+        ]
+        read_only_fields = ['id', 'created_at']
 
 class UserResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserResponse
-        fields = '__all__'
+        fields = ['user', 'question', 'answer']
+        read_only_fields = ['user']
 
 class PathRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
