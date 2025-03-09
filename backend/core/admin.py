@@ -17,12 +17,18 @@ from .models import (
     Referral,
     Exercise,
     UserExerciseProgress,
-    LessonSection
+    LessonSection,
+    PollResponse
 )
 
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
     list_display = ('referrer', 'referred_user', 'created_at')
+
+@admin.register(PollResponse)
+class PollResponseAdmin(admin.ModelAdmin):
+    list_display = ('question', 'answer', 'responded_at')
+    list_filter = ('question',)
 
 class LessonSectionInline(admin.TabularInline):
     model = LessonSection
@@ -70,9 +76,8 @@ class SimulatedSavingsAccountAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
 
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('text', 'order')
-    fields = ('text', 'options', 'order')
-    list_filter = ('order',)
+    list_display = ('text', 'type', 'order', 'is_active')
+    list_filter = ('type', 'is_active')
     search_fields = ('text',)
 
 class RewardAdmin(admin.ModelAdmin):

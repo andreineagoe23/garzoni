@@ -38,6 +38,7 @@ from .views import (
     FriendsLeaderboardView,
     UserExerciseProgressViewSet,
     ExerciseViewSet,
+    EnhancedQuestionnaireView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -84,10 +85,11 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
-    path('questionnaire/', QuestionnaireView.as_view(), name='questionnaire'),
-    path('questionnaire/submit/', QuestionnaireSubmitView.as_view(), name='questionnaire-submit'),
     path('recommendation/<int:user_id>/', RecommendationView.as_view(), name='recommendation'),
-    path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
+    path('enhanced-questionnaire/submit/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire-submit'),
+    path('enhanced-questionnaire/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire'),
+    path('personalized-path/', PersonalizedPathView.as_view(), name='personalized-path'),
+
 
     path('ckeditor/', include('ckeditor_uploader.urls')),
 

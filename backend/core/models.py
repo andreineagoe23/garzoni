@@ -18,6 +18,7 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     profile_avatar = models.URLField(null=True, blank=True)
     generated_images = models.JSONField(default=list, blank=True) 
+    recommended_courses = models.JSONField(default=list, blank=True)
     referral_code = models.CharField(
         max_length=20,
         unique=True,
@@ -87,13 +88,14 @@ class Course(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     image = models.ImageField(upload_to='course_images/', blank=True, null=True)
-    
-    def __str__(self):
-        return self.title
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        verbose_name = "Course"
-        verbose_name_plural = "Courses"
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title
 
 class Lesson(models.Model):
     EXERCISE_CHOICES = [
@@ -164,7 +166,9 @@ class UserProgress(models.Model):
     completed_sections = models.ManyToManyField(LessonSection, through='SectionCompletion', blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.course.title}"
+        user_str = self.user.username if self.user else "Unknown User"
+        course_str = self.course.title if self.course else "Unknown Course"
+        return f"{user_str} - {course_str}"
 
     class Meta:
         verbose_name = "User Progress"
@@ -368,13 +372,27 @@ class Tool(models.Model):
     url = models.URLField(blank=True, null=True)
     icon = models.CharField(max_length=50, blank=True, null=True)
 
-class Question(models.Model):
-    text = models.TextField()
-    options = models.JSONField()
-    order = models.PositiveIntegerField()
+from jsonfield import JSONField
 
-    def __str__(self):
-        return self.text
+class Question(models.Model):
+    QUESTION_TYPES = [
+        ('knowledge_check', 'Knowledge Check'),
+        ('preference_scale', 'Preference Scale'),
+        ('budget_allocation', 'Budget Allocation')
+    ]
+    
+    text = models.TextField()
+    type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    options = models.JSONField()
+    explanation = models.TextField(blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    category = models.CharField(max_length=50, default="General")
+
+class PollResponse(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.CharField(max_length=200)
+    responded_at = models.DateTimeField(auto_now_add=True)
 
 class UserResponse(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_responses", null=True, blank=True)

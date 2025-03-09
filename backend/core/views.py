@@ -923,69 +923,331 @@ from .serializers import CourseSerializer
 
 logger = logging.getLogger(__name__)
 
+
 class PersonalizedPathView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        user_profile = UserProfile.objects.get(user=user)
+        try:
+            user = request.user
+            user_profile = UserProfile.objects.get(user=user)
+            
+            # Use stored recommendations if available
+            if user_profile.recommended_courses:
+                recommended_courses = Course.objects.filter(
+                    id__in=user_profile.recommended_courses
+                ).order_by('order')
+            else:
+                # Generate new recommendations
+                responses = UserResponse.objects.filter(user=user)
+                path_weights = self.calculate_path_weights(responses)
+                sorted_paths = sorted(
+                    path_weights.items(), 
+                    key=lambda x: x[1], 
+                    reverse=True
+                )[:3]
+                
+                recommended_courses = self.get_recommended_courses(sorted_paths)
+                # Store new recommendations
+                user_profile.recommended_courses = [c.id for c in recommended_courses]
+                user_profile.save()
 
+            # Serialize and return
+            serializer = CourseSerializer(
+                recommended_courses,
+                many=True,
+                context={'request': request}
+            )
+            
+            return Response({
+                "courses": serializer.data,
+                "message": "Recommended courses based on your financial goals:"
+            })
+
+        except Exception as e:
+            logger.critical(f"Critical error in personalized path: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "We're having trouble generating recommendations. Our team has been notified."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def get_basic_recommendations(self):
+        try:
+            basic_courses = Course.objects.filter(
+                is_active=True,
+                path__title__iexact='Basic Finance'
+            ).order_by('order')[:3]
+            
+            if not basic_courses.exists():
+                logger.error("No basic courses found in database")
+                return Response(
+                    {"error": "No recommendations available"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            serializer = CourseSerializer(basic_courses, many=True)
+            return Response({
+                "courses": serializer.data,
+                "message": "Here are some starter courses to begin your journey:"
+            })
+            
+        except Exception as e:
+            logger.critical(f"Basic recommendations failed: {str(e)}")
+            return Response(
+                {"error": "System temporarily unavailable. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+    def calculate_path_weights(self, responses):
+        path_weights = defaultdict(int)
+        try:
+            for response in responses:
+                answer = response.answer
+                # Safely parse JSON answers
+                try:
+                    if response.question.type == 'budget_allocation' and isinstance(answer, str):
+                        answer = json.loads(answer)
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON answer for question {response.question.id}")
+                    continue
+
+                # Handle different question types
+                if response.question.id == 1:  # Risk tolerance
+                    if isinstance(answer, str):
+                        self.handle_risk_question(answer.lower().strip(), path_weights)
+                        
+                elif response.question.id == 3:  # Investment interests
+                    if isinstance(answer, str):
+                        answer = [a.strip().lower() for a in answer.split(',')]
+                    self.handle_investment_question(answer, path_weights)
+                    
+                elif response.question.id == 4:  # Budget allocation
+                    self.handle_budget_question(answer, path_weights)
+                    
+        except Exception as e:
+            logger.error(f"Error calculating path weights: {str(e)}", exc_info=True)
+            
+        return path_weights
+
+    def handle_risk_question(self, answer, weights):
+        risk_map = {
+            'very uncomfortable': 0,
+            'uncomfortable': 1,
+            'neutral': 2,
+            'comfortable': 3,
+            'very comfortable': 4
+        }
+        normalized_answer = answer.lower().strip()
+        score = risk_map.get(normalized_answer, 0)
+        weights['Investing'] += score * 2
+        weights['Cryptocurrency'] += score * 1.5
+
+    def handle_investment_question(self, answer, weights):
+        investment_map = {
+            'real estate': 'Real Estate',
+            'crypto': 'Cryptocurrency',
+            'cryptocurrency': 'Cryptocurrency',
+            'stocks': 'Investing',
+            'stock market': 'Investing'
+        }
+        
+        if isinstance(answer, str):
+            answer = [a.strip().lower() for a in answer.split(',')]
+            
+        for selection in answer:
+            normalized = selection.strip().lower()
+            path = investment_map.get(normalized)
+            if path:
+                weights[path] += 3 if path == 'Real Estate' else 2
+
+    def handle_budget_question(self, answer, weights):
+        try:
+            if isinstance(answer, str):
+                allocation = json.loads(answer)
+            else:
+                allocation = answer
+                
+            allocation = {k.lower().strip(): v for k, v in allocation.items()}
+            
+            stock_weight = float(allocation.get('stocks', 0)) * 0.8
+            real_estate_weight = float(allocation.get('real estate', 0)) * 0.8
+            crypto_weight = float(allocation.get('crypto', 0)) * 1.2
+            
+            if stock_weight > 0:
+                weights['Investing'] += stock_weight
+            if real_estate_weight > 0:
+                weights['Real Estate'] += real_estate_weight
+            if crypto_weight > 0:
+                weights['Cryptocurrency'] += crypto_weight
+                
+        except Exception as e:
+            logger.error(f"Budget handling error: {str(e)}")
+
+    def get_recommended_courses(self, sorted_paths):
+        recommended_courses = []
+        try:
+
+            for path_name, _ in sorted_paths[:3]: 
+                courses = Course.objects.filter(
+                    path__title__iexact=path_name,
+                    is_active=True
+                ).order_by('order')[:2] 
+                recommended_courses.extend(courses)
+
+            if len(recommended_courses) < 10:
+                additional = Course.objects.filter(
+                    is_active=True
+                ).exclude(id__in=[c.id for c in recommended_courses]
+                ).order_by('-popularity')[:10-len(recommended_courses)]
+                recommended_courses.extend(additional)
+
+            return recommended_courses[:10]  
+
+        except Exception as e:
+            logger.error(f"Course fetch error: {str(e)}")
+            return Course.objects.filter(is_active=True).order_by('?')[:10]
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from .models import Question, UserResponse
+from .serializers import QuestionSerializer
+import logging
+
+logger = logging.getLogger(__name__)
+
+class EnhancedQuestionnaireView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Handle GET requests to fetch questionnaire questions"""
+        try:
+            questions = Question.objects.filter(
+                is_active=True
+            ).order_by('order')[:7]
+
+            if not questions.exists():
+                return Response(
+                    {"error": "No active questions found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            serializer = QuestionSerializer(questions, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            logger.error(f"Questionnaire GET error: {str(e)}")
+            return Response(
+                {"error": "Failed to load questionnaire"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def post(self, request):
+        try:
+            user = request.user
+            answers = request.data.get('answers', {})
+            
+            if not answers:
+                return Response({"error": "No answers provided"}, status=400)
+
+            with transaction.atomic():
+                # Validate and save responses
+                for qid, answer in answers.items():
+                    try:
+                        question = Question.objects.get(id=qid)
+                        # Validate budget allocation sum
+                        if question.type == 'budget_allocation':
+                            total = sum(int(v) for v in answer.values())
+                            if total != 100:
+                                return Response(
+                                    {"error": "Budget allocation must total 100%"},
+                                    status=400
+                                )
+                                
+                        UserResponse.objects.update_or_create(
+                            user=user,
+                            question=question,
+                            defaults={'answer': answer}
+                        )
+                    except Question.DoesNotExist:
+                        logger.error(f"Question {qid} not found")
+                        continue
+
+                # Clear previous recommendations
+                user_profile = UserProfile.objects.get(user=user)
+                user_profile.recommended_courses = []  # Clear stored recommendations
+                user_profile.save()
+
+                return Response({
+                    "success": True,
+                    "redirect": "/personalized-path/"
+                }, status=200)
+
+        except Exception as e:
+            logger.error(f"Questionnaire submit error: {str(e)}")
+            return Response({"error": "Failed to process responses"}, status=500)
+
+    def validate_budget_allocation(self, allocation):
+        total = sum(int(value) for value in allocation.values())
+        return total == 100
+
+    def generate_personalized_path(self, user):
         responses = UserResponse.objects.filter(user=user)
-        if not responses.exists():
-            return Response({"error": "No questionnaire responses found."}, status=404)
-
-        path_keywords = {
-            "Financial Mindset": ["mindset", "psychology", "discipline", "growth"],
-            "Personal Finance": ["budget", "saving", "spending", "invest"],
-            "Forex": ["forex", "currency", "trading"],
-            "Crypto": ["crypto", "bitcoin", "blockchain"],
-            "Real Estate": ["real estate", "property", "housing"],
-            "Basic Finance": ["finance", "credit", "debt", "investment"],
+        path_weights = {
+            'Basic Finance': 0,
+            'Investing': 0,
+            'Real Estate': 0,
+            'Cryptocurrency': 0,
+            'Advanced Strategies': 0
         }
 
-        path_scores = defaultdict(int)
+        # Analyze responses
         for response in responses:
-            for path, keywords in path_keywords.items():
-                if any(keyword in response.answer.lower() for keyword in keywords):
-                    path_scores[path] += 1
+            if response.question.id == 1:  # Risk tolerance
+                risk_score = ['Very Uncomfortable', 'Uncomfortable', 'Neutral', 
+                            'Comfortable', 'Very Comfortable'].index(response.answer)
+                path_weights['Investing'] += risk_score * 2
+                path_weights['Cryptocurrency'] += risk_score * 1.5
+                
+            elif response.question.id == 3:  # Investment interests
+                selected_options = response.answer
+                if 'Real Estate' in selected_options:
+                    path_weights['Real Estate'] += 3
+                if 'Cryptocurrency' in selected_options:
+                    path_weights['Cryptocurrency'] += 4
+                if 'Stocks' in selected_options:
+                    path_weights['Investing'] += 2
+                    
+            elif response.question.id == 4:  # Portfolio allocation
+                allocation = response.answer
+                path_weights['Investing'] += int(allocation.get('Stocks', 0)) * 0.5
+                path_weights['Real Estate'] += int(allocation.get('Real Estate', 0)) * 0.8
+                path_weights['Cryptocurrency'] += int(allocation.get('Crypto', 0)) * 1.2
 
-        sorted_paths = sorted(path_scores.items(), key=lambda x: x[1], reverse=True)
+        # Get top 3 paths
+        sorted_paths = sorted(
+            path_weights.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:3]
 
-        selected_courses = []
-        used_paths = set()
-        total_courses_needed = 10
-
+        # Get recommended courses for top paths
+        recommended_courses = []
         for path_name, _ in sorted_paths:
-            path_obj = Path.objects.filter(title=path_name).first()
-            if path_obj and path_obj.id not in used_paths:
-                courses = list(Course.objects.filter(path=path_obj)[:2])
-                selected_courses.extend(courses)
-                used_paths.add(path_obj.id)
+            courses = Course.objects.filter(
+                path__title=path_name
+            ).order_by('order')[:2]  # Get first 2 courses of each path
+            recommended_courses.extend(courses)
 
-            if len(selected_courses) >= total_courses_needed:
-                break 
-
-        if len(selected_courses) < total_courses_needed:
-            remaining_courses = list(
-                Course.objects.exclude(id__in=[c.id for c in selected_courses])[:total_courses_needed - len(selected_courses)]
-            )
-            selected_courses.extend(remaining_courses)
-
-        if not selected_courses:
-            return Response({"error": "No suitable courses found for your preferences."}, status=404)
-        
-
-        serializer = CourseSerializer(
-            selected_courses, 
-            many=True, 
-            context={'request': request}
-        )
-
-        return Response({
-            "personalized_courses": serializer.data,
-            "message": "We've assembled a custom learning path based on your interests."
-        })
-
+        return {
+            "recommended_paths": sorted_paths,
+            "courses": CourseSerializer(
+                recommended_courses, 
+                many=True,
+                context={'request': request}
+            ).data
+        }
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
