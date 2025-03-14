@@ -33,16 +33,17 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      // Get CSRF token
+      // Get CSRF token first
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
         withCredentials: true,
       });
 
-      // Submit registration
+      // Submit registration with credentials
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
         {
+          withCredentials: true, // Crucial for cookies
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken":
@@ -51,14 +52,11 @@ function Register() {
                 .find((row) => row.startsWith("csrftoken="))
                 ?.split("=")[1] || "",
           },
-          withCredentials: true,
         }
       );
 
-      // Handle successful registration
-      if (response.data.next) {
-        navigate(response.data.next);
-      }
+      // Directly navigate to next path from response
+      navigate(response.data.next);
     } catch (error) {
       console.error("Registration failed", error);
       setErrorMessage(
