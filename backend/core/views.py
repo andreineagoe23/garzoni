@@ -14,7 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-from .models import (UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
+from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
 LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
@@ -82,7 +82,9 @@ class UserProfileView(APIView):
         return Response({"message": "Profile updated successfully."})
 
 
-# views.py (Django)
+from rest_framework_simplejwt.tokens import RefreshToken
+from core.tokens import set_jwt_cookies
+
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
@@ -93,34 +95,30 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         
         try:
-            referral_code = serializer.validated_data.pop('referral_code', None)
             user = serializer.save()
             
-            # Remove manual profile creation
-            if referral_code:
-                try:
-                    referrer_profile = UserProfile.objects.get(referral_code=referral_code)
-                    Referral.objects.create(
-                        referrer=referrer_profile.user,
-                        referred_user=user
-                    )
-                    referrer_profile.add_points(100)
-                    user.userprofile.add_points(50)
-                except UserProfile.DoesNotExist:
-                    pass
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
 
-            return Response({
-                "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
-            }, status=status.HTTP_201_CREATED)
+            # Create response with next path
+            next_path = "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
+            response = Response({"next": next_path}, status=status.HTTP_201_CREATED)
+            
+            # Set JWT cookies
+            response = set_jwt_cookies(response, access_token, refresh_token)
+            return response
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from core.tokens import set_jwt_cookies, delete_jwt_cookies
-
 
 class CookieTokenObtainPairView(TokenObtainPairView):
     """Handles Login and Stores JWT in HTTP-only Cookies"""
@@ -442,7 +440,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                         user_profile.save()
 
             user_progress.update_streak()
-            self.check_path_completion(user, course)
+            self.check_path_completion(request.user, course)
 
             return Response(
                 {"status": "Lesson completed", "streak": user_progress.streak},
@@ -1192,7 +1190,7 @@ class EnhancedQuestionnaireView(APIView):
         total = sum(int(value) for value in allocation.values())
         return total == 100
 
-    def generate_personalized_path(self, user):
+    def generate_personalized_path(self, user, request):
         responses = UserResponse.objects.filter(user=user)
         path_weights = {
             'Basic Finance': 0,
