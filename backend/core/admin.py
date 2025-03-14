@@ -18,7 +18,9 @@ from .models import (
     Exercise,
     UserExerciseProgress,
     LessonSection,
-    PollResponse
+    PollResponse,
+    FinanceFact,
+    UserFactProgress
 )
 
 @admin.register(Referral)
@@ -63,6 +65,11 @@ class MissionAdmin(admin.ModelAdmin):
     fields = ('name', 'description', 'points_reward', 'mission_type', 'goal_type', 'goal_reference')
     list_filter = ('mission_type', 'goal_type')
     search_fields = ('name', 'description')
+
+    def goal_target(self, obj):
+        if obj.goal_type == "read_fact":
+            return "1 Fact" if obj.mission_type == "daily" else "5 Facts"
+        return obj.goal_reference
 
 class MissionCompletionAdmin(admin.ModelAdmin):
     list_display = ('user', 'mission', 'progress', 'status', 'completed_at')
@@ -117,6 +124,19 @@ class UserExerciseProgressAdmin(admin.ModelAdmin):
     list_display = ('user', 'exercise', 'completed', 'attempts')
     list_filter = ('completed', 'exercise__type')
     search_fields = ('user__username', 'exercise__question')
+
+@admin.register(FinanceFact)
+class FinanceFactAdmin(admin.ModelAdmin):
+    list_display = ('text', 'category', 'is_active')
+    list_filter = ('category', 'is_active')
+    search_fields = ('text',)
+    list_editable = ('is_active',)
+
+@admin.register(UserFactProgress)
+class UserFactProgressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'fact', 'read_at')
+    list_filter = ('read_at',)
+    search_fields = ('user__username', 'fact__text')
 
 admin.site.register(Badge, BadgeAdmin)
 admin.site.register(Lesson, LessonAdmin)

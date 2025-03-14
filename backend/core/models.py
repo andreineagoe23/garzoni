@@ -232,6 +232,24 @@ class QuizCompletion(models.Model):
     class Meta:
         unique_together = ('user', 'quiz')
 
+class FinanceFact(models.Model):
+    text = models.TextField()
+    category = models.CharField(max_length=50, default="General")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text[:50] + "..."
+
+class UserFactProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    fact = models.ForeignKey(FinanceFact, on_delete=models.CASCADE)
+    read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'fact')
+
+
 
 class Mission(models.Model):
     MISSION_TYPES = [('daily', 'Daily'), ('weekly', 'Weekly')]
@@ -248,6 +266,13 @@ class Mission(models.Model):
     mission_type = models.CharField(max_length=10, choices=MISSION_TYPES, default='daily')
     goal_type = models.CharField(max_length=50, choices=GOAL_TYPES, default='complete_lesson')
     goal_reference = models.JSONField(null=True, blank=True)
+    fact = models.ForeignKey(
+        FinanceFact, 
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        limit_choices_to={'is_active': True}
+    )
 
     def __str__(self):
         return f"{self.name} ({self.mission_type})"
@@ -269,26 +294,36 @@ class MissionCompletion(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def update_progress(self, increment=0, total=100):
-        
-        if not isinstance(increment, int):
-            raise ValueError("increment must be an integer")
+        if self.status == 'completed':
+            return 
 
         if self.mission.goal_type == "complete_path":
-            # Check if the user has completed a path
-            user_progress = UserProgress.objects.filter(user=self.user, is_course_complete=True)
-            if user_progress.exists():
-                self.progress = 100
-                self.status = 'completed'
-                self.completed_at = now()
-                self.user.userprofile.add_points(self.mission.points_reward)
-        else:
+            path_id = self.mission.goal_reference.get('path_id')
+            if path_id:
+                completed_courses = UserProgress.objects.filter(
+                    user=self.user,
+                    course__path_id=path_id,
+                    is_course_complete=True
+                ).count()
+                total_courses = Course.objects.filter(path_id=path_id).count()
+                self.progress = int((completed_courses / total_courses) * 100)
+        
+        elif self.mission.goal_type == "add_savings":
             self.progress = min(self.progress + increment, total)
-            if self.progress >= total:
-                self.status = 'completed'
-                self.completed_at = now()
-                self.user.userprofile.add_points(self.mission.points_reward)
-                from core.utils import check_and_award_badge
-                check_and_award_badge(self.user, 'missions_completed')
+        
+
+        if self.mission.goal_type == "read_fact":
+            if self.mission.mission_type == 'daily':
+                self.progress = 100
+            else:
+                self.progress = min(self.progress + 20, 100) 
+
+        if self.progress >= 100:
+            self.status = 'completed'
+            self.completed_at = now()
+            if not self.user.userprofile.badges.filter(name='Mission Master').exists():
+                badge = Badge.objects.get(name='Mission Master')
+                UserBadge.objects.create(user=self.user, badge=badge)
 
         self.save()
 
@@ -348,7 +383,6 @@ class SimulatedSavingsAccount(models.Model):
     def add_to_balance(self, amount):
         self.balance += amount
         self.save()
-
 
 
 class Questionnaire(models.Model):

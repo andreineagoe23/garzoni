@@ -132,10 +132,16 @@ class ToolSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'url', 'category', 'icon']
 
 
-class MissionSerializer(serializers.ModelSerializer):
+class MissionCompletionSerializer(serializers.ModelSerializer):
+    goal_type = serializers.CharField(source="mission.goal_type")
+    target = serializers.SerializerMethodField()
+
     class Meta:
-        model = Mission
-        fields = ['id', 'name', 'description', 'points_reward', 'mission_type', 'goal_type', 'goal_reference']
+        model = MissionCompletion
+        fields = ["id", "mission", "goal_type", "target", "progress", "status"]
+
+    def get_target(self, obj):
+        return obj.mission.goal_reference.get('target', 100)
 
 
 class MissionCompletionSerializer(serializers.ModelSerializer):
