@@ -15,7 +15,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
-LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress)
+LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, 
@@ -28,7 +28,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 import logging
 import os
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 import logging
@@ -442,6 +442,25 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             user_progress.update_streak()
             self.check_path_completion(request.user, course)
 
+            # Mission completion logic
+            lesson_missions = MissionCompletion.objects.filter(
+                user=request.user,
+                mission__goal_type="complete_lesson",
+                status__in=["not_started", "in_progress"]
+            )
+            
+            for mission_completion in lesson_missions:
+                required_lessons = mission_completion.mission.goal_reference.get('required_lessons', 1)
+                progress_per_lesson = 100 / required_lessons
+                mission_completion.progress = min(
+                    mission_completion.progress + progress_per_lesson,
+                    100
+                )
+                if mission_completion.progress >= 100:
+                    mission_completion.status = 'completed'
+                    mission_completion.completed_at = timezone.now()
+                mission_completion.save()
+
             return Response(
                 {"status": "Lesson completed", "streak": user_progress.streak},
                 status=status.HTTP_200_OK
@@ -612,56 +631,127 @@ class MissionView(APIView):
             return Response({"error": "An error occurred while updating mission progress."}, status=500)
 
 
+# views.py
 class SavingsAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
-        return Response({"balance": account.balance}, status=200)
-
-    def post(self, request):
-        amount = request.data.get("amount", 0)
         try:
             account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
-            account.add_to_balance(amount)
-
-            # Update savings-related missions
-            mission_completions = MissionCompletion.objects.filter(
-                user=request.user,
-                mission__goal_type="add_savings"
-            )
-            for mission_completion in mission_completions:
-                mission_completion.update_progress(increment=amount, total=100)
-
-            return Response(
-                {"message": "Savings added successfully!", "balance": account.balance},
-                status=200,
-            )
+            return Response({"balance": float(account.balance)}, status=200)
         except Exception as e:
-            logging.error(f"Error updating savings for user {request.user.username}: {str(e)}")
-            return Response({"error": "An error occurred while updating savings."}, status=500)
+            logger.error(f"Error getting savings balance: {str(e)}")
+            return Response({"error": "Failed to retrieve savings balance"}, status=500)
 
+    def post(self, request):
+        try:
+            amount = Decimal(str(request.data.get("amount", 0)))
+            if amount <= 0:
+                return Response({"error": "Amount must be positive"}, status=400)
+
+            with transaction.atomic():
+                # Update savings account
+                account, created = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
+                    user=request.user,
+                    defaults={'balance': amount}
+                )
+                if not created:
+                    account.balance += amount
+                    account.save()
+
+                # Update missions - FIXED VERSION
+                missions = MissionCompletion.objects.select_related('mission').filter(
+                    user=request.user,
+                    mission__goal_type="add_savings"
+                )
+                
+                for completion in missions:
+                    # Safely get target with fallbacks
+                    goal_ref = completion.mission.goal_reference or {}
+                    target = Decimal(str(goal_ref.get('target', 100)))
+                    
+                    # Calculate progress update
+                    progress_increment = (amount / target) * 100
+                    completion.progress = min(
+                        completion.progress + progress_increment,
+                        100
+                    )
+                    
+                    # Update completion status
+                    if completion.progress >= 100:
+                        completion.status = 'completed'
+                        completion.completed_at = timezone.now()
+                    
+                    completion.save()
+
+                return Response({
+                    "message": "Savings updated!",
+                    "balance": float(account.balance)
+                }, status=200)
+
+        except (ValueError, InvalidOperation) as e:
+            logger.error(f"Invalid amount: {str(e)}")
+            return Response({"error": "Invalid numeric value"}, status=400)
+        except Exception as e:
+            logger.error(f"Savings error: {str(e)}", exc_info=True)
+            return Response({"error": "Server error processing savings"}, status=500)
 
 
 class FinanceFactView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        try:
+            # Get unread facts
+            read_facts = UserFactProgress.objects.filter(
+                user=request.user
+            ).values_list('fact_id', flat=True)
+            
+            fact = FinanceFact.objects.filter(
+                is_active=True
+            ).exclude(id__in=read_facts).order_by('?').first()
+
+            if not fact:
+                return Response({"message": "No new facts available"}, status=404)
+
+            return Response({
+                "id": fact.id,
+                "text": fact.text,
+                "category": fact.category
+            }, status=200)
+
+        except Exception as e:
+            logger.error(f"Fact fetch error: {str(e)}")
+            return Response({"error": "Failed to get finance fact"}, status=500)
+
     def post(self, request):
         try:
-            # Update fact-related missions
-            mission_completions = MissionCompletion.objects.filter(
+            fact_id = request.data.get('fact_id')
+            if not fact_id:
+                return Response({"error": "Missing fact ID"}, status=400)
+
+            # Record fact reading
+            fact = FinanceFact.objects.get(id=fact_id)
+            UserFactProgress.objects.create(user=request.user, fact=fact)
+
+            # Update both daily and weekly missions
+            completions = MissionCompletion.objects.filter(
                 user=request.user,
                 mission__goal_type="read_fact"
             )
-            for mission_completion in mission_completions:
-                if mission_completion.progress < 100:
-                    mission_completion.update_progress(100, total=100)
 
-            return Response({"message": "Fact read successfully!"}, status=200)
+            for completion in completions:
+                if completion.mission.fact == fact:
+                    completion.update_progress()
+                    completion.save()
+
+            return Response({"message": "Fact marked as read!"}, status=200)
+
+        except FinanceFact.DoesNotExist:
+            return Response({"error": "Invalid fact ID"}, status=404)
         except Exception as e:
-            logging.error(f"Error marking fact read for user {request.user.username}: {str(e)}")
-            return Response({"error": "An error occurred while marking the fact as read."}, status=500)
-
+            logger.error(f"Fact completion error: {str(e)}")
+            return Response({"error": "Failed to mark fact"}, status=500)
 
 
 import os
@@ -734,30 +824,29 @@ class ToolListView(APIView):
 
 
 class SavingsGoalCalculatorView(APIView):
-    """
-    API Endpoint to calculate savings goals based on compound interest.
-    """
+
     def post(self, request):
+        amount = request.data.get("amount", 0)
         try:
-            data = request.data
-            savings_goal = float(data.get('savings_goal', 0))
-            initial_investment = float(data.get('initial_investment', 0))
-            years_to_grow = float(data.get('years_to_grow', 0))
-            annual_interest_rate = float(data.get('annual_interest_rate', 0)) / 100
-            compound_frequency = int(data.get('compound_frequency', 1))
+            account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
+            account.add_to_balance(amount)
 
-            if years_to_grow <= 0 or compound_frequency <= 0:
-                return Response({"error": "Invalid input for years or frequency."}, status=status.HTTP_400_BAD_REQUEST)
+            # Get all savings missions for this user
+            mission_completions = MissionCompletion.objects.filter(
+                user=request.user,
+                mission__goal_type="add_savings"
+            ).select_related('mission')
 
-            # Calculate the final savings using compound interest formula
-            final_savings = initial_investment * ((1 + annual_interest_rate / compound_frequency) ** (compound_frequency * years_to_grow))
+            for completion in mission_completions:
+                # Get target from mission's goal_reference
+                target = completion.mission.goal_reference.get('target', 100)
+                progress_increment = (amount / target) * 100
+                completion.update_progress(increment=progress_increment, total=100)
 
-            return Response({
-                "final_savings": round(final_savings, 2),
-                "message": f"To achieve your savings goal of {savings_goal}, your estimated final savings would be {round(final_savings, 2)}."
-            })
-        except ValueError:
-            return Response({"error": "Invalid input values."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Savings updated!"}, status=200)
+        except Exception as e:
+            logger.error(f"Savings error: {str(e)}")
+            return Response({"error": "Savings update failed"}, status=500)
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
