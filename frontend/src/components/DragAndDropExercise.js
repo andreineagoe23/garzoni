@@ -87,15 +87,21 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     );
     setUpdatedTargets(newTargets);
   };
-
-  const handleRetry = () => {
-    setUserAnswers({});
-    setFeedback("");
-    setFeedbackClass("");
-    setUpdatedTargets(
-      targets.map((target) => ({ ...target, droppedColor: null }))
-    );
-    setIsCompleted(false);
+  const handleRetry = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
+        { section_id: exerciseId },
+        { withCredentials: true }
+      );
+      setUserAnswers({});
+      setFeedback("");
+      setFeedbackClass("");
+      setUpdatedTargets(targets.map((t) => ({ ...t, droppedColor: null })));
+      setIsCompleted(false);
+    } catch (error) {
+      console.error("Error resetting exercise:", error);
+    }
   };
 
   return (
@@ -117,13 +123,13 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
             />
           ))}
         </div>
-        {!isCompleted ? (
-          <button className={styles.submitButton} onClick={handleSubmit}>
-            Submit Answers
-          </button>
-        ) : (
+        {isCompleted ? (
           <button className={styles.retryButton} onClick={handleRetry}>
             Retry Exercise
+          </button>
+        ) : (
+          <button className={styles.submitButton} onClick={handleSubmit}>
+            Submit Answers
           </button>
         )}
         {feedback && (
