@@ -15,7 +15,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
-LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress)
+LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, 
     QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, 
@@ -254,19 +254,25 @@ class LessonViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
 
-        # Get user's completed sections
         try:
+            # Get user's completed lessons for this course
             user_progress = UserProgress.objects.get(
                 user=request.user,
                 course_id=course_id
             )
-            completed_sections = user_progress.completed_sections.values_list('id', flat=True)
+            completed_lesson_ids = list(user_progress.completed_lessons.values_list('id', flat=True))
+            completed_sections = list(user_progress.completed_sections.values_list('id', flat=True))
         except UserProgress.DoesNotExist:
+            completed_lesson_ids = []
             completed_sections = []
 
-        # Fetch lessons with sections
+        # Fetch lessons and pass completed IDs to serializer context
         lessons = self.get_queryset().filter(course_id=course_id).prefetch_related('sections')
-        serializer = self.get_serializer(lessons, many=True)
+        serializer = self.get_serializer(
+            lessons, 
+            many=True,
+            context={'completed_lesson_ids': completed_lesson_ids}
+        )
         lesson_data = serializer.data  # Now includes sections via LessonSerializer
 
         # Add progress data to each lesson
@@ -488,26 +494,21 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         return Response({"overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
                          "paths": progress_data})
 
-    @action(detail=True, methods=['post'])
-    def complete_section(self, request, pk=None):
-        lesson = self.get_object()
+    @action(detail=False, methods=['post'], url_path='complete_section')
+    def complete_section(self, request):
         section_id = request.data.get('section_id')
-        
+        user = request.user
         try:
-            section = LessonSection.objects.get(id=section_id, lesson=lesson)
+            section = LessonSection.objects.get(id=section_id)
             progress, _ = UserProgress.objects.get_or_create(
-                user=request.user,
-                course=lesson.course
+                user=user,
+                course=section.lesson.course
             )
             progress.completed_sections.add(section)
-            
-            # Check if all sections are completed
-            if progress.completed_sections.count() == lesson.sections.count():
-                progress.completed_lessons.add(lesson)
-                
-            return Response({"message": "Section completed!"})
+            progress.save()
+            return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
-            return Response({"error": "Section not found"}, status=404)
+            return Response({"error": "Invalid section"}, status=400)
 
 
 class LeaderboardViewSet(APIView):
@@ -1704,3 +1705,71 @@ class UserExerciseProgressViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return UserExerciseProgress.objects.filter(user=self.request.user)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def complete_exercise(request):
+    section_id = request.data.get('section_id')
+    exercise_data = request.data.get('exercise_data')
+    
+    try:
+        section = LessonSection.objects.get(id=section_id)
+        exercise, _ = Exercise.objects.get_or_create(
+            section=section,
+            defaults={
+                'type': section.exercise_type,
+                'exercise_data': section.exercise_data
+            }
+        )
+        
+        completion, created = ExerciseCompletion.objects.get_or_create(
+            user=request.user,
+            exercise=exercise,
+            section=section,
+            defaults={'user_answer': exercise_data}
+        )
+        
+        if not created:
+            completion.attempts += 1
+            completion.user_answer = exercise_data
+            completion.save()
+
+        # Mark section as completed if exercise is correct
+        if exercise_data.get('is_correct', False):
+            progress, _ = UserProgress.objects.get_or_create(
+                user=request.user,
+                course=section.lesson.course
+            )
+            progress.completed_sections.add(section)
+            
+        return Response({"status": "Exercise progress saved", "attempts": completion.attempts})
+    
+    except LessonSection.DoesNotExist:
+        return Response({"error": "Section not found"}, status=404)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reset_exercise(request):
+    section_id = request.data.get('section_id')
+    
+    try:
+        section = LessonSection.objects.get(id=section_id)
+        exercise = Exercise.objects.get(section=section)
+        ExerciseCompletion.objects.filter(
+            user=request.user,
+            exercise=exercise
+        ).delete()
+        
+        progress = UserProgress.objects.filter(
+            user=request.user,
+            course=section.lesson.course
+        ).first()
+        
+        if progress:
+            progress.completed_sections.remove(section)
+            
+        return Response({"status": "Exercise reset successfully"})
+    
+    except (LessonSection.DoesNotExist, Exercise.DoesNotExist):
+        return Response({"error": "Exercise not found"}, status=404)

@@ -39,6 +39,8 @@ from .views import (
     UserExerciseProgressViewSet,
     ExerciseViewSet,
     EnhancedQuestionnaireView,
+    complete_exercise,
+    reset_exercise,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -89,6 +91,9 @@ urlpatterns = [
     path('enhanced-questionnaire/submit/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire-submit'),
     path('enhanced-questionnaire/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire'),
     path('personalized-path/', PersonalizedPathView.as_view(), name='personalized-path'),
+
+    path('exercises/complete/', complete_exercise, name='complete-exercise'),
+    path('exercises/reset/', reset_exercise, name='reset-exercise'),
 
 
     path('ckeditor/', include('ckeditor_uploader.urls')),

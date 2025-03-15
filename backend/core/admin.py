@@ -50,6 +50,25 @@ class LessonSectionInline(admin.TabularInline):
         ('Exercise Content', {
             'fields': ('exercise_type', 'exercise_data'),
             'classes': ('collapse',),
+            'description': """
+                <strong>Exercise Data Format:</strong>
+                <ul>
+                    <li><strong>Multiple Choice:</strong> 
+                        <pre>{
+                        "question": "Your question here",
+                        "options": ["Option 1", "Option 2", "Option 3"],
+                        "correctAnswer": 0 
+                        }</pre>
+                    </li>
+                    <li><strong>Budget Allocation:</strong> 
+                        <pre>{
+  "question": "Allocate the budget",
+  "categories": ["Category 1", "Category 2"],
+  "total": 1000 
+}</pre>
+                    </li>
+                </ul>
+            """,
         }),
     ]
 

@@ -5,6 +5,8 @@ import styles from "../styles/LessonPage.module.css";
 import Chatbot from "./Chatbot";
 import DragAndDropExercise from "./DragAndDropExercise";
 import UserProgressBox from "./UserProgressBox";
+import MultipleChoiceExercise from "./MultipleChoiceExercise";
+import BudgetAllocationExercise from "./BudgetAllocationExercise";
 
 function fixImagePaths(content) {
   if (!content) return "";
@@ -41,7 +43,9 @@ function LessonPage() {
           sections: (lesson.sections || [])
             .map((section) => ({
               ...section,
-              text_content: section.text_content ? fixImagePaths(section.text_content) : "",
+              text_content: section.text_content
+                ? fixImagePaths(section.text_content)
+                : "",
               video_url: section.video_url || "",
               exercise_data: section.exercise_data || {},
               order: section.order || 0,
@@ -80,7 +84,7 @@ function LessonPage() {
   const handleCompleteSection = async (sectionId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete-section/`,
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete_section/`,
         { section_id: sectionId },
         { withCredentials: true }
       );
@@ -134,7 +138,9 @@ function LessonPage() {
             {section.video_url.includes("youtube.com") ||
             section.video_url.includes("youtu.be") ? (
               <iframe
-                src={`https://www.youtube.com/embed/${getYouTubeId(section.video_url)}`}
+                src={`https://www.youtube.com/embed/${getYouTubeId(
+                  section.video_url
+                )}`}
                 title={section.title}
                 allowFullScreen
               />
@@ -149,12 +155,28 @@ function LessonPage() {
 
         {section.content_type === "exercise" && section.exercise_data && (
           <div className={styles.exerciseContainer}>
-            <DragAndDropExercise
-              data={section.exercise_data}
-              exerciseId={section.id}
-              onComplete={() => handleCompleteSection(section.id)}
-              isCompleted={isCompleted}
-            />
+            {section.exercise_type === "drag-and-drop" && (
+              <DragAndDropExercise
+                data={section.exercise_data}
+                exerciseId={section.id}
+                onComplete={() => handleCompleteSection(section.id)}
+                isCompleted={isCompleted}
+              />
+            )}
+            {section.exercise_type === "multiple-choice" && (
+              <MultipleChoiceExercise
+                data={section.exercise_data}
+                onComplete={() => handleCompleteSection(section.id)}
+                isCompleted={isCompleted}
+              />
+            )}
+            {section.exercise_type === "budget-allocation" && (
+              <BudgetAllocationExercise
+                data={section.exercise_data}
+                onComplete={() => handleCompleteSection(section.id)}
+                isCompleted={isCompleted}
+              />
+            )}
             {section.text_content && (
               <div
                 className={styles.exerciseInstructions}
@@ -172,7 +194,8 @@ function LessonPage() {
   };
 
   const getYouTubeId = (url) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
   };
@@ -213,7 +236,9 @@ function LessonPage() {
           ) : (
             <div
               dangerouslySetInnerHTML={{
-                __html: fixImagePaths(lesson.detailed_content) || "No lesson content available",
+                __html:
+                  fixImagePaths(lesson.detailed_content) ||
+                  "No lesson content available",
               }}
             />
           )}
@@ -286,7 +311,9 @@ function LessonPage() {
           {lessons.length > 0 ? (
             lessons.map((lesson, index) => {
               const isCompleted = completedLessons.includes(lesson.id);
-              const isAccessible = index === 0 || completedLessons.includes(lessons[index - 1]?.id);
+              const isAccessible =
+                index === 0 ||
+                completedLessons.includes(lessons[index - 1]?.id);
 
               return (
                 <div
@@ -299,12 +326,16 @@ function LessonPage() {
                       : styles.locked
                   }`}
                 >
-                  <h4 onClick={() => isAccessible && handleLessonClick(lesson.id)}>
+                  <h4
+                    onClick={() => isAccessible && handleLessonClick(lesson.id)}
+                  >
                     {lesson.title}
                   </h4>
                   <p>{lesson.short_description}</p>
 
-                  {selectedLesson === lesson.id && isAccessible && renderLessonContent(lesson)}
+                  {selectedLesson === lesson.id &&
+                    isAccessible &&
+                    renderLessonContent(lesson)}
                 </div>
               );
             })
@@ -316,7 +347,10 @@ function LessonPage() {
         {courseCompleted && (
           <div className={styles.courseCompletion}>
             <h3>Congratulations! You've completed the course.</h3>
-            <button className="button button--primary" onClick={handleCourseCompletion}>
+            <button
+              className="button button--primary"
+              onClick={handleCourseCompletion}
+            >
               Take the Course Quiz
             </button>
           </div>

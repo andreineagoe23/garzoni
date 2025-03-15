@@ -311,8 +311,7 @@ class MissionCompletion(models.Model):
         elif self.mission.goal_type == "add_savings":
             self.progress = min(self.progress + increment, total)
         
-
-        if self.mission.goal_type == "read_fact":
+        elif self.mission.goal_type == "read_fact":
             if self.mission.mission_type == 'daily':
                 self.progress = 100
             else:
@@ -320,7 +319,7 @@ class MissionCompletion(models.Model):
 
         if self.progress >= 100:
             self.status = 'completed'
-            self.completed_at = now()
+            self.completed_at = timezone.now()
             if not self.user.userprofile.badges.filter(name='Mission Master').exists():
                 badge = Badge.objects.get(name='Mission Master')
                 UserBadge.objects.create(user=self.user, badge=badge)
@@ -361,19 +360,14 @@ class MissionCompletion(models.Model):
             mission__mission_type="daily"
         )
         completions.update(progress=0, status="not_started", completed_at=None)
-        return f"Daily missions reset at {today}"
-        
+
     @shared_task
     def reset_weekly_missions():
-        """
-        Reset weekly missions for all users at the start of the week.
-        """
         today = now().date()
         completions = MissionCompletion.objects.filter(
             mission__mission_type="weekly"
         )
         completions.update(progress=0, status="not_started", completed_at=None)
-        return f"Weekly missions reset at {today}"
 
 
 class SimulatedSavingsAccount(models.Model):
@@ -582,3 +576,14 @@ class UserExerciseProgress(models.Model):
 
     class Meta:
         unique_together = ('user', 'exercise')
+
+class ExerciseCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    exercise = models.ForeignKey('Exercise', on_delete=models.CASCADE)
+    section = models.ForeignKey(LessonSection, on_delete=models.CASCADE, null=True)
+    completed_at = models.DateTimeField(auto_now_add=True)
+    attempts = models.PositiveIntegerField(default=0)
+    user_answer = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'exercise', 'section')

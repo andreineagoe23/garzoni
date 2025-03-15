@@ -4,6 +4,8 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import { gsap } from "gsap";
 import "../styles/Missions.css";
 
+// TO DO : FIX LESSON MISSION USER PROGRESS BAR AND READING FACTS!!!
+
 function CoinStack({ balance }) {
   const target = 100;
   const coins = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
@@ -188,16 +190,19 @@ function Missions() {
           label={
             mission.goal_type === "read_fact" &&
             mission.mission_type === "weekly"
-              ? `${Math.round(mission.progress / 20)}/5 Facts`
+              ? `${Math.floor(mission.progress / 20)}/5 Facts`
               : `${Math.round(mission.progress)}%`
           }
         />
-        {mission.goal_type === "read_fact" &&
-          mission.mission_type === "weekly" && (
-            <p className="target-text">
-              {Math.round(mission.progress / 20)}/5 Facts Read
-            </p>
-          )}
+        {mission.goal_type === "read_fact" && (
+          <p className="target-text">
+            {mission.status === "completed"
+              ? "Completed! 🎉"
+              : mission.mission_type === "daily"
+              ? "Read 1 fact to complete"
+              : `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`}
+          </p>
+        )}
       </div>
 
       {mission.status === "completed" ? (
@@ -231,15 +236,19 @@ function Missions() {
               )}
             </div>
           )}
-          {mission.goal_type === "read_fact" && (
-            <div className="fact-section">
-              <FactCard fact={currentFact} onMarkRead={markFactRead} />
-              {!currentFact && (
-                <button onClick={loadNewFact} className="refresh-fact-btn">
-                  ↻ Try Again
-                </button>
-              )}
-            </div>
+          {mission.status === "completed" ? (
+            <p className="completed-badge">Completed! 🎉</p>
+          ) : (
+            mission.goal_type === "read_fact" && (
+              <div className="fact-section">
+                <FactCard fact={currentFact} onMarkRead={markFactRead} />
+                {!currentFact && (
+                  <button onClick={loadNewFact} className="refresh-fact-btn">
+                    ↻ Try Again
+                  </button>
+                )}
+              </div>
+            )
           )}
         </>
       )}

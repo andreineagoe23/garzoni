@@ -1,0 +1,113 @@
+.exerciseContainer {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.optionButton {
+  padding: 1rem;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.optionButton:hover:not([disabled]) {
+  background: #f0f8ff;
+}
+
+.optionButton.selected {
+  background: #007bff;
+  color: white;
+}
+
+.submitButton {
+  padding: 0.8rem 2rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #218838;
+}
+
+.feedback {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.feedback.correct {
+  background: #d4edda;
+  color: #155724;
+}
+
+.feedback.incorrect {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.dragDropContainer {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.dragItem {
+  padding: 1rem;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  cursor: move;
+  background: #fff;
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.dropZone {
+  flex: 1;
+  min-height: 100px;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.over {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.allocationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.allocationItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.allocationItem input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}

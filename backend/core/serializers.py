@@ -54,11 +54,15 @@ class LessonSectionSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     sections = LessonSectionSerializer(many=True, read_only=True)
-    is_completed = serializers.BooleanField(read_only=True)
+    is_completed = serializers.SerializerMethodField()
     
     class Meta:
         model = Lesson
         fields = ['id', 'title', 'short_description', 'sections', 'is_completed']
+
+    def get_is_completed(self, obj):
+        completed_lesson_ids = self.context.get('completed_lesson_ids', [])
+        return obj.id in completed_lesson_ids
 
 class CourseSerializer(serializers.ModelSerializer):
     path_title = serializers.CharField(source='path.title')
