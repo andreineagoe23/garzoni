@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/RewardsPage.module.css";
+import "../styles/scss/main.scss";
 import axios from "axios";
 
 function DonationCauses({ onDonate }) {
@@ -39,38 +39,29 @@ function DonationCauses({ onDonate }) {
   };
 
   return (
-    <div className={`${styles.donateContainer} container`}>
-      <h2 className="text-center mb-4">Donate</h2>
-      <div className="row">
+    <div className="donate-container">
+      <h2 className="text-center">Donation Causes</h2>
+      <div className="causes-grid">
         {donationCauses.map((cause) => (
-          <div
-            key={cause.id}
-            className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"
-          >
-            <div className={`${styles.itemCard} card shadow-sm`}>
-              <img
-                src={cause.image}
-                alt={cause.name}
-                className={`${styles.itemImage} card-img-top`}
-              />
-              <div className="card-body text-center">
-                <h5 className="card-title">{cause.name}</h5>
-                <p className="card-text">{cause.description}</p>
+          <div key={cause.id} className="donation-card">
+            <img src={cause.image} alt={cause.name} className="cause-image" />
+            <div className="card-body">
+              <h5 className="card-title">{cause.name}</h5>
+              <p className="card-text">{cause.description}</p>
+            </div>
+            <div className="card-footer">
+              <div className="donation-info">
+                <span className="item-cost">{cause.cost} coins</span>
+                <span className="organization">
+                  {cause.donation_organization}
+                </span>
               </div>
-              <div className="card-footer d-flex flex-column align-items-start">
-                <div className="d-flex justify-content-between w-100">
-                  <span className={styles.itemCost}>{cause.cost} coins</span>
-                  <span className={styles.organization}>
-                    {cause.donation_organization}
-                  </span>
-                </div>
-                <button
-                  className={`btn btn-success mt-2 w-100 ${styles.donateButton}`}
-                  onClick={() => handleDonate(cause.id)}
-                >
-                  Donate
-                </button>
-              </div>
+              <button
+                className="donate-button"
+                onClick={() => handleDonate(cause.id)}
+              >
+                Donate
+              </button>
             </div>
           </div>
         ))}

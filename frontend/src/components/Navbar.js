@@ -1,99 +1,76 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import styles from "../styles/Navbar.module.css";
-import burgerMenu from "../assets/burgermenu.svg";
+import "../styles/scss/main.scss";
 
 function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const mainItems = [
+    { path: "/all-topics", label: "Dashboard", icon: "🏠" },
+    { path: "/leaderboards", label: "Leaderboards", icon: "🏆" },
+    { path: "/exercises", label: "Exercises", icon: "💪" },
+    { path: "/profile", label: "Profile", icon: "👤" },
+    { path: "/settings", label: "Settings", icon: "⚙️" },
+  ];
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const dropdownItems = [
+    { path: "/missions", label: "Missions", icon: "🎯" },
+    { path: "/tools", label: "Tools", icon: "🛠️" },
+    { path: "/rewards", label: "Rewards", icon: "🎁" },
+  ];
 
   return (
-    <div>
-      {/* Burger Menu */}
-      <button
-        className={styles.burgerMenu}
-        onClick={toggleMenu}
-        aria-label="Toggle navigation"
-      >
-        <img src={burgerMenu} alt="Menu" />
-      </button>
+    <>
+      {/* Desktop Sidebar */}
+      <nav className="desktop-nav d-none d-lg-block">
+        <div className="nav-brand">Monevo</div>
+        <ul className="nav-menu">
+          {[...mainItems, ...dropdownItems].map((item) => (
+            <li key={item.path}>
+              <NavLink to={item.path} className="nav-link">
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-      {/* Sidebar Navbar */}
-      <div className={`${styles.navbar} ${menuOpen ? styles.show : ""}`}>
-        <div className={styles.logo}>Monevo</div>
-        <ul className={styles.navLinks}>
-          <li>
-            <NavLink
-              to="/all-topics"
-              className={({ isActive }) => (isActive ? styles.active : "")}
+      {/* Mobile Bottom Nav */}
+      <nav className="mobile-nav d-lg-none">
+        <ul className="nav-items">
+          {mainItems.map((item) => (
+            <li key={item.path} className="nav-item">
+              <NavLink to={item.path} className="nav-link">
+                <span className="nav-icon">{item.icon}</span>
+              </NavLink>
+            </li>
+          ))}
+          <li className="nav-item dropdown">
+            <button 
+              className="nav-link"
+              onClick={() => setShowMore(!showMore)}
             >
-              Dashboard
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/leaderboards"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Leaderboards
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink
-              to="/exercises"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Exercises
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink
-              to="/missions"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Missions
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/tools"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Tools
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/profile"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Profile
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Settings
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/rewards"
-              className={({ isActive }) => (isActive ? styles.active : "")}
-            >
-              Rewards
-            </NavLink>
+              <span className="nav-icon">⫶</span>
+            </button>
+            {showMore && (
+              <div className="dropdown-menu">
+                {dropdownItems.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className="dropdown-item"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            )}
           </li>
         </ul>
-      </div>
-    </div>
+      </nav>
+    </>
   );
 }
 

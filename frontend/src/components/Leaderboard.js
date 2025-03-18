@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../styles/Leaderboard.css";
+import "../styles/scss/main.scss";
 import FriendRequests from "./FriendRequest";
 import ReferralLink from "./ReferralLink";
 
@@ -9,10 +9,9 @@ const Leaderboards = () => {
   const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
   const [friendsLeaderboard, setFriendsLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFriendRequests, setShowFriendRequests] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [referralCode, setReferralCode] = useState("");
-  const [activeTab, setActiveTab] = useState("global"); // "global" or "friends"
+  const [activeTab, setActiveTab] = useState("global");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,81 +62,87 @@ const Leaderboards = () => {
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
   const filteredLeaderboard = (
     activeTab === "global" ? globalLeaderboard : friendsLeaderboard
   ).filter((userData) =>
     userData.user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="leaderboard-container">
       <div className="container">
-        {/* Header Section with Referral Link and Friend Requests Button */}
-        <div className="leaderboard-header">
-          <ReferralLink referralCode={referralCode} />
-          <button
-            className="btn btn-primary friend-request-btn"
-            onClick={() => setShowFriendRequests(!showFriendRequests)}
-          >
-            {showFriendRequests
-              ? "Hide Friend Requests"
-              : "Show Friend Requests"}
-          </button>
+        <div className="dashboard-top-section">
+          <div className="referral-container">
+            <ReferralLink referralCode={referralCode} />
+          </div>
+          
+          <div className="friend-requests-container">
+            <div className="friend-requests-header">
+              <h3>Friend Requests</h3>
+            </div>
+            <FriendRequests />
+          </div>
         </div>
 
-        {/* Friend Requests Section - conditionally shown */}
-        {showFriendRequests && <FriendRequests />}
-
-
-        {/* Search Bar */}
         <div className="search-bar">
           <input
             type="text"
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="form-control"
+            className="form-control mx-auto"
           />
         </div>
 
-        {/* Leaderboard Title */}
-        <h1 className="leaderboard-title text-center">
+        <h1 className="leaderboard-title">
           {activeTab === "global"
             ? "Global Leaderboard"
             : "Friends Leaderboard"}
         </h1>
 
-        {/* Centralized Leaderboard Toggle */}
         <div className="leaderboard-toggle-container">
           <div className="leaderboard-toggle">
             <button
               onClick={() => setActiveTab("global")}
-              className={activeTab === "global" ? "active" : ""}
+              className={`btn ${
+                activeTab === "global"
+                  ? "btn-primary active"
+                  : "btn-outline-primary"
+              }`}
             >
-              Global Leaderboard
+              Global
             </button>
             <button
               onClick={() => setActiveTab("friends")}
-              className={activeTab === "friends" ? "active" : ""}
+              className={`btn ${
+                activeTab === "friends"
+                  ? "btn-primary active"
+                  : "btn-outline-primary"
+              }`}
             >
-              Friends Leaderboard
+              Friends
             </button>
           </div>
         </div>
 
-        {/* Leaderboard Table */}
         <div className="table-responsive">
-          <table className="table leaderboard-table text-center">
-            <thead>
+          <table className="table leaderboard-table">
+            <thead className="thead-dark">
               <tr>
-                <th>Rank</th>
-                <th>Username</th>
-                <th>Points</th>
-                {activeTab === "global" && <th>Action</th>}
+                <th scope="col">Rank</th>
+                <th scope="col">Username</th>
+                <th scope="col">Points</th>
+                {activeTab === "global" && <th scope="col">Action</th>}
               </tr>
             </thead>
             <tbody>
@@ -145,9 +150,9 @@ const Leaderboards = () => {
                 <tr>
                   <td
                     colSpan={activeTab === "global" ? 4 : 3}
-                    className="text-center"
+                    className="text-center py-4"
                   >
-                    No users found.
+                    <span className="text-muted">No users found</span>
                   </td>
                 </tr>
               ) : (
@@ -164,7 +169,7 @@ const Leaderboards = () => {
                         : ""
                     }
                   >
-                    <td>{index + 1}</td>
+                    <td className="fw-bold">{index + 1}</td>
                     <td>{userData.user.username}</td>
                     <td>{userData.points}</td>
                     {activeTab === "global" && (

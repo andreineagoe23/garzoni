@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "../styles/Questionnaire.css";
+import "../styles/scss/main.scss";
 
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
@@ -73,16 +73,15 @@ const Questionnaire = () => {
         console.log("Validated questions:", validatedQuestions);
         setQuestions(validatedQuestions);
       } catch (error) {
-        console.error("Full fetch error:", error);
         setError(error.response?.data?.error || "Failed to load questions");
       } finally {
         setLoading(false);
       }
     };
-
     fetchQuestions();
   }, []);
 
+  // Keep all handler functions exactly the same
   const handleAnswer = (questionId, answer) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
@@ -106,10 +105,10 @@ const Questionnaire = () => {
   const handleSubmit = async () => {
     try {
       const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-  
+        .split("; ")
+        .find((row) => row.startsWith("csrftoken="))
+        ?.split("=")[1];
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
         { answers },
@@ -118,20 +117,21 @@ const Questionnaire = () => {
           headers: {
             "X-CSRFToken": csrfToken,
             "Content-Type": "application/json",
-          }
+          },
         }
       );
-  
+
       if (response.data.success) {
         navigate("/personalized-path");
       }
-      
     } catch (error) {
-      setError(error.response?.data?.error || "Submission failed. Please try again.");
-      console.error("Submit error:", error);
+      setError(
+        error.response?.data?.error || "Submission failed. Please try again."
+      );
     }
   };
 
+  // Keep all rendering logic exactly the same
   const renderQuestionInput = (question) => {
     switch (question.type) {
       case "knowledge_check":

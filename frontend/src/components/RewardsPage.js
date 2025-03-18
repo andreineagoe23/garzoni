@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
-import styles from "../styles/RewardsPage.module.css";
+import "../styles/scss/main.scss";
 import axios from "axios";
 
 function RewardsPage() {
@@ -29,31 +29,27 @@ function RewardsPage() {
   }, []);
 
   return (
-    <div className={styles.rewardsPage}>
-      <div className={styles.balanceDisplay}>
+    <div className="rewards-page">
+      <div className="balance-display">
         <h2>Your Balance: {balance} coins</h2>
       </div>
 
-      <div className={styles.tabButtons}>
+      <div className="tab-buttons">
         <button
-          className={`${styles.tabButton} ${
-            activeTab === "shop" ? styles.active : ""
-          }`}
+          className={`tab-button ${activeTab === "shop" ? "active" : ""}`}
           onClick={() => setActiveTab("shop")}
         >
           Shop
         </button>
         <button
-          className={`${styles.tabButton} ${
-            activeTab === "donate" ? styles.active : ""
-          }`}
+          className={`tab-button ${activeTab === "donate" ? "active" : ""}`}
           onClick={() => setActiveTab("donate")}
         >
           Donate
         </button>
       </div>
 
-      <div className={styles.tabContent}>
+      <div className="tab-content">
         {activeTab === "shop" && <ShopItems onPurchase={fetchBalance} />}
         {activeTab === "donate" && <DonationCauses onDonate={fetchBalance} />}
       </div>

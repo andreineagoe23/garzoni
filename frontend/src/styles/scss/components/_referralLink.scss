@@ -1,0 +1,110 @@
+@import "../abstracts/variables";
+
+.referral-card {
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  padding: 1.5rem;
+  box-shadow: $box-shadow-sm;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $box-shadow-lg;
+  }
+}
+
+.card-header {
+  margin-bottom: 1.5rem;
+
+  .title {
+    color: $primary;
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    color: rgba(var(--text-color), 0.8);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+.referral-content {
+  .input-group {
+    display: flex;
+    gap: 0.75rem;
+    position: relative;
+
+    @include media-breakpoint-down(sm) {
+      flex-direction: column;
+    }
+  }
+}
+
+.referral-input {
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius;
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.1);
+  }
+}
+
+.copy-btn {
+  padding: 0.75rem 1.5rem;
+  background: $primary;
+  color: $accent;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+
+  &:hover {
+    background: darken($primary, 5%);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.copied {
+    background: $success;
+    color: white;
+    
+    .check {
+      animation: checkPop 0.3s ease;
+    }
+  }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@include media-breakpoint-down(sm) {
+  .referral-card {
+    padding: 1rem;
+  }
+
+  .copy-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}

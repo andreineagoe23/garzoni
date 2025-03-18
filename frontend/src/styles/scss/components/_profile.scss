@@ -1,0 +1,110 @@
+.profile-container {
+    margin-left: 280px;
+    padding: $spacer * 2;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+    width: calc(100% - 280px);
+    
+    @include media-breakpoint-down(lg) {
+      margin-left: 0;
+      width: 100%;
+      padding: $spacer;
+      padding-top: $spacer * 5;
+      
+      &.nav-open {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+      }
+    }
+  }
+  
+  .profile-avatar-container {
+    position: relative;
+    display: inline-block;
+    
+    .rounded-circle {
+      border: 3px solid var(--primary);
+      transition: transform 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+  
+  .stat-box {
+    background: rgba(var(--primary-rgb), 0.05);
+    border-radius: $border-radius-lg;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: $box-shadow-lg;
+    }
+  }
+  
+  .badges-section {
+    padding: $spacer * 2;
+    background: var(--card-bg);
+    border-radius: $border-radius-lg;
+    
+    .badge-card {
+      width: 120px;
+      padding: $spacer;
+      background: var(--card-bg);
+      border-radius: $border-radius;
+      box-shadow: $box-shadow-lg;
+      transition: all 0.3s ease;
+      text-align: center;
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.1);
+      }
+      
+      .badge-image {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+      }
+      
+      .badge-name {
+        font-size: 0.9rem;
+        font-weight: $font-weight-semibold;
+        color: var(--text-color);
+      }
+    }
+  }
+  
+  .recent-activity {
+    .list-group-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateX(5px);
+        border-color: var(--primary);
+      }
+    }
+  }
+  
+  @include media-breakpoint-down(md) {
+    .stat-box {
+      margin-bottom: $spacer;
+    }
+    
+    .badge-card {
+      width: 100px !important;
+      
+      .badge-image {
+        width: 60px !important;
+        height: 60px !important;
+      }
+    }
+    
+    .profile-avatar-container .rounded-circle {
+      width: 120px !important;
+      height: 120px !important;
+    }
+  }

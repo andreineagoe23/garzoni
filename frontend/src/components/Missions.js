@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { gsap } from "gsap";
-import "../styles/Missions.css";
+import "../styles/scss/main.scss";
 
-// TO DO : FIX LESSON MISSION USER PROGRESS BAR AND READING FACTS!!!
 
 function CoinStack({ balance }) {
   const target = 100;
@@ -181,12 +180,15 @@ function Missions() {
   };
 
   const renderMission = (mission) => (
-    <div key={mission.id} className="mission-card">
-      <div className="mission-header">
-        <h5>{mission.name}</h5>
-        <p>{mission.description}</p>
+    <div key={mission.id} className="mission-card shadow-sm mb-4">
+      <div className="mission-header p-3">
+        <h5 className="fw-semibold mb-2">{mission.name}</h5>
+        <p className="text-muted mb-3">{mission.description}</p>
         <ProgressBar
           now={mission.progress}
+          className="mb-2"
+          variant="primary"
+          style={{ height: "6px" }}
           label={
             mission.goal_type === "read_fact" &&
             mission.mission_type === "weekly"
@@ -195,13 +197,13 @@ function Missions() {
           }
         />
         {mission.goal_type === "read_fact" && (
-          <p className="target-text">
+          <small className="d-block text-muted">
             {mission.status === "completed"
               ? "Completed! 🎉"
               : mission.mission_type === "daily"
               ? "Read 1 fact to complete"
               : `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`}
-          </p>
+          </small>
         )}
       </div>
 
@@ -213,7 +215,7 @@ function Missions() {
             <div className="savings-section">
               <button
                 onClick={() => setShowSavingsMenu(!showSavingsMenu)}
-                className="update-progress-btn"
+                className="btn btn-accent update-progress-btn"
               >
                 {showSavingsMenu ? "Hide Savings Jar" : "Show Savings Jar"}
               </button>
@@ -228,7 +230,7 @@ function Missions() {
                       placeholder="Enter amount (e.g., £5)"
                       className="savings-input"
                     />
-                    <button type="submit" className="add-savings-btn">
+                    <button type="submit" className="btn btn-accent add-savings-btn">
                       Add to Savings
                     </button>
                   </form>
@@ -243,7 +245,7 @@ function Missions() {
               <div className="fact-section">
                 <FactCard fact={currentFact} onMarkRead={markFactRead} />
                 {!currentFact && (
-                  <button onClick={loadNewFact} className="refresh-fact-btn">
+                  <button onClick={loadNewFact} className="btn btn-outline-accent refresh-fact-btn">
                     ↻ Try Again
                   </button>
                 )}
@@ -256,13 +258,19 @@ function Missions() {
   );
 
   return (
-    <div className="missions-container">
-      <h2 className="missions-title">Daily Missions</h2>
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-      <div className="missions-list">{dailyMissions.map(renderMission)}</div>
+    <div className="missions-container container-fluid py-4">
+      <h2 className="missions-title display-5 fw-bold text-center mb-5">
+        Daily Missions
+      </h2>
+      {errorMessage && (
+        <p className="text-danger text-center mb-4">{errorMessage}</p>
+      )}
+      <div className="row g-4">{dailyMissions.map(renderMission)}</div>
 
-      <h2 className="missions-title">Weekly Missions</h2>
-      <div className="missions-list">{weeklyMissions.map(renderMission)}</div>
+      <h2 className="missions-title display-5 fw-bold text-center mb-5 mt-5">
+        Weekly Missions
+      </h2>
+      <div className="row g-4">{weeklyMissions.map(renderMission)}</div>
     </div>
   );
 }

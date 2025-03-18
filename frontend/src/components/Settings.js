@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "./ThemeContext";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../styles/Settings.css";
+import "../styles/scss/main.scss";
 
 function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -38,9 +38,11 @@ function Settings() {
 
         // Sync dark mode with backend and cookies
         const serverDarkMode = response.data.dark_mode;
-        Cookies.set('darkMode', serverDarkMode.toString(), { expires: 365, sameSite: 'strict' });
+        Cookies.set("darkMode", serverDarkMode.toString(), {
+          expires: 365,
+          sameSite: "strict",
+        });
         toggleDarkMode(serverDarkMode);
-
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
@@ -69,7 +71,10 @@ function Settings() {
   const handleDarkModeToggle = (e) => {
     const newDarkMode = e.target.checked;
     toggleDarkMode(newDarkMode);
-    Cookies.set('darkMode', newDarkMode.toString(), { expires: 365, sameSite: 'strict' });
+    Cookies.set("darkMode", newDarkMode.toString(), {
+      expires: 365,
+      sameSite: "strict",
+    });
   };
 
   const handleInputChange = (e) => {
@@ -79,89 +84,108 @@ function Settings() {
 
   return (
     <div className="settings-container">
-      <h2>Settings</h2>
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      <div className="settings-card">
+        <h2 className="settings-title">Settings</h2>
+        {successMessage && (
+          <div className="success-message">{successMessage}</div>
+        )}
 
-      <form>
-        {/* Existing form fields */}
-        <div className="form-group">
-          <label>First Name</label>
-          <input
-            type="text"
-            name="first_name"
-            className="form-control"
-            value={profileData.first_name}
-            onChange={handleInputChange}
-          />
-        </div>
+        <form>
+          <h4 className="mb-4">Profile Information</h4>
+          <div className="form-group">
+            <label htmlFor="first_name">First Name</label>
+            <input
+              type="text"
+              id="first_name"
+              name="first_name"
+              className="form-control"
+              value={profileData.first_name}
+              onChange={handleInputChange}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Last Name</label>
-          <input
-            type="text"
-            name="last_name"
-            className="form-control"
-            value={profileData.last_name}
-            onChange={handleInputChange}
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="last_name">Last Name</label>
+            <input
+              type="text"
+              id="last_name"
+              name="last_name"
+              className="form-control"
+              value={profileData.last_name}
+              onChange={handleInputChange}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            name="username"
-            className="form-control"
-            value={profileData.username}
-            onChange={handleInputChange}
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              className="form-control"
+              value={profileData.username}
+              onChange={handleInputChange}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Email</label>
-          <input
-            type="email"
-            name="email"
-            className="form-control"
-            value={profileData.email}
-            onChange={handleInputChange}
-          />
-        </div>
-      </form>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="form-control"
+              value={profileData.email}
+              onChange={handleInputChange}
+            />
+          </div>
 
-      <div className="form-group">
-        <label>Email Reminders</label>
-        <input
-          type="checkbox"
-          checked={emailReminders}
-          onChange={(e) => setEmailReminders(e.target.checked)}
-        />
+          <h4 className="mb-4 mt-5">Notification Preferences</h4>
+          <div className="toggle-switch">
+            <label htmlFor="emailReminders">Email Reminders</label>
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="emailReminders"
+              checked={emailReminders}
+              onChange={(e) => setEmailReminders(e.target.checked)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="emailFrequency">Email Frequency</label>
+            <select
+              id="emailFrequency"
+              className="form-select"
+              value={emailFrequency}
+              onChange={(e) => setEmailFrequency(e.target.value)}
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+
+          <div className="dark-mode-toggle toggle-switch">
+            <label htmlFor="darkModeToggle">Dark Mode</label>
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="darkModeToggle"
+              checked={darkMode}
+              onChange={handleDarkModeToggle}
+            />
+          </div>
+
+          <button
+            type="button"
+            className="save-button"
+            onClick={handleSaveSettings}
+          >
+            Save Settings
+          </button>
+        </form>
       </div>
-
-      <div className="form-group">
-        <label>Email Frequency</label>
-        <select
-          value={emailFrequency}
-          onChange={(e) => setEmailFrequency(e.target.value)}
-        >
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
-      </div>
-
-      <div className="form-group dark-mode-toggle">
-        <label>Dark Mode</label>
-        <input
-          type="checkbox"
-          checked={darkMode}
-          onChange={handleDarkModeToggle}
-        />
-      </div>
-
-      <button className="save-button" onClick={handleSaveSettings}>
-        Save Settings
-      </button>
     </div>
   );
 }

@@ -1,0 +1,72 @@
+.budget-allocation {
+    &-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: $spacer * 1.5;
+      margin-bottom: $spacer * 2;
+      padding: $spacer;
+      border: 2px dashed var(--border-color);
+      border-radius: $border-radius;
+      background-color: rgba(var(--primary-rgb), 0.05);
+      
+      @include media-breakpoint-down(sm) {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    &-item {
+      display: flex;
+      flex-direction: column;
+      padding: $spacer;
+      border-radius: $border-radius;
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+    
+    &-label {
+      font-weight: $font-weight-semibold;
+      margin-bottom: $spacer * 0.5;
+      color: var(--primary);
+    }
+    
+    &-input {
+      padding: $spacer * 0.5;
+      border: 2px solid var(--border-color);
+      border-radius: $border-radius;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      
+      &:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+      }
+      
+      &:disabled {
+        background-color: rgba(var(--border-color), 0.1);
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  .budget-total-display {
+    display: flex;
+    justify-content: space-between;
+    padding: $spacer;
+    margin: $spacer * 2 0;
+    background-color: rgba(var(--primary-rgb), 0.1);
+    border-radius: $border-radius;
+    font-weight: $font-weight-semibold;
+    
+    span {
+      &:last-child {
+        color: var(--primary);
+      }
+    }
+  }

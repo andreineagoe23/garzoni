@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import axios from "axios";
-import styles from "../styles/DragAndDropExercise.module.css";
+import "../styles/scss/main.scss";
 
 const DragAndDropExercise = ({ data, exerciseId }) => {
   const { items, targets } = data;
@@ -57,7 +57,10 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       return {
         ...target,
         isCorrect,
-        droppedColor: isCorrect ? "#4caf50" : "#f44336",
+        droppedColor: isCorrect
+          ? "rgba(76, 175, 80, 0.2)"
+          : "rgba(244, 67, 54, 0.2)",
+        animation: isCorrect ? "pulse-success" : "shake",
       };
     });
 
@@ -66,7 +69,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     );
 
     if (correct === updatedTargets.length) {
-      setFeedback("You completed the exercise!");
+      setFeedback("Great job! You completed the exercise!");
       setIsCompleted(true);
 
       try {
@@ -79,14 +82,14 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
         console.error("Error saving exercise progress:", error);
       }
     } else {
-      setFeedback("Try Again!");
+      setFeedback(
+        `${correct} out of ${updatedTargets.length} answers are correct. Try again!`
+      );
     }
 
-    setFeedback(
-      `${correct} out of ${updatedTargets.length} answers are correct.`
-    );
     setUpdatedTargets(newTargets);
   };
+
   const handleRetry = async () => {
     try {
       await axios.post(
@@ -97,7 +100,9 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       setUserAnswers({});
       setFeedback("");
       setFeedbackClass("");
-      setUpdatedTargets(targets.map((t) => ({ ...t, droppedColor: null })));
+      setUpdatedTargets(
+        targets.map((t) => ({ ...t, droppedColor: null, animation: null }))
+      );
       setIsCompleted(false);
     } catch (error) {
       console.error("Error resetting exercise:", error);
@@ -106,13 +111,14 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={styles.exerciseContainer}>
-        <div className={styles.itemsContainer}>
+      <div className="drag-drop-exercise-container">
+        <h3 className="drag-drop-exercise-title">Match The Correct Items</h3>
+        <div className="drag-drop-exercise-items-container">
           {items.map((item) => (
             <DraggableItem key={item.id} item={item} />
           ))}
         </div>
-        <div className={styles.targetsContainer}>
+        <div className="drag-drop-exercise-targets-container">
           {updatedTargets.map((target) => (
             <DroppableTarget
               key={target.id}
@@ -120,20 +126,29 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
               onDrop={handleDrop}
               droppedColor={target.droppedColor}
               userAnswer={userAnswers[target.id]}
+              animation={target.animation}
             />
           ))}
         </div>
         {isCompleted ? (
-          <button className={styles.retryButton} onClick={handleRetry}>
+          <button className="btn btn-outline-accent" onClick={handleRetry}>
             Retry Exercise
           </button>
         ) : (
-          <button className={styles.submitButton} onClick={handleSubmit}>
+          <button className="btn btn-accent" onClick={handleSubmit}>
             Submit Answers
           </button>
         )}
         {feedback && (
-          <p className={`${styles.feedback} ${feedbackClass}`}>{feedback}</p>
+          <div
+            className={`drag-drop-exercise-feedback ${
+              feedbackClass
+                ? `drag-drop-exercise-feedback-${feedbackClass}`
+                : ""
+            }`}
+          >
+            {feedback}
+          </div>
         )}
       </div>
     </DndProvider>
@@ -152,7 +167,9 @@ const DraggableItem = ({ item }) => {
   return (
     <div
       ref={drag}
-      className={`${styles.draggableItem} ${isDragging ? styles.dragging : ""}`}
+      className={`drag-drop-exercise-draggable-item ${
+        isDragging ? "dragging" : ""
+      }`}
       style={{ backgroundColor: item.color }}
     >
       {item.text}
@@ -160,7 +177,13 @@ const DraggableItem = ({ item }) => {
   );
 };
 
-const DroppableTarget = ({ target, onDrop, droppedColor, userAnswer }) => {
+const DroppableTarget = ({
+  target,
+  onDrop,
+  droppedColor,
+  userAnswer,
+  animation,
+}) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "ITEM",
     drop: (item) => onDrop(target, item),
@@ -172,14 +195,16 @@ const DroppableTarget = ({ target, onDrop, droppedColor, userAnswer }) => {
   return (
     <div
       ref={drop}
-      className={`${styles.droppableTarget} ${isOver ? styles.over : ""} ${
+      className={`drag-drop-exercise-droppable-target ${isOver ? "over" : ""} ${
         droppedColor ? "dropped" : ""
-      }`}
+      } ${animation ? animation : ""}`}
       style={{ backgroundColor: droppedColor }}
     >
-      {target.text}
+      <div className="target-text">{target.text}</div>
       {userAnswer && (
-        <div className={styles.droppedItem}>Answer: {userAnswer}</div>
+        <div className="drag-drop-exercise-dropped-item">
+          Answer: {userAnswer}
+        </div>
       )}
     </div>
   );

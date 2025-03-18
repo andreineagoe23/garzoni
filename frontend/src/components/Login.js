@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Login.css";
-import "../styles/CustomStyles.css";
+import { Form, Button, Alert } from "react-bootstrap";
 import logo from "../assets/monevo.png";
 
 function Login() {
@@ -18,94 +17,80 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      console.log("🔵 Sending login request with data:", formData);
-
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        {
-          withCredentials: true, // Ensure cookies are sent/received
-        }
+        { withCredentials: true }
       );
 
-      console.log("✅ Login successful, now fetching user data...");
-
-      await fetchUserData(); // Fetch user profile to confirm authentication
-
-      setUserAuthenticated(true); // ✅ Update state to trigger navigation
+      await fetchUserData();
+      setUserAuthenticated(true);
     } catch (error) {
-      console.error("❌ Login failed", error);
+      console.error("Login failed", error);
       setError("Invalid username or password");
     }
   };
 
   useEffect(() => {
-    if (userAuthenticated) {
-      console.log("🚀 Redirecting to /all-topics...");
-      navigate("/all-topics"); // ✅ Ensure navigation happens after authentication
-    }
-  }, [userAuthenticated, navigate]); // ✅ Only run when `userAuthenticated` changes
+    if (userAuthenticated) navigate("/all-topics");
+  }, [userAuthenticated, navigate]);
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log("User authenticated:", response.data);
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+        withCredentials: true,
+      });
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
 
-  
-
   return (
     <div className="login-container">
-      <img src={logo} alt="Logo" className="logo" />
-      <h2>Login to Your Account</h2>
+      <img src={logo} alt="Logo" className="img-fluid logo" />
+      <h2 className="login-heading">Login to Your Account</h2>
 
-      <form onSubmit={handleLogin}>
-        <label>Username</label>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
+      {error && <Alert variant="danger">{error}</Alert>}
 
-        <label>Password</label>
-        <input
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+      <Form onSubmit={handleLogin}>
+        <Form.Group className="mb-4">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+        </Form.Group>
 
-        {error && <p className="error-message">{error}</p>}
+        <Form.Group className="mb-4">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </Form.Group>
 
-        <div className="form-button-row">
-          <button
-            type="submit"
-            className="button button--primary button--large"
-          >
+        <div className="d-grid gap-3 mb-4">
+          <Button variant="primary" size="lg" type="submit" className="btn-3d">
             Login
-          </button>
+          </Button>
         </div>
-      </form>
 
-      <div className="forgot-password">
-        <button
-          className="button button--secondary button--small"
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot Password?
-        </button>
-      </div>
+        <div className="text-center">
+          <Button
+            variant="link"
+            onClick={() => navigate("/forgot-password")}
+            className="text-decoration-none"
+          >
+            Forgot Password?
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 }

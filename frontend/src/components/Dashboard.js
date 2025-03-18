@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { Button } from "react-bootstrap";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import UserProgressBox from "./UserProgressBox";
 import Chatbot from "./Chatbot";
-import "../styles/Dashboard.css";
-import "../styles/PersonalizedPath.css";
+import Navbar from "./Navbar";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -17,7 +17,6 @@ function Dashboard() {
 
   const navigate = useNavigate();
   const location = useLocation();
-
   const activePage = location.pathname.includes("personalized-path")
     ? "personalized-path"
     : "all-topics";
@@ -29,13 +28,11 @@ function Dashboard() {
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { withCredentials: true }
         );
-
         setUser(profileResponse.data.user_data);
         setIsQuestionnaireCompleted(
           profileResponse.data.is_questionnaire_completed
         );
       } catch (error) {
-        console.error("Error fetching user data:", error);
         navigate("/login");
       }
     };
@@ -79,69 +76,92 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <div className="main-content">
-        <div className="dashboard-header">
-          <h2 className="dashboard-greeting">
-            Welcome back, {user?.username || "User"}!
-          </h2>
-          <button className="button button--logout" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
+      <Navbar />
 
-        <div className="dashboard-buttons">
-          <button
-            className={`button button--nav ${
-              activePage === "all-topics" ? "button--active" : ""
-            }`}
-            onClick={() => navigate("/all-topics")}
-          >
-            All Topics
-          </button>
+      <div className="dashboard-content">
+        <div className="main-content">
+          <div className="dashboard-header">
+            <h2 className="dashboard-greeting">
+              Welcome back, {user?.username || "User"}!
+            </h2>
+            {/* Convert logout button */}
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+              className="logout-btn"
+            >
+              Logout
+            </Button>
+          </div>
 
-          <button
-            className={`button button--nav ${
-              isQuestionnaireCompleted ? "" : "button--disabled"
-            } ${activePage === "personalized-path" ? "button--active" : ""}`}
-            onClick={() => {
-              if (isQuestionnaireCompleted) {
-                navigate("/personalized-path");
-              } else {
-                navigate("/questionnaire");
+          <div className="dashboard-buttons">
+            {/* All Topics button */}
+            <Button
+              variant={
+                activePage === "all-topics" ? "accent" : "outline-accent"
               }
-            }}
-          >
-            Personalized Path
-          </button>
+              onClick={() => navigate("/all-topics")}
+              className="nav-btn"
+              active={activePage === "all-topics"}
+            >
+              All Topics
+            </Button>
+
+            <Button
+              variant={
+                activePage === "personalized-path"
+                  ? "accent"
+                  : isQuestionnaireCompleted
+                  ? "outline-accent"
+                  : "secondary"
+              }
+              onClick={() => {
+                if (isQuestionnaireCompleted) {
+                  navigate("/personalized-path");
+                } else {
+                  navigate("/questionnaire");
+                }
+              }}
+              className="nav-btn"
+            >
+              Personalized Path
+              {!isQuestionnaireCompleted && " (Complete Questionnaire)"}
+            </Button>
+          </div>
+
+          {activePage === "all-topics" ? (
+            <AllTopics onCourseClick={handleCourseClick} />
+          ) : (
+            <PersonalizedPath onCourseClick={handleCourseClick} />
+          )}
         </div>
 
-        {activePage === "all-topics" ? (
-          <AllTopics onCourseClick={handleCourseClick} />
-        ) : (
-          <PersonalizedPath onCourseClick={handleCourseClick} />
-        )}
-      </div>
+        {/* Progress panel */}
+        <div className="user-progress">
+          {userProgress ? (
+            <UserProgressBox userProgress={userProgress} />
+          ) : (
+            <p>Loading progress...</p>
+          )}
+        </div>
 
-      <div className="user-progress">
-        {userProgress ? (
-          <UserProgressBox userProgress={userProgress} />
-        ) : (
-          <p>Loading progress...</p>
-        )}
-      </div>
+        <Button
+          variant="accent"
+          className="floating-progress-btn"
+          onClick={toggleProgressPanel}
+        >
+          Progress
+        </Button>
 
-      <button className="floating-progress-btn" onClick={toggleProgressPanel}>
-        Progress
-      </button>
-
-      {showProgress && (
-        <div className="progress-panel">
-          <button className="close-panel-btn" onClick={toggleProgressPanel}>
-            Close
-          </button>
+        <div className={`mobile-progress-panel ${showProgress ? "show" : ""}`}>
+          <div className="panel-header">
+            <Button variant="link" onClick={toggleProgressPanel}>
+              &times; Close
+            </Button>
+          </div>
           <UserProgressBox userProgress={userProgress} />
         </div>
-      )}
+      </div>
 
       <Chatbot />
     </div>

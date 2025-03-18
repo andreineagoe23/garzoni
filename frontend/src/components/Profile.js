@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Profile.css";
-import "../styles/AvatarSelector.css"; // Import the avatar CSS
+import "../styles/scss/main.scss";
+import "../styles/AvatarSelector.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
 import AvatarSelector from "./AvatarSelector";
@@ -114,15 +114,15 @@ function Profile() {
         isNavOpen ? "nav-open" : ""
       }`}
     >
-      <div className="card p-4 shadow-sm">
-        <h2 className="text-center mb-4">Profile</h2>
+      <div className="card p-4 shadow-lg">
+        <h2 className="text-center mb-4 display-5 fw-bold">Profile</h2>
 
-        <div className="text-center">
+        <div className="text-center position-relative">
           <div className="profile-avatar-container">
             <img
               src={imageUrl || "/default-avatar.png"}
               alt="Avatar"
-              className="rounded-circle profile-picture avatar-preview"
+              className="rounded-circle border-4 shadow-sm"
               width="150"
               height="150"
             />
@@ -133,64 +133,79 @@ function Profile() {
           </div>
         </div>
 
-        <div className="profile-details">
-          <h3 className="mt-4 text-center">
+        <div className="profile-details mt-4">
+          <h3 className="text-center mb-2">
             {profileData.first_name} {profileData.last_name}
           </h3>
-          <p className="text-center text-muted">@{profileData.username}</p>
+          <p className="text-center text-muted mb-1">@{profileData.username}</p>
           <p className="text-center text-muted">{profileData.email}</p>
 
-          <div className="stats-section">
-            <div className="stat-box">
-              <h4>Balance</h4>
-              <p>${profileData.earned_money.toFixed(2)}</p>
+          <div className="row g-4 mt-3">
+            <div className="col-md-4 text-center">
+              <div className="stat-box p-3">
+                <h4 className="text-secondary mb-3">Balance</h4>
+                <p className="h3 fw-bold">
+                  ${profileData.earned_money.toFixed(2)}
+                </p>
+              </div>
             </div>
-            <div className="stat-box">
-              <h4>Points</h4>
-              <p>{profileData.points}</p>
+            <div className="col-md-4 text-center">
+              <div className="stat-box p-3">
+                <h4 className="text-secondary mb-3">Points</h4>
+                <p className="h3 fw-bold">{profileData.points}</p>
+              </div>
             </div>
-            <div className="stat-box">
-              <h4>Streak</h4>
-              <p>{profileData.streak} days</p>
+            <div className="col-md-4 text-center">
+              <div className="stat-box p-3">
+                <h4 className="text-secondary mb-3">Streak</h4>
+                <p className="h3 fw-bold">{profileData.streak} days</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <h3 className="mt-4">Earned Badges</h3>
-        <div className="badges-section d-flex flex-wrap justify-content-center">
-          {badges.length > 0 ? (
-            badges.map((userBadge) => (
-              <div key={userBadge.badge.id} className="badge-card">
-                <img
-                  src={userBadge.badge.image_url}
-                  alt={userBadge.badge.name}
-                  className="badge-image"
-                />
-                <p className="badge-name">{userBadge.badge.name}</p>
-              </div>
-            ))
-          ) : (
-            <p>No badges earned yet</p>
-          )}
-        </div>
+        <section className="badges-section mt-5">
+          <h3 className="mb-4">Earned Badges</h3>
+          <div className="d-flex flex-wrap gap-3 justify-content-center">
+            {badges.length > 0 ? (
+              badges.map((userBadge) => (
+                <div key={userBadge.badge.id} className="badge-card">
+                  <img
+                    src={userBadge.badge.image_url}
+                    alt={userBadge.badge.name}
+                    className="badge-image img-fluid"
+                  />
+                  <p className="badge-name mt-2 mb-0">{userBadge.badge.name}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted">No badges earned yet</p>
+            )}
+          </div>
+        </section>
 
-        <h3 className="mt-4">Recent Activity</h3>
-        <ul className="list-group">
-          {recentActivity.length > 0 ? (
-            recentActivity.map((activity) => (
-              <li key={activity.id} className="list-group-item">
-                <div className="d-flex justify-content-between align-items-center w-100">
+        <section className="recent-activity mt-5">
+          <h3 className="mb-4">Recent Activity</h3>
+          <div className="list-group">
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
                   <div>
                     <strong>{formatActivityText(activity)}</strong>
                   </div>
-                  <span className="text-muted">{activity.timestamp}</span>
+                  <span className="text-muted text-nowrap">
+                    {activity.timestamp}
+                  </span>
                 </div>
-              </li>
-            ))
-          ) : (
-            <li className="list-group-item">No recent activity</li>
-          )}
-        </ul>
+              ))
+            ) : (
+              <div className="list-group-item">No recent activity</div>
+            )}
+          </div>
+        </section>
       </div>
       <Chatbot />
     </div>

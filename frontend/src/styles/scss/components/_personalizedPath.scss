@@ -1,0 +1,251 @@
+// _personalizedPath.scss
+@import "../abstracts/variables";
+
+.personalized-path {
+  padding: 4rem 2rem;
+  min-height: 90vh;
+  position: relative;
+  background: linear-gradient(
+    to bottom right,
+    rgba($primary, 0.05),
+    rgba($primary, 0.01)
+  );
+
+  .recommendation-message {
+    font-size: 1.5rem;
+    color: $accent;
+    text-align: center;
+    margin-bottom: 3rem;
+    text-shadow: 0 2px 4px rgba($dark, 0.2);
+  }
+
+  .path-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .path-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 4rem 0;
+    z-index: 2;
+
+    @include media-breakpoint-up(lg) {
+      width: 45%;
+      min-height: 200px;
+
+      &.left {
+        margin-left: 5%;
+        flex-direction: row-reverse;
+      }
+
+      &.right {
+        margin-left: 50%;
+      }
+    }
+
+    @include media-breakpoint-down(lg) {
+      width: 100% !important;
+      margin: 2rem 0 !important;
+      flex-direction: column !important;
+    }
+  }
+
+  .course-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 2rem 3rem;
+    
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 2px;
+      background: repeating-linear-gradient(
+        to right,
+        $accent 0%,
+        $accent 50%,
+        transparent 50%,
+        transparent 100%
+      );
+      background-size: 10px 2px;
+    }
+
+    @include media-breakpoint-down(lg) {
+      margin-bottom: 2rem;
+      
+      &::after {
+        width: 60%;
+      }
+    }
+  }
+
+  .course-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid $accent;
+    box-shadow: $box-shadow-lg;
+    flex-shrink: 0;
+
+    @include media-breakpoint-down(md) {
+      width: 100px;
+      height: 100px;
+    }
+  }
+
+  .course-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  .course-box {
+    background: rgba($primary, 0.8);
+    padding: 2rem;
+    border-radius: $border-radius-lg;
+    border: 2px solid $accent;
+    box-shadow: $box-shadow-lg;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba($primary, 0.3);
+    }
+
+    h4 {
+      color: $accent !important;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .course-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .tag {
+      background: rgba($accent, 0.1);
+      color: $accent;
+      padding: 0.25rem 0.75rem;
+      border-radius: $border-radius;
+      font-size: 0.875rem;
+    }
+
+    .difficulty {
+      background: rgba($success, 0.1);
+      color: $success;
+    }
+  }
+
+  .course-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    @include media-breakpoint-down(sm) {
+      flex-direction: column;
+    }
+  }
+
+  .progress-container {
+    flex: 1;
+    max-width: 300px;
+
+    .progress {
+      height: 8px;
+      background-color: rgba($accent, 0.2);
+      border-radius: $border-radius;
+      overflow: hidden;
+
+      &-bar {
+        background: $accent;
+        transition: width 0.5s ease;
+      }
+    }
+
+    span {
+      display: block;
+      margin-top: 0.5rem;
+      color: rgba($accent, 0.8);
+      font-size: 0.875rem;
+    }
+  }
+
+  .course-stats {
+    display: flex;
+    gap: 1.5rem;
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: $accent;
+
+      span {
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  .path-footer {
+    margin-top: 4rem;
+    text-align: center;
+    color: $accent;
+
+    .btn-link {
+      color: $accent;
+      text-decoration: underline;
+      padding: 0.25rem;
+      margin-left: 0.5rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: darken($accent, 15%);
+        text-decoration: none;
+      }
+    }
+  }
+
+  @include media-breakpoint-down(md) {
+    padding: 2rem 1rem;
+
+    .course-box {
+      padding: 1.5rem;
+
+      h4 {
+        font-size: 1.2rem;
+      }
+    }
+
+    .course-stats {
+      gap: 1rem;
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    .course-circle {
+      width: 80px;
+      height: 80px;
+    }
+
+    .course-box h4 {
+      font-size: 1.1rem;
+    }
+  }
+}

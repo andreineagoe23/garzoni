@@ -1,0 +1,33 @@
+// Custom grid overrides
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    background-color: var(--bg-color);
+  }
+  
+  // Main content area
+  .content {
+    flex: 1;
+    padding: 2rem;
+    transition: margin 0.3s ease;
+  
+    @include media-breakpoint-up(lg) {
+      padding: 2.5rem;
+    }
+  }
+  
+  // Custom container sizes
+  .container-narrow {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+  
+  // Responsive spacing helpers
+  @each $breakpoint, $value in $grid-breakpoints {
+    @include media-breakpoint-up($breakpoint) {
+      .min-vh-#{$breakpoint} {
+        min-height: 100vh;
+      }
+    }
+  }

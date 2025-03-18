@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Register.css";
-import "../styles/CustomStyles.css";
+import { Form, Button, Alert } from "react-bootstrap";
 import logo from "../assets/monevo.png";
 
 function Register() {
@@ -13,7 +12,7 @@ function Register() {
     first_name: "",
     last_name: "",
     wants_personalized_path: false,
-    referral_code: "", // Add referral code field
+    referral_code: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -29,21 +28,18 @@ function Register() {
     });
   };
 
-  // Register.js
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      // Get CSRF token first
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
         withCredentials: true,
       });
 
-      // Submit registration with credentials
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
         {
-          withCredentials: true, // Crucial for cookies
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken":
@@ -55,7 +51,6 @@ function Register() {
         }
       );
 
-      // Directly navigate to next path from response
       navigate(response.data.next);
     } catch (error) {
       console.error("Registration failed", error);
@@ -67,97 +62,109 @@ function Register() {
 
   return (
     <div className="register-container">
-      <img src={logo} alt="Logo" className="logo" />
-      <h2>Create Your Account</h2>
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      <img src={logo} alt="Logo" className="img-fluid logo" />
+      <h2 className="register-heading">Create Your Account</h2>
 
-      <form onSubmit={handleRegister}>
-        <label>Username</label>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
+      {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
-        <label>Email</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
+      <Form onSubmit={handleRegister}>
+        <Form.Group className="mb-4">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+        </Form.Group>
 
-        <label>Password</label>
-        <input
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+        <Form.Group className="mb-4">
+          <Form.Label>Email</Form.Label>
+          <Form.Control
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </Form.Group>
 
-        <label>First Name</label>
-        <input
-          type="text"
-          name="first_name"
-          value={formData.first_name}
-          onChange={handleChange}
-          required
-        />
+        <Form.Group className="mb-4">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </Form.Group>
 
-        <label>Last Name</label>
-        <input
-          type="text"
-          name="last_name"
-          value={formData.last_name}
-          onChange={handleChange}
-          required
-        />
+        <div className="row g-4 mb-4">
+          <Form.Group className="col-md-6">
+            <Form.Label>First Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="first_name"
+              value={formData.first_name}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
 
-        <label>Referral Code (optional)</label>
-        <input
-          type="text"
-          name="referral_code"
-          value={formData.referral_code}
-          onChange={handleChange}
-        />
+          <Form.Group className="col-md-6">
+            <Form.Label>Last Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="last_name"
+              value={formData.last_name}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+        </div>
 
-        <label>Do you want a personalized learning path?</label>
-        <div className="radio-group">
-          <label>
-            <input
+        <Form.Group className="mb-4">
+          <Form.Label>Referral Code (optional)</Form.Label>
+          <Form.Control
+            type="text"
+            name="referral_code"
+            value={formData.referral_code}
+            onChange={handleChange}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-4">
+          <Form.Label>Personalized Learning Path?</Form.Label>
+          <div className="radio-group">
+            <Form.Check
               type="radio"
+              label="Yes"
               name="wants_personalized_path"
               value="true"
+              checked={formData.wants_personalized_path === true}
               onChange={handleRadioChange}
-              required
+              inline
             />
-            Yes
-          </label>
-          <label>
-            <input
+            <Form.Check
               type="radio"
+              label="No"
               name="wants_personalized_path"
               value="false"
+              checked={formData.wants_personalized_path === false}
               onChange={handleRadioChange}
-              required
+              inline
             />
-            No
-          </label>
-        </div>
+          </div>
+        </Form.Group>
 
-        <div className="form-button-row">
-          <button
-            type="submit"
-            className="button button--primary button--large"
-          >
+        <div className="d-grid gap-3">
+          <Button variant="primary" size="lg" type="submit" className="btn-3d">
             Register
-          </button>
+          </Button>
         </div>
-      </form>
+      </Form>
     </div>
   );
 }

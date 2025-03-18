@@ -1,0 +1,250 @@
+@import "../abstracts/variables";
+
+.missions-container {
+  margin-left: 280px;
+  min-height: 100vh;
+  padding: $spacer * 3;
+  background: var(--bg-color);
+  transition: margin-left 0.3s ease;
+
+  @include media-breakpoint-down(lg) {
+    margin-left: 0;
+    padding: $spacer;
+    padding-top: $spacer * 6;
+  }
+}
+
+.missions-title {
+  color: var(--primary);
+  font-weight: $font-weight-semibold;
+  position: relative;
+  padding-bottom: $spacer;
+  margin-bottom: $spacer * 2;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+}
+
+.mission-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $box-shadow-lg;
+  }
+
+  .mission-header {
+    padding: $spacer * 1.5;
+    border-bottom: 1px solid var(--border-color);
+
+    h5 {
+      color: var(--primary);
+      font-size: 1.25rem;
+      margin-bottom: $spacer * 0.5;
+    }
+
+    p {
+      color: var(--text-color);
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+  }
+
+  .progress {
+    background-color: rgba(var(--primary-rgb), 0.1);
+    height: 8px;
+    border-radius: $border-radius;
+
+    &-bar {
+      background-color: var(--primary);
+      transition: width 0.8s ease;
+    }
+  }
+
+  .completed-badge {
+    background: rgba(var(--success-color-rgb), 0.1);
+    color: var(--success-color);
+    padding: $spacer * 0.5;
+    border-radius: $border-radius;
+    font-size: 0.9rem;
+  }
+}
+
+.coin-stack {
+  padding: $spacer * 1.5;
+  background: rgba(var(--accent-rgb), 0.05);
+  border-radius: $border-radius-lg;
+
+  .coin-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: $spacer;
+    max-width: 400px;
+    margin: 0 auto;
+
+    @include media-breakpoint-down(sm) {
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 300px;
+    }
+  }
+
+  .coin {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: $font-weight-semibold;
+    position: relative;
+    transition: all 0.3s ease;
+
+    &.locked {
+      background: rgba(var(--dark-rgb), 0.1);
+      color: var(--text-color);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &.unlocked {
+      background: linear-gradient(45deg, $accent, darken($accent, 15%));
+      color: $primary;
+      box-shadow: $box-shadow-lg;
+    }
+
+    .coin-label {
+      font-size: 0.7rem;
+      position: absolute;
+      bottom: -$spacer * 1.5;
+      width: 100%;
+      text-align: center;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+  }
+
+  .next-unlock {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: $spacer;
+  }
+}
+
+.fact-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  padding: $spacer * 1.5;
+  margin: $spacer 0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  .fact-category {
+    color: var(--accent);
+    font-size: 1.1rem;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacer * 0.5;
+  }
+
+  .fact-text {
+    color: var(--text-color);
+    line-height: 1.6;
+    margin-bottom: $spacer;
+    font-size: 0.95rem;
+  }
+
+  .mark-read-btn {
+    @include button-accent-variant;
+    width: auto;
+    margin-left: auto;
+  }
+
+  .no-fact-message {
+    color: var(--text-color);
+    opacity: 0.7;
+    text-align: center;
+    width: 100%;
+  }
+}
+
+.savings-menu {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  padding: $spacer;
+  margin-top: $spacer;
+
+  .savings-input {
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: $border-radius;
+    padding: $spacer * 0.75;
+    width: 100%;
+    transition: all 0.3s ease;
+
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+    }
+  }
+
+  .add-savings-btn {
+    @include button-accent-variant;
+    margin-top: $spacer;
+    width: 100%;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .missions-container {
+    padding-top: $spacer * 8;
+  }
+
+  .mission-card {
+    margin-bottom: $spacer * 1.5;
+    
+    .mission-header {
+      padding: $spacer;
+    }
+  }
+
+  .coin {
+    width: 50px;
+    height: 50px;
+    font-size: 0.9rem;
+  }
+
+  .fact-card {
+    padding: $spacer;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .missions-title {
+    font-size: 1.5rem;
+    
+    &::after {
+      width: 80px;
+    }
+  }
+
+  .coin-grid {
+    gap: $spacer * 0.5;
+  }
+}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import styles from "../styles/LessonPage.module.css";
 import Chatbot from "./Chatbot";
 import DragAndDropExercise from "./DragAndDropExercise";
 import UserProgressBox from "./UserProgressBox";
 import MultipleChoiceExercise from "./MultipleChoiceExercise";
 import BudgetAllocationExercise from "./BudgetAllocationExercise";
+import "../styles/scss/main.scss";
 
 function fixImagePaths(content) {
   if (!content) return "";
@@ -125,16 +125,16 @@ function LessonPage() {
     const isCompleted = completedSections.includes(section.id);
 
     return (
-      <div className={styles.sectionContent}>
+      <div className="section-content">
         {section.content_type === "text" && section.text_content && (
           <div
-            className={styles.textContent}
+            className="text-content"
             dangerouslySetInnerHTML={{ __html: section.text_content }}
           />
         )}
 
         {section.content_type === "video" && section.video_url && (
-          <div className={styles.videoContainer}>
+          <div className="video-container">
             {section.video_url.includes("youtube.com") ||
             section.video_url.includes("youtu.be") ? (
               <iframe
@@ -154,7 +154,7 @@ function LessonPage() {
         )}
 
         {section.content_type === "exercise" && section.exercise_data && (
-          <div className={styles.exerciseContainer}>
+          <div className="exercise-container">
             {section.exercise_type === "drag-and-drop" && (
               <DragAndDropExercise
                 data={section.exercise_data}
@@ -179,7 +179,7 @@ function LessonPage() {
             )}
             {section.text_content && (
               <div
-                className={styles.exerciseInstructions}
+                className="exercise-instructions"
                 dangerouslySetInnerHTML={{ __html: section.text_content }}
               />
             )}
@@ -187,7 +187,7 @@ function LessonPage() {
         )}
 
         {isCompleted && (
-          <div className={styles.completionBadge}>✓ Section Completed</div>
+          <div className="completion-badge">✓ Section Completed</div>
         )}
       </div>
     );
@@ -206,27 +206,25 @@ function LessonPage() {
     const isLastTab = activeTab === (lesson.sections?.length || 0) - 1;
 
     return (
-      <div className={styles.lessonContent}>
+      <div className="lesson-content">
         {hasSections && (
-          <div className={styles.tabContainer}>
+          <div className="tab-container">
             {lesson.sections.map((section, index) => (
               <button
                 key={section.id || index}
-                className={`${styles.tab} ${
-                  activeTab === index ? styles.activeTab : ""
-                } button button--secondary`}
+                className={`tab ${activeTab === index ? "active-tab" : ""}`}
                 onClick={() => setActiveTab(index)}
               >
                 {section.title || `Section ${index + 1}`}
                 {completedSections.includes(section.id) && (
-                  <span className={styles.completedIndicator}>✓</span>
+                  <span className="completed-indicator">✓</span>
                 )}
               </button>
             ))}
           </div>
         )}
 
-        <div className={styles.tabContent}>
+        <div className="tab-content">
           {hasSections ? (
             currentSection ? (
               renderSectionContent(currentSection)
@@ -245,10 +243,10 @@ function LessonPage() {
         </div>
 
         {hasSections && (
-          <div className={styles.tabControls}>
+          <div className="tab-controls">
             {activeTab > 0 && (
               <button
-                className="button button--secondary"
+                className="btn btn-accent"
                 onClick={() => setActiveTab((prev) => prev - 1)}
               >
                 Previous
@@ -257,22 +255,22 @@ function LessonPage() {
 
             {!isLastTab ? (
               <button
-                className="button button--secondary"
+                className="btn btn-outline-accent"
                 onClick={() => setActiveTab((prev) => prev + 1)}
               >
                 Next
               </button>
             ) : (
-              <div className={styles.lessonCompletion}>
+              <div className="lesson-completion">
                 {!lesson.is_completed && (
                   <button
-                    className="button button--primary"
+                    className="btn btn-accent"
                     onClick={() => handleCompleteLesson(lesson.id)}
                   >
                     Complete Lesson
                   </button>
                 )}
-                <p className={styles.endMessage}>
+                <p className="end-message">
                   You've reached the end of this lesson
                 </p>
               </div>
@@ -281,7 +279,7 @@ function LessonPage() {
         )}
 
         {!hasSections && lesson.exercise_type && (
-          <div className={styles.exerciseContainer}>
+          <div className="exercise-container">
             {lesson.exercise_type === "drag-and-drop" ? (
               <DragAndDropExercise
                 data={lesson.exercise_data}
@@ -297,17 +295,17 @@ function LessonPage() {
     );
   };
 
-  if (loading) return <div className={styles.loading}>Loading lessons...</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <div className="loading">Loading lessons...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className={styles.lessonLayout}>
-      <div className={styles.lessonMain}>
+    <div className="lesson-page">
+      <div className="lesson-main">
         {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
+          <div className="success-message">{successMessage}</div>
         )}
 
-        <div className={styles.lessonBox}>
+        <div className="lesson-box">
           {lessons.length > 0 ? (
             lessons.map((lesson, index) => {
               const isCompleted = completedLessons.includes(lesson.id);
@@ -318,12 +316,12 @@ function LessonPage() {
               return (
                 <div
                   key={lesson.id}
-                  className={`${styles.lessonBoxItem} ${
+                  className={`lesson-box-item ${
                     isCompleted
-                      ? styles.completed
+                      ? "completed"
                       : isAccessible
-                      ? styles.incomplete
-                      : styles.locked
+                      ? "incomplete"
+                      : "locked"
                   }`}
                 >
                   <h4
@@ -345,10 +343,10 @@ function LessonPage() {
         </div>
 
         {courseCompleted && (
-          <div className={styles.courseCompletion}>
+          <div className="course-completion">
             <h3>Congratulations! You've completed the course.</h3>
             <button
-              className="button button--primary"
+              className="btn btn-accent"
               onClick={handleCourseCompletion}
             >
               Take the Course Quiz
@@ -359,21 +357,21 @@ function LessonPage() {
         <Chatbot />
       </div>
 
-      <div className={styles.lessonProgress}>
+      <div className="lesson-progress">
         <UserProgressBox />
       </div>
 
       <button
-        className="button button--secondary floatingProgressBtn"
+        className="btn btn-3d floating-progress-btn"
         onClick={() => setShowProgress((p) => !p)}
       >
         Progress
       </button>
 
       {showProgress && (
-        <div className={styles.progressPanel}>
+        <div className="progress-panel show">
           <button
-            className="button button--secondary"
+            className="btn btn-outline-accent"
             onClick={() => setShowProgress(false)}
           >
             Close

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import LearningPathList from "./LearningPathList";
-import "../styles/AllTopics.css";
+import "../styles/scss/main.scss";
 
 function AllTopics({ onCourseClick }) {
   const [learningPaths, setLearningPaths] = useState([]);
@@ -12,22 +12,15 @@ function AllTopics({ onCourseClick }) {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/paths/`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
 
-        const updatedPaths = response.data.map((path) => ({
+        setLearningPaths(response.data.map(path => ({
           ...path,
-          image: path.image ? path.image : null,
-        }));
-
-        setLearningPaths(updatedPaths);
+          image: path.image || null
+        })));
       } catch (error) {
-        console.error(
-          "❌ Error fetching learning paths:",
-          error.response?.data || error
-        );
+        console.error("Error fetching learning paths:", error.response?.data || error);
       }
     };
 
@@ -35,37 +28,46 @@ function AllTopics({ onCourseClick }) {
   }, []);
 
   const handleTogglePath = (pathId) => {
-    setActivePathId((prevId) => (prevId === pathId ? null : pathId));
+    setActivePathId(prev => prev === pathId ? null : pathId);
   };
 
   return (
-    <div className="all-topics">
-      <div className="learning-paths-container">
+    <div className="all-topics container py-4">
+      <div className="row g-4">
         {learningPaths.map((path) => (
-          <div key={path.id} className="learning-path-card">
-            <h3>{path.title}</h3>
+          <div key={path.id} className="col-12 col-md-6">
+            <div className="learning-path-card card h-100 shadow-sm">
+              <div className="card-body">
+                <h3 className="card-title mb-3">{path.title}</h3>
 
-            {path.image && (
-              <img src={path.image} alt={path.title} className="path-image" />
-            )}
+                {path.image && (
+                  <img 
+                    src={path.image} 
+                    alt={path.title} 
+                    className="path-image img-fluid rounded mb-3"
+                  />
+                )}
 
-            <p>{path.description}</p>
-            <button
-              className="button button--primary"
-              onClick={() => handleTogglePath(path.id)}
-            >
-              {activePathId === path.id ? "Hide Courses" : "View Courses"}
-            </button>
+                <p className="card-text text-muted mb-4">{path.description}</p>
+                
+                <button
+                  className="btn btn-outline-primary w-100"
+                  onClick={() => handleTogglePath(path.id)}
+                >
+                  {activePathId === path.id ? "Hide Courses" : "View Courses"}
+                </button>
 
-            {activePathId === path.id && (
-              <LearningPathList
-                learningPaths={[path]}
-                activePathId={path.id}
-                onTogglePath={handleTogglePath}
-                onCourseClick={onCourseClick}
-                showCourseImages={false}
-              />
-            )}
+                {activePathId === path.id && (
+                  <LearningPathList
+                    learningPaths={[path]}
+                    activePathId={path.id}
+                    onTogglePath={handleTogglePath}
+                    onCourseClick={onCourseClick}
+                    showCourseImages={false}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>

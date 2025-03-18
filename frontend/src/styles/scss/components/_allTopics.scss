@@ -1,0 +1,99 @@
+@import "../abstracts/variables";
+
+.all-topics {
+    padding: 2rem 0;
+
+    .learning-path-card {
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: none;
+        overflow: hidden;
+        background: var(--card-bg);
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: rgba(255, 228, 196, 0.4);
+        }
+
+        .card-title {
+            color: $primary;
+            font-size: 1.75rem;
+            font-weight: $font-weight-bold;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            text-align: center;
+
+            &::after {
+                content: '';
+                display: block;
+                width: 60px;
+                height: 3px;
+                background: $accent;
+                margin: 0.5rem auto 0;
+            }
+        }
+
+        .path-image {
+            height: 280px;
+            width: 90%;
+            max-width: 600px;
+            object-fit: cover;
+            border-radius: $border-radius;
+            margin: 0 auto 1.5rem;
+            display: block;
+            box-shadow: 0 8px 16px rgba($dark, 0.1);
+        }
+
+        .card-text {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .btn {
+            @include button-accent-variant;
+            padding: 0.75rem 2rem;
+            font-weight: $font-weight-bold;
+            letter-spacing: 0.8px;
+            border-radius: $border-radius-lg;
+            
+            &:hover {
+              transform: translateY(-2px) scale(1.05);
+            }
+            
+                &:active {
+                  transform: translateY(1px) scale(0.98);
+                }
+            }
+    }
+
+    @include media-breakpoint-down(lg) {
+        .learning-path-card {
+            .card-title { font-size: 1.5rem; }
+            .path-image { height: 240px; }
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        padding: 1.5rem 0;
+
+        .learning-path-card {
+            .card-body { padding: 1.5rem; }
+            .path-image { height: 200px; width: 100%; }
+            .card-text { font-size: 1rem; }
+        }
+    }
+
+    @include media-breakpoint-down(sm) {
+        .learning-path-card {
+            .card-title { font-size: 1.3rem; }
+            .path-image { height: 180px; }
+        }
+    }
+}
