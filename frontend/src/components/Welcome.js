@@ -1,8 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/monevo.png";
-import "../styles/CustomStyles.css";
-import "../styles/Welcome.css";
+import { Button } from "react-bootstrap";
 
 function Welcome() {
   const navigate = useNavigate();
@@ -10,26 +9,34 @@ function Welcome() {
   return (
     <div className="welcome-container">
       <div className="welcome-content">
-        <img src={logo} alt="Monevo Logo" className="welcome-logo" />
+        <img 
+          src={logo} 
+          alt="Monevo Logo" 
+          className="welcome-logo img-fluid" 
+        />
 
         <h1 className="welcome-heading">
           The free, fun, and effective way to learn about finance topics!
         </h1>
 
         <div className="d-grid gap-3">
-          <button
-            className="button button--primary button--large"
+          <Button
+            variant="primary"
+            size="lg"
             onClick={() => navigate("/register")}
+            className="btn-3d"
           >
             Get Started
-          </button>
+          </Button>
 
-          <button
-            className="button button--primary button--large"
+          <Button
+            variant="outline-primary"
+            size="lg"
             onClick={() => navigate("/login")}
+            className="btn-3d"
           >
             Already Have an Account?
-          </button>
+          </Button>
         </div>
       </div>
     </div>

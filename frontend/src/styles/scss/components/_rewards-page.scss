@@ -1,0 +1,136 @@
+@import "../abstracts/variables";
+
+.rewards-page {
+  margin-left: 280px; // Match sidebar width
+  padding: map-get($spacers, 4);
+  background: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 900; // Lower than navbar
+
+  @include media-breakpoint-down(lg) {
+    margin-left: 0;
+    padding-top: map-get($spacers, 6);
+    padding-bottom: map-get($spacers, 8); // Space for mobile nav
+  }
+
+  .balance-display {
+    text-align: center;
+    margin-bottom: map-get($spacers, 4);
+    
+    h2 {
+      color: var(--accent);
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  gap: map-get($spacers, 3);
+  margin-bottom: map-get($spacers, 4);
+
+  @include media-breakpoint-down(sm) {
+    flex-direction: column;
+    gap: map-get($spacers, 2);
+  }
+}
+
+.tab-button {
+  @include button-outline-accent-variant;
+  padding: map-get($spacers, 2) map-get($spacers, 4);
+  border-radius: $border-radius-lg;
+  transition: all 0.3s ease;
+
+  &.active {
+    @include button-accent-variant;
+    box-shadow: $box-shadow-lg;
+  }
+
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 2) map-get($spacers, 3);
+  }
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: map-get($spacers, 4);
+  padding: map-get($spacers, 2);
+
+  @include media-breakpoint-down(lg) {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  @include media-breakpoint-down(sm) {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+}
+
+.item-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  padding: map-get($spacers, 3);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  box-shadow: $box-shadow-lg;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-lg;
+  }
+
+  .item-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: $border-radius;
+    margin-bottom: map-get($spacers, 3);
+  }
+
+  .item-footer {
+    margin-top: auto;
+    padding-top: map-get($spacers, 3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item-cost {
+    color: var(--accent);
+    font-weight: $font-weight-semibold;
+    font-size: 1.2rem;
+  }
+
+  .organization {
+    color: var(--text-color);
+    opacity: 0.8;
+    font-size: 0.9rem;
+  }
+}
+
+.buy-button,
+.donate-button {
+  @include button-accent-variant;
+  padding: map-get($spacers, 2) map-get($spacers, 3);
+}
+
+@include media-breakpoint-down(md) {
+  .item-card {
+    min-height: 380px;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .item-card {
+    min-height: auto;
+    margin-bottom: map-get($spacers, 3);
+  }
+}

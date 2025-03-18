@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/UserProgressBox.css";
+import "../styles/scss/main.scss";
 
 function UserProgressBox() {
   const [progressData, setProgressData] = useState(null);
@@ -8,15 +8,10 @@ function UserProgressBox() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
-        setIsExpanded(false);
-      } else {
-        setIsExpanded(true);
-      }
+      setIsExpanded(window.innerWidth > 768);
     };
 
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -37,50 +32,69 @@ function UserProgressBox() {
   }, []);
 
   if (!progressData) {
-    return <div className="progress-box">Loading progress...</div>;
+    return (
+      <div className="user-progress-box p-3 text-muted">
+        Loading progress...
+      </div>
+    );
   }
 
-  // Toggle function
-  const handleToggle = () => {
-    setIsExpanded((prev) => !prev);
-  };
-
   return (
-    <div className="progress-box">
-      {/* Collapsible Header */}
-      <div className="progress-header" onClick={handleToggle}>
-        <h3>User Progress</h3>
-        <span className={`arrow ${isExpanded ? "arrow-up" : "arrow-down"}`} />
+    <div className="user-progress-box shadow-sm">
+      <div
+        className="progress-header d-flex justify-content-between align-items-center p-3"
+        onClick={() => setIsExpanded(!isExpanded)}
+        role="button"
+      >
+        <h3 className="m-0 fw-semibold">Learning Progress</h3>
+        <i className={`bi bi-chevron-${isExpanded ? "up" : "down"} fs-5`} />
       </div>
 
       {isExpanded && (
-        <div className="progress-content">
-          <h4>Overall Progress</h4>
-          <div className="overall-progress">
-            <p>{progressData.overall_progress.toFixed(1)}% Complete</p>
-            <div className="progress-bar">
+        <div className="progress-content p-3">
+          <div className="overall-progress mb-4">
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">Overall Completion</span>
+              <span className="fw-semibold">
+                {progressData.overall_progress.toFixed(1)}%
+              </span>
+            </div>
+            <div className="progress" style={{ height: "8px" }}>
               <div
-                className="progress-fill"
-                style={{ width: `${progressData.overall_progress}%` }}
-              ></div>
+                className="progress-bar"
+                role="progressbar"
+                style={{
+                  width: `${progressData.overall_progress}%`,
+                  backgroundColor: "var(--primary)",
+                }}
+              />
             </div>
           </div>
 
-          <h4>Learning Path Progress</h4>
-          {progressData.paths.map((path, index) => (
-            <div key={index} className="path-progress">
-              <h5>
-                {path.path} - {path.course}
-              </h5>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{ width: `${path.percent_complete}%` }}
-                ></div>
+          <h5 className="mb-3">Path Progress</h5>
+          <div className="paths-container">
+            {progressData.paths.map((path, index) => (
+              <div key={index} className="path-item mb-3">
+                <div className="d-flex justify-content-between mb-1">
+                  <span className="text-muted">{path.path}</span>
+                  <span className="fw-semibold">
+                    {path.percent_complete.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="progress" style={{ height: "6px" }}>
+                  <div
+                    className="progress-bar"
+                    role="progressbar"
+                    style={{
+                      width: `${path.percent_complete}%`,
+                      backgroundColor: "var(--accent)",
+                    }}
+                  />
+                </div>
+                <small className="text-muted d-block mt-1">{path.course}</small>
               </div>
-              <p>{path.percent_complete.toFixed(1)}% Complete</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

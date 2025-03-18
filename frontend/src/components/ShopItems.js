@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/RewardsPage.module.css";
+import "../styles/scss/main.scss";
 import axios from "axios";
 
 function ShopItems({ onPurchase }) {
@@ -39,30 +39,24 @@ function ShopItems({ onPurchase }) {
   };
 
   return (
-    <div className={`${styles.shopContainer} container`}>
-      <h2 className="text-center mb-4">Shop</h2>
-      <div className="row">
+    <div className="shop-container">
+      <h2 className="text-center">Shop</h2>
+      <div className="items-grid">
         {shopItems.map((item) => (
-          <div key={item.id} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-            <div className={`${styles.itemCard} card shadow-sm`}>
-              <img
-                src={item.image}
-                alt={item.name}
-                className={`${styles.itemImage} card-img-top`}
-              />
-              <div className="card-body text-center">
-                <h5 className="card-title">{item.name}</h5>
-                <p className="card-text">{item.description}</p>
-              </div>
-              <div className="card-footer d-flex justify-content-between align-items-center">
-                <span className={styles.itemCost}>{item.cost} coins</span>
-                <button
-                  className={`btn btn-success ${styles.buyButton}`}
-                  onClick={() => handlePurchase(item.id)}
-                >
-                  Buy Now
-                </button>
-              </div>
+          <div key={item.id} className="item-card">
+            <img src={item.image} alt={item.name} className="item-image" />
+            <div className="card-body">
+              <h5 className="card-title">{item.name}</h5>
+              <p className="card-text">{item.description}</p>
+            </div>
+            <div className="card-footer">
+              <span className="item-cost">{item.cost} coins</span>
+              <button
+                className="buy-button"
+                onClick={() => handlePurchase(item.id)}
+              >
+                Buy Now
+              </button>
             </div>
           </div>
         ))}

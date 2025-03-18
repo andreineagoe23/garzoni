@@ -1,0 +1,182 @@
+@import "../abstracts/variables";
+
+// Base container
+.questionnaire-container {
+    max-width: 600px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+// Progress bar
+.progress-bar {
+    height: 10px;
+    background-color: $primary; 
+    margin-bottom: 1.5rem;
+    border-radius: $border-radius;
+    transition: width 0.3s ease;
+}
+
+// Question styling
+h2 {
+    font-size: 1.75rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+// Options grid
+.options-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        margin: 2rem 0;
+
+        .option-btn {
+                // Use Sass variables for background and border
+                background-color: $primary;
+                border: 2px solid $primary;
+                color: $accent;
+                padding: 0.75rem 1.5rem;
+                border-radius: $border-radius;
+                transition: all 0.3s ease;
+
+                &:hover {
+                        background-color: darken($primary, 10%);
+                        border-color: darken($primary, 15%);
+                }
+
+                &.selected {
+                        background-color: $accent;
+                        color: $primary;
+                        border-color: $accent;
+                }
+        }
+}
+
+// Scale styling
+.scale-container {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+
+    .scale-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .scale-number {
+        font-weight: bold;
+        color: var(--primary);
+    }
+
+    .scale-labels {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 1rem;
+        color: var(--text-color);
+    }
+}
+
+// Budget allocation
+.budget-container {
+    margin: 2rem 0;
+
+    .budget-categories {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .budget-category {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+
+        label {
+            flex: 1;
+            text-align: left;
+            color: var(--text-color);
+        }
+
+        input {
+            width: 60px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: $border-radius;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+    }
+
+    .budget-sum {
+        margin-top: 1rem;
+        font-weight: bold;
+        color: var(--primary);
+    }
+}
+
+// Navigation controls
+.nav-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+
+    .nav-btn {
+        background: transparent;
+        border: 2px solid $primary;
+        color: $primary;
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius;
+        transition: all 0.3s ease;
+
+        &:hover:not(:disabled) {
+            background: $primary;
+            color: $accent;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        &.submit {
+            background: $primary;
+            color: $accent;
+            border-color: $primary;
+        }
+    }
+}
+
+// Loading and error states
+.loading,
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-color);
+    font-size: 1.25rem;
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .questionnaire-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+}

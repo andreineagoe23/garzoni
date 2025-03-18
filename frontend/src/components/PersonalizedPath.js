@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import "../styles/PersonalizedPath.css";
+import "../styles/scss/main.scss";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -16,25 +16,19 @@ function PersonalizedPath({ onCourseClick }) {
   const handleCourseClick = (courseId) => {
     onCourseClick(courseId);
   };
+
   useEffect(() => {
     const fetchPersonalizedPath = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        console.log("[DEBUG] Starting personalized path fetch");
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
-          {
-            withCredentials: true,
-            timeout: 10000,
-          }
+          { withCredentials: true, timeout: 10000 }
         );
 
-        console.log("[DEBUG] API Response:", response.data);
-
         if (!response.data?.courses?.length) {
-          console.warn("[WARN] No courses in response");
           setError("No recommendations found matching your profile");
           return;
         }
@@ -52,27 +46,18 @@ function PersonalizedPath({ onCourseClick }) {
           response.data.message || "Your personalized learning path:"
         );
       } catch (error) {
-        console.error("[ERROR] Fetch failed:", error);
-
-        // Handle specific error cases
         if (error.response) {
-          // Server responded with error status
-          console.error("[ERROR] Server response:", error.response.data);
-
           if (error.response.status === 400) {
             navigate("/questionnaire");
             return;
           }
-
           if (error.response.status === 503) {
             setError(
-              "Service temporarily unavailable. Please try again in a few minutes."
+              "Service temporarily unavailable. Please try again later."
             );
             return;
           }
         }
-
-        // Generic error message
         setError(
           "We're having trouble loading recommendations. Please try again later."
         );
@@ -86,26 +71,47 @@ function PersonalizedPath({ onCourseClick }) {
 
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading your personalized learning path...</p>
+      <div className="container d-flex flex-column align-items-center justify-content-center min-vh-50">
+        <div
+          className="spinner-border text-primary"
+          style={{ width: "3rem", height: "3rem" }}
+          role="status"
+        >
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-4 text-muted fs-5">
+          Loading your personalized learning path...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <h2>⚠️ Error Loading Recommendations</h2>
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Try Again</button>
+      <div className="container text-center py-5">
+        <div
+          className="alert alert-danger mx-auto"
+          style={{ maxWidth: "600px" }}
+        >
+          <h2 className="h4 mb-3">⚠️ Error Loading Recommendations</h2>
+          <p className="mb-4">{error}</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
+
   return (
-    <div className="personalized-path">
-      <div className="path-header">
-        <p className="recommendation-message">{recommendationMessage}</p>
+    <div className="personalized-path container-lg">
+      <div className="path-header text-center mb-5">
+        <p className="recommendation-message display-6 mb-0">
+          {recommendationMessage}
+        </p>
       </div>
 
       <div className="path-container">
@@ -117,13 +123,12 @@ function PersonalizedPath({ onCourseClick }) {
                   <img
                     src={course.image}
                     alt={course.title}
-                    className="course-image"
+                    className="course-image img-fluid"
                     onError={(e) => {
                       e.target.src = "/default-course.jpg";
                     }}
                   />
                 </div>
-                <div className="horizontal-connector"></div>
               </div>
 
               <motion.div
@@ -133,42 +138,39 @@ function PersonalizedPath({ onCourseClick }) {
                 onClick={() => handleCourseClick(course.id)}
               >
                 <div className="course-tags">
-                  <span
-                    className={`tag ${course.path_title
-                      .toLowerCase()
-                      .replace(" ", "-")}`}
-                  >
+                  <span className={`tag bg-primary bg-opacity-10 text-primary`}>
                     {course.path_title}
-                  </span>
-                  <span className="difficulty">
-                    Level: {course.difficulty || "Beginner"}
                   </span>
                 </div>
 
-                <h4>{course.title}</h4>
+                <h4 className="mb-3">{course.title}</h4>
 
                 <div className="course-meta">
                   <div className="progress-container">
-                    <div
-                      className="progress-bar"
-                      style={{
-                        width: `${
-                          (course.progress / course.totalLessons) * 100
-                        }%`,
-                      }}
-                    ></div>
-                    <span>
+                    <div className="progress">
+                      <div
+                        className="progress-bar"
+                        role="progressbar"
+                        style={{
+                          width: `${
+                            (course.progress / course.totalLessons) * 100
+                          }%`,
+                          transition: "width 0.5s ease",
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-muted mt-2 d-block">
                       {course.progress}/{course.totalLessons} lessons
                     </span>
                   </div>
 
                   <div className="course-stats">
                     <div className="stat">
-                      <span>⏱️</span>
+                      <span className="me-2">⏱️</span>
                       {course.estimated_duration || 4} hrs
                     </div>
                     <div className="stat">
-                      <span>💪</span>
+                      <span className="me-2">💪</span>
                       {course.exercises || 3} exercises
                     </div>
                   </div>
@@ -177,18 +179,18 @@ function PersonalizedPath({ onCourseClick }) {
             </div>
 
             {index < personalizedCourses.length - 1 && (
-              <div className="vertical-connector"></div>
+              <div className="vertical-connector d-none d-lg-block"></div>
             )}
           </React.Fragment>
         ))}
       </div>
 
-      <div className="path-footer">
-        <p>
-          🔁 Based on your latest questionnaire responses -
+      <div className="path-footer text-center mt-5 py-4">
+        <p className="mb-0">
+          🔁 Based on your latest questionnaire responses -{" "}
           <button
             onClick={() => navigate("/questionnaire")}
-            className="update-prefs"
+            className="btn btn-link text-decoration-none p-0"
           >
             Update Preferences
           </button>

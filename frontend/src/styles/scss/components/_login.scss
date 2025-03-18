@@ -1,0 +1,39 @@
+// styles/scss/components/_login.scss
+.login {
+    &-container {
+      max-width: 500px;
+      width: 90%;
+      padding: 2.5rem;
+      background-color: var(--card-bg);
+      border-radius: $border-radius-lg;
+      box-shadow: $box-shadow-lg;
+      margin: 2rem auto;
+      
+      @include media-breakpoint-up(md) {
+        margin: 4rem auto;
+        padding: 3rem;
+      }
+    }
+  
+    &-heading {
+      font-size: 1.75rem;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      font-weight: $font-weight-bold;
+      
+      @include media-breakpoint-up(md) {
+        font-size: 2rem;
+      }
+    }
+  
+    .logo {
+      max-width: 180px;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 2px 4px rgba(var(--dark-rgb), 0.1));
+    }
+  
+    .form-label {
+      font-weight: $font-weight-semibold;
+      color: var(--text-color);
+    }
+  }

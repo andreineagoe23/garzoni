@@ -1,0 +1,154 @@
+@import "../abstracts/variables";
+
+// Desktop Sidebar
+.desktop-nav {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 1.5rem;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+
+  .nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: $primary;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-radius: $border-radius;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    text-decoration: none;
+
+    &:hover {
+      background: rgba($primary, 0.1);
+      transform: translateX(5px);
+    }
+
+    &.active {
+      background: $primary;
+      color: $accent;
+      box-shadow: 0 4px 12px rgba($primary, 0.2);
+    }
+
+    .nav-icon {
+      font-size: 1.25rem;
+      width: 30px;
+      text-align: center;
+    }
+  }
+}
+
+// Mobile Bottom Nav
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  padding: 0.5rem 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+
+  .nav-items {
+    display: flex;
+    justify-content: space-around;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-item {
+    position: relative;
+    
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.75rem;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border-radius: $border-radius;
+
+      &:hover {
+        background: rgba($primary, 0.1);
+      }
+
+      &.active {
+        color: $primary;
+        transform: translateY(-5px);
+      }
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .dropdown-menu {
+    position: fixed;
+    bottom: 70px;
+    right: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    padding: 0.5rem;
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      color: var(--text-color);
+      text-decoration: none;
+      border-radius: $border-radius-sm;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: rgba($primary, 0.1);
+      }
+
+      .nav-icon {
+        font-size: 1.25rem;
+        width: 25px;
+      }
+    }
+  }
+}
+
+// Responsive Adjustments
+@media (max-width: 576px) {
+  .mobile-nav {
+    .nav-link {
+      padding: 0.5rem;
+    }
+    
+    .nav-icon {
+      font-size: 1.25rem;
+    }
+  }
+}

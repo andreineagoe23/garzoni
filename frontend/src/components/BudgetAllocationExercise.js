@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import styles from "../styles/Exercise.module.css";
 import axios from "axios";
+import "../styles/scss/main.scss";
 
 const BudgetAllocationExercise = ({
   data,
@@ -10,6 +10,7 @@ const BudgetAllocationExercise = ({
 }) => {
   const [allocations, setAllocations] = useState({});
   const [feedback, setFeedback] = useState("");
+  const [feedbackClass, setFeedbackClass] = useState("");
 
   const { question, categories, total } = data;
 
@@ -27,14 +28,17 @@ const BudgetAllocationExercise = ({
     );
 
     if (currentTotal === total) {
-      setFeedback("✅ Correct allocation!");
+      setFeedback("Great job! Your budget allocation is correct!");
+      setFeedbackClass("correct");
       try {
         await onComplete();
       } catch (error) {
-        setFeedback("❌ Error saving progress");
+        setFeedback("Error saving progress. Please try again.");
+        setFeedbackClass("incorrect");
       }
     } else {
-      setFeedback(`❌ Total must be ${total}. Current: ${currentTotal}`);
+      setFeedback(`Your total must be ${total}. Current total: ${currentTotal}`);
+      setFeedbackClass("incorrect");
     }
   };
 
@@ -47,40 +51,51 @@ const BudgetAllocationExercise = ({
       );
       setAllocations({});
       setFeedback("");
+      setFeedbackClass("");
     } catch (error) {
       console.error("Error resetting exercise:", error);
     }
   };
 
   return (
-    <div className={styles.exerciseContainer}>
-      <h3>{question}</h3>
-      <div className={styles.allocationGrid}>
+    <div className="drag-drop-exercise-container">
+      <h3 className="drag-drop-exercise-title">{question}</h3>
+      <div className="budget-allocation-grid">
         {categories?.map((category) => (
-          <div key={category} className={styles.allocationItem}>
-            <label>{category}</label>
+          <div key={category} className="budget-allocation-item">
+            <label className="budget-allocation-label">{category}</label>
             <input
               type="number"
               min="0"
               value={allocations[category] || 0}
               onChange={(e) => handleChange(category, e.target.value)}
               disabled={isCompleted}
+              className="budget-allocation-input"
             />
           </div>
         ))}
       </div>
 
-      <button className={styles.submitButton} onClick={handleSubmit} disabled={isCompleted}>
-        Submit Allocation
-      </button>
+      <div className="budget-total-display">
+        <span>Current Total: ${Object.values(allocations).reduce((sum, val) => sum + val, 0)}</span>
+        <span>Target: ${total}</span>
+      </div>
 
-      {isCompleted && (
-        <button className={styles.retryButton} onClick={handleRetry}>
+      {isCompleted ? (
+        <button className="btn btn-outline-accent" onClick={handleRetry}>
           Retry Exercise
+        </button>
+      ) : (
+        <button className="btn btn-accent" onClick={handleSubmit}>
+          Submit Allocation
         </button>
       )}
 
-      {feedback && <div className={styles.feedback}>{feedback}</div>}
+      {feedback && (
+        <div className={`drag-drop-exercise-feedback drag-drop-exercise-feedback-${feedbackClass}`}>
+          {feedback}
+        </div>
+      )}
     </div>
   );
 };

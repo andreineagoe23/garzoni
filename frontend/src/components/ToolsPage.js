@@ -4,9 +4,9 @@ import ForexTools from "./ForexTools";
 import CryptoTools from "./CryptoTools";
 import BasicFinanceTools from "./BasicFinanceTools";
 import NewsCalendars from "./NewsCalendars";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../styles/ToolsPage.css"; // New CSS file
 import Chatbot from "./Chatbot";
+import { Accordion } from "react-bootstrap";
+import "../styles/scss/main.scss";
 
 const ToolsPage = () => {
   const [categories, setCategories] = useState([]);
@@ -18,25 +18,20 @@ const ToolsPage = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/tools/`,
-          { withCredentials: true } // ✅ Use cookies for authentication
+          { withCredentials: true }
         );
 
-        // Move "Crypto Tools" to the top
-        const reorderedCategories = response.data.sort((a, b) => {
-          if (a.category === "Crypto Tools") return -1;
-          if (b.category === "Crypto Tools") return 1;
-          return 0;
-        });
+        const reorderedCategories = response.data.sort((a, b) =>
+          a.category === "Crypto Tools"
+            ? -1
+            : b.category === "Crypto Tools"
+            ? 1
+            : 0
+        );
 
         setCategories(reorderedCategories);
-
-        // Automatically expand the first category
-        const defaultActiveIndex = reorderedCategories.findIndex(
-          (cat) => cat.category === "Crypto Tools"
-        );
-        setActiveCategory(defaultActiveIndex);
+        setActiveCategory(0); // Auto-expand first category
       } catch (error) {
-        console.error("Error fetching tools:", error);
         setError(error.message || "Error fetching tools.");
       }
     };
@@ -44,31 +39,32 @@ const ToolsPage = () => {
     fetchTools();
   }, []);
 
+  const handleAccordionToggle = (index) => {
+    setActiveCategory(activeCategory === index ? null : index);
+  };
+
   return (
     <div className="tools-page">
-      <h1 className="tools-title">Financial Tools</h1>
-      {error ? (
-        <div className="alert alert-danger text-center">{error}</div>
-      ) : (
-        <div className="accordion" id="toolsAccordion">
-          {categories.map((category, index) => (
-            <div key={index} className="accordion-item">
-              <h2 className="accordion-header">
-                <button
-                  className="accordion-button"
-                  type="button"
-                  onClick={() => setActiveCategory(index)}
-                  aria-expanded={activeCategory === index}
+      <div className="content-container">
+        <h1 className="tools-title display-4 fw-bold">Financial Tools</h1>
+
+        {error ? (
+          <div className="alert alert-danger text-center">{error}</div>
+        ) : (
+          <Accordion activeKey={activeCategory?.toString()}>
+            {categories.map((category, index) => (
+              <Accordion.Item
+                key={index}
+                eventKey={index.toString()}
+                className="mb-3"
+              >
+                <Accordion.Header
+                  onClick={() => handleAccordionToggle(index)}
+                  className="fw-semibold"
                 >
                   {category.category}
-                </button>
-              </h2>
-              <div
-                className={`accordion-collapse collapse ${
-                  activeCategory === index ? "show" : ""
-                }`}
-              >
-                <div className="accordion-body">
+                </Accordion.Header>
+                <Accordion.Body>
                   {category.category === "Forex Tools" && <ForexTools />}
                   {category.category === "Crypto Tools" && <CryptoTools />}
                   {category.category === "News & Calendars" && (
@@ -77,12 +73,12 @@ const ToolsPage = () => {
                   {category.category === "Basic Finance & Budgeting Tools" && (
                     <BasicFinanceTools />
                   )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                </Accordion.Body>
+              </Accordion.Item>
+            ))}
+          </Accordion>
+        )}
+      </div>
       <Chatbot />
     </div>
   );

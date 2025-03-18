@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button } from "react-bootstrap";
+import "../styles/scss/main.scss";
 
 const FriendRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -24,7 +24,7 @@ const FriendRequests = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
-        { action: "accept" }, // Send action in request body
+        { action: "accept" },
         { withCredentials: true }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
@@ -41,7 +41,7 @@ const FriendRequests = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
-        { action: "reject" }, // Send action in request body
+        { action: "reject" },
         { withCredentials: true }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
@@ -55,33 +55,45 @@ const FriendRequests = () => {
   };
 
   return (
-    <div className="friend-requests mt-4">
-      <h3>Pending Friend Requests</h3>
+    <div className="friend-requests">
+      <div className="requests-header">
+        <h4>Friend Requests</h4>
+        <span className="badge">{requests.length}</span>
+      </div>
+      
       {requests.length === 0 ? (
-        <p>No pending friend requests.</p>
+        <div className="empty-state">
+          <span className="icon">📭</span>
+          <p>No pending requests</p>
+        </div>
       ) : (
-        requests.map((request) => (
-          <div
-            key={request.id}
-            className="request-item mb-3 p-3 border rounded"
-          >
-            <p>
-              <strong>{request.sender.username}</strong> wants to be your
-              friend.
-            </p>
-            <div className="d-flex gap-2">
-              <Button
-                variant="success"
-                onClick={() => handleAccept(request.id)}
-              >
-                Accept
-              </Button>
-              <Button variant="danger" onClick={() => handleReject(request.id)}>
-                Reject
-              </Button>
+        <div className="requests-list">
+          {requests.map((request) => (
+            <div key={request.id} className="request-item">
+              <div className="user-info">
+                <span className="user-avatar">👤</span>
+                <div className="user-details">
+                  <span className="username">{request.sender.username}</span>
+                  <span className="request-text">wants to connect</span>
+                </div>
+              </div>
+              <div className="action-buttons">
+                <button 
+                  className="btn-accept"
+                  onClick={() => handleAccept(request.id)}
+                >
+                  Accept
+                </button>
+                <button
+                  className="btn-reject"
+                  onClick={() => handleReject(request.id)}
+                >
+                  Decline
+                </button>
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

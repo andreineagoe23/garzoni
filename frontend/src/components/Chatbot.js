@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Chatbot.css";
+import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Chatbot = () => {
@@ -214,27 +214,27 @@ const Chatbot = () => {
   };
 
   return (
-    <div>
+    <div className="chatbot">
       <button
-        className="chatbot-toggle position-fixed"
+        className="chatbot-toggle btn-accent"
         onClick={() => setIsVisible(!isVisible)}
       >
         💬
       </button>
 
       {isVisible && (
-        <div className="chatbot-container position-fixed">
-          <div className="chatbot-header d-flex align-items-center justify-content-between px-3 py-2">
-            <span>Finance Assistant</span>
+        <div className="chatbot-container shadow-lg">
+          <div className="chatbot-header d-flex align-items-center justify-content-between">
+            <span className="fw-semibold">Finance Assistant</span>
             <button
-              className="btn btn-sm chatbot-close"
+              className="btn btn-link text-accent p-0"
               onClick={() => setIsVisible(false)}
             >
               ✖
             </button>
           </div>
 
-          <div className="tts-toggle-container">
+          <div className="tts-toggle-container px-3 py-2">
             <label className="switch">
               <input
                 type="checkbox"
@@ -242,12 +242,14 @@ const Chatbot = () => {
               />
               <span className="slider"></span>
             </label>
-            <span>🔊 Speak Answers</span>
+            <span className="text-muted">🔊 Speak Answers</span>
 
             <select
+              className="form-select form-select-sm ms-auto"
               onChange={(e) =>
                 setSelectedVoice(voices.find((v) => v.name === e.target.value))
               }
+              style={{ maxWidth: "150px" }}
             >
               {voices.length > 0 ? (
                 voices.map((voice, index) => (
@@ -261,36 +263,43 @@ const Chatbot = () => {
             </select>
           </div>
 
-          <div className="chat-history p-3 flex-grow-1">
+          <div className="chat-history p-3">
             {chatHistory.map((msg, idx) => (
               <div
                 key={idx}
                 className={`chat-message mb-2 ${
                   msg.sender === "user" ? "chat-user" : "chat-bot"
-                }`}
+                } p-3 rounded`}
               >
                 {msg.text}
               </div>
             ))}
-            {isTyping && <p className="chat-bot typing-animation">Typing...</p>}
+            {isTyping && (
+              <div className="chat-bot typing-animation p-3 rounded">
+                Typing...
+              </div>
+            )}
           </div>
 
-          <div className="chat-input-container d-flex p-2 border-top">
+          <div className="chat-input-container d-flex gap-2 p-3">
             <button
-              className="btn btn-sm voice-button"
+              className="btn btn-accent voice-button rounded-circle p-2"
               onClick={startVoiceRecognition}
             >
               🎙
             </button>
             <input
               type="text"
-              className="form-control me-2 chat-input"
+              className="form-control rounded-pill"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleMessageSend()}
               placeholder="Ask me about stocks or finance..."
             />
-            <button className="btn chatbot-send" onClick={handleMessageSend}>
+            <button
+              className="btn btn-accent rounded-pill px-4"
+              onClick={handleMessageSend}
+            >
               Send
             </button>
           </div>

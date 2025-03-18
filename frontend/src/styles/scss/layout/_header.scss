@@ -1,0 +1,41 @@
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    transition: all 0.3s ease;
+  
+    &__brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: $accent;
+      text-decoration: none;
+      
+      &:hover {
+        color: lighten($accent, 10%);
+      }
+    }
+  
+    &__nav {
+      margin-left: auto;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+  
+    // Mobile toggle button
+    &__toggle {
+      display: none;
+      @include media-breakpoint-down(lg) {
+        display: block;
+        margin-left: 1rem;
+      }
+    }
+  }

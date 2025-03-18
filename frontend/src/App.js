@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   HashRouter as Router,
   Route,
@@ -25,9 +25,11 @@ import ResetPassword from "./components/ResetPassword";
 import RewardsPage from './components/RewardsPage';
 import { ThemeProvider } from "../src/components/ThemeContext";
 import ExercisePage from "./components/ExercisePage";
+import "./styles/scss/main.scss";
 
 function AppContent() {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const noNavbarPaths = [
     "/",
@@ -40,13 +42,11 @@ function AppContent() {
   ];
 
   return (
-    <div
-      className={`app-layout ${
-        noNavbarPaths.includes(location.pathname) ? "no-navbar" : "with-navbar"
-      }`}
-    >
-      {!noNavbarPaths.includes(location.pathname) && <Navbar />}
-      <div className="content">
+    <div className="app-layout">
+      {!noNavbarPaths.includes(location.pathname) && (
+        <Navbar onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      )}
+      <main className="content">
         <ThemeProvider>
         <Routes>
           <Route path="/" element={<Welcome />} />
@@ -87,8 +87,8 @@ function AppContent() {
           <Route path="/exercises" element={<ExercisePage />} />
         </Routes>
         </ThemeProvider>
+        </main>
       </div>
-    </div>
   );
 }
 

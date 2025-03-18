@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button, Form, Card, ProgressBar, Alert, Spinner } from 'react-bootstrap';
 import axios from 'axios';
-import '../styles/ExercisePage.css';
+import '../styles/scss/main.scss';
 
 const ExercisePage = () => {
   const [exercises, setExercises] = useState([]);
@@ -32,7 +32,6 @@ const ExercisePage = () => {
         }
       );
       
-      // Validate exercise data structure
       const validatedExercises = response.data.filter(exercise => 
         exercise.question &&
         exercise.type &&
@@ -224,7 +223,7 @@ const ExercisePage = () => {
   }
 
   return (
-    <Container className="mt-5 exercise-page">
+    <Container className="exercise-page">
       <Row className="mb-4">
         <Col>
           <h2>Financial Exercises</h2>
@@ -256,7 +255,7 @@ const ExercisePage = () => {
 
       <Row>
         <Col lg={8}>
-          <Card className="p-4 exercise-card shadow-sm">
+          <Card className="exercise-card">
             <div className="progress-indicator mb-4">
               <div className="d-flex justify-content-between mb-2">
                 <span>
@@ -314,7 +313,7 @@ const ExercisePage = () => {
         </Col>
 
         <Col lg={4} className="mt-4 mt-lg-0">
-          <Card className="p-3 progress-card shadow-sm">
+          <Card className="progress-card">
             <h5 className="mb-3">Your Progress</h5>
             <ul className="progress-list list-unstyled">
               {progress.map((item, index) => (

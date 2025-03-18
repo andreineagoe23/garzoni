@@ -1,0 +1,242 @@
+@import "../abstracts/variables";
+@import "../components/buttons";
+
+.lesson-page {
+  margin-left: 280px;
+  padding: map-get($spacers, 5);
+  min-height: 100vh;
+  background: var(--bg-color);
+  transition: margin-left 0.3s ease;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: map-get($spacers, 4);
+  position: relative;
+
+  @include media-breakpoint-down(xl) {
+    grid-template-columns: 1fr;
+    padding: map-get($spacers, 4);
+  }
+
+  @include media-breakpoint-down(lg) {
+    margin-left: 0;
+    padding: map-get($spacers, 3);
+  }
+}
+
+.lesson-main {
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  box-shadow: $box-shadow-lg;
+  padding: map-get($spacers, 4);
+
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 3);
+  }
+}
+
+.lesson-box {
+  display: flex;
+  flex-direction: column;
+  gap: map-get($spacers, 3);
+}
+
+.lesson-box-item {
+  border: 2px solid var(--border-color);
+  border-radius: $border-radius-lg;
+  padding: map-get($spacers, 3);
+  background: var(--card-bg);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+  }
+
+  h4 {
+    color: var(--primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: map-get($spacers, 2);
+
+    &::before {
+      content: "📘";
+      font-size: 1.2em;
+    }
+  }
+
+  p {
+    color: var(--text-color);
+    opacity: 0.9;
+  }
+
+  &.completed {
+    background: rgba(var(--success-color-rgb), 0.1);
+    border-color: var(--success-color);
+  }
+
+  &.locked {
+    background: rgba(var(--danger-rgb), 0.1);
+    border-color: var(--danger);
+    position: relative;
+
+    &::after {
+      content: "🔒";
+      position: absolute;
+      right: map-get($spacers, 3);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+.tab-container {
+  display: flex;
+  gap: map-get($spacers, 2);
+  margin-bottom: map-get($spacers, 4);
+  flex-wrap: wrap;
+}
+
+.tab {
+  @include button-outline-accent-variant;
+  padding: map-get($spacers, 2) map-get($spacers, 3);
+  border-radius: $border-radius-lg;
+  display: flex;
+  align-items: center;
+  gap: map-get($spacers, 2);
+
+  &.active-tab {
+    @include button-accent-variant;
+  }
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  background: var(--card-bg);
+  margin: map-get($spacers, 3) 0;
+
+  iframe,
+  video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+}
+
+.tab-content {
+  .text-content {
+    color: var(--text-color);
+    line-height: 1.6;
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: $border-radius;
+      margin: map-get($spacers, 3) 0;
+    }
+  }
+}
+
+.tab-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: map-get($spacers, 4);
+}
+
+.completion-badge {
+  color: var(--success-color);
+  font-weight: $font-weight-semibold;
+  padding: map-get($spacers, 2);
+  border-radius: $border-radius;
+  background: rgba(var(--success-color-rgb), 0.1);
+}
+
+.course-completion {
+  text-align: center;
+  padding: map-get($spacers, 4);
+  background: rgba(var(--success-color-rgb), 0.1);
+  border-radius: $border-radius-lg;
+  margin-top: map-get($spacers, 4);
+
+  h3 {
+    color: var(--success-color);
+    margin-bottom: map-get($spacers, 3);
+  }
+}
+
+.lesson-progress {
+  position: sticky;
+  top: map-get($spacers, 4);
+  height: calc(100vh - #{map-get($spacers, 4) * 2});
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  box-shadow: $box-shadow-lg;
+  padding: map-get($spacers, 3);
+  z-index: 900;
+
+  @include media-breakpoint-down(xl) {
+    position: static;
+    height: auto;
+  }
+}
+
+.floating-progress-btn {
+  @include button-accent-variant;
+  position: fixed;
+  bottom: map-get($spacers, 3);
+  right: map-get($spacers, 3);
+  padding: map-get($spacers, 3);
+  border-radius: 50%;
+  display: none;
+  z-index: 1000;
+
+  @include media-breakpoint-down(lg) {
+    display: flex;
+  }
+}
+
+.progress-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 90%;
+  max-width: 320px;
+  background: var(--card-bg);
+  box-shadow: $shadow-lg;
+  padding: map-get($spacers, 3);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1100;
+
+  &.show {
+    transform: translateX(0);
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .lesson-page {
+    padding: map-get($spacers, 3);
+  }
+
+  .lesson-box-item {
+    padding: map-get($spacers, 2);
+    
+    h4 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .tab {
+    padding: map-get($spacers, 1) map-get($spacers, 2);
+    font-size: 0.9rem;
+  }
+}

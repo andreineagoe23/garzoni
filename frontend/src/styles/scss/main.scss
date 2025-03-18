@@ -1,0 +1,70 @@
+// Bootstrap Functions
+@import "~bootstrap/scss/functions";
+
+// Custom Variables
+@import "abstracts/variables";
+
+// Bootstrap Configuration
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/bootstrap";
+
+// Custom Utilities
+@import "abstracts/mixins";
+@import "abstracts/functions";
+@import "abstracts/variables";
+
+// Layout & Components
+@import "base/reset";
+@import "base/typography";
+@import "base/utilities";
+@import "components/buttons";
+@import "components/cards";
+@import "components/forms";
+@import "components/welcome";
+@import "components/register";
+@import "components/login";
+@import "components/dashboard";
+@import "components/questionnaire";
+@import "components/user-progress-box";
+@import "components/allTopics";
+@import "components/personalizedPath";
+@import "components/leaderboards";
+@import "components/friendRequests";
+@import "components/referralLink";
+@import "components/profile";
+@import "components/missions";
+@import "components/exercisePage";
+@import "components/chatbot";
+@import "components/tools-page";
+@import "components/rewards-page";
+@import "components/shop-items";
+@import "components/donation-causes";
+@import "components/quiz-page";
+@import "components/lesson-page";
+@import "components/learning-path";
+@import "components/settings";
+@import "components/forgot-password";
+
+@import "layout/grid";
+@import "layout/sidebar";
+@import "layout/header";
+
+@import "abstracts/drag-drop-exercise";
+@import "abstracts/budget-allocation";
+@import "abstracts/multiple-choice";
+
+// Bootstrap Components
+@import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/card";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
+
+// Dark Theme
+@import "themes/dark-mode";

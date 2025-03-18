@@ -1,0 +1,64 @@
+.register {
+    &-container {
+      max-width: 500px;
+      width: 90%;
+      padding: 2.5rem;
+      background-color: var(--card-bg);
+      border-radius: $border-radius-lg;
+      box-shadow: $box-shadow-lg;
+      position: relative;
+      margin: 2rem auto;
+      
+      @include media-breakpoint-up(md) {
+        margin: 4rem auto;
+        padding: 3rem;
+      }
+    }
+  
+    &-heading {
+      font-size: 1.75rem;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      font-weight: $font-weight-bold;
+      
+      @include media-breakpoint-up(md) {
+        font-size: 2rem;
+      }
+    }
+  
+    .form-label {
+      font-weight: $font-weight-semibold;
+      color: var(--text-color);
+    }
+  
+    .form-control {
+      background-color: var(--input-bg);
+      border: 2px solid var(--border-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+  
+      &:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+      }
+    }
+  
+    .radio-group {
+      .form-check {
+        margin-right: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+      }
+  
+      .form-check-input {
+        margin-top: 0;
+        margin-right: 0.5rem;
+      }
+    }
+  
+    .logo {
+      max-width: 180px;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 2px 4px rgba(var(--dark-rgb), 0.1));
+    }
+  }

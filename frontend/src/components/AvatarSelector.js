@@ -11,22 +11,21 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Updated avatar styles for DiceBear API v7
   const avatarStyles = [
     { id: "avataaars", name: "People" },
     { id: "bottts", name: "Robots" },
     { id: "initials", name: "Initials" },
     { id: "micah", name: "Micah" },
     { id: "adventurer", name: "Adventurer" },
-    { id: "funEmoji", name: "Emoji" }, // updated from fun-emoji to funEmoji
-    { id: "pixelArt", name: "Pixel Art" }, // updated from pixel-art to pixelArt
+    { id: "funEmoji", name: "Emoji" }, 
+    { id: "pixelArt", name: "Pixel Art" },
   ];
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
-    // Set initial seed from username if not set
+
     if (!seed && currentAvatar) {
-      // Try to extract seed from current avatar URL if it exists
+
       const match = currentAvatar.match(
         /avatars\.dicebear\.com\/(?:api|7\.x)\/([^/]+)\/([^.]+)/
       );
@@ -57,7 +56,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
 
   const updatePreview = (style, seedValue) => {
     if (!seedValue) return;
-    // Updated DiceBear API v7 URL format
+
     setPreviewAvatar(
       `https://api.dicebear.com/7.x/${style}/svg?seed=${seedValue}`
     );
@@ -80,7 +79,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     }
   };
 
-  // Generate random avatars for the current style
+
   const generateRandomExamples = () => {
     const examples = [];
     for (let i = 0; i < 6; i++) {

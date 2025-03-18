@@ -1,0 +1,230 @@
+// _chatbot.scss
+@import "../abstracts/variables";
+@import "../components/buttons";
+
+.chatbot {
+  &-toggle {
+    @include button-accent-variant;
+    position: fixed;
+    bottom: map-get($spacers, 3);
+    right: 90px;
+    z-index: 1000;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    box-shadow: $box-shadow-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  &-container {
+    position: fixed;
+    bottom: 110px;
+    right: map-get($spacers, 3);
+    width: 400px;
+    height: 500px;
+    z-index: 1000;
+    background: var(--card-bg);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-lg); 
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+  }
+
+  &-header {
+    background: var(--primary);
+    color: $accent;
+    padding: map-get($spacers, 2) map-get($spacers, 3);
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    button {
+      color: $accent;
+      background: transparent;
+      border: none;
+      padding: map-get($spacers, 1);
+      transition: opacity 0.3s ease;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.tts-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: map-get($spacers, 2);
+  padding: map-get($spacers, 2);
+  background: rgba(var(--primary-rgb), 0.05);
+  border-bottom: 1px solid var(--border-color);
+
+  select {
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    padding: map-get($spacers, 1);
+    border-radius: $border-radius;
+    margin-left: auto;
+    max-width: 150px;
+  }
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 34px;
+
+    &:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: var(--card-bg);
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+
+  input:checked + .slider {
+    background-color: var(--primary);
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(16px);
+  }
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: map-get($spacers, 3);
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  gap: map-get($spacers, 2);
+}
+
+.chat-message {
+  max-width: 80%;
+  padding: map-get($spacers, 2) map-get($spacers, 3);
+  border-radius: $border-radius-lg;
+  font-size: 0.9rem;
+  box-shadow: $box-shadow-sm;
+
+  &.chat-user {
+    align-self: flex-end;
+    background: var(--primary);
+    color: $accent;
+  }
+
+  &.chat-bot {
+    align-self: flex-start;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+  }
+}
+
+.typing-animation {
+  position: relative;
+  padding-left: map-get($spacers, 4);
+
+  &::after {
+    content: '...';
+    position: absolute;
+    left: map-get($spacers, 2);
+    animation: typing 1.5s infinite;
+  }
+}
+
+@keyframes typing {
+  0%, 100% { content: '...'; }
+  33% { content: ' ..'; }
+  66% { content: '  .'; }
+}
+
+.chat-input-container {
+  display: flex;
+  gap: map-get($spacers, 2);
+  padding: map-get($spacers, 2);
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
+
+  input {
+    flex: 1;
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: $border-radius;
+    padding: map-get($spacers, 2);
+
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+    }
+  }
+
+  button {
+    @include button-accent-variant;
+    padding: map-get($spacers, 2) map-get($spacers, 3);
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .chatbot {
+    &-toggle {
+      right: map-get($spacers, 2);
+      bottom: map-get($spacers, 2);
+      width: 50px;
+      height: 50px;
+    }
+
+    &-container {
+      width: 95%;
+      right: 50%;
+      transform: translateX(50%);
+      bottom: 80px;
+      height: 60vh;
+    }
+  }
+
+  .chat-input-container {
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+    }
+  }
+}

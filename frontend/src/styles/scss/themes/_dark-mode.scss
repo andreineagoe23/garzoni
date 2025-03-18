@@ -1,0 +1,78 @@
+// Dark Theme Variables
+[data-theme="dark"] {
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --card-bg: #2d2d2d;
+  --input-bg: #3d3d3d;
+  --border-color: #555555;
+  
+  // Override bootstrap components in dark mode
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+  
+  .card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+  }
+  
+  .form-control,
+  .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+    
+    &:focus {
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+  }
+  
+  .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+  }
+  
+  .dropdown-item {
+    color: var(--text-color);
+    
+    &:hover, &:focus {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+  }
+  
+  .border {
+    border-color: var(--border-color) !important;
+  }
+  
+  .table {
+    --bs-table-color: var(--text-color);
+    --bs-table-bg: var(--card-bg);
+    --bs-table-border-color: var(--border-color);
+    
+    tbody {
+      border-color: var(--border-color);
+    }
+  }
+  
+  // Navigation elements
+  .navbar, .sidebar {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+  }
+  
+  // Custom components
+  .settings-card, 
+  .dashboard-card,
+  .user-progress-box {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+  }
+}

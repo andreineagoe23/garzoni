@@ -1,0 +1,131 @@
+// _buttons.scss
+@mixin custom-button-variant($background, $border, $color) {
+    color: $color;
+    background-color: $background;
+    border-color: $border;
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0); // Enable hardware acceleration
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba($color, 0.15);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    &:hover {
+        color: $color;
+        background-color: darken($background, 10%);
+        border-color: darken($border, 15%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($background, 0.2);
+
+        &::after {
+            width: 150px;
+            height: 150px;
+        }
+    }
+
+    &:active {
+        transform: translateY(1px);
+        transition-duration: 0.1s;
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 0.25rem rgba($background, 0.5);
+    }
+}
+
+@mixin button-accent-variant {
+    @include custom-button-variant(
+        $primary,     
+        darken($primary, 5%),  
+        $accent    
+    );
+
+    &:hover {
+        background-color: darken($primary, 10%);
+        border-color: darken($primary, 15%);
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 0.25rem rgba($primary, 0.3);
+    }
+}
+
+@mixin button-outline-accent-variant {
+    color: $primary;
+    border-color: $primary;
+    background-color: transparent;
+
+    &:hover {
+        background-color: $primary;
+        color: $accent;
+        border-color: darken($primary, 5%);
+    }
+}
+
+// Custom Button Styles
+.btn {
+    transition: all 0.2s ease;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-width: 2px;
+    position: relative;
+    overflow: hidden;
+
+    &:active {
+        transform: translateY(2px);
+    }
+}
+
+.btn-accent {
+    @include button-accent-variant;
+}
+
+.btn-outline-accent {
+    @include button-outline-accent-variant;
+}
+
+// 3D Button Effect
+.btn-3d {
+    position: relative;
+    border-bottom: 4px solid rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    &:active {
+        border-bottom-width: 2px;
+        transform: translateY(2px);
+    }
+}
+
+// Special nav buttons
+.nav-btn {
+    @extend .btn;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    font-weight: bold;
+    border-width: 2px;
+
+    &.btn-secondary {
+        opacity: 0.7;
+        border-color: var(--border-color);
+        color: var(--text-color);
+
+        &:hover {
+            opacity: 1;
+            background-color: var(--border-color);
+        }
+    }
+}

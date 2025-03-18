@@ -1,0 +1,82 @@
+// First define ACTUAL COLOR VALUES
+$primary: #1d5330;
+$accent: #ffd700;
+$secondary: #2e7d32;
+$danger: #dc3545;
+$dark: #1a1a1a;
+$light: #f8f9fa;
+$success: #4caf50;
+$box-shadow-lg: 0 4px 24px rgba($dark, 0.1);
+$shadow-lg: var(--shadow-lg);
+
+// Then create CSS custom properties
+:root {
+    --primary: #{$primary};
+    --accent: #{$accent};
+    --secondary: #{$secondary};
+    --danger: #{$danger};
+    --dark: #{$dark};
+    --light: #{$light};
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --card-bg: #ffffff;
+    --border-color: #dddddd;
+    --success-color: #{$success};
+    --error-color: #{$danger};
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --box-shadow-lg: #{$box-shadow-lg};
+}
+
+.dark-mode {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --card-bg: #2d2d2d;
+    --border-color: #555555;
+    --primary: #{$secondary};
+}
+
+$theme-colors: (
+    "primary": $primary,
+    "accent": $accent,
+    "secondary": $secondary,
+    "success": $success,
+    "danger": $danger,
+    "dark": $dark,
+    "light": $light
+);
+
+// Spacing
+$spacer: 1rem;
+$spacers: (
+    0: 0,
+    1: $spacer * 0.25,
+    2: $spacer * 0.5,
+    3: $spacer,
+    4: $spacer * 1.5,
+    5: $spacer * 3,
+    6: $spacer * 4.5,
+    7: $spacer * 6
+);
+
+// Borders
+$border-radius: 8px;
+$border-radius-lg: 12px;
+
+// Additional Variables
+$dark-rgb: red($dark), green($dark), blue($dark);
+$accent-rgb: red($accent), green($accent), blue($accent);
+$primary-rgb: red($primary), green($primary), blue($primary);
+$box-shadow-lg: 0 4px 24px rgba($dark, 0.1);
+$font-weight-semibold: 600;
+
+// Custom button variant using Sass variables
+$custom-button-accent: (
+    background: $accent,
+    border-color: $accent,
+    color: $primary,
+    hover-background: darken($accent, 10%),
+    hover-border-color: darken($accent, 15%),
+    hover-color: $primary,
+    active-background: darken($accent, 15%),
+    active-border-color: darken($accent, 20%),
+);
