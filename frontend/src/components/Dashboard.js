@@ -5,7 +5,6 @@ import { Button } from "react-bootstrap";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import UserProgressBox from "./UserProgressBox";
-import Chatbot from "./Chatbot";
 import Navbar from "./Navbar";
 
 function Dashboard() {
@@ -13,13 +12,22 @@ function Dashboard() {
   const [userProgress, setUserProgress] = useState(null);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
-  const [showProgress, setShowProgress] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const navigate = useNavigate();
   const location = useLocation();
   const activePage = location.pathname.includes("personalized-path")
     ? "personalized-path"
     : "all-topics";
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -40,7 +48,7 @@ function Dashboard() {
     const fetchUserProgress = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprogress/`,
+          `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
           { withCredentials: true }
         );
         setUserProgress(response.data);
@@ -70,21 +78,18 @@ function Dashboard() {
     navigate(`/lessons/${courseId}`);
   };
 
-  const toggleProgressPanel = () => {
-    setShowProgress((prev) => !prev);
-  };
+  const isMobile = windowWidth <= 768;
 
   return (
     <div className="dashboard">
       <Navbar />
 
       <div className="dashboard-content">
-        <div className="main-content">
+        <div className={`main-content ${isMobile ? "mb-4" : ""}`}>
           <div className="dashboard-header">
             <h2 className="dashboard-greeting">
               Welcome back, {user?.username || "User"}!
             </h2>
-            {/* Convert logout button */}
             <Button
               variant="danger"
               onClick={handleLogout}
@@ -95,7 +100,7 @@ function Dashboard() {
           </div>
 
           <div className="dashboard-buttons">
-            {/* All Topics button */}
+            {/* Fixed the active prop instead of activeClassName */}
             <Button
               variant={
                 activePage === "all-topics" ? "accent" : "outline-accent"
@@ -136,34 +141,30 @@ function Dashboard() {
           )}
         </div>
 
-        {/* Progress panel */}
-        <div className="user-progress">
-          {userProgress ? (
-            <UserProgressBox userProgress={userProgress} />
-          ) : (
-            <p>Loading progress...</p>
-          )}
-        </div>
-
-        <Button
-          variant="accent"
-          className="floating-progress-btn"
-          onClick={toggleProgressPanel}
-        >
-          Progress
-        </Button>
-
-        <div className={`mobile-progress-panel ${showProgress ? "show" : ""}`}>
-          <div className="panel-header">
-            <Button variant="link" onClick={toggleProgressPanel}>
-              &times; Close
-            </Button>
+        {/* Desktop progress panel */}
+        {!isMobile && (
+          <div className="user-progress">
+            {userProgress ? (
+              <UserProgressBox progressData={userProgress} />
+            ) : (
+              <p>Loading progress...</p>
+            )}
           </div>
-          <UserProgressBox userProgress={userProgress} />
-        </div>
+        )}
       </div>
 
-      <Chatbot />
+      {/* Mobile progress panel at bottom for small screens */}
+      {isMobile && userProgress && (
+        <div className="mobile-progress-section">
+          <div className="container">
+            <h4 className="mb-3">Your Learning Progress</h4>
+            <UserProgressBox
+              progressData={userProgress}
+              initiallyExpanded={true}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   HashRouter as Router,
   Route,
   Routes,
   useLocation,
 } from "react-router-dom";
+import { Container } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -22,14 +23,38 @@ import Questionnaire from "./components/Questionnaire";
 import ToolsPage from "./components/ToolsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import RewardsPage from './components/RewardsPage';
+import RewardsPage from "./components/RewardsPage";
 import { ThemeProvider } from "../src/components/ThemeContext";
 import ExercisePage from "./components/ExercisePage";
 import "./styles/scss/main.scss";
+import Chatbot from "./components/Chatbot";
 
-function AppContent() {
+function App() {
+  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
+
+  const toggleChatbot = useCallback(() => {
+    setIsChatbotVisible((prev) => !prev);
+  }, []);
+
+  return (
+    <Router>
+      <ThemeProvider>
+        <div className="app-container">
+          <AppContent toggleChatbot={toggleChatbot} />
+          <Chatbot
+            isVisible={isChatbotVisible}
+            setIsVisible={setIsChatbotVisible}
+          />
+        </div>
+      </ThemeProvider>
+    </Router>
+  );
+}
+
+// Proper React component for AppContent
+const AppContent = ({ toggleChatbot }) => {
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  console.log("[AppContent] Current path:", location.pathname);
 
   const noNavbarPaths = [
     "/",
@@ -42,62 +67,51 @@ function AppContent() {
   ];
 
   return (
-    <div className="app-layout">
+    <Container fluid className="app-layout p-0">
       {!noNavbarPaths.includes(location.pathname) && (
-        <Navbar onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Navbar toggleChatbot={toggleChatbot} /> 
       )}
       <main className="content">
         <ThemeProvider>
-        <Routes>
-          <Route path="/" element={<Welcome />} />
-          <Route path="/questionnaire" element={<Questionnaire />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route
-            path="/all-topics"
-            element={<Dashboard key="all-topics" activePage="all-topics" />}
-          />
-          <Route
-            path="/personalized-path"
-            element={
-              <Dashboard
-                key="personalized-path"
-                activePage="personalized-path"
-              />
-            }
-          />
-
-          <Route path="/questionnaire" element={<Questionnaire />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/rewards" element={<RewardsPage />} />
-          <Route path="/courses/:pathId" element={<CoursePage />} />
-          <Route path="/lessons/:courseId" element={<LessonPage />} />
-          <Route path="/quiz/:courseId" element={<QuizPage />} />
-          <Route path="/leaderboards" element={<Leaderboards />} />
-          <Route path="/missions" element={<Missions />} />
-          <Route path="/tools" element={<ToolsPage />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/password-reset/:uidb64/:token"
-            element={<ResetPassword />}
-          />
-          <Route path="/exercises" element={<ExercisePage />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Welcome />} />
+            <Route path="/questionnaire" element={<Questionnaire />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/all-topics"
+              element={<Dashboard key="all-topics" activePage="all-topics" />}
+            />
+            <Route
+              path="/personalized-path"
+              element={
+                <Dashboard
+                  key="personalized-path"
+                  activePage="personalized-path"
+                />
+              }
+            />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/rewards" element={<RewardsPage />} />
+            <Route path="/courses/:pathId" element={<CoursePage />} />
+            <Route path="/lessons/:courseId" element={<LessonPage />} />
+            <Route path="/quiz/:courseId" element={<QuizPage />} />
+            <Route path="/leaderboards" element={<Leaderboards />} />
+            <Route path="/missions" element={<Missions />} />
+            <Route path="/tools" element={<ToolsPage />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/password-reset/:uidb64/:token"
+              element={<ResetPassword />}
+            />
+            <Route path="/exercises" element={<ExercisePage />} />
+          </Routes>
         </ThemeProvider>
-        </main>
-      </div>
+      </main>
+    </Container>
   );
-}
-
-function App() {
-  return (
-    <Router>
-      <AppContent />
-    </Router>
-  );
-}
+};
 
 export default App;

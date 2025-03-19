@@ -27,7 +27,7 @@ function LessonPage() {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [courseCompleted, setCourseCompleted] = useState(false);
-  const [showProgress, setShowProgress] = useState(false);
+  const [showProgress] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -357,28 +357,10 @@ function LessonPage() {
         <Chatbot />
       </div>
 
-      <div className="lesson-progress">
+      <div className={`lesson-progress ${showProgress ? "show" : ""}`}>
         <UserProgressBox />
       </div>
 
-      <button
-        className="btn btn-3d floating-progress-btn"
-        onClick={() => setShowProgress((p) => !p)}
-      >
-        Progress
-      </button>
-
-      {showProgress && (
-        <div className="progress-panel show">
-          <button
-            className="btn btn-outline-accent"
-            onClick={() => setShowProgress(false)}
-          >
-            Close
-          </button>
-          <UserProgressBox />
-        </div>
-      )}
     </div>
   );
 }

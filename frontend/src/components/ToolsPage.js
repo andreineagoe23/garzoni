@@ -30,7 +30,7 @@ const ToolsPage = () => {
         );
 
         setCategories(reorderedCategories);
-        setActiveCategory(0); // Auto-expand first category
+        setActiveCategory(0);
       } catch (error) {
         setError(error.message || "Error fetching tools.");
       }

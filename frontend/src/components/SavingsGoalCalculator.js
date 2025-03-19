@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "../styles/SavingsGoalCalculator.css";
+import "../styles/scss/main.scss";
 
 const SavingsGoalCalculator = () => {
   const [formData, setFormData] = useState({
@@ -8,14 +8,14 @@ const SavingsGoalCalculator = () => {
     initial_investment: "",
     years_to_grow: "",
     annual_interest_rate: "",
-    compound_frequency: "1", // Default to annually
+    compound_frequency: "1",
   });
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -30,74 +30,85 @@ const SavingsGoalCalculator = () => {
         { withCredentials: true }
       );
       setResult(response.data);
-    } catch (error) {
-      console.error("Error calculating savings goal:", error);
-      setError("Failed to calculate. Please check your inputs.");
+    } catch (err) {
+      console.error("Calculation error:", err);
+      setError(err.response?.data?.message || "Failed to calculate. Please check your inputs.");
     }
   };
 
   return (
-    <div className="calculator-container">
+    <div className="savings-calculator">
       <h3>Savings Goal Calculator</h3>
-      <form onSubmit={handleSubmit} className="calculator-form">
+      <form onSubmit={handleSubmit} className="calculator-form" noValidate>
         <div className="form-group">
-          <label>Savings Goal</label>
+          <label htmlFor="savings_goal">Savings Goal ($)</label>
           <input
             type="number"
+            id="savings_goal"
             name="savings_goal"
             placeholder="Desired final savings"
             value={formData.savings_goal}
             onChange={handleChange}
             required
+            min="0"
+            step="100"
           />
         </div>
 
-        {/* Step 2: Initial Investment */}
         <div className="form-group">
-          <label>Initial Investment</label>
+          <label htmlFor="initial_investment">Initial Investment ($)</label>
           <input
             type="number"
+            id="initial_investment"
             name="initial_investment"
             placeholder="Amount readily available"
             value={formData.initial_investment}
             onChange={handleChange}
             required
+            min="0"
+            step="100"
           />
         </div>
 
-        {/* Step 3: Growth Over Time */}
         <div className="form-group">
-          <label>Years to Grow</label>
+          <label htmlFor="years_to_grow">Years to Grow</label>
           <input
             type="number"
+            id="years_to_grow"
             name="years_to_grow"
             placeholder="Length of time in years"
             value={formData.years_to_grow}
             onChange={handleChange}
             required
+            min="1"
+            max="50"
           />
         </div>
 
-        {/* Step 4: Interest Rate */}
         <div className="form-group">
-          <label>Estimated Annual Interest Rate (%)</label>
+          <label htmlFor="annual_interest_rate">Annual Interest Rate (%)</label>
           <input
             type="number"
+            id="annual_interest_rate"
             name="annual_interest_rate"
             placeholder="Enter percentage"
             value={formData.annual_interest_rate}
             onChange={handleChange}
             required
+            min="0"
+            max="30"
+            step="0.1"
           />
         </div>
 
-        {/* Step 5: Compound Frequency */}
         <div className="form-group">
-          <label>Compound Frequency (times per year)</label>
+          <label htmlFor="compound_frequency">Compound Frequency</label>
           <select
+            id="compound_frequency"
             name="compound_frequency"
             value={formData.compound_frequency}
             onChange={handleChange}
+            className="form-select"
           >
             <option value="1">Annually</option>
             <option value="4">Quarterly</option>
@@ -112,12 +123,19 @@ const SavingsGoalCalculator = () => {
       </form>
 
       {result && (
-        <div className="result">
-          <p>Final Savings: {result.final_savings}</p>
-          {result.message && <p>{result.message}</p>}
+        <div className="result" role="alert">
+          <p>Projected Value: ${result.final_savings?.toLocaleString()}</p>
+          {result.message && (
+            <p className="text-success">{result.message}</p>
+          )}
         </div>
       )}
-      {error && <p className="error-message">{error}</p>}
+
+      {error && (
+        <div className="error-message" role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
