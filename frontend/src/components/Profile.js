@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
-import "../styles/AvatarSelector.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
 import AvatarSelector from "./AvatarSelector";

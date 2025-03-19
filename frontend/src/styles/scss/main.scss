@@ -47,10 +47,16 @@
 @import "components/learning-path";
 @import "components/settings";
 @import "components/forgot-password";
+@import "components/avatar-selector";
+@import "components/courseList";
+@import "components/coursePage";
+@import "components/savingsGoalCalculator";
+@import "components/interactiveSection";
 
 @import "layout/grid";
 @import "layout/sidebar";
 @import "layout/header";
+@import "layout/app-layout";
 
 @import "abstracts/drag-drop-exercise";
 @import "abstracts/budget-allocation";

@@ -1,23 +1,49 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const Chatbot = () => {
+const Chatbot = ({ isVisible, setIsVisible }) => {
+  const location = useLocation();
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
-  const [isVisible, setIsVisible] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const HIDDEN_PAGES = [
+    "/login",
+    "/register",
+    "/welcome",
+    "/forgot-password",
+    "/password-reset",
+    "/questionnaire",
+  ];
+
+  const shouldShowChatbot =
+    !HIDDEN_PAGES.includes(location.pathname) &&
+    ((!isMobile && isVisible !== undefined) ||
+      (isMobile && isVisible === true));
 
   const HF_API_KEY = process.env.REACT_APP_HF_API_KEY;
   const HF_MODEL = "HuggingFaceH4/zephyr-7b-alpha";
 
   useEffect(() => {
-    if (isVisible && !hasGreeted) {
+    const mediaQuery = window.matchMedia("(max-width: 992px)");
+    setIsMobile(mediaQuery.matches);
+
+    const handleResize = (e) => setIsMobile(e.matches);
+    mediaQuery.addEventListener("change", handleResize);
+
+    return () => mediaQuery.removeEventListener("change", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isVisible && !hasGreeted && shouldShowChatbot) {
       setChatHistory([
         {
           sender: "bot",
@@ -26,7 +52,7 @@ const Chatbot = () => {
       ]);
       setHasGreeted(true);
     }
-  }, [isVisible, hasGreeted]);
+  }, [isVisible, hasGreeted, shouldShowChatbot]);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -88,7 +114,7 @@ const Chatbot = () => {
       message.toLowerCase().includes("forex") ||
       message.toLowerCase().includes("currency")
     ) {
-      return await fetchForexRate("usd", "eur"); // ✅ Add Forex Support
+      return await fetchForexRate("usd", "eur");
     }
     return null;
   };
@@ -144,7 +170,6 @@ const Chatbot = () => {
     setChatHistory((prev) => [...prev, { sender: "user", text: userInput }]);
     setIsTyping(true);
 
-    // ✅ Check for financial data before calling AI
     const financialResponse = await checkFinancialQuery(userInput);
     if (financialResponse) {
       setChatHistory((prev) => [
@@ -174,7 +199,6 @@ const Chatbot = () => {
 
       let aiResponse = response.data[0].generated_text.trim();
 
-      // ✅ Ensure AI response is clean and relevant
       aiResponse = aiResponse
         .replace(/User:.*?Assistant:/s, "")
         .replace(/Assistant:/g, "")
@@ -213,98 +237,102 @@ const Chatbot = () => {
     };
   };
 
+  if (!shouldShowChatbot) return null;
+
   return (
     <div className="chatbot">
-      <button
-        className="chatbot-toggle btn-accent"
-        onClick={() => setIsVisible(!isVisible)}
-      >
-        💬
-      </button>
-
-      {isVisible && (
-        <div className="chatbot-container shadow-lg">
-          <div className="chatbot-header d-flex align-items-center justify-content-between">
-            <span className="fw-semibold">Finance Assistant</span>
-            <button
-              className="btn btn-link text-accent p-0"
-              onClick={() => setIsVisible(false)}
-            >
-              ✖
-            </button>
-          </div>
-
-          <div className="tts-toggle-container px-3 py-2">
-            <label className="switch">
-              <input
-                type="checkbox"
-                onChange={() => setIsSpeechEnabled(!isSpeechEnabled)}
-              />
-              <span className="slider"></span>
-            </label>
-            <span className="text-muted">🔊 Speak Answers</span>
-
-            <select
-              className="form-select form-select-sm ms-auto"
-              onChange={(e) =>
-                setSelectedVoice(voices.find((v) => v.name === e.target.value))
-              }
-              style={{ maxWidth: "150px" }}
-            >
-              {voices.length > 0 ? (
-                voices.map((voice, index) => (
-                  <option key={index} value={voice.name}>
-                    {voice.name}
-                  </option>
-                ))
-              ) : (
-                <option>Loading voices...</option>
-              )}
-            </select>
-          </div>
-
-          <div className="chat-history p-3">
-            {chatHistory.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`chat-message mb-2 ${
-                  msg.sender === "user" ? "chat-user" : "chat-bot"
-                } p-3 rounded`}
-              >
-                {msg.text}
-              </div>
-            ))}
-            {isTyping && (
-              <div className="chat-bot typing-animation p-3 rounded">
-                Typing...
-              </div>
-            )}
-          </div>
-
-          <div className="chat-input-container d-flex gap-2 p-3">
-            <button
-              className="btn btn-accent voice-button rounded-circle p-2"
-              onClick={startVoiceRecognition}
-            >
-              🎙
-            </button>
-            <input
-              type="text"
-              className="form-control rounded-pill"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleMessageSend()}
-              placeholder="Ask me about stocks or finance..."
-            />
-            <button
-              className="btn btn-accent rounded-pill px-4"
-              onClick={handleMessageSend}
-            >
-              Send
-            </button>
-          </div>
-        </div>
+      {!isMobile && (
+        <button
+          className="chatbot-toggle btn-accent"
+          onClick={() => setIsVisible(!isVisible)}
+        >
+          💬
+        </button>
       )}
+
+      <div
+        className={`chatbot-container ${isVisible ? "active" : ""} shadow-lg`}
+      >
+        <div className="chatbot-header d-flex align-items-center justify-content-between">
+          <span className="fw-semibold">Finance Assistant</span>
+          <button
+            className="btn btn-link text-accent p-0"
+            onClick={() => setIsVisible(false)}
+          >
+            ✖
+          </button>
+        </div>
+
+        <div className="tts-toggle-container px-3 py-2">
+          <label className="switch">
+            <input
+              type="checkbox"
+              onChange={() => setIsSpeechEnabled(!isSpeechEnabled)}
+            />
+            <span className="slider"></span>
+          </label>
+          <span className="text-muted">🔊 Speak Answers</span>
+
+          <select
+            className="form-select form-select-sm ms-auto"
+            onChange={(e) =>
+              setSelectedVoice(voices.find((v) => v.name === e.target.value))
+            }
+            style={{ maxWidth: "150px" }}
+          >
+            {voices.length > 0 ? (
+              voices.map((voice, index) => (
+                <option key={index} value={voice.name}>
+                  {voice.name}
+                </option>
+              ))
+            ) : (
+              <option>Loading voices...</option>
+            )}
+          </select>
+        </div>
+
+        <div className="chat-history p-3">
+          {chatHistory.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`chat-message mb-2 ${
+                msg.sender === "user" ? "chat-user" : "chat-bot"
+              } p-3 rounded`}
+            >
+              {msg.text}
+            </div>
+          ))}
+          {isTyping && (
+            <div className="chat-bot typing-animation p-3 rounded">
+              Typing...
+            </div>
+          )}
+        </div>
+
+        <div className="chat-input-container d-flex gap-2 p-3">
+          <button
+            className="btn btn-accent voice-button rounded-circle p-2"
+            onClick={startVoiceRecognition}
+          >
+            🎙
+          </button>
+          <input
+            type="text"
+            className="form-control rounded-pill"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleMessageSend()}
+            placeholder="Ask me about stocks or finance..."
+          />
+          <button
+            className="btn btn-accent rounded-pill px-4"
+            onClick={handleMessageSend}
+          >
+            Send
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

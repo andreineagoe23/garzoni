@@ -1,0 +1,35 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+  
+  .app-layout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  
+  .content {
+    overflow-y: auto;
+    background-color: var(--bg-color);
+    flex-grow: 1;
+    padding: map-get($spacers, 4);
+    
+    @include media-breakpoint-down(lg) {
+      padding: map-get($spacers, 3);
+    }
+  }
+
+  .mobile-nav .dropdown-menu {
+    display: block ;
+    visibility: visible ;
+    opacity: 1 ;
+    z-index: 9999 ;
+    position: fixed ;
+    bottom: 60px ;
+    right: 10px ;
+    background-color: var(--card-bg);
+  }

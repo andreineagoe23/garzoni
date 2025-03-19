@@ -25,6 +25,10 @@ $shadow-lg: var(--shadow-lg);
     --error-color: #{$danger};
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
     --box-shadow-lg: #{$box-shadow-lg};
+    --input-bg: #ffffff;
+    --bs-body-bg: var(--bg-color);
+    --bs-body-color: var(--text-color);
+    --bs-border-color: var(--border-color);
 }
 
 .dark-mode {
@@ -33,6 +37,10 @@ $shadow-lg: var(--shadow-lg);
     --card-bg: #2d2d2d;
     --border-color: #555555;
     --primary: #{$secondary};
+    --input-bg: #3d3d3d;
+    --bs-body-bg: var(--bg-color);
+    --bs-body-color: var(--text-color);
+    --bs-border-color: var(--border-color);
 }
 
 $theme-colors: (
@@ -44,6 +52,14 @@ $theme-colors: (
     "dark": $dark,
     "light": $light
 );
+
+// Custom color map
+$custom-colors: (
+  "accent": $accent
+);
+
+// Merge with Bootstrap's theme colors
+$theme-colors: map-merge($theme-colors, $custom-colors);
 
 // Spacing
 $spacer: 1rem;
@@ -80,3 +96,9 @@ $custom-button-accent: (
     active-background: darken($accent, 15%),
     active-border-color: darken($accent, 20%),
 );
+
+// Bootstrap configuration
+$enable-rounded: true;
+$border-radius: 8px;
+$border-radius-lg: 12px;
+$font-weight-semibold: 600;

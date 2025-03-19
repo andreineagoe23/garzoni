@@ -1,35 +1,8 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import "../styles/scss/main.scss";
 
-function UserProgressBox() {
-  const [progressData, setProgressData] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(true);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsExpanded(window.innerWidth > 768);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-          { withCredentials: true }
-        );
-        setProgressData(response.data);
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-      }
-    };
-    fetchProgress();
-  }, []);
+function UserProgressBox({ progressData, initiallyExpanded = true }) {
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
   if (!progressData) {
     return (
@@ -38,6 +11,10 @@ function UserProgressBox() {
       </div>
     );
   }
+
+  // Safely access data with defaults to prevent errors
+  const overallProgress = progressData?.overall_progress || 0;
+  const paths = progressData?.paths || [];
 
   return (
     <div className="user-progress-box shadow-sm">
@@ -55,46 +32,50 @@ function UserProgressBox() {
           <div className="overall-progress mb-4">
             <div className="d-flex justify-content-between mb-2">
               <span className="text-muted">Overall Completion</span>
-              <span className="fw-semibold">
-                {progressData.overall_progress.toFixed(1)}%
-              </span>
+              <span className="fw-semibold">{overallProgress.toFixed(1)}%</span>
             </div>
             <div className="progress" style={{ height: "8px" }}>
               <div
                 className="progress-bar"
                 role="progressbar"
                 style={{
-                  width: `${progressData.overall_progress}%`,
+                  width: `${overallProgress}%`,
                   backgroundColor: "var(--primary)",
                 }}
               />
             </div>
           </div>
 
-          <h5 className="mb-3">Path Progress</h5>
-          <div className="paths-container">
-            {progressData.paths.map((path, index) => (
-              <div key={index} className="path-item mb-3">
-                <div className="d-flex justify-content-between mb-1">
-                  <span className="text-muted">{path.path}</span>
-                  <span className="fw-semibold">
-                    {path.percent_complete.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="progress" style={{ height: "6px" }}>
-                  <div
-                    className="progress-bar"
-                    role="progressbar"
-                    style={{
-                      width: `${path.percent_complete}%`,
-                      backgroundColor: "var(--accent)",
-                    }}
-                  />
-                </div>
-                <small className="text-muted d-block mt-1">{path.course}</small>
+          {paths.length > 0 && (
+            <>
+              <h5 className="mb-3">Path Progress</h5>
+              <div className="paths-container">
+                {paths.map((path, index) => (
+                  <div key={index} className="path-item mb-3">
+                    <div className="d-flex justify-content-between mb-1">
+                      <span className="text-muted">{path.path}</span>
+                      <span className="fw-semibold">
+                        {path.percent_complete.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="progress" style={{ height: "6px" }}>
+                      <div
+                        className="progress-bar"
+                        role="progressbar"
+                        style={{
+                          width: `${path.percent_complete}%`,
+                          backgroundColor: "var(--accent)",
+                        }}
+                      />
+                    </div>
+                    <small className="text-muted d-block mt-1">
+                      {path.course}
+                    </small>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
