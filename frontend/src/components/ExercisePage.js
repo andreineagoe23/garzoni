@@ -28,7 +28,9 @@ const ExercisePage = () => {
         `${process.env.REACT_APP_BACKEND_URL}/exercises/`,
         { 
           params,
-          withCredentials: true 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
         }
       );
 
@@ -83,7 +85,11 @@ const ExercisePage = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/exercises/${currentExercise.id}/submit/`, 
         { user_answer: userAnswer },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
 
       setProgress([...progress, {

@@ -27,7 +27,11 @@ const SavingsGoalCalculator = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/calculate-savings-goal/`,
         formData,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setResult(response.data);
     } catch (err) {

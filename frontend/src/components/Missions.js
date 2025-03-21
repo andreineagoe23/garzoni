@@ -106,7 +106,11 @@ function Missions() {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setCurrentFact(response.data);
     } catch (error) {
@@ -120,7 +124,11 @@ function Missions() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
         { fact_id: currentFact.id },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       gsap.to(".fact-card", {
         duration: 0.5,
@@ -137,7 +145,11 @@ function Missions() {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/missions/`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setDailyMissions(response.data.daily_missions || []);
       setWeeklyMissions(response.data.weekly_missions || []);
@@ -150,7 +162,11 @@ function Missions() {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setSavingsBalance(response.data.balance);
     } catch (error) {
@@ -168,7 +184,11 @@ function Missions() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         { amount: parseFloat(savingsAmount) },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setSavingsAmount("");
       await fetchSavingsBalance();

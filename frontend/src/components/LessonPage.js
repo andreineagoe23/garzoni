@@ -35,7 +35,11 @@ function LessonPage() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
 
         const lessonsWithSections = response.data.map((lesson) => ({
@@ -86,7 +90,11 @@ function LessonPage() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete_section/`,
         { section_id: sectionId },
-        { withCredentials: true }
+        {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
       );
       setCompletedSections((prev) => [...prev, sectionId]);
     } catch (err) {
@@ -99,7 +107,11 @@ function LessonPage() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
         { lesson_id: lessonId },
-        { withCredentials: true }
+        {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
       );
 
       setCompletedLessons((prev) => [...prev, lessonId]);

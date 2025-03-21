@@ -19,21 +19,33 @@ const Leaderboards = () => {
         // Fetch Global Leaderboard
         const globalResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/leaderboard/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setGlobalLeaderboard(globalResponse.data);
 
         // Fetch Friends Leaderboard
         const friendsResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/leaderboard/friends/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setFriendsLeaderboard(friendsResponse.data);
 
         // Fetch Referral Code
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setReferralCode(profileResponse.data.referral_code);
       } catch (error) {
@@ -51,7 +63,11 @@ const Leaderboards = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/`,
         { receiver: receiverId },
-        { withCredentials: true }
+        {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
       );
       alert("Friend request sent!");
     } catch (err) {

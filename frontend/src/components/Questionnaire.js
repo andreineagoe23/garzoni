@@ -14,47 +14,27 @@ const Questionnaire = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        // Get CSRF token first
-        await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
-          withCredentials: true,
-        });
-
-        // Fetch questions with credentials
+        // Fetch questions with JWT authentication
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
           {
-            withCredentials: true,
             headers: {
-              "X-CSRFToken": document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("csrftoken="))
-                ?.split("=")[1],
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
           }
         );
 
-        console.log("Raw API response:", response.data);
-
         // Validate and transform response data
         const validatedQuestions = response.data.map((q) => {
-          console.log("Original question:", q);
-
           let options = [];
           try {
-            // Handle both array and stringified formats
             if (Array.isArray(q.options)) {
               options = q.options;
             } else {
-              console.log("Original options string:", q.options);
-
-              // Convert Python-style string to JSON format
               const jsonString = q.options
-                .replace(/'/g, '"') // Replace single quotes with double quotes
-                .replace(/\\"/g, '"') // Remove escaped quotes
-                .replace(/^\[(.*)\]$/, "[$1]"); // Ensure proper array formatting
-
-              console.log("Converted JSON string:", jsonString);
-
+                .replace(/'/g, '"')
+                .replace(/\\"/g, '"')
+                .replace(/^\[(.*)\]$/, "[$1]");
               options = JSON.parse(jsonString);
             }
           } catch (parseError) {
@@ -62,15 +42,12 @@ const Questionnaire = () => {
             options = ["Error loading options"];
           }
 
-          console.log("Final options array:", options);
-
           return {
             ...q,
             options: options,
           };
         });
 
-        console.log("Validated questions:", validatedQuestions);
         setQuestions(validatedQuestions);
       } catch (error) {
         setError(error.response?.data?.error || "Failed to load questions");
@@ -81,7 +58,7 @@ const Questionnaire = () => {
     fetchQuestions();
   }, []);
 
-  // Keep all handler functions exactly the same
+  // Keep handler functions the same
   const handleAnswer = (questionId, answer) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
@@ -104,19 +81,12 @@ const Questionnaire = () => {
 
   const handleSubmit = async () => {
     try {
-      const csrfToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("csrftoken="))
-        ?.split("=")[1];
-
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
         { answers },
         {
-          withCredentials: true,
           headers: {
-            "X-CSRFToken": csrfToken,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         }
       );
@@ -131,7 +101,7 @@ const Questionnaire = () => {
     }
   };
 
-  // Keep all rendering logic exactly the same
+  // Keep rendering logic the same
   const renderQuestionInput = (question) => {
     switch (question.type) {
       case "knowledge_check":

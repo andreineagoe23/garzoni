@@ -17,7 +17,11 @@ function QuizPage() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
 
         console.log(response.data);
@@ -51,7 +55,11 @@ function QuizPage() {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/quizzes/complete/`,
         { quiz_id: quiz.id, selected_answer: selectedAnswer },
-        { withCredentials: true } // ✅ Use cookies for authentication
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
 
       console.log("Quiz Response: ", response.data);

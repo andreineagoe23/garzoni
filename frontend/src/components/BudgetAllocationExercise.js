@@ -47,7 +47,11 @@ const BudgetAllocationExercise = ({
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
         { section_id: exerciseId },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setAllocations({});
       setFeedback("");

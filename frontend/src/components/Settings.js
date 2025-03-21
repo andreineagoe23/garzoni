@@ -22,7 +22,11 @@ function Settings() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
 
         // Update all settings from backend
@@ -59,7 +63,11 @@ function Settings() {
           email_frequency: emailFrequency,
           dark_mode: darkMode,
         },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);

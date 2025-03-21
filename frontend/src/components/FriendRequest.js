@@ -10,7 +10,11 @@ const FriendRequests = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/friend-requests/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setRequests(response.data);
       } catch (err) {
@@ -25,7 +29,11 @@ const FriendRequests = () => {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
         { action: "accept" },
-        { withCredentials: true }
+        {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
       alert("Friend request accepted!");
@@ -42,7 +50,11 @@ const FriendRequests = () => {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
         { action: "reject" },
-        { withCredentials: true }
+        {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
       alert("Friend request rejected.");

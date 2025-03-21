@@ -9,13 +9,23 @@ function CoursePage() {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(
-        `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`,
-        { withCredentials: true }
-      )
-      .then((response) => setCourses(response.data))
-      .catch((error) => console.error("Failed to fetch courses:", error));
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          }
+        );
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      }
+    };
+
+    fetchCourses();
   }, [pathId]);
 
   return (

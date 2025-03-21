@@ -29,7 +29,11 @@ function Profile() {
       try {
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
 
         setProfileData({
@@ -49,7 +53,11 @@ function Profile() {
 
         const activityResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
 
         const formattedActivities = activityResponse.data.recent_activities.map(
@@ -67,7 +75,11 @@ function Profile() {
 
         const badgesResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/user-badges/`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
 
         setBadges(badgesResponse.data);

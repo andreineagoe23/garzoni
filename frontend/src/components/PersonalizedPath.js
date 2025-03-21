@@ -25,7 +25,11 @@ function PersonalizedPath({ onCourseClick }) {
 
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
-          { withCredentials: true, timeout: 10000 }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
 
         if (!response.data?.courses?.length) {
