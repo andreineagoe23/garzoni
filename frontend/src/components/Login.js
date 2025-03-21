@@ -1,14 +1,36 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
+import axios from "axios";
 import logo from "../assets/monevo.png";
+
+// Create axios instance with default credentials
+const api = axios.create({
+  baseURL: process.env.REACT_APP_BACKEND_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [userAuthenticated, setUserAuthenticated] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
   const navigate = useNavigate();
+
+  // Get CSRF token on component mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await api.get("/csrf/");
+        setCsrfToken(response.data.csrfToken);
+      } catch (error) {
+        console.error("Error fetching CSRF token:", error);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,38 +39,34 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/login/`,
-        formData,
-        { withCredentials: true }
-      );
+      // Login request
+      const response = await api.post("/login/", formData, {
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+      });
 
-      await fetchUserData();
-      setUserAuthenticated(true);
+      console.log("Login response headers:", response.headers);
+
+      await api.get("/userprofile/");
+      
+      navigate("/all-topics");
     } catch (error) {
       console.error("Login failed", error);
-      setError("Invalid username or password");
-    }
-  };
-
-  useEffect(() => {
-    if (userAuthenticated) navigate("/all-topics");
-  }, [userAuthenticated, navigate]);
-
-  const fetchUserData = async () => {
-    try {
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-        withCredentials: true,
-      });
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+      setError(
+        error.response?.data?.error ||
+          "Login failed. Please check your credentials."
+      );
+      
+      // Clear form on error
+      setFormData({ username: "", password: "" });
     }
   };
 
   return (
     <div className="login__container">
-  <img src={logo} alt="Logo" className="login__logo" />
-  <h2 className="login__heading">Login to Your Account</h2>
+      <img src={logo} alt="Logo" className="login__logo" />
+      <h2 className="login__heading">Login to Your Account</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -61,6 +79,7 @@ function Login() {
             value={formData.username}
             onChange={handleChange}
             required
+            autoComplete="username"
           />
         </Form.Group>
 
@@ -72,6 +91,7 @@ function Login() {
             value={formData.password}
             onChange={handleChange}
             required
+            autoComplete="current-password"
           />
         </Form.Group>
 
