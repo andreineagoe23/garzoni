@@ -1,23 +1,16 @@
 {
   "files": {
-    "main.css": "/monevo/static/css/main.4b97a331.css",
-    "main.js": "/monevo/static/js/main.a9f7c460.js",
-    "static/js/488.e75445ad.chunk.js": "/monevo/static/js/488.e75445ad.chunk.js",
-    "static/media/crypto.png": "/monevo/static/media/crypto.c50cba256c934a4cf2dd.png",
-    "static/media/realestate.png": "/monevo/static/media/realestate.46cabd2f711600777b5b.png",
-    "static/media/personalfinance.png": "/monevo/static/media/personalfinance.7a01a07dfb2cd18fd6f8.png",
-    "static/media/forex.png": "/monevo/static/media/forex.37cadd956fe7b8e41664.png",
-    "static/media/mindset.png": "/monevo/static/media/mindset.b64ce891e6a8193f9f01.png",
-    "static/media/basicfinance.png": "/monevo/static/media/basicfinance.1e92cae52e30a637c9d5.png",
-    "static/media/monevo.png": "/monevo/static/media/monevo.e5979e74d99c46808d02.png",
-    "index.html": "/monevo/index.html",
-    "static/media/burgermenu.svg": "/monevo/static/media/burgermenu.390b9556fdc744d00080b71bea9f9d28.svg",
-    "main.4b97a331.css.map": "/monevo/static/css/main.4b97a331.css.map",
-    "main.a9f7c460.js.map": "/monevo/static/js/main.a9f7c460.js.map",
-    "488.e75445ad.chunk.js.map": "/monevo/static/js/488.e75445ad.chunk.js.map"
+    "main.css": "/static/css/main.a1960bfe.css",
+    "main.js": "/static/js/main.9da2bca3.js",
+    "static/js/488.e75445ad.chunk.js": "/static/js/488.e75445ad.chunk.js",
+    "static/media/monevo.png": "/static/media/monevo.e5979e74d99c46808d02.png",
+    "index.html": "/index.html",
+    "main.a1960bfe.css.map": "/static/css/main.a1960bfe.css.map",
+    "main.9da2bca3.js.map": "/static/js/main.9da2bca3.js.map",
+    "488.e75445ad.chunk.js.map": "/static/js/488.e75445ad.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.4b97a331.css",
-    "static/js/main.a9f7c460.js"
+    "static/css/main.a1960bfe.css",
+    "static/js/main.9da2bca3.js"
   ]
 }
