@@ -1,68 +1,56 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
-import axios from "axios";
 import logo from "../assets/monevo.png";
-
-const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-    "X-Requested-With": "XMLHttpRequest"
-  }
-});
 
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // Get CSRF cookie automatically
-        await api.get('/csrf/');
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setError('Please enable third-party cookies and refresh');
-      }
-    };
-    initializeAuth();
-  }, []);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      navigate('/dashboard');
-    } catch (error) {
-      setError('Invalid credentials');
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/login/`,
+        formData,
+        { withCredentials: true }
+      );
+
+      await fetchUserData();
+      setUserAuthenticated(true);
+    } catch (error) {
+      console.error("Login failed", error);
+      setError("Invalid username or password");
+    }
+  };
+
+  useEffect(() => {
+    if (userAuthenticated) navigate("/all-topics");
+  }, [userAuthenticated, navigate]);
+
+  const fetchUserData = async () => {
+    try {
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+        withCredentials: true,
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   return (
     <div className="login__container">
-      <img src={logo} alt="Logo" className="login__logo" />
-      <h2 className="login__heading">Login to Your Account</h2>
+  <img src={logo} alt="Logo" className="login__logo" />
+  <h2 className="login__heading">Login to Your Account</h2>
 
-      {error && (
-        <Alert variant="danger">
-          {error}
-          <div className="mt-2">
-            <strong>Browser Fix:</strong>
-            <ol>
-              <li>Open Chrome Settings</li>
-              <li>Search for "Third-party cookies"</li>
-              <li>Enable "Third-party cookies"</li>
-              <li>Refresh this page</li>
-            </ol>
-          </div>
-        </Alert>
-      )}
+      {error && <Alert variant="danger">{error}</Alert>}
 
       <Form onSubmit={handleLogin}>
         <Form.Group className="mb-4">
@@ -73,7 +61,6 @@ function Login() {
             value={formData.username}
             onChange={handleChange}
             required
-            autoComplete="username"
           />
         </Form.Group>
 
@@ -85,7 +72,6 @@ function Login() {
             value={formData.password}
             onChange={handleChange}
             required
-            autoComplete="current-password"
           />
         </Form.Group>
 
