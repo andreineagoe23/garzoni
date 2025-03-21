@@ -4,7 +4,6 @@ import { Form, Button, Alert } from "react-bootstrap";
 import axios from "axios";
 import logo from "../assets/monevo.png";
 
-// Create axios instance with default credentials
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
   withCredentials: true,
@@ -20,53 +19,48 @@ function Login() {
   const [csrfToken, setCsrfToken] = useState("");
   const navigate = useNavigate();
 
-  // Get CSRF token on component mount
+  // Initialize CSRF token
   useEffect(() => {
-    const fetchCsrfToken = async () => {
+    const initializeCSRF = async () => {
       try {
         const response = await api.get("/csrf/");
-        console.log("CSRF Response:", response);
         setCsrfToken(response.data.csrfToken);
+        
+        // Verify cookie storage
+        console.log("CSRF Cookie:", document.cookie);
+        
+        // Set default header for subsequent requests
+        api.defaults.headers.common["X-CSRFToken"] = response.data.csrfToken;
       } catch (error) {
-        console.error("CSRF Error:", error);
-        // Handle 400 error specifically
-        if (error.response?.status === 400) {
-          setError("Session initialization failed. Please refresh the page.");
-        }
+        console.error("CSRF Initialization Error:", error);
+        setError("Browser security blocked session initialization. Please:");
+        // Add instructions for enabling third-party cookies
       }
     };
-    fetchCsrfToken();
+    
+    initializeCSRF();
   }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Login request
-      const response = await api.post("/login/", formData, {
+      await api.post("/login/", formData, {
         headers: {
-          "X-CSRFToken": csrfToken,
-        },
+          "X-CSRFToken": csrfToken
+        }
       });
-
-      console.log("Login response headers:", response.headers);
-
-      await api.get("/userprofile/");
       
+      // Verify login cookies
+      console.log("Login Cookies:", document.cookie);
       navigate("/all-topics");
     } catch (error) {
-      console.error("Login failed", error);
-      setError(
-        error.response?.data?.error ||
-          "Login failed. Please check your credentials."
-      );
-      
-      // Clear form on error
-      setFormData({ username: "", password: "" });
+      console.error("Login Error:", error);
+      setError(error.response?.data?.error || "Authentication failed");
     }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -74,7 +68,20 @@ function Login() {
       <img src={logo} alt="Logo" className="login__logo" />
       <h2 className="login__heading">Login to Your Account</h2>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && (
+        <Alert variant="danger">
+          {error}
+          <div className="mt-2">
+            <strong>Browser Fix:</strong>
+            <ol>
+              <li>Open Chrome Settings</li>
+              <li>Search for "Third-party cookies"</li>
+              <li>Enable "Third-party cookies"</li>
+              <li>Refresh this page</li>
+            </ol>
+          </div>
+        </Alert>
+      )}
 
       <Form onSubmit={handleLogin}>
         <Form.Group className="mb-4">
