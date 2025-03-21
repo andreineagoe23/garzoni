@@ -1,193 +1,192 @@
 @import "../abstracts/variables";
 
 .leaderboard-container {
-    margin-left: 250px;
-    padding: 2rem;
-    min-height: 100vh;
-    background-color: var(--bg-color);
-    
-    @include media-breakpoint-down(lg) {
-        margin-left: 0;
-        padding: 1.5rem;
-    }
+  margin-left: 280px;
+  padding: map-get($spacers, 4);
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  transition: margin 0.3s ease;
+  
+  @include media-breakpoint-down(lg) {
+    margin-left: 0;
+    padding: map-get($spacers, 3);
+  }
+  
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 2);
+  }
 }
 
 .dashboard-top-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 3rem;
-    
-    @include media-breakpoint-down(md) {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: map-get($spacers, 4);
+  max-width: 1400px;
+  margin: 0 auto map-get($spacers, 5);
+  
+  @include media-breakpoint-between(lg, xxl) {
+    grid-template-columns: repeat(2, minmax(400px, 1fr));
+  }
+  
+  @include media-breakpoint-down(lg) {
+    gap: map-get($spacers, 3);
+    margin-bottom: map-get($spacers, 4);
+  }
+
+  @include media-breakpoint-down(md) {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+
+  @include media-breakpoint-down(sm) {
+    max-width: 100%;
+  }
 }
 
-.referral-container {
-    background: var(--card-bg);
-    border-radius: $border-radius-lg;
-    padding: 1.5rem;
-    box-shadow: $box-shadow-sm;
-}
-
+.referral-container,
 .friend-requests-container {
-    background: var(--card-bg);
-    border-radius: $border-radius-lg;
-    padding: 1.5rem;
-    box-shadow: $box-shadow-sm;
-    max-height: 400px;
-    display: flex;
-    flex-direction: column;
-
-    .friend-requests-header {
-        margin-bottom: 1.5rem;
-        
-        h3 {
-            color: $primary;
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: $font-weight-bold;
-        }
-    }
+  background: var(--card-bg);
+  border-radius: var(--border-radius-lg);
+  padding: map-get($spacers, 4);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  
+  @include media-breakpoint-up(xxl) {
+    max-width: 700px;
+  }
+  
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 3);
+    max-width: 100%;
+  }
 }
 
 .search-bar {
-    margin: 2rem auto;
-    max-width: 600px;
-    
-    @include media-breakpoint-down(sm) {
-        margin: 1.5rem 0;
-    }
+  margin: map-get($spacers, 5) auto;
+  max-width: 600px;
+  
+  @include media-breakpoint-down(lg) {
+    margin: map-get($spacers, 4) auto;
+  }
+  
+  @include media-breakpoint-down(md) {
+    margin: map-get($spacers, 3) 0;
+    max-width: 100%;
+  }
 }
 
 .leaderboard-title {
-    font-size: 2rem;
-    color: $primary;
-    margin: 2rem 0;
-    text-align: center;
-    
-    @include media-breakpoint-down(md) {
-        font-size: 1.5rem;
-        margin: 1.5rem 0;
-    }
+  @include font-size(2rem);
+  color: var(--primary);
+  margin: map-get($spacers, 5) 0;
+  text-align: center;
+  
+  @include media-breakpoint-down(lg) {
+    @include font-size(1.75rem);
+    margin: map-get($spacers, 4) 0;
+  }
+  
+  @include media-breakpoint-down(md) {
+    @include font-size(1.5rem);
+  }
 }
 
 .leaderboard-toggle-container {
-    margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  margin-bottom: map-get($spacers, 5);
+  
+  @include media-breakpoint-down(lg) {
+    margin-bottom: map-get($spacers, 4);
+  }
+
+  .leaderboard-toggle {
+    display: inline-flex;
+    gap: map-get($spacers, 2);
+    background: var(--card-bg);
+    padding: map-get($spacers, 2);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
     
-    .leaderboard-toggle {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        
-        @include media-breakpoint-down(sm) {
-            flex-direction: column;
-        }
+    .btn {
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      white-space: nowrap;
+      
+      @include media-breakpoint-down(sm) {
+        min-width: 120px;
+      }
     }
+
+    @include media-breakpoint-down(md) {
+      width: 100%;
+      max-width: 500px;
+    }
+  }
 }
 
 .leaderboard-table {
-    background-color: var(--card-bg);
-    border-radius: $border-radius-lg;
-    overflow: hidden;
-    box-shadow: $box-shadow-sm;
+  th {
+    background-color: var(--primary);
+    color: var(--accent);
+    padding: map-get($spacers, 3);
+    position: sticky;
+    top: 0;
+  }
 
-    th {
-        background-color: $primary;
-        color: $accent;
-        font-weight: $font-weight-bold;
-        padding: 1.25rem;
-        border-bottom: none;
+  td {
+    padding: map-get($spacers, 3);
+    
+    @include media-breakpoint-down(md) {
+      padding: map-get($spacers, 2);
     }
+  }
 
-    td {
-        padding: 1.25rem;
-        vertical-align: middle;
-        border-color: var(--border-color);
-    }
-
-    tr:nth-child(even) {
-        background-color: rgba($primary, 0.03);
-    }
-
-    .btn-primary {
-        @include button-variant($primary, $primary);
-        padding: 0.375rem 0.75rem;
-    }
-
-    .rank-gold td {
-        color: $accent;
-        background-color: rgba($accent, 0.1) !important;
-    }
-
-    .rank-silver td {
-        color: #c0c0c0;
-        background-color: rgba(#c0c0c0, 0.1) !important;
-    }
-
-    .rank-bronze td {
-        color: #cd7f32;
-        background-color: rgba(#cd7f32, 0.1) !important;
-    }
-
-    th, td {
-        @include media-breakpoint-down(sm) {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    .btn-sm {
-        @include media-breakpoint-down(sm) {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-        }
-    }
-}
-
-.loading {
-    color: var(--text-color);
-    padding: 2rem;
-    text-align: center;
-    font-size: 1.25rem;
+  .btn-primary {
+    @include button-variant($primary, $primary);
+  }
 }
 
 // Responsive table handling
-@include media-breakpoint-down(md) {
-    .leaderboard-table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        
-        th, td {
-            white-space: nowrap;
-        }
-    }
+@include media-breakpoint-down(lg) {
+  .table-responsive {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
 }
 
-// Enhanced Mobile Responsiveness
-@include media-breakpoint-down(sm) {
-    .leaderboard-container {
-        padding: 1rem;
-    }
+@include media-breakpoint-down(md) {
+  .friend-requests-container {
+    max-height: none;
+  }
+  
+  .leaderboard-toggle {
+    flex-direction: row !important;
     
-    .dashboard-top-section {
-        margin-bottom: 1.5rem;
+    .btn {
+      flex: 1;
     }
-    
-    .friend-requests-container {
-        max-height: 300px;
-        padding: 1rem;
-    }
-    
-    .table-responsive {
-        border-radius: $border-radius;
-        overflow: hidden;
-        -webkit-overflow-scrolling: touch;
-        
-        &::-webkit-scrollbar {
-            height: 4px;
-        }
-    }
+  }
+}
+
+// Special ranks styling
+.rank-gold td {
+  background-color: rgba($accent, 0.1) !important;
+  font-weight: $font-weight-bold;
+}
+
+.rank-silver td {
+  background-color: rgba(#c0c0c0, 0.1) !important;
+}
+
+.rank-bronze td {
+  background-color: rgba(#cd7f32, 0.1) !important;
 }

@@ -31,7 +31,7 @@
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: $shadow-lg;
+    box-shadow: var(--shadow-lg);
   }
 
   .cause-image {

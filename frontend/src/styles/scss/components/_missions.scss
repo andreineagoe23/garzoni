@@ -1,250 +1,275 @@
+@import "../abstracts/mixins";
 @import "../abstracts/variables";
 
 .missions-container {
-  margin-left: 280px;
-  min-height: 100vh;
-  padding: $spacer * 3;
-  background: var(--bg-color);
-  transition: margin-left 0.3s ease;
-
+  @extend .content; // Inherits core content styles
+  
+  // Base padding for all screens
+  padding: map-get($spacers, 4);
+  
+  // Handle sidebar layout
+  @include media-breakpoint-up(lg) {
+    margin-left: 280px;
+    padding: map-get($spacers, 4) map-get($spacers, 5);
+    
+    .has-sidebar & {
+      margin-left: 280px;
+    }
+  }
+  
+  // Tablet landscape and below
   @include media-breakpoint-down(lg) {
     margin-left: 0;
-    padding: $spacer;
-    padding-top: $spacer * 6;
+    padding-top: map-get($spacers, 7); // Compensate for fixed header
+  }
+  
+  // Mobile landscape and below
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 3);
+    padding-top: map-get($spacers, 7);
+  }
+  
+  // Small mobile
+  @include media-breakpoint-down(sm) {
+    padding: map-get($spacers, 2);
+    padding-top: map-get($spacers, 6);
+  }
+
+  .content-wrapper {
+    // Responsive max-width containers
+    @each $breakpoint, $container-max-width in $container-max-widths {
+      @include media-breakpoint-up($breakpoint) {
+        max-width: $container-max-width;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+    
+    // Specific adjustment for sidebar overlap
+    @include media-breakpoint-between(lg, xl) {
+      padding-right: map-get($spacers, 3);
+    }
   }
 }
 
-.missions-title {
+.page-header-title {
+  @include font-size(1.75rem, 1.2);
+  font-weight: $font-weight-bold;
   color: var(--primary);
-  font-weight: $font-weight-semibold;
+  margin-bottom: map-get($spacers, 4);
   position: relative;
-  padding-bottom: $spacer;
-  margin-bottom: $spacer * 2;
 
   &::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
+    bottom: -#{map-get($spacers, 2)};
+    left: 0;
+    width: 60px;
     height: 3px;
     background: var(--accent);
-    border-radius: 2px;
   }
 }
 
 .mission-card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: $border-width solid var(--border-color);
   border-radius: $border-radius-lg;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  padding: map-get($spacers, 3);
+  transition: $transition-base;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: $box-shadow-lg;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
   }
 
   .mission-header {
-    padding: $spacer * 1.5;
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: map-get($spacers, 2);
+    margin-bottom: map-get($spacers, 2);
+    border-bottom: $border-width solid var(--border-color);
 
     h5 {
-      color: var(--primary);
-      font-size: 1.25rem;
-      margin-bottom: $spacer * 0.5;
-    }
-
-    p {
       color: var(--text-color);
-      opacity: 0.9;
-      font-size: 0.95rem;
+      font-weight: $font-weight-semibold;
+      margin-bottom: map-get($spacers, 1);
     }
   }
 
   .progress {
-    background-color: rgba(var(--primary-rgb), 0.1);
+    background-color: rgba(var(--primary), 0.1);
     height: 8px;
-    border-radius: $border-radius;
+    border-radius: $border-radius-sm;
 
     &-bar {
       background-color: var(--primary);
-      transition: width 0.8s ease;
     }
   }
 
-  .completed-badge {
-    background: rgba(var(--success-color-rgb), 0.1);
-    color: var(--success-color);
-    padding: $spacer * 0.5;
-    border-radius: $border-radius;
-    font-size: 0.9rem;
+  .btn {
+    @extend .btn-accent; // Use primary accent variant
+    @extend .btn-sm; // Use small size variant
+    font-weight: $font-weight-semibold;
+    margin-top: map-get($spacers, 2);
+    
+    // Use existing transition variable
+    transition: $transition-base;
+    
+    // Use shadow variables
+    &:hover {
+      box-shadow: var(--shadow-md);
+    }
+    
+    // Outline variant for secondary actions
+    &-outline {
+      @extend .btn-outline-accent;
+      border-width: $border-width;
+    }
+  }
+
+  // Specific button adjustments using variables
+  .mark-read-btn {
+    @extend .btn;
+    @extend .btn-icon;
+    gap: map-get($spacers, 1);
+    
+    &::before {
+      content: "✓";
+      font-size: 0.9em;
+    }
+  }
+
+  .refresh-fact-btn {
+    @extend .btn-outline-accent;
+    @extend .btn-sm;
+    
+    &::before {
+      content: "↻";
+      margin-right: map-get($spacers, 1);
+    }
+  }
+
+  // Form buttons
+  .add-savings-btn {
+    @extend .btn;
+    @extend .btn-lg;
+    width: 100%;
+    margin-top: map-get($spacers, 2);
   }
 }
 
 .coin-stack {
-  padding: $spacer * 1.5;
-  background: rgba(var(--accent-rgb), 0.05);
+  padding: map-get($spacers, 3);
+  background: rgba(var(--accent), 0.05);
   border-radius: $border-radius-lg;
+  margin-top: map-get($spacers, 3);
 
   .coin-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: $spacer;
-    max-width: 400px;
-    margin: 0 auto;
-
-    @include media-breakpoint-down(sm) {
-      grid-template-columns: repeat(3, 1fr);
-      max-width: 300px;
-    }
+    gap: map-get($spacers, 2);
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   }
 
   .coin {
+    @include flex-center;
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     font-weight: $font-weight-semibold;
-    position: relative;
-    transition: all 0.3s ease;
-
-    &.locked {
-      background: rgba(var(--dark-rgb), 0.1);
-      color: var(--text-color);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
 
     &.unlocked {
-      background: linear-gradient(45deg, $accent, darken($accent, 15%));
+      background: linear-gradient(45deg, $accent, $accent-dark);
       color: $primary;
-      box-shadow: $box-shadow-lg;
+      box-shadow: var(--shadow-sm);
     }
 
-    .coin-label {
-      font-size: 0.7rem;
-      position: absolute;
-      bottom: -$spacer * 1.5;
-      width: 100%;
-      text-align: center;
+    &.locked {
+      background: rgba(var(--dark), 0.1);
       color: var(--text-color);
-      opacity: 0.8;
     }
-  }
-
-  .next-unlock {
-    color: var(--text-color);
-    opacity: 0.7;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-top: $spacer;
   }
 }
 
 .fact-card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: $border-radius-lg;
-  padding: $spacer * 1.5;
-  margin: $spacer 0;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-
-  .fact-category {
-    color: var(--accent);
-    font-size: 1.1rem;
-    font-weight: $font-weight-semibold;
-    margin-bottom: $spacer * 0.5;
-  }
-
-  .fact-text {
-    color: var(--text-color);
-    line-height: 1.6;
-    margin-bottom: $spacer;
-    font-size: 0.95rem;
-  }
+  border: $border-width solid var(--border-color);
+  border-radius: $border-radius;
+  padding: map-get($spacers, 2);
+  margin: map-get($spacers, 2) 0;
 
   .mark-read-btn {
-    @include button-accent-variant;
-    width: auto;
-    margin-left: auto;
-  }
-
-  .no-fact-message {
-    color: var(--text-color);
-    opacity: 0.7;
-    text-align: center;
-    width: 100%;
+    @extend .btn-accent;
+    margin-top: map-get($spacers, 2);
   }
 }
 
 .savings-menu {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: $border-radius-lg;
-  padding: $spacer;
-  margin-top: $spacer;
+  @extend .card;
+  margin-top: map-get($spacers, 2);
 
   .savings-input {
-    background: var(--input-bg);
-    border: 2px solid var(--border-color);
-    color: var(--text-color);
-    border-radius: $border-radius;
-    padding: $spacer * 0.75;
-    width: 100%;
-    transition: all 0.3s ease;
-
-    &:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
-    }
+    @extend .form-control;
+    margin-bottom: map-get($spacers, 2);
   }
 
   .add-savings-btn {
-    @include button-accent-variant;
-    margin-top: $spacer;
+    @extend .btn-accent;
     width: 100%;
   }
 }
 
-@include media-breakpoint-down(md) {
+// Update progress button
+.update-progress-btn {
+  @extend .btn;
+  @extend .btn-3d; // Use 3D effect variant
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  
+  &:hover {
+    background-color: var(--primary);
+    color: var(--accent);
+  }
+}
+
+// Alert messages
+.alert-danger {
+  @extend .btn; // Inherit button styles
+  background-color: rgba($danger, 0.1);
+  border: $border-width solid $danger;
+  color: $danger;
+  
+  &:hover {
+    background-color: rgba($danger, 0.2);
+  }
+}
+
+// Responsive adjustments
+@include media-breakpoint-down(lg) {
   .missions-container {
-    padding-top: $spacer * 8;
+    padding-top: map-get($spacers, 7);
+  }
+
+  .coin-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .page-header-title {
+    font-size: 1.5rem;
   }
 
   .mission-card {
-    margin-bottom: $spacer * 1.5;
-    
-    .mission-header {
-      padding: $spacer;
-    }
+    padding: map-get($spacers, 2);
   }
+}
 
+@include media-breakpoint-down(sm) {
   .coin {
     width: 50px;
     height: 50px;
     font-size: 0.9rem;
   }
 
-  .fact-card {
-    padding: $spacer;
-  }
-}
-
-@include media-breakpoint-down(sm) {
-  .missions-title {
-    font-size: 1.5rem;
-    
-    &::after {
-      width: 80px;
-    }
-  }
-
-  .coin-grid {
-    gap: $spacer * 0.5;
+  .grid-cards {
+    grid-template-columns: 1fr !important;
   }
 }

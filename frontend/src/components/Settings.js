@@ -84,107 +84,117 @@ function Settings() {
 
   return (
     <div className="settings-container">
-      <div className="settings-card">
-        <h2 className="settings-title">Settings</h2>
+      <div className="content-wrapper">
+
         {successMessage && (
-          <div className="success-message">{successMessage}</div>
+          <div className="alert alert-success">{successMessage}</div>
         )}
 
-        <form>
-          <h4 className="mb-4">Profile Information</h4>
-          <div className="form-group">
-            <label htmlFor="first_name">First Name</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              className="form-control"
-              value={profileData.first_name}
-              onChange={handleInputChange}
-            />
-          </div>
+        <div className="form-layout-narrow">
+          <div className="card">
+            <div className="card-body">
+              <h4 className="section-title mb-4">Profile Information</h4>
 
-          <div className="form-group">
-            <label htmlFor="last_name">Last Name</label>
-            <input
-              type="text"
-              id="last_name"
-              name="last_name"
-              className="form-control"
-              value={profileData.last_name}
-              onChange={handleInputChange}
-            />
-          </div>
+              <div className="two-column-layout gap-4">
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    className="form-control"
+                    value={profileData.first_name}
+                    onChange={handleInputChange}
+                  />
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className="form-control"
-              value={profileData.username}
-              onChange={handleInputChange}
-            />
-          </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    className="form-control"
+                    value={profileData.last_name}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              value={profileData.email}
-              onChange={handleInputChange}
-            />
-          </div>
+              <div className="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  className="form-control"
+                  value={profileData.username}
+                  onChange={handleInputChange}
+                />
+              </div>
 
-          <h4 className="mb-4 mt-5">Notification Preferences</h4>
-          <div className="toggle-switch">
-            <label htmlFor="emailReminders">Email Reminders</label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="emailReminders"
-              checked={emailReminders}
-              onChange={(e) => setEmailReminders(e.target.checked)}
-            />
-          </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control"
+                  value={profileData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="emailFrequency">Email Frequency</label>
-            <select
-              id="emailFrequency"
-              className="form-select"
-              value={emailFrequency}
-              onChange={(e) => setEmailFrequency(e.target.value)}
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
+              <h4 className="section-title mt-5 mb-4">Preferences</h4>
 
-          <div className="dark-mode-toggle toggle-switch">
-            <label htmlFor="darkModeToggle">Dark Mode</label>
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="darkModeToggle"
-              checked={darkMode}
-              onChange={handleDarkModeToggle}
-            />
-          </div>
+              <div className="form-group toggle-group">
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="darkModeToggle"
+                    checked={darkMode}
+                    onChange={handleDarkModeToggle}
+                  />
+                  <label className="form-check-label" htmlFor="darkModeToggle">
+                    Dark Mode
+                  </label>
+                </div>
+              </div>
 
-          <button
-            type="button"
-            className="save-button"
-            onClick={handleSaveSettings}
-          >
-            Save Settings
-          </button>
-        </form>
+              <div className="form-group toggle-group">
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="emailReminders"
+                    checked={emailReminders}
+                    onChange={(e) => setEmailReminders(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="emailReminders">
+                    Email Reminders
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Email Frequency</label>
+                <select
+                  className="form-select"
+                  value={emailFrequency}
+                  onChange={(e) => setEmailFrequency(e.target.value)}
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+
+              <button 
+                className="btn btn-accent w-100 mt-5"
+                onClick={handleSaveSettings}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

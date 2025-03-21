@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Button, Form, Card, ProgressBar, Alert, Spinner } from 'react-bootstrap';
+import { Container, Button, Form, Card, ProgressBar, Alert, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import '../styles/scss/main.scss';
 
@@ -31,7 +31,7 @@ const ExercisePage = () => {
           withCredentials: true 
         }
       );
-      
+
       const validatedExercises = response.data.filter(exercise => 
         exercise.question &&
         exercise.type &&
@@ -42,7 +42,7 @@ const ExercisePage = () => {
           (exercise.type === 'budget-allocation' && Array.isArray(exercise.exercise_data.categories))
         )
       );
-      
+
       setExercises(validatedExercises);
       setLoading(false);
     } catch (err) {
@@ -57,7 +57,7 @@ const ExercisePage = () => {
 
   const initializeAnswer = (exercise) => {
     if (!exercise) return null;
-    
+
     switch(exercise.type) {
       case 'drag-and-drop':
         return exercise.exercise_data.items.map((_, index) => index);
@@ -108,24 +108,28 @@ const ExercisePage = () => {
   const renderExercise = () => {
     const exercise = exercises[currentExerciseIndex];
     if (!exercise || !exercise.exercise_data) {
-      return <Alert variant="danger">Invalid exercise format</Alert>;
+      return <div className="exercise-error">Invalid exercise format</div>;
     }
 
     try {
       switch (exercise.type) {
         case 'multiple-choice':
           return (
-            <div className="multiple-choice">
-              <h4 className="mb-4">{exercise.question}</h4>
-              <div className="d-grid gap-2">
+            <div className="exercise-content multiple-choice">
+              <h3 className="exercise-question">{exercise.question}</h3>
+              <div className="option-list">
                 {exercise.exercise_data.options.map((option, index) => (
-                  <Button
-                    key={index}
-                    variant={userAnswer === index ? 'primary' : 'outline-primary'}
-                    onClick={() => setUserAnswer(index)}
-                  >
-                    {option}
-                  </Button>
+                  <div key={index} className="option-item">
+                    <Form.Check
+                      type="radio"
+                      id={`option-${index}`}
+                      name="exercise-options"
+                      label={option}
+                      checked={userAnswer === index}
+                      onChange={() => setUserAnswer(index)}
+                      className="option-check"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -133,15 +137,15 @@ const ExercisePage = () => {
 
         case 'drag-and-drop':
           return (
-            <div className="drag-and-drop">
-              <h4 className="mb-4">{exercise.question}</h4>
-              <div className="d-flex flex-wrap gap-2">
+            <div className="exercise-content drag-drop">
+              <h3 className="exercise-question">{exercise.question}</h3>
+              <div className="drag-items">
                 {userAnswer.map((itemIndex, index) => {
                   const item = exercise.exercise_data.items[itemIndex];
                   return (
-                    <div
+                    <div 
                       key={index}
-                      className="drag-item p-2 border rounded"
+                      className="drag-item"
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", index)}
                       onDragOver={(e) => e.preventDefault()}
@@ -162,179 +166,197 @@ const ExercisePage = () => {
 
         case 'budget-allocation':
           return (
-            <div className="budget-allocation">
-              <h4 className="mb-4">{exercise.question}</h4>
-              <Form>
+            <div className="exercise-content budget-allocation">
+              <h3 className="exercise-question">{exercise.question}</h3>
+              <div className="budget-categories">
                 {exercise.exercise_data.categories.map((category, index) => (
-                  <Form.Group key={index} className="mb-3">
+                  <div key={index} className="budget-category">
                     <Form.Label>{category}</Form.Label>
                     <Form.Control 
-                      type="number"
-                      min="0"
+                      type="number" 
                       value={userAnswer[category] || 0}
                       onChange={(e) => setUserAnswer(prev => ({
                         ...prev,
                         [category]: Math.max(0, parseInt(e.target.value) || 0)
                       }))}
+                      className="budget-input"
                     />
-                  </Form.Group>
+                  </div>
                 ))}
-              </Form>
+              </div>
             </div>
           );
 
         default:
-          return <Alert variant="warning">Unsupported exercise type</Alert>;
+          return <div className="exercise-error">Unsupported exercise type</div>;
       }
     } catch (error) {
       console.error('Error rendering exercise:', error);
-      return <Alert variant="danger">Error displaying this exercise</Alert>;
+      return <div className="exercise-error">Error displaying this exercise</div>;
     }
   };
 
   if (loading) {
     return (
-      <Container className="text-center mt-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading exercises...</span>
-        </Spinner>
-        <p className="mt-2">Loading exercises...</p>
-      </Container>
+      <div className="page-content exercise-page">
+        <Container>
+          <div className="loading-container">
+            <Spinner animation="border" role="status" className="spinner" />
+            <p>Loading exercises...</p>
+          </div>
+        </Container>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container className="text-center mt-5">
-        <Alert variant="danger">{error}</Alert>
-        <Button variant="primary" onClick={fetchExercises} className="mt-3">
-          Retry
-        </Button>
-      </Container>
+      <div className="page-content exercise-page">
+        <Container>
+          <Alert variant="danger" className="error-alert">
+            {error}
+            <div className="mt-3">
+              <Button className="btn-accent" onClick={fetchExercises}>
+                Retry
+              </Button>
+            </div>
+          </Alert>
+        </Container>
+      </div>
     );
   }
 
   if (exercises.length === 0) {
     return (
-      <Container className="text-center mt-5">
-        <Alert variant="info">No exercises found matching your filters</Alert>
-      </Container>
+      <div className="page-content exercise-page">
+        <Container>
+          <Alert variant="info" className="no-exercises-alert">
+            No exercises found matching your filters
+          </Alert>
+        </Container>
+      </div>
     );
   }
 
   return (
-    <Container className="exercise-page">
-      <Row className="mb-4">
-        <Col>
-          <h2>Financial Exercises</h2>
-          <div className="filter-controls d-flex gap-2 flex-wrap">
-            <Form.Select
-              value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              aria-label="Filter by exercise type"
-            >
-              <option value="">All Types</option>
-              <option value="multiple-choice">Multiple Choice</option>
-              <option value="drag-and-drop">Drag & Drop</option>
-              <option value="budget-allocation">Budget Allocation</option>
-            </Form.Select>
+    <div className="page-content exercise-page">
+      <Container>
+        <div className="page-header">
+          <h1 className="page-header-title">Financial Exercises</h1>
+        </div>
 
-            <Form.Select
-              value={filters.difficulty}
-              onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-              aria-label="Filter by difficulty"
-            >
-              <option value="">All Difficulties</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </Form.Select>
-          </div>
-        </Col>
-      </Row>
-
-      <Row>
-        <Col lg={8}>
-          <Card className="exercise-card">
-            <div className="progress-indicator mb-4">
-              <div className="d-flex justify-content-between mb-2">
-                <span>
-                  Exercise {currentExerciseIndex + 1} of {exercises.length}
-                </span>
-                <span>
-                  {Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)}% Complete
-                </span>
-              </div>
-              <ProgressBar 
-                now={((currentExerciseIndex + 1) / exercises.length) * 100} 
-                variant="success"
-                animated
-              />
-            </div>
-
-            {renderExercise()}
-
-            {showCorrection ? (
-              <div className="correction mt-4">
-                <Alert variant={progress[currentExerciseIndex]?.correct ? 'success' : 'danger'}>
-                  {progress[currentExerciseIndex]?.correct 
-                    ? '✅ Correct! Well done!'
-                    : '❌ Incorrect. Better luck next time!'}
-                </Alert>
-                <div className="d-flex justify-content-between">
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={() => setCurrentExerciseIndex(0)}
-                    disabled={currentExerciseIndex === 0}
+        <div className="two-column-layout">
+          <div className="column-main">
+            <Card className="exercise-card">
+              <Card.Header className="exercise-header">
+                <div className="filter-controls">
+                  <Form.Select 
+                    value={filters.type}
+                    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                    aria-label="Filter by exercise type"
+                    className="filter-select"
                   >
-                    Restart
-                  </Button>
-                  <Button 
-                    variant="primary" 
-                    onClick={handleNext}
-                    disabled={currentExerciseIndex === exercises.length - 1}
+                    <option value="">All Types</option>
+                    <option value="multiple-choice">Multiple Choice</option>
+                    <option value="drag-and-drop">Drag & Drop</option>
+                    <option value="budget-allocation">Budget Allocation</option>
+                  </Form.Select>
+
+                  <Form.Select 
+                    value={filters.difficulty}
+                    onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
+                    aria-label="Filter by difficulty"
+                    className="filter-select"
                   >
-                    {currentExerciseIndex === exercises.length - 1 ? 'Finish' : 'Next Exercise'}
-                  </Button>
+                    <option value="">All Difficulties</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </Form.Select>
                 </div>
-              </div>
-            ) : (
-              <Button 
-                variant="primary" 
-                size="lg"
-                className="mt-4 w-100"
-                onClick={handleSubmit}
-                disabled={userAnswer === null || (Array.isArray(userAnswer) && userAnswer.length === 0)}
-              >
-                Submit Answer
-              </Button>
-            )}
-          </Card>
-        </Col>
+              </Card.Header>
 
-        <Col lg={4} className="mt-4 mt-lg-0">
-          <Card className="progress-card">
-            <h5 className="mb-3">Your Progress</h5>
-            <ul className="progress-list list-unstyled">
-              {progress.map((item, index) => (
-                <li 
-                  key={index} 
-                  className={`d-flex justify-content-between align-items-center p-2 mb-2 rounded ${
-                    item.correct ? 'bg-success text-white' : 'bg-danger text-white'
-                  }`}
-                >
-                  <span>Exercise {index + 1}</span>
-                  <span>Attempts: {item.attempts}</span>
-                </li>
-              ))}
-              {progress.length === 0 && (
-                <li className="text-muted">No attempts yet</li>
-              )}
-            </ul>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+              <Card.Body className="exercise-body">
+                <div className="progress-info">
+                  <p className="exercise-count">
+                    Exercise {currentExerciseIndex + 1} of {exercises.length}
+                  </p>
+                  <ProgressBar 
+                    now={Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)} 
+                    label={`${Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)}% Complete`}
+                    className="exercise-progress"
+                  />
+                </div>
+
+                {renderExercise()}
+
+                <div className="exercise-actions">
+                  {showCorrection ? (
+                    <div className="correction-container">
+                      <Alert 
+                        variant={progress[currentExerciseIndex]?.correct ? "success" : "danger"}
+                        className="correction-alert"
+                      >
+                        {progress[currentExerciseIndex]?.correct 
+                          ? '✅ Correct! Well done!'
+                          : '❌ Incorrect. Better luck next time!'}
+                      </Alert>
+
+                      <div className="navigation-buttons">
+                        <Button 
+                          className="btn-outline-accent btn-3d"
+                          onClick={() => setCurrentExerciseIndex(0)}
+                          disabled={currentExerciseIndex === 0}
+                        >
+                          Restart
+                        </Button>
+
+                        <Button 
+                          className="btn-accent btn-3d"
+                          onClick={handleNext}
+                        >
+                          {currentExerciseIndex === exercises.length - 1 ? 'Finish' : 'Next Exercise'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      className="btn-accent btn-3d submit-btn"
+                      onClick={handleSubmit}
+                    >
+                      Submit Answer
+                    </Button>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+
+          <div className="column-side">
+            <Card className="progress-card">
+              <Card.Header>
+                <h3 className="progress-title">Your Progress</h3>
+              </Card.Header>
+              <Card.Body>
+                <div className="progress-list">
+                  {progress.map((item, index) => (
+                    <div key={index} className={`progress-item ${item.correct ? 'correct' : 'incorrect'}`}>
+                      <span className="exercise-label">Exercise {index + 1}</span>
+                      <span className="attempt-count">Attempts: {item.attempts}</span>
+                    </div>
+                  ))}
+                  {progress.length === 0 && (
+                    <div className="no-progress">
+                      No attempts yet
+                    </div>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+        </div>
+      </Container>
+    </div>
   );
 };
 

@@ -16,13 +16,13 @@ function Navbar({ toggleChatbot }) {
     { path: "/missions", label: "Missions", icon: "🎯" },
     { path: "/tools", label: "Tools", icon: "🛠️" },
     { path: "/rewards", label: "Rewards", icon: "🎁" },
-    { 
+    {
       action: () => {
         console.log("Chat assistant clicked");
         toggleRef.current?.();
-      }, 
-      label: "Chat Assistant", 
-      icon: "💬" 
+      },
+      label: "Chat Assistant",
+      icon: "💬",
     },
   ];
 
@@ -66,7 +66,7 @@ function Navbar({ toggleChatbot }) {
   };
 
   Navbar.propTypes = {
-    toggleChatbot: PropTypes.func.isRequired
+    toggleChatbot: PropTypes.func.isRequired,
   };
 
   return (
@@ -89,7 +89,7 @@ function Navbar({ toggleChatbot }) {
             </li>
           ))}
           {dropdownItems
-            .filter((item) => item.path)
+            .filter((item) => item.path && item.label !== "Chat Assistant")
             .map((item) => (
               <li key={item.path}>
                 <NavLink
@@ -101,20 +101,6 @@ function Navbar({ toggleChatbot }) {
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
                 </NavLink>
-              </li>
-            ))}
-          {dropdownItems
-            .filter((item) => !item.path)
-            .map((item, index) => (
-              <li key={`action-${index}-${item.label}`}>
-                <div
-                  className="nav-link"
-                  onClick={() => handleItemClick(item)}
-                  role="button"
-                >
-                  <span className="nav-icon">{item.icon}</span>
-                  <span className="nav-label">{item.label}</span>
-                </div>
               </li>
             ))}
         </ul>
