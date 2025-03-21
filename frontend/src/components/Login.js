@@ -7,7 +7,7 @@ import logo from "../assets/monevo.png";
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [userAuthenticated] = useState(false);
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,40 +17,33 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // First get CSRF token
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
-        withCredentials: true,
-      });
-
-      // Perform login
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        {
-          withCredentials: true,
-          headers: {
-            "X-CSRFToken":
-              document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("csrftoken="))
-                ?.split("=")[1] || "",
-          },
-        }
+        { withCredentials: true }
       );
 
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-        withCredentials: true,
-      });
-
-      navigate("/all-topics");
+      await fetchUserData();
+      setUserAuthenticated(true);
     } catch (error) {
-      setError("Invalid credentials or server error");
+      console.error("Login failed", error);
+      setError("Invalid username or password");
     }
   };
 
   useEffect(() => {
     if (userAuthenticated) navigate("/all-topics");
   }, [userAuthenticated, navigate]);
+
+  const fetchUserData = async () => {
+    try {
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+        withCredentials: true,
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   return (
     <div className="login__container">
