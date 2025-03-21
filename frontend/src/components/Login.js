@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
-import api from "../api"; // Import the custom axios instance
 import logo from "../assets/monevo.png";
 
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -16,41 +16,39 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
-
     try {
-      // Use the api instance which automatically handles credentials
-      await api.post("/login/", formData);
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/login/`,
+        formData,
+        { withCredentials: true }
+      );
 
-      // Redirect to dashboard after successful login
-      navigate("/dashboard");
+      await fetchUserData();
+      setUserAuthenticated(true);
     } catch (error) {
       console.error("Login failed", error);
-      setError(error.response?.data?.detail || "Invalid username or password");
-    } finally {
-      setIsSubmitting(false);
+      setError("Invalid username or password");
     }
   };
 
-  // Check for existing session on component mount
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await api.get("/userprofile/");
-        navigate("/dashboard");
-      } catch (error) {
-        // Not logged in, stay on login page
-      }
-    };
+    if (userAuthenticated) navigate("/all-topics");
+  }, [userAuthenticated, navigate]);
 
-    checkAuth();
-  }, [navigate]);
+  const fetchUserData = async () => {
+    try {
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+        withCredentials: true,
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   return (
     <div className="login__container">
-      <img src={logo} alt="Logo" className="login__logo" />
-      <h2 className="login__heading">Login to Your Account</h2>
+  <img src={logo} alt="Logo" className="login__logo" />
+  <h2 className="login__heading">Login to Your Account</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -63,7 +61,6 @@ function Login() {
             value={formData.username}
             onChange={handleChange}
             required
-            disabled={isSubmitting}
           />
         </Form.Group>
 
@@ -75,19 +72,12 @@ function Login() {
             value={formData.password}
             onChange={handleChange}
             required
-            disabled={isSubmitting}
           />
         </Form.Group>
 
         <div className="d-grid gap-3 mb-4">
-          <Button
-            variant="primary"
-            size="lg"
-            type="submit"
-            className="btn-3d"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Logging in..." : "Login"}
+          <Button variant="primary" size="lg" type="submit" className="btn-3d">
+            Login
           </Button>
         </div>
 
