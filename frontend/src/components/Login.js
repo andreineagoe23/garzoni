@@ -10,7 +10,8 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
-  },
+    "X-Requested-With": "XMLHttpRequest"
+  }
 });
 
 function Login() {
@@ -24,9 +25,14 @@ function Login() {
     const fetchCsrfToken = async () => {
       try {
         const response = await api.get("/csrf/");
+        console.log("CSRF Response:", response);
         setCsrfToken(response.data.csrfToken);
       } catch (error) {
-        console.error("Error fetching CSRF token:", error);
+        console.error("CSRF Error:", error);
+        // Handle 400 error specifically
+        if (error.response?.status === 400) {
+          setError("Session initialization failed. Please refresh the page.");
+        }
       }
     };
     fetchCsrfToken();
