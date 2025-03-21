@@ -17,16 +17,15 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { withCredentials: true }
       );
+
+      if (response.data.access) {
+        localStorage.setItem("access_token", response.data.access);
+      }
 
       await fetchUserData();
       setUserAuthenticated(true);
@@ -42,16 +41,21 @@ function Login() {
 
   const fetchUserData = async () => {
     try {
+      const token = localStorage.getItem("access_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
         withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: headers,
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
+
+  useEffect(() => {
+    if (userAuthenticated) navigate("/all-topics");
+  }, [userAuthenticated, navigate]);
 
   return (
     <div className="login__container">
