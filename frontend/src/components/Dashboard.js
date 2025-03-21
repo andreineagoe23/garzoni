@@ -34,7 +34,11 @@ function Dashboard() {
       try {
         const profileResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setUser(profileResponse.data.user_data);
         setIsQuestionnaireCompleted(
@@ -49,7 +53,11 @@ function Dashboard() {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setUserProgress(response.data);
       } catch (error) {
@@ -65,10 +73,17 @@ function Dashboard() {
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/logout/`,
-        {},
-        { withCredentials: true }
+        { refresh: localStorage.getItem('refresh_token') },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
-      window.location.href = "/login";
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      navigate('/login');
     } catch (error) {
       console.error("Logout failed", error);
     }

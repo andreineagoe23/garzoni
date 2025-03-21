@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Welcome from "./components/Welcome";
@@ -64,6 +65,14 @@ const AppContent = ({ toggleChatbot }) => {
     "/password-reset",
     "/questionnaire",
   ];
+
+  axios.interceptors.request.use(config => {
+    const tokens = JSON.parse(localStorage.getItem('tokens'));
+    if (tokens?.access) {
+      config.headers.Authorization = `Bearer ${tokens.access}`;
+    }
+    return config;
+  });
 
   return (
     <Container fluid className="app-layout p-0">

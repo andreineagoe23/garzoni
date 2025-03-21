@@ -12,7 +12,11 @@ function AllTopics({ onCourseClick }) {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/paths/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
 
         setLearningPaths(response.data.map(path => ({
