@@ -20,7 +20,12 @@ function Login() {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       await fetchUserData();
@@ -39,6 +44,9 @@ function Login() {
     try {
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -47,8 +55,8 @@ function Login() {
 
   return (
     <div className="login__container">
-  <img src={logo} alt="Logo" className="login__logo" />
-  <h2 className="login__heading">Login to Your Account</h2>
+      <img src={logo} alt="Logo" className="login__logo" />
+      <h2 className="login__heading">Login to Your Account</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
