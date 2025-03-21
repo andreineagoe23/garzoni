@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   HashRouter as Router,
   Route,
@@ -28,6 +28,7 @@ import { ThemeProvider } from "../src/components/ThemeContext";
 import ExercisePage from "./components/ExercisePage";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
+import axios from "axios";
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
@@ -64,6 +65,10 @@ const AppContent = ({ toggleChatbot }) => {
     "/password-reset",
     "/questionnaire",
   ];
+
+  useEffect(() => {
+    axios.defaults.withCredentials = true;
+  }, []);
 
   return (
     <Container fluid className="app-layout p-0">
