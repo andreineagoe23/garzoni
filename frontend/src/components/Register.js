@@ -31,10 +31,13 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
-        withCredentials: true,
-      });
+      // Get CSRF token first
+      const csrfResponse = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/csrf/`,
+        { withCredentials: true }
+      );
 
+      // Perform registration
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
         formData,
@@ -42,21 +45,18 @@ function Register() {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken":
-              document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("csrftoken="))
-                ?.split("=")[1] || "",
+            "X-CSRFToken": csrfResponse.data.csrfToken,
           },
         }
       );
 
-      navigate(response.data.next);
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        window.location.href = response.data.next;
+      } else {
+        navigate(response.data.next);
+      }
     } catch (error) {
-      console.error("Registration failed", error);
-      setErrorMessage(
-        error.response?.data?.error || "Registration failed. Please try again."
-      );
+      setErrorMessage(error.response?.data?.error || "Registration failed");
     }
   };
 
