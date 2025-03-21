@@ -2,9 +2,6 @@
 @import "../abstracts/variables";
 
 .chatbot {
-  position: fixed;
-  bottom: map-get($spacers, 3);
-  right: map-get($spacers, 3);
 
   &-toggle {
     @include button-accent-variant;
@@ -46,6 +43,13 @@
       opacity: 1;
       visibility: visible;
       z-index: 2;
+    }
+
+    @include media-breakpoint-down(lg) {
+      z-index: 1100;
+      height: calc(100vh - 60px);
+      bottom: 60px;
+      border-radius: $border-radius-lg;
     }
   }
 
