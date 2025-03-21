@@ -1,5 +1,15 @@
 // _variables.scss - Primary source of design tokens
 
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation; 
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
 // Color System - Base color values
 $primary: #1d5330;
 $accent: #ffd700;
