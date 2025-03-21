@@ -19,29 +19,29 @@ function Login() {
     try {
       // First get CSRF token
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
-        withCredentials: true
+        withCredentials: true,
       });
 
       // Perform login
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        { 
+        {
           withCredentials: true,
           headers: {
-            'X-CSRFToken': document.cookie
-              .split('; ')
-              .find(row => row.startsWith('csrftoken='))
-              ?.split('=')[1] || ''
-          }
+            "X-CSRFToken":
+              document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("csrftoken="))
+                ?.split("=")[1] || "",
+          },
         }
       );
 
-      // Verify authentication
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       navigate("/all-topics");
     } catch (error) {
       setError("Invalid credentials or server error");
