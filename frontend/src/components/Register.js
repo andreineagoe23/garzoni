@@ -31,25 +31,14 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
-        withCredentials: true,
-      });
-
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/register/`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken":
-              document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("csrftoken="))
-                ?.split("=")[1] || "",
-          },
-        }
+        formData
       );
+
+      // Store tokens
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
 
       navigate(response.data.next);
     } catch (error) {

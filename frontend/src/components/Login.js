@@ -17,11 +17,14 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
-        formData,
-        { withCredentials: true }
+        formData
       );
+
+      // Store tokens
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
 
       await fetchUserData();
       setUserAuthenticated(true);
@@ -38,7 +41,9 @@ function Login() {
   const fetchUserData = async () => {
     try {
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        }
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -47,8 +52,8 @@ function Login() {
 
   return (
     <div className="login__container">
-  <img src={logo} alt="Logo" className="login__logo" />
-  <h2 className="login__heading">Login to Your Account</h2>
+      <img src={logo} alt="Logo" className="login__logo" />
+      <h2 className="login__heading">Login to Your Account</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
 

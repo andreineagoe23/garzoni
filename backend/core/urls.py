@@ -41,11 +41,12 @@ from .views import (
     EnhancedQuestionnaireView,
     complete_exercise,
     reset_exercise,
+    TokenObtainPairView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import CookieTokenObtainPairView, LogoutView
+from core.views import CustomTokenObtainPairView, LogoutView 
 
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet, basename='userprogress')
@@ -64,7 +65,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('csrf/', get_csrf_token, name='get_csrf_token'),
 
-    path('login/', CookieTokenObtainPairView.as_view(), name='login'),
+    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

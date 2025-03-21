@@ -93,25 +93,14 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        user = serializer.save()
         
-        try:
-            user = serializer.save()
-            
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
-            # Create response with next path
-            next_path = "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
-            response = Response({"next": next_path}, status=status.HTTP_201_CREATED)
-            
-            # Set JWT cookies
-            response = set_jwt_cookies(response, access_token, refresh_token)
-            return response
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "next": "/dashboard/",
+            "access": str(refresh.access_token),
+            "refresh": str(refresh)
+        }, status=201)
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -120,18 +109,58 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from core.tokens import set_jwt_cookies, delete_jwt_cookies
 
-class CookieTokenObtainPairView(TokenObtainPairView):
-    """Handles Login and Stores JWT in HTTP-only Cookies"""
+class TokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+            
+        return Response(serializer.validated_data)
+    
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+
+class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
-            response = set_jwt_cookies(response, access_token, refresh_token)
-        else:
-            return JsonResponse({'error': 'Invalid credentials'}, status=401)
+            user = request.user
+            if user.is_authenticated:
+                return Response({
+                    'access': response.data['access'],
+                    'refresh': response.data['refresh'],
+                    'user': {
+                        'username': user.username,
+                        'email': user.email
+                    }
+                })
         return response
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            },
+            "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
+        }, status=status.HTTP_201_CREATED)
 
 
 class LogoutView(APIView):
