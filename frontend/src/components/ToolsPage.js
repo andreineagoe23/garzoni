@@ -18,7 +18,11 @@ const ToolsPage = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/tools/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
 
         const reorderedCategories = response.data.sort((a, b) =>

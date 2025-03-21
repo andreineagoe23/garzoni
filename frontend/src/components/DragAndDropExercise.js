@@ -24,7 +24,11 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/exercises/progress/${exerciseId}/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
 
         if (response.data.completed) {
@@ -76,7 +80,11 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
         await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
           { lesson_id: exerciseId },
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
       } catch (error) {
         console.error("Error saving exercise progress:", error);
@@ -95,7 +103,11 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
         { section_id: exerciseId },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       setUserAnswers({});
       setFeedback("");

@@ -12,9 +12,13 @@ function RewardsPage() {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
-      // Match the Profile.js data structure
+
       setBalance(parseFloat(response.data.user_data.earned_money).toFixed(2));
     } catch (error) {
       console.error("Error fetching balance:", error);

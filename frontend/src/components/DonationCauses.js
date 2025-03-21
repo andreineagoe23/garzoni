@@ -10,7 +10,11 @@ function DonationCauses({ onDonate }) {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/rewards/donate/`,
-          { withCredentials: true }
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          }
         );
         setDonationCauses(response.data);
       } catch (error) {
@@ -25,7 +29,11 @@ function DonationCauses({ onDonate }) {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/purchases/`,
         { reward_id: rewardId },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
 
       if (response.status === 201) {

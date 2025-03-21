@@ -68,7 +68,11 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/update-avatar/`,
         { profile_avatar: previewAvatar },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
       onAvatarChange(previewAvatar);
       handleClose();
@@ -78,7 +82,6 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
       setIsLoading(false);
     }
   };
-
 
   const generateRandomExamples = () => {
     const examples = [];

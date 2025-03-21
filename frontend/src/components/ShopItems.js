@@ -10,7 +10,11 @@ function ShopItems({ onPurchase }) {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/rewards/shop/`,
-          { withCredentials: true }
+          {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
         );
         setShopItems(response.data);
       } catch (error) {
@@ -25,7 +29,11 @@ function ShopItems({ onPurchase }) {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/purchases/`,
         { reward_id: rewardId },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          }
+        }
       );
 
       if (response.status === 201) {
