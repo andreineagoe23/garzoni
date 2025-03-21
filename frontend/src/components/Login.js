@@ -7,7 +7,7 @@ import logo from "../assets/monevo.png";
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [userAuthenticated, setUserAuthenticated] = useState(false);
+  const [userAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,39 +17,34 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      // First get CSRF token
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/csrf/`, {
+        withCredentials: true
+      });
+
+      // Perform login
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login/`,
         formData,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': document.cookie
+              .split('; ')
+              .find(row => row.startsWith('csrftoken='))
+              ?.split('=')[1] || ''
+          }
+        }
       );
 
-      if (response.data.access) {
-        localStorage.setItem("access_token", response.data.access);
-      }
-
-      await fetchUserData();
-      setUserAuthenticated(true);
-    } catch (error) {
-      console.error("Login failed", error);
-      setError("Invalid username or password");
-    }
-  };
-
-  useEffect(() => {
-    if (userAuthenticated) navigate("/all-topics");
-  }, [userAuthenticated, navigate]);
-
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
+      // Verify authentication
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-        withCredentials: true,
-        headers: headers,
+        withCredentials: true
       });
+      
+      navigate("/all-topics");
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      setError("Invalid credentials or server error");
     }
   };
 
