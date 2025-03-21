@@ -79,18 +79,21 @@ const Leaderboards = () => {
   }
 
   return (
-    <div className="leaderboard-container">
+    <div className="leaderboard-container content-wrapper">
       <div className="container">
-        <div className="dashboard-top-section">
-          <div className="referral-container">
-            <ReferralLink referralCode={referralCode} />
-          </div>
-          
-          <div className="friend-requests-container">
-            <div className="friend-requests-header">
-              <h3>Friend Requests</h3>
+        <div className="dashboard-top-section two-column-layout">
+          <div className="column-main">
+            <div className="referral-container">
+              <ReferralLink referralCode={referralCode} />
             </div>
-            <FriendRequests />
+          </div>
+
+          <div className="column-side">
+            <div className="friend-requests-container">
+              <div className="friend-requests-header">
+              </div>
+              <FriendRequests />
+            </div>
           </div>
         </div>
 
@@ -111,7 +114,7 @@ const Leaderboards = () => {
         </h1>
 
         <div className="leaderboard-toggle-container">
-          <div className="leaderboard-toggle">
+          <div className="leaderboard-toggle btn-group" role="group">
             <button
               onClick={() => setActiveTab("global")}
               className={`btn ${
@@ -137,7 +140,7 @@ const Leaderboards = () => {
 
         <div className="table-responsive">
           <table className="table leaderboard-table">
-            <thead className="thead-dark">
+            <thead className="table-header">
               <tr>
                 <th scope="col">Rank</th>
                 <th scope="col">Username</th>

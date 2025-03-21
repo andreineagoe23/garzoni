@@ -1,6 +1,6 @@
-// base/_reset.scss
+// _reset.scss - Base reset styles
 
-// 1. Basic reset
+// 1. Modern box sizing
 *,
 *::before,
 *::after {
@@ -11,8 +11,12 @@
 
 // 2. Document-level settings
 html {
+  font-size: 16px;
   scroll-behavior: smooth;
   overflow-x: hidden;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 // 3. Base body styles
@@ -21,16 +25,74 @@ body {
   font-family: $font-family-base;
   background-color: var(--bg-color);
   color: var(--text-color);
-  line-height: 1.6;
+  line-height: $line-height-base;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-// 4. Global transitions
+// 4. Global transitions for theme switching
 @media (prefers-reduced-motion: no-preference) {
   * {
     transition: 
       background-color 0.3s ease,
       color 0.3s ease,
-      border-color 0.3s ease;
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+}
+
+// 5. Remove list styles
+ul,
+ol {
+  list-style: none;
+}
+
+// 6. Base link styles
+a {
+  color: var(--primary);
+  text-decoration: none;
+  background-color: transparent;
+  
+  &:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+}
+
+// 7. Form elements
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  appearance: button;
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+
+// 8. Images
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+// 9. Remove animations for users who prefer reduced motion
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

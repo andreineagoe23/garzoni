@@ -4,7 +4,6 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import { gsap } from "gsap";
 import "../styles/scss/main.scss";
 
-
 function CoinStack({ balance }) {
   const target = 100;
   const coins = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
@@ -75,7 +74,7 @@ function FactCard({ fact, onMarkRead }) {
         <>
           <h4 className="fact-category">{fact.category}</h4>
           <div className="fact-text">{fact.text}</div>
-          <button onClick={onMarkRead} className="mark-read-btn">
+          <button onClick={onMarkRead} className="btn btn-accent">
             ✓ Mark as Read
           </button>
         </>
@@ -180,8 +179,8 @@ function Missions() {
   };
 
   const renderMission = (mission) => (
-    <div key={mission.id} className="mission-card shadow-sm mb-4">
-      <div className="mission-header p-3">
+    <div key={mission.id} className="mission-card">
+      <div className="mission-header">
         <h5 className="fw-semibold mb-2">{mission.name}</h5>
         <p className="text-muted mb-3">{mission.description}</p>
         <ProgressBar
@@ -208,14 +207,16 @@ function Missions() {
       </div>
 
       {mission.status === "completed" ? (
-        <p className="completed-badge">Completed! 🎉</p>
+        <div className="completed-badge">
+          <span className="btn btn-success">Completed! 🎉</span>
+        </div>
       ) : (
         <>
           {mission.goal_type === "add_savings" && (
             <div className="savings-section">
               <button
                 onClick={() => setShowSavingsMenu(!showSavingsMenu)}
-                className="btn btn-accent update-progress-btn"
+                className="btn btn-accent"
               >
                 {showSavingsMenu ? "Hide Savings Jar" : "Show Savings Jar"}
               </button>
@@ -230,7 +231,10 @@ function Missions() {
                       placeholder="Enter amount (e.g., £5)"
                       className="savings-input"
                     />
-                    <button type="submit" className="btn btn-accent add-savings-btn">
+                    <button
+                      type="submit"
+                      className="btn btn-accent"
+                    >
                       Add to Savings
                     </button>
                   </form>
@@ -238,19 +242,18 @@ function Missions() {
               )}
             </div>
           )}
-          {mission.status === "completed" ? (
-            <p className="completed-badge">Completed! 🎉</p>
-          ) : (
-            mission.goal_type === "read_fact" && (
-              <div className="fact-section">
-                <FactCard fact={currentFact} onMarkRead={markFactRead} />
-                {!currentFact && (
-                  <button onClick={loadNewFact} className="btn btn-outline-accent refresh-fact-btn">
-                    ↻ Try Again
-                  </button>
-                )}
-              </div>
-            )
+          {mission.goal_type === "read_fact" && (
+            <div className="fact-section">
+              <FactCard fact={currentFact} onMarkRead={markFactRead} />
+              {!currentFact && (
+                <button
+                  onClick={loadNewFact}
+                  className="btn btn-accent"
+                >
+                  ↻ Try Again
+                </button>
+              )}
+            </div>
           )}
         </>
       )}
@@ -258,19 +261,22 @@ function Missions() {
   );
 
   return (
-    <div className="missions-container container-fluid py-4">
-      <h2 className="missions-title display-5 fw-bold text-center mb-5">
-        Daily Missions
-      </h2>
-      {errorMessage && (
-        <p className="text-danger text-center mb-4">{errorMessage}</p>
-      )}
-      <div className="row g-4">{dailyMissions.map(renderMission)}</div>
+    <div className="missions-container">
+      <div className="content-wrapper">
+        <h1 className="page-header-title">Daily Missions</h1>
+        {errorMessage && (
+          <div className="alert alert-accent">{errorMessage}</div>
+        )}
 
-      <h2 className="missions-title display-5 fw-bold text-center mb-5 mt-5">
-        Weekly Missions
-      </h2>
-      <div className="row g-4">{weeklyMissions.map(renderMission)}</div>
+        <div className="grid-cards grid-2">
+          {dailyMissions.map(renderMission)}
+        </div>
+
+        <h1 className="page-header-title mt-7">Weekly Missions</h1>
+        <div className="grid-cards grid-2">
+          {weeklyMissions.map(renderMission)}
+        </div>
+      </div>
     </div>
   );
 }

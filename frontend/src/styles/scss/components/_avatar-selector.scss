@@ -44,7 +44,7 @@
 
     &:hover {
       transform: scale(1.05);
-      box-shadow: $shadow-lg;
+      box-shadow: var(--shadow-lg);
     }
   }
 
@@ -129,7 +129,7 @@
 
     &:hover {
       transform: scale(1.1);
-      box-shadow: $shadow-lg;
+      box-shadow: var(--shadow-lg);
     }
 
     &--selected {

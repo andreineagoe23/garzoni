@@ -1,90 +1,32 @@
-// Add to your main.scss or create a new partial
+.user-progress {
+  position: sticky;
+  top: map-get($spacers, 5);
+  align-self: start;
+  height: fit-content;
+  padding: 0 !important; 
+  background: transparent !important;
+  border: none !important;
 
-.dashboard-content {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  padding: 0 1rem;
+  @include media-breakpoint-down(lg) {
+    position: relative;
+    top: auto;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
   
   @include media-breakpoint-down(md) {
-    flex-direction: column;
-  }
-  
-  .main-content {
-    flex: 1;
-  }
-  
-  .user-progress {
-    width: 300px;
-    flex-shrink: 0;
-    
-    @include media-breakpoint-down(md) {
-      display: none;
-    }
+    display: none !important;
   }
 }
 
 .mobile-progress-section {
   display: none;
   background-color: rgba(var(--primary-rgb), 0.05);
-  padding: $spacer * 2 0;
-  margin-top: $spacer * 2;
-  
+  padding: map-get($spacers, 4) 0;
+  margin-top: map-get($spacers, 4);
+
   @include media-breakpoint-down(md) {
     display: block;
   }
-  
-  h4 {
-    color: var(--primary);
-    font-weight: $font-weight-semibold;
-  }
-  
-  .user-progress-box {
-    margin-bottom: 0;
-  }
-}
-
-// Dashboard layout improvements
-.dashboard {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    
-    @include media-breakpoint-down(sm) {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-    
-    .dashboard-greeting {
-      margin: 0;
-      color: var(--primary);
-    }
-  }
-  
-  .dashboard-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    
-    @include media-breakpoint-down(sm) {
-      flex-direction: column;
-      width: 100%;
-      
-      .nav-btn {
-        width: 100%;
-      }
-    }
-  }
-}
-
-.floating-progress-btn,
-.mobile-progress-panel {
-  display: none !important;
 }

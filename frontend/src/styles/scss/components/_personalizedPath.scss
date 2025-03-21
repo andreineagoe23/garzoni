@@ -30,7 +30,6 @@
     display: flex;
     align-items: center;
     margin: 4rem 0;
-    z-index: 2;
 
     @include media-breakpoint-up(lg) {
       width: 45%;

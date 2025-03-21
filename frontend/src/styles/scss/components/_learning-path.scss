@@ -16,7 +16,7 @@
 
     &:hover {
       transform: translateY(-3px);
-      box-shadow: $shadow-lg;
+      box-shadow: var(--shadow-lg);
     }
 
     h3 {

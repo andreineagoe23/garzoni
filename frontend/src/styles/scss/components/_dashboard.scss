@@ -4,125 +4,120 @@
   min-height: 100vh;
   background-color: var(--bg-color);
 
+  // Add this new rule
+  &-main-wrapper {
+    display: flex;
+    margin-left: 280px;
+    position: relative;
+    flex-grow: 1;
+    // Add flex direction for mobile
+    flex-direction: column; // Default to column for mobile-first approach
+
+    @include media-breakpoint-up(lg) {
+      flex-direction: row; // Switch to row on large screens
+    }
+
+    @include media-breakpoint-down(lg) {
+      margin-left: 0;
+    }
+  }
+
   &-content {
     flex: 1;
-    display: flex;
-    margin-left: 250px;
+    display: grid;
+    grid-template-columns: 1fr minmax(300px, 350px);
+    gap: map-get($spacers, 5);
+    padding: map-get($spacers, 4);
+
+    @include media-breakpoint-down(xxl) { 
+      grid-template-columns: 1fr;
+    }
+
+    @include media-breakpoint-down(lg) {
+      padding: map-get($spacers, 3);
+    }
   }
 
   .main-content {
-    flex: 1;
-    padding: 2rem;
     overflow-y: auto;
-    background-color: var(--bg-color);
-    
-    @media (max-width: 768px) {
-      padding: 1.5rem;
-    }
+    min-width: 0; // Fix grid overflow
   }
 
   &-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: map-get($spacers, 4);
     
-    @media (max-width: 576px) {
+    @include media-breakpoint-down(sm) {
       flex-direction: column;
-      gap: 1rem;
+      align-items: flex-start;
+      gap: map-get($spacers, 3);
     }
   }
 
   &-greeting {
     color: var(--primary);
     margin: 0;
-    font-size: 2rem;
+    @include font-size(2rem);
     
-    @media (max-width: 768px) {
-      font-size: 1.75rem;
+    @include media-breakpoint-down(lg) {
+      @include font-size(1.75rem);
     }
   }
 
   &-buttons {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: map-get($spacers, 3);
+    margin-bottom: map-get($spacers, 4);
     flex-wrap: wrap;
-    max-width: fit-content;
-    justify-content: center;
-    align-items: center;
 
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+      
+      .btn {
+        flex: 1;
+        min-width: 100%;
+      }
+    }
   }
 
   .user-progress {
-    width: 300px;
-    padding: 2rem;
-    background-color: var(--card-bg);
-    border-left: 1px solid var(--border-color);
-    overflow-y: auto;
     position: sticky;
-    top: 0;
-    height: 100vh;
-
-    @media (max-width: 1200px) {
-      width: 250px;
-    }
-
-    @media (max-width: 992px) {
-      width: 220px;
-      padding: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-      display: none;
-    }
-  }
-
-  .floating-progress-btn {
-    display: none;
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 1000;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    box-shadow: var(--shadow-lg);
-
-    @media (max-width: 768px) {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  .mobile-progress-panel {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 90%;
-    max-width: 400px;
-    height: 100vh;
+    top: map-get($spacers, 4);
+    height: fit-content;
+    align-self: start;
     background-color: var(--card-bg);
-    z-index: 2000;
-    transition: right 0.3s ease;
-    box-shadow: var(--shadow-lg);
-    padding: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: map-get($spacers, 4);
 
-    &.show {
-      right: 0;
+    @include media-breakpoint-down(xxl) {
+      position: relative;
+      top: auto;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
-    .panel-header {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
+    @include media-breakpoint-down(md) {
+      display: none !important;
     }
   }
 
-  @media (max-width: 768px) {
-    &-content {
-      margin-left: 0;
+  // Mobile progress panel
+  .mobile-progress-section {
+    display: none;
+    background-color: rgba(var(--primary-rgb), 0.05);
+    padding: map-get($spacers, 4) 0;
+    margin-top: map-get($spacers, 4);
+
+    @include media-breakpoint-down(md) {
+      display: block;
+    }
+
+    .user-progress-box {
+      margin: 0 map-get($spacers, 3);
     }
   }
 }

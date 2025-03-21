@@ -1,104 +1,135 @@
-// First define ACTUAL COLOR VALUES
+// _variables.scss - Primary source of design tokens
+
+// Color System - Base color values
 $primary: #1d5330;
 $accent: #ffd700;
 $secondary: #2e7d32;
 $danger: #dc3545;
+$success: #4caf50;
 $dark: #1a1a1a;
 $light: #f8f9fa;
-$success: #4caf50;
-$box-shadow-lg: 0 4px 24px rgba($dark, 0.1);
-$shadow-lg: var(--shadow-lg);
 
-// Then create CSS custom properties
-:root {
-    --primary: #{$primary};
-    --accent: #{$accent};
-    --secondary: #{$secondary};
-    --danger: #{$danger};
-    --dark: #{$dark};
-    --light: #{$light};
-    --bg-color: #ffffff;
-    --text-color: #333333;
-    --card-bg: #ffffff;
-    --border-color: #dddddd;
-    --success-color: #{$success};
-    --error-color: #{$danger};
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
-    --box-shadow-lg: #{$box-shadow-lg};
-    --input-bg: #ffffff;
-    --bs-body-bg: var(--bg-color);
-    --bs-body-color: var(--text-color);
-    --bs-border-color: var(--border-color);
-}
-
-.dark-mode {
-    --bg-color: #1a1a1a;
-    --text-color: #e0e0e0;
-    --card-bg: #2d2d2d;
-    --border-color: #555555;
-    --primary: #{$secondary};
-    --input-bg: #3d3d3d;
-    --bs-body-bg: var(--bg-color);
-    --bs-body-color: var(--text-color);
-    --bs-border-color: var(--border-color);
-}
-
-$theme-colors: (
-    "primary": $primary,
-    "accent": $accent,
-    "secondary": $secondary,
-    "success": $success,
-    "danger": $danger,
-    "dark": $dark,
-    "light": $light
-);
-
-// Custom color map
-$custom-colors: (
-  "accent": $accent
-);
-
-// Merge with Bootstrap's theme colors
-$theme-colors: map-merge($theme-colors, $custom-colors);
+// Derived color values
+$primary-dark: darken($primary, 10%);
+$primary-light: lighten($primary, 10%);
+$accent-dark: darken($accent, 10%);
 
 // Spacing
 $spacer: 1rem;
 $spacers: (
-    0: 0,
-    1: $spacer * 0.25,
-    2: $spacer * 0.5,
-    3: $spacer,
-    4: $spacer * 1.5,
-    5: $spacer * 3,
-    6: $spacer * 4.5,
-    7: $spacer * 6
+  0: 0,
+  1: $spacer * 0.25,  // 4px
+  2: $spacer * 0.5,   // 8px
+  3: $spacer,         // 16px
+  4: $spacer * 1.5,   // 24px
+  5: $spacer * 3,     // 48px
+  6: $spacer * 4.5,   // 72px
+  7: $spacer * 6      // 96px
 );
+
+// Typography
+$font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
+$font-weight-normal: 400;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$line-height-base: 1.6;
 
 // Borders
+$border-width: 1px;
 $border-radius: 8px;
 $border-radius-lg: 12px;
+$border-radius-sm: 4px;
 
-// Additional Variables
-$dark-rgb: red($dark), green($dark), blue($dark);
-$accent-rgb: red($accent), green($accent), blue($accent);
-$primary-rgb: red($primary), green($primary), blue($primary);
-$box-shadow-lg: 0 4px 24px rgba($dark, 0.1);
-$font-weight-semibold: 600;
+// Shadows
+$box-shadow-sm: 0 2px 4px rgba($dark, 0.1);
+$box-shadow-md: 0 4px 8px rgba($dark, 0.15);
+$box-shadow-lg: 0 8px 16px rgba($dark, 0.2);
 
-// Custom button variant using Sass variables
-$custom-button-accent: (
-    background: $accent,
-    border-color: $accent,
-    color: $primary,
-    hover-background: darken($accent, 10%),
-    hover-border-color: darken($accent, 15%),
-    hover-color: $primary,
-    active-background: darken($accent, 15%),
-    active-border-color: darken($accent, 20%),
+// Animations
+$transition-base: all 0.3s ease;
+$transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+// Bootstrap theme colors map
+$theme-colors: (
+  "primary": $primary,
+  "accent": $accent,
+  "secondary": $secondary,
+  "success": $success,
+  "danger": $danger,
+  "dark": $dark,
+  "light": $light
 );
+
+// Break points
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px, 
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+);
+
+// Container max widths
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1320px
+);
+
+// Custom properties (CSS variables)
+:root {
+  // Colors
+  --primary: #{$primary};
+  --primary-dark: #{$primary-dark};
+  --primary-light: #{$primary-light};
+  --accent: #{$accent};
+  --accent-dark: #{$accent-dark};
+  --secondary: #{$secondary};
+  --danger: #{$danger};
+  --success: #{$success};
+  
+  // Theme colors
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-color: #dddddd;
+  --input-bg: #ffffff;
+  
+  // Structure
+  --border-radius: #{$border-radius};
+  --border-radius-lg: #{$border-radius-lg};
+  --border-radius-sm: #{$border-radius-sm};
+  
+  // Shadows
+  --shadow-sm: #{$box-shadow-sm};
+  --shadow-md: #{$box-shadow-md};
+  --shadow-lg: #{$box-shadow-lg};
+  
+  // Bootstrap compatibility
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-color);
+  --bs-border-color: var(--border-color);
+}
+
+// Dark mode theme
+.dark-mode {
+  --bg-color: #{$dark};
+  --text-color: #e0e0e0;
+  --card-bg: #2d2d2d;
+  --border-color: #555555;
+  --input-bg: #3d3d3d;
+  
+  // Bootstrap compatibility
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-color);
+  --bs-border-color: var(--border-color);
+}
 
 // Bootstrap configuration
 $enable-rounded: true;
-$border-radius: 8px;
-$border-radius-lg: 12px;
-$font-weight-semibold: 600;
+$enable-shadows: true;
+$enable-gradients: false;
+$enable-transitions: true;

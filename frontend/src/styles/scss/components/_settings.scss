@@ -1,168 +1,143 @@
-.settings {
-  &-container {
-    margin-left: 250px; // Space for left sidebar
-    padding: $spacer * 2;
-    min-height: 100vh;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
+@import "../abstracts/variables";
+@import "../abstracts/mixins";
 
-    @include media-breakpoint-down(md) {
-      margin-left: 0; // Full-width for smaller screens
-      padding: $spacer;
-    }
+.settings-container {
+  @extend .content;
+  padding-top: map-get($spacers, 5);
+
+  @include media-breakpoint-up(lg) {
+    padding: map-get($spacers, 5) map-get($spacers, 6);
   }
 
-  &-title {
-    font-size: 2rem;
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: $spacer * 2;
-    
-    @include media-breakpoint-down(md) {
-      font-size: 1.8rem;
-      margin-bottom: $spacer;
-    }
-  }
-
-  &-card {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: $spacer * 2;
-    background-color: var(--card-bg);
-    border-radius: $border-radius-lg;
-    box-shadow: var(--box-shadow-lg);
-    
-    @include media-breakpoint-down(md) {
-      padding: $spacer * 1.5;
-    }
+  @include media-breakpoint-down(lg) {
+    padding-top: map-get($spacers, 7);
   }
 }
 
-.form {
-  &-group {
-    margin-bottom: $spacer * 2;
+.page-header-title {
+  @include font-size(1.75rem);
+  font-weight: $font-weight-bold;
+  margin-bottom: map-get($spacers, 4);
+  
+  @include media-breakpoint-up(md) {
+    @include font-size(2rem);
+  }
+}
+
+.form-layout-narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  
+  @include media-breakpoint-down(lg) {
+    max-width: 100%;
+  }
+}
+
+.toggle-group {
+  padding: map-get($spacers, 2);
+  background: var(--card-bg);
+  border: $border-width solid var(--border-color);
+  border-radius: $border-radius;
+  margin-bottom: map-get($spacers, 2);
+
+  .form-switch {
+    padding-left: 3.5rem;
     
-    label {
-      display: block;
-      font-weight: $font-weight-semibold;
-      margin-bottom: $spacer * 0.5;
-      color: var(--text-color);
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: $spacer;
-      font-size: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: $border-radius;
-      background-color: var(--card-bg);
-      color: var(--text-color);
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    .form-check-input {
+      width: 3rem;
+      height: 1.5rem;
+      margin-left: -3.5rem;
+      background-color: var(--input-bg);
+      border: $border-width solid var(--border-color);
       
-      &:focus {
-        outline: none;
+      &:checked {
+        background-color: var(--primary);
         border-color: var(--primary);
-        box-shadow: 0 0 0 0.25rem rgba($primary, 0.25);
       }
     }
-    
-    select {
-      @extend .form-control;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      background-size: 16px 12px;
-      padding-right: 2.5rem;
-    }
   }
 }
 
-// Custom switch styling for toggles
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: $spacer * 1.5;
-  
-  label {
-    margin-bottom: 0;
-    font-weight: $font-weight-semibold;
+// Responsive adjustments
+@include media-breakpoint-down(xl) {
+  .settings-container {
+    padding: map-get($spacers, 4);
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .page-header-title {
+    @include font-size(1.5rem);
+    margin-bottom: map-get($spacers, 3);
   }
   
-  .form-check-input[type="checkbox"] {
-    height: 1.5rem;
-    width: 3rem;
-    border-radius: 2rem;
-    background-color: var(--border-color);
-    border: none;
-    appearance: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    position: relative;
+  .form-group {
+    margin-bottom: map-get($spacers, 2);
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .settings-container {
+    padding: map-get($spacers, 3);
+  }
+  
+  .form-switch .form-check-input {
+    width: 2.5rem;
+    height: 1.25rem;
+  }
+}
+
+// Adjust card header alignment
+.card-body {
+  h4.section-title {
+    @include font-size(1.5rem);
+    font-weight: $font-weight-bold;
+    color: var(--primary);
+    padding-bottom: map-get($spacers, 2);
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: map-get($spacers, 4);
     
-    &:checked {
-      background-color: var(--primary);
-      border-color: var(--primary);
-    }
-    
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0.17rem;
-      left: 0.25rem;
-      height: 1.15rem;
-      width: 1.15rem;
-      border-radius: 50%;
-      background-color: #fff;
-      transition: transform 0.3s ease;
-    }
-    
-    &:checked::before {
-      transform: translateX(1.5rem);
-    }
-    
-    &:focus {
-      box-shadow: 0 0 0 0.25rem rgba($primary, 0.25);
+    @include media-breakpoint-up(md) {
+      @include font-size(1.75rem);
     }
   }
 }
 
-.dark-mode-toggle {
-  padding: $spacer * 1.5;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: $border-radius;
-  margin: $spacer * 2 0;
-}
-
-.success-message {
-  font-size: 1rem;
-  color: var(--success-color);
+// Success alert styling to match missions
+.alert-success {
+  @extend .btn-accent;
   text-align: center;
-  margin-bottom: $spacer * 2;
-  padding: $spacer;
-  background-color: rgba($success, 0.1);
-  border-radius: $border-radius;
-  font-weight: $font-weight-semibold;
-}
-
-.save-button {
-  @include button-accent-variant;
-  @extend .btn;
-  display: block;
-  width: 100%;
-  padding: $spacer;
-  margin-top: $spacer * 2;
-  font-weight: $font-weight-semibold;
+  border: none;
+  pointer-events: none;
+  padding: map-get($spacers, 2);
+  margin-bottom: map-get($spacers, 4);
+  opacity: 0.9;
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba($primary, 0.2);
+    transform: none;
+    box-shadow: none;
   }
+}
+
+// Ensure accent button matches missions styling
+.btn-accent {
+  @include button-accent-variant;
   
-  &:active {
-    transform: translateY(1px);
+  // Add 3D effect if used in missions
+  @extend .btn-3d;
+  
+  // Match missions button sizing
+  padding: map-get($spacers, 2) map-get($spacers, 4);
+  font-size: 1rem;
+  
+  @include media-breakpoint-up(md) {
+    padding: map-get($spacers, 3) map-get($spacers, 5);
+    font-size: 1.1rem;
   }
 }

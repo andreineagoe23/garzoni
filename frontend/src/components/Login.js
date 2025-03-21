@@ -46,9 +46,9 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <img src={logo} alt="Logo" className="img-fluid logo" />
-      <h2 className="login-heading">Login to Your Account</h2>
+    <div className="login__container">
+  <img src={logo} alt="Logo" className="login__logo" />
+  <h2 className="login__heading">Login to Your Account</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
 

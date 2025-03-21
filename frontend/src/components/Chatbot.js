@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Chatbot = ({ isVisible, setIsVisible }) => {
-  const location = useLocation();
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -14,23 +12,34 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const shouldShowChatbot = true;
 
-  const HIDDEN_PAGES = [
-    "/login",
-    "/register",
-    "/welcome",
-    "/forgot-password",
-    "/password-reset",
-    "/questionnaire",
-  ];
-
-  const shouldShowChatbot =
-    !HIDDEN_PAGES.includes(location.pathname) &&
-    ((!isMobile && isVisible !== undefined) ||
-      (isMobile && isVisible === true));
-
+  // Hugging Face Configuration
+  const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.1";
   const HF_API_KEY = process.env.REACT_APP_HF_API_KEY;
-  const HF_MODEL = "HuggingFaceH4/zephyr-7b-alpha";
+  console.log("HF API Key Status:", HF_API_KEY ? "Loaded" : "Missing!");
+
+  // Finance FAQ Fallback
+  const FINANCE_FAQ = {
+    budgeting:
+      "Budgeting is the process of creating a plan to spend your money. This spending plan helps ensure you have enough for necessities while working toward financial goals.",
+    saving:
+      "Saving money involves setting aside a portion of income regularly. A good rule is the 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
+    investing:
+      "Investing means putting money into assets like stocks or real estate with the expectation of growth. Always diversify to manage risk.",
+    "credit score":
+      "Your credit score (300-850) reflects creditworthiness. Pay bills on time, keep credit utilization low, and maintain old accounts to improve it.",
+  };
+
+  // System prompt template for Mistral
+  const SYSTEM_PROMPT = `<<SYS>>
+  You are a certified financial expert. Follow these rules:
+  1. Answer ONLY personal finance questions
+  2. Be concise (1-3 sentences)
+  3. Use simple language
+  4. If unsure, say "I recommend consulting a financial advisor"
+  5. Never provide legal/tax advice
+  <</SYS>>`;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 992px)");
@@ -164,77 +173,100 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
     }
   };
 
+  const startVoiceRecognition = () => {
+    console.log("Voice recognition started");
+  };
+
   const handleMessageSend = async () => {
     if (!userInput.trim()) return;
 
-    setChatHistory((prev) => [...prev, { sender: "user", text: userInput }]);
+    // Add user message
+    const newChat = [...chatHistory, { sender: "user", text: userInput }];
+    setChatHistory(newChat);
     setIsTyping(true);
 
-    const financialResponse = await checkFinancialQuery(userInput);
-    if (financialResponse) {
-      setChatHistory((prev) => [
-        ...prev,
-        { sender: "bot", text: financialResponse },
-      ]);
-      speakResponse(financialResponse);
-      setIsTyping(false);
-      setUserInput("");
-      return;
-    }
-
     try {
+      // Check for API key
+      if (!HF_API_KEY) throw new Error("API configuration error");
+
+      // First check stock/crypto prices
+      const financialData = await checkFinancialQuery(userInput);
+      if (financialData) {
+        updateChat(financialData);
+        return;
+      }
+
+      // Check FAQ fallback
+      const cleanInput = userInput.toLowerCase().replace(/[^\w\s]/gi, "");
+      if (FINANCE_FAQ[cleanInput]) {
+        updateChat(FINANCE_FAQ[cleanInput]);
+        return;
+      }
+
+      // Format for Mistral instruction
+      const prompt = `<s>[INST] ${SYSTEM_PROMPT}\n\nUser: ${userInput} [/INST]`;
+
+      // API Call
       const response = await axios.post(
         `https://api-inference.huggingface.co/models/${HF_MODEL}`,
         {
-          inputs: `You are a finance expert. Answer only finance-related questions. Keep responses clear, structured, and under 3 sentences.\n\nUser: ${userInput}\nAssistant:`,
-          parameters: { max_new_tokens: 200, temperature: 0.3, top_p: 0.8 },
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 256,
+            temperature: 0.7,
+            top_p: 0.9,
+            repetition_penalty: 1.2,
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${HF_API_KEY}`,
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
+          timeout: 20000,
         }
       );
 
-      let aiResponse = response.data[0].generated_text.trim();
-
+      // Process response
+      let aiResponse = response.data[0]?.generated_text || "";
       aiResponse = aiResponse
-        .replace(/User:.*?Assistant:/s, "")
-        .replace(/Assistant:/g, "")
-        .replace(/(You are a finance expert.*?\.)/s, "")
-        .replace(/(\n\n)/g, "\n")
-        .replace(/(\n\s+)/g, "\n")
-        .replace(
-          /Answer only finance-related questions. Keep responses clear, structured, and under 3 sentences./g,
-          ""
-        )
+        .replace(prompt, "")
+        .replace(/<\/?s>|\[INST\]|\[\/INST\]/g, "")
+        .replace(/<<SYS>>.*?<<\/SYS>>/gs, "")
         .trim();
 
-      setChatHistory((prev) => [...prev, { sender: "bot", text: aiResponse }]);
-      speakResponse(aiResponse);
-    } catch (error) {
-      console.error("❌ Error sending message to Hugging Face:", error);
-      setChatHistory((prev) => [
-        ...prev,
-        { sender: "bot", text: "Error connecting to AI. Try again later." },
-      ]);
-    }
+      // Fallback if empty
+      if (!aiResponse) throw new Error("Empty response from AI");
 
-    setIsTyping(false);
-    setUserInput("");
+      updateChat(aiResponse);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsTyping(false);
+      setUserInput("");
+    }
   };
 
-  const startVoiceRecognition = () => {
-    const recognition = new window.webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.start();
+  // Helper functions
+  const updateChat = (text) => {
+    setChatHistory((prev) => [...prev, { sender: "bot", text }]);
+    speakResponse(text);
+  };
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setUserInput(transcript);
-      handleMessageSend();
-    };
+  const handleError = (error) => {
+    console.error("Chat Error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
+    const errorMessage = error.response?.data?.error?.includes("Authorization")
+      ? "System maintenance in progress. Please try later."
+      : FINANCE_FAQ[userInput.toLowerCase().replace(/[^\w\s]/gi, "")] ||
+        "I'm having trouble connecting to financial data. Please try again.";
+
+    setChatHistory((prev) => [...prev, { sender: "bot", text: errorMessage }]);
   };
 
   if (!shouldShowChatbot) return null;

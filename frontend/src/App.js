@@ -51,7 +51,6 @@ function App() {
   );
 }
 
-// Proper React component for AppContent
 const AppContent = ({ toggleChatbot }) => {
   const location = useLocation();
   console.log("[AppContent] Current path:", location.pathname);
@@ -69,7 +68,7 @@ const AppContent = ({ toggleChatbot }) => {
   return (
     <Container fluid className="app-layout p-0">
       {!noNavbarPaths.includes(location.pathname) && (
-        <Navbar toggleChatbot={toggleChatbot} /> 
+        <Navbar toggleChatbot={toggleChatbot} />
       )}
       <main className="content">
         <ThemeProvider>

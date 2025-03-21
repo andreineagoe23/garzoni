@@ -1,35 +1,164 @@
 .app-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+.content {
+  flex-grow: 1;
+  overflow-y: auto;
+  width: 100%;
+  padding: map-get($spacers, 3);
+  transition: all 0.3s ease;
+  margin-left: 0 !important;
+
+  @include media-breakpoint-up(md) {
+    padding: map-get($spacers, 4);
+  }
+  
+  @include media-breakpoint-up(lg) {
+    padding: map-get($spacers, 3);
+    .has-sidebar & {
+      margin-left: 280px;
+    }
+  }
+  
+  @include media-breakpoint-down(lg) {
+    padding-bottom: 70px;
+  }
+}
+
+.content-no-sidebar {
+  margin-left: 0 !important;
+}
+
+.content-wrapper {
+  padding: map-get($spacers, 4);
+  
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 3);
+  }
+}
+
+// Section containers
+.section {
+  margin-bottom: map-get($spacers, 5);
+  
+  &-title {
+    margin-bottom: map-get($spacers, 4);
+    font-weight: $font-weight-bold;
     color: var(--text-color);
   }
   
-  .app-layout {
-    display: flex;
-    height: 100vh;
-    width: 100%;
+  &-content {
+    margin-bottom: map-get($spacers, 4);
+  }
+}
+
+// Card layouts
+.card-grid {
+  display: grid;
+  gap: map-get($spacers, 4);
+  
+  @include media-breakpoint-up(md) {
+    grid-template-columns: repeat(2, 1fr);
   }
   
-  .content {
-    overflow-y: auto;
-    background-color: var(--bg-color);
-    flex-grow: 1;
-    padding: map-get($spacers, 4);
+  @include media-breakpoint-up(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// Page header
+.page-header {
+  margin-bottom: map-get($spacers, 4);
+  
+  &-title {
+    font-size: 1.75rem;
+    font-weight: $font-weight-bold;
+    margin-bottom: map-get($spacers, 2);
     
-    @include media-breakpoint-down(lg) {
-      padding: map-get($spacers, 3);
+    @include media-breakpoint-up(md) {
+      font-size: 2rem;
     }
   }
-
-  .mobile-nav .dropdown-menu {
-    display: block ;
-    visibility: visible ;
-    opacity: 1 ;
-    z-index: 9999 ;
-    position: fixed ;
-    bottom: 60px ;
-    right: 10px ;
-    background-color: var(--card-bg);
+  
+  &-subtitle {
+    color: rgba(var(--text-color), 0.7);
+    font-size: 1.125rem;
   }
+}
+
+// Mobile navigation dropdown menu
+.mobile-nav .dropdown-menu {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  z-index: 9999;
+  position: fixed;
+  bottom: 60px;
+  right: 10px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: map-get($spacers, 2);
+  min-width: 200px;
+  
+  @include media-breakpoint-down(sm) {
+    right: 5px;
+    left: 5px;
+    width: auto;
+  }
+}
+
+// Two column layout
+.two-column-layout {
+  display: flex;
+  flex-direction: column;
+  gap: map-get($spacers, 4);
+  
+  @include media-breakpoint-up(lg) {
+    flex-direction: row;
+    
+    .column-main {
+      flex: 2;
+    }
+    
+    .column-side {
+      flex: 1;
+    }
+  }
+}
+
+// Form layout
+.form-layout {
+  max-width: 800px;
+  margin: 0 auto;
+  
+  &-narrow {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+// Page transitions
+.page-transition {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

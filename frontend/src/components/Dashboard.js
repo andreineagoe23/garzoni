@@ -78,93 +78,95 @@ function Dashboard() {
     navigate(`/lessons/${courseId}`);
   };
 
-  const isMobile = windowWidth <= 768;
+  const isMobile = windowWidth < 768;
 
   return (
     <div className="dashboard">
       <Navbar />
 
-      <div className="dashboard-content">
-        <div className={`main-content ${isMobile ? "mb-4" : ""}`}>
-          <div className="dashboard-header">
-            <h2 className="dashboard-greeting">
-              Welcome back, {user?.username || "User"}!
-            </h2>
-            <Button
-              variant="danger"
-              onClick={handleLogout}
-              className="logout-btn"
-            >
-              Logout
-            </Button>
-          </div>
+      <div className="dashboard-main-wrapper">
+        <div className="dashboard-content">
+          <div className={`main-content ${isMobile ? "mb-4" : ""}`}>
+            <div className="dashboard-header">
+              <h2 className="dashboard-greeting">
+                Welcome back, {user?.username || "User"}!
+              </h2>
+              <Button
+                variant="danger"
+                onClick={handleLogout}
+                className="logout-btn"
+              >
+                Logout
+              </Button>
+            </div>
 
-          <div className="dashboard-buttons">
-            {/* Fixed the active prop instead of activeClassName */}
-            <Button
-              variant={
-                activePage === "all-topics" ? "accent" : "outline-accent"
-              }
-              onClick={() => navigate("/all-topics")}
-              className="nav-btn"
-              active={activePage === "all-topics"}
-            >
-              All Topics
-            </Button>
-
-            <Button
-              variant={
-                activePage === "personalized-path"
-                  ? "accent"
-                  : isQuestionnaireCompleted
-                  ? "outline-accent"
-                  : "secondary"
-              }
-              onClick={() => {
-                if (isQuestionnaireCompleted) {
-                  navigate("/personalized-path");
-                } else {
-                  navigate("/questionnaire");
+            <div className="dashboard-buttons">
+              <Button
+                variant={
+                  activePage === "all-topics" ? "accent" : "outline-accent"
                 }
-              }}
-              className="nav-btn"
-            >
-              Personalized Path
-              {!isQuestionnaireCompleted && " (Complete Questionnaire)"}
-            </Button>
+                onClick={() => navigate("/all-topics")}
+                className="nav-btn"
+                active={activePage === "all-topics"}
+              >
+                All Topics
+              </Button>
+
+              <Button
+                variant={
+                  activePage === "personalized-path"
+                    ? "accent"
+                    : isQuestionnaireCompleted
+                    ? "outline-accent"
+                    : "secondary"
+                }
+                onClick={() => {
+                  if (isQuestionnaireCompleted) {
+                    navigate("/personalized-path");
+                  } else {
+                    navigate("/questionnaire");
+                  }
+                }}
+                className="nav-btn"
+              >
+                Personalized Path
+                {!isQuestionnaireCompleted && " (Complete Questionnaire)"}
+              </Button>
+            </div>
+
+            {activePage === "all-topics" ? (
+              <AllTopics onCourseClick={handleCourseClick} />
+            ) : (
+              <PersonalizedPath onCourseClick={handleCourseClick} />
+            )}
           </div>
 
-          {activePage === "all-topics" ? (
-            <AllTopics onCourseClick={handleCourseClick} />
-          ) : (
-            <PersonalizedPath onCourseClick={handleCourseClick} />
+          {!isMobile && (
+            <div className="user-progress">
+              <div className="user-progress-sticky-wrapper">
+                {userProgress ? (
+                  <UserProgressBox progressData={userProgress} />
+                ) : (
+                  <p>Loading progress...</p>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Desktop progress panel */}
-        {!isMobile && (
-          <div className="user-progress">
-            {userProgress ? (
-              <UserProgressBox progressData={userProgress} />
-            ) : (
-              <p>Loading progress...</p>
-            )}
+        {/* Mobile progress panel at bottom for small screens */}
+        {isMobile && userProgress && (
+          <div className="mobile-progress-section">
+            <div className="container">
+              <h4 className="mb-3">Your Learning Progress</h4>
+              <UserProgressBox
+                progressData={userProgress}
+                initiallyExpanded={true}
+              />
+            </div>
           </div>
         )}
       </div>
-
-      {/* Mobile progress panel at bottom for small screens */}
-      {isMobile && userProgress && (
-        <div className="mobile-progress-section">
-          <div className="container">
-            <h4 className="mb-3">Your Learning Progress</h4>
-            <UserProgressBox
-              progressData={userProgress}
-              initiallyExpanded={true}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
