@@ -15,15 +15,22 @@ const BudgetAllocationExercise = ({
   const { question, categories, total } = data;
 
   const handleChange = (category, value) => {
-    setAllocations((prev) => ({
-      ...prev,
-      [category]: Math.max(0, parseInt(value) || 0),
-    }));
+    if (value === "") {
+      setAllocations((prev) => ({ ...prev, [category]: "" }));
+    } else {
+      const numericValue = parseInt(value, 10);
+      if (!isNaN(numericValue)) {
+        setAllocations((prev) => ({
+          ...prev,
+          [category]: numericValue.toString(),
+        }));
+      }
+    }
   };
 
   const handleSubmit = async () => {
     const currentTotal = Object.values(allocations).reduce(
-      (sum, val) => sum + val,
+      (sum, val) => sum + (val ? parseInt(val, 10) : 0),
       0
     );
 
@@ -71,17 +78,25 @@ const BudgetAllocationExercise = ({
             <input
               type="number"
               min="0"
-              value={allocations[category] || 0}
-              onChange={(e) => handleChange(category, e.target.value)}
+              step="1"
+              value={allocations[category] ?? ""}
+              onChange={(e) => {
+                const rawValue = e.target.value;
+                const sanitizedValue = rawValue.replace(/[^0-9]/g, '');
+                handleChange(category, sanitizedValue);
+              }}
               disabled={isCompleted}
               className="budget-allocation-input"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              placeholder="0"
             />
           </div>
         ))}
       </div>
 
       <div className="budget-total-display">
-        <span>Current Total: ${Object.values(allocations).reduce((sum, val) => sum + val, 0)}</span>
+        <span>Current Total: ${Object.values(allocations).reduce((sum, val) => sum + (val ? parseInt(val, 10) : 0), 0)}</span>
         <span>Target: ${total}</span>
       </div>
 
