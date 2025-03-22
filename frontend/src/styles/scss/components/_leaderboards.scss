@@ -136,16 +136,15 @@
   th {
     background-color: var(--primary);
     color: var(--accent);
-    padding: map-get($spacers, 3);
     position: sticky;
     top: 0;
   }
 
   td {
-    padding: map-get($spacers, 3);
+    padding: map-get($spacers, 2);
     
     @include media-breakpoint-down(md) {
-      padding: map-get($spacers, 2);
+      padding: map-get($spacers, 1);
     }
   }
 
@@ -159,7 +158,6 @@
   .table-responsive {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    overflow: hidden;
   }
 }
 

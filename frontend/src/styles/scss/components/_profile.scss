@@ -1,110 +1,194 @@
 .profile-container {
-    margin-left: 280px;
-    padding: $spacer * 2;
-    min-height: 100vh;
-    transition: margin-left 0.3s ease;
-    width: calc(100% - 280px);
+  margin-left: 280px;
+  padding: $spacer * 2;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  width: calc(100% - 280px);
+  
+  @include media-breakpoint-down(lg) {
+    margin-left: 0;
+    width: 100%;
+    padding: $spacer * 0.5;
+    min-height: auto; 
     
-    @include media-breakpoint-down(lg) {
-      margin-left: 0;
-      width: 100%;
-      padding: $spacer;
-      padding-top: $spacer * 5;
-      
-      &.nav-open {
-        margin-left: 280px;
-        width: calc(100% - 280px);
-      }
+    &.nav-open {
+      margin-left: 280px;
+      width: calc(100% - 280px);
     }
   }
+}
+
+.profile-avatar-container {
+  position: relative;
+  display: inline-block;
   
-  .profile-avatar-container {
-    position: relative;
-    display: inline-block;
-    
-    .rounded-circle {
-      border: 3px solid var(--primary);
-      transition: transform 0.3s ease;
-      
-      &:hover {
-        transform: scale(1.05);
-      }
-    }
-  }
-  
-  .stat-box {
-    background: rgba(var(--primary-rgb), 0.05);
-    border-radius: $border-radius-lg;
-    transition: all 0.3s ease;
+  .rounded-circle {
+    border: 3px solid var(--primary);
+    transition: transform 0.3s ease;
     
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: $box-shadow-lg;
-    }
-  }
-  
-  .badges-section {
-    padding: $spacer * 2;
-    background: var(--card-bg);
-    border-radius: $border-radius-lg;
-    
-    .badge-card {
-      width: 120px;
-      padding: $spacer;
-      background: var(--card-bg);
-      border-radius: $border-radius;
-      box-shadow: $box-shadow-lg;
-      transition: all 0.3s ease;
-      text-align: center;
-      
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.1);
-      }
-      
-      .badge-image {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-      }
-      
-      .badge-name {
-        font-size: 0.9rem;
-        font-weight: $font-weight-semibold;
-        color: var(--text-color);
-      }
-    }
-  }
-  
-  .recent-activity {
-    .list-group-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-      
-      &:hover {
-        transform: translateX(5px);
-        border-color: var(--primary);
-      }
+      transform: scale(1.05);
     }
   }
   
   @include media-breakpoint-down(md) {
-    .stat-box {
-      margin-bottom: $spacer;
-    }
-    
-    .badge-card {
+    .rounded-circle {
       width: 100px !important;
-      
-      .badge-image {
-        width: 60px !important;
-        height: 60px !important;
-      }
+      height: 100px !important;
     }
     
-    .profile-avatar-container .rounded-circle {
-      width: 120px !important;
-      height: 120px !important;
+    // Adjust avatar selector position
+    .avatar-selector-trigger {
+      width: 30px !important;
+      height: 30px !important;
+      right: 5px !important;
+      bottom: 5px !important;
     }
   }
+}
+
+.stat-box {
+  background: rgba(var(--primary-rgb), 0.05);
+  border-radius: $border-radius-lg;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $box-shadow-lg;
+  }
+}
+
+.badges-section {
+  padding: $spacer * 2;
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  
+  .badge-card {
+    width: 120px;
+    padding: $spacer;
+    background: var(--card-bg);
+    border-radius: $border-radius;
+    box-shadow: $box-shadow-lg;
+    transition: all 0.3s ease;
+    text-align: center;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.1);
+    }
+    
+    .badge-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    
+    .badge-name {
+      font-size: 0.9rem;
+      font-weight: $font-weight-semibold;
+      color: var(--text-color);
+    }
+  }
+}
+
+.recent-activity {
+  .list-group-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateX(5px);
+      border-color: var(--primary);
+    }
+    
+    // Change to column layout on mobile
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem;
+    
+    strong {
+      font-size: 0.9rem; // Reduce text size
+      line-height: 1.3;
+    }
+    
+    .text-muted {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .stat-box {
+    margin-bottom: $spacer;
+    
+    h4 {
+      font-size: 1.2rem;
+    }
+    
+    .h3 {
+      font-size: 1rem !important;
+    }
+  }
+  
+  .badge-card {
+    width: 90px !important;
+    padding: $spacer * 0.5 !important;
+    
+    .badge-image {
+      width: 50px !important;
+      height: 50px !important;
+    }
+    
+    .badge-name {
+      font-size: 0.75rem !important;
+    }
+  }
+  
+  // Adjust section headings
+  h3 {
+    font-size: 1.25rem !important;
+  }
+}
+
+// Stat boxes
+.stat-box {
+  background: $accent; // Gold background
+  border-radius: $border-radius-lg;
+  
+  .stat-label {
+    color: #000 !important;
+    font-weight: $font-weight-semibold;
+    font-size: 0.9rem;
+  }
+  
+  .stat-value {
+    color: #000 !important;
+    font-size: 1.2rem;
+    font-weight: $font-weight-bold;
+    margin: 0;
+  }
+}
+
+// Activity text
+.activity-text {
+  color: #000 !important;
+  font-size: 0.9rem;
+  display: flex;
+}
+
+// Dark mode override
+[data-theme="dark"] {
+  .stat-box {
+    background: darken($accent, 15%);
+    
+    .stat-label,
+    .stat-value {
+      color: #000 !important;
+    }
+  }
+  
+  .activity-text {
+    color: #000 !important;
+  }
+}
