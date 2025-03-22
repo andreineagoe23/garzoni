@@ -66,9 +66,11 @@
 }
 
 @include media-breakpoint-down(lg) {
+  
   .two-column-layout {
     flex-direction: column;
   }
+  
 }
 
 @include media-breakpoint-down(md) {

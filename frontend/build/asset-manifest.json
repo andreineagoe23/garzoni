@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/static/css/main.a1960bfe.css",
-    "main.js": "/static/js/main.9da2bca3.js",
+    "main.css": "/static/css/main.498eae87.css",
+    "main.js": "/static/js/main.51302877.js",
     "static/js/488.e75445ad.chunk.js": "/static/js/488.e75445ad.chunk.js",
     "static/media/monevo.png": "/static/media/monevo.e5979e74d99c46808d02.png",
     "index.html": "/index.html",
-    "main.a1960bfe.css.map": "/static/css/main.a1960bfe.css.map",
-    "main.9da2bca3.js.map": "/static/js/main.9da2bca3.js.map",
+    "main.498eae87.css.map": "/static/css/main.498eae87.css.map",
+    "main.51302877.js.map": "/static/js/main.51302877.js.map",
     "488.e75445ad.chunk.js.map": "/static/js/488.e75445ad.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a1960bfe.css",
-    "static/js/main.9da2bca3.js"
+    "static/css/main.498eae87.css",
+    "static/js/main.51302877.js"
   ]
 }
