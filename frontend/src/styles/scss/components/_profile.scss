@@ -192,3 +192,67 @@
     color: #000 !important;
   }
 }
+
+// Edit/Save buttons
+.profile-actions {
+  margin-top: map-get($spacers, 4);
+  display: flex;
+  gap: map-get($spacers, 2);
+  
+  .btn {
+    min-width: 120px;
+  }
+}
+
+// Input states
+.form-control {
+  &[readonly] {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    cursor: not-allowed;
+    
+    &:focus {
+      box-shadow: none;
+      border-color: var(--border-color);
+    }
+  }
+  
+  &:not([readonly]) {
+    border-color: var(--primary);
+  }
+}
+
+.input-group-text {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+// Status alerts
+.alert {
+  margin-top: map-get($spacers, 3);
+  border-radius: var(--border-radius);
+  
+  &-success {
+    background: rgba($success, 0.1);
+    border: 1px solid $success;
+    color: darken($success, 10%);
+  }
+  
+  &-danger {
+    background: rgba($danger, 0.1);
+    border: 1px solid $danger;
+    color: darken($danger, 10%);
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  .form-control[readonly] {
+    background-color: var(--input-bg);
+  }
+  
+  .input-group-text {
+    background-color: rgba(var(--primary-rgb), 0.2);
+  }
+}
