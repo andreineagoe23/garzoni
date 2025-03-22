@@ -14,7 +14,6 @@ const Questionnaire = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        // Fetch questions with JWT authentication
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
           {
@@ -24,7 +23,6 @@ const Questionnaire = () => {
           }
         );
 
-        // Validate and transform response data
         const validatedQuestions = response.data.map((q) => {
           let options = [];
           try {
@@ -101,7 +99,6 @@ const Questionnaire = () => {
     }
   };
 
-  // Keep rendering logic the same
   const renderQuestionInput = (question) => {
     switch (question.type) {
       case "knowledge_check":
@@ -154,7 +151,7 @@ const Questionnaire = () => {
                     type="number"
                     min="0"
                     max="100"
-                    value={answers[question.id]?.[category] || 0}
+                    value={answers[question.id]?.[category] || ""}
                     onChange={(e) =>
                       handleBudgetChange(question.id, category, e.target.value)
                     }
