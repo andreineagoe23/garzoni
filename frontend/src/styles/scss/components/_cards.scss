@@ -1,0 +1,145 @@
+// _cards.scss - Responsive card system
+
+.card {
+    --card-spacing: #{map-get($spacers, 4)};
+    --card-gap: #{map-get($spacers, 3)};
+    --card-padding: #{map-get($spacers, 4)};
+    --card-border-radius: var(--border-radius-lg);
+    --card-title-size: 1.75rem;
+  
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-border-radius);
+    transition: all 0.3s ease;
+    margin-bottom: var(--card-spacing);
+    padding: var(--card-padding);
+  
+    @include media-breakpoint-down(lg) {
+      --card-spacing: #{map-get($spacers, 3)};
+      --card-gap: #{map-get($spacers, 2)};
+      --card-padding: #{map-get($spacers, 3)};
+      --card-title-size: 1.5rem;
+    }
+  
+    @include media-breakpoint-down(md) {
+      --card-spacing: #{map-get($spacers, 2)};
+      --card-gap: #{map-get($spacers, 1)};
+      --card-padding: #{map-get($spacers, 2)};
+      --card-title-size: 1.25rem;
+    }
+  
+    .card-title {
+      font-size: var(--card-title-size);
+      margin-bottom: calc(var(--card-gap) * 1.5);
+    }
+  
+    .row {
+      margin-right: calc(-0.5 * var(--card-gap));
+      margin-left: calc(-0.5 * var(--card-gap));
+  
+      > [class*="col-"] {
+        padding-right: calc(0.5 * var(--card-gap));
+        padding-left: calc(0.5 * var(--card-gap));
+      }
+    }
+  
+    .stat-box {
+      margin-bottom: var(--card-gap);
+      padding: calc(var(--card-gap) * 0.75);
+      
+      h4 {
+        margin-bottom: calc(var(--card-gap) * 0.5);
+      }
+    }
+  
+    .list-group-item {
+      padding: calc(var(--card-gap) * 0.75) calc(var(--card-gap) * 1);
+      margin-bottom: calc(var(--card-gap) * 0.5);
+    }
+  }
+  
+  // Profile-specific card adjustments
+  .profile-container .card {
+    .row.g-4 {
+      --card-gap: #{map-get($spacers, 2)};
+  
+      @include media-breakpoint-down(lg) {
+        --card-gap: #{map-get($spacers, 1)};
+      }
+  
+      @include media-breakpoint-down(md) {
+        --card-gap: #{map-get($spacers, 0.5)};
+        margin-right: -#{map-get($spacers, 1)};
+        margin-left: -#{map-get($spacers, 1)};
+  
+        > [class*="col-"] {
+          padding-right: #{map-get($spacers, 1)};
+          padding-left: #{map-get($spacers, 1)};
+        }
+      }
+    }
+  
+    .recent-activity .list-group-item {
+      @include media-breakpoint-down(md) {
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.75rem;
+  
+        strong {
+          font-size: 0.875rem;
+          line-height: 1.3;
+          display: block;
+          width: 100%;
+        }
+  
+        .text-muted {
+          font-size: 0.75rem;
+          align-self: flex-start;
+        }
+      }
+    }
+  }
+  
+  // Avatar card specific styles
+  .card-profile-avatar {
+    .profile-avatar-container {
+      @include media-breakpoint-down(md) {
+        margin: 0 auto;
+        width: fit-content;
+  
+        .rounded-circle {
+          width: 100px !important;
+          height: 100px !important;
+        }
+  
+        .avatar-selector-trigger {
+          width: 30px !important;
+          height: 30px !important;
+          right: 5px !important;
+          bottom: 5px !important;
+        }
+      }
+    }
+  }
+  
+  // Badge card grid system
+  .card-grid-badges {
+    display: grid;
+    gap: var(--card-gap);
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  
+    @include media-breakpoint-down(md) {
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    }
+  
+    .badge-card {
+      padding: calc(var(--card-gap) * 0.5);
+      
+      .badge-image {
+        width: 100%;
+        max-width: 80px;
+        height: auto;
+      }
+    }
+  }

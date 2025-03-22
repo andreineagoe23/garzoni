@@ -9,10 +9,9 @@
   &__trigger {
     @include button-accent-variant;
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 40px;
-    height: 40px;
+    top: 20px;
+    width: 36px !important;
+    height: 36px !important;
     padding: 0;
     border-radius: 50%;
     border: 2px solid var(--card-bg);
@@ -21,12 +20,27 @@
     align-items: center;
     justify-content: center;
 
-    &:hover {
-      transform: scale(1.1);
-    }
-
     i {
       font-size: 1rem;
+    }
+
+    @include media-breakpoint-down(md) {
+      width: 30px !important;
+      height: 30px !important;
+      border-width: 1.5px;
+
+      i {
+        font-size: 0.8rem;
+      }
+    }
+
+    @include media-breakpoint-down(sm) {
+      width: 28px !important;
+      height: 28px !important;
+    }
+
+    &:hover {
+      transform: scale(1.1);
     }
   }
 
@@ -136,6 +150,11 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.3);
     }
+
+    @include media-breakpoint-down(sm) {
+      width: 45px !important;
+      height: 45px !important;
+    }
   }
 
   &__footer {
@@ -153,13 +172,13 @@
 
   @include media-breakpoint-down(sm) {
     &__trigger {
-      width: 35px;
-      height: 35px;
+      width: 28px !important;
+      height: 28px !important;
     }
 
     &__example {
-      width: 50px;
-      height: 50px;
+      width: 45px !important;
+      height: 45px !important;
     }
   }
 }
