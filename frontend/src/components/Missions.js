@@ -108,8 +108,8 @@ function Missions() {
         `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       setCurrentFact(response.data);
@@ -126,8 +126,8 @@ function Missions() {
         { fact_id: currentFact.id },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       gsap.to(".fact-card", {
@@ -147,8 +147,8 @@ function Missions() {
         `${process.env.REACT_APP_BACKEND_URL}/missions/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       setDailyMissions(response.data.daily_missions || []);
@@ -164,8 +164,8 @@ function Missions() {
         `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       setSavingsBalance(response.data.balance);
@@ -186,8 +186,8 @@ function Missions() {
         { amount: parseFloat(savingsAmount) },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       setSavingsAmount("");
@@ -207,7 +207,7 @@ function Missions() {
           now={mission.progress}
           className="mb-2"
           variant="primary"
-          style={{ height: "6px" }}
+          style={{ height: "15px" }}
           label={
             mission.goal_type === "read_fact" &&
             mission.mission_type === "weekly"
@@ -251,10 +251,7 @@ function Missions() {
                       placeholder="Enter amount (e.g., £5)"
                       className="savings-input"
                     />
-                    <button
-                      type="submit"
-                      className="btn btn-accent"
-                    >
+                    <button type="submit" className="btn btn-accent">
                       Add to Savings
                     </button>
                   </form>
@@ -266,10 +263,7 @@ function Missions() {
             <div className="fact-section">
               <FactCard fact={currentFact} onMarkRead={markFactRead} />
               {!currentFact && (
-                <button
-                  onClick={loadNewFact}
-                  className="btn btn-accent"
-                >
+                <button onClick={loadNewFact} className="btn btn-accent">
                   ↻ Try Again
                 </button>
               )}
