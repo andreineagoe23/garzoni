@@ -36,7 +36,7 @@ function Welcome() {
               onClick={() => navigate("/login")}
               className="btn-3d"
             >
-              Already Have an Account?
+              Already Signed Up?
             </Button>
           </div>
         </div>

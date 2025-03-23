@@ -79,6 +79,14 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
     setTimeout(loadVoices, 500);
   }, []);
 
+  useEffect(() => {
+    if (isMobile && !isVisible) {
+      // Reset chat history when closing on mobile
+      setChatHistory([]);
+      setHasGreeted(false);
+    }
+  }, [isVisible, isMobile]);
+
   const speakResponse = (text) => {
     if (isSpeechEnabled && selectedVoice) {
       const MAX_CHAR_LIMIT = 200;

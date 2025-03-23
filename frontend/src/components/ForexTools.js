@@ -3,18 +3,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const ForexTools = () => {
   useEffect(() => {
+    const containerId = "position-size-calculator-524750";
     const loadPositionSizeCalculator = () => {
       const scriptId = "cashbackforex-calculator-script";
-      const containerId = "position-size-calculator-524750";
 
       const initializePositionSizeCalculator = () => {
-        const container = document.getElementById(containerId);
-        if (container) {
-          container.innerHTML = "";
-        }
-
-        if (window.RemoteCalc) {
-          try {
+        try {
+          if (window.RemoteCalc && document.getElementById(containerId)) {
             window.RemoteCalc({
               Url: "https://www.cashbackforex.com",
               TopPaneStyle:
@@ -36,38 +31,34 @@ const ForexTools = () => {
               CompactType: "large",
               Calculator: "position-size-calculator",
               ContainerId: containerId,
+              analytics: false,
+              logging: false,
+              enableAutofocus: false,
+              onError: (err) => console.error('Calculator error:', err)
             });
-          } catch (error) {
-            console.error(
-              "Error initializing Position Size Calculator:",
-              error
-            );
           }
+        } catch (error) {
+          console.error("Error initializing calculator:", error);
         }
       };
 
-      // Check if the script is already loaded to avoid duplicate script tags
       if (!document.getElementById(scriptId)) {
         const script = document.createElement("script");
-        script.src =
-          "https://www.cashbackforex.com/Content/remote/remote-widgets.js";
+        script.src = "https://www.cashbackforex.com/Content/remote/remote-widgets.js";
         script.id = scriptId;
-        script.onload = initializePositionSizeCalculator;
+        script.onload = () => setTimeout(initializePositionSizeCalculator, 500);
+        script.onerror = () => console.error("Failed to load calculator script");
         document.body.appendChild(script);
       } else {
         initializePositionSizeCalculator();
       }
     };
 
-    loadPositionSizeCalculator();
-
+    const timer = setTimeout(loadPositionSizeCalculator, 1000);
     return () => {
-      const calculatorContainer = document.getElementById(
-        "position-size-calculator-524750"
-      );
-      if (calculatorContainer) {
-        calculatorContainer.innerHTML = "";
-      }
+      clearTimeout(timer);
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = "";
     };
   }, []);
 

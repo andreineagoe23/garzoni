@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   HashRouter as Router,
   Route,
@@ -30,21 +30,29 @@ import ExercisePage from "./components/ExercisePage";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
 
+// Main App component
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
 
-  const toggleChatbot = useCallback(() => {
-    setIsChatbotVisible((prev) => !prev);
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
     <Router>
       <ThemeProvider>
         <div className="app-container">
-          <AppContent toggleChatbot={toggleChatbot} />
+          <AppContent
+            toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
+          />
           <Chatbot
             isVisible={isChatbotVisible}
             setIsVisible={setIsChatbotVisible}
+            isMobile={isMobileView}
           />
         </div>
       </ThemeProvider>
@@ -54,8 +62,6 @@ function App() {
 
 const AppContent = ({ toggleChatbot }) => {
   const location = useLocation();
-  console.log("[AppContent] Current path:", location.pathname);
-
   const noNavbarPaths = [
     "/",
     "/login",
@@ -66,8 +72,8 @@ const AppContent = ({ toggleChatbot }) => {
     "/questionnaire",
   ];
 
-  axios.interceptors.request.use(config => {
-    const tokens = JSON.parse(localStorage.getItem('tokens'));
+  axios.interceptors.request.use((config) => {
+    const tokens = JSON.parse(localStorage.getItem("tokens"));
     if (tokens?.access) {
       config.headers.Authorization = `Bearer ${tokens.access}`;
     }

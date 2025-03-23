@@ -6,6 +6,7 @@ import BasicFinanceTools from "./BasicFinanceTools";
 import NewsCalendars from "./NewsCalendars";
 import Chatbot from "./Chatbot";
 import { Accordion } from "react-bootstrap";
+import ErrorBoundary from './ErrorBoundary';
 import "../styles/scss/main.scss";
 
 const ToolsPage = () => {
@@ -57,28 +58,29 @@ const ToolsPage = () => {
         ) : (
           <Accordion activeKey={activeCategory?.toString()}>
             {categories.map((category, index) => (
-              <Accordion.Item
-                key={index}
-                eventKey={index.toString()}
-                className="mb-3"
-              >
-                <Accordion.Header
-                  onClick={() => handleAccordionToggle(index)}
-                  className="fw-semibold"
+              <ErrorBoundary key={index}>
+                <Accordion.Item
+                  eventKey={index.toString()}
+                  className="mb-3"
                 >
-                  {category.category}
-                </Accordion.Header>
-                <Accordion.Body>
-                  {category.category === "Forex Tools" && <ForexTools />}
-                  {category.category === "Crypto Tools" && <CryptoTools />}
-                  {category.category === "News & Calendars" && (
-                    <NewsCalendars />
-                  )}
-                  {category.category === "Basic Finance & Budgeting Tools" && (
-                    <BasicFinanceTools />
-                  )}
-                </Accordion.Body>
-              </Accordion.Item>
+                  <Accordion.Header
+                    onClick={() => handleAccordionToggle(index)}
+                    className="fw-semibold"
+                  >
+                    {category.category}
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    {category.category === "Forex Tools" && <ForexTools />}
+                    {category.category === "Crypto Tools" && <CryptoTools />}
+                    {category.category === "News & Calendars" && (
+                      <NewsCalendars />
+                    )}
+                    {category.category === "Basic Finance & Budgeting Tools" && (
+                      <BasicFinanceTools />
+                    )}
+                  </Accordion.Body>
+                </Accordion.Item>
+              </ErrorBoundary>
             ))}
           </Accordion>
         )}
