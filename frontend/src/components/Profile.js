@@ -19,45 +19,9 @@ function Profile() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saveStatus, setSaveStatus] = useState("");
 
   const handleAvatarChange = (newAvatarUrl) => {
     setImageUrl(newAvatarUrl);
-  };
-
-  const handleInputChange = (field, value) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/userprofile/update/`,
-        {
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          email: profileData.email,
-          username: profileData.username,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-
-      setSaveStatus("success");
-      setTimeout(() => setSaveStatus(""), 3000);
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus(""), 3000);
-    }
   };
 
   useEffect(() => {
@@ -176,87 +140,20 @@ function Profile() {
                     onAvatarChange={handleAvatarChange}
                   />
                 </div>
-              </div>
 
-              <div className="two-column-layout gap-4 mb-4">
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={profileData.first_name}
-                    onChange={(e) => handleInputChange("first_name", e.target.value)}
-                    readOnly={!isEditing}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={profileData.last_name}
-                    onChange={(e) => handleInputChange("last_name", e.target.value)}
-                    readOnly={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="two-column-layout gap-4 mb-4">
-                <div className="form-group">
-                  <label>Username</label>
-                  <div className="input-group">
-                    <span className="input-group-text">@</span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={profileData.username}
-                      onChange={(e) => handleInputChange("username", e.target.value)}
-                      readOnly={!isEditing}
-                    />
+                {/* New user info section */}
+                <div className="user-info-summary mt-4">
+                  <h5 className="username-display mb-2">
+                    @{profileData.username}
+                  </h5>
+                  <div className="name-email-display">
+                    <p className="text-muted small">
+                      {profileData.first_name} {profileData.last_name}
+                    </p>
+                    <p className="text-muted small">{profileData.email}</p>
                   </div>
                 </div>
-
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={profileData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    readOnly={!isEditing}
-                  />
-                </div>
               </div>
-
-              <div className="d-flex gap-3 mt-4">
-                {isEditing ? (
-                  <>
-                    <button className="btn btn-accent" onClick={handleSaveProfile}>
-                      Save Changes
-                    </button>
-                    <button className="btn btn-outline-accent" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <button className="btn btn-accent" onClick={() => setIsEditing(true)}>
-                    Edit Profile
-                  </button>
-                )}
-              </div>
-
-              {saveStatus === "success" && (
-                <div className="alert alert-success mt-3">
-                  Profile updated successfully!
-                </div>
-              )}
-
-              {saveStatus === "error" && (
-                <div className="alert alert-danger mt-3">
-                  Error updating profile. Please try again.
-                </div>
-              )}
 
               <h4 className="section-title mt-5 mb-4">Statistics</h4>
 

@@ -4,25 +4,38 @@ import "bootstrap/dist/css/bootstrap.min.css";
 const NewsCalendars = () => {
   useEffect(() => {
     // TradingView News Widget
-    if (!document.getElementById("tradingview-news-widget-script")) {
-      const newsWidgetScript = document.createElement("script");
-      newsWidgetScript.id = "tradingview-news-widget-script";
-      newsWidgetScript.src =
-        "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
-      newsWidgetScript.async = true;
-      newsWidgetScript.innerHTML = JSON.stringify({
-        width: "100%",
-        height: "600",
-        feedMode: "all_symbols",
-        colorTheme: "light",
-        isTransparent: false,
-        displayMode: "regular",
-        locale: "en",
-      });
-      document
-        .getElementById("tradingview-news-widget")
-        .appendChild(newsWidgetScript);
-    }
+    let newsWidgetScript;
+    const loadWidget = () => {
+      if (!document.getElementById("tradingview-news-widget-script")) {
+        newsWidgetScript = document.createElement("script");
+        newsWidgetScript.id = "tradingview-news-widget-script";
+        newsWidgetScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
+        newsWidgetScript.async = true;
+        newsWidgetScript.innerHTML = JSON.stringify({
+          width: "100%",
+          height: "600",
+          feedMode: "all_symbols",
+          colorTheme: "light",
+          isTransparent: false,
+          displayMode: "regular",
+          locale: "en",
+        });
+        
+        const container = document.getElementById("tradingview-news-widget");
+        if (container) {
+          container.appendChild(newsWidgetScript);
+        }
+      }
+    };
+
+    const timer = setTimeout(loadWidget, 1500);
+    
+    return () => {
+      clearTimeout(timer);
+      if (newsWidgetScript && newsWidgetScript.parentNode) {
+        newsWidgetScript.parentNode.removeChild(newsWidgetScript);
+      }
+    };
   }, []);
 
   return (
@@ -37,6 +50,8 @@ const NewsCalendars = () => {
                 src="https://widget.myfxbook.com/widget/calendar.html?lang=en&impacts=0,1,2,3&countries=Australia,Belgium,Canada,China,France,Germany,Italy,Japan,Mexico,New%20Zealand,Romania,South%20Africa,Spain,Switzerland,United%20Kingdom,United%20States"
                 style={{ border: "0", width: "100%", height: "800px" }}
                 title="Economic Calendar"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
               ></iframe>
               <div style={{ marginTop: "10px" }}>
                 <div

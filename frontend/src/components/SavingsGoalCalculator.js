@@ -18,10 +18,25 @@ const SavingsGoalCalculator = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const validateForm = () => {
+    const values = Object.values(formData);
+    if (values.some(v => v === "")) {
+      setError("Please fill all required fields");
+      return false;
+    }
+    if (formData.annual_interest_rate > 30) {
+      setError("Interest rate cannot exceed 30%");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setResult(null);
     setError(null);
+
+    if (!validateForm()) return;
 
     try {
       const response = await axios.post(

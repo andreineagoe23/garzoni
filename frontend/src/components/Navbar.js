@@ -35,12 +35,11 @@ function Navbar({ toggleChatbot }) {
   ];
 
   const handleItemClick = (item) => {
-    console.log("Handling item click:", item.label);
     if (typeof item.action === "function") {
-      console.log("Executing action for:", item.label);
       item.action();
-    } else {
-      console.warn("No valid action for:", item.label);
+      if (window.innerWidth <= 992) {
+        setShowMore(false);
+      }
     }
     setShowMore(false);
   };
@@ -61,7 +60,6 @@ function Navbar({ toggleChatbot }) {
   const toggleDropdown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Toggle dropdown clicked");
     setShowMore((prevState) => !prevState);
   };
 

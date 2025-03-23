@@ -42,11 +42,13 @@ function Settings() {
 
         // Sync dark mode with backend and cookies
         const serverDarkMode = response.data.dark_mode;
-        Cookies.set("darkMode", serverDarkMode.toString(), {
-          expires: 365,
-          sameSite: "strict",
-        });
-        toggleDarkMode(serverDarkMode);
+        if (serverDarkMode !== undefined) {
+          Cookies.set("darkMode", serverDarkMode.toString(), {
+            expires: 365,
+            sameSite: "strict",
+          });
+          toggleDarkMode(serverDarkMode);
+        }
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
