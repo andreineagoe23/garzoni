@@ -23,10 +23,10 @@ function Settings() {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
           {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
           }
-        }
         );
 
         // Update all settings from backend
@@ -61,14 +61,21 @@ function Settings() {
       await axios.patch(
         `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
         {
+          // Add profile fields
+          profile: {
+            username: profileData.username,
+            email: profileData.email,
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+          },
           email_reminders: emailReminders,
           email_frequency: emailFrequency,
           dark_mode: darkMode,
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
       setSuccessMessage("Settings updated successfully!");
@@ -95,7 +102,6 @@ function Settings() {
   return (
     <div className="settings-container">
       <div className="content-wrapper">
-
         {successMessage && (
           <div className="alert alert-success">{successMessage}</div>
         )}
@@ -196,7 +202,7 @@ function Settings() {
                 </select>
               </div>
 
-              <button 
+              <button
                 className="btn btn-accent w-100 mt-5"
                 onClick={handleSaveSettings}
               >
