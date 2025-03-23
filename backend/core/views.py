@@ -570,18 +570,30 @@ class UserSettingsView(APIView):
         })
 
     def patch(self, request):
-        user_profile = request.user.userprofile
-        email_reminders = request.data.get('email_reminders')
-        email_frequency = request.data.get('email_frequency')
-        dark_mode = request.data.get('dark_mode')
+        user = request.user
+        user_profile = user.userprofile
         
+        # Profile data
+        profile_data = request.data.get('profile', {})
+        if profile_data:
+            # Update User model fields
+            user.username = profile_data.get('username', user.username)
+            user.email = profile_data.get('email', user.email)
+            user.first_name = profile_data.get('first_name', user.first_name)
+            user.last_name = profile_data.get('last_name', user.last_name)
+            user.save()
+
+        # Dark mode
+        dark_mode = request.data.get('dark_mode')
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
-            user_profile.save()
 
+        # Email preferences
+        email_reminders = request.data.get('email_reminders')
         if email_reminders is not None:
             user_profile.email_reminders = email_reminders
 
+        email_frequency = request.data.get('email_frequency')
         if email_frequency in ['daily', 'weekly', 'monthly']:
             user_profile.email_frequency = email_frequency
 
