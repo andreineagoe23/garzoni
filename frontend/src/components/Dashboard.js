@@ -168,8 +168,7 @@ function Dashboard() {
             </div>
           )}
         </div>
-
-        {/* Mobile progress panel at bottom for small screens */}
+        
         {isMobile && userProgress && (
           <div className="mobile-progress-section">
             <div className="container">
