@@ -3,13 +3,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const NewsCalendars = () => {
   useEffect(() => {
-    // TradingView News Widget
     let newsWidgetScript;
     const loadWidget = () => {
       if (!document.getElementById("tradingview-news-widget-script")) {
         newsWidgetScript = document.createElement("script");
         newsWidgetScript.id = "tradingview-news-widget-script";
-        newsWidgetScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
+        newsWidgetScript.src =
+          "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
         newsWidgetScript.async = true;
         newsWidgetScript.innerHTML = JSON.stringify({
           width: "100%",
@@ -20,7 +20,7 @@ const NewsCalendars = () => {
           displayMode: "regular",
           locale: "en",
         });
-        
+
         const container = document.getElementById("tradingview-news-widget");
         if (container) {
           container.appendChild(newsWidgetScript);
@@ -29,7 +29,7 @@ const NewsCalendars = () => {
     };
 
     const timer = setTimeout(loadWidget, 1500);
-    
+
     return () => {
       clearTimeout(timer);
       if (newsWidgetScript && newsWidgetScript.parentNode) {

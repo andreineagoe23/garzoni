@@ -3,6 +3,11 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from .models import UserProfile
 import logging
+from celery import shared_task
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.db.models import Max
+from .models import UserProgress
 
 logger = logging.getLogger(__name__)
 
@@ -34,3 +39,16 @@ def send_email_reminders():
     except Exception as e:
         logger.error(f"Task failed: {e}")
         raise e
+
+
+@shared_task
+def reset_inactive_streaks():
+    """Reset streaks for users inactive for over 24 hours."""
+    users = User.objects.annotate(last_active=Max('userprogress__last_completed_date'))
+    
+    for user in users:
+        if user.last_active:
+            today = timezone.now().date()
+            days_inactive = (today - user.last_active).days
+            if days_inactive > 1:
+                UserProgress.objects.filter(user=user).update(streak=0)

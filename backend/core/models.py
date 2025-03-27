@@ -176,19 +176,16 @@ class UserProgress(models.Model):
 
 
     def update_streak(self):
-
         today = timezone.now().date()
         if self.last_completed_date:
-            if today > self.last_completed_date:
+            if (today - self.last_completed_date).days == 1:
                 self.streak += 1
             else:
-                self.streak = 1
+                self.streak = 1 if today == self.last_completed_date else 0
         else:
             self.streak = 1
         
         self.last_completed_date = today
-        from core.utils import check_and_award_badge
-        check_and_award_badge(self.user, 'streak_days')
         self.save()
 
     def mark_course_complete(self):
