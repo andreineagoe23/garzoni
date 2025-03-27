@@ -173,6 +173,15 @@ function Profile() {
                 <div className="stat-box text-center p-3">
                   <label className="stat-label mb-2">Streak</label>
                   <p className="stat-value">{profileData.streak} days</p>
+                  <div className="streak-status">
+                    {profileData.streak >= 7 ? (
+                      <span className="text-success">🔥 Hot streak!</span>
+                    ) : profileData.streak >= 3 ? (
+                      <span className="text-warning">↑ Keep going!</span>
+                    ) : (
+                      <span className="text-muted">Start your streak</span>
+                    )}
+                  </div>
                 </div>
               </div>
 

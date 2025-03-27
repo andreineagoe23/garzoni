@@ -28,12 +28,30 @@ from django.utils import timezone
 from django.utils.timezone import now
 import logging
 import os
+from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 import logging
 from django.db import transaction
 from django.db.models import F
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.http import JsonResponse
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from core.tokens import delete_jwt_cookies
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+import os
+import json
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .dialogflow import detect_intent_from_text, perform_web_search
 
 logger = logging.getLogger(__name__)
 
@@ -80,49 +98,7 @@ class UserProfileView(APIView):
             user_profile.email_reminders = email_reminders
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
-
-
-from rest_framework_simplejwt.tokens import RefreshToken
-from core.tokens import set_jwt_cookies
-
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-    authentication_classes = []
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "next": "/dashboard/",
-            "access": str(refresh.access_token),
-            "refresh": str(refresh)
-        }, status=201)
-
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.http import JsonResponse
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from core.tokens import set_jwt_cookies, delete_jwt_cookies
-
-class TokenObtainPairView(TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-            
-        return Response(serializer.validated_data)
     
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -171,11 +147,6 @@ class LogoutView(APIView):
         response = JsonResponse({"message": "Logout successful."})
         return delete_jwt_cookies(response)
 
-
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
-
 class PathViewSet(viewsets.ModelViewSet):
     queryset = Path.objects.all()
     serializer_class = PathSerializer
@@ -200,10 +171,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if not image:
             return Response({"error": "No image file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Save image to storage
         file_path = default_storage.save(f'generated_images/{image.name}', ContentFile(image.read()))
 
-        # Add file path to user's profile
         user_profile.add_generated_image(file_path)
 
         return Response({"message": "Image added successfully!", "file_path": file_path}, status=status.HTTP_200_OK)
@@ -229,10 +198,6 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -255,7 +220,6 @@ def update_avatar(request):
     
     return Response({"status": "success", "avatar_url": avatar_url})
 
-from .utils import check_and_award_badge
 
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
@@ -284,7 +248,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             return Response({"error": "Course ID is required."}, status=400)
 
         try:
-            # Get user's completed lessons for this course
+
             user_progress = UserProgress.objects.get(
                 user=request.user,
                 course_id=course_id
@@ -295,16 +259,14 @@ class LessonViewSet(viewsets.ModelViewSet):
             completed_lesson_ids = []
             completed_sections = []
 
-        # Fetch lessons and pass completed IDs to serializer context
         lessons = self.get_queryset().filter(course_id=course_id).prefetch_related('sections')
         serializer = self.get_serializer(
             lessons, 
             many=True,
             context={'completed_lesson_ids': completed_lesson_ids}
         )
-        lesson_data = serializer.data  # Now includes sections via LessonSerializer
+        lesson_data = serializer.data  
 
-        # Add progress data to each lesson
         for lesson in lesson_data:
             total = len(lesson['sections'])
             completed = sum(1 for s in lesson['sections'] if s['id'] in completed_sections)
@@ -341,40 +303,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
 
-# views.py
-class CompleteSectionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        section_id = request.data.get('section_id')
-        lesson_id = request.data.get('lesson_id')
-        
-        try:
-            section = LessonSection.objects.get(id=section_id, lesson_id=lesson_id)
-            progress, _ = UserProgress.objects.get_or_create(
-                user=request.user,
-                course=section.lesson.course
-            )
-            progress.completed_sections.add(section)
-            return Response({"status": "Section completed"})
-        except LessonSection.DoesNotExist:
-            return Response({"error": "Invalid section"}, status=400)
-
-class LessonWithSectionsView(viewsets.ModelViewSet):
-    serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        course_id = self.request.query_params.get('course')
-        return Lesson.objects.filter(course_id=course_id).prefetch_related('sections')
-
-class LessonWithProgressViewSet(viewsets.ModelViewSet):
-    serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        course_id = self.request.query_params.get('course')
-        return Lesson.objects.filter(course_id=course_id).prefetch_related('sections')
 
 
 class QuizViewSet(viewsets.ModelViewSet):
@@ -583,12 +511,10 @@ class UserSettingsView(APIView):
             user.last_name = profile_data.get('last_name', user.last_name)
             user.save()
 
-        # Dark mode
         dark_mode = request.data.get('dark_mode')
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
 
-        # Email preferences
         email_reminders = request.data.get('email_reminders')
         if email_reminders is not None:
             user_profile.email_reminders = email_reminders
@@ -608,7 +534,6 @@ class MissionView(APIView):
     def get(self, request):
         user = request.user
         try:
-            # Fetch daily and weekly missions
             daily_completions = MissionCompletion.objects.filter(
                 user=user, mission__mission_type="daily"
             )
@@ -655,14 +580,12 @@ class MissionView(APIView):
     def post(self, request, mission_id):
         user = request.user
         try:
-            # Find the specific MissionCompletion record
             mission_completion = MissionCompletion.objects.get(user=user, mission_id=mission_id)
             increment = request.data.get("progress", 0)
 
             if not isinstance(increment, int):
                 return Response({"error": "Progress must be an integer."}, status=400)
 
-            # Update mission progress
             mission_completion.update_progress(increment)
             return Response({"message": "Mission progress updated.", "progress": mission_completion.progress}, status=200)
 
@@ -673,7 +596,6 @@ class MissionView(APIView):
             return Response({"error": "An error occurred while updating mission progress."}, status=500)
 
 
-# views.py
 class SavingsAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -796,14 +718,6 @@ class FinanceFactView(APIView):
             return Response({"error": "Failed to mark fact"}, status=500)
 
 
-import os
-import json
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .dialogflow import detect_intent_from_text, perform_web_search
-
 class ChatbotView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -873,14 +787,12 @@ class SavingsGoalCalculatorView(APIView):
             account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
             account.add_to_balance(amount)
 
-            # Get all savings missions for this user
             mission_completions = MissionCompletion.objects.filter(
                 user=request.user,
                 mission__goal_type="add_savings"
             ).select_related('mission')
 
             for completion in mission_completions:
-                # Get target from mission's goal_reference
                 target = completion.mission.goal_reference.get('target', 100)
                 progress_increment = (amount / target) * 100
                 completion.update_progress(increment=progress_increment, total=100)
@@ -1041,16 +953,6 @@ class QuestionnaireSubmitView(APIView):
             print(f"Error in QuestionnaireSubmitView: {e}")
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-import logging
-import json
-from collections import defaultdict
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Course, Path, UserResponse, UserProfile
-from .serializers import CourseSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class PersonalizedPathView(APIView):
@@ -1060,14 +962,12 @@ class PersonalizedPathView(APIView):
         try:
             user = request.user
             user_profile = UserProfile.objects.get(user=user)
-            
-            # Use stored recommendations if available
+
             if user_profile.recommended_courses:
                 recommended_courses = Course.objects.filter(
                     id__in=user_profile.recommended_courses
                 ).order_by('order')
             else:
-                # Generate new recommendations
                 responses = UserResponse.objects.filter(user=user)
                 path_weights = self.calculate_path_weights(responses)
                 sorted_paths = sorted(
@@ -1077,11 +977,9 @@ class PersonalizedPathView(APIView):
                 )[:3]
                 
                 recommended_courses = self.get_recommended_courses(sorted_paths)
-                # Store new recommendations
                 user_profile.recommended_courses = [c.id for c in recommended_courses]
                 user_profile.save()
 
-            # Serialize and return
             serializer = CourseSerializer(
                 recommended_courses,
                 many=True,
@@ -1132,7 +1030,6 @@ class PersonalizedPathView(APIView):
         try:
             for response in responses:
                 answer = response.answer
-                # Safely parse JSON answers
                 try:
                     if response.question.type == 'budget_allocation' and isinstance(answer, str):
                         answer = json.loads(answer)
@@ -1140,17 +1037,16 @@ class PersonalizedPathView(APIView):
                     logger.error(f"Invalid JSON answer for question {response.question.id}")
                     continue
 
-                # Handle different question types
-                if response.question.id == 1:  # Risk tolerance
+                if response.question.id == 1:  
                     if isinstance(answer, str):
                         self.handle_risk_question(answer.lower().strip(), path_weights)
                         
-                elif response.question.id == 3:  # Investment interests
+                elif response.question.id == 3: 
                     if isinstance(answer, str):
                         answer = [a.strip().lower() for a in answer.split(',')]
                     self.handle_investment_question(answer, path_weights)
                     
-                elif response.question.id == 4:  # Budget allocation
+                elif response.question.id == 4: 
                     self.handle_budget_question(answer, path_weights)
                     
         except Exception as e:
@@ -1236,16 +1132,6 @@ class PersonalizedPathView(APIView):
             logger.error(f"Course fetch error: {str(e)}")
             return Course.objects.filter(is_active=True).order_by('?')[:10]
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from .models import Question, UserResponse
-from .serializers import QuestionSerializer
-import logging
-
-logger = logging.getLogger(__name__)
-
 class EnhancedQuestionnaireView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1281,7 +1167,6 @@ class EnhancedQuestionnaireView(APIView):
                 return Response({"error": "No answers provided"}, status=400)
 
             with transaction.atomic():
-                # Validate and save responses
                 for qid, answer in answers.items():
                     try:
                         question = Question.objects.get(id=qid)
@@ -1303,9 +1188,8 @@ class EnhancedQuestionnaireView(APIView):
                         logger.error(f"Question {qid} not found")
                         continue
 
-                # Clear previous recommendations
                 user_profile = UserProfile.objects.get(user=user)
-                user_profile.recommended_courses = []  # Clear stored recommendations
+                user_profile.recommended_courses = [] 
                 user_profile.save()
 
                 return Response({
@@ -1331,15 +1215,14 @@ class EnhancedQuestionnaireView(APIView):
             'Advanced Strategies': 0
         }
 
-        # Analyze responses
         for response in responses:
-            if response.question.id == 1:  # Risk tolerance
+            if response.question.id == 1: 
                 risk_score = ['Very Uncomfortable', 'Uncomfortable', 'Neutral', 
                             'Comfortable', 'Very Comfortable'].index(response.answer)
                 path_weights['Investing'] += risk_score * 2
                 path_weights['Cryptocurrency'] += risk_score * 1.5
                 
-            elif response.question.id == 3:  # Investment interests
+            elif response.question.id == 3: 
                 selected_options = response.answer
                 if 'Real Estate' in selected_options:
                     path_weights['Real Estate'] += 3
@@ -1348,25 +1231,23 @@ class EnhancedQuestionnaireView(APIView):
                 if 'Stocks' in selected_options:
                     path_weights['Investing'] += 2
                     
-            elif response.question.id == 4:  # Portfolio allocation
+            elif response.question.id == 4: 
                 allocation = response.answer
                 path_weights['Investing'] += int(allocation.get('Stocks', 0)) * 0.5
                 path_weights['Real Estate'] += int(allocation.get('Real Estate', 0)) * 0.8
                 path_weights['Cryptocurrency'] += int(allocation.get('Crypto', 0)) * 1.2
 
-        # Get top 3 paths
         sorted_paths = sorted(
             path_weights.items(), 
             key=lambda x: x[1], 
             reverse=True
         )[:3]
 
-        # Get recommended courses for top paths
         recommended_courses = []
         for path_name, _ in sorted_paths:
             courses = Course.objects.filter(
                 path__title=path_name
-            ).order_by('order')[:2]  # Get first 2 courses of each path
+            ).order_by('order')[:2]  
             recommended_courses.extend(courses)
 
         return {
@@ -1378,10 +1259,6 @@ class EnhancedQuestionnaireView(APIView):
             ).data
         }
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Lesson, UserProgress
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1408,7 +1285,6 @@ class RecentActivityView(APIView):
         user = request.user
         activities = []
 
-        # Lesson completions
         lesson_completions = LessonCompletion.objects.filter(
             user_progress__user=user
         ).select_related('lesson', 'user_progress__course')
@@ -1421,7 +1297,6 @@ class RecentActivityView(APIView):
                 "timestamp": lc.completed_at
             })
 
-        # Quiz completions
         quiz_completions = QuizCompletion.objects.filter(user=user).select_related('quiz')
         for qc in quiz_completions:
             activities.append({
@@ -1431,7 +1306,6 @@ class RecentActivityView(APIView):
                 "timestamp": qc.completed_at
             })
 
-        # Mission completions
         missions = MissionCompletion.objects.filter(
             user=user, 
             status='completed'
@@ -1444,7 +1318,6 @@ class RecentActivityView(APIView):
                 "timestamp": mc.completed_at
             })
 
-        # Course completions
         course_completions = UserProgress.objects.filter(
             user=user,
             is_course_complete=True
@@ -1488,24 +1361,19 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         try:
-            # Validate required fields
             reward_id = request.data.get('reward_id')
             if not reward_id:
                 return Response({"error": "Missing reward_id"}, status=400)
 
-            # Get objects
             user_profile = request.user.userprofile
             reward = Reward.objects.get(id=reward_id, is_active=True)
 
-            # Validate balance
             if user_profile.earned_money < reward.cost:
                 return Response({"error": "Insufficient funds"}, status=400)
 
-            # Process transaction
             user_profile.earned_money -= reward.cost
             user_profile.save()
 
-            # Create purchase record
             purchase = UserPurchase.objects.create(
                 user=request.user,
                 reward=reward
@@ -1567,13 +1435,11 @@ class ReferralView(APIView):
             if Referral.objects.filter(referred_user=request.user).exists():
                 return Response({"error": "You already used a referral code"}, status=400)
 
-            # Create referral
             Referral.objects.create(
                 referrer=referrer_profile.user,
                 referred_user=request.user
             )
 
-            # Add points using atomic transactions
             with transaction.atomic():
                 UserProfile.objects.filter(pk=referrer_profile.pk).update(
                     points=F('points') + 100
@@ -1612,11 +1478,6 @@ class UserSearchView(APIView):
             return Response({"error": "Error processing search"}, status=500)
 
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import FriendRequest
-
 class FriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1638,16 +1499,13 @@ class FriendRequestView(APIView):
         try:
             receiver = User.objects.get(id=receiver_id)
 
-            # Prevent sending requests to oneself
             if request.user == receiver:
                 return Response({"error": "You cannot send a request to yourself"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if a request already exists
             existing_request = FriendRequest.objects.filter(sender=request.user, receiver=receiver, status="pending")
             if existing_request.exists():
                 return Response({"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create a new friend request
             FriendRequest.objects.create(sender=request.user, receiver=receiver)
             return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
 
@@ -1694,10 +1552,6 @@ class FriendsLeaderboardView(APIView):
         serializer = LeaderboardSerializer(friend_profiles, many=True)
         return Response(serializer.data)
 
-
-# Add to views.py
-from rest_framework.decorators import action
-from rest_framework.response import Response
 
 class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
