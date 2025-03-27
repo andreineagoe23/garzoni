@@ -29,6 +29,7 @@ function LessonPage() {
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [showProgress] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [userProgress, setUserProgress] = useState(null);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -37,8 +38,8 @@ function LessonPage() {
           `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
           }
         );
 
@@ -76,7 +77,24 @@ function LessonPage() {
       }
     };
 
+    const fetchUserProgress = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          }
+        );
+        setUserProgress(response.data);
+      } catch (error) {
+        console.error("Error fetching user progress:", error);
+      }
+    };
+
     fetchLessons();
+    fetchUserProgress();
   }, [courseId]);
 
   useEffect(() => {
@@ -91,10 +109,10 @@ function LessonPage() {
         `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete_section/`,
         { section_id: sectionId },
         {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
-          }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
       );
       setCompletedSections((prev) => [...prev, sectionId]);
     } catch (err) {
@@ -108,10 +126,10 @@ function LessonPage() {
         `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
         { lesson_id: lessonId },
         {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
-          }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
       );
 
       setCompletedLessons((prev) => [...prev, lessonId]);
@@ -357,10 +375,7 @@ function LessonPage() {
         {courseCompleted && (
           <div className="course-completion">
             <h3>Congratulations! You've completed the course.</h3>
-            <button
-              className="btn btn-accent"
-              onClick={handleCourseCompletion}
-            >
+            <button className="btn btn-accent" onClick={handleCourseCompletion}>
               Take the Course Quiz
             </button>
           </div>
@@ -370,9 +385,12 @@ function LessonPage() {
       </div>
 
       <div className={`lesson-progress ${showProgress ? "show" : ""}`}>
-        <UserProgressBox />
+        {userProgress ? (
+          <UserProgressBox progressData={userProgress} />
+        ) : (
+          <p>Loading progress...</p>
+        )}
       </div>
-
     </div>
   );
 }
