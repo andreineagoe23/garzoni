@@ -170,14 +170,3 @@
     }
   }
 }
-
-// Dark mode overrides
-[data-theme="dark"] {
-  .toggle-group {
-    background: rgba(255,255,255,0.05);
-  }
-  
-  .form-control {
-    background: rgba(255,255,255,0.1);
-  }
-}
