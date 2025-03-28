@@ -1,406 +1,42 @@
-@import '../abstracts/variables';
-@import '../abstracts/mixins';
-
 .exercise-page {
-  width: 100%;
-  background-color: var(--bg-color);
-  
-  // Loading and error states
-  .loading-container {
-    @include flex-center;
-    flex-direction: column;
-    min-height: 300px;
+  @include media-breakpoint-up(lg) {
+    margin-left: 280px;
+    max-width: calc(100% - 280px);
     
-    .spinner {
-      color: var(--primary);
-      margin-bottom: map-get($spacers, 3);
+    .container {
+      max-width: 1320px; 
+      padding-right: map-get($spacers, 5);
+      padding-left: map-get($spacers, 5);
     }
   }
-  
-  .error-alert,
-  .no-exercises-alert {
-    text-align: center;
-    padding: map-get($spacers, 4);
-    margin: map-get($spacers, 5) auto;
-    max-width: 500px;
-    border-radius: var(--border-radius);
-  }
-  
-  // Page header
-  .page-header {
-    margin-bottom: map-get($spacers, 4);
-    
-    &-title {
-      font-size: 1.75rem;
-      font-weight: $font-weight-bold;
-      color: var(--text-color);
-      
-      @include media-breakpoint-up(md) {
-        font-size: 2rem;
-      }
-    }
-  }
-  
-  // Two column layout
+
   .two-column-layout {
-    display: flex;
-    flex-direction: column;
-    gap: map-get($spacers, 4);
-    
     @include media-breakpoint-up(lg) {
-      flex-direction: row;
+      gap: map-get($spacers, 5);
       
       .column-main {
-        flex: 2;
-      }
-      
-      .column-side {
-        flex: 1;
+        padding-right: map-get($spacers, 4);
       }
     }
   }
-  
-  // Exercise card
+
   .exercise-card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    border: $border-width solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    margin-bottom: map-get($spacers, 4);
-    overflow: hidden;
-    
-    .exercise-header {
-      background-color: rgba(var(--primary), 0.05);
-      padding: map-get($spacers, 3);
-      border-bottom: $border-width solid var(--border-color);
-      
-      .filter-controls {
-        display: flex;
-        flex-direction: column;
-        gap: map-get($spacers, 2);
-        
-        @include media-breakpoint-up(sm) {
-          flex-direction: row;
-          justify-content: space-between;
-        }
-        
-        .filter-select {
-          min-width: 150px;
-          border: $border-width solid var(--border-color);
-          background-color: var(--input-bg);
-          color: var(--text-color);
-        }
-      }
-    }
-    
-    .exercise-body {
+    @include media-breakpoint-up(lg) {
+      margin-top: map-get($spacers, 4);
       padding: map-get($spacers, 4);
       
-      .progress-info {
-        margin-bottom: map-get($spacers, 4);
-        
-        .exercise-count {
-          font-weight: $font-weight-semibold;
-          margin-bottom: map-get($spacers, 2);
-        }
-        
-        .exercise-progress {
-          height: 20px;
-          background-color: var(--border-color);
-          
-          .progress-bar {
-            background-color: var(--primary);
-          }
-        }
+      .exercise-body {
+        padding: map-get($spacers, 5);
       }
     }
   }
-  
-  // Exercise content
-  .exercise-content {
-    background-color: var(--card-bg);
-    padding: map-get($spacers, 4);
-    border-radius: var(--border-radius);
-    margin-bottom: map-get($spacers, 4);
-    
-    .exercise-question {
-      font-size: 1.25rem;
-      font-weight: $font-weight-semibold;
-      margin-bottom: map-get($spacers, 4);
-      color: var(--text-color);
-    }
-    
-    // Multiple choice
-    &.multiple-choice {
-      .option-list {
-        display: flex;
-        flex-direction: column;
-        gap: map-get($spacers, 2);
-        
-        .option-item {
-          padding: map-get($spacers, 2);
-          border: $border-width solid var(--border-color);
-          border-radius: var(--border-radius);
-          transition: $transition-base;
-          
-          &:hover {
-            border-color: var(--primary);
-            background-color: rgba(var(--primary), 0.05);
-          }
-          
-          .option-check {
-            margin: 0;
-          }
-        }
-      }
-    }
-    
-    // Drag and drop
-    &.drag-drop {
-      .drag-items {
-        display: flex;
-        flex-direction: column;
-        gap: map-get($spacers, 2);
-        
-        .drag-item {
-          padding: map-get($spacers, 3);
-          background-color: rgba(var(--primary), 0.05);
-          border: $border-width solid var(--border-color);
-          border-radius: var(--border-radius);
-          cursor: grab;
-          transition: $transition-smooth;
-          
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-            border-color: var(--primary);
-          }
-          
-          &:active {
-            cursor: grabbing;
-            transform: scale(1.02);
-          }
-        }
-      }
-    }
-    
-    // Budget allocation
-    &.budget-allocation {
-      .budget-categories {
-        display: grid;
-        gap: map-get($spacers, 3);
-        
-        @include media-breakpoint-up(md) {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .budget-category {
-          display: flex;
-          flex-direction: column;
-          gap: map-get($spacers, 2);
-          
-          .budget-input {
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border: $border-width solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            padding: map-get($spacers, 2);
-          }
-        }
-      }
-    }
-  }
-  
-  // Error display
-  .exercise-error {
-    padding: map-get($spacers, 4);
-    text-align: center;
-    color: var(--danger);
-    background-color: rgba(var(--danger), 0.1);
-    border-radius: var(--border-radius);
-    margin: map-get($spacers, 4) 0;
-  }
-  
-  // Exercise actions
-  .exercise-actions {
-    margin-top: map-get($spacers, 4);
-    
-    .correction-container {
-      display: flex;
-      flex-direction: column;
-      gap: map-get($spacers, 3);
-      
-      .correction-alert {
-        text-align: center;
-        font-weight: $font-weight-semibold;
-      }
-      
-      .navigation-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: map-get($spacers, 2);
-        
-        @include media-breakpoint-up(sm) {
-          flex-direction: row;
-          justify-content: space-between;
-        }
-        
-        button {
-          width: 100%;
-          
-          @include media-breakpoint-up(sm) {
-            width: auto;
-          }
-        }
-      }
-    }
-    
-    .submit-btn {
-      width: 100%;
-      padding: map-get($spacers, 2) map-get($spacers, 4);
-      font-size: 1.125rem;
-      
-      @include media-breakpoint-up(sm) {
-        width: auto;
-        min-width: 200px;
-        margin: 0 auto;
-        display: block;
-      }
-    }
-  }
-  
-  // Progress card
+
   .progress-card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    border: $border-width solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    height: 100%;
-    
-    .progress-title {
-      font-size: 1.25rem;
-      font-weight: $font-weight-semibold;
-      margin: 0;
-    }
-    
-    .progress-list {
-      display: flex;
-      flex-direction: column;
-      gap: map-get($spacers, 2);
-      
-      .progress-item {
-        display: flex;
-        justify-content: space-between;
-        padding: map-get($spacers, 2);
-        border-radius: var(--border-radius-sm);
-        background-color: rgba(var(--border-color), 0.3);
-        
-        &.correct {
-          border-left: 4px solid var(--success);
-        }
-        
-        &.incorrect {
-          border-left: 4px solid var(--danger);
-        }
-        
-        .exercise-label {
-          font-weight: $font-weight-semibold;
-        }
-        
-        .attempt-count {
-          color: rgba(var(--text-color), 0.7);
-        }
-      }
-      
-      .no-progress {
-        text-align: center;
-        padding: map-get($spacers, 3);
-        color: rgba(var(--text-color), 0.7);
-      }
+    @include media-breakpoint-up(lg) {
+      position: sticky;
+      top: map-get($spacers, 4); // Sticky progress panel
+      max-height: calc(100vh - #{map-get($spacers, 8)});
+      overflow-y: auto;
     }
   }
-  
-  // Button styling (using mixins from _buttons.scss)
-  .btn-accent {
-    @include button-accent-variant;
-    background-color: var(--primary);
-    color: var(--accent);
-    font-weight: $font-weight-semibold;
-  }
-  
-  .btn-outline-accent {
-    @include button-outline-accent-variant;
-  }
-  
-  .btn-3d {
-    position: relative;
-    border-bottom: 4px solid rgba(0,0,0,0.2);
-    
-    &:hover {
-      transform: translateY(-2px);
-    }
-    
-    &:active {
-      border-bottom-width: 2px;
-      transform: translateY(2px);
-    }
-  }
-}
-
-.budget-allocation-input {
-  
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  // Modern styling
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  background: var(--input-bg);
-  color: var(--text-color);
-  font-size: 1rem;
-  text-align: center;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
-  }
-  
-  &[type="number"] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-  }
-}.budget-allocation-input {
-
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-  appearance: textfield;
-  
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  // Modern styling
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  background: var(--input-bg);
-  color: var(--text-color);
-  font-size: 1rem;
-  text-align: center;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
-  }
-
 }

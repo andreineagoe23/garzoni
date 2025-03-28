@@ -3,6 +3,7 @@ import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import "../styles/scss/main.scss";
 import axios from "axios";
+import Chatbot from "./Chatbot";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
@@ -57,6 +58,7 @@ function RewardsPage() {
         {activeTab === "shop" && <ShopItems onPurchase={fetchBalance} />}
         {activeTab === "donate" && <DonationCauses onDonate={fetchBalance} />}
       </div>
+      <Chatbot />
     </div>
   );
 }

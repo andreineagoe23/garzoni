@@ -11,7 +11,7 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile] = useState(false);
   const shouldShowChatbot = true;
 
   // Hugging Face Configuration
@@ -42,16 +42,6 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
   <</SYS>>`;
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 992px)");
-    setIsMobile(mediaQuery.matches);
-
-    const handleResize = (e) => setIsMobile(e.matches);
-    mediaQuery.addEventListener("change", handleResize);
-
-    return () => mediaQuery.removeEventListener("change", handleResize);
-  }, []);
-
-  useEffect(() => {
     if (isVisible && !hasGreeted && shouldShowChatbot) {
       setChatHistory([
         {
@@ -78,14 +68,6 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
 
     setTimeout(loadVoices, 500);
   }, []);
-
-  useEffect(() => {
-    if (isMobile && !isVisible) {
-      // Reset chat history when closing on mobile
-      setChatHistory([]);
-      setHasGreeted(false);
-    }
-  }, [isVisible, isMobile]);
 
   const speakResponse = (text) => {
     if (isSpeechEnabled && selectedVoice) {

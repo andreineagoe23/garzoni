@@ -30,7 +30,6 @@ import ExercisePage from "./components/ExercisePage";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
 
-// Main App component
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
@@ -48,20 +47,23 @@ function App() {
         <div className="app-container">
           <AppContent
             toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
-          />
-          <Chatbot
-            isVisible={isChatbotVisible}
-            setIsVisible={setIsChatbotVisible}
-            isMobile={isMobileView}
+            isChatbotVisible={isChatbotVisible}
+            setIsChatbotVisible={setIsChatbotVisible}
+            isMobileView={isMobileView}
           />
         </div>
       </ThemeProvider>
     </Router>
   );
 }
-
-const AppContent = ({ toggleChatbot }) => {
+const AppContent = ({
+  toggleChatbot,
+  isChatbotVisible,
+  setIsChatbotVisible,
+  isMobileView,
+}) => {
   const location = useLocation();
+
   const noNavbarPaths = [
     "/",
     "/login",
@@ -71,6 +73,7 @@ const AppContent = ({ toggleChatbot }) => {
     "/password-reset",
     "/questionnaire",
   ];
+  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/" ];
 
   axios.interceptors.request.use((config) => {
     const tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -85,6 +88,7 @@ const AppContent = ({ toggleChatbot }) => {
       {!noNavbarPaths.includes(location.pathname) && (
         <Navbar toggleChatbot={toggleChatbot} />
       )}
+
       <main className="content">
         <ThemeProvider>
           <Routes>
@@ -124,6 +128,15 @@ const AppContent = ({ toggleChatbot }) => {
           </Routes>
         </ThemeProvider>
       </main>
+
+      {/* Chatbot conditional */}
+      {!noChatbotPaths.includes(location.pathname) && (
+        <Chatbot
+          isVisible={isChatbotVisible}
+          setIsVisible={setIsChatbotVisible}
+          isMobile={isMobileView}
+        />
+      )}
     </Container>
   );
 };
