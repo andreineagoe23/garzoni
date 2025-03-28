@@ -44,7 +44,7 @@ Monevo is an interactive and engaging financial education platform designed to m
 
 ### 1️⃣ Clone the Repository
 ```sh
- git clone https://github.com/yourusername/monevo.git
+ git clone https://github.com/andreineagoe23/monevo.git
  cd monevo
 ```
 
@@ -65,20 +65,15 @@ Monevo is an interactive and engaging financial education platform designed to m
  npm run dev
 ```
 
-## 📸 Screenshots
-| Dashboard | Leaderboard | AI Chatbot |
-|-----------|------------|------------|
-| ![Dashboard](screenshots/dashboard.png) | ![Leaderboard](screenshots/leaderboard.png) | ![Chatbot](screenshots/chatbot.png) |
-
 ## 🚀 Deployment
-- **Frontend:** Vercel - [Live Demo](https://monevo.vercel.app)
+- **Frontend:** Vercel - [Live Demo](https://www.monevo.tech)
 - **Backend:** PythonAnywhere
 
 ## 🤝 Contributing
 Contributions are welcome! Feel free to fork the repository and submit pull requests.
 
 ## 📩 Contact
-For any questions or collaboration opportunities, reach out via email: `your.email@example.com` or connect on [LinkedIn](https://linkedin.com/in/your-profile).
+For any questions or collaboration opportunities, reach out via email: `neagoe.andrei23@yahoo.com`
 
 ---
 **Monevo - Transforming Financial Education Through Gamification** 🎓💰
