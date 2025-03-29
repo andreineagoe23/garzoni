@@ -1,40 +1,61 @@
+// _header.scss
 .app-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  transition: all 0.3s ease;
+  z-index: 1000;
+
+  &__brand {
     display: flex;
     align-items: center;
-    padding: 0 2rem;
-    transition: all 0.3s ease;
-  
-    &__brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: $accent;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
       text-decoration: none;
-      
-      &:hover {
-        color: lighten($accent, 10%);
-      }
     }
-  
-    &__nav {
-      margin-left: auto;
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
-  
-    // Mobile toggle button
-    &__toggle {
-      display: none;
-      @include media-breakpoint-down(lg) {
-        display: block;
-        margin-left: 1rem;
-      }
+
+    img {
+      transition: transform 0.3s ease;
     }
   }
+
+  .app-header__text {
+    font-size: 2rem;
+    font-weight: $font-weight-bold;
+    color: var(--text-color);
+    margin-left: 0.5rem;
+  }
+
+  // Dark mode toggle
+  .btn-link {
+    color: var(--text-color) !important;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--primary) !important;
+    }
+  }
+
+  // Mobile adjustments
+  @include media-breakpoint-down(md) {
+    padding: 0 1rem;
+    
+    &__brand img {
+      height: 35px !important;
+    }
+
+    .btn {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+    }
+  }
+}

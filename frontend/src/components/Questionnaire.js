@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import Header from "./Header";
+
 
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
@@ -143,6 +145,7 @@ const Questionnaire = () => {
       case "budget_allocation":
         return (
           <div className="budget-container">
+            <Header />
             <div className="budget-categories">
               {question.options.map((category, index) => (
                 <div key={index} className="budget-category">

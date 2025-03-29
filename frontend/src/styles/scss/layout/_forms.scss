@@ -1,0 +1,103 @@
+// _forms.scss
+// Global form styles
+.form-container {
+    max-width: 100%;
+    margin: 0 auto;
+    margin-top: 50px;
+    padding: map-get($spacers, 3);
+    
+    @include media-breakpoint-up(sm) {
+      padding: map-get($spacers, 4);
+      max-width: 600px;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: map-get($spacers, 3);
+    
+    .form-label {
+      font-size: 0.9rem;
+      font-weight: $font-weight-semibold;
+      margin-bottom: map-get($spacers, 2);
+      color: rgba(var(--text-color), 0.9);
+    }
+  
+    .form-control {
+      border: 1px solid var(--border-color);
+      border-radius: $border-radius-sm;
+      padding: map-get($spacers, 3);
+      font-size: 0.95rem;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      transition: $transition-base;
+  
+      &:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+      }
+  
+      @include media-breakpoint-between(md, lg) {
+        padding: map-get($spacers, 1.5);
+        font-size: 0.9rem;
+      }
+    
+      @include media-breakpoint-down(md) {
+        padding: map-get($spacers, 1);
+        font-size: 0.875rem;
+      }
+    
+      @include media-breakpoint-down(sm) {
+        padding: map-get($spacers, 0.75);
+        font-size: 0.85rem;
+      }
+    }
+  }
+  
+  // Compact form variant for auth screens
+  .compact-form {
+    .form-group {
+      margin-bottom: map-get($spacers, 3);
+  
+      .form-label {
+        font-size: 0.85rem;
+        margin-bottom: map-get($spacers, 1);
+      }
+  
+      .form-control {
+        padding: map-get($spacers, 2);
+        font-size: 0.9rem;
+      }
+    }
+  
+    @include media-breakpoint-down(sm) {
+      .form-group {
+        margin-bottom: map-get($spacers, 2);
+        
+        .form-control {
+          padding: map-get($spacers, 1.5);
+          font-size: 0.825rem;
+        }
+      }
+    }
+  }
+  
+  // Radio/Checkbox groups
+  .radio-group,
+  .checkbox-group {
+    display: flex;
+    gap: map-get($spacers, 3);
+    margin-top: map-get($spacers, 2);
+  
+    @include media-breakpoint-down(sm) {
+      gap: map-get($spacers, 2);
+    }
+  }
+  
+  // Form button container
+  .form-actions {
+    margin-top: map-get($spacers, 4);
+    
+    @include media-breakpoint-down(sm) {
+      margin-top: map-get($spacers, 3);
+    }
+  }
