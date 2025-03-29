@@ -1,64 +1,81 @@
-.register {
-    &-container {
-      max-width: 500px;
-      width: 90%;
-      padding: 2.5rem;
-      background-color: var(--card-bg);
-      border-radius: $border-radius-lg;
-      box-shadow: $box-shadow-lg;
-      position: relative;
-      margin: 2rem auto;
-      
-      @include media-breakpoint-up(md) {
-        margin: 4rem auto;
-        padding: 3rem;
+// _register.scss
+.split-screen__form {
+  @extend .compact-form;
+
+  .auth-container {
+    @extend .form-container;
+    padding-top: map-get($spacers, 4);
+    padding-bottom: map-get($spacers, 4);
+
+    @include media-breakpoint-down(sm) {
+      padding-top: map-get($spacers, 2);
+      padding-bottom: map-get($spacers, 2);
+      // Hide logo on mobile
+      .auth-logo {
+        display: none;
       }
     }
-  
-    &-heading {
-      font-size: 1.75rem;
-      color: var(--primary);
-      margin-bottom: 2rem;
-      font-weight: $font-weight-bold;
-      
-      @include media-breakpoint-up(md) {
-        font-size: 2rem;
-      }
-    }
-  
-    .form-label {
-      font-weight: $font-weight-semibold;
-      color: var(--text-color);
-    }
-  
-    .form-control {
-      background-color: var(--input-bg);
-      border: 2px solid var(--border-color);
-      color: var(--text-color);
-      transition: all 0.3s ease;
-  
-      &:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
-      }
-    }
-  
-    .radio-group {
-      .form-check {
-        margin-right: 1.5rem;
-        display: inline-flex;
-        align-items: center;
-      }
-  
-      .form-check-input {
-        margin-top: 0;
-        margin-right: 0.5rem;
-      }
-    }
-  
-    .logo {
-      max-width: 180px;
-      margin-bottom: 2rem;
-      filter: drop-shadow(0 2px 4px rgba(var(--dark-rgb), 0.1));
+
+    // Add mobile-specific padding adjustment
+    @include media-breakpoint-down(md) {
+      padding-top: map-get($spacers, 3) !important;
     }
   }
+
+  .auth-heading {
+    font-size: 1.75rem;
+
+    @include media-breakpoint-down(sm) {
+      font-size: 1.25rem;
+      margin-bottom: map-get($spacers, 3) !important;
+    }
+  }
+
+  .form-actions {
+    @extend .form-actions;
+  }
+
+  .btn-3d {
+    transform: translateY(0);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 0 var(--primary-dark);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--primary-dark);
+    }
+
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--primary-dark);
+    }
+  }
+
+  // Adjust radio group spacing
+  .radio-group {
+    gap: map-get($spacers, 2);
+
+    @include media-breakpoint-down(sm) {
+      gap: map-get($spacers, 1);
+    }
+  }
+
+  @include media-breakpoint-down(md) {
+    height: auto;
+    min-height: 100vh;
+    padding: map-get($spacers, 2) !important;
+  }
+}
+
+// Split-screen mobile override
+@include media-breakpoint-down(md) {
+  .split-screen {
+    &__image {
+      height: 25vh !important;
+    }
+
+    &__form {
+      min-height: 75vh !important;
+    }
+  }
+}

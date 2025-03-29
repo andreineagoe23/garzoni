@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import logo from "../assets/monevo.png";
+import loginBg from "../assets/login-bg.jpg";
+import Header from "./Header";
 
 function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -22,9 +24,8 @@ function Login() {
         formData
       );
 
-      // Store tokens
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
+      localStorage.setItem("access_token", response.data.access);
+      localStorage.setItem("refresh_token", response.data.refresh);
 
       await fetchUserData();
       setUserAuthenticated(true);
@@ -42,8 +43,8 @@ function Login() {
     try {
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -51,51 +52,66 @@ function Login() {
   };
 
   return (
-    <div className="login__container">
-      <img src={logo} alt="Logo" className="login__logo" />
-      <h2 className="login__heading">Login to Your Account</h2>
+    <div className="split-screen">
+      <Header />
+      <div
+        className="split-screen__image"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      ></div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      <div className="split-screen__form">
+        <div className="auth-container">
+          <img src={logo} alt="Logo" className="auth-logo" />
+          <h2 className="auth-heading">Login to Your Account</h2>
 
-      <Form onSubmit={handleLogin}>
-        <Form.Group className="mb-4">
-          <Form.Label>Username</Form.Label>
-          <Form.Control
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
+          {error && <Alert variant="danger">{error}</Alert>}
 
-        <Form.Group className="mb-4">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
+          <Form onSubmit={handleLogin}>
+            <Form.Group className="mb-4">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
-        <div className="d-grid gap-3 mb-4">
-          <Button variant="primary" size="lg" type="submit" className="btn-3d">
-            Login
-          </Button>
+            <Form.Group className="mb-4">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <div className="d-grid gap-3 mb-4">
+              <Button
+                variant="primary"
+                size="lg"
+                type="submit"
+                className="btn-3d"
+              >
+                Login
+              </Button>
+            </div>
+
+            <div className="text-center">
+              <Button
+                variant="link"
+                onClick={() => navigate("/forgot-password")}
+                className="text-decoration-none"
+              >
+                Forgot Password?
+              </Button>
+            </div>
+          </Form>
         </div>
-
-        <div className="text-center">
-          <Button
-            variant="link"
-            onClick={() => navigate("/forgot-password")}
-            className="text-decoration-none"
-          >
-            Forgot Password?
-          </Button>
-        </div>
-      </Form>
+      </div>
     </div>
   );
 }

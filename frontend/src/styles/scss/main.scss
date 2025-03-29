@@ -22,7 +22,6 @@
 @import "base/utilities";
 @import "components/buttons";
 @import "components/cards";
-@import "components/forms";
 @import "components/welcome";
 @import "components/register";
 @import "components/login";
@@ -57,6 +56,8 @@
 @import "layout/sidebar";
 @import "layout/header";
 @import "layout/app-layout";
+@import "layout/auth-layout";
+@import "layout/forms";
 
 @import "abstracts/drag-drop-exercise";
 @import "abstracts/budget-allocation";

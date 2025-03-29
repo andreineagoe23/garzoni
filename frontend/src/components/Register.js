@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import logo from "../assets/monevo.png";
+import registerBg from "../assets/register-bg.jpg";
+import Header from "./Header";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -36,10 +38,8 @@ function Register() {
         formData
       );
 
-      // Store tokens
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
-
+      localStorage.setItem("access_token", response.data.access);
+      localStorage.setItem("refresh_token", response.data.refresh);
       navigate(response.data.next);
     } catch (error) {
       console.error("Registration failed", error);
@@ -50,110 +50,123 @@ function Register() {
   };
 
   return (
-    <div className="register-container">
-      <img src={logo} alt="Logo" className="img-fluid logo" />
-      <h2 className="register-heading">Create Your Account</h2>
+    <div className="split-screen">
+      <Header />
+      <div
+        className="split-screen__image"
+        style={{ backgroundImage: `url(${registerBg})` }}
+      ></div>
 
-      {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+      <div className="split-screen__form">
+        <div className="auth-container">
+          <img src={logo} alt="Logo" className="auth-logo" />
+          <h2 className="auth-heading">Create Your Account</h2>
 
-      <Form onSubmit={handleRegister}>
-        <Form.Group className="mb-4">
-          <Form.Label>Username</Form.Label>
-          <Form.Control
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
+          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
-        <Form.Group className="mb-4">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
+          <Form onSubmit={handleRegister}>
+              <Form.Group className="mb-4">
+                <Form.Label>First Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
 
-        <Form.Group className="mb-4">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
+              <Form.Group className="mb-4">
+                <Form.Label>Last Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
 
-        <div className="row g-4 mb-4">
-          <Form.Group className="col-md-6">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
-          <Form.Group className="col-md-6">
-            <Form.Label>Last Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+              <Form.Label>Referral Code (optional)</Form.Label>
+              <Form.Control
+                type="text"
+                name="referral_code"
+                value={formData.referral_code}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+              <Form.Label>Personalized Learning Path?</Form.Label>
+              <div className="radio-group">
+                <Form.Check
+                  type="radio"
+                  label="Yes"
+                  name="wants_personalized_path"
+                  value="true"
+                  checked={formData.wants_personalized_path === true}
+                  onChange={handleRadioChange}
+                  inline
+                />
+                <Form.Check
+                  type="radio"
+                  label="No"
+                  name="wants_personalized_path"
+                  value="false"
+                  checked={formData.wants_personalized_path === false}
+                  onChange={handleRadioChange}
+                  inline
+                />
+              </div>
+            </Form.Group>
+
+            <div className="d-grid gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                type="submit"
+                className="btn-3d"
+              >
+                Register
+              </Button>
+            </div>
+          </Form>
         </div>
-
-        <Form.Group className="mb-4">
-          <Form.Label>Referral Code (optional)</Form.Label>
-          <Form.Control
-            type="text"
-            name="referral_code"
-            value={formData.referral_code}
-            onChange={handleChange}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-4">
-          <Form.Label>Personalized Learning Path?</Form.Label>
-          <div className="radio-group">
-            <Form.Check
-              type="radio"
-              label="Yes"
-              name="wants_personalized_path"
-              value="true"
-              checked={formData.wants_personalized_path === true}
-              onChange={handleRadioChange}
-              inline
-            />
-            <Form.Check
-              type="radio"
-              label="No"
-              name="wants_personalized_path"
-              value="false"
-              checked={formData.wants_personalized_path === false}
-              onChange={handleRadioChange}
-              inline
-            />
-          </div>
-        </Form.Group>
-
-        <div className="d-grid gap-3">
-          <Button variant="primary" size="lg" type="submit" className="btn-3d">
-            Register
-          </Button>
-        </div>
-      </Form>
+      </div>
     </div>
   );
 }

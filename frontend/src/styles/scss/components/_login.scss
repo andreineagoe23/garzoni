@@ -1,68 +1,11 @@
 // _login.scss
-.login {
-  &__container {
-    max-width: 500px;
-    width: 100%;
-    padding: 2rem;
-    background-color: var(--card-bg);
-    border-radius: $border-radius-lg;
-    box-shadow: $box-shadow-lg;
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 100vh;
-    
-    @include media-breakpoint-up(sm) {
-      min-height: auto;
-      padding: 2.5rem;
-      margin: 2rem auto;
-    }
-    
-    @include media-breakpoint-down(sm) {
-      padding: 1.5rem;
-      box-shadow: none;
-      background-color: transparent;
-    }
-  }
-
-  &__heading {
-    font-size: 1.75rem;
-    color: var(--primary);
-    margin-bottom: 2rem;
-    text-align: center;
-    
-    @include media-breakpoint-up(md) {
-      font-size: 1.5rem;
-    }
-  }
-
-  &__logo {
-    margin: 0 auto 2rem;
-    
-    @include media-breakpoint-up(sm) {
-      max-width: 240px;
-    }
-    
-    @include media-breakpoint-up(md) {
-      max-width: 200px;
-    }
-    
-    @include media-breakpoint-down(sm) {
-      max-width: 150px;
-    }
-  }
-
-  .form-label {
-    font-weight: $font-weight-semibold;
-    color: var(--text-color);
-    margin-bottom: 0.5rem;
-  }
-
+.split-screen__form {
   .form-control {
     border: 2px solid var(--border-color);
-    border-radius: $border-radius;
-    padding: 0.75rem 1rem;
+    border-radius: $border-radius-lg;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: $transition-base;
     
     &:focus {
       border-color: var(--primary);
@@ -70,27 +13,47 @@
     }
   }
 
-  .btn-accent {
-    @include button-accent-variant;
-    font-weight: $font-weight-bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .btn-3d {
+    transform: translateY(0);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 0 var(--primary-dark);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--primary-dark);
+    }
+    
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--primary-dark);
+    }
   }
 
-  .forgot-password-link {
+  .alert {
+    border-radius: $border-radius-lg;
+  }
+
+  .text-decoration-none {
     color: var(--text-color);
     font-size: 0.9rem;
-    text-align: center;
-    display: block;
-    margin-top: 1.5rem;
-    padding-bottom: 1rem;
     
     &:hover {
       color: var(--primary);
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .split-screen__form {
+    padding: map-get($spacers, 3);
+    
+    .auth-container {
+      padding: 0;
     }
     
-    @include media-breakpoint-up(md) {
-      margin-top: 2rem;
+    .form-control {
+      padding: 0.65rem;
     }
   }
 }
