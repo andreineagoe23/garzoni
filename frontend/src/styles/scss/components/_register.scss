@@ -16,10 +16,18 @@
       }
     }
 
-    // Add mobile-specific padding adjustment
     @include media-breakpoint-down(md) {
       padding-top: map-get($spacers, 3) !important;
     }
+  }
+
+  .mb-4 {
+    max-height: 55px;
+
+  }
+
+  .form-control {
+    max-height: 40px;
   }
 
   .auth-heading {

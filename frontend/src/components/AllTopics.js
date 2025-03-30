@@ -52,7 +52,7 @@ function AllTopics({ onCourseClick }) {
                   />
                 )}
 
-                <p className="card-text text-muted mb-4">{path.description}</p>
+                <p>{path.description}</p>
                 
                 <button
                   className="btn btn-outline-primary w-100"
