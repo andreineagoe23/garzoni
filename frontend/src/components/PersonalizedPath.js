@@ -142,7 +142,7 @@ function PersonalizedPath({ onCourseClick }) {
                 onClick={() => handleCourseClick(course.id)}
               >
                 <div className="course-tags">
-                  <span className={`tag bg-primary bg-opacity-10 text-primary`}>
+                  <span className={`text-muted mt-2 d-block`}>
                     {course.path_title}
                   </span>
                 </div>
