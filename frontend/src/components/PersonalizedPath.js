@@ -1,102 +1,100 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import "../styles/scss/main.scss";
+import Loader from "../components/Loader";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const [recommendationMessage, setRecommendationMessage] = useState(
-    "Here are some courses we recommend for you based on your preferences:"
-  );
+  const location = useLocation();
+  const [paymentVerified, setPaymentVerified] = useState(false);
 
-  const handleCourseClick = (courseId) => {
-    onCourseClick(courseId);
-  };
-
+  // First check: Authentication & Payment Status
   useEffect(() => {
-    const fetchPersonalizedPath = async () => {
+    const verifyAuthAndPayment = async () => {
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+        return;
+      }
+
       try {
-        setIsLoading(true);
-        setError(null);
-
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
+        // Check authentication validity
+        await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`, 
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+            headers: { Authorization: `Bearer ${token}` }
           }
         );
 
-        if (!response.data?.courses?.length) {
-          setError("No recommendations found matching your profile");
-          return;
+        // Check payment status
+        const profileRes = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (!profileRes.data.has_paid) {
+          navigate("/payment-required");
+        } else {
+          setPaymentVerified(true);
+          fetchPersonalizedPath();
         }
-
-        setPersonalizedCourses(
-          response.data.courses.map((course) => ({
-            ...course,
-            image: course.image || "/fallback-course.png",
-            progress: course.completed_lessons || 0,
-            totalLessons: course.total_lessons || 0,
-          }))
-        );
-
-        setRecommendationMessage(
-          response.data.message || "Your personalized learning path:"
-        );
       } catch (error) {
-        if (error.response) {
-          if (error.response.status === 400) {
-            navigate("/questionnaire");
-            return;
-          }
-          if (error.response.status === 503) {
-            setError(
-              "Service temporarily unavailable. Please try again later."
-            );
-            return;
-          }
-        }
-        setError(
-          "We're having trouble loading recommendations. Please try again later."
-        );
-      } finally {
-        setIsLoading(false);
+        console.error("Verification error:", error);
+        localStorage.removeItem("access_token");
+        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
       }
     };
 
-    fetchPersonalizedPath();
-  }, [navigate]);
+    verifyAuthAndPayment();
+  }, [navigate, location.pathname]);
 
-  if (isLoading) {
-    return (
-      <div className="container d-flex flex-column align-items-center justify-content-center min-vh-50">
-        <div
-          className="spinner-border text-primary"
-          style={{ width: "3rem", height: "3rem" }}
-          role="status"
-        >
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-4 text-muted fs-5">
-          Loading your personalized learning path...
-        </p>
-      </div>
-    );
+  // Fetch personalized path data after verification
+  const fetchPersonalizedPath = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
+
+      setPersonalizedCourses(
+        response.data.courses.map((course) => ({
+          ...course,
+          image: course.image || "/fallback-course.png",
+          progress: course.completed_lessons || 0,
+          totalLessons: course.total_lessons || 0,
+        }))
+      );
+      setIsLoading(false);
+    } catch (error) {
+      setError("Failed to load recommendations. Please try again later.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleCourseClick = (courseId) => {
+    if (onCourseClick) onCourseClick(courseId);
+  };
+
+  if (!paymentVerified || isLoading) {
+    return <Loader message="Verifying your access..." />;
   }
 
   if (error) {
     return (
       <div className="container text-center py-5">
-        <div
-          className="alert alert-danger mx-auto"
-          style={{ maxWidth: "600px" }}
-        >
+        <div className="alert alert-danger mx-auto" style={{ maxWidth: "600px" }}>
           <h2 className="h4 mb-3">⚠️ Error Loading Recommendations</h2>
           <p className="mb-4">{error}</p>
           <button
@@ -114,7 +112,7 @@ function PersonalizedPath({ onCourseClick }) {
     <div className="personalized-path container-lg">
       <div className="path-header text-center mb-5">
         <p className="recommendation-message display-6 mb-0">
-          {recommendationMessage}
+          Your personalized learning path:
         </p>
       </div>
 
@@ -156,9 +154,7 @@ function PersonalizedPath({ onCourseClick }) {
                         className="progress-bar"
                         role="progressbar"
                         style={{
-                          width: `${
-                            (course.progress / course.totalLessons) * 100
-                          }%`,
+                          width: `${(course.progress / course.totalLessons) * 100}%`,
                           transition: "width 0.5s ease",
                         }}
                       ></div>

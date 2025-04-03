@@ -14,6 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
+import stripe
 from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
 LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
 from .serializers import (
@@ -963,6 +964,12 @@ class PersonalizedPathView(APIView):
             user = request.user
             user_profile = UserProfile.objects.get(user=user)
 
+            if not (user_profile.wants_personalized_path and user_profile.has_paid):
+                return Response(
+                    {"error": "Complete payment to unlock personalized path"},
+                    status=403
+                )
+
             if user_profile.recommended_courses:
                 recommended_courses = Course.objects.filter(
                     id__in=user_profile.recommended_courses
@@ -1192,14 +1199,31 @@ class EnhancedQuestionnaireView(APIView):
                 user_profile.recommended_courses = [] 
                 user_profile.save()
 
-                return Response({
-                    "success": True,
-                    "redirect": "/personalized-path/"
-                }, status=200)
+            # Configure Stripe with your API key
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            # Create Stripe Checkout Session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=f'{settings.FRONTEND_URL}/personalized-path',
+                cancel_url=f'{settings.FRONTEND_URL}/questionnaire',
+                client_reference_id=request.user.id,
+                metadata={'user_id': request.user.id}
+            )
+
+            return Response({
+                "success": True,
+                "redirect_url": checkout_session.url
+            }, status=200)
 
         except Exception as e:
-            logger.error(f"Questionnaire submit error: {str(e)}")
-            return Response({"error": "Failed to process responses"}, status=500)
+            logger.error(f"Stripe error: {str(e)}")
+            return Response({"error": "Payment processing failed"}, status=500)
 
     def validate_budget_allocation(self, allocation):
         total = sum(int(value) for value in allocation.values())
@@ -1259,6 +1283,34 @@ class EnhancedQuestionnaireView(APIView):
             ).data
         }
 
+class StripeWebhookView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError as e:
+            return Response(status=400)
+        except stripe.error.SignatureVerificationError as e:
+            return Response(status=400)
+
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            user_id = session['client_reference_id']
+            
+            try:
+                user_profile = UserProfile.objects.get(user__id=user_id)
+                user_profile.has_paid = True
+                user_profile.save()
+            except UserProfile.DoesNotExist:
+                pass
+
+        return Response(status=200)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1270,7 +1322,7 @@ def get_exercise_progress(request, exercise_id):
         if user_progress:
             return Response({
                 "completed": lesson in user_progress.completed_lessons.all(),
-                "answers": {}  # Add logic to fetch saved answers if applicable
+                "answers": {} 
             })
         else:
             return Response({"completed": False, "answers": {}})

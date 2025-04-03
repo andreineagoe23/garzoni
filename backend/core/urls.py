@@ -42,6 +42,7 @@ from .views import (
     complete_exercise,
     reset_exercise,
     TokenObtainPairView,
+    StripeWebhookView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -92,6 +93,8 @@ urlpatterns = [
     path('enhanced-questionnaire/submit/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire-submit'),
     path('enhanced-questionnaire/', EnhancedQuestionnaireView.as_view(), name='enhanced-questionnaire'),
     path('personalized-path/', PersonalizedPathView.as_view(), name='personalized-path'),
+
+    path('stripe-webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
 
     path('exercises/complete/', complete_exercise, name='complete-exercise'),
     path('exercises/reset/', reset_exercise, name='reset-exercise'),

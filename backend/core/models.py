@@ -27,6 +27,7 @@ class UserProfile(models.Model):
     )
     referral_points = models.PositiveIntegerField(default=0)
     dark_mode = models.BooleanField(default=False)
+    has_paid = models.BooleanField(default=False)
 
     FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
@@ -584,3 +585,17 @@ class ExerciseCompletion(models.Model):
 
     class Meta:
         unique_together = ('user', 'exercise', 'section')
+
+class StripePayment(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
+    stripe_payment_id = models.CharField(max_length=255, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='GBP')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} {self.currency}"
