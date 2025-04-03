@@ -27,6 +27,7 @@ import ResetPassword from "./components/ResetPassword";
 import RewardsPage from "./components/RewardsPage";
 import { ThemeProvider } from "../src/components/ThemeContext";
 import ExercisePage from "./components/ExercisePage";
+import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
 
@@ -72,8 +73,9 @@ const AppContent = ({
     "/forgot-password",
     "/password-reset",
     "/questionnaire",
+    "/payment-required",
   ];
-  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/" ];
+  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/", "/payment-required" ];
 
   axios.interceptors.request.use((config) => {
     const tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -109,6 +111,7 @@ const AppContent = ({
                 />
               }
             />
+            <Route path="/payment-required" element={<PaymentRequired />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/rewards" element={<RewardsPage />} />
