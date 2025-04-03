@@ -15,11 +15,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 import stripe
-from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, 
+from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation,
 LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
 from .serializers import (
-    UserProfileSerializer, CourseSerializer, LessonSerializer, 
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer, 
+    UserProfileSerializer, CourseSerializer, LessonSerializer,
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer,
     ToolSerializer, SimulatedSavingsAccountSerializer,
     QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
     UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer, ExerciseSerializer, UserExerciseProgressSerializer
@@ -87,7 +87,7 @@ class UserProfileView(APIView):
             "user_data": user_data,
             "streak": progress.streak if progress else 0,
             "profile_avatar": user_profile.profile_avatar,
-            "is_questionnaire_completed": is_completed, 
+            "is_questionnaire_completed": is_completed,
             "referral_code": user_profile.referral_code,
         })
 
@@ -99,7 +99,7 @@ class UserProfileView(APIView):
             user_profile.email_reminders = email_reminders
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
-    
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -124,10 +124,10 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
-        
+
         return Response({
             "access": str(refresh.access_token),
             "refresh": str(refresh),
@@ -205,20 +205,20 @@ class CourseViewSet(viewsets.ModelViewSet):
 def update_avatar(request):
     """Update user's avatar"""
     avatar_url = request.data.get('profile_avatar')
-    
+
     if not avatar_url or not (
-        avatar_url.startswith('https://avatars.dicebear.com/') or 
+        avatar_url.startswith('https://avatars.dicebear.com/') or
         avatar_url.startswith('https://api.dicebear.com/')
     ):
         return Response(
             {"error": "Invalid avatar URL. Only DiceBear avatars are allowed."},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     user_profile = request.user.userprofile
     user_profile.profile_avatar = avatar_url
     user_profile.save()
-    
+
     return Response({"status": "success", "avatar_url": avatar_url})
 
 
@@ -231,7 +231,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     def complete_section(self, request, pk=None):
         lesson = self.get_object()
         section_id = request.data.get('section_id')
-        
+
         # Track progress
         progress, _ = UserProgress.objects.get_or_create(
             user=request.user,
@@ -239,7 +239,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         )
         progress.completed_sections.add(section_id)
         progress.save()
-        
+
         return Response({"message": "Section completed!", "next_section": get_next_section()})
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
@@ -262,11 +262,11 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         lessons = self.get_queryset().filter(course_id=course_id).prefetch_related('sections')
         serializer = self.get_serializer(
-            lessons, 
+            lessons,
             many=True,
             context={'completed_lesson_ids': completed_lesson_ids}
         )
-        lesson_data = serializer.data  
+        lesson_data = serializer.data
 
         for lesson in lesson_data:
             total = len(lesson['sections'])
@@ -291,8 +291,8 @@ class LessonViewSet(viewsets.ModelViewSet):
             user_progress.save()
 
             user_profile = user.userprofile
-            user_profile.add_money(5.00)  
-            user_profile.add_points(10)    
+            user_profile.add_money(5.00)
+            user_profile.add_points(10)
             user_profile.save()
 
             total_lessons = lesson.course.lessons.count()
@@ -331,8 +331,8 @@ class QuizViewSet(viewsets.ModelViewSet):
                 QuizCompletion.objects.create(user=request.user, quiz=quiz)
 
                 user_profile = request.user.userprofile
-                user_profile.add_money(10.00) 
-                user_profile.add_points(20)    
+                user_profile.add_money(10.00)
+                user_profile.add_points(20)
                 user_profile.save()
 
                 return Response({"message": "Quiz completed!"}, status=status.HTTP_200_OK)
@@ -362,8 +362,8 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         if completed_courses == courses_in_path.count():
             user_profile = user.userprofile
-            user_profile.add_money(100.00) 
-            user_profile.add_points(200)    
+            user_profile.add_money(100.00)
+            user_profile.add_points(200)
             user_profile.save()
 
     @action(detail=False, methods=['post'], url_path='complete')
@@ -412,7 +412,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 mission__goal_type="complete_lesson",
                 status__in=["not_started", "in_progress"]
             )
-            
+
             for mission_completion in lesson_missions:
                 required_lessons = mission_completion.mission.goal_reference.get('required_lessons', 1)
                 progress_per_lesson = 100 / required_lessons
@@ -501,7 +501,7 @@ class UserSettingsView(APIView):
     def patch(self, request):
         user = request.user
         user_profile = user.userprofile
-        
+
         # Profile data
         profile_data = request.data.get('profile', {})
         if profile_data:
@@ -629,24 +629,24 @@ class SavingsAccountView(APIView):
                     user=request.user,
                     mission__goal_type="add_savings"
                 )
-                
+
                 for completion in missions:
                     # Safely get target with fallbacks
                     goal_ref = completion.mission.goal_reference or {}
                     target = Decimal(str(goal_ref.get('target', 100)))
-                    
+
                     # Calculate progress update
                     progress_increment = (amount / target) * 100
                     completion.progress = min(
                         completion.progress + progress_increment,
                         100
                     )
-                    
+
                     # Update completion status
                     if completion.progress >= 100:
                         completion.status = 'completed'
                         completion.completed_at = timezone.now()
-                    
+
                     completion.save()
 
                 return Response({
@@ -671,7 +671,7 @@ class FinanceFactView(APIView):
             read_facts = UserFactProgress.objects.filter(
                 user=request.user
             ).values_list('fact_id', flat=True)
-            
+
             fact = FinanceFact.objects.filter(
                 is_active=True
             ).exclude(id__in=read_facts).order_by('?').first()
@@ -978,11 +978,11 @@ class PersonalizedPathView(APIView):
                 responses = UserResponse.objects.filter(user=user)
                 path_weights = self.calculate_path_weights(responses)
                 sorted_paths = sorted(
-                    path_weights.items(), 
-                    key=lambda x: x[1], 
+                    path_weights.items(),
+                    key=lambda x: x[1],
                     reverse=True
                 )[:3]
-                
+
                 recommended_courses = self.get_recommended_courses(sorted_paths)
                 user_profile.recommended_courses = [c.id for c in recommended_courses]
                 user_profile.save()
@@ -992,7 +992,7 @@ class PersonalizedPathView(APIView):
                 many=True,
                 context={'request': request}
             )
-            
+
             return Response({
                 "courses": serializer.data,
                 "message": "Recommended courses based on your financial goals:"
@@ -1011,20 +1011,20 @@ class PersonalizedPathView(APIView):
                 is_active=True,
                 path__title__iexact='Basic Finance'
             ).order_by('order')[:3]
-            
+
             if not basic_courses.exists():
                 logger.error("No basic courses found in database")
                 return Response(
                     {"error": "No recommendations available"},
                     status=status.HTTP_404_NOT_FOUND
                 )
-            
+
             serializer = CourseSerializer(basic_courses, many=True)
             return Response({
                 "courses": serializer.data,
                 "message": "Here are some starter courses to begin your journey:"
             })
-            
+
         except Exception as e:
             logger.critical(f"Basic recommendations failed: {str(e)}")
             return Response(
@@ -1044,21 +1044,21 @@ class PersonalizedPathView(APIView):
                     logger.error(f"Invalid JSON answer for question {response.question.id}")
                     continue
 
-                if response.question.id == 1:  
+                if response.question.id == 1:
                     if isinstance(answer, str):
                         self.handle_risk_question(answer.lower().strip(), path_weights)
-                        
-                elif response.question.id == 3: 
+
+                elif response.question.id == 3:
                     if isinstance(answer, str):
                         answer = [a.strip().lower() for a in answer.split(',')]
                     self.handle_investment_question(answer, path_weights)
-                    
-                elif response.question.id == 4: 
+
+                elif response.question.id == 4:
                     self.handle_budget_question(answer, path_weights)
-                    
+
         except Exception as e:
             logger.error(f"Error calculating path weights: {str(e)}", exc_info=True)
-            
+
         return path_weights
 
     def handle_risk_question(self, answer, weights):
@@ -1082,10 +1082,10 @@ class PersonalizedPathView(APIView):
             'stocks': 'Investing',
             'stock market': 'Investing'
         }
-        
+
         if isinstance(answer, str):
             answer = [a.strip().lower() for a in answer.split(',')]
-            
+
         for selection in answer:
             normalized = selection.strip().lower()
             path = investment_map.get(normalized)
@@ -1098,20 +1098,20 @@ class PersonalizedPathView(APIView):
                 allocation = json.loads(answer)
             else:
                 allocation = answer
-                
+
             allocation = {k.lower().strip(): v for k, v in allocation.items()}
-            
+
             stock_weight = float(allocation.get('stocks', 0)) * 0.8
             real_estate_weight = float(allocation.get('real estate', 0)) * 0.8
             crypto_weight = float(allocation.get('crypto', 0)) * 1.2
-            
+
             if stock_weight > 0:
                 weights['Investing'] += stock_weight
             if real_estate_weight > 0:
                 weights['Real Estate'] += real_estate_weight
             if crypto_weight > 0:
                 weights['Cryptocurrency'] += crypto_weight
-                
+
         except Exception as e:
             logger.error(f"Budget handling error: {str(e)}")
 
@@ -1119,11 +1119,11 @@ class PersonalizedPathView(APIView):
         recommended_courses = []
         try:
 
-            for path_name, _ in sorted_paths[:3]: 
+            for path_name, _ in sorted_paths[:3]:
                 courses = Course.objects.filter(
                     path__title__iexact=path_name,
                     is_active=True
-                ).order_by('order')[:2] 
+                ).order_by('order')[:2]
                 recommended_courses.extend(courses)
 
             if len(recommended_courses) < 10:
@@ -1133,7 +1133,7 @@ class PersonalizedPathView(APIView):
                 ).order_by('-popularity')[:10-len(recommended_courses)]
                 recommended_courses.extend(additional)
 
-            return recommended_courses[:10]  
+            return recommended_courses[:10]
 
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
@@ -1169,7 +1169,7 @@ class EnhancedQuestionnaireView(APIView):
         try:
             user = request.user
             answers = request.data.get('answers', {})
-            
+
             if not answers:
                 return Response({"error": "No answers provided"}, status=400)
 
@@ -1185,7 +1185,7 @@ class EnhancedQuestionnaireView(APIView):
                                     {"error": "Budget allocation must total 100%"},
                                     status=400
                                 )
-                                
+
                         UserResponse.objects.update_or_create(
                             user=user,
                             question=question,
@@ -1196,7 +1196,7 @@ class EnhancedQuestionnaireView(APIView):
                         continue
 
                 user_profile = UserProfile.objects.get(user=user)
-                user_profile.recommended_courses = [] 
+                user_profile.recommended_courses = []
                 user_profile.save()
 
             # Configure Stripe with your API key
@@ -1210,8 +1210,8 @@ class EnhancedQuestionnaireView(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f'{settings.FRONTEND_URL}/personalized-path',
-                cancel_url=f'{settings.FRONTEND_URL}/questionnaire',
+                success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
+                cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
                 client_reference_id=request.user.id,
                 metadata={'user_id': request.user.id}
             )
@@ -1240,13 +1240,13 @@ class EnhancedQuestionnaireView(APIView):
         }
 
         for response in responses:
-            if response.question.id == 1: 
-                risk_score = ['Very Uncomfortable', 'Uncomfortable', 'Neutral', 
+            if response.question.id == 1:
+                risk_score = ['Very Uncomfortable', 'Uncomfortable', 'Neutral',
                             'Comfortable', 'Very Comfortable'].index(response.answer)
                 path_weights['Investing'] += risk_score * 2
                 path_weights['Cryptocurrency'] += risk_score * 1.5
-                
-            elif response.question.id == 3: 
+
+            elif response.question.id == 3:
                 selected_options = response.answer
                 if 'Real Estate' in selected_options:
                     path_weights['Real Estate'] += 3
@@ -1254,16 +1254,16 @@ class EnhancedQuestionnaireView(APIView):
                     path_weights['Cryptocurrency'] += 4
                 if 'Stocks' in selected_options:
                     path_weights['Investing'] += 2
-                    
-            elif response.question.id == 4: 
+
+            elif response.question.id == 4:
                 allocation = response.answer
                 path_weights['Investing'] += int(allocation.get('Stocks', 0)) * 0.5
                 path_weights['Real Estate'] += int(allocation.get('Real Estate', 0)) * 0.8
                 path_weights['Cryptocurrency'] += int(allocation.get('Crypto', 0)) * 1.2
 
         sorted_paths = sorted(
-            path_weights.items(), 
-            key=lambda x: x[1], 
+            path_weights.items(),
+            key=lambda x: x[1],
             reverse=True
         )[:3]
 
@@ -1271,17 +1271,21 @@ class EnhancedQuestionnaireView(APIView):
         for path_name, _ in sorted_paths:
             courses = Course.objects.filter(
                 path__title=path_name
-            ).order_by('order')[:2]  
+            ).order_by('order')[:2]
             recommended_courses.extend(courses)
 
         return {
             "recommended_paths": sorted_paths,
             "courses": CourseSerializer(
-                recommended_courses, 
+                recommended_courses,
                 many=True,
                 context={'request': request}
             ).data
         }
+
+import stripe
+from django.conf import settings
+from django.http import HttpResponse
 
 class StripeWebhookView(APIView):
     permission_classes = [AllowAny]
@@ -1289,20 +1293,23 @@ class StripeWebhookView(APIView):
     def post(self, request):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-        
+
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+                payload,
+                sig_header,
+                settings.STRIPE_WEBHOOK_SECRET
             )
         except ValueError as e:
-            return Response(status=400)
+            return HttpResponse(status=400)
         except stripe.error.SignatureVerificationError as e:
-            return Response(status=400)
+            return HttpResponse(status=400)
 
+        # Handle successful payments
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
-            user_id = session['client_reference_id']
-            
+            user_id = session.get('client_reference_id')
+
             try:
                 user_profile = UserProfile.objects.get(user__id=user_id)
                 user_profile.has_paid = True
@@ -1310,7 +1317,8 @@ class StripeWebhookView(APIView):
             except UserProfile.DoesNotExist:
                 pass
 
-        return Response(status=200)
+        return HttpResponse(status=200)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1322,7 +1330,7 @@ def get_exercise_progress(request, exercise_id):
         if user_progress:
             return Response({
                 "completed": lesson in user_progress.completed_lessons.all(),
-                "answers": {} 
+                "answers": {}
             })
         else:
             return Response({"completed": False, "answers": {}})
@@ -1359,7 +1367,7 @@ class RecentActivityView(APIView):
             })
 
         missions = MissionCompletion.objects.filter(
-            user=user, 
+            user=user,
             status='completed'
         ).exclude(completed_at__isnull=True)
         for mc in missions:
@@ -1383,8 +1391,8 @@ class RecentActivityView(APIView):
             })
 
         sorted_activities = sorted(
-            activities, 
-            key=lambda x: x["timestamp"], 
+            activities,
+            key=lambda x: x["timestamp"],
             reverse=True
         )[:5]
 
@@ -1397,13 +1405,13 @@ class RewardViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         reward_type = self.kwargs.get('type', None)
         queryset = Reward.objects.filter(is_active=True)
-        
+
         if reward_type in ['shop', 'donate']:
             queryset = queryset.filter(type=reward_type)
-            
+
         return queryset
 
-        
+
 class UserPurchaseViewSet(viewsets.ModelViewSet):
     serializer_class = UserPurchaseSerializer
     permission_classes = [IsAuthenticated]
@@ -1474,16 +1482,16 @@ class ReferralView(APIView):
 
     def post(self, request):
         referral_code = request.data.get('referral_code', '').strip().upper()
-        
+
         if not referral_code:
             return Response({"error": "Referral code is required"}, status=400)
 
         try:
             referrer_profile = UserProfile.objects.get(referral_code=referral_code)
-            
+
             if referrer_profile.user == request.user:
                 return Response({"error": "You cannot use your own referral code"}, status=400)
-            
+
             if Referral.objects.filter(referred_user=request.user).exists():
                 return Response({"error": "You already used a referral code"}, status=400)
 
@@ -1501,7 +1509,7 @@ class ReferralView(APIView):
                 )
 
             return Response({"message": "Referral applied successfully!"})
-            
+
         except UserProfile.DoesNotExist:
             return Response({"error": "Invalid referral code"}, status=400)
         except Exception as e:
@@ -1514,17 +1522,17 @@ class UserSearchView(APIView):
     def get(self, request):
         try:
             search_query = request.query_params.get('search', '').strip()
-            
+
             if not search_query or len(search_query) < 3:
                 return Response({"error": "Search query must be at least 3 characters"}, status=400)
 
             users = User.objects.filter(
                 username__icontains=search_query
             ).exclude(id=request.user.id)[:5]
-            
+
             serializer = UserSearchSerializer(users, many=True)
             return Response(serializer.data)
-            
+
         except Exception as e:
             logger.error(f"User search error: {str(e)}")
             return Response({"error": "Error processing search"}, status=500)
@@ -1565,7 +1573,7 @@ class FriendRequestView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, pk):
-        action = request.data.get("action") 
+        action = request.data.get("action")
 
         if action not in ["accept", "reject"]:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1615,7 +1623,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         exercise_type = self.request.query_params.get('type')
         category = self.request.query_params.get('category')
         difficulty = self.request.query_params.get('difficulty')
-        
+
         if exercise_type:
             queryset = queryset.filter(type=exercise_type)
         if category:
@@ -1628,18 +1636,18 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     def submit(self, request, pk=None):
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
-        
+
         progress, created = UserExerciseProgress.objects.get_or_create(
             user=request.user,
             exercise=exercise,
             defaults={'user_answer': user_answer}
         )
-        
+
         progress.attempts += 1
         progress.user_answer = user_answer
         progress.completed = (user_answer == exercise.correct_answer)
         progress.save()
-        
+
         return Response({
             'correct': progress.completed,
             'correct_answer': exercise.correct_answer,
@@ -1652,14 +1660,14 @@ class UserExerciseProgressViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return UserExerciseProgress.objects.filter(user=self.request.user)
-    
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def complete_exercise(request):
     section_id = request.data.get('section_id')
     exercise_data = request.data.get('exercise_data')
-    
+
     try:
         section = LessonSection.objects.get(id=section_id)
         exercise, _ = Exercise.objects.get_or_create(
@@ -1669,14 +1677,14 @@ def complete_exercise(request):
                 'exercise_data': section.exercise_data
             }
         )
-        
+
         completion, created = ExerciseCompletion.objects.get_or_create(
             user=request.user,
             exercise=exercise,
             section=section,
             defaults={'user_answer': exercise_data}
         )
-        
+
         if not created:
             completion.attempts += 1
             completion.user_answer = exercise_data
@@ -1689,9 +1697,9 @@ def complete_exercise(request):
                 course=section.lesson.course
             )
             progress.completed_sections.add(section)
-            
+
         return Response({"status": "Exercise progress saved", "attempts": completion.attempts})
-    
+
     except LessonSection.DoesNotExist:
         return Response({"error": "Section not found"}, status=404)
 
@@ -1699,7 +1707,7 @@ def complete_exercise(request):
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
     section_id = request.data.get('section_id')
-    
+
     try:
         section = LessonSection.objects.get(id=section_id)
         exercise = Exercise.objects.get(section=section)
@@ -1707,16 +1715,16 @@ def reset_exercise(request):
             user=request.user,
             exercise=exercise
         ).delete()
-        
+
         progress = UserProgress.objects.filter(
             user=request.user,
             course=section.lesson.course
         ).first()
-        
+
         if progress:
             progress.completed_sections.remove(section)
-            
+
         return Response({"status": "Exercise reset successfully"})
-    
+
     except (LessonSection.DoesNotExist, Exercise.DoesNotExist):
         return Response({"error": "Exercise not found"}, status=404)
