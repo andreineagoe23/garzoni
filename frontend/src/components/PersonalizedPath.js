@@ -17,26 +17,25 @@ function PersonalizedPath({ onCourseClick }) {
   useEffect(() => {
     const verifyAuthAndPayment = async () => {
       const token = localStorage.getItem("access_token");
-      
+
       if (!token) {
-        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+        navigate(
+          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
+        );
         return;
       }
 
       try {
         // Check authentication validity
-        await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`, 
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
+        await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         // Check payment status
         const profileRes = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
@@ -63,8 +62,8 @@ function PersonalizedPath({ onCourseClick }) {
         `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
       );
 
@@ -94,7 +93,10 @@ function PersonalizedPath({ onCourseClick }) {
   if (error) {
     return (
       <div className="container text-center py-5">
-        <div className="alert alert-danger mx-auto" style={{ maxWidth: "600px" }}>
+        <div
+          className="alert alert-danger mx-auto"
+          style={{ maxWidth: "600px" }}
+        >
           <h2 className="h4 mb-3">⚠️ Error Loading Recommendations</h2>
           <p className="mb-4">{error}</p>
           <button
@@ -154,7 +156,9 @@ function PersonalizedPath({ onCourseClick }) {
                         className="progress-bar"
                         role="progressbar"
                         style={{
-                          width: `${(course.progress / course.totalLessons) * 100}%`,
+                          width: `${
+                            (course.progress / course.totalLessons) * 100
+                          }%`,
                           transition: "width 0.5s ease",
                         }}
                       ></div>
