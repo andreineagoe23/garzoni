@@ -19,9 +19,7 @@ function PersonalizedPath({ onCourseClick }) {
       const token = localStorage.getItem("access_token");
 
       if (!token) {
-        navigate(
-          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
-        );
+        navigate(`/#/login?returnUrl=${encodeURIComponent('/#/personalized-path')}`);
         return;
       }
 
