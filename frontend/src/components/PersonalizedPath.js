@@ -12,8 +12,6 @@ function PersonalizedPath({ onCourseClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [paymentVerified, setPaymentVerified] = useState(false);
-  const queryParams = new URLSearchParams(location.search);
-  const sessionId = queryParams.get("session_id");
 
   // First check: Authentication & Payment Status
   useEffect(() => {
@@ -22,41 +20,43 @@ function PersonalizedPath({ onCourseClick }) {
 
       if (!token) {
         navigate(
-          `/login?returnUrl=${encodeURIComponent("/personalized-path")}`
+          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
         );
         return;
       }
 
       try {
-        // Check authentication and payment status in one request
-        const profileRes = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Check authentication validity
+        await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        if (sessionId) {
+        // Check payment status with retry logic
+        const checkPayment = async (attempts = 0) => {
           try {
-            await axios.post(
-              `${process.env.REACT_APP_BACKEND_URL}/verify-payment/`,
-              { session_id: sessionId },
-              { headers: { Authorization: `Bearer ${token}` } }
+            const profileRes = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
             );
-            setPaymentVerified(true);
-            fetchPersonalizedPath();
-            return;
-          } catch (verifyError) {
-            console.error("Payment verification error:", verifyError);
-          }
-        }
 
-        if (!profileRes.data.has_paid) {
-          navigate("/payment-required");
-        } else {
-          setPaymentVerified(true);
-          fetchPersonalizedPath();
-        }
+            if (!profileRes.data.has_paid) {
+              if (attempts < 3) {
+                setTimeout(() => checkPayment(attempts + 1), 2000); // Retry after 2s
+              } else {
+                navigate("/payment-required");
+              }
+            } else {
+              setPaymentVerified(true);
+              fetchPersonalizedPath();
+            }
+          } catch (error) {
+            console.error("Payment verification error:", error);
+          }
+        };
+
+        await checkPayment();
       } catch (error) {
         console.error("Verification error:", error);
         localStorage.removeItem("access_token");
@@ -65,7 +65,7 @@ function PersonalizedPath({ onCourseClick }) {
     };
 
     verifyAuthAndPayment();
-  }, [navigate, location.pathname, sessionId]);
+  }, [navigate, location.pathname]);
 
   // Fetch personalized path data after verification
   const fetchPersonalizedPath = async () => {
