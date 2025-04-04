@@ -12,6 +12,8 @@ function PersonalizedPath({ onCourseClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const queryParams = new URLSearchParams(location.search);
+  const sessionId = queryParams.get("session_id");
 
   // First check: Authentication & Payment Status
   useEffect(() => {
@@ -20,7 +22,7 @@ function PersonalizedPath({ onCourseClick }) {
 
       if (!token) {
         navigate(
-          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
+          `/login?returnUrl=${encodeURIComponent("/personalized-path")}`
         );
         return;
       }
@@ -33,6 +35,26 @@ function PersonalizedPath({ onCourseClick }) {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        // If Stripe session_id is present, verify payment manually
+        if (sessionId) {
+          try {
+            await axios.post(
+              `${process.env.REACT_APP_BACKEND_URL}/verify-payment/`,
+              { session_id: sessionId },
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            // After manual verification, user should be marked as paid
+            setPaymentVerified(true);
+            fetchPersonalizedPath();
+            return;
+          } catch (verifyError) {
+            console.error("Payment verification error:", verifyError);
+            // Continue with regular profile check
+          }
+        }
 
         if (!profileRes.data.has_paid) {
           navigate("/payment-required");
@@ -48,7 +70,7 @@ function PersonalizedPath({ onCourseClick }) {
     };
 
     verifyAuthAndPayment();
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, sessionId]);
 
   // Fetch personalized path data after verification
   const fetchPersonalizedPath = async () => {
