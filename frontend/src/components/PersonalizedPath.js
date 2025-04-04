@@ -16,7 +16,7 @@ function PersonalizedPath({ onCourseClick }) {
   // First check: Authentication & Payment Status
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const sessionId = queryParams.get('session_id');
+    const sessionId = queryParams.get("session_id");
 
     const verifyAuthAndPayment = async () => {
       const token = localStorage.getItem("access_token");
@@ -53,37 +53,42 @@ function PersonalizedPath({ onCourseClick }) {
           // Modified polling function
           const pollPaymentStatus = async (attempt = 0) => {
             try {
-              // First check Stripe session status directly
               const verificationRes = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
                 { session_id: sessionId },
-                { headers: { Authorization: `Bearer ${token}` } }
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "X-CSRFToken":
+                      document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+                  },
+                  withCredentials: true,
+                }
               );
 
               if (verificationRes.data.status === "verified") {
-                window.history.replaceState({}, document.title, "/#/personalized-path");
+                window.history.replaceState(
+                  {},
+                  document.title,
+                  "/#/personalized-path"
+                );
                 setPaymentVerified(true);
                 fetchPersonalizedPath();
                 return;
               }
 
-              // Fallback to profile check if needed
-              const res = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-
-              if (res.data.has_paid) {
-                window.history.replaceState({}, document.title, "/#/personalized-path");
-                setPaymentVerified(true);
-                fetchPersonalizedPath();
-              } else if (attempt < 15) { // Increased to 15 attempts
-                setTimeout(() => pollPaymentStatus(attempt + 1), 2000); // 2s interval
+              if (attempt < 12) {
+                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
               } else {
                 navigate("/payment-required");
               }
             } catch (error) {
-              console.error("Polling error:", error);
+              if (error.response?.status === 400 && attempt < 3) {
+                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
+              } else {
+                console.error("Final polling error:", error);
+                navigate("/payment-required");
+              }
             }
           };
           await pollPaymentStatus();
@@ -122,9 +127,7 @@ function PersonalizedPath({ onCourseClick }) {
         }))
       );
       setIsLoading(false);
-    } 
-
-    catch (error) {
+    } catch (error) {
       setError("Failed to load recommendations. Please try again later.");
       setIsLoading(false);
     }
