@@ -53,18 +53,32 @@ function PersonalizedPath({ onCourseClick }) {
           // Modified polling function
           const pollPaymentStatus = async (attempt = 0) => {
             try {
+              // First check Stripe session status directly
+              const verificationRes = await axios.post(
+                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+                { session_id: sessionId },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+
+              if (verificationRes.data.status === "verified") {
+                window.history.replaceState({}, document.title, "/#/personalized-path");
+                setPaymentVerified(true);
+                fetchPersonalizedPath();
+                return;
+              }
+
+              // Fallback to profile check if needed
               const res = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
 
               if (res.data.has_paid) {
-                // Clear session ID from URL
                 window.history.replaceState({}, document.title, "/#/personalized-path");
                 setPaymentVerified(true);
                 fetchPersonalizedPath();
-              } else if (attempt < 8) { // Increased attempts
-                setTimeout(() => pollPaymentStatus(attempt + 1), 1500);
+              } else if (attempt < 15) { // Increased to 15 attempts
+                setTimeout(() => pollPaymentStatus(attempt + 1), 2000); // 2s interval
               } else {
                 navigate("/payment-required");
               }

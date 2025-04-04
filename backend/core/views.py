@@ -1204,16 +1204,16 @@ class EnhancedQuestionnaireView(APIView):
 
             # Create Stripe Checkout Session
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
-                cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
-                client_reference_id=request.user.id,
-                metadata={'user_id': request.user.id}
+            payment_method_types=['card'],
+            line_items=[{
+                'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
+            cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
+            metadata={'user_id': str(request.user.id)},
+            client_reference_id=str(request.user.id)
             )
 
             return Response({
@@ -1283,9 +1283,10 @@ class EnhancedQuestionnaireView(APIView):
             ).data
         }
 
-import stripe
-from django.conf import settings
 from django.http import HttpResponse
+import logging
+import time
+from django.db import transaction
 
 class StripeWebhookView(APIView):
     permission_classes = [AllowAny]
@@ -1293,6 +1294,7 @@ class StripeWebhookView(APIView):
     def post(self, request):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        logger.info("Received Stripe webhook event")
 
         try:
             event = stripe.Webhook.construct_event(
@@ -1300,24 +1302,50 @@ class StripeWebhookView(APIView):
                 sig_header,
                 settings.STRIPE_WEBHOOK_SECRET
             )
-        except ValueError as e:
-            return HttpResponse(status=400)
-        except stripe.error.SignatureVerificationError as e:
+        except (ValueError, stripe.error.SignatureVerificationError) as e:
+            logger.error(f"Stripe verification error: {str(e)}")
             return HttpResponse(status=400)
 
-        # Handle successful payments
         if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            user_id = session.get('client_reference_id')
-
             try:
-                user_profile = UserProfile.objects.get(user__id=user_id)
-                user_profile.has_paid = True
-                user_profile.save()
+                # Add delay for database propagation
+                time.sleep(2)
+
+                session = event['data']['object']
+                user_id = session.get('client_reference_id')
+                logger.info(f"Processing payment for user ID: {user_id}")
+
+                with transaction.atomic():
+                    user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
+                    user_profile.has_paid = True
+                    user_profile.save()
+                    logger.info(f"Updated payment status for user {user_id}")
+
             except UserProfile.DoesNotExist:
-                pass
+                logger.error(f"UserProfile not found for user ID: {user_id}")
+            except Exception as e:
+                logger.error(f"Webhook processing error: {str(e)}", exc_info=True)
 
         return HttpResponse(status=200)
+
+
+class VerifySessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return Response({"error": "session_id required"}, status=400)
+
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            if session.payment_status == 'paid':
+                request.user.userprofile.has_paid = True
+                request.user.userprofile.save()
+                return Response({"status": "Payment verified"})
+            return Response({"status": "Payment pending"}, status=202)
+        except stripe.error.StripeError as e:
+            return Response({"error": str(e)}, status=400)
 
 
 @api_view(['GET'])

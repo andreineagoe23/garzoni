@@ -43,11 +43,12 @@ from .views import (
     reset_exercise,
     TokenObtainPairView,
     StripeWebhookView,
+    VerifySessionView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import CustomTokenObtainPairView, LogoutView 
+from core.views import CustomTokenObtainPairView, LogoutView
 
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet, basename='userprogress')
@@ -68,14 +69,14 @@ urlpatterns = [
 
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    
+
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
 
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
-    path("userprofiles/", include(router.urls)),  
+    path("userprofiles/", include(router.urls)),
     path('update-avatar/', views.update_avatar, name='update_avatar'),
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
@@ -95,6 +96,7 @@ urlpatterns = [
     path('personalized-path/', PersonalizedPathView.as_view(), name='personalized-path'),
 
     path('stripe-webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
+    path('verify-session/', VerifySessionView.as_view(), name='verify-session'),
 
     path('exercises/complete/', complete_exercise, name='complete-exercise'),
     path('exercises/reset/', reset_exercise, name='reset-exercise'),
