@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -13,7 +13,53 @@ function PersonalizedPath({ onCourseClick }) {
   const location = useLocation();
   const [paymentVerified, setPaymentVerified] = useState(false);
 
-  // First check: Authentication & Payment Status
+  // Define fetchPersonalizedPath first using useCallback
+  const fetchPersonalizedPath = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "X-CSRFToken": document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 403) {
+        if (response.data.redirect) {
+          navigate(response.data.redirect);
+          return;
+        }
+        throw new Error(response.data.error || "Access denied");
+      }
+
+      setPersonalizedCourses(
+        response.data.courses.map((course) => ({
+          ...course,
+          image: course.image || "/fallback-course.png",
+          progress: course.completed_lessons || 0,
+          totalLessons: course.total_lessons || 0,
+        }))
+      );
+      setIsLoading(false);
+    } catch (error) {
+      if (error.response?.status === 403) {
+        const errorMessage = error.response.data?.error || "Access denied";
+        if (errorMessage.includes("questionnaire")) {
+          navigate("/questionnaire");
+        } else if (errorMessage.includes("Payment")) {
+          navigate("/payment-required");
+        }
+      } else {
+        setError("Failed to load recommendations. Please try again later.");
+      }
+      setIsLoading(false);
+    }
+  }, [navigate]);
+
+  // Now define useEffect that uses fetchPersonalizedPath
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const sessionId = queryParams.get("session_id");
@@ -29,15 +75,12 @@ function PersonalizedPath({ onCourseClick }) {
       }
 
       try {
-        // Immediate check after redirect
         let profileRes = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Payment polling with timeout
         if (!profileRes.data.has_paid) {
-          // If we have session_id from Stripe redirect
           if (sessionId) {
             try {
               await axios.post(
@@ -50,7 +93,6 @@ function PersonalizedPath({ onCourseClick }) {
             }
           }
 
-          // Modified polling function
           const pollPaymentStatus = async (attempt = 0) => {
             try {
               const verificationRes = await axios.post(
@@ -104,34 +146,7 @@ function PersonalizedPath({ onCourseClick }) {
     };
 
     verifyAuthAndPayment();
-  }, [navigate, location.pathname, location.search]);
-
-  // Fetch personalized path data after verification
-  const fetchPersonalizedPath = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-
-      setPersonalizedCourses(
-        response.data.courses.map((course) => ({
-          ...course,
-          image: course.image || "/fallback-course.png",
-          progress: course.completed_lessons || 0,
-          totalLessons: course.total_lessons || 0,
-        }))
-      );
-      setIsLoading(false);
-    } catch (error) {
-      setError("Failed to load recommendations. Please try again later.");
-      setIsLoading(false);
-    }
-  };
+  }, [navigate, location.pathname, location.search, fetchPersonalizedPath]);
 
   const handleCourseClick = (courseId) => {
     if (onCourseClick) onCourseClick(courseId);
