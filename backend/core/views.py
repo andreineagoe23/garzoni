@@ -33,6 +33,7 @@ from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+from django.core.cache import cache
 import logging
 from django.db import transaction
 from django.db.models import F
@@ -1352,9 +1353,10 @@ class VerifySessionView(APIView):
 
     def post(self, request):
         try:
-            # Add payment confirmation check
-            if request.user.userprofile.has_paid:
-                return Response({"status": "already_verified"})
+            # Check cache first
+            cached_status = cache.get(f'user_payment_status_{request.user.id}')
+            if cached_status == 'paid':
+                return Response({"status": "verified"})
 
             session_id = request.data.get('session_id')
             if not session_id or not session_id.startswith('cs_'):
@@ -1372,6 +1374,8 @@ class VerifySessionView(APIView):
                     profile = UserProfile.objects.select_for_update().get(user=request.user)
                     profile.has_paid = True
                     profile.save(update_fields=['has_paid'])  # Force immediate save
+                    # Cache the payment status
+                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
                     return Response({"status": "verified"})
 
             return Response({"status": "pending"}, status=202)

@@ -94,43 +94,35 @@ function PersonalizedPath({ onCourseClick }) {
           }
 
             const pollPaymentStatus = async (attempt = 0) => {
-            try {
+              try {
               const verificationRes = await axios.post(
-              `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
-              { session_id: sessionId },
-              { headers: { Authorization: `Bearer ${token}` } }
-              );
-
-              if (verificationRes.data.status === "verified") {
-              // Clear session ID from URL immediately
-              window.history.replaceState({}, document.title, "/#/personalized-path");
-
-              // Force refresh user profile
-              const profileRes = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+                { session_id: sessionId },
                 { headers: { Authorization: `Bearer ${token}` } }
               );
 
-              if (profileRes.data.has_paid) {
+              if (verificationRes.data.status === "verified") {
+                window.history.replaceState({}, document.title, "/#/personalized-path");
                 setPaymentVerified(true);
-                fetchPersonalizedPath();
-              }
-              return;
+                return fetchPersonalizedPath();
               }
 
-              if (attempt < 12) {
-              setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
-              } else {
+              // Progressive backoff: 500ms, 1s, 2s, 4s, etc.
+              const delay = Math.min(500 * Math.pow(2, attempt), 8000);
+
+              if (attempt < 8) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return pollPaymentStatus(attempt + 1);
+              }
+
+              navigate("/payment-required");
+              } catch (error) {
+              if (attempt < 3) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return pollPaymentStatus(attempt + 1);
+              }
               navigate("/payment-required");
               }
-            } catch (error) {
-              if (error.response?.status === 400 && attempt < 3) {
-              setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
-              } else {
-              console.error("Final polling error:", error);
-              navigate("/payment-required");
-              }
-            }
             };
           await pollPaymentStatus();
         } else {
