@@ -93,46 +93,45 @@ function PersonalizedPath({ onCourseClick }) {
             }
           }
 
-          const pollPaymentStatus = async (attempt = 0) => {
+            const pollPaymentStatus = async (attempt = 0) => {
             try {
               const verificationRes = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
-                { session_id: sessionId },
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "X-CSRFToken":
-                      document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
-                  },
-                  withCredentials: true,
-                }
+              `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+              { session_id: sessionId },
+              { headers: { Authorization: `Bearer ${token}` } }
               );
 
               if (verificationRes.data.status === "verified") {
-                window.history.replaceState(
-                  {},
-                  document.title,
-                  "/#/personalized-path"
-                );
+              // Clear session ID from URL immediately
+              window.history.replaceState({}, document.title, "/#/personalized-path");
+
+              // Force refresh user profile
+              const profileRes = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+
+              if (profileRes.data.has_paid) {
                 setPaymentVerified(true);
                 fetchPersonalizedPath();
-                return;
+              }
+              return;
               }
 
               if (attempt < 12) {
-                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
+              setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
               } else {
-                navigate("/payment-required");
+              navigate("/payment-required");
               }
             } catch (error) {
               if (error.response?.status === 400 && attempt < 3) {
-                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
+              setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
               } else {
-                console.error("Final polling error:", error);
-                navigate("/payment-required");
+              console.error("Final polling error:", error);
+              navigate("/payment-required");
               }
             }
-          };
+            };
           await pollPaymentStatus();
         } else {
           setPaymentVerified(true);

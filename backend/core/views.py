@@ -991,10 +991,13 @@ class PersonalizedPathView(APIView):
                 context={'request': request}
             )
 
-            return Response({
+            # Cache control headers
+            response = Response({
                 "courses": serializer.data,
                 "message": "Recommended courses based on your financial goals:"
             })
+            response['Cache-Control'] = 'no-store, max-age=0'
+            return response
 
         except Exception as e:
             logger.critical(f"Critical error in personalized path: {str(e)}", exc_info=True)
@@ -1175,6 +1178,14 @@ class EnhancedQuestionnaireView(APIView):
     def post(self, request):
         try:
             user = request.user
+
+            # Prevent duplicate payments
+            if user.userprofile.has_paid:
+                return Response(
+                    {"error": "You already have an active subscription"},
+                    status=400
+                )
+
             answers = request.data.get('answers', {})
 
             if not answers:
@@ -1211,16 +1222,16 @@ class EnhancedQuestionnaireView(APIView):
 
             # Create Stripe Checkout Session
             checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
-            cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
-            metadata={'user_id': str(request.user.id)},
-            client_reference_id=str(request.user.id)
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
+                cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
+                metadata={'user_id': str(request.user.id)},
+                client_reference_id=str(request.user.id)
             )
 
             return Response({
@@ -1340,19 +1351,37 @@ class VerifySessionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        session_id = request.data.get('session_id')
-        if not session_id:
-            return Response({"error": "session_id required"}, status=400)
-
         try:
-            session = stripe.checkout.Session.retrieve(session_id)
-            if session.payment_status == 'paid':
-                request.user.userprofile.has_paid = True
-                request.user.userprofile.save()
-                return Response({"status": "Payment verified"})
-            return Response({"status": "Payment pending"}, status=202)
+            # Add payment confirmation check
+            if request.user.userprofile.has_paid:
+                return Response({"status": "already_verified"})
+
+            session_id = request.data.get('session_id')
+            if not session_id or not session_id.startswith('cs_'):
+                return Response({"error": "Invalid session ID format"}, status=400)
+
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            session = stripe.checkout.Session.retrieve(
+                session_id,
+                expand=['payment_intent']
+            )
+
+            if session.payment_status == 'paid' and session.payment_intent.status == 'succeeded':
+                with transaction.atomic():
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    profile.has_paid = True
+                    profile.save(update_fields=['has_paid'])  # Force immediate save
+                    return Response({"status": "verified"})
+
+            return Response({"status": "pending"}, status=202)
+
         except stripe.error.StripeError as e:
-            return Response({"error": str(e)}, status=400)
+            logger.error(f"Stripe error: {str(e)}")
+            return Response({"error": "Payment verification failed"}, status=400)
+        except Exception as e:
+            logger.error(f"Verification error: {str(e)}")
+            return Response({"error": "Server error"}, status=500)
 
 
 @api_view(['GET'])
