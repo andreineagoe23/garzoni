@@ -962,30 +962,28 @@ class PersonalizedPathView(APIView):
     def get(self, request):
         try:
             user = request.user
-            user_profile = UserProfile.objects.get(user=user)
+            user_profile = UserProfile.objects.select_related('user').get(user=user)
 
-            if not (user_profile.wants_personalized_path and user_profile.has_paid):
-                return Response(
-                    {"error": "Complete payment to unlock personalized path"},
-                    status=403
-                )
+            # Add detailed error messages
+            if not user_profile.wants_personalized_path:
+                return Response({
+                    "error": "Complete the questionnaire first",
+                    "redirect": "/questionnaire"
+                }, status=403)
 
-            if user_profile.recommended_courses:
-                recommended_courses = Course.objects.filter(
-                    id__in=user_profile.recommended_courses
-                ).order_by('order')
-            else:
-                responses = UserResponse.objects.filter(user=user)
-                path_weights = self.calculate_path_weights(responses)
-                sorted_paths = sorted(
-                    path_weights.items(),
-                    key=lambda x: x[1],
-                    reverse=True
-                )[:3]
+            if not user_profile.has_paid:
+                return Response({
+                    "error": "Payment verification required",
+                    "redirect": "/payment-required"
+                }, status=403)
 
-                recommended_courses = self.get_recommended_courses(sorted_paths)
-                user_profile.recommended_courses = [c.id for c in recommended_courses]
-                user_profile.save()
+            # Add cache validation
+            if not user_profile.recommended_courses:
+                self.generate_recommendations(user_profile)
+
+            recommended_courses = Course.objects.filter(
+                id__in=user_profile.recommended_courses
+            ).order_by('order')
 
             serializer = CourseSerializer(
                 recommended_courses,
@@ -1004,6 +1002,15 @@ class PersonalizedPathView(APIView):
                 {"error": "We're having trouble generating recommendations. Our team has been notified."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def generate_recommendations(self, user_profile):
+        responses = UserResponse.objects.filter(user=user_profile.user)
+        path_weights = self.calculate_path_weights(responses)
+        sorted_paths = sorted(path_weights.items(), key=lambda x: x[1], reverse=True)[:3]
+
+        recommended_courses = self.get_recommended_courses(sorted_paths)
+        user_profile.recommended_courses = [c.id for c in recommended_courses]
+        user_profile.save()
 
     def get_basic_recommendations(self):
         try:
