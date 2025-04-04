@@ -26,37 +26,39 @@ function PersonalizedPath({ onCourseClick }) {
       }
 
       try {
-        // Check authentication validity
-        await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Immediate check after redirect
+        let profileRes = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        // Check payment status with retry logic
-        const checkPayment = async (attempts = 0) => {
-          try {
-            const profileRes = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
+        // Payment polling with timeout
+        if (!profileRes.data.has_paid) {
+          const pollPaymentStatus = async (attempt = 0) => {
+            try {
+              const res = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
 
-            if (!profileRes.data.has_paid) {
-              if (attempts < 3) {
-                setTimeout(() => checkPayment(attempts + 1), 2000); // Retry after 2s
+              if (res.data.has_paid) {
+                setPaymentVerified(true);
+                fetchPersonalizedPath();
+              } else if (attempt < 5) {
+                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
               } else {
                 navigate("/payment-required");
               }
-            } else {
-              setPaymentVerified(true);
-              fetchPersonalizedPath();
+            } catch (error) {
+              console.error("Polling error:", error);
             }
-          } catch (error) {
-            console.error("Payment verification error:", error);
-          }
-        };
+          };
 
-        await checkPayment();
+          await pollPaymentStatus();
+        } else {
+          setPaymentVerified(true);
+          fetchPersonalizedPath();
+        }
       } catch (error) {
         console.error("Verification error:", error);
         localStorage.removeItem("access_token");
@@ -88,7 +90,9 @@ function PersonalizedPath({ onCourseClick }) {
         }))
       );
       setIsLoading(false);
-    } catch (error) {
+    } 
+
+    catch (error) {
       setError("Failed to load recommendations. Please try again later.");
       setIsLoading(false);
     }
