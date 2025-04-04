@@ -19,39 +19,27 @@ function PersonalizedPath({ onCourseClick }) {
       const token = localStorage.getItem("access_token");
 
       if (!token) {
-        navigate(`/#/login?returnUrl=${encodeURIComponent('/#/personalized-path')}`);
+        navigate(
+          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
+        );
         return;
       }
 
       try {
-        // Check authentication validity
-        await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // Check payment status with retry logic
-        const checkPayment = async (attempts = 0) => {
-          try {
-            const profileRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/userprofile/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (!profileRes.data.has_paid) {
-              if (attempts < 3) {
-                setTimeout(() => checkPayment(attempts + 1), 2000); // Retry after 2s
-              } else {
-                navigate("/payment-required");
-              }
-            } else {
-              setPaymentVerified(true);
-              fetchPersonalizedPath();
-            }
-          } catch (error) {
-            console.error("Payment verification error:", error);
+        // Check authentication and payment status in one request
+        const profileRes = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
           }
-        };
+        );
 
-        await checkPayment();
+        if (!profileRes.data.has_paid) {
+          navigate("/payment-required");
+        } else {
+          setPaymentVerified(true);
+          fetchPersonalizedPath();
+        }
       } catch (error) {
         console.error("Verification error:", error);
         localStorage.removeItem("access_token");
