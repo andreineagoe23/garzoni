@@ -15,6 +15,9 @@ function PersonalizedPath({ onCourseClick }) {
 
   // First check: Authentication & Payment Status
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const sessionId = queryParams.get('session_id');
+
     const verifyAuthAndPayment = async () => {
       const token = localStorage.getItem("access_token");
 
@@ -34,6 +37,20 @@ function PersonalizedPath({ onCourseClick }) {
 
         // Payment polling with timeout
         if (!profileRes.data.has_paid) {
+          // If we have session_id from Stripe redirect
+          if (sessionId) {
+            try {
+              await axios.post(
+                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+                { session_id: sessionId },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+            } catch (error) {
+              console.error("Session verification failed:", error);
+            }
+          }
+
+          // Modified polling function
           const pollPaymentStatus = async (attempt = 0) => {
             try {
               const res = await axios.get(
@@ -42,10 +59,12 @@ function PersonalizedPath({ onCourseClick }) {
               );
 
               if (res.data.has_paid) {
+                // Clear session ID from URL
+                window.history.replaceState({}, document.title, "/#/personalized-path");
                 setPaymentVerified(true);
                 fetchPersonalizedPath();
-              } else if (attempt < 5) {
-                setTimeout(() => pollPaymentStatus(attempt + 1), 2000);
+              } else if (attempt < 8) { // Increased attempts
+                setTimeout(() => pollPaymentStatus(attempt + 1), 1500);
               } else {
                 navigate("/payment-required");
               }
@@ -53,7 +72,6 @@ function PersonalizedPath({ onCourseClick }) {
               console.error("Polling error:", error);
             }
           };
-
           await pollPaymentStatus();
         } else {
           setPaymentVerified(true);
@@ -67,7 +85,7 @@ function PersonalizedPath({ onCourseClick }) {
     };
 
     verifyAuthAndPayment();
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, location.search]);
 
   // Fetch personalized path data after verification
   const fetchPersonalizedPath = async () => {

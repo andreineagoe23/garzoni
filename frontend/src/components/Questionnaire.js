@@ -3,7 +3,6 @@ import axios from "axios";
 import "../styles/scss/main.scss";
 import Header from "./Header";
 
-
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -79,19 +78,23 @@ const Questionnaire = () => {
 
   const handleSubmit = async () => {
     try {
-        const response = await axios.post(
-            `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
-            { answers },
-            { headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` } }
-        );
-
-        if (response.data.redirect_url) {
-            window.location.href = response.data.redirect_url;
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
+        { answers },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         }
+      );
+
+      if (response.data.redirect_url) {
+        window.location.href = response.data.redirect_url;
+      }
     } catch (error) {
-        setError(error.response?.data?.error || "Payment setup failed");
+      setError(error.response?.data?.error || "Payment setup failed");
     }
-};
+  };
 
   const renderQuestionInput = (question) => {
     switch (question.type) {
