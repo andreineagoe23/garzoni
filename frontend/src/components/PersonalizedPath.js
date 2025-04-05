@@ -77,29 +77,21 @@ function PersonalizedPath({ onCourseClick }) {
       }
 
       try {
-        let profileRes = await axios.get(
+        // Force fresh profile check
+        const profileRes = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { _: new Date().getTime() }, // Cache buster
+          }
         );
 
-        if (!profileRes.data.has_paid) {
-          if (sessionId) {
-            try {
-              await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
-                { session_id: sessionId },
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-            } catch (error) {
-              console.error("Session verification failed:", error);
-            }
-          }
-
+        if (!profileRes.data.has_paid && sessionId) {
           const pollPaymentStatus = async (attempt = 0) => {
             try {
               const verificationRes = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
-                { session_id: sessionId },
+                { session_id: sessionId, force_check: true },
                 { headers: { Authorization: `Bearer ${token}` } }
               );
 
@@ -113,23 +105,25 @@ function PersonalizedPath({ onCourseClick }) {
                 return fetchPersonalizedPath();
               }
 
-              // Progressive backoff: 500ms, 1s, 2s, 4s, etc.
-              const delay = Math.min(500 * Math.pow(2, attempt), 8000);
+              const delay = Math.min(500 * Math.pow(2, attempt), 30000); // Max 30s delay
 
-              if (attempt < 8) {
+              if (attempt < 15) {
+                // Increased max attempts
                 await new Promise((resolve) => setTimeout(resolve, delay));
                 return pollPaymentStatus(attempt + 1);
               }
 
               navigate("/payment-required");
             } catch (error) {
-              if (attempt < 3) {
+              if (attempt < 8) {
+                // Increased retry attempts
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 return pollPaymentStatus(attempt + 1);
               }
               navigate("/payment-required");
             }
           };
+
           await pollPaymentStatus();
         } else {
           setPaymentVerified(true);
@@ -141,7 +135,6 @@ function PersonalizedPath({ onCourseClick }) {
         navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
       }
     };
-
     verifyAuthAndPayment();
   }, [navigate, location.pathname, location.search, fetchPersonalizedPath]);
 

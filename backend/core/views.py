@@ -32,7 +32,7 @@ import os
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 import logging
 from django.db import transaction
 from django.db.models import F
@@ -962,22 +962,37 @@ class PersonalizedPathView(APIView):
     def get(self, request):
         try:
             user = request.user
+            # Force fresh database read and clear cached profile
             user_profile = UserProfile.objects.select_related('user').get(user=user)
+            user_profile.refresh_from_db()  # Force reload from database
 
-            # Add detailed error messages
+            # Add cache busting
+            cache.delete(f'user_payment_status_{user.id}')
+
             if not user_profile.wants_personalized_path:
                 return Response({
                     "error": "Complete the questionnaire first",
                     "redirect": "/questionnaire"
                 }, status=403)
 
+            # Enhanced payment check with direct database verification
             if not user_profile.has_paid:
-                return Response({
-                    "error": "Payment verification required",
-                    "redirect": "/payment-required"
-                }, status=403)
+                # Double-check with Stripe API directly
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                sessions = stripe.checkout.Session.list(
+                    payment_intent=user_profile.stripe_payment_intent_id,
+                    limit=1
+                )
+                if sessions and sessions.data[0].payment_status == 'paid':
+                    user_profile.has_paid = True
+                    user_profile.save(update_fields=['has_paid'])
+                else:
+                    return Response({
+                        "error": "Payment verification required",
+                        "redirect": "/payment-required"
+                    }, status=403)
 
-            # Add cache validation
+            # Rest of the existing logic
             if not user_profile.recommended_courses:
                 self.generate_recommendations(user_profile)
 
@@ -1301,10 +1316,8 @@ class EnhancedQuestionnaireView(APIView):
             ).data
         }
 
-from django.http import HttpResponse
-import logging
-import time
-from django.db import transaction
+
+from django.core.cache import cache
 
 class StripeWebhookView(APIView):
     permission_classes = [AllowAny]
@@ -1322,63 +1335,23 @@ class StripeWebhookView(APIView):
                 session = event['data']['object']
                 user_id = session['client_reference_id']
 
-                # Immediate update with atomic transaction
                 with transaction.atomic():
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
                     if not user_profile.has_paid:
                         user_profile.has_paid = True
-                        user_profile.save(update_fields=['has_paid'])
-                        logger.info(f"Instant payment update for user {user_id}")
-
-                # Trigger cache refresh
-                cache.delete(f'user_payment_status_{user_id}')
+                        user_profile.stripe_payment_intent_id = session.payment_intent
+                        user_profile.save(update_fields=['has_paid', 'stripe_payment_intent_id'])
+                        
+                        # Clear all relevant caches
+                        cache.delete_many([
+                            f'user_payment_status_{user_id}',
+                            f'user_profile_{user_id}'
+                        ])
 
         except Exception as e:
             logger.error(f"Webhook error: {str(e)}")
 
         return HttpResponse(status=200)
-
-from django.core.cache import cache
-
-class VerifySessionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        try:
-            # Check cache first
-            cached_status = cache.get(f'user_payment_status_{request.user.id}')
-            if cached_status == 'paid':
-                return Response({"status": "verified"})
-
-            session_id = request.data.get('session_id')
-            if not session_id or not session_id.startswith('cs_'):
-                return Response({"error": "Invalid session ID format"}, status=400)
-
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-
-            session = stripe.checkout.Session.retrieve(
-                session_id,
-                expand=['payment_intent']
-            )
-
-            if session.payment_status == 'paid' and session.payment_intent.status == 'succeeded':
-                with transaction.atomic():
-                    profile = UserProfile.objects.select_for_update().get(user=request.user)
-                    profile.has_paid = True
-                    profile.save(update_fields=['has_paid'])  # Force immediate save
-                    # Cache the payment status
-                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
-                    return Response({"status": "verified"})
-
-            return Response({"status": "pending"}, status=202)
-
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error: {str(e)}")
-            return Response({"error": "Payment verification failed"}, status=400)
-        except Exception as e:
-            logger.error(f"Verification error: {str(e)}")
-            return Response({"error": "Server error"}, status=500)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
