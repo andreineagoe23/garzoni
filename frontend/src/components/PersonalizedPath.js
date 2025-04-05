@@ -21,7 +21,8 @@ function PersonalizedPath({ onCourseClick }) {
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "X-CSRFToken": document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+            "X-CSRFToken":
+              document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
           },
           withCredentials: true,
         }
@@ -61,7 +62,8 @@ function PersonalizedPath({ onCourseClick }) {
 
   // Now define useEffect that uses fetchPersonalizedPath
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
+    const hashParams = window.location.hash.split("?")[1] || "";
+    const queryParams = new URLSearchParams(hashParams);
     const sessionId = queryParams.get("session_id");
 
     const verifyAuthAndPayment = async () => {
@@ -93,8 +95,8 @@ function PersonalizedPath({ onCourseClick }) {
             }
           }
 
-            const pollPaymentStatus = async (attempt = 0) => {
-              try {
+          const pollPaymentStatus = async (attempt = 0) => {
+            try {
               const verificationRes = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
                 { session_id: sessionId },
@@ -102,7 +104,11 @@ function PersonalizedPath({ onCourseClick }) {
               );
 
               if (verificationRes.data.status === "verified") {
-                window.history.replaceState({}, document.title, "/#/personalized-path");
+                window.history.replaceState(
+                  {},
+                  document.title,
+                  "/#/personalized-path"
+                );
                 setPaymentVerified(true);
                 return fetchPersonalizedPath();
               }
@@ -111,19 +117,19 @@ function PersonalizedPath({ onCourseClick }) {
               const delay = Math.min(500 * Math.pow(2, attempt), 8000);
 
               if (attempt < 8) {
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise((resolve) => setTimeout(resolve, delay));
                 return pollPaymentStatus(attempt + 1);
               }
 
               navigate("/payment-required");
-              } catch (error) {
+            } catch (error) {
               if (attempt < 3) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
                 return pollPaymentStatus(attempt + 1);
               }
               navigate("/payment-required");
-              }
-            };
+            }
+          };
           await pollPaymentStatus();
         } else {
           setPaymentVerified(true);

@@ -33,7 +33,6 @@ from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
-from django.core.cache import cache
 import logging
 from django.db import transaction
 from django.db.models import F
@@ -1313,40 +1312,33 @@ class StripeWebhookView(APIView):
     def post(self, request):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-        logger.info("Received Stripe webhook event")
 
         try:
             event = stripe.Webhook.construct_event(
-                payload,
-                sig_header,
-                settings.STRIPE_WEBHOOK_SECRET
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
             )
-        except (ValueError, stripe.error.SignatureVerificationError) as e:
-            logger.error(f"Stripe verification error: {str(e)}")
-            return HttpResponse(status=400)
 
-        if event['type'] == 'checkout.session.completed':
-            try:
-                # Add delay for database propagation
-                time.sleep(2)
-
+            if event['type'] == 'checkout.session.completed':
                 session = event['data']['object']
-                user_id = session.get('client_reference_id')
-                logger.info(f"Processing payment for user ID: {user_id}")
+                user_id = session['client_reference_id']
 
+                # Immediate update with atomic transaction
                 with transaction.atomic():
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
-                    user_profile.has_paid = True
-                    user_profile.save()
-                    logger.info(f"Updated payment status for user {user_id}")
+                    if not user_profile.has_paid:
+                        user_profile.has_paid = True
+                        user_profile.save(update_fields=['has_paid'])
+                        logger.info(f"Instant payment update for user {user_id}")
 
-            except UserProfile.DoesNotExist:
-                logger.error(f"UserProfile not found for user ID: {user_id}")
-            except Exception as e:
-                logger.error(f"Webhook processing error: {str(e)}", exc_info=True)
+                # Trigger cache refresh
+                cache.delete(f'user_payment_status_{user_id}')
+
+        except Exception as e:
+            logger.error(f"Webhook error: {str(e)}")
 
         return HttpResponse(status=200)
 
+from django.core.cache import cache
 
 class VerifySessionView(APIView):
     permission_classes = [IsAuthenticated]
