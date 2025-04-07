@@ -101,9 +101,10 @@ const AppContent = ({
   });
 
   useEffect(() => {
-    if (window.UC_UI && window.UC_UI.hasInitialConsent()?.statistics) {
+    if (typeof gtag === "function" && Cookiebot?.consent?.statistics) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
+        send_to: "G-0H3QCDXCE8",
       });
     }
   }, [location.pathname, location.search]);
