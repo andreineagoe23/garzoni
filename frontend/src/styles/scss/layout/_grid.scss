@@ -44,8 +44,6 @@
   background-color: var(--bg-color);
 }
 
-// Content styling is now maintained in _app-layout.scss to avoid duplication
-
 // Grid gap utilities
 .gap-1 { gap: map-get($spacers, 1); }
 .gap-2 { gap: map-get($spacers, 2); }
