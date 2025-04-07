@@ -961,36 +961,13 @@ class PersonalizedPathView(APIView):
 
     def get(self, request):
         try:
-            user = request.user
-            # Force fresh database read and clear cached profile
-            user_profile = UserProfile.objects.select_related('user').get(user=user)
-            user_profile.refresh_from_db()  # Force reload from database
+            user_profile = UserProfile.objects.get(user=request.user)
 
-            # Add cache busting
-            cache.delete(f'user_payment_status_{user.id}')
-
-            if not user_profile.wants_personalized_path:
-                return Response({
-                    "error": "Complete the questionnaire first",
-                    "redirect": "/questionnaire"
-                }, status=403)
-
-            # Enhanced payment check with direct database verification
             if not user_profile.has_paid:
-                # Double-check with Stripe API directly
-                stripe.api_key = settings.STRIPE_SECRET_KEY
-                sessions = stripe.checkout.Session.list(
-                    payment_intent=user_profile.stripe_payment_intent_id,
-                    limit=1
-                )
-                if sessions and sessions.data[0].payment_status == 'paid':
-                    user_profile.has_paid = True
-                    user_profile.save(update_fields=['has_paid'])
-                else:
-                    return Response({
-                        "error": "Payment verification required",
-                        "redirect": "/payment-required"
-                    }, status=403)
+                return Response({
+                    "error": "Payment required for personalized path",
+                    "redirect": "/payment-required"
+                }, status=403)
 
             # Rest of the existing logic
             if not user_profile.recommended_courses:
@@ -1373,13 +1350,12 @@ class VerifySessionView(APIView):
                 with transaction.atomic():
                     profile = UserProfile.objects.select_for_update().get(user=request.user)
                     profile.has_paid = True
-                    profile.stripe_payment_id = session.payment_intent
+                    profile.stripe_payment_id = session.payment_intent.id  # FIX: Get the ID from PaymentIntent object
                     profile.save(update_fields=['has_paid', 'stripe_payment_id'])
                     cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
                     return Response({"status": "verified"})
 
             return Response({"status": "pending"}, status=202)
-
         except stripe.error.StripeError as e:
             logger.error(f"Stripe error: {str(e)}")
             return Response({"error": "Payment verification failed"}, status=400)

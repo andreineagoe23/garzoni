@@ -28,7 +28,12 @@ class UserProfile(models.Model):
     referral_points = models.PositiveIntegerField(default=0)
     dark_mode = models.BooleanField(default=False)
     has_paid = models.BooleanField(default=False)
-    stripe_payment_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payment_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True
+    )
 
     FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
