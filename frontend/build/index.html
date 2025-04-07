@@ -22,6 +22,8 @@
   <meta property="twitter:description" content="Master financial literacy with interactive courses, quizzes, and tools." />
   <meta property="twitter:image" content="/og-image.jpg" />
 
+  
+
   <!-- Icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -35,17 +37,43 @@
 
   <!-- Styles and Scripts -->
   <link href="/static/css/main.498eae87.css" rel="stylesheet" />
+  
+  <script 
+      id="usercentrics-cmp" 
+      src="https://web.cmp.usercentrics.eu/ui/loader.js" 
+      data-settings-id="o3gY1UKzmzy6yw" 
+      async
+    ></script>
+    
   <script defer src="/static/js/main.51302877.js"></script>
+
+  
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    gtag('js', new Date());
-    gtag('config', 'G-0H3QCDXCE8');
+    function gtag(){dataLayer.push(arguments);}
+  
+    // Initialize with default denial
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      wait_for_update: 500
+    });
+  
+    // Load GA only after consent
+    window.addEventListener('usercentrics', (event) => {
+      if(event.detail.consents.statistics) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8';
+        document.head.appendChild(script);
+        
+        gtag('js', new Date());
+        gtag('config', 'G-0H3QCDXCE8');
+      }
+    });
   </script>
 </head>
 

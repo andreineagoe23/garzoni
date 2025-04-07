@@ -30,11 +30,12 @@ import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import CookiePolicy from "./components/CookiePolicy";
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
@@ -42,8 +43,6 @@ function App() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  
 
   return (
     <Router>
@@ -77,8 +76,21 @@ const AppContent = ({
     "/password-reset",
     "/questionnaire",
     "/payment-required",
+    "/privacy-policy",
+    "/cookie-policy",
   ];
-  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/", "/payment-required" ];
+  const noChatbotPaths = [
+    "/login",
+    "/register",
+    "/questionnaire",
+    "/welcome",
+    "/forgot-password",
+    "/password-reset",
+    "/",
+    "/payment-required",
+    "/privacy-policy",
+    "/cookie-policy",
+  ];
 
   axios.interceptors.request.use((config) => {
     const tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -89,8 +101,8 @@ const AppContent = ({
   });
 
   useEffect(() => {
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'page_view', {
+    if (window.UC_UI && window.UC_UI.hasInitialConsent()?.statistics) {
+      window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
       });
     }
@@ -106,6 +118,8 @@ const AppContent = ({
         <ThemeProvider>
           <Routes>
             <Route path="/" element={<Welcome />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
