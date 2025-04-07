@@ -30,6 +30,8 @@ import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
@@ -54,6 +56,7 @@ function App() {
             isMobileView={isMobileView}
           />
         </div>
+        
       </ThemeProvider>
     </Router>
   );
@@ -94,6 +97,8 @@ const AppContent = ({
 
       <main className="content">
         <ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
           <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
@@ -133,7 +138,6 @@ const AppContent = ({
         </ThemeProvider>
       </main>
 
-      {/* Chatbot conditional */}
       {!noChatbotPaths.includes(location.pathname) && (
         <Chatbot
           isVisible={isChatbotVisible}
