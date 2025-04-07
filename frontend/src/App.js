@@ -43,6 +43,8 @@ function App() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  
+
   return (
     <Router>
       <ThemeProvider>
@@ -85,6 +87,14 @@ const AppContent = ({
     }
     return config;
   });
+
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location.pathname, location.search]);
 
   return (
     <Container fluid className="app-layout p-0">
