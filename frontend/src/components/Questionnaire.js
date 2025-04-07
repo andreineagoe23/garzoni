@@ -57,7 +57,6 @@ const Questionnaire = () => {
     fetchQuestions();
   }, []);
 
-  // Keep handler functions the same
   const handleAnswer = (questionId, answer) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
@@ -78,7 +77,6 @@ const Questionnaire = () => {
     }));
   };
 
-  // Questionnaire.js
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
@@ -91,11 +89,9 @@ const Questionnaire = () => {
         }
       );
 
-      // Redirect to payment if needed
       if (response.data.redirect_url) {
         window.location.href = response.data.redirect_url;
       } else {
-        // Handle free tier access
         navigate("/personalized-path");
       }
     } catch (error) {
