@@ -30,13 +30,11 @@ import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
@@ -55,8 +53,9 @@ function App() {
             setIsChatbotVisible={setIsChatbotVisible}
             isMobileView={isMobileView}
           />
+
+          <SpeedInsights />
         </div>
-        
       </ThemeProvider>
     </Router>
   );
@@ -79,7 +78,16 @@ const AppContent = ({
     "/questionnaire",
     "/payment-required",
   ];
-  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/", "/payment-required" ];
+  const noChatbotPaths = [
+    "/login",
+    "/register",
+    "/questionnaire",
+    "/welcome",
+    "/forgot-password",
+    "/password-reset",
+    "/",
+    "/payment-required",
+  ];
 
   axios.interceptors.request.use((config) => {
     const tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -97,8 +105,6 @@ const AppContent = ({
 
       <main className="content">
         <ThemeProvider>
-        <Analytics />
-        <SpeedInsights />
           <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
