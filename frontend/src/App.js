@@ -33,8 +33,6 @@ import Chatbot from "./components/Chatbot";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import CookiePolicy from "./components/CookiePolicy";
 
-/* global Cookiebot */
-
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
