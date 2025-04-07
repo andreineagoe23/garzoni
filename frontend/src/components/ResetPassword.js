@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { Form, Button, Alert } from "react-bootstrap";
+import logo from "../assets/logo.png";
+import "../styles/scss/main.scss";
 
-function ResetPassword() {
+export default function ResetPassword() {
   const { uidb64, token } = useParams();
   const navigate = useNavigate();
 
@@ -36,28 +39,44 @@ function ResetPassword() {
 
   return (
     <div className="reset-password-container">
+      <img src={logo} alt="Logo" className="img-fluid logo" />
       <h2>Reset Password</h2>
-      <form onSubmit={handleResetPassword}>
-        <label>New Password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <label>Confirm Password:</label>
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Reset Password</button>
-      </form>
-      {message && <p className="success-message">{message}</p>}
-      {error && <p className="error-message">{error}</p>}
+
+      {message && <Alert variant="success">{message}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      <Form onSubmit={handleResetPassword}>
+        <Form.Group className="mb-4" controlId="password">
+          <Form.Label>New Password</Form.Label>
+          <Form.Control
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-4" controlId="confirmPassword">
+          <Form.Label>Confirm Password</Form.Label>
+          <Form.Control
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <div className="d-grid gap-3 mb-4">
+          <Button
+            variant="primary"
+            size="lg"
+            type="submit"
+            className="btn-3d"
+          >
+            Reset Password
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 }
-
-export default ResetPassword;
