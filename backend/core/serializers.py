@@ -1,28 +1,25 @@
 # core/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion, 
+from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion,
 SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection)
 
 class RegisterSerializer(serializers.ModelSerializer):
-    wants_personalized_path = serializers.BooleanField(write_only=True, required=False)
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'wants_personalized_path', 'referral_code']
+        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'referral_code']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         referral_code = validated_data.pop('referral_code', None)
-        wants_personalized_path = validated_data.pop('wants_personalized_path', False)
-        
+
         # Only create User here - profile is created by signal
         user = User.objects.create_user(**validated_data)
-        
+
         # Access profile created by signal
         user_profile = user.userprofile
-        user_profile.wants_personalized_path = wants_personalized_path
         user_profile.save()
 
         if referral_code:
@@ -44,7 +41,7 @@ class QuizSerializer(serializers.ModelSerializer):
 
 class LessonSectionSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
-    
+
     class Meta:
         model = LessonSection
         fields = [
@@ -55,7 +52,7 @@ class LessonSectionSerializer(serializers.ModelSerializer):
 class LessonSerializer(serializers.ModelSerializer):
     sections = LessonSectionSerializer(many=True, read_only=True)
     is_completed = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Lesson
         fields = ['id', 'title', 'short_description', 'sections', 'is_completed']
@@ -68,7 +65,7 @@ class CourseSerializer(serializers.ModelSerializer):
     path_title = serializers.CharField(source='path.title')
     lessons = LessonSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
-    image = serializers.SerializerMethodField() 
+    image = serializers.SerializerMethodField()
     completed_lessons = serializers.SerializerMethodField()
     total_lessons = serializers.SerializerMethodField()
 
@@ -171,7 +168,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = [
             'id',
-            'text', 
+            'text',
             'type',
             'options',
             'explanation',
@@ -197,7 +194,7 @@ class RewardSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'cost', 'type', 'image', 'donation_organization']
 
 class UserPurchaseSerializer(serializers.ModelSerializer):
-    reward = RewardSerializer(read_only=True) 
+    reward = RewardSerializer(read_only=True)
 
     class Meta:
         model = UserPurchase
@@ -227,7 +224,7 @@ class BadgeSerializer(serializers.ModelSerializer):
 
 class UserBadgeSerializer(serializers.ModelSerializer):
     badge = BadgeSerializer(read_only=True)
-    
+
     class Meta:
         model = UserBadge
         fields = ['badge', 'earned_at']
@@ -236,15 +233,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
     badges = UserBadgeSerializer(many=True, read_only=True, source='user.earned_badges')
-    referral_code = serializers.CharField(read_only=True) 
-    
+    referral_code = serializers.CharField(read_only=True)
+
     class Meta:
         model = UserProfile
         fields = [
             "user", "email_reminders", "earned_money", "points", "profile_picture",
             "profile_avatar", "generated_images", "balance", "badges", "referral_code", "dark_mode"
         ]
-    
+
     def get_balance(self, obj):
         return float(obj.earned_money)
 
@@ -266,7 +263,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
-        
+
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     sender = serializers.SerializerMethodField()

@@ -17,17 +17,18 @@ class UserProfile(models.Model):
     wants_personalized_path = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     profile_avatar = models.URLField(null=True, blank=True)
-    generated_images = models.JSONField(default=list, blank=True) 
+    generated_images = models.JSONField(default=list, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
     referral_code = models.CharField(
         max_length=20,
         unique=True,
         blank=False,
-        null=True, 
+        null=True,
     )
     referral_points = models.PositiveIntegerField(default=0)
     dark_mode = models.BooleanField(default=False)
     has_paid = models.BooleanField(default=False)
+    stripe_payment_id = models.CharField(max_length=255, blank=True, null=True)
 
     FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
@@ -112,12 +113,12 @@ class Lesson(models.Model):
     image = models.ImageField(upload_to='lesson_images/', blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(
-        max_length=50, 
+        max_length=50,
         choices=EXERCISE_CHOICES,
-        blank=True, 
+        blank=True,
         null=True
     )
-    exercise_data = models.JSONField(blank=True, null=True) 
+    exercise_data = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
@@ -132,29 +133,29 @@ class LessonSection(models.Model):
         ('video', 'Video'),
         ('exercise', 'Interactive Exercise'),
     ]
-    
+
     EXERCISE_TYPES = [
         ('drag-and-drop', 'Drag and Drop'),
         ('multiple-choice', 'Multiple Choice'),
         ('budget-allocation', 'Budget Allocation'),
     ]
-    
+
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='sections')
     order = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='text')
-    
+
     # Content fields
     text_content = RichTextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)
-    
+
     class Meta:
         ordering = ['order']
         unique_together = ('lesson', 'order')
 
-        
+
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user_progress")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="progress_courses")
@@ -185,7 +186,7 @@ class UserProgress(models.Model):
                 self.streak = 1 if today == self.last_completed_date else 0
         else:
             self.streak = 1
-        
+
         self.last_completed_date = today
         self.save()
 
@@ -265,7 +266,7 @@ class Mission(models.Model):
     goal_type = models.CharField(max_length=50, choices=GOAL_TYPES, default='complete_lesson')
     goal_reference = models.JSONField(null=True, blank=True)
     fact = models.ForeignKey(
-        FinanceFact, 
+        FinanceFact,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -293,7 +294,7 @@ class MissionCompletion(models.Model):
 
     def update_progress(self, increment=0, total=100):
         if self.status == 'completed':
-            return 
+            return
 
         if self.mission.goal_type == "complete_path":
             path_id = self.mission.goal_reference.get('path_id')
@@ -305,15 +306,15 @@ class MissionCompletion(models.Model):
                 ).count()
                 total_courses = Course.objects.filter(path_id=path_id).count()
                 self.progress = int((completed_courses / total_courses) * 100)
-        
+
         elif self.mission.goal_type == "add_savings":
             self.progress = min(self.progress + increment, total)
-        
+
         elif self.mission.goal_type == "read_fact":
             if self.mission.mission_type == 'daily':
                 self.progress = 100
             else:
-                self.progress = min(self.progress + 20, 100) 
+                self.progress = min(self.progress + 20, 100)
 
         if self.progress >= 100:
             self.status = 'completed'
@@ -406,7 +407,7 @@ class Question(models.Model):
         ('preference_scale', 'Preference Scale'),
         ('budget_allocation', 'Budget Allocation')
     ]
-    
+
     text = models.TextField()
     type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     options = models.JSONField()
@@ -443,7 +444,7 @@ class Reward(models.Model):
         ('shop', 'Shop Item'),
         ('donate', 'Donation Cause')
     ]
-    
+
     name = models.CharField(max_length=200)
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
@@ -548,7 +549,7 @@ class Exercise(models.Model):
         ('multiple-choice', 'Multiple Choice'),
         ('budget-allocation', 'Budget Allocation'),
     ]
-    
+
     type = models.CharField(max_length=50, choices=EXERCISE_TYPES)
     question = models.TextField()
     exercise_data = models.JSONField(help_text="Structured data based on exercise type")

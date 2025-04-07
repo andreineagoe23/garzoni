@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import Header from "./Header";
@@ -9,6 +10,7 @@ const Questionnaire = () => {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -76,6 +78,7 @@ const Questionnaire = () => {
     }));
   };
 
+  // Questionnaire.js
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
@@ -88,8 +91,12 @@ const Questionnaire = () => {
         }
       );
 
+      // Redirect to payment if needed
       if (response.data.redirect_url) {
         window.location.href = response.data.redirect_url;
+      } else {
+        // Handle free tier access
+        navigate("/personalized-path");
       }
     } catch (error) {
       setError(error.response?.data?.error || "Payment setup failed");
