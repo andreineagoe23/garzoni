@@ -34,6 +34,7 @@ import Chatbot from "./components/Chatbot";
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
@@ -52,7 +53,6 @@ function App() {
             setIsChatbotVisible={setIsChatbotVisible}
             isMobileView={isMobileView}
           />
-
         </div>
       </ThemeProvider>
     </Router>
@@ -76,16 +76,7 @@ const AppContent = ({
     "/questionnaire",
     "/payment-required",
   ];
-  const noChatbotPaths = [
-    "/login",
-    "/register",
-    "/questionnaire",
-    "/welcome",
-    "/forgot-password",
-    "/password-reset",
-    "/",
-    "/payment-required",
-  ];
+  const noChatbotPaths = ["/login", "/register", "/questionnaire", "/welcome" ,"/forgot-password", "/password-reset", "/", "/payment-required" ];
 
   axios.interceptors.request.use((config) => {
     const tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -142,6 +133,7 @@ const AppContent = ({
         </ThemeProvider>
       </main>
 
+      {/* Chatbot conditional */}
       {!noChatbotPaths.includes(location.pathname) && (
         <Chatbot
           isVisible={isChatbotVisible}
