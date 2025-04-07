@@ -114,6 +114,7 @@ const AppContent = ({
     }
   }, [location.pathname, location.search]);
 
+
   return (
     <Container fluid className="app-layout p-0">
       {!noNavbarPaths.includes(location.pathname) && (
