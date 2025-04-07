@@ -30,7 +30,6 @@ import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
@@ -54,7 +53,6 @@ function App() {
             isMobileView={isMobileView}
           />
 
-          <SpeedInsights />
         </div>
       </ThemeProvider>
     </Router>
