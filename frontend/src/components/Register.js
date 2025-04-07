@@ -23,13 +23,6 @@ function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRadioChange = (e) => {
-    setFormData({
-      ...formData,
-      wants_personalized_path: e.target.value === "true",
-    });
-  };
-
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
