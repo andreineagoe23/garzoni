@@ -1,187 +1,365 @@
-// Dark Theme Variables
 [data-theme="dark"] {
-  // Updated color variables
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --card-bg: #1e1e1e;
-  --input-bg: #2d2d2d;
-  --border-color: #404040;
-  --secondary: #ffd700;
-  --primary: #1d5330;
-  --accent: #ffd700;
+  // ========== Core Variables ==========
+  --bg-color: #0A0A0A; // Deep black
+  --text-color: #FFE484; // Soft gold
+  --card-bg: #163A24; // Forest green
+  --border-color: rgba(255, 215, 0, 0.15); // Gold border
+  --primary: #2A6041; // Medium green
+  --accent: #FFD700; // Pure gold
+  --input-bg: rgba(0, 0, 0, 0.3); // Transparent black
+  --muted-text: rgba(255, 228, 132, 0.7); // Subdued gold
 
-  // Base text colors
+  // ========== Base Styles ==========
   body {
-    background-color: var(--bg-color);
+    background: var(--bg-color);
     color: var(--text-color);
-
-    p {
-      color: var(--text-color) !important;
-    }
-
-    strong {
-      color: var(--text-color) !important;
-    }
   }
 
-  // Text utilities
-  .text-dark {
-    color: var(--text-color) !important;
-  }
-  
-  .text-secondary {
-    color: var(--secondary) !important;
+  label {
+    color: var(--muted-text);
   }
 
-  .text-muted {
-    color: #909090 !important;
+  // ========== Typography ==========
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--accent);
+    border-bottom: 1px solid var(--primary);
+    padding-bottom: map-get($spacers, 2);
   }
 
-  // Specific component fixes
-  .progress-title {
-    color: var(--text-color) !important;
+  p, li, td, th {
+    color: var(--text-color);
   }
 
-  .stat-box {
-    h4.text-secondary {
-      color: var(--secondary) !important;
-    }
-  }
-
-  // Bootstrap component overrides
-  .btn-secondary {
-    background-color: var(--secondary);
-    border-color: var(--secondary);
-    color: var(--dark);
+  a {
+    color: var(--accent);
 
     &:hover {
-      background-color: #e6c300;
-      border-color: #e6c300;
+      color: darken($accent, 10%);
+      border-bottom-style: solid;
     }
   }
 
-  .btn-primary {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    &:hover {
-      background-color: darken(#1d5330, 10%);
+  // ========== Cards ==========
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    &-header {
+      background: rgba(42, 96, 65, 0.3);
+      border-bottom: 1px solid var(--primary);
+      color: var(--accent);
+    }
+
+    &-title {
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    &-text {
+      color: var(--muted-text);
     }
   }
 
-  .badge.bg-secondary {
-    background-color: var(--secondary) !important;
-    color: #000;
-  }
-
-  // Form elements
+  // ========== Forms ==========
   .form-control,
   .form-select {
-    background-color: var(--input-bg);
-    border-color: var(--border-color);
-    color: var(--text-color);
-    
+    background: var(--input-bg);
+    border: 1px solid var(--primary);
+    color: var(--accent);
+
     &:focus {
-      background-color: var(--input-bg);
-      color: var(--text-color);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
     }
 
     &::placeholder {
-      color: #7a7a7a;
+      color: rgba(255, 215, 0, 0.5);
     }
   }
 
-  // Navigation
-  .navbar, .sidebar {
-    background-color: var(--card-bg);
-    border-color: var(--border-color);
-    --text-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  .form-label {
+    color: var(--accent);
+    opacity: 0.9;
   }
 
-  // Profile page specific
-  .profile-container {
-    .stat-box {
-      background: rgba(255, 215, 0, 0.1);
+  // ========== Buttons ==========
+  .btn {
+    &-primary {
+      background: var(--primary);
+      border-color: var(--accent);
+      color: var(--accent);
+
+      &:hover {
+        background: var(--accent);
+        color: var(--primary);
+      }
     }
 
-    .badge-card {
-      background: #2d2d2d;
-    }
+    &-outline-primary {
+      border-color: var(--primary);
+      color: var(--primary);
 
-    .recent-activity {
-      .list-group-item {
-        background: rgba(#ffffff, 0.05);
+      &:hover {
+        background: var(--primary);
+        color: var(--bg-color);
       }
     }
   }
 
-  // Table adjustments
+  // ========== Tables ==========
   .table {
     --bs-table-color: var(--text-color);
-    --bs-table-bg: var(--card-bg);
+    --bs-table-bg: transparent;
     --bs-table-border-color: var(--border-color);
-    --bs-table-striped-bg: rgba(255, 215, 0, 0.05);
-    
-    tbody {
-      border-color: var(--border-color);
+
+    th {
+      background: rgba(42, 96, 65, 0.3);
+      color: var(--accent);
+    }
+
+    td {
+      background: rgba(0, 0, 0, 0.1);
     }
   }
 
-  // Modal enhancements
-  .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-color);
+  // ========== Alerts ==========
+  .alert {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary);
+
+    &-primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+  }
+
+  // ========== Badges ==========
+  .badge {
+    &-primary {
+      background: var(--primary);
+      color: var(--accent);
+    }
+
+    &-accent {
+      background: var(--accent);
+      color: var(--primary);
+    }
+  }
+
+  // ========== Progress Bars ==========
+  .progress {
+    background: var(--input-bg);
+
+    &-bar {
+      background: var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  // ========== Navigation ==========
+  .navbar,
+  .sidebar {
+    background: var(--card-bg);
     border-color: var(--border-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    .nav-link {
+      color: var(--muted-text);
+
+      &.active {
+        background: var(--primary);
+        color: var(--accent);
+      }
+    }
+  }
+
+  // ========== Modals ==========
+  .modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--primary);
+
+    .modal-header {
+      border-bottom-color: var(--primary);
+    }
+
+    .modal-footer {
+      border-top-color: var(--primary);
+    }
+  }
+
+  // ========== Dropdowns ==========
+  .dropdown-menu {
+    background: var(--card-bg);
+    border: 1px solid var(--primary);
+
+    .dropdown-item {
+      color: var(--text-color);
+
+      &:hover {
+        background: var(--primary);
+        color: var(--accent);
+      }
+    }
+  }
+
+  // ========== Utility Classes ==========
+  .text-muted {
+    color: var(--muted-text) !important;
   }
 
   .border {
     border-color: var(--border-color) !important;
   }
 
-  .dropdown-menu {
-    background-color: var(--card-bg);
-    border-color: var(--border-color);
-  }
-
-  .dropdown-item {
-    color: var(--text-color);
-    
-    &:hover, &:focus {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  // Custom components
-  .settings-card, 
-  .dashboard-card,
-  .user-progress-box {
-    background-color: var(--card-bg);
-    border-color: var(--border-color);
-  }
-
-  // Avatar selector
-  .avatar-selector__trigger {
-    background-color: var(--secondary) !important;
-    color: #000 !important;
-  }
-
-  .form-check-label,
-  .form-label {
-    color: var(--text-color) !important;
-    
-    strong {
-      color: inherit !important;
-    }
-  }
-
-  .form-check-input:checked ~ .form-check-label {
-    color: var(--text-color);
-  }
-
-  // Ensure all text elements
-  h1, h2, h3, h4, h5, h6,
-  .h1, .h2, .h3, .h4, .h5, .h6 {
-    color: var(--text-color);
+  .bg-dark {
+    background-color: var(--card-bg) !important;
   }
 }
+
+.form-check {
+    .form-check-input {
+      background-color: var(--input-bg);
+      border: 2px solid var(--primary);
+      
+      &:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
+      }
+    }
+
+    .form-check-label {
+      color: var(--text-color);
+      margin-left: map-get($spacers, 2);
+    }
+
+    // Specific styles for your exercise options
+    .option-check {
+      .form-check-label {
+        font-size: 1.1rem;
+        color: var(--muted-text);
+        transition: all 0.2s ease;
+      }
+
+      .form-check-input:checked ~ .form-check-label {
+        color: var(--accent);
+        font-weight: $font-weight-semibold;
+      }
+
+      &:hover {
+        .form-check-label {
+          color: var(--accent);
+          opacity: 0.9;
+        }
+        
+        .form-check-input {
+          border-color: var(--accent);
+        }
+      }
+    }
+
+    // Radio button specific styling
+    input[type="radio"] {
+      &:checked {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%232A6041'/%3e%3c/svg%3e");
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
+      }
+    }
+  }
+
+  // Your specific option list styling
+  .option-list {
+    .option-item {
+      background: rgba(42, 96, 65, 0.2);
+      border-radius: var(--border-radius);
+      margin-bottom: map-get($spacers, 2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 215, 0, 0.1);
+        transform: translateX(5px);
+      }
+
+      &.active {
+        background: var(--primary);
+        border: 1px solid var(--accent);
+      }
+    }
+
+
+    .form-check {
+      .form-check-input {
+        background-color: var(--input-bg);
+        border: 2px solid var(--primary);
+        
+        &:checked {
+          background-color: var(--accent);
+          border-color: var(--accent);
+        }
+      }
+  
+      .form-check-label {
+        color: var(--text-color);
+        margin-left: map-get($spacers, 2);
+      }
+  
+      // Specific styles for your exercise options
+      .option-check {
+        .form-check-label {
+          font-size: 1.1rem;
+          color: var(--muted-text);
+          transition: all 0.2s ease;
+        }
+  
+        .form-check-input:checked ~ .form-check-label {
+          color: var(--accent);
+          font-weight: $font-weight-semibold;
+        }
+  
+        &:hover {
+          .form-check-label {
+            color: var(--accent);
+            opacity: 0.9;
+          }
+          
+          .form-check-input {
+            border-color: var(--accent);
+          }
+        }
+      }
+  
+      // Radio button specific styling
+      input[type="radio"] {
+        &:checked {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%232A6041'/%3e%3c/svg%3e");
+        }
+        
+        &:focus {
+          box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
+        }
+      }
+    }
+  
+    // Your specific option list styling
+    .option-list {
+      .option-item {
+        background: rgba(42, 96, 65, 0.2);
+        border-radius: var(--border-radius);
+        margin-bottom: map-get($spacers, 2);
+        transition: all 0.3s ease;
+  
+        &:hover {
+          background: rgba(255, 215, 0, 0.1);
+          transform: translateX(5px);
+        }
+  
+        &.active {
+          background: var(--primary);
+          border: 1px solid var(--accent);
+        }
+      }
+    }
+
+  }
