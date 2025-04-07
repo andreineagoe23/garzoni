@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
-import logo from "../assets/logo.png";
+import logo from "../assets/monevo.png";
 import "../styles/scss/main.scss";
 
 export default function ResetPassword() {
