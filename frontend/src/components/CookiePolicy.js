@@ -1,38 +1,27 @@
-// components/CookiePolicy.js
-import React from 'react';
-import { Container } from 'react-bootstrap';
+import React, { useEffect } from "react";
+import { Container } from "react-bootstrap";
 
-const CookiePolicy = () => (
-  <Container className="policy-page">
-    <h1>Cookie Policy</h1>
-    <p>Last updated: [Date]</p>
+const CookiePolicy = () => {
+  useEffect(() => {
+    // Dynamically load Cookie Declaration
+    const script = document.createElement("script");
+    script.id = "CookieDeclaration";
+    script.src =
+      "https://consent.cookiebot.com/12b9cf17-1f30-4bd3-8327-7a29ec5d4ee1/cd.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-    <h2>Essential Cookies</h2>
-    <p>Authentication and session management cookies...</p>
+    return () => {
+      document.getElementById("CookieDeclaration")?.remove();
+    };
+  }, []);
 
-    <h2>Analytical Cookies</h2>
-    <table className="cookie-table">
-      <thead>
-        <tr>
-          <th>Service</th>
-          <th>Purpose</th>
-          <th>Provider</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Google Analytics</td>
-          <td>Usage tracking</td>
-          <td>Google LLC</td>
-        </tr>
-        <tr>
-          <td>Usercentrics</td>
-          <td>Consent management</td>
-          <td>Usercentrics GmbH</td>
-        </tr>
-      </tbody>
-    </table>
-  </Container>
-);
+  return (
+    <Container className="policy-page">
+      <h1>Cookie Policy</h1>
+      <div id="cookie-declaration"></div>
+    </Container>
+  );
+};
 
 export default CookiePolicy;
