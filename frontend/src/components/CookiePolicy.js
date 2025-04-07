@@ -18,9 +18,9 @@ const CookiePolicy = () => {
   }, []);
 
   return (
-    <Container className="policy-page">
-      <h1>Cookie Policy</h1>
-      <div id="cookie-declaration"></div>
+    <Container className="policy-page mt-5 p-4 border rounded shadow">
+      <h1 className="text-center mb-4">Cookie Policy</h1>
+      <div id="cookie-declaration" className="bg-light p-3 rounded"></div>
     </Container>
   );
 };
