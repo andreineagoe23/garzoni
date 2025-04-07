@@ -4,6 +4,7 @@ import { useTheme } from "./ThemeContext";
 import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/scss/main.scss";
+import { Link } from "react-router-dom";
 
 function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
@@ -200,6 +201,23 @@ function Settings() {
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                 </select>
+              </div>
+
+              <div className="legal-links mt-4 d-flex gap-2 justify-content-center">
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-muted small text-decoration-none"
+                  onClick={() => window.UC_UI?.showSecondLayer()}
+                >
+                  Privacy Settings
+                </button>
+                <span className="text-muted">•</span>
+                <Link
+                  to="/cookie-policy"
+                  className="text-muted small text-decoration-none"
+                >
+                  Cookie Policy
+                </Link>
               </div>
 
               <button
