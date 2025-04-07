@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useCallback } from "react";
 
-const Chatbot = ({ isVisible, setIsVisible }) => {
+
+const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -11,8 +13,8 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
-  const [isMobile] = useState(false);
   const shouldShowChatbot = true;
+  
 
   // Hugging Face Configuration
   const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.1";
@@ -58,46 +60,69 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
       const availableVoices = window.speechSynthesis.getVoices();
       if (availableVoices.length > 0) {
         setVoices(availableVoices);
-        setSelectedVoice((prev) => prev || availableVoices[0]);
+        setSelectedVoice(prev => 
+          prev || availableVoices.find(v => v.default) || availableVoices[0]
+        );
       }
     };
-
-    if (window.speechSynthesis.onvoiceschanged !== null) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
+  
+    // Mobile browsers often load voices asynchronously
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices(); // Initial load
+  
+    // iOS requires additional check
+    if (isMobile && voices.length === 0) {
+      const interval = setInterval(() => {
+        const mobileVoices = window.speechSynthesis.getVoices();
+        if (mobileVoices.length > 0) {
+          clearInterval(interval);
+          loadVoices();
+        }
+      }, 500);
+      return () => clearInterval(interval);
     }
+  }, [isMobile, voices.length]);
 
-    setTimeout(loadVoices, 500);
-  }, []);
-
-  const speakResponse = (text) => {
-    if (isSpeechEnabled && selectedVoice) {
+  const speakResponse = useCallback((text) => {
+    if (!isSpeechEnabled || !selectedVoice) return;
+  
+    // Mobile browsers require user interaction for audio
+    const handleSpeak = () => {
       const MAX_CHAR_LIMIT = 200;
-      const sentences = text.match(
-        new RegExp(`.{1,${MAX_CHAR_LIMIT}}(\\s|$)`, "g")
-      );
-
-      if (!sentences) return;
-
+      const sentences = text.match(new RegExp(`.{1,${MAX_CHAR_LIMIT}}(\\s|$)`, 'g')) || [];
+      
       window.speechSynthesis.cancel();
-
+  
       let index = 0;
       const speakNextSentence = () => {
         if (index < sentences.length) {
           const speech = new SpeechSynthesisUtterance(sentences[index]);
           speech.voice = selectedVoice;
-
+          
+          // iOS requires sequential speaking
           speech.onend = () => {
             index++;
             speakNextSentence();
           };
-
+          
           window.speechSynthesis.speak(speech);
         }
       };
-
+  
       speakNextSentence();
+    };
+  
+    // iOS workaround: trigger from user gesture
+    if (isMobile) {
+      const clickHandler = () => {
+        handleSpeak();
+        document.body.removeEventListener('click', clickHandler);
+      };
+      document.body.addEventListener('click', clickHandler);
+    } else {
+      handleSpeak();
     }
-  };
+  }, [isSpeechEnabled, selectedVoice, isMobile]);
 
   const checkFinancialQuery = async (message) => {
     if (message.toLowerCase().includes("stock price")) {
@@ -163,9 +188,30 @@ const Chatbot = ({ isVisible, setIsVisible }) => {
     }
   };
 
-  const startVoiceRecognition = () => {
-    console.log("Voice recognition started");
+
+const startVoiceRecognition = () => {
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    alert("Speech recognition is not supported in your browser");
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    setUserInput(transcript);
   };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+  };
+};
 
   const handleMessageSend = async () => {
     if (!userInput.trim()) return;

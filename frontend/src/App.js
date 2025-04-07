@@ -34,6 +34,7 @@ import Chatbot from "./components/Chatbot";
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
