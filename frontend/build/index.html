@@ -2,6 +2,48 @@
 <html lang="en">
 
 <head>
+
+  <head>
+    <!-- Cookiebot MUST be first -->
+    <script 
+      id="Cookiebot" 
+      src="https://consent.cookiebot.com/uc.js" 
+      data-cbid="12b9cf17-1f30-4bd3-8327-7a29ec5d4ee1" 
+      data-blockingmode="auto" 
+      type="text/javascript"
+      async
+    ></script>
+
+    <!-- Google Analytics Loader -->
+    <script>
+      // Initialize consent mode
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Default deny all
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+
+      // Load GA only after Cookiebot consent
+      window.addEventListener('CookiebotOnAccept', function(e) {
+        if(Cookiebot.consent.statistics) {
+          const gaScript = document.createElement('script');
+          gaScript.async = true;
+          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8';
+          document.head.appendChild(gaScript);
+
+          gtag('js', new Date());
+          gtag('config', 'G-0H3QCDXCE8', { 
+            anonymize_ip: true,
+            allow_google_signals: false
+          });
+        }
+      }, false);
+    </script>
+
   <meta charset="utf-8" />
   <link rel="icon" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,44 +79,12 @@
 
   <!-- Styles and Scripts -->
   <link href="/static/css/main.498eae87.css" rel="stylesheet" />
-  
-  <script 
-      id="usercentrics-cmp" 
-      src="https://web.cmp.usercentrics.eu/ui/loader.js" 
-      data-settings-id="o3gY1UKzmzy6yw" 
-      async
-    ></script>
-    
-  <script defer src="/static/js/main.51302877.js"></script>
 
-  
+  <script defer src="/static/js/main.51302877.js"></script>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
   
-    // Initialize with default denial
-    gtag('consent', 'default', {
-      ad_storage: 'denied',
-      analytics_storage: 'denied',
-      wait_for_update: 500
-    });
-  
-    // Load GA only after consent
-    window.addEventListener('usercentrics', (event) => {
-      if(event.detail.consents.statistics) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8';
-        document.head.appendChild(script);
-        
-        gtag('js', new Date());
-        gtag('config', 'G-0H3QCDXCE8');
-      }
-    });
-  </script>
 </head>
 
 <body>
