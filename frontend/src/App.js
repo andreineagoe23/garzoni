@@ -33,6 +33,8 @@ import Chatbot from "./components/Chatbot";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import CookiePolicy from "./components/CookiePolicy";
 
+/* global Cookiebot */
+
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
@@ -59,6 +61,7 @@ function App() {
     </Router>
   );
 }
+
 const AppContent = ({
   toggleChatbot,
   isChatbotVisible,
@@ -79,6 +82,7 @@ const AppContent = ({
     "/privacy-policy",
     "/cookie-policy",
   ];
+
   const noChatbotPaths = [
     "/login",
     "/register",
@@ -101,7 +105,10 @@ const AppContent = ({
   });
 
   useEffect(() => {
-    if (typeof gtag === "function" && Cookiebot?.consent?.statistics) {
+    if (
+      typeof window.gtag === "function" &&
+      window.Cookiebot?.consent?.statistics
+    ) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
         send_to: "G-0H3QCDXCE8",
@@ -158,7 +165,6 @@ const AppContent = ({
         </ThemeProvider>
       </main>
 
-      {/* Chatbot conditional */}
       {!noChatbotPaths.includes(location.pathname) && (
         <Chatbot
           isVisible={isChatbotVisible}
