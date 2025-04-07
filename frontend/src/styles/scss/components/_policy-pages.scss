@@ -1,83 +1,58 @@
 .policy-page {
-  --policy-spacing: #{map-get($spacers, 5)};
-  --policy-max-width: 800px;
+    --policy-spacing: #{map-get($spacers, 5)};
+    --policy-max-width: 800px;
 
-  @extend .card;
-  margin: var(--policy-spacing) auto;
-  max-width: var(--policy-max-width);
-  box-shadow: var(--shadow-lg);
-
-  h1 {
-    color: var(--primary);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: map-get($spacers, 3);
-    margin-bottom: map-get($spacers, 4);
-  }
-
-  .legal-links {
-    @extend .btn-group;
-    justify-content: center;
-    margin: map-get($spacers, 4) 0;
-
-    a {
-      @extend .btn-outline-accent;
-      margin: 0 map-get($spacers, 2);
-    }
-  }
-
-  .cookie-declaration-container {
     @extend .card;
-    padding: map-get($spacers, 4);
-    margin: map-get($spacers, 4) 0;
+    margin: var(--policy-spacing) auto;
+    max-width: var(--policy-max-width);
+    box-shadow: var(--shadow-lg);
 
-    table {
-      @extend .table;
-      margin: map-get($spacers, 3) 0;
+    &.mt-5 {
+        margin-top: map-get($spacers, 5);
     }
 
-    h2 {
-      color: var(--primary);
-      margin-bottom: map-get($spacers, 3);
+    &.p-4 {
+        padding: map-get($spacers, 4);
     }
-  }
 
-  .alert {
-    @extend .card;
-    border-color: var(--danger);
-  }
-
-  @include media-breakpoint-down(md) {
-    --policy-spacing: #{map-get($spacers, 3)};
-    margin: map-get($spacers, 3);
-    padding: map-get($spacers, 3);
-  }
-}
-
-// Override Cookiebot's default styles
-#CookieDeclaration {
-  font-family: $font-family-base !important;
-  color: var(--text-color) !important;
-
-  table {
-    background: var(--card-bg) !important;
-    border-color: var(--border-color) !important;
-    
-    th {
-      background: rgba(var(--primary), 0.1) !important;
-      color: var(--primary) !important;
+    &.border {
+        border: 1px solid var(--border-color);
     }
-    
-    td {
-      border-color: var(--border-color) !important;
+
+    &.rounded {
+        border-radius: var(--border-radius);
     }
-  }
-  
-  a {
-    color: var(--primary) !important;
-    @include button-outline-accent-variant;
-    
-    &:hover {
-      text-decoration: none;
+
+    &.shadow {
+        box-shadow: var(--shadow-lg);
     }
-  }
+
+    h1 {
+        color: var(--primary);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: map-get($spacers, 3);
+        margin-bottom: map-get($spacers, 4);
+
+        &.text-center {
+            text-align: center;
+        }
+
+        &.mb-4 {
+            margin-bottom: map-get($spacers, 4);
+        }
+    }
+
+    #cookie-declaration {
+        &.bg-light {
+            background-color: var(--light);
+        }
+
+        &.p-3 {
+            padding: map-get($spacers, 3);
+        }
+
+        &.rounded {
+            border-radius: var(--border-radius);
+        }
+    }
 }
