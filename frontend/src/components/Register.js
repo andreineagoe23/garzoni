@@ -65,27 +65,27 @@ function Register() {
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
           <Form onSubmit={handleRegister}>
-              <Form.Group className="mb-4">
-                <Form.Label>First Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
-              <Form.Group className="mb-4">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
             <Form.Group className="mb-4">
               <Form.Label>Username</Form.Label>
@@ -128,30 +128,6 @@ function Register() {
                 value={formData.referral_code}
                 onChange={handleChange}
               />
-            </Form.Group>
-
-            <Form.Group className="mb-4">
-              <Form.Label>Personalized Learning Path?</Form.Label>
-              <div className="radio-group">
-                <Form.Check
-                  type="radio"
-                  label="Yes"
-                  name="wants_personalized_path"
-                  value="true"
-                  checked={formData.wants_personalized_path === true}
-                  onChange={handleRadioChange}
-                  inline
-                />
-                <Form.Check
-                  type="radio"
-                  label="No"
-                  name="wants_personalized_path"
-                  value="false"
-                  checked={formData.wants_personalized_path === false}
-                  onChange={handleRadioChange}
-                  inline
-                />
-              </div>
             </Form.Group>
 
             <div className="d-grid gap-3">
