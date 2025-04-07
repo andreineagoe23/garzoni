@@ -136,7 +136,7 @@ class RegisterView(generics.CreateAPIView):
                 "username": user.username,
                 "email": user.email
             },
-            "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/dashboard/"
+            "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/all-topics/"
         }, status=status.HTTP_201_CREATED)
 
 
