@@ -214,7 +214,7 @@ function Settings() {
                 <span className="text-muted">•</span>
                 <Link
                   to="/cookie-policy"
-                  className="text-muted small text-decoration-none"
+                  className="btn btn-link p-0 text-muted small text-decoration-none"
                 >
                   Cookie Policy
                 </Link>

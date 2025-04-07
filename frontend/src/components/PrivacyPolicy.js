@@ -1,6 +1,7 @@
 // components/PrivacyPolicy.js
 import React from "react";
 import { Container } from "react-bootstrap";
+import "../styles/scss/main.scss";
 
 const PrivacyPolicy = () => (
   <Container className="policy-page">
