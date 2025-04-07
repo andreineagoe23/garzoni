@@ -815,7 +815,7 @@ class PasswordResetRequestView(APIView):
             user = User.objects.get(email=email)
             token = PasswordResetTokenGenerator().make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_link = f"{settings.FRONTEND_URL}/#/password-reset/{uid}/{token}"  
+            reset_link = f"http://localhost:3000/monevo#/password-reset/{uid}/{token}"
 
             # Render the email content
             context = {
