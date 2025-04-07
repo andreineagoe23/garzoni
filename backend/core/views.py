@@ -1319,6 +1319,7 @@ class EnhancedQuestionnaireView(APIView):
 
 from django.core.cache import cache
 
+# views.py
 class StripeWebhookView(APIView):
     permission_classes = [AllowAny]
 
@@ -1339,10 +1340,9 @@ class StripeWebhookView(APIView):
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
                     if not user_profile.has_paid:
                         user_profile.has_paid = True
-                        user_profile.stripe_payment_intent_id = session.payment_intent
-                        user_profile.save(update_fields=['has_paid', 'stripe_payment_intent_id'])
-                        
-                        # Clear all relevant caches
+                        user_profile.stripe_payment_id = session.payment_intent
+                        user_profile.save(update_fields=['has_paid', 'stripe_payment_id'])
+
                         cache.delete_many([
                             f'user_payment_status_{user_id}',
                             f'user_profile_{user_id}'
@@ -1352,6 +1352,41 @@ class StripeWebhookView(APIView):
             logger.error(f"Webhook error: {str(e)}")
 
         return HttpResponse(status=200)
+
+
+class VerifySessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            session_id = request.data.get('session_id')
+            if not session_id or not session_id.startswith('cs_'):
+                return Response({"error": "Invalid session ID format"}, status=400)
+
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            session = stripe.checkout.Session.retrieve(
+                session_id,
+                expand=['payment_intent']
+            )
+
+            if session.payment_status == 'paid':
+                with transaction.atomic():
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    profile.has_paid = True
+                    profile.stripe_payment_id = session.payment_intent
+                    profile.save(update_fields=['has_paid', 'stripe_payment_id'])
+                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
+                    return Response({"status": "verified"})
+
+            return Response({"status": "pending"}, status=202)
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error: {str(e)}")
+            return Response({"error": "Payment verification failed"}, status=400)
+        except Exception as e:
+            logger.error(f"Verification error: {str(e)}")
+            return Response({"error": "Server error"}, status=500)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
