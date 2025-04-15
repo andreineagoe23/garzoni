@@ -1350,7 +1350,7 @@ class VerifySessionView(APIView):
                 with transaction.atomic():
                     profile = UserProfile.objects.select_for_update().get(user=request.user)
                     profile.has_paid = True
-                    profile.stripe_payment_id = session.payment_intent.id  # FIX: Get the ID from PaymentIntent object
+                    profile.stripe_payment_id = session.payment_intent.id
                     profile.save(update_fields=['has_paid', 'stripe_payment_id'])
                     cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
                     return Response({"status": "verified"})
