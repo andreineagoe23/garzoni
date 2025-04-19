@@ -32,12 +32,24 @@
     <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png">
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    
-    <script src="https://web.cmp.usercentrics.eu/modules/autoblocker.js"></script>
-    <script id="usercentrics-cmp" src="https://web.cmp.usercentrics.eu/ui/loader.js" data-settings-id="o3gY1UKzmzy6yw" async></script>
-    
+    <!-- Conditionally Load Cookiebot/Usercentrics (frontend only) -->
+    <script>
+      if (window.location.hostname.includes("monevo.tech")) {
+        const autoblocker = document.createElement("script");
+        autoblocker.src = "https://web.cmp.usercentrics.eu/modules/autoblocker.js";
+        autoblocker.async = true;
+        document.head.appendChild(autoblocker);
 
-    <!-- Google Consent Mode (MUST BE FIRST) -->
+        const ucScript = document.createElement("script");
+        ucScript.id = "usercentrics-cmp";
+        ucScript.src = "https://web.cmp.usercentrics.eu/ui/loader.js";
+        ucScript.setAttribute("data-settings-id", "o3gY1UKzmzy6yw");
+        ucScript.async = true;
+        document.head.appendChild(ucScript);
+      }
+    </script>
+
+    <!-- Google Consent Mode (Always runs) -->
     <script data-cookieconsent="ignore">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -58,16 +70,15 @@
     <!-- Preconnect to Critical Origins -->
     <link rel="preconnect" href="https://andreineagoe23.pythonanywhere.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
-    
+
     <!-- Font Preloading -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" as="style">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 
-    <!-- Dynamic Google Analytics Loader -->
-    <script>
-      // Load GA only after consent
-      window.addEventListener('CookiebotOnAccept', function(e) {
-        if(Cookiebot.consent.statistics) {
+    <!-- Dynamic Google Analytics Loader (only if consented) -->
+    <script data-cookieconsent="ignore">
+      window.addEventListener('CookiebotOnAccept', function() {
+        if (window.Cookiebot?.consent?.statistics) {
           const gaScript = document.createElement('script');
           gaScript.async = true;
           gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8';
@@ -76,11 +87,10 @@
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          
           gtag('config', 'G-0H3QCDXCE8', {
             anonymize_ip: true,
             allow_google_signals: false,
-            debug_mode: false // Set to true for testing
+            debug_mode: false
           });
         }
       });
