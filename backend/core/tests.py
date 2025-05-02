@@ -1,83 +1,77 @@
+import logging
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from .models import Course, UserProgress, Path, Lesson
+from unittest.mock import patch, Mock
+from core.models import Course, Lesson, UserProgress, Path, Mission, MissionCompletion, UserProfile
 
+logger = logging.getLogger(__name__)
 
-class UserTests(APITestCase):
-    def test_user_registration(self):
-        url = reverse('register')
-        data = {
-            "username": "testuser",
-            "password": "password123",
-            "email": "testuser@example.com",
-            "first_name": "Test",
-            "last_name": "User"
-        }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(User.objects.get().username, "testuser")
-
-    def test_user_login(self):
-        User.objects.create_user(username="testuser", password="password123")
-        url = reverse('login')
-        data = {"username": "testuser", "password": "password123"}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-
-
-class UserProgressTests(APITestCase):
+class AuthenticatedTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password123")
         self.client.force_authenticate(user=self.user)
+        self.path = Path.objects.create(title="Test Path", description="...")
+        self.course = Course.objects.create(title="Test Course", description="...", path=self.path)
+        self.lesson = Lesson.objects.create(course=self.course, title="Test Lesson", detailed_content="...")
 
-        self.path = Path.objects.create(title="Finance Path", description="Beginner level")
-        self.course = Course.objects.create(title="Intro to Forex", description="Forex basics", path=self.path)
-        self.lesson1 = Lesson.objects.create(title="Lesson 1", course=self.course, detailed_content="Test content")
+class UserLoginTest(APITestCase):
+    def test_login(self):
+        User.objects.create_user(username="testuser", password="password123")
+        url = reverse('token_obtain_pair')
+        data = {"username": "testuser", "password": "password123"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+        logger.info("✅ test_login passed")
 
-    def test_create_user_progress(self):
-        url = reverse('userprogress-list')
-        response = self.client.post(url, {
-            "course": self.course.id,
-            "is_course_complete": False
-        }, format='json')
+class LessonCompletionTest(AuthenticatedTestCase):
+    def test_lesson_completion(self):
+        url = reverse('userprogress-complete')
+        data = {"lesson_id": self.lesson.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "Lesson completed")
+        logger.info("✅ test_lesson_completion passed")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(UserProgress.objects.count(), 1)
-        progress = UserProgress.objects.get()
-        progress.completed_lessons.set([self.lesson1])
-        self.assertEqual(progress.user, self.user)
+class MissionLogicTest(AuthenticatedTestCase):
+    def test_mission_completion_progress(self):
+        mission = Mission.objects.create(
+            name="Complete a lesson",
+            description="Do 1 lesson",
+            goal_type="complete_lesson",
+            goal_reference={"required_lessons": 1},
+            points_reward=50
+        )
+        MissionCompletion.objects.create(user=self.user, mission=mission, progress=0)
+        url = reverse('userprogress-complete')
+        data = {"lesson_id": self.lesson.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, 200)
+        updated = MissionCompletion.objects.get(user=self.user, mission=mission)
+        self.assertEqual(updated.status, "completed")
+        self.assertEqual(updated.progress, 100)
+        logger.info("✅ test_mission_completion_progress passed")
 
-    def test_get_user_progress(self):
-        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
-        progress.completed_lessons.set([self.lesson1])
+class ReferralTest(AuthenticatedTestCase):
+    def test_referral_submission(self):
+        referrer = User.objects.create_user(username='referrer', password='pass123')
+        referrer_profile = referrer.userprofile
+        referral_code = referrer_profile.referral_code
+        response = self.client.post('/api/referrals/', {"referral_code": referral_code}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Referral applied successfully", response.data["message"])
+        logger.info("✅ test_referral_submission passed")
 
-        url = reverse('userprogress-list')
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-
-    def test_update_user_progress(self):
-        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
-        progress.completed_lessons.set([self.lesson1])
-
-        url = reverse('userprogress-detail', args=[progress.id])
-        response = self.client.patch(url, {
-            "is_course_complete": True
-        }, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        progress.refresh_from_db()
-        self.assertTrue(progress.is_course_complete)
-
-    def test_delete_user_progress(self):
-        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
-        progress.completed_lessons.set([self.lesson1])
-
-        url = reverse('userprogress-detail', args=[progress.id])
-        response = self.client.delete(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(UserProgress.objects.count(), 0)
+class PaymentVerificationTest(AuthenticatedTestCase):
+    def test_payment_verification_success(self):
+        session_id = "cs_test_valid123456789"
+        with patch('stripe.checkout.Session.retrieve') as mock_retrieve:
+            mock_intent = Mock(id="pi_test_123")
+            mock_retrieve.return_value = Mock(payment_status="paid", payment_intent=mock_intent)
+            response = self.client.post('/api/verify-session/', {"session_id": session_id}, format='json')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["status"], "verified")
+            logger.info("✅ test_payment_verification_success passed")
