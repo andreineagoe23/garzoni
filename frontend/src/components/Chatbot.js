@@ -4,7 +4,6 @@ import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useCallback } from "react";
 
-
 const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
@@ -14,14 +13,9 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
   const shouldShowChatbot = true;
-  
 
-  // Hugging Face Configuration
-  const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.1";
-  const HF_API_KEY = process.env.REACT_APP_HF_API_KEY;
-  console.log("HF API Key Status:", HF_API_KEY ? "Loaded" : "Missing!");
+  const HF_MODEL = "google/flan-t5-base";
 
-  // Finance FAQ Fallback
   const FINANCE_FAQ = {
     budgeting:
       "Budgeting is the process of creating a plan to spend your money. This spending plan helps ensure you have enough for necessities while working toward financial goals.",
@@ -32,16 +26,6 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     "credit score":
       "Your credit score (300-850) reflects creditworthiness. Pay bills on time, keep credit utilization low, and maintain old accounts to improve it.",
   };
-
-  // System prompt template for Mistral
-  const SYSTEM_PROMPT = `<<SYS>>
-  You are a certified financial expert. Follow these rules:
-  1. Answer ONLY personal finance questions
-  2. Be concise (1-3 sentences)
-  3. Use simple language
-  4. If unsure, say "I recommend consulting a financial advisor"
-  5. Never provide legal/tax advice
-  <</SYS>>`;
 
   useEffect(() => {
     if (isVisible && !hasGreeted && shouldShowChatbot) {
@@ -60,17 +44,16 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       const availableVoices = window.speechSynthesis.getVoices();
       if (availableVoices.length > 0) {
         setVoices(availableVoices);
-        setSelectedVoice(prev => 
-          prev || availableVoices.find(v => v.default) || availableVoices[0]
+        setSelectedVoice(
+          (prev) =>
+            prev || availableVoices.find((v) => v.default) || availableVoices[0]
         );
       }
     };
-  
-    // Mobile browsers often load voices asynchronously
+
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices(); // Initial load
-  
-    // iOS requires additional check
+    loadVoices();
+
     if (isMobile && voices.length === 0) {
       const interval = setInterval(() => {
         const mobileVoices = window.speechSynthesis.getVoices();
@@ -83,46 +66,47 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     }
   }, [isMobile, voices.length]);
 
-  const speakResponse = useCallback((text) => {
-    if (!isSpeechEnabled || !selectedVoice) return;
-  
-    // Mobile browsers require user interaction for audio
-    const handleSpeak = () => {
-      const MAX_CHAR_LIMIT = 200;
-      const sentences = text.match(new RegExp(`.{1,${MAX_CHAR_LIMIT}}(\\s|$)`, 'g')) || [];
-      
-      window.speechSynthesis.cancel();
-  
-      let index = 0;
-      const speakNextSentence = () => {
-        if (index < sentences.length) {
-          const speech = new SpeechSynthesisUtterance(sentences[index]);
-          speech.voice = selectedVoice;
-          
-          // iOS requires sequential speaking
-          speech.onend = () => {
-            index++;
-            speakNextSentence();
-          };
-          
-          window.speechSynthesis.speak(speech);
-        }
+  const speakResponse = useCallback(
+    (text) => {
+      if (!isSpeechEnabled || !selectedVoice) return;
+
+      const handleSpeak = () => {
+        const MAX_CHAR_LIMIT = 200;
+        const sentences =
+          text.match(new RegExp(`.{1,${MAX_CHAR_LIMIT}}(\\s|$)`, "g")) || [];
+
+        window.speechSynthesis.cancel();
+
+        let index = 0;
+        const speakNextSentence = () => {
+          if (index < sentences.length) {
+            const speech = new SpeechSynthesisUtterance(sentences[index]);
+            speech.voice = selectedVoice;
+
+            speech.onend = () => {
+              index++;
+              speakNextSentence();
+            };
+
+            window.speechSynthesis.speak(speech);
+          }
+        };
+
+        speakNextSentence();
       };
-  
-      speakNextSentence();
-    };
-  
-    // iOS workaround: trigger from user gesture
-    if (isMobile) {
-      const clickHandler = () => {
+
+      if (isMobile) {
+        const clickHandler = () => {
+          handleSpeak();
+          document.body.removeEventListener("click", clickHandler);
+        };
+        document.body.addEventListener("click", clickHandler);
+      } else {
         handleSpeak();
-        document.body.removeEventListener('click', clickHandler);
-      };
-      document.body.addEventListener('click', clickHandler);
-    } else {
-      handleSpeak();
-    }
-  }, [isSpeechEnabled, selectedVoice, isMobile]);
+      }
+    },
+    [isSpeechEnabled, selectedVoice, isMobile]
+  );
 
   const checkFinancialQuery = async (message) => {
     if (message.toLowerCase().includes("stock price")) {
@@ -162,7 +146,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         `https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd`
       );
       if (response.data[symbol]) {
-        return `The current price of ${symbol.toUpperCase()} is $${
+        return `The current price of ${symbol.toUpperCase()} is $$${
           response.data[symbol].usd
         } USD.`;
       } else {
@@ -179,7 +163,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       const response = await axios.get(
         `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=usd`
       );
-      return `The current price of ${cryptoId.toUpperCase()} is $${
+      return `The current price of ${cryptoId.toUpperCase()} is $$${
         response.data[cryptoId].usd
       } USD.`;
     } catch (error) {
@@ -188,93 +172,75 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     }
   };
 
+  const startVoiceRecognition = () => {
+    if (
+      !("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
+    ) {
+      alert("Speech recognition is not supported in your browser");
+      return;
+    }
 
-const startVoiceRecognition = () => {
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-    alert("Speech recognition is not supported in your browser");
-    return;
-  }
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+    recognition.start();
 
-  recognition.start();
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setUserInput(transcript);
+    };
 
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    setUserInput(transcript);
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
   };
-
-  recognition.onerror = (event) => {
-    console.error('Speech recognition error:', event.error);
-  };
-};
 
   const handleMessageSend = async () => {
     if (!userInput.trim()) return;
 
-    // Add user message
     const newChat = [...chatHistory, { sender: "user", text: userInput }];
     setChatHistory(newChat);
     setIsTyping(true);
 
     try {
-      // Check for API key
-      if (!HF_API_KEY) throw new Error("API configuration error");
-
-      // First check stock/crypto prices
       const financialData = await checkFinancialQuery(userInput);
       if (financialData) {
         updateChat(financialData);
         return;
       }
 
-      // Check FAQ fallback
       const cleanInput = userInput.toLowerCase().replace(/[^\w\s]/gi, "");
       if (FINANCE_FAQ[cleanInput]) {
         updateChat(FINANCE_FAQ[cleanInput]);
         return;
       }
 
-      // Format for Mistral instruction
-      const prompt = `<s>[INST] ${SYSTEM_PROMPT}\n\nUser: ${userInput} [/INST]`;
+      console.log("Calling backend proxy for AI response...");
 
-      // API Call
       const response = await axios.post(
-        `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+        `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`,
         {
-          inputs: prompt,
+          model: HF_MODEL,
+          inputs: userInput,
           parameters: {
-            max_new_tokens: 256,
+            max_new_tokens: 100,
             temperature: 0.7,
             top_p: 0.9,
-            repetition_penalty: 1.2,
           },
         },
         {
           headers: {
-            Authorization: `Bearer ${HF_API_KEY}`,
             "Content-Type": "application/json",
-            Accept: "application/json",
           },
-          timeout: 20000,
         }
       );
 
-      // Process response
-      let aiResponse = response.data[0]?.generated_text || "";
-      aiResponse = aiResponse
-        .replace(prompt, "")
-        .replace(/<\/?s>|\[INST\]|\[\/INST\]/g, "")
-        .replace(/<<SYS>>.*?<<\/SYS>>/gs, "")
-        .trim();
-
-      // Fallback if empty
-      if (!aiResponse) throw new Error("Empty response from AI");
-
+      const aiResponse =
+        response.data[0]?.generated_text?.trim() || "No answer found.";
       updateChat(aiResponse);
     } catch (error) {
       handleError(error);
@@ -284,7 +250,6 @@ const startVoiceRecognition = () => {
     }
   };
 
-  // Helper functions
   const updateChat = (text) => {
     setChatHistory((prev) => [...prev, { sender: "bot", text }]);
     speakResponse(text);

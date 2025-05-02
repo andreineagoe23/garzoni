@@ -44,6 +44,7 @@ from .views import (
     TokenObtainPairView,
     StripeWebhookView,
     VerifySessionView,
+    HuggingFaceProxyView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -125,6 +126,8 @@ urlpatterns = [
     path('friend-requests/<int:pk>/<str:action>/', FriendRequestView.as_view(), name='friend-request-action'),
     path('friend-requests/<int:pk>/', FriendRequestView.as_view(), name='friend-request-action'),
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
+
+    path("proxy/hf/", HuggingFaceProxyView.as_view(), name="hf-proxy"),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
