@@ -185,22 +185,10 @@ class UserProgress(models.Model):
 
 
     def update_streak(self):
-        today = timezone.now().date()
+        
+        if self.user and hasattr(self.user, 'userprofile'):
+            self.user.userprofile.update_streak()
 
-        if self.last_completed_date == today:
-            return
-
-        if self.last_completed_date:
-            difference = (today - self.last_completed_date).days
-            if difference == 1:
-                self.streak += 1
-            else:
-                self.streak = 1
-        else:
-            self.streak = 1
-
-        self.last_completed_date = today
-        self.save()
 
 
     def mark_course_complete(self):

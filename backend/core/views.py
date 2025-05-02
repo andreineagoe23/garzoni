@@ -428,7 +428,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 mission_completion.save()
 
             return Response(
-                {"status": "Lesson completed", "streak": user_progress.streak},
+                {"status": "Lesson completed", "streak": user_progress.user.userprofile.streak},
                 status=status.HTTP_200_OK
             )
         except Lesson.DoesNotExist:
