@@ -259,3 +259,18 @@ CSRF_TRUSTED_ORIGINS = [
 STRIPE_SECRET_KEY = 'sk_test_51R9kpVBi8QnQXyouk2SS209GQnsf1expP071qhuR9wWghoP9wppWF5URCTJlDXMmyILvF6YwIOCj7CqPULr4maZk004R9iNUA9' 
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51R9kpVBi8QnQXyouGcNBa6MYmRUSxTA5xtmzC62r31bVSyelmgspwVE4f1DC7YdUmaOgi8aykHNPSciUm0HLE1Io00aaHBT8O3' 
 FRONTEND_URL = "http://localhost:3000"
+
+import sys
+
+# Switch to SQLite for local test runs to avoid MySQL permission or data issues
+if 'test' in sys.argv:
+    print("⚠️ Using SQLite for local testing (in-memory)...")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',  # You can also use BASE_DIR / 'test_db.sqlite3' if needed
+        }
+    }
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    ]

@@ -1,10 +1,9 @@
-# core/tests.py
-
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from .models import Course, UserProgress, Path
+from .models import Course, UserProgress, Path, Lesson
+
 
 class UserTests(APITestCase):
     def test_user_registration(self):
@@ -22,59 +21,62 @@ class UserTests(APITestCase):
         self.assertEqual(User.objects.get().username, "testuser")
 
     def test_user_login(self):
-        # First, register the user
-        user = User.objects.create_user(username="testuser", password="password123")
+        User.objects.create_user(username="testuser", password="password123")
         url = reverse('login')
         data = {"username": "testuser", "password": "password123"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)  # Check for access token in response
+        self.assertIn('access', response.data)
+
 
 class UserProgressTests(APITestCase):
     def setUp(self):
-        # Create a user and authenticate
         self.user = User.objects.create_user(username="testuser", password="password123")
         self.client.force_authenticate(user=self.user)
 
-        # Set up data for Course and Path
-        self.path = Path.objects.create(title="Finance Path", description="A beginner path for finance")
-        self.course = Course.objects.create(title="Intro to Forex", description="Learn forex basics", path=self.path)
-        
+        self.path = Path.objects.create(title="Finance Path", description="Beginner level")
+        self.course = Course.objects.create(title="Intro to Forex", description="Forex basics", path=self.path)
+        self.lesson1 = Lesson.objects.create(title="Lesson 1", course=self.course, detailed_content="Test content")
+
     def test_create_user_progress(self):
         url = reverse('userprogress-list')
-        data = {
+        response = self.client.post(url, {
             "course": self.course.id,
-            "completed_lessons": 1,
             "is_course_complete": False
-        }
-        response = self.client.post(url, data, format='json')
+        }, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(UserProgress.objects.count(), 1)
-        self.assertEqual(UserProgress.objects.get().user, self.user)
+        progress = UserProgress.objects.get()
+        progress.completed_lessons.set([self.lesson1])
+        self.assertEqual(progress.user, self.user)
 
     def test_get_user_progress(self):
-        # Create progress record
-        UserProgress.objects.create(user=self.user, course=self.course, completed_lessons=1, is_course_complete=False)
+        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
+        progress.completed_lessons.set([self.lesson1])
+
         url = reverse('userprogress-list')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)  # Check we get one progress record
+        self.assertEqual(len(response.data), 1)
 
     def test_update_user_progress(self):
-        progress = UserProgress.objects.create(user=self.user, course=self.course, completed_lessons=1, is_course_complete=False)
+        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
+        progress.completed_lessons.set([self.lesson1])
+
         url = reverse('userprogress-detail', args=[progress.id])
-        data = {
-            "completed_lessons": 2,
+        response = self.client.patch(url, {
             "is_course_complete": True
-        }
-        response = self.client.patch(url, data, format='json')
+        }, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         progress.refresh_from_db()
-        self.assertEqual(progress.completed_lessons, 2)
         self.assertTrue(progress.is_course_complete)
 
     def test_delete_user_progress(self):
-        progress = UserProgress.objects.create(user=self.user, course=self.course, completed_lessons=1, is_course_complete=False)
+        progress = UserProgress.objects.create(user=self.user, course=self.course, is_course_complete=False)
+        progress.completed_lessons.set([self.lesson1])
+
         url = reverse('userprogress-detail', args=[progress.id])
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

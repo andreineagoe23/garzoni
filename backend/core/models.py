@@ -14,10 +14,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     points = models.PositiveIntegerField(default=0)
-    wants_personalized_path = models.BooleanField(default=False)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     profile_avatar = models.URLField(null=True, blank=True)
-    generated_images = models.JSONField(default=list, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
     referral_code = models.CharField(
         max_length=20,
@@ -34,26 +31,14 @@ class UserProfile(models.Model):
         null=True,
         db_index=True
     )
-
-    FREQUENCY_CHOICES = [
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('monthly', 'Monthly'),
-    ]
-
     email_reminders = models.BooleanField(default=True)
     email_frequency = models.CharField(
         max_length=10,
-        choices=FREQUENCY_CHOICES,
+        choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')],
         default='daily',
     )
-
-    def add_generated_image(self, image_path):
-        """Append an image to the generated_images field."""
-        images = self.generated_images or []
-        images.append(image_path)
-        self.generated_images = images
-        self.save()
+    streak = models.PositiveIntegerField(default=0)
+    last_completed_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -67,6 +52,24 @@ class UserProfile(models.Model):
         self.points += points
         self.save()
 
+    def update_streak(self):
+        today = timezone.now().date()
+
+        if self.last_completed_date == today:
+            return
+
+        if self.last_completed_date:
+            difference = (today - self.last_completed_date).days
+            if difference == 1:
+                self.streak += 1
+            else:
+                self.streak = 1
+        else:
+            self.streak = 1
+
+        self.last_completed_date = today
+        self.save()
+
     def save(self, *args, **kwargs):
         if not self.referral_code or self.referral_code.strip() == '':
             self.referral_code = None
@@ -77,6 +80,7 @@ class UserProfile(models.Model):
     class Meta:
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
+
 
 class Path(models.Model):
     title = models.CharField(max_length=100)
@@ -168,8 +172,6 @@ class UserProgress(models.Model):
     is_course_complete = models.BooleanField(default=False)
     is_questionnaire_completed = models.BooleanField(default=False)
     course_completed_at = models.DateTimeField(null=True, blank=True)
-    last_completed_date = models.DateField(null=True, blank=True)
-    streak = models.PositiveIntegerField(default=0)
     completed_sections = models.ManyToManyField(LessonSection, through='SectionCompletion', blank=True)
 
     def __str__(self):
@@ -184,16 +186,22 @@ class UserProgress(models.Model):
 
     def update_streak(self):
         today = timezone.now().date()
+
+        if self.last_completed_date == today:
+            return
+
         if self.last_completed_date:
-            if (today - self.last_completed_date).days == 1:
+            difference = (today - self.last_completed_date).days
+            if difference == 1:
                 self.streak += 1
             else:
-                self.streak = 1 if today == self.last_completed_date else 0
+                self.streak = 1
         else:
             self.streak = 1
 
         self.last_completed_date = today
         self.save()
+
 
     def mark_course_complete(self):
         self.is_course_complete = True

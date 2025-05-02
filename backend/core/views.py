@@ -68,26 +68,20 @@ class UserProfileView(APIView):
 
     def get(self, request):
         user_profile = UserProfile.objects.get(user=request.user)
-        serializer = UserProfileSerializer(user_profile)
-        progress = UserProgress.objects.filter(user=request.user).first()
-
-        is_completed = UserResponse.objects.filter(user=request.user).exists()
-
-        user_data = {
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
-            "email": request.user.email,
-            "username": request.user.username,
-            "email_reminders": user_profile.email_reminders,
-            "earned_money": float(user_profile.earned_money),
-            "points": user_profile.points,
-        }
 
         return Response({
-            "user_data": user_data,
-            "streak": progress.streak if progress else 0,
+            "user_data": {
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name,
+                "email": request.user.email,
+                "username": request.user.username,
+                "email_reminders": user_profile.email_reminders,
+                "earned_money": float(user_profile.earned_money),
+                "points": user_profile.points,
+            },
+            "streak": user_profile.streak,
             "profile_avatar": user_profile.profile_avatar,
-            "is_questionnaire_completed": is_completed,
+            "is_questionnaire_completed": UserResponse.objects.filter(user=request.user).exists(),
             "referral_code": user_profile.referral_code,
         })
 
@@ -136,7 +130,7 @@ class RegisterView(generics.CreateAPIView):
                 "username": user.username,
                 "email": user.email
             },
-            "next": "/questionnaire/" if user.userprofile.wants_personalized_path else "/all-topics/"
+            "next": "/all-topics/"
         }, status=status.HTTP_201_CREATED)
 
 
@@ -277,6 +271,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return Response(lesson_data)
 
+
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):
         lesson_id = request.data.get('lesson_id')
@@ -287,13 +282,19 @@ class LessonViewSet(viewsets.ModelViewSet):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, course=lesson.course
             )
-            user_progress.completed_lessons.add(lesson)
-            user_progress.save()
 
+            # Mark lesson complete (LessonCompletion logic stays)
+            LessonCompletion.objects.get_or_create(
+                user_progress=user_progress,
+                lesson=lesson
+            )
+
+            # 🛠 NEW: Update global streak inside UserProfile
             user_profile = user.userprofile
+            user_profile.update_streak()
+
             user_profile.add_money(5.00)
             user_profile.add_points(10)
-            user_profile.save()
 
             total_lessons = lesson.course.lessons.count()
             completed_lessons = user_progress.completed_lessons.count()
@@ -303,6 +304,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 
@@ -943,7 +945,6 @@ class QuestionnaireSubmitView(APIView):
                 UserResponse.objects.create(user=user, question=question, answer=answer)
 
             user_profile = UserProfile.objects.get(user=user)
-            user_profile.wants_personalized_path = True
             user_profile.save()
 
             return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
