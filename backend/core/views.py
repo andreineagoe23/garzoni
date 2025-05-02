@@ -27,6 +27,7 @@ from .serializers import (
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
 from django.utils.timezone import now
+import requests
 import logging
 import os
 from collections import defaultdict
@@ -54,6 +55,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .dialogflow import detect_intent_from_text, perform_web_search
 
+
 logger = logging.getLogger(__name__)
 
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -62,6 +64,36 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 def get_csrf_token(request):
     token = get_token(request)
     return JsonResponse({"csrfToken": token})
+
+
+class HuggingFaceProxyView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        model = request.data.get("model")
+        inputs = request.data.get("inputs")
+        parameters = request.data.get("parameters", {})
+
+        if not model or not inputs:
+            return Response({"error": "Model and inputs are required."}, status=400)
+
+        hf_token = os.getenv("HF_API_KEY")
+        if not hf_token:
+            return Response({"error": "Hugging Face API key not configured."}, status=500)
+
+        headers = {
+            "Authorization": f"Bearer {hf_token}",
+            "Content-Type": "application/json"
+        }
+
+        url = f"https://api-inference.huggingface.co/models/{model}"
+        response = requests.post(url, headers=headers, json={
+            "inputs": inputs,
+            "parameters": parameters
+        })
+
+        return Response(response.json(), status=response.status_code)
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]

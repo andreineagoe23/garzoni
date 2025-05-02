@@ -15,9 +15,12 @@ import os
 from django.conf import settings
 from django.conf.urls.static import static
 from datetime import timedelta
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -260,6 +263,8 @@ STRIPE_SECRET_KEY = 'sk_test_51R9kpVBi8QnQXyouk2SS209GQnsf1expP071qhuR9wWghoP9wp
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51R9kpVBi8QnQXyouGcNBa6MYmRUSxTA5xtmzC62r31bVSyelmgspwVE4f1DC7YdUmaOgi8aykHNPSciUm0HLE1Io00aaHBT8O3' 
 FRONTEND_URL = "http://localhost:3000"
 
+HF_API_KEY = os.getenv("HF_API_KEY")
+
 import sys
 
 # Switch to SQLite for local test runs to avoid MySQL permission or data issues
@@ -274,3 +279,5 @@ if 'test' in sys.argv:
     PASSWORD_HASHERS = [
         'django.contrib.auth.hashers.MD5PasswordHasher',
     ]
+
+print("🔑 HF_API_KEY Loaded:", os.getenv("HF_API_KEY"))
