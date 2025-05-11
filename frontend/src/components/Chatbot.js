@@ -225,7 +225,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       );
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/proxy/hf/`,
+        `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`,
         {
           model: HF_MODEL,
           inputs: userInput,
