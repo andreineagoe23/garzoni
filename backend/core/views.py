@@ -63,7 +63,7 @@ def get_csrf_token(request):
 
 
 class HuggingFaceProxyView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         model = request.data.get("model")
@@ -83,21 +83,23 @@ class HuggingFaceProxyView(APIView):
         }
 
         url = f"https://api-inference.huggingface.co/models/{model}"
-        response = requests.post(url, headers=headers, json={
-            "inputs": inputs,
-            "parameters": parameters
-        })
+        payload = {"inputs": inputs, "parameters": parameters}
+
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+        except requests.RequestException as e:
+            return Response({"error": f"Request to Hugging Face failed: {str(e)}"}, status=500)
 
         try:
             data = response.json()
         except ValueError:
             return Response({
-                "error": "Failed to decode response from Hugging Face.",
+                "error": "Invalid response from Hugging Face.",
+                "status_code": response.status_code,
                 "raw": response.text
             }, status=response.status_code)
-        
-        return Response(data, status=response.status_code)
 
+        return Response(data, status=response.status_code)
 
 
 class UserProfileView(APIView):
