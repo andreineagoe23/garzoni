@@ -66,6 +66,7 @@ class HuggingFaceProxyView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        print("✅ HuggingFaceProxyView activated")
         model = request.data.get("model")
         inputs = request.data.get("inputs")
         parameters = request.data.get("parameters", {})
