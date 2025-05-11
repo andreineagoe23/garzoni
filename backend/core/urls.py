@@ -46,7 +46,7 @@ from .views import (
     VerifySessionView,
     HuggingFaceProxyView,
 )
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views import CustomTokenObtainPairView, LogoutView
