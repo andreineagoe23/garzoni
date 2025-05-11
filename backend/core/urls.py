@@ -127,7 +127,7 @@ urlpatterns = [
     path('friend-requests/<int:pk>/', FriendRequestView.as_view(), name='friend-request-action'),
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
 
-    path("proxy/hf/", HuggingFaceProxyView.as_view(), name="hf-proxy"),
+    path('proxy/hf/', HuggingFaceProxyView.as_view(), name='hf-proxy'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, serializers, generics, status, views
+from rest_framework import viewsets, generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,18 +15,14 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 import stripe
-from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, Mission, MissionCompletion, Questionnaire, Tool, SimulatedSavingsAccount, Question, UserResponse, PathRecommendation,
-LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
+from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer,
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, UserProfileSettingsSerializer, QuestionnaireSerializer,
-    ToolSerializer, SimulatedSavingsAccountSerializer,
-    QuestionSerializer, UserResponseSerializer, PathRecommendationSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
+    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, QuestionSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
     UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer, ExerciseSerializer, UserExerciseProgressSerializer
 )
 from core.dialogflow import detect_intent_from_text, perform_web_search
 from django.utils import timezone
-from django.utils.timezone import now
 import requests
 import logging
 import os
@@ -92,7 +88,16 @@ class HuggingFaceProxyView(APIView):
             "parameters": parameters
         })
 
-        return Response(response.json(), status=response.status_code)
+        try:
+            data = response.json()
+        except ValueError:
+            return Response({
+                "error": "Failed to decode response from Hugging Face.",
+                "raw": response.text
+            }, status=response.status_code)
+        
+        return Response(data, status=response.status_code)
+
 
 
 class UserProfileView(APIView):

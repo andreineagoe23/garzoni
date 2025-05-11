@@ -219,7 +219,10 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         return;
       }
 
-      console.log("Calling backend proxy for AI response...");
+      console.log(
+        "Sending request to:",
+        `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`
+      );
 
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`,
