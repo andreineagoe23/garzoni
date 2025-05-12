@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion,
 SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection)
 
+# Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
@@ -33,12 +34,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
-
+# Serializer for quizzes, including fields for course association and question details.
 class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
         fields = ['id', 'course', 'title', 'question', 'choices', 'correct_answer']
 
+# Serializer for lesson sections, supporting various content types like text, video, and exercises.
 class LessonSectionSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
 
@@ -49,6 +51,7 @@ class LessonSectionSerializer(serializers.ModelSerializer):
             'text_content', 'video_url', 'exercise_type', 'exercise_data'
         ]
 
+# Serializer for lessons, including sections and a computed field for completion status.
 class LessonSerializer(serializers.ModelSerializer):
     sections = LessonSectionSerializer(many=True, read_only=True)
     is_completed = serializers.SerializerMethodField()
@@ -62,6 +65,11 @@ class LessonSerializer(serializers.ModelSerializer):
         return obj.id in completed_lesson_ids
 
 class CourseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Course model. Includes fields for the associated path title, 
+    lessons, quizzes, and computed fields for the course image, completed lessons, 
+    and total lessons. Provides a detailed representation of a course.
+    """
     path_title = serializers.CharField(source='path.title')
     lessons = LessonSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
@@ -89,14 +97,24 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_total_lessons(self, obj):
         return obj.lessons.count()
 
+
 class PathSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Path model. Includes fields for the title, description, 
+    associated courses, and the path image. Provides a detailed representation of a learning path.
+    """
     courses = CourseSerializer(many=True, read_only=True)
 
     class Meta:
         model = Path
         fields = ['id', 'title', 'description', 'courses', 'image']
 
+
 class UserProgressSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserProgress model. Tracks the user's progress in a course, 
+    including completed lessons and whether the course is complete.
+    """
     class Meta:
         model = UserProgress
         fields = ['id', 'user', 'course', 'completed_lessons', 'is_course_complete']
@@ -104,6 +122,10 @@ class UserProgressSerializer(serializers.ModelSerializer):
 
 
 class LeaderboardSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the leaderboard, representing user rankings based on points. 
+    Includes user details and their total points.
+    """
     user = serializers.SerializerMethodField()
 
     class Meta:
@@ -118,22 +140,40 @@ class LeaderboardSerializer(serializers.ModelSerializer):
         }
 
 class UserProfileSettingsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user profile settings. 
+    Includes fields for managing user preferences such as email reminders.
+    """
     class Meta:
         model = UserProfile
         fields = ['email_reminders']
 
+
 class QuestionnaireSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Questionnaire model. 
+    Captures user preferences and experiences, including goals, experience level, and preferred learning style.
+    """
     class Meta:
         model = Questionnaire
         fields = ['goal', 'experience', 'preferred_style']
 
+
 class ToolSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Tool model. 
+    Represents tools with details such as name, description, URL, category, and associated icon.
+    """
     class Meta:
         model = Tool
         fields = ['id', 'name', 'description', 'url', 'category', 'icon']
 
 
 class MissionCompletionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the MissionCompletion model. 
+    Tracks the progress and status of a user's mission, including goal type and target.
+    """
     goal_type = serializers.CharField(source="mission.goal_type")
     target = serializers.SerializerMethodField()
 
@@ -145,25 +185,21 @@ class MissionCompletionSerializer(serializers.ModelSerializer):
         return obj.mission.goal_reference.get('target', 100)
 
 
-class MissionCompletionSerializer(serializers.ModelSerializer):
-    goal_type = serializers.CharField(source="mission.goal_type")
-
-    class Meta:
-        model = MissionCompletion
-        fields = [
-            "id",
-            "mission",
-            "goal_type",  # Include goal_type in the response
-            "progress",
-            "status",
-        ]
-
 class SimulatedSavingsAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the SimulatedSavingsAccount model. 
+    Represents a user's simulated savings account, including the user and current balance.
+    """
     class Meta:
         model = SimulatedSavingsAccount
         fields = ["id", "user", "balance"]
 
+
 class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Question model. 
+    Represents questions with details such as text, type, options, explanation, and order.
+    """
     class Meta:
         model = Question
         fields = [
@@ -176,24 +212,42 @@ class QuestionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
+
 class UserResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserResponse model. 
+    Captures user responses to questions, including the user, question, and their answer.
+    """
     class Meta:
         model = UserResponse
         fields = ['user', 'question', 'answer']
         read_only_fields = ['user']
 
 class PathRecommendationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the PathRecommendation model.
+    Provides a representation of recommended learning paths for users.
+    """
     class Meta:
         model = PathRecommendation
         fields = '__all__'
 
 
 class RewardSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Reward model.
+    Represents rewards that users can redeem, including details such as name, description, cost, type, image, and donation organization.
+    """
     class Meta:
         model = Reward
         fields = ['id', 'name', 'description', 'cost', 'type', 'image', 'donation_organization']
 
+
 class UserPurchaseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserPurchase model.
+    Tracks purchases made by users, including the reward purchased and the timestamp of the purchase.
+    """
     reward = RewardSerializer(read_only=True)
 
     class Meta:
@@ -202,14 +256,21 @@ class UserPurchaseSerializer(serializers.ModelSerializer):
         read_only_fields = ['reward', 'purchased_at']
 
     def create(self, validated_data):
-
+        """
+        Creates a new UserPurchase instance for the authenticated user.
+        """
         reward = validated_data.get('reward')
         return UserPurchase.objects.create(
             user=self.context['request'].user,
             reward=reward
         )
 
+
 class BadgeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Badge model.
+    Represents badges that users can earn, including details such as name, description, image URL, criteria type, threshold, and badge level.
+    """
     image_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -217,19 +278,32 @@ class BadgeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'image_url', 'criteria_type', 'threshold', 'badge_level']
 
     def get_image_url(self, obj):
+        """
+        Returns the absolute URL of the badge image if it exists.
+        """
         if obj.image:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.image.url)
         return None
 
 class UserBadgeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserBadge model.
+    Represents badges earned by users, including details about the badge and the timestamp when it was earned.
+    """
     badge = BadgeSerializer(read_only=True)
 
     class Meta:
         model = UserBadge
         fields = ['badge', 'earned_at']
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserProfile model.
+    Provides a detailed representation of a user's profile, including user details, preferences, 
+    earned money, points, profile picture, badges, referral code, and dark mode preference.
+    """
     user = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
     badges = UserBadgeSerializer(many=True, read_only=True, source='user.earned_badges')
@@ -245,7 +319,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_balance(self, obj):
         return float(obj.earned_money)
 
+
 class ReferralSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Referral model.
+    Tracks referrals made by users, including details about the referred user and the timestamp of the referral.
+    """
     referred_user = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
@@ -259,13 +338,22 @@ class ReferralSerializer(serializers.ModelSerializer):
             "username": obj.referred_user.username
         }
 
+
 class UserSearchSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the User model.
+    Provides a minimal representation of a user, including their ID and username, for search purposes.
+    """
     class Meta:
         model = User
         fields = ['id', 'username']
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the FriendRequest model.
+    Represents friend requests between users, including details about the sender, receiver, status, and timestamp.
+    """
     sender = serializers.SerializerMethodField()
     receiver = serializers.SerializerMethodField()
 
@@ -285,12 +373,23 @@ class FriendRequestSerializer(serializers.ModelSerializer):
             "username": obj.receiver.username
         }
 
+
 class ExerciseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Exercise model.
+    Represents exercises with details such as type, question, exercise data, category, and difficulty level.
+    """
     class Meta:
         model = Exercise
         fields = ['id', 'type', 'question', 'exercise_data', 'category', 'difficulty']
 
+
 class UserExerciseProgressSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserExerciseProgress model.
+    Tracks a user's progress in exercises, including the exercise details, completion status, 
+    number of attempts, and the user's answer.
+    """
     class Meta:
         model = UserExerciseProgress
         fields = ['exercise', 'completed', 'attempts', 'user_answer']

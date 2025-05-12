@@ -25,14 +25,17 @@ from .models import (
 
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
+    """Admin configuration for managing referrals."""
     list_display = ('referrer', 'referred_user', 'created_at')
 
 @admin.register(PollResponse)
 class PollResponseAdmin(admin.ModelAdmin):
+    """Admin configuration for managing poll responses."""
     list_display = ('question', 'answer', 'responded_at')
     list_filter = ('question',)
 
 class LessonSectionInline(admin.TabularInline):
+    """Inline configuration for managing lesson sections."""
     model = LessonSection
     extra = 1
     fieldsets = [
@@ -73,40 +76,48 @@ class LessonSectionInline(admin.TabularInline):
     ]
 
 class LessonAdmin(admin.ModelAdmin):
+    """Admin configuration for managing lessons."""
     inlines = [LessonSectionInline]
     list_display = ('title', 'course', 'section_count')
     
     def section_count(self, obj):
+        """Return the count of sections in a lesson."""
         return obj.sections.count()
 
 class MissionAdmin(admin.ModelAdmin):
+    """Admin configuration for managing missions."""
     list_display = ('name', 'mission_type', 'goal_type', 'points_reward')
     fields = ('name', 'description', 'points_reward', 'mission_type', 'goal_type', 'goal_reference')
     list_filter = ('mission_type', 'goal_type')
     search_fields = ('name', 'description')
 
     def goal_target(self, obj):
+        """Determine the goal target based on mission type and goal type."""
         if obj.goal_type == "read_fact":
             return "1 Fact" if obj.mission_type == "daily" else "5 Facts"
         return obj.goal_reference
 
 class MissionCompletionAdmin(admin.ModelAdmin):
+    """Admin configuration for managing mission completions."""
     list_display = ('user', 'mission', 'progress', 'status', 'completed_at')
     fields = ('user', 'mission', 'progress', 'status', 'completed_at')
     list_filter = ('status', 'mission__mission_type')
     search_fields = ('user__username', 'mission__name')
 
 class SimulatedSavingsAccountAdmin(admin.ModelAdmin):
+    """Admin configuration for managing simulated savings accounts."""
     list_display = ('user', 'balance')
     fields = ('user', 'balance')
     search_fields = ('user__username',)
 
 class QuestionAdmin(admin.ModelAdmin):
+    """Admin configuration for managing questions."""
     list_display = ('text', 'type', 'order', 'is_active')
     list_filter = ('type', 'is_active')
     search_fields = ('text',)
 
 class RewardAdmin(admin.ModelAdmin):
+    """Admin configuration for managing rewards."""
     list_display = ('name', 'type', 'cost', 'is_active')
     list_filter = ('type', 'is_active')
     fieldsets = (
@@ -119,12 +130,14 @@ class RewardAdmin(admin.ModelAdmin):
     )
 
 class BadgeAdmin(admin.ModelAdmin):
+    """Admin configuration for managing badges."""
     list_display = ('name', 'badge_level', 'criteria_type', 'threshold', 'is_active', 'badge_image')
     fields = ('name', 'description', 'image', 'criteria_type', 'threshold', 'badge_level', 'is_active')
     list_filter = ('badge_level', 'criteria_type', 'is_active')
     search_fields = ('name', 'criteria_type')
 
     def badge_image(self, obj):
+        """Display the badge image in the admin interface."""
         if obj.image:
             return format_html('<img src="{}" width="50" height="50" />'.format(obj.image.url))
         return "No Image"
@@ -134,18 +147,21 @@ class BadgeAdmin(admin.ModelAdmin):
 
 @admin.register(Exercise)
 class ExerciseAdmin(admin.ModelAdmin):
+    """Admin configuration for managing exercises."""
     list_display = ('type', 'category', 'difficulty', 'created_at')
     list_filter = ('type', 'category', 'difficulty')
     search_fields = ('question', 'category')
 
 @admin.register(UserExerciseProgress)
 class UserExerciseProgressAdmin(admin.ModelAdmin):
+    """Admin configuration for managing user exercise progress."""
     list_display = ('user', 'exercise', 'completed', 'attempts')
     list_filter = ('completed', 'exercise__type')
     search_fields = ('user__username', 'exercise__question')
 
 @admin.register(FinanceFact)
 class FinanceFactAdmin(admin.ModelAdmin):
+    """Admin configuration for managing finance facts."""
     list_display = ('text', 'category', 'is_active')
     list_filter = ('category', 'is_active')
     search_fields = ('text',)
@@ -153,6 +169,7 @@ class FinanceFactAdmin(admin.ModelAdmin):
 
 @admin.register(UserFactProgress)
 class UserFactProgressAdmin(admin.ModelAdmin):
+    """Admin configuration for managing user fact progress."""
     list_display = ('user', 'fact', 'read_at')
     list_filter = ('read_at',)
     search_fields = ('user__username', 'fact__text')

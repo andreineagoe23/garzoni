@@ -11,6 +11,11 @@ from celery import shared_task
 import uuid
 
 class UserProfile(models.Model):
+    """
+    The UserProfile model extends the default User model with additional attributes like earned money, points, 
+    referral details, and preferences such as dark mode and email reminders. It also tracks user activity 
+    through streaks and last completed dates, providing methods to update these attributes dynamically.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     points = models.PositiveIntegerField(default=0)
@@ -83,6 +88,10 @@ class UserProfile(models.Model):
 
 
 class Path(models.Model):
+    """
+    The Path model represents a learning path that groups related courses together. 
+    It includes a title, description, and an optional image to visually represent the path.
+    """
     title = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to='path_images/', blank=True, null=True)
@@ -95,6 +104,11 @@ class Path(models.Model):
         verbose_name_plural = "Paths"
 
 class Course(models.Model):
+    """
+    The Course model represents an educational course that belongs to a specific Path. 
+    It includes details such as the course title, description, image, and its active status. 
+    The model also supports ordering of courses and ensures that they are associated with a Path.
+    """
     path = models.ForeignKey(Path, on_delete=models.CASCADE, related_name="courses", null=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -109,6 +123,11 @@ class Course(models.Model):
         return self.title
 
 class Lesson(models.Model):
+    """
+    The Lesson model represents an individual lesson within a course. 
+    It includes details such as the lesson title, description, content, 
+    associated media (image and video), and optional exercises.
+    """
     EXERCISE_CHOICES = [
         ('drag-and-drop', 'Drag and Drop'),
         ('multiple-choice', 'Multiple Choice'),
@@ -137,6 +156,7 @@ class Lesson(models.Model):
         verbose_name_plural = "Lessons"
 
 class LessonSection(models.Model):
+    # Represents a section within a lesson, which can contain text, video, or interactive exercises.
     CONTENT_TYPES = [
         ('text', 'Text Content'),
         ('video', 'Video'),
@@ -153,8 +173,6 @@ class LessonSection(models.Model):
     order = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='text')
-
-    # Content fields
     text_content = RichTextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
@@ -166,6 +184,10 @@ class LessonSection(models.Model):
 
 
 class UserProgress(models.Model):
+    """
+    The UserProgress model tracks a user's progress in a course, including completed lessons, sections, 
+    and course completion status. It also provides methods to update user streaks and mark a course as complete.
+    """
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user_progress")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="progress_courses")
     completed_lessons = models.ManyToManyField(Lesson, through='LessonCompletion', blank=True)
@@ -183,13 +205,10 @@ class UserProgress(models.Model):
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
 
-
     def update_streak(self):
         
         if self.user and hasattr(self.user, 'userprofile'):
             self.user.userprofile.update_streak()
-
-
 
     def mark_course_complete(self):
         self.is_course_complete = True
@@ -198,16 +217,28 @@ class UserProgress(models.Model):
         self.save()
 
 class LessonCompletion(models.Model):
+    """
+    Tracks the completion of individual lessons by a user within a course. 
+    It links the user's progress to the specific lesson and records the completion timestamp.
+    """
     user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
 
 class SectionCompletion(models.Model):
+    """
+    Tracks the completion of individual sections within a lesson by a user. 
+    It links the user's progress to the specific section and records the completion timestamp.
+    """
     user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
     section = models.ForeignKey(LessonSection, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
 
 class Quiz(models.Model):
+    """
+    The Quiz model represents a quiz associated with a course. 
+    It includes the quiz title, question, multiple choices, and the correct answer.
+    """
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
     title = models.CharField(max_length=200)
     question = models.TextField()
@@ -218,13 +249,16 @@ class Quiz(models.Model):
         question_preview = self.question[:50] if self.question else "No question available"
         return f"{self.title}: {question_preview}"
 
-
     class Meta:
         verbose_name = "Quiz"
         verbose_name_plural = "Quizzes"
 
 
 class QuizCompletion(models.Model):
+    """
+    The QuizCompletion model tracks the completion of quizzes by users. 
+    It links a user to a specific quiz and records the timestamp of completion.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
@@ -233,6 +267,10 @@ class QuizCompletion(models.Model):
         unique_together = ('user', 'quiz')
 
 class FinanceFact(models.Model):
+    """
+    Represents a financial fact that can be displayed to users. 
+    Each fact belongs to a category and can be marked as active or inactive.
+    """
     text = models.TextField()
     category = models.CharField(max_length=50, default="General")
     is_active = models.BooleanField(default=True)
@@ -242,6 +280,10 @@ class FinanceFact(models.Model):
         return self.text[:50] + "..."
 
 class UserFactProgress(models.Model):
+    """
+    Tracks the progress of users in reading financial facts. 
+    Links a user to a specific fact and records the timestamp when it was read.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     fact = models.ForeignKey(FinanceFact, on_delete=models.CASCADE)
     read_at = models.DateTimeField(auto_now_add=True)
@@ -252,6 +294,11 @@ class UserFactProgress(models.Model):
 
 
 class Mission(models.Model):
+    """
+    Represents a mission or task that users can complete to earn rewards or points. 
+    Missions can be categorized as daily or weekly and have specific goals such as completing lessons, 
+    adding savings, reading finance facts, or completing a learning path.
+    """
     MISSION_TYPES = [('daily', 'Daily'), ('weekly', 'Weekly')]
     GOAL_TYPES = [
         ('complete_lesson', 'Complete Lesson'),
@@ -279,6 +326,11 @@ class Mission(models.Model):
 
 
 class MissionCompletion(models.Model):
+    """
+    Tracks the progress and completion status of missions assigned to users. 
+    It includes fields for progress, status, and completion timestamp, 
+    and provides methods to update progress dynamically.
+    """
     user = models.ForeignKey(User, related_name="mission_completions", on_delete=models.CASCADE)
     mission = models.ForeignKey(Mission, related_name="completions", on_delete=models.CASCADE)
     progress = models.IntegerField(default=0)
@@ -294,6 +346,10 @@ class MissionCompletion(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def update_progress(self, increment=0, total=100):
+        """
+        Updates the progress of the mission based on the goal type and increments provided. 
+        Marks the mission as completed if progress reaches 100%.
+        """
         if self.status == 'completed':
             return
 
@@ -326,11 +382,11 @@ class MissionCompletion(models.Model):
 
         self.save()
 
-
     @receiver(post_save, sender=User)
     def assign_missions_to_new_user(sender, instance, created, **kwargs):
         """
-        Automatically assign daily and weekly missions to newly created users.
+        Automatically assigns daily and weekly missions to newly created users. 
+        Ensures that new users have initial missions to engage with.
         """
         if created:
             # Assign daily missions
@@ -355,6 +411,10 @@ class MissionCompletion(models.Model):
 
     @shared_task
     def reset_daily_missions():
+        """
+        Resets the progress and status of all daily missions at the start of a new day. 
+        This ensures that users can attempt daily missions again.
+        """
         today = now().date()
         completions = MissionCompletion.objects.filter(
             mission__mission_type="daily"
@@ -363,6 +423,10 @@ class MissionCompletion(models.Model):
 
     @shared_task
     def reset_weekly_missions():
+        """
+        Resets the progress and status of all weekly missions at the start of a new week. 
+        This ensures that users can attempt weekly missions again.
+        """
         today = now().date()
         completions = MissionCompletion.objects.filter(
             mission__mission_type="weekly"
@@ -371,6 +435,10 @@ class MissionCompletion(models.Model):
 
 
 class SimulatedSavingsAccount(models.Model):
+    """
+    Represents a simulated savings account for a user, allowing them to track and manage their virtual balance.
+    Provides functionality to add funds to the balance.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
@@ -380,6 +448,10 @@ class SimulatedSavingsAccount(models.Model):
 
 
 class Questionnaire(models.Model):
+    """
+    Stores user-specific questionnaire data, including their financial goals, experience level, 
+    and preferred learning style. This helps in personalizing the user experience.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="questionnaire")
     goal = models.CharField(max_length=255, blank=True, null=True)
     experience = models.CharField(max_length=50, choices=[("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")], blank=True, null=True)
@@ -389,6 +461,10 @@ class Questionnaire(models.Model):
         return f"Questionnaire for {self.user.username}"
 
 class Tool(models.Model):
+    """
+    Represents a financial tool or resource that users can access. 
+    Each tool is categorized and includes a name, description, URL, and optional icon.
+    """
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=[
@@ -400,9 +476,11 @@ class Tool(models.Model):
     url = models.URLField(blank=True, null=True)
     icon = models.CharField(max_length=50, blank=True, null=True)
 
-from jsonfield import JSONField
-
 class Question(models.Model):
+    """
+    Represents a question used for knowledge checks, user preferences, or budget allocation. 
+    Each question includes text, type, options, and an optional explanation, and can be ordered or categorized.
+    """
     QUESTION_TYPES = [
         ('knowledge_check', 'Knowledge Check'),
         ('preference_scale', 'Preference Scale'),
@@ -418,11 +496,19 @@ class Question(models.Model):
     category = models.CharField(max_length=50, default="General")
 
 class PollResponse(models.Model):
+    """
+    Represents a response to a poll question. Each response is linked to a specific question 
+    and includes the user's answer along with the timestamp of when the response was submitted.
+    """
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.CharField(max_length=200)
     responded_at = models.DateTimeField(auto_now_add=True)
 
 class UserResponse(models.Model):
+    """
+    Tracks individual user responses to questions. Each response is associated with a user (optional), 
+    a specific question, and the user's answer. This model helps in analyzing user preferences or feedback.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_responses", null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField()
@@ -432,6 +518,10 @@ class UserResponse(models.Model):
 
 
 class PathRecommendation(models.Model):
+    """
+    Represents a recommended learning path for users based on specific criteria. 
+    Includes a name, description, and criteria for recommendation.
+    """
     name = models.CharField(max_length=100)
     description = models.TextField()
     criteria = models.JSONField()
@@ -439,8 +529,11 @@ class PathRecommendation(models.Model):
     def __str__(self):
         return self.name
 
-# models.py
 class Reward(models.Model):
+    """
+    Represents a reward that users can purchase or donate towards. 
+    Rewards can be shop items or donation causes, with details like cost, type, and optional image.
+    """
     REWARD_TYPES = [
         ('shop', 'Shop Item'),
         ('donate', 'Donation Cause')
@@ -459,6 +552,10 @@ class Reward(models.Model):
         return self.name
 
 class UserPurchase(models.Model):
+    """
+    Represents a record of a user purchasing a reward. 
+    Tracks the user, the reward purchased, and the timestamp of the purchase.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True)
@@ -468,6 +565,10 @@ class UserPurchase(models.Model):
 
 
 class Badge(models.Model):
+    """
+    Represents a badge that users can earn by meeting specific criteria. 
+    Includes details such as the badge name, description, image, criteria type, threshold, and level.
+    """
     BADGE_LEVELS = [
         ('bronze', 'Bronze'),
         ('silver', 'Silver'),
@@ -495,6 +596,10 @@ class Badge(models.Model):
 
 
 class UserBadge(models.Model):
+    """
+    Represents a badge earned by a user. Tracks the user, the badge, and the timestamp when it was earned.
+    Ensures that each user can earn a specific badge only once.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='earned_badges')
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     earned_at = models.DateTimeField(auto_now_add=True)
@@ -505,7 +610,12 @@ class UserBadge(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"
 
+
 class Referral(models.Model):
+    """
+    Tracks referrals made by users. Links the referrer to the referred user and records the timestamp of the referral.
+    Ensures that each referred user is linked to only one referrer.
+    """
     referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals_made')
     referred_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral_received')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -513,19 +623,29 @@ class Referral(models.Model):
     def __str__(self):
         return f"{self.referrer.username} -> {self.referred_user.username}"
 
-referral_code = models.CharField(max_length=20, unique=True, blank=True)
-referral_points = models.PositiveIntegerField(default=0)
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        profile, created = UserProfile.objects.get_or_create(user=instance)
+    referral_code = models.CharField(max_length=20, unique=True, blank=True)
+    referral_points = models.PositiveIntegerField(default=0)
+
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        """
+        Signal handler that automatically creates a UserProfile for a newly created User.
+        Generates a unique referral code for the user profile upon creation.
+        """
         if created:
-            profile.referral_code = uuid.uuid4().hex[:8].upper()
-            profile.save()
+            profile, created = UserProfile.objects.get_or_create(user=instance)
+            if created:
+                profile.referral_code = uuid.uuid4().hex[:8].upper()
+                profile.save()
 
 
 class FriendRequest(models.Model):
+    """
+    Represents a friend request between two users. Tracks the sender, receiver, 
+    the status of the request (pending, accepted, or rejected), and the timestamp of creation.
+    """
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
@@ -545,6 +665,10 @@ class FriendRequest(models.Model):
 
 
 class Exercise(models.Model):
+    """
+    Represents an interactive exercise for users to complete. Includes the exercise type, 
+    question, structured data for the exercise, correct answer, category, difficulty level, and creation timestamp.
+    """
     EXERCISE_TYPES = [
         ('drag-and-drop', 'Drag and Drop'),
         ('multiple-choice', 'Multiple Choice'),
@@ -567,6 +691,11 @@ class Exercise(models.Model):
         return f"{self.type} Exercise - {self.category}"
 
 class UserExerciseProgress(models.Model):
+    """
+    Tracks the progress of a user on a specific exercise. 
+    Includes details such as whether the exercise is completed, the number of attempts, 
+    the last attempt timestamp, and the user's answer.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
@@ -577,7 +706,12 @@ class UserExerciseProgress(models.Model):
     class Meta:
         unique_together = ('user', 'exercise')
 
+
 class ExerciseCompletion(models.Model):
+    """
+    Records the completion of an exercise by a user, optionally within a specific lesson section. 
+    Tracks the completion timestamp, number of attempts, and the user's answer.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     exercise = models.ForeignKey('Exercise', on_delete=models.CASCADE)
     section = models.ForeignKey(LessonSection, on_delete=models.CASCADE, null=True)
@@ -589,6 +723,10 @@ class ExerciseCompletion(models.Model):
         unique_together = ('user', 'exercise', 'section')
 
 class StripePayment(models.Model):
+    """
+    Represents a record of a payment made by a user through Stripe. 
+    Tracks the user, payment ID, amount, currency, and the timestamp of creation.
+    """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

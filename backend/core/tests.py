@@ -9,6 +9,7 @@ from core.models import Course, Lesson, UserProgress, Path, Mission, MissionComp
 logger = logging.getLogger(__name__)
 
 class AuthenticatedTestCase(APITestCase):
+    """Base test case for authenticated users, setting up a user, path, course, and lesson for testing."""
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password123")
         self.client.force_authenticate(user=self.user)
@@ -17,6 +18,7 @@ class AuthenticatedTestCase(APITestCase):
         self.lesson = Lesson.objects.create(course=self.course, title="Test Lesson", detailed_content="...")
 
 class UserLoginTest(APITestCase):
+    """Test case for user login functionality, ensuring token generation works as expected."""
     def test_login(self):
         User.objects.create_user(username="testuser", password="password123")
         url = reverse('token_obtain_pair')
@@ -28,6 +30,7 @@ class UserLoginTest(APITestCase):
         logger.info("✅ test_login passed")
 
 class LessonCompletionTest(AuthenticatedTestCase):
+    """Test case for completing a lesson and verifying the response and status."""
     def test_lesson_completion(self):
         url = reverse('userprogress-complete')
         data = {"lesson_id": self.lesson.id}
@@ -37,6 +40,7 @@ class LessonCompletionTest(AuthenticatedTestCase):
         logger.info("✅ test_lesson_completion passed")
 
 class MissionLogicTest(AuthenticatedTestCase):
+    """Test case for mission completion logic, ensuring progress updates correctly."""
     def test_mission_completion_progress(self):
         mission = Mission.objects.create(
             name="Complete a lesson",
@@ -56,6 +60,7 @@ class MissionLogicTest(AuthenticatedTestCase):
         logger.info("✅ test_mission_completion_progress passed")
 
 class ReferralTest(AuthenticatedTestCase):
+    """Test case for referral submission, ensuring referral codes are applied successfully."""
     def test_referral_submission(self):
         referrer = User.objects.create_user(username='referrer', password='pass123')
         referrer_profile = referrer.userprofile
@@ -66,6 +71,7 @@ class ReferralTest(AuthenticatedTestCase):
         logger.info("✅ test_referral_submission passed")
 
 class PaymentVerificationTest(AuthenticatedTestCase):
+    """Test case for verifying payment sessions, ensuring successful payments are verified."""
     def test_payment_verification_success(self):
         session_id = "cs_test_valid123456789"
         with patch('stripe.checkout.Session.retrieve') as mock_retrieve:
@@ -75,3 +81,4 @@ class PaymentVerificationTest(AuthenticatedTestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["status"], "verified")
             logger.info("✅ test_payment_verification_success passed")
+
