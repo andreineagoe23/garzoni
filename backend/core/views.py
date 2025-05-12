@@ -2,8 +2,10 @@ from rest_framework import viewsets, generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -14,42 +16,36 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
-import stripe
-from .models import (LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress, MissionCompletion, SimulatedSavingsAccount, Question, UserResponse, LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact, UserFactProgress, ExerciseCompletion)
-from .serializers import (
-    UserProfileSerializer, CourseSerializer, LessonSerializer,
-    QuizSerializer, PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer, QuestionSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
-    UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer, ExerciseSerializer, UserExerciseProgressSerializer
-)
-from core.dialogflow import detect_intent_from_text, perform_web_search
+from django.middleware.csrf import get_token
+from django.http import HttpResponse, JsonResponse
+from django.db import transaction
+from django.db.models import F
+from django.core.cache import cache
 from django.utils import timezone
+from decimal import Decimal, InvalidOperation
+from collections import defaultdict
+import stripe
 import requests
 import logging
 import os
-from collections import defaultdict
-from decimal import Decimal, InvalidOperation
-from django.middleware.csrf import get_token
-from django.http import HttpResponse, JsonResponse
-import logging
-from django.db import transaction
-from django.db.models import F
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.http import JsonResponse
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from core.tokens import delete_jwt_cookies
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-import os
 import json
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from .models import (
+    LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress,
+    MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
+    LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge,
+    Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact,
+    UserFactProgress, ExerciseCompletion
+)
+from .serializers import (
+    UserProfileSerializer, CourseSerializer, LessonSerializer, QuizSerializer,
+    PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer,
+    QuestionSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
+    UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer,
+    ExerciseSerializer, UserExerciseProgressSerializer
+)
 from .dialogflow import detect_intent_from_text, perform_web_search
+from core.tokens import delete_jwt_cookies
+
 
 
 logger = logging.getLogger(__name__)
@@ -58,14 +54,18 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 @ensure_csrf_cookie
 def get_csrf_token(request):
+    """Retrieve and return a CSRF token for the client."""
     token = get_token(request)
     return JsonResponse({"csrfToken": token})
 
 
 class HuggingFaceProxyView(APIView):
+    """Proxy view to interact with Hugging Face's API for model inference."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Handle POST requests to send inputs to a Hugging Face model and return the response."""
         print("✅ HuggingFaceProxyView activated")
         model = request.data.get("model")
         inputs = request.data.get("inputs")
@@ -104,9 +104,12 @@ class HuggingFaceProxyView(APIView):
 
 
 class UserProfileView(APIView):
+    """View to handle user profile data retrieval and updates."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve and return the user's profile data."""
         user_profile = UserProfile.objects.get(user=request.user)
 
         return Response({
@@ -125,8 +128,8 @@ class UserProfileView(APIView):
             "referral_code": user_profile.referral_code,
         })
 
-
     def patch(self, request):
+        """Update specific fields in the user's profile."""
         user_profile = request.user.userprofile
         email_reminders = request.data.get('email_reminders')
         if email_reminders is not None:
@@ -136,7 +139,10 @@ class UserProfileView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """Custom view to obtain JWT tokens and include user details in the response."""
+
     def post(self, request, *args, **kwargs):
+        """Handle POST requests to generate access and refresh tokens."""
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             user = request.user
@@ -151,11 +157,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 })
         return response
 
+
 class RegisterView(generics.CreateAPIView):
+    """View to handle user registration and return JWT tokens upon successful registration."""
+
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
+        """Handle user registration and return access and refresh tokens."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -175,24 +185,31 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LogoutView(APIView):
-    """Handles Logout and Clears JWT Cookies"""
+    """Handles user logout by clearing JWT cookies."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Handle POST requests to log out the user and clear cookies."""
         response = JsonResponse({"message": "Logout successful."})
         return delete_jwt_cookies(response)
 
+
 class PathViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage paths, including listing and retrieving paths."""
+
     queryset = Path.objects.all()
     serializer_class = PathSerializer
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
+        """Handle GET requests to list all paths."""
         return super().list(request, *args, **kwargs)
 
 
-
 class UserProfileViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage user profiles, including updating and retrieving profile data."""
+
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -200,6 +217,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="add-generated-image")
     def add_generated_image(self, request):
+        """Handle POST requests to add a generated image to the user's profile."""
         user_profile = request.user.userprofile
         image = request.FILES.get('image')
 
@@ -214,11 +232,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="get-generated-images")
     def get_generated_images(self, request):
+        """Handle GET requests to retrieve all generated images for the user."""
         user_profile = request.user.userprofile
         return Response({"generated_images": user_profile.generated_images})
 
     @action(detail=False, methods=["post"], url_path="save-avatar")
     def save_avatar(self, request):
+        """Handle POST requests to save the user's avatar URL."""
         user_profile = request.user.userprofile
         avatar_url = request.data.get("avatar_url")
 
@@ -230,6 +250,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response({"message": "Avatar saved successfully.", "avatar_url": avatar_url})
 
 class CourseViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage courses, including listing, retrieving, and updating course data."""
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
@@ -237,7 +258,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_avatar(request):
-    """Update user's avatar"""
+    """Update the user's avatar with a valid DiceBear URL."""
     avatar_url = request.data.get('profile_avatar')
 
     if not avatar_url or not (
@@ -257,12 +278,14 @@ def update_avatar(request):
 
 
 class LessonViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage lessons, including tracking progress and marking sections as complete."""
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
     def complete_section(self, request, pk=None):
+        """Mark a specific section of a lesson as completed."""
         lesson = self.get_object()
         section_id = request.data.get('section_id')
 
@@ -278,12 +301,12 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def with_progress(self, request):
+        """Retrieve lessons with progress information for a specific course."""
         course_id = request.query_params.get("course", None)
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
 
         try:
-
             user_progress = UserProgress.objects.get(
                 user=request.user,
                 course_id=course_id
@@ -311,9 +334,9 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return Response(lesson_data)
 
-
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):
+        """Mark a lesson as completed and update the user's progress and streak."""
         lesson_id = request.data.get('lesson_id')
         user = request.user
 
@@ -329,7 +352,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                 lesson=lesson
             )
 
-            # 🛠 NEW: Update global streak inside UserProfile
+            # Update global streak inside UserProfile
             user_profile = user.userprofile
             user_profile.update_streak()
 
@@ -345,15 +368,15 @@ class LessonViewSet(viewsets.ModelViewSet):
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
 
-
-
-
 class QuizViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage quizzes, including retrieving and completing quizzes."""
+
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Retrieve quizzes for a specific course."""
         user = self.request.user
         course_id = self.request.query_params.get("course")
         if not course_id:
@@ -364,6 +387,7 @@ class QuizViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
+        """Mark a quiz as completed and reward the user if the answer is correct."""
         quiz_id = request.data.get("quiz_id")
         selected_answer = request.data.get("selected_answer")
 
@@ -385,12 +409,14 @@ class QuizViewSet(viewsets.ModelViewSet):
 
 
 class UserProgressViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage user progress, including tracking lessons, courses, and paths."""
+
     queryset = UserProgress.objects.all()
     serializer_class = UserProgressSerializer
     permission_classes = [IsAuthenticated]
 
-
     def check_path_completion(self, user, course):
+        """Check if the user has completed all courses in a path and reward them."""
         path = course.path
         if not path:
             return
@@ -410,6 +436,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='complete')
     def complete(self, request):
+        """Mark a lesson as completed and update the user's progress and streak."""
         lesson_id = request.data.get('lesson_id')
         if not lesson_id:
             return Response({"error": "lesson_id is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -476,6 +503,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
+        """Retrieve a summary of the user's progress across all courses and paths."""
         user = request.user
         progress_data = []
 
@@ -496,6 +524,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='complete_section')
     def complete_section(self, request):
+        """Mark a specific section of a lesson as completed."""
         section_id = request.data.get('section_id')
         user = request.user
         try:
@@ -512,9 +541,12 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
 
 class LeaderboardViewSet(APIView):
+    """API view to retrieve the top 10 users based on points for the leaderboard."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Handle GET requests to fetch the top 10 users for the leaderboard."""
         try:
             top_profiles = UserProfile.objects.all().order_by('-points')[:10]
             serializer = LeaderboardSerializer(top_profiles, many=True)
@@ -523,10 +555,14 @@ class LeaderboardViewSet(APIView):
             logger.error(f"Leaderboard error: {str(e)}")
             return Response({"error": str(e)}, status=500)
 
+
 class UserSettingsView(APIView):
+    """API view to retrieve and update user settings, including profile and preferences."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
         return Response({
             "email_reminders": user_profile.email_reminders,
@@ -541,19 +577,20 @@ class UserSettingsView(APIView):
         })
 
     def patch(self, request):
+        """Handle PATCH requests to update the user's settings."""
         user = request.user
         user_profile = user.userprofile
 
-        # Profile data
+        # Update profile data
         profile_data = request.data.get('profile', {})
         if profile_data:
-            # Update User model fields
             user.username = profile_data.get('username', user.username)
             user.email = profile_data.get('email', user.email)
             user.first_name = profile_data.get('first_name', user.first_name)
             user.last_name = profile_data.get('last_name', user.last_name)
             user.save()
 
+        # Update other settings
         dark_mode = request.data.get('dark_mode')
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
@@ -570,11 +607,13 @@ class UserSettingsView(APIView):
         return Response({"message": "Settings updated successfully."})
 
 
-
 class MissionView(APIView):
+    """API view to retrieve and update user missions, including daily and weekly missions."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Handle GET requests to fetch the user's daily and weekly missions."""
         user = request.user
         try:
             daily_completions = MissionCompletion.objects.filter(
@@ -621,6 +660,7 @@ class MissionView(APIView):
             )
 
     def post(self, request, mission_id):
+        """Handle POST requests to update the progress of a specific mission."""
         user = request.user
         try:
             mission_completion = MissionCompletion.objects.get(user=user, mission_id=mission_id)
@@ -640,9 +680,12 @@ class MissionView(APIView):
 
 
 class SavingsAccountView(APIView):
+    """API view to manage the user's simulated savings account, including retrieving the balance and adding funds."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve the current balance of the user's simulated savings account."""
         try:
             account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
             return Response({"balance": float(account.balance)}, status=200)
@@ -651,6 +694,7 @@ class SavingsAccountView(APIView):
             return Response({"error": "Failed to retrieve savings balance"}, status=500)
 
     def post(self, request):
+        """Add funds to the user's simulated savings account and update related missions."""
         try:
             amount = Decimal(str(request.data.get("amount", 0)))
             if amount <= 0:
@@ -705,9 +749,12 @@ class SavingsAccountView(APIView):
 
 
 class FinanceFactView(APIView):
+    """API view to manage finance facts, including retrieving unread facts and marking them as read."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve a random unread finance fact for the user."""
         try:
             # Get unread facts
             read_facts = UserFactProgress.objects.filter(
@@ -732,6 +779,7 @@ class FinanceFactView(APIView):
             return Response({"error": "Failed to get finance fact"}, status=500)
 
     def post(self, request):
+        """Mark a finance fact as read and update related missions."""
         try:
             fact_id = request.data.get('fact_id')
             if not fact_id:
@@ -762,9 +810,12 @@ class FinanceFactView(APIView):
 
 
 class ChatbotView(APIView):
+    """API view to handle chatbot interactions, including sending user input to Dialogflow and receiving responses."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Handle POST requests to process user input and return a response from Dialogflow."""
         user_input = request.data.get("text", "")
         session_id = str(request.user.id)
 
@@ -785,9 +836,7 @@ class ChatbotView(APIView):
 
     @staticmethod
     def dialogflow_webhook(request):
-        """
-        Handle requests from Dialogflow's webhook.
-        """
+        """Handle webhook requests from Dialogflow and provide appropriate responses based on the intent."""
         try:
             req = json.loads(request.body)
             intent_name = req.get("queryResult", {}).get("intent", {}).get("displayName")
@@ -809,10 +858,10 @@ class ChatbotView(APIView):
 
 
 class ToolListView(APIView):
-    """
-    API Endpoint to list tool categories only.
-    """
+    """API view to provide a list of tool categories available for users."""
+
     def get(self, request):
+        """Handle GET requests to return a list of predefined tool categories."""
         tools = [
             {"category": "Forex Tools"},
             {"category": "Crypto Tools"},
@@ -823,8 +872,10 @@ class ToolListView(APIView):
 
 
 class SavingsGoalCalculatorView(APIView):
+    """API view to manage savings goal calculations and update user savings progress."""
 
     def post(self, request):
+        """Handle POST requests to add a specified amount to the user's savings and update related missions."""
         amount = request.data.get("amount", 0)
         try:
             account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
@@ -846,9 +897,12 @@ class SavingsGoalCalculatorView(APIView):
             return Response({"error": "Savings update failed"}, status=500)
 
 class PasswordResetRequestView(APIView):
+    """Handle password reset requests by generating a reset token and sending an email with the reset link."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Process password reset requests by validating the email and sending a reset link."""
         email = request.data.get('email')
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -877,10 +931,14 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             return Response({"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND)
 
+
 class PasswordResetConfirmView(APIView):
+    """Handle password reset confirmation by validating the token and updating the user's password."""
+
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
+        """Validate the reset token and user ID to ensure the reset process can proceed."""
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
@@ -893,6 +951,7 @@ class PasswordResetConfirmView(APIView):
             return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, uidb64, token):
+        """Reset the user's password after validating the token and ensuring the passwords match."""
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
@@ -913,17 +972,20 @@ class PasswordResetConfirmView(APIView):
 
         return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
+
 class QuestionnaireView(APIView):
+    """Handle the retrieval and submission of questionnaire questions and answers."""
+
     permission_classes = [AllowAny]
 
     def get(self, request):
-
+        """Retrieve and return all active questionnaire questions in order."""
         questions = Question.objects.order_by('order')
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-
+        """Submit answers to the questionnaire and save them for the user."""
         answers = request.data.get('answers', {})
         user = request.user if request.user.is_authenticated else None
 
@@ -938,7 +1000,10 @@ class QuestionnaireView(APIView):
 
 
 class RecommendationView(APIView):
+    """Provide personalized path recommendations based on user responses."""
+
     def get(self, request, user_id):
+        """Retrieve user responses and recommend a learning path."""
         responses = UserResponse.objects.filter(user_id=user_id)
         recommended_path = None
 
@@ -969,9 +1034,12 @@ class RecommendationView(APIView):
 
 
 class QuestionnaireSubmitView(APIView):
+    """Handle the submission of questionnaire answers by authenticated users."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Save user responses to the questionnaire and update their profile."""
         user = request.user
         answers = request.data.get('answers', {})
 
@@ -979,7 +1047,6 @@ class QuestionnaireSubmitView(APIView):
             return Response({"error": "No answers provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-
             for question_id, answer in answers.items():
                 question = Question.objects.get(id=question_id)
                 UserResponse.objects.create(user=user, question=question, answer=answer)
@@ -996,11 +1063,13 @@ class QuestionnaireSubmitView(APIView):
             return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class PersonalizedPathView(APIView):
+    """API view to provide personalized learning paths for users based on their responses and preferences."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve personalized course recommendations for the user."""
         try:
             user_profile = UserProfile.objects.get(user=request.user)
 
@@ -1010,7 +1079,7 @@ class PersonalizedPathView(APIView):
                     "redirect": "/payment-required"
                 }, status=403)
 
-            # Rest of the existing logic
+            # Generate recommendations if not already present
             if not user_profile.recommended_courses:
                 self.generate_recommendations(user_profile)
 
@@ -1040,6 +1109,7 @@ class PersonalizedPathView(APIView):
             )
 
     def generate_recommendations(self, user_profile):
+        """Generate personalized course recommendations based on user responses."""
         responses = UserResponse.objects.filter(user=user_profile.user)
         path_weights = self.calculate_path_weights(responses)
         sorted_paths = sorted(path_weights.items(), key=lambda x: x[1], reverse=True)[:3]
@@ -1049,6 +1119,7 @@ class PersonalizedPathView(APIView):
         user_profile.save()
 
     def get_basic_recommendations(self):
+        """Provide basic course recommendations if no personalized data is available."""
         try:
             basic_courses = Course.objects.filter(
                 is_active=True,
@@ -1076,6 +1147,7 @@ class PersonalizedPathView(APIView):
             )
 
     def calculate_path_weights(self, responses):
+        """Calculate weights for different learning paths based on user responses."""
         path_weights = defaultdict(int)
         try:
             for response in responses:
@@ -1105,6 +1177,7 @@ class PersonalizedPathView(APIView):
         return path_weights
 
     def handle_risk_question(self, answer, weights):
+        """Adjust path weights based on the user's risk tolerance."""
         risk_map = {
             'very uncomfortable': 0,
             'uncomfortable': 1,
@@ -1118,6 +1191,7 @@ class PersonalizedPathView(APIView):
         weights['Cryptocurrency'] += score * 1.5
 
     def handle_investment_question(self, answer, weights):
+        """Adjust path weights based on the user's investment preferences."""
         investment_map = {
             'real estate': 'Real Estate',
             'crypto': 'Cryptocurrency',
@@ -1136,6 +1210,7 @@ class PersonalizedPathView(APIView):
                 weights[path] += 3 if path == 'Real Estate' else 2
 
     def handle_budget_question(self, answer, weights):
+        """Adjust path weights based on the user's budget allocation."""
         try:
             if isinstance(answer, str):
                 allocation = json.loads(answer)
@@ -1159,6 +1234,7 @@ class PersonalizedPathView(APIView):
             logger.error(f"Budget handling error: {str(e)}")
 
     def get_recommended_courses(self, sorted_paths):
+        """Retrieve recommended courses based on the top weighted paths."""
         recommended_courses = []
         try:
 
@@ -1183,10 +1259,12 @@ class PersonalizedPathView(APIView):
             return Course.objects.filter(is_active=True).order_by('?')[:10]
 
 class EnhancedQuestionnaireView(APIView):
+    """API view to handle the enhanced questionnaire functionality, including fetching questions, submitting answers, and generating personalized paths."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Handle GET requests to fetch questionnaire questions"""
+        """Handle GET requests to fetch questionnaire questions."""
         try:
             questions = Question.objects.filter(
                 is_active=True
@@ -1209,6 +1287,7 @@ class EnhancedQuestionnaireView(APIView):
             )
 
     def post(self, request):
+        """Handle POST requests to submit questionnaire answers and initiate payment for personalized paths."""
         try:
             user = request.user
 
@@ -1277,10 +1356,12 @@ class EnhancedQuestionnaireView(APIView):
             return Response({"error": "Payment processing failed"}, status=500)
 
     def validate_budget_allocation(self, allocation):
+        """Validate that the budget allocation percentages sum up to 100%."""
         total = sum(int(value) for value in allocation.values())
         return total == 100
 
     def generate_personalized_path(self, user, request):
+        """Generate a personalized learning path for the user based on their questionnaire responses."""
         responses = UserResponse.objects.filter(user=user)
         path_weights = {
             'Basic Finance': 0,
@@ -1334,14 +1415,13 @@ class EnhancedQuestionnaireView(APIView):
             ).data
         }
 
-
-from django.core.cache import cache
-
-# views.py
 class StripeWebhookView(APIView):
+    """Handle Stripe webhook events, specifically for processing completed checkout sessions."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Process Stripe webhook payloads and update user payment status."""
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
 
@@ -1373,9 +1453,12 @@ class StripeWebhookView(APIView):
 
 
 class VerifySessionView(APIView):
+    """Verify the payment status of a Stripe checkout session."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Check the payment status of a session and update the user's profile if paid."""
         try:
             session_id = request.data.get('session_id')
             if not session_id or not session_id.startswith('cs_'):
@@ -1408,6 +1491,7 @@ class VerifySessionView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_exercise_progress(request, exercise_id):
+    """Retrieve the progress of a specific exercise for the authenticated user."""
     try:
         lesson = Lesson.objects.get(id=exercise_id)
         user_progress = UserProgress.objects.filter(user=request.user, course=lesson.course).first()
@@ -1424,12 +1508,16 @@ def get_exercise_progress(request, exercise_id):
 
 
 class RecentActivityView(APIView):
+    """API view to retrieve the user's recent activities, including completed lessons, quizzes, missions, and courses."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Handle GET requests to fetch and return the user's most recent activities."""
         user = request.user
         activities = []
 
+        # Fetch completed lessons and add them to the activity list
         lesson_completions = LessonCompletion.objects.filter(
             user_progress__user=user
         ).select_related('lesson', 'user_progress__course')
@@ -1442,6 +1530,7 @@ class RecentActivityView(APIView):
                 "timestamp": lc.completed_at
             })
 
+        # Fetch completed quizzes and add them to the activity list
         quiz_completions = QuizCompletion.objects.filter(user=user).select_related('quiz')
         for qc in quiz_completions:
             activities.append({
@@ -1451,6 +1540,7 @@ class RecentActivityView(APIView):
                 "timestamp": qc.completed_at
             })
 
+        # Fetch completed missions and add them to the activity list
         missions = MissionCompletion.objects.filter(
             user=user,
             status='completed'
@@ -1463,6 +1553,7 @@ class RecentActivityView(APIView):
                 "timestamp": mc.completed_at
             })
 
+        # Fetch completed courses and add them to the activity list
         course_completions = UserProgress.objects.filter(
             user=user,
             is_course_complete=True
@@ -1475,6 +1566,7 @@ class RecentActivityView(APIView):
                 "timestamp": cc.course_completed_at
             })
 
+        # Sort activities by timestamp in descending order and limit to the 5 most recent
         sorted_activities = sorted(
             activities,
             key=lambda x: x["timestamp"],
@@ -1483,11 +1575,15 @@ class RecentActivityView(APIView):
 
         return Response({"recent_activities": sorted_activities})
 
+
 class RewardViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage rewards, including retrieving active rewards for shopping or donation."""
+
     serializer_class = RewardSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Retrieve rewards filtered by type (shop or donate) if specified."""
         reward_type = self.kwargs.get('type', None)
         queryset = Reward.objects.filter(is_active=True)
 
@@ -1498,13 +1594,17 @@ class RewardViewSet(viewsets.ModelViewSet):
 
 
 class UserPurchaseViewSet(viewsets.ModelViewSet):
+    """ViewSet to manage user purchases, including listing and creating transactions."""
+
     serializer_class = UserPurchaseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Retrieve all purchases made by the authenticated user."""
         return UserPurchase.objects.filter(user=self.request.user)
 
     def create(self, request):
+        """Handle POST requests to process a reward purchase for the user."""
         try:
             reward_id = request.data.get('reward_id')
             if not reward_id:
@@ -1513,9 +1613,11 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
             user_profile = request.user.userprofile
             reward = Reward.objects.get(id=reward_id, is_active=True)
 
+            # Check if the user has sufficient funds to purchase the reward
             if user_profile.earned_money < reward.cost:
                 return Response({"error": "Insufficient funds"}, status=400)
 
+            # Deduct the reward cost from the user's balance and save the purchase
             user_profile.earned_money -= reward.cost
             user_profile.save()
 
@@ -1538,25 +1640,35 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
 
 
 class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only ViewSet to retrieve active badges available in the system."""
+
     queryset = Badge.objects.filter(is_active=True)
     serializer_class = BadgeSerializer
     permission_classes = [IsAuthenticated]
 
     def get_serializer_context(self):
+        """Provide additional context for the serializer."""
         return {'request': self.request}
 
+
 class UserBadgeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only ViewSet to retrieve badges earned by the authenticated user."""
+
     serializer_class = UserBadgeSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Retrieve all badges associated with the authenticated user."""
         return UserBadge.objects.filter(user=self.request.user)
 
 
 class ReferralView(APIView):
+    """Handle referral functionality, including retrieving referrals and applying referral codes."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve all referrals made by the authenticated user."""
         try:
             referrals = Referral.objects.filter(referrer=request.user)
             serializer = ReferralSerializer(referrals, many=True)
@@ -1566,6 +1678,7 @@ class ReferralView(APIView):
             return Response({"error": "Error fetching referrals"}, status=500)
 
     def post(self, request):
+        """Apply a referral code to the authenticated user's account."""
         referral_code = request.data.get('referral_code', '').strip().upper()
 
         if not referral_code:
@@ -1601,10 +1714,14 @@ class ReferralView(APIView):
             logger.error(f"Referral error: {str(e)}")
             return Response({"error": "Server error processing referral"}, status=500)
 
+
 class UserSearchView(APIView):
+    """Handle user search functionality, allowing authenticated users to search for other users."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Search for users by username, excluding the authenticated user."""
         try:
             search_query = request.query_params.get('search', '').strip()
 
@@ -1624,10 +1741,12 @@ class UserSearchView(APIView):
 
 
 class FriendRequestView(APIView):
+    """Handle friend request functionality, including sending, accepting, and rejecting requests."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Get pending requests where the current user is the receiver
+        """Retrieve all pending friend requests for the authenticated user."""
         requests = FriendRequest.objects.filter(
             receiver=request.user,
             status='pending'
@@ -1636,7 +1755,8 @@ class FriendRequestView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        receiver_id = request.data.get("receiver")  # Ensure correct key
+        """Send a friend request to another user."""
+        receiver_id = request.data.get("receiver")
 
         if not receiver_id:
             return Response({"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1658,6 +1778,7 @@ class FriendRequestView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, pk):
+        """Accept or reject a friend request."""
         action = request.data.get("action")
 
         if action not in ["accept", "reject"]:
@@ -1679,10 +1800,14 @@ class FriendRequestView(APIView):
         except FriendRequest.DoesNotExist:
             return Response({"error": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
 
+
 class FriendsLeaderboardView(APIView):
+    """Retrieve a leaderboard of the authenticated user's friends based on their points."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Fetch the top friends of the authenticated user sorted by points."""
         friends = User.objects.filter(
             id__in=FriendRequest.objects.filter(
                 sender=request.user, status="accepted"
@@ -1699,11 +1824,14 @@ class FriendsLeaderboardView(APIView):
 
 
 class ExerciseViewSet(viewsets.ModelViewSet):
+    """Manage exercises, including filtering by type, category, and difficulty."""
+
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Filter exercises based on query parameters."""
         queryset = super().get_queryset()
         exercise_type = self.request.query_params.get('type')
         category = self.request.query_params.get('category')
@@ -1719,6 +1847,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
+        """Submit an answer for a specific exercise and track progress."""
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
 
@@ -1739,17 +1868,22 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             'attempts': progress.attempts
         })
 
+
 class UserExerciseProgressViewSet(viewsets.ModelViewSet):
+    """Manage the progress of exercises completed by the authenticated user."""
+
     serializer_class = UserExerciseProgressSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Retrieve all exercise progress records for the authenticated user."""
         return UserExerciseProgress.objects.filter(user=self.request.user)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def complete_exercise(request):
+    """Handle the completion of an exercise by saving the user's progress and marking the section as completed if the exercise is correct."""
     section_id = request.data.get('section_id')
     exercise_data = request.data.get('exercise_data')
 
@@ -1791,6 +1925,7 @@ def complete_exercise(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
+    """Reset the progress of an exercise by removing the user's completion data and unmarking the section as completed."""
     section_id = request.data.get('section_id')
 
     try:
