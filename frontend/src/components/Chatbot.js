@@ -129,18 +129,16 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     [isSpeechEnabled, selectedVoice, isMobile]
   );
 
-  // Enhanced financial query detection with more keywords
   const checkFinancialQuery = async (message) => {
     const lowercaseMsg = message.toLowerCase();
     
     // Stock price checking
     if (lowercaseMsg.includes("stock price") || lowercaseMsg.includes("stock value") || 
         lowercaseMsg.match(/price of (.*?) stock/) || lowercaseMsg.match(/how much is (.*?) stock/)) {
-      // Extract ticker symbol more intelligently
+
       const words = lowercaseMsg.split(" ");
       let ticker = "";
       
-      // First try to find the word before "stock"
       for (let i = 0; i < words.length; i++) {
         if (words[i] === "stock" && i > 0) {
           ticker = words[i-1].toUpperCase();
@@ -148,7 +146,6 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         }
       }
       
-      // If not found, try to get the last word which might be the ticker
       if (!ticker) {
         ticker = words[words.length-1].toUpperCase();
       }
@@ -278,7 +275,6 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       const transcript = event.results[0][0].transcript;
       setUserInput(transcript);
       
-      // Remove the "Listening..." message
       setChatHistory(prev => prev.filter(msg => msg.text !== "Listening..."));
       
       // Auto-send the voice message
@@ -301,7 +297,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     setIsTyping(true);
     
     if (!voiceInput) {
-      setUserInput("");  // Clear input field immediately for better UX
+      setUserInput("");
     }
 
     try {
@@ -323,9 +319,9 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         }
       }
 
-      // If no direct matches, use Hugging Face API for more complex queries
-      // Fix the API endpoint to use the correct path
-      const apiUrl = '/api/proxy/hf/';
+       const apiUrl = process.env.REACT_APP_BACKEND_URL 
+        ? `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`
+        : 'https://andreineagoe23.pythonanywhere.com/api/proxy/hf/';
       
       console.log("Sending request to:", apiUrl);
 
