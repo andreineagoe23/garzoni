@@ -111,6 +111,13 @@
     }
   }
 
+  .chat-system {
+  background-color: #f0f0f0;  
+  color: #555;
+  text-align: center;
+  font-style: italic;
+}
+
   &-header {
     padding: map-get($spacers, 3);
     border-bottom: 1px solid var(--border-color);
