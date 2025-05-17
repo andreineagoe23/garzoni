@@ -123,7 +123,7 @@ function LessonPage() {
   const handleCompleteLesson = async (lessonId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete/`,
         { lesson_id: lessonId },
         {
           headers: {
