@@ -394,3 +394,4 @@ class UserExerciseProgressSerializer(serializers.ModelSerializer):
         model = UserExerciseProgress
         fields = ['exercise', 'completed', 'attempts', 'user_answer']
         read_only_fields = ['user']
+        
