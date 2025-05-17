@@ -345,59 +345,77 @@ class MissionCompletion(models.Model):
     )
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    def update_progress(self, increment=0, total=100):
-        """
-        Updates the progress of the mission based on the goal type and increments provided. 
-        Marks the mission as completed if progress reaches 100%.
-        """
+    def update_progress(self, increment=0):
         if self.status == 'completed':
             return
 
-        if self.mission.goal_type == "complete_path":
-            path_id = self.mission.goal_reference.get('path_id')
-            if path_id:
+        goal_type = self.mission.goal_type
+        mission_type = self.mission.mission_type
+        goal_reference = self.mission.goal_reference or {}
+
+        if goal_type == "complete_path":
+            best_progress = 0
+
+            for path in Path.objects.all():
+                total_courses = Course.objects.filter(path=path).count()
+                if total_courses == 0:
+                    continue
+
                 completed_courses = UserProgress.objects.filter(
                     user=self.user,
-                    course__path_id=path_id,
+                    course__path=path,
                     is_course_complete=True
                 ).count()
-                total_courses = Course.objects.filter(path_id=path_id).count()
-                self.progress = int((completed_courses / total_courses) * 100)
 
-        elif self.mission.goal_type == "add_savings":
-            self.progress = min(self.progress + increment, total)
+                path_progress = int((completed_courses / total_courses) * 100)
+                if path_progress > best_progress:
+                    best_progress = path_progress
 
-        elif self.mission.goal_type == "read_fact":
-            if self.mission.mission_type == 'daily':
+            self.progress = best_progress
+
+
+        elif goal_type == "add_savings":
+            target = goal_reference.get('target', 100)
+            self.progress = min(self.progress + (increment / target) * 100, 100)
+
+        elif goal_type == "read_fact":
+            if mission_type == "daily":
                 self.progress = 100
-            else:
-                self.progress = min(self.progress + 20, 100)
+            elif mission_type == "weekly":
+                self.progress = min(self.progress + 20, 100)  # 5 facts = 100%
 
+        elif goal_type == "complete_lesson":
+            required = goal_reference.get('required_lessons', 1)
+            self.progress = min(self.progress + (100 / required), 100)
+
+        # Finalize mission if complete
         if self.progress >= 100:
             self.status = 'completed'
             self.completed_at = timezone.now()
-            if not self.user.userprofile.badges.filter(name='Mission Master').exists():
-                badge = Badge.objects.get(name='Mission Master')
-                UserBadge.objects.create(user=self.user, badge=badge)
+
+            # Optional: reward badge
+            from .models import UserBadge, Badge
+            if not UserBadge.objects.filter(user=self.user, badge__name="Mission Master").exists():
+                try:
+                    badge = Badge.objects.get(name="Mission Master")
+                    UserBadge.objects.create(user=self.user, badge=badge)
+                except Badge.DoesNotExist:
+                    pass
 
         self.save()
 
+
     @receiver(post_save, sender=User)
     def assign_missions_to_new_user(sender, instance, created, **kwargs):
-        """
-        Automatically assigns daily and weekly missions to newly created users. 
-        Ensures that new users have initial missions to engage with.
-        """
         if created:
-            # Assign daily missions
-            daily_missions = Mission.objects.filter(mission_type="daily")
-            for mission in daily_missions:
-                MissionCompletion.objects.get_or_create(
-                    user=instance,
-                    mission=mission,
-                    defaults={"progress": 0, "status": "not_started"},
+            for mission_type in ["daily", "weekly"]:
+                missions = Mission.objects.filter(mission_type=mission_type)
+                for mission in missions:
+                    MissionCompletion.objects.get_or_create(
+                        user=instance,
+                        mission=mission,
+                        defaults={"progress": 0, "status": "not_started"},
                 )
-            print(f"Daily missions assigned to new user: {instance.username}")
 
             # Assign weekly missions
             weekly_missions = Mission.objects.filter(mission_type="weekly")

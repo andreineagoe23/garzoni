@@ -51,6 +51,7 @@ from core.tokens import delete_jwt_cookies
 logger = logging.getLogger(__name__)
 
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.timezone import now
 
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -446,6 +447,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             course = lesson.course
             user_profile = request.user.userprofile
             user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
+            
             user_progress.completed_lessons.add(lesson)
             user_profile.add_money(Decimal('5.00'))
             user_profile.save()
@@ -453,11 +455,24 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             total_lessons = course.lessons.count()
             completed_lessons = user_progress.completed_lessons.count()
             if completed_lessons == total_lessons:
-
                 user_profile.add_money(Decimal('50.00'))
                 user_profile.add_points(50)
                 user_profile.save()
 
+                user_progress.is_course_complete = True
+                user_progress.course_completed_at = timezone.now()
+                user_progress.save()
+
+                # ✅ Check for complete_path mission updates
+                path_missions = MissionCompletion.objects.filter(
+                    user=request.user,
+                    mission__goal_type="complete_path",
+                    status__in=["not_started", "in_progress"]
+                )
+                for mission_completion in path_missions:
+                    mission_completion.update_progress()
+
+                # ✅ Also reward full path if completed
                 path = course.path
                 if path:
                     courses_in_path = Course.objects.filter(path=path)
@@ -473,33 +488,25 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                         user_profile.save()
 
             user_progress.update_streak()
-            self.check_path_completion(request.user, course)
 
-            # Mission completion logic
+            # ✅ Update lesson-related missions
             lesson_missions = MissionCompletion.objects.filter(
                 user=request.user,
                 mission__goal_type="complete_lesson",
                 status__in=["not_started", "in_progress"]
             )
-
             for mission_completion in lesson_missions:
-                required_lessons = mission_completion.mission.goal_reference.get('required_lessons', 1)
-                progress_per_lesson = 100 / required_lessons
-                mission_completion.progress = min(
-                    mission_completion.progress + progress_per_lesson,
-                    100
-                )
-                if mission_completion.progress >= 100:
-                    mission_completion.status = 'completed'
-                    mission_completion.completed_at = timezone.now()
-                mission_completion.save()
+                mission_completion.update_progress()
 
             return Response(
                 {"status": "Lesson completed", "streak": user_progress.user.userprofile.streak},
                 status=status.HTTP_200_OK
             )
+
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
@@ -700,38 +707,50 @@ class SavingsAccountView(APIView):
             if amount <= 0:
                 return Response({"error": "Amount must be positive"}, status=400)
 
+            today = timezone.now().date()
+            user = request.user
+
             with transaction.atomic():
                 # Update savings account
                 account, created = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
-                    user=request.user,
+                    user=user,
                     defaults={'balance': amount}
                 )
                 if not created:
                     account.balance += amount
                     account.save()
 
-                # Update missions - FIXED VERSION
+                # Fetch all savings-related missions
                 missions = MissionCompletion.objects.select_related('mission').filter(
-                    user=request.user,
-                    mission__goal_type="add_savings"
+                    user=user,
+                    mission__goal_type="add_savings",
+                    status__in=["not_started", "in_progress"]
                 )
 
                 for completion in missions:
-                    # Safely get target with fallbacks
-                    goal_ref = completion.mission.goal_reference or {}
-                    target = Decimal(str(goal_ref.get('target', 100)))
+                    mission_type = completion.mission.mission_type
+                    target = Decimal(str(completion.mission.goal_reference.get('target', 100)))
 
-                    # Calculate progress update
-                    progress_increment = (amount / target) * 100
-                    completion.progress = min(
-                        completion.progress + progress_increment,
-                        100
-                    )
+                    # Daily savings: only update once per day
+                    if mission_type == "daily":
+                        if completion.completed_at is not None and completion.completed_at.date() == today:
+                            continue  # Already completed today
 
-                    # Update completion status
-                    if completion.progress >= 100:
-                        completion.status = 'completed'
-                        completion.completed_at = timezone.now()
+                        increment = (amount / target) * 100
+                        completion.progress = min(completion.progress + increment, 100)
+
+                        if completion.progress >= 100:
+                            completion.status = "completed"
+                            completion.completed_at = timezone.now()
+
+                    # Weekly savings: cumulative
+                    elif mission_type == "weekly":
+                        increment = (amount / target) * 100
+                        completion.progress = min(completion.progress + increment, 100)
+
+                        if completion.progress >= 100:
+                            completion.status = "completed"
+                            completion.completed_at = timezone.now()
 
                     completion.save()
 
@@ -778,27 +797,40 @@ class FinanceFactView(APIView):
             logger.error(f"Fact fetch error: {str(e)}")
             return Response({"error": "Failed to get finance fact"}, status=500)
 
+
     def post(self, request):
-        """Mark a finance fact as read and update related missions."""
         try:
             fact_id = request.data.get('fact_id')
             if not fact_id:
                 return Response({"error": "Missing fact ID"}, status=400)
 
-            # Record fact reading
             fact = FinanceFact.objects.get(id=fact_id)
+            today = now().date()
+
+            # ✅ Prevent duplicate daily fact completion
+            already_read_today = UserFactProgress.objects.filter(
+                user=request.user,
+                read_at__date=today
+            ).exists()
+
+            if already_read_today:
+                return Response({"message": "You already completed today’s finance fact."}, status=200)
+
+            # ✅ Log the fact as read
             UserFactProgress.objects.create(user=request.user, fact=fact)
 
-            # Update both daily and weekly missions
+            # ✅ Progress both daily and weekly missions
             completions = MissionCompletion.objects.filter(
                 user=request.user,
-                mission__goal_type="read_fact"
+                mission__goal_type="read_fact",
+                status__in=["not_started", "in_progress"]
             )
 
             for completion in completions:
-                if completion.mission.fact == fact:
-                    completion.update_progress()
-                    completion.save()
+                if completion.mission.mission_type == "daily":
+                    completion.update_progress()  # 100% on 1st fact
+                elif completion.mission.mission_type == "weekly":
+                    completion.update_progress()  # +20% each time
 
             return Response({"message": "Fact marked as read!"}, status=200)
 
@@ -807,6 +839,8 @@ class FinanceFactView(APIView):
         except Exception as e:
             logger.error(f"Fact completion error: {str(e)}")
             return Response({"error": "Failed to mark fact"}, status=500)
+
+
 
 
 class ChatbotView(APIView):

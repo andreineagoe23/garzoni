@@ -4,13 +4,15 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import { gsap } from "gsap";
 import "../styles/scss/main.scss";
 
-function CoinStack({ balance }) {
-  const target = 100;
-  const coins = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
-  const unlockedCoins = Math.floor(balance / 10);
+function CoinStack({ balance, coinUnit = 10, target = 100 }) {
+  const coins = Array.from(
+    { length: target / coinUnit },
+    (_, i) => (i + 1) * coinUnit
+  );
+  const unlockedCoins = Math.floor(balance / coinUnit);
 
   useEffect(() => {
-    const newUnlocked = Math.floor(balance / 10);
+    const newUnlocked = Math.floor(balance / coinUnit);
     if (newUnlocked > 0) {
       gsap.fromTo(
         `.coin:nth-child(-n+${newUnlocked})`,
@@ -24,7 +26,7 @@ function CoinStack({ balance }) {
         }
       );
     }
-  }, [balance]);
+  }, [balance, coinUnit]);
 
   return (
     <div className="coin-stack">
@@ -43,7 +45,7 @@ function CoinStack({ balance }) {
       </div>
       {balance < target && (
         <div className="next-unlock">
-          Save £{10 - (balance % 10)} more to unlock next coin!
+          Save £{coinUnit - (balance % coinUnit)} more to unlock next coin!
         </div>
       )}
     </div>
@@ -56,14 +58,12 @@ function FactCard({ fact, onMarkRead }) {
   useEffect(() => {
     if (fact) {
       gsap.set(factRef.current, { opacity: 0, y: 20 });
-
       const animation = gsap.to(factRef.current, {
         duration: 0.8,
         opacity: 1,
         y: 0,
         ease: "power4.out",
       });
-
       return () => animation.kill();
     }
   }, [fact]);
@@ -94,13 +94,72 @@ function Missions() {
   const [errorMessage, setErrorMessage] = useState("");
   const [currentFact, setCurrentFact] = useState(null);
 
+  // ✅ Fix: define helper here so it has access to hooks
+  const checkLessonMissionProgress = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+      setDailyMissions(response.data.daily_missions || []);
+    } catch (error) {
+      setErrorMessage("Failed to refresh lesson mission.");
+    }
+  };
+
   useEffect(() => {
     fetchMissions();
     fetchSavingsBalance();
     loadNewFact();
+
+    // ✅ Sync lesson-based missions in case a lesson was just completed
+    const lessonMissionSync = setTimeout(() => {
+      checkLessonMissionProgress();
+    }, 1000);
+
     const intervalId = setInterval(fetchMissions, 30000);
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(lessonMissionSync);
+    };
   }, []);
+
+  const fetchMissions = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+      setDailyMissions(response.data.daily_missions || []);
+      setWeeklyMissions(response.data.weekly_missions || []);
+    } catch (error) {
+      setErrorMessage("Failed to load missions. Please try again.");
+    }
+  };
+
+  const fetchSavingsBalance = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+      setSavingsBalance(response.data.balance);
+    } catch (error) {
+      setErrorMessage("Failed to load savings balance.");
+    }
+  };
 
   const loadNewFact = async () => {
     try {
@@ -141,39 +200,6 @@ function Missions() {
     }
   };
 
-  const fetchMissions = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      setDailyMissions(response.data.daily_missions || []);
-      setWeeklyMissions(response.data.weekly_missions || []);
-    } catch (error) {
-      setErrorMessage("Failed to load missions. Please try again.");
-    }
-  };
-
-  const fetchSavingsBalance = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      setSavingsBalance(response.data.balance);
-    } catch (error) {
-      setErrorMessage("Failed to load savings balance.");
-    }
-  };
-
   const handleSavingsSubmit = async (e) => {
     e.preventDefault();
     if (isNaN(savingsAmount) || savingsAmount <= 0) {
@@ -198,7 +224,7 @@ function Missions() {
     }
   };
 
-  const renderMission = (mission) => (
+  const renderMissionCard = (mission, isDaily = true) => (
     <div key={mission.id} className="mission-card">
       <div className="mission-header">
         <h5 className="fw-semibold mb-2">{mission.name}</h5>
@@ -209,21 +235,24 @@ function Missions() {
           variant="primary"
           style={{ height: "15px" }}
           label={
-            mission.goal_type === "read_fact" &&
-            mission.mission_type === "weekly"
+            mission.goal_type === "read_fact" && !isDaily
               ? `${Math.floor(mission.progress / 20)}/5 Facts`
+              : mission.goal_type === "complete_lesson"
+              ? `${Math.round(mission.progress)}%`
               : `${Math.round(mission.progress)}%`
           }
         />
-        {mission.goal_type === "read_fact" && (
-          <small className="d-block text-muted">
-            {mission.status === "completed"
-              ? "Completed! 🎉"
-              : mission.mission_type === "daily"
-              ? "Read 1 fact to complete"
-              : `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`}
-          </small>
-        )}
+        <small className="d-block text-muted">
+          {mission.status === "completed"
+            ? "Completed! 🎉"
+            : mission.goal_type === "read_fact" && isDaily
+            ? "Read 1 fact to complete"
+            : mission.goal_type === "read_fact"
+            ? `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`
+            : mission.goal_type === "complete_lesson"
+            ? `${Math.round(mission.progress)}% of required lesson(s)`
+            : `${Math.round(mission.progress)}% complete`}
+        </small>
       </div>
 
       {mission.status === "completed" ? (
@@ -242,24 +271,40 @@ function Missions() {
               </button>
               {showSavingsMenu && (
                 <div className="savings-menu">
-                  <CoinStack balance={savingsBalance} />
+                  <CoinStack
+                    balance={savingsBalance}
+                    coinUnit={isDaily ? 1 : 10}
+                    target={isDaily ? 10 : 100}
+                  />
                   <form onSubmit={handleSavingsSubmit}>
                     <input
                       type="number"
                       value={savingsAmount}
                       onChange={(e) => setSavingsAmount(e.target.value)}
-                      placeholder="Enter amount (e.g., £5)"
+                      placeholder={
+                        isDaily
+                          ? "Enter amount (e.g., £1)"
+                          : "Enter amount (e.g., £10)"
+                      }
                       className="savings-input"
+                      disabled={isDaily && mission.status === "completed"} // disable after daily save
                     />
-                    <button type="submit" className="btn btn-accent">
-                      Add to Savings
+                    <button
+                      type="submit"
+                      className="btn btn-accent"
+                      disabled={isDaily && mission.status === "completed"}
+                    >
+                      {isDaily && mission.status === "completed"
+                        ? "Saved Today"
+                        : "Add to Savings"}
                     </button>
                   </form>
                 </div>
               )}
             </div>
           )}
-          {mission.goal_type === "read_fact" && (
+
+          {mission.goal_type === "read_fact" && isDaily && (
             <div className="fact-section">
               <FactCard fact={currentFact} onMarkRead={markFactRead} />
               {!currentFact && (
@@ -281,14 +326,13 @@ function Missions() {
         {errorMessage && (
           <div className="alert alert-accent">{errorMessage}</div>
         )}
-
         <div className="grid-cards grid-2">
-          {dailyMissions.map(renderMission)}
+          {dailyMissions.map((m) => renderMissionCard(m, true))}
         </div>
 
         <h1 className="page-header-title mt-7">Weekly Missions</h1>
         <div className="grid-cards grid-2">
-          {weeklyMissions.map(renderMission)}
+          {weeklyMissions.map((m) => renderMissionCard(m, false))}
         </div>
       </div>
     </div>
