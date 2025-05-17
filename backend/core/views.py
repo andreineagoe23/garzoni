@@ -1959,26 +1959,17 @@ def complete_exercise(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
-    """Reset the progress of an exercise by removing the user's completion data and unmarking the section as completed."""
-    section_id = request.data.get('section_id')
+    exercise_id = request.data.get("exercise_id")
+    if not exercise_id:
+        return Response({"error": "exercise_id is required"}, status=400)
 
     try:
-        section = LessonSection.objects.get(id=section_id)
-        exercise = Exercise.objects.get(section=section)
-        ExerciseCompletion.objects.filter(
-            user=request.user,
-            exercise=exercise
-        ).delete()
-
-        progress = UserProgress.objects.filter(
-            user=request.user,
-            course=section.lesson.course
-        ).first()
-
-        if progress:
-            progress.completed_sections.remove(section)
-
-        return Response({"status": "Exercise reset successfully"})
-
-    except (LessonSection.DoesNotExist, Exercise.DoesNotExist):
-        return Response({"error": "Exercise not found"}, status=404)
+        progress = UserExerciseProgress.objects.get(
+            user=request.user, exercise_id=exercise_id
+        )
+        progress.attempts = 0
+        progress.completed = False
+        progress.save()
+        return Response({"message": "Progress reset successfully."}, status=200)
+    except UserExerciseProgress.DoesNotExist:
+        return Response({"error": "No progress found to reset."}, status=404)
