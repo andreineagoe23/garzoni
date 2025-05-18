@@ -16,7 +16,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
 
   // Updated model to use a more capable one
   const HF_MODEL = "google/flan-t5-xl";
-  
+
   // Enhanced financial FAQ with more detailed responses
   const FINANCE_FAQ = {
     budgeting:
@@ -35,10 +35,10 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       "An emergency fund is your financial safety net. Aim to save 3-6 months of essential expenses in a readily accessible account. Start with a goal of $1,000, then build from there. This fund helps prevent going into debt when unexpected expenses arise.",
     "tax planning":
       "Effective tax planning can significantly increase your net worth. Maximize contributions to tax-advantaged accounts, harvest tax losses in investment accounts, and keep records of deductible expenses. Consider consulting with a tax professional to optimize your specific situation.",
-    stocks: 
+    stocks:
       "Stocks represent ownership in a company. When investing in stocks, focus on diversification across sectors and company sizes. For most people, low-cost index funds are the best approach rather than picking individual stocks. Remember that the stock market has historically yielded around 7% annually over the long term, despite short-term volatility.",
     cryptocurrencies:
-      "Cryptocurrencies are highly volatile digital assets. While they offer potential for significant returns, they also come with substantial risk. Consider allocating only a small percentage of your portfolio to crypto (generally no more than 5%), and only invest what you can afford to lose. Research thoroughly before investing in any specific cryptocurrency."
+      "Cryptocurrencies are highly volatile digital assets. While they offer potential for significant returns, they also come with substantial risk. Consider allocating only a small percentage of your portfolio to crypto (generally no more than 5%), and only invest what you can afford to lose. Research thoroughly before investing in any specific cryptocurrency.",
   };
 
   useEffect(() => {
@@ -131,57 +131,75 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
 
   const checkFinancialQuery = async (message) => {
     const lowercaseMsg = message.toLowerCase();
-    
-    // Stock price checking
-    if (lowercaseMsg.includes("stock price") || lowercaseMsg.includes("stock value") || 
-        lowercaseMsg.match(/price of (.*?) stock/) || lowercaseMsg.match(/how much is (.*?) stock/)) {
 
+    // Stock price checking
+    if (
+      lowercaseMsg.includes("stock price") ||
+      lowercaseMsg.includes("stock value") ||
+      lowercaseMsg.match(/price of (.*?) stock/) ||
+      lowercaseMsg.match(/how much is (.*?) stock/)
+    ) {
       const words = lowercaseMsg.split(" ");
       let ticker = "";
-      
+
       for (let i = 0; i < words.length; i++) {
         if (words[i] === "stock" && i > 0) {
-          ticker = words[i-1].toUpperCase();
+          ticker = words[i - 1].toUpperCase();
           break;
         }
       }
-      
+
       if (!ticker) {
-        ticker = words[words.length-1].toUpperCase();
+        ticker = words[words.length - 1].toUpperCase();
       }
-      
+
       return await fetchStockPrice(ticker);
     }
-    
+
     // Crypto price checking
-    if (lowercaseMsg.includes("crypto") || lowercaseMsg.includes("bitcoin") || 
-        lowercaseMsg.includes("ethereum") || lowercaseMsg.includes("cryptocurrency")) {
-      
+    if (
+      lowercaseMsg.includes("crypto") ||
+      lowercaseMsg.includes("bitcoin") ||
+      lowercaseMsg.includes("ethereum") ||
+      lowercaseMsg.includes("cryptocurrency")
+    ) {
       let cryptoId = "bitcoin"; // Default
-      
+
       if (lowercaseMsg.includes("ethereum") || lowercaseMsg.includes("eth")) {
         cryptoId = "ethereum";
-      } else if (lowercaseMsg.includes("dogecoin") || lowercaseMsg.includes("doge")) {
+      } else if (
+        lowercaseMsg.includes("dogecoin") ||
+        lowercaseMsg.includes("doge")
+      ) {
         cryptoId = "dogecoin";
-      } else if (lowercaseMsg.includes("litecoin") || lowercaseMsg.includes("ltc")) {
+      } else if (
+        lowercaseMsg.includes("litecoin") ||
+        lowercaseMsg.includes("ltc")
+      ) {
         cryptoId = "litecoin";
-      } else if (lowercaseMsg.includes("cardano") || lowercaseMsg.includes("ada")) {
+      } else if (
+        lowercaseMsg.includes("cardano") ||
+        lowercaseMsg.includes("ada")
+      ) {
         cryptoId = "cardano";
       }
-      
+
       return await fetchCryptoPrice(cryptoId);
     }
-    
+
     // Forex/currency exchange rate checking
-    if (lowercaseMsg.includes("forex") || lowercaseMsg.includes("currency") || 
-        lowercaseMsg.includes("exchange rate") || lowercaseMsg.includes("exchange rates")) {
-      
+    if (
+      lowercaseMsg.includes("forex") ||
+      lowercaseMsg.includes("currency") ||
+      lowercaseMsg.includes("exchange rate") ||
+      lowercaseMsg.includes("exchange rates")
+    ) {
       let fromCurrency = "usd";
       let toCurrency = "eur";
-      
+
       // Try to extract currencies from the message
       const currencyCodes = ["usd", "eur", "gbp", "jpy", "cad", "aud", "chf"];
-      
+
       for (const code of currencyCodes) {
         if (lowercaseMsg.includes(code)) {
           if (fromCurrency === "usd") {
@@ -192,10 +210,10 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
           }
         }
       }
-      
+
       return await fetchForexRate(fromCurrency, toCurrency);
     }
-    
+
     return null;
   };
 
@@ -206,7 +224,9 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       );
       return `The exchange rate from ${from.toUpperCase()} to ${to.toUpperCase()} is ${
         response.data.rates[to.toUpperCase()]
-      }. This means 1 ${from.toUpperCase()} equals ${response.data.rates[to.toUpperCase()]} ${to.toUpperCase()}.`;
+      }. This means 1 ${from.toUpperCase()} equals ${
+        response.data.rates[to.toUpperCase()]
+      } ${to.toUpperCase()}.`;
     } catch (error) {
       console.error("Error fetching Forex rates:", error);
       return "Sorry, I couldn't fetch Forex rates at the moment. Please try again later.";
@@ -219,7 +239,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       const response = await axios.get(
         `https://api.coingecko.com/api/v3/simple/price?ids=${symbol.toLowerCase()}&vs_currencies=usd`
       );
-      
+
       if (response.data[symbol.toLowerCase()]) {
         return `The current price of ${symbol.toUpperCase()} is $${
           response.data[symbol.toLowerCase()].usd
@@ -238,11 +258,11 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       const response = await axios.get(
         `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=usd`
       );
-      
+
       if (response.data[cryptoId]) {
-        return `The current price of ${cryptoId.charAt(0).toUpperCase() + cryptoId.slice(1)} is $${
-          response.data[cryptoId].usd
-        } USD.`;
+        return `The current price of ${
+          cryptoId.charAt(0).toUpperCase() + cryptoId.slice(1)
+        } is $${response.data[cryptoId].usd} USD.`;
       } else {
         return `Sorry, I couldn't find the price for ${cryptoId}. Please check the name and try again.`;
       }
@@ -268,15 +288,20 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     recognition.maxAlternatives = 1;
 
     // Provide visual feedback that voice recognition is active
-    setChatHistory(prev => [...prev, { sender: "system", text: "Listening..." }]);
+    setChatHistory((prev) => [
+      ...prev,
+      { sender: "system", text: "Listening..." },
+    ]);
     recognition.start();
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setUserInput(transcript);
-      
-      setChatHistory(prev => prev.filter(msg => msg.text !== "Listening..."));
-      
+
+      setChatHistory((prev) =>
+        prev.filter((msg) => msg.text !== "Listening...")
+      );
+
       // Auto-send the voice message
       handleMessageSend(transcript);
     };
@@ -284,7 +309,9 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       // Remove the "Listening..." message in case of error
-      setChatHistory(prev => prev.filter(msg => msg.text !== "Listening..."));
+      setChatHistory((prev) =>
+        prev.filter((msg) => msg.text !== "Listening...")
+      );
     };
   };
 
@@ -295,7 +322,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     const newChat = [...chatHistory, { sender: "user", text: input }];
     setChatHistory(newChat);
     setIsTyping(true);
-    
+
     if (!voiceInput) {
       setUserInput("");
     }
@@ -309,8 +336,11 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       }
 
       // Check for FAQ matches with improved preprocessing
-      const cleanInput = input.toLowerCase().replace(/[^\w\s]/gi, "").trim();
-      
+      const cleanInput = input
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, "")
+        .trim();
+
       // Look for keyword matches in the FAQ
       for (const [key, value] of Object.entries(FINANCE_FAQ)) {
         if (cleanInput.includes(key)) {
@@ -319,10 +349,10 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         }
       }
 
-       const apiUrl = process.env.REACT_APP_BACKEND_URL 
+      const apiUrl = process.env.REACT_APP_BACKEND_URL
         ? `${process.env.REACT_APP_BACKEND_URL}/proxy/hf/`
-        : 'https://andreineagoe23.pythonanywhere.com/api/proxy/hf/';
-      
+        : "https://andreineagoe23.pythonanywhere.com/api/proxy/hf/";
+
       console.log("Sending request to:", apiUrl);
 
       const response = await axios.post(
@@ -334,31 +364,37 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
             max_new_tokens: 150,
             temperature: 0.7,
             top_p: 0.9,
-            do_sample: true
+            do_sample: true,
           },
         },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
         }
       );
 
       // Extract the response properly based on the API format
       let aiResponse = "I'm sorry, I couldn't generate a proper response.";
-      
-      if (Array.isArray(response.data) && response.data[0]?.generated_text) {
+
+      if (typeof response.data === "object" && response.data?.response) {
+        aiResponse = response.data.response.trim();
+      } else if (
+        Array.isArray(response.data) &&
+        response.data[0]?.generated_text
+      ) {
         aiResponse = response.data[0].generated_text.trim();
       } else if (response.data?.generated_text) {
         aiResponse = response.data.generated_text.trim();
-      } else if (typeof response.data === 'string') {
+      } else if (typeof response.data === "string") {
         aiResponse = response.data.trim();
       }
-      
+
       // Fallback to generic response if the API doesn't return usable content
       if (!aiResponse || aiResponse.length < 10) {
-        aiResponse = "I'm sorry, but I don't have specific information about that financial topic. Would you like to know about budgeting, investing, savings, or credit scores instead?";
+        aiResponse =
+          "I'm sorry, but I don't have specific information about that financial topic. Would you like to know about budgeting, investing, savings, or credit scores instead?";
       }
 
       updateChat(aiResponse);
@@ -383,11 +419,16 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
 
     // More informative error handling
     let errorMessage;
-    
+
     if (error.response?.status === 404) {
-      errorMessage = "I'm having trouble connecting to our AI services. This appears to be a server configuration issue. Please try again later while we fix it.";
-    } else if (error.response?.status === 401 || error.response?.status === 403) {
-      errorMessage = "Your session may have expired. Please refresh the page and try logging in again.";
+      errorMessage =
+        "I'm having trouble connecting to our AI services. This appears to be a server configuration issue. Please try again later while we fix it.";
+    } else if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
+      errorMessage =
+        "Your session may have expired. Please refresh the page and try logging in again.";
     } else if (error.response?.data?.error?.includes("Authorization")) {
       errorMessage = "System maintenance in progress. Please try again later.";
     } else {
@@ -399,10 +440,11 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
           break;
         }
       }
-      
+
       // If no FAQ match, provide a generic but helpful response
       if (!errorMessage) {
-        errorMessage = "I'm having trouble connecting to our financial data services. In the meantime, I can still answer general finance questions about budgeting, investing, saving, or credit scores. How can I help you?";
+        errorMessage =
+          "I'm having trouble connecting to our financial data services. In the meantime, I can still answer general finance questions about budgeting, investing, saving, or credit scores. How can I help you?";
       }
     }
 
@@ -472,11 +514,11 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
             <div
               key={idx}
               className={`chat-message mb-2 ${
-                msg.sender === "user" 
-                  ? "chat-user" 
-                  : msg.sender === "system" 
-                    ? "chat-system" 
-                    : "chat-bot"
+                msg.sender === "user"
+                  ? "chat-user"
+                  : msg.sender === "system"
+                  ? "chat-system"
+                  : "chat-bot"
               } p-3 rounded`}
             >
               {msg.text}

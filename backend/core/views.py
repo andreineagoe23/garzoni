@@ -29,6 +29,7 @@ import requests
 import logging
 import os
 import json
+from transformers import pipeline
 from .models import (
     LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress,
     MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
@@ -61,47 +62,28 @@ def get_csrf_token(request):
 
 
 class HuggingFaceProxyView(APIView):
-    """Proxy view to interact with Hugging Face's API for model inference."""
-
     permission_classes = [IsAuthenticated]
 
+    # Load the small GPT-style model once when the class is first used
+    local_pipe = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
+
     def post(self, request):
-        """Handle POST requests to send inputs to a Hugging Face model and return the response."""
-        print("✅ HuggingFaceProxyView activated")
-        model = request.data.get("model")
-        inputs = request.data.get("inputs")
+        prompt = request.data.get("inputs", "").strip()
         parameters = request.data.get("parameters", {})
 
-        if not model or not inputs:
-            return Response({"error": "Model and inputs are required."}, status=400)
-
-        hf_token = os.getenv("HF_API_KEY")
-        if not hf_token:
-            return Response({"error": "Hugging Face API key not configured."}, status=500)
-
-        headers = {
-            "Authorization": f"Bearer {hf_token}",
-            "Content-Type": "application/json"
-        }
-
-        url = f"https://api-inference.huggingface.co/models/{model}"
-        payload = {"inputs": inputs, "parameters": parameters}
+        if not prompt:
+            return Response({"error": "Prompt is required."}, status=400)
 
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
-        except requests.RequestException as e:
-            return Response({"error": f"Request to Hugging Face failed: {str(e)}"}, status=500)
+            # Run the local model
+            output = self.local_pipe(prompt, **parameters)
 
-        try:
-            data = response.json()
-        except ValueError:
-            return Response({
-                "error": "Invalid response from Hugging Face.",
-                "status_code": response.status_code,
-                "raw": response.text
-            }, status=response.status_code)
+            # Extract the generated text (standard format for text-generation)
+            response_text = output[0]["generated_text"]
 
-        return Response(data, status=response.status_code)
+            return Response({"response": response_text})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
 
 
 class UserProfileView(APIView):
@@ -447,7 +429,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             course = lesson.course
             user_profile = request.user.userprofile
             user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
-            
+
             user_progress.completed_lessons.add(lesson)
             user_profile.add_money(Decimal('5.00'))
             user_profile.save()
