@@ -14,9 +14,6 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
   const chatHistoryRef = useRef(null);
   const shouldShowChatbot = true;
 
-  // Updated model to use a more capable one
-  const HF_MODEL = "google/flan-t5-xl";
-
   // Enhanced financial FAQ with more detailed responses
   const FINANCE_FAQ = {
     budgeting:
@@ -335,13 +332,12 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         return;
       }
 
-      // Check for FAQ matches with improved preprocessing
+      // Check for FAQ matches
       const cleanInput = input
         .toLowerCase()
         .replace(/[^\w\s]/gi, "")
         .trim();
 
-      // Look for keyword matches in the FAQ
       for (const [key, value] of Object.entries(FINANCE_FAQ)) {
         if (cleanInput.includes(key)) {
           updateChat(value);
@@ -355,16 +351,26 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
 
       console.log("Sending request to:", apiUrl);
 
+      // 🧠 Add system prompt only if it's the first user message
+      const isFirstPrompt =
+        newChat.filter((msg) => msg.sender === "user").length === 1;
+      const SYSTEM_PROMPT =
+        "You are a helpful and friendly financial assistant. Answer questions clearly and concisely.\n\n";
+
+      const formattedPrompt = isFirstPrompt
+        ? SYSTEM_PROMPT + `User: ${input}\nAI:`
+        : `User: ${input}\nAI:`;
+
       const response = await axios.post(
         apiUrl,
         {
-          model: HF_MODEL,
-          inputs: `Answer this financial question: ${input}. Provide a helpful and detailed response.`,
+          inputs: formattedPrompt,
           parameters: {
-            max_new_tokens: 150,
+            max_new_tokens: 100,
             temperature: 0.7,
             top_p: 0.9,
-            do_sample: true,
+            repetition_penalty: 1.2,
+            pad_token_id: 50256,
           },
         },
         {
@@ -375,11 +381,14 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         }
       );
 
-      // Extract the response properly based on the API format
+      // ✅ Clean and extract the generated text properly
       let aiResponse = "I'm sorry, I couldn't generate a proper response.";
 
       if (typeof response.data === "object" && response.data?.response) {
-        aiResponse = response.data.response.trim();
+        aiResponse = response.data.response
+          .replace(/^.*AI:/i, "")
+          .replace(/User:.*$/i, "")
+          .trim();
       } else if (
         Array.isArray(response.data) &&
         response.data[0]?.generated_text
@@ -391,7 +400,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
         aiResponse = response.data.trim();
       }
 
-      // Fallback to generic response if the API doesn't return usable content
+      // 🧩 Fallback if the model gives an unusable or too short response
       if (!aiResponse || aiResponse.length < 10) {
         aiResponse =
           "I'm sorry, but I don't have specific information about that financial topic. Would you like to know about budgeting, investing, savings, or credit scores instead?";
