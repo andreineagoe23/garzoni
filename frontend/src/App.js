@@ -48,16 +48,16 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ThemeProvider>
-          <div className="app-container">
-            <AppContent
-              toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
-              isChatbotVisible={isChatbotVisible}
-              setIsChatbotVisible={setIsChatbotVisible}
-              isMobileView={isMobileView}
-            />
-          </div>
-        </ThemeProvider>
+      <ThemeProvider>
+        <div className="app-container">
+          <AppContent
+            toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
+            isChatbotVisible={isChatbotVisible}
+            setIsChatbotVisible={setIsChatbotVisible}
+            isMobileView={isMobileView}
+          />
+        </div>
+      </ThemeProvider>
       </AuthProvider>
     </Router>
   );

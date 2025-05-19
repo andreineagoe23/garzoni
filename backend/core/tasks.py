@@ -24,15 +24,15 @@ def send_email_reminders():
     now = timezone.now()
     
     # Get users who want daily reminders and haven't logged in for 24 hours
-    daily_users = UserProfile.objects.filter(
+        daily_users = UserProfile.objects.filter(
         email_reminder_preference='daily',
         last_login_date__lt=now.date() - timedelta(days=1)
     ).exclude(
         last_reminder_sent__gt=now - timedelta(hours=23)  # Don't send if reminder was sent in last 23 hours
-    )
+        )
 
     # Get users who want weekly reminders and haven't logged in for 7 days
-    weekly_users = UserProfile.objects.filter(
+            weekly_users = UserProfile.objects.filter(
         email_reminder_preference='weekly',
         last_login_date__lt=now.date() - timedelta(days=7)
     ).exclude(
