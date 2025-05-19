@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 const MultipleChoiceExercise = ({
   data,
@@ -11,6 +12,7 @@ const MultipleChoiceExercise = ({
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackClass, setFeedbackClass] = useState("");
+  const { getAccessToken } = useAuth();
 
   const { question, options, correctAnswer } = data;
 
@@ -37,8 +39,8 @@ const MultipleChoiceExercise = ({
         { section_id: exerciseId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
       setSelectedAnswer(null);

@@ -3,16 +3,16 @@
 // Custom container classes
 .container-fluid {
   width: 100%;
-  padding-right: map-get($spacers, 3);
-  padding-left: map-get($spacers, 3);
+  padding-right: var(--bs-gutter-x, 0.75rem);
+  padding-left: var(--bs-gutter-x, 0.75rem);
   margin-right: auto;
   margin-left: auto;
 }
 
 .container {
   width: 100%;
-  padding-right: map-get($spacers, 3);
-  padding-left: map-get($spacers, 3);
+  padding-right: var(--bs-gutter-x, 0.75rem);
+  padding-left: var(--bs-gutter-x, 0.75rem);
   margin-right: auto;
   margin-left: auto;
   
@@ -30,10 +30,27 @@
 
 // Flex grid utilities
 .row {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
   display: flex;
   flex-wrap: wrap;
-  margin-right: -#{map-get($spacers, 3)};
-  margin-left: -#{map-get($spacers, 3)};
+  margin-top: calc(-1 * var(--bs-gutter-y));
+  margin-right: calc(-0.5 * var(--bs-gutter-x));
+  margin-left: calc(-0.5 * var(--bs-gutter-x));
+
+  > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+    margin-top: var(--bs-gutter-y);
+  }
+
+  // Spacer rows
+  &.spacer-sm { margin-bottom: map-get($spacers, 2); }
+  &.spacer-md { margin-bottom: map-get($spacers, 3); }
+  &.spacer-lg { margin-bottom: map-get($spacers, 4); }
 }
 
 // Grid layout utilities
@@ -97,6 +114,35 @@
   }
 }
 
+// Gutter utilities
+.g-0 { --bs-gutter-x: 0; }
+.g-1 { --bs-gutter-x: #{map-get($spacers, 1)}; }
+.g-2 { --bs-gutter-x: #{map-get($spacers, 2)}; }
+.g-3 { --bs-gutter-x: #{map-get($spacers, 3)}; }
+.g-4 { --bs-gutter-x: #{map-get($spacers, 4)}; }
+.g-5 { --bs-gutter-x: #{map-get($spacers, 5)}; }
+
+// Custom breakpoint for laptops specifically
+@media (min-width: 993px) and (max-width: 1366px) {
+  @for $i from 1 through 12 {
+    .col-laptop-#{$i} {
+      flex: 0 0 auto;
+      width: percentage($i / 12);
+    }
+  }
+
+  // Laptop-specific utilities
+  .d-laptop-none { display: none !important; }
+  .d-laptop-block { display: block !important; }
+  .d-laptop-flex { display: flex !important; }
+  .d-laptop-grid { display: grid !important; }
+  
+  // Laptop-specific text alignment
+  .text-laptop-start { text-align: left !important; }
+  .text-laptop-center { text-align: center !important; }
+  .text-laptop-end { text-align: right !important; }
+}
+
 // Grid card layout system
 .grid-cards {
   display: grid;
@@ -109,6 +155,11 @@
   &.grid-2 {
     grid-template-columns: 1fr;
     
+    @media (min-width: 993px) and (max-width: 1366px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: map-get($spacers, 3);
+    }
+    
     @include media-breakpoint-up(md) {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -116,6 +167,11 @@
   
   &.grid-3 {
     grid-template-columns: 1fr;
+    
+    @media (min-width: 993px) and (max-width: 1366px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: map-get($spacers, 3);
+    }
     
     @include media-breakpoint-up(md) {
       grid-template-columns: repeat(2, 1fr);
@@ -128,6 +184,11 @@
   
   &.grid-4 {
     grid-template-columns: 1fr;
+    
+    @media (min-width: 993px) and (max-width: 1366px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: map-get($spacers, 3);
+    }
     
     @include media-breakpoint-up(md) {
       grid-template-columns: repeat(2, 1fr);
@@ -143,5 +204,62 @@
 .grid-auto-fit {
   display: grid;
   gap: map-get($spacers, 4);
+  
+  // Base size for all screens
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  
+  // Laptop size adjustments
+  @media (min-width: 993px) and (max-width: 1366px) {
+    gap: map-get($spacers, 3);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  
+  // Tablet size adjustments
+  @include media-breakpoint-down(lg) {
+    gap: map-get($spacers, 3);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  
+  // Mobile size adjustments  
+  @include media-breakpoint-down(md) {
+    gap: map-get($spacers, 2);
+    grid-template-columns: 1fr;
+  }
+}
+
+// Grid with sidebar layout
+.grid-with-sidebar {
+  display: grid;
+  gap: map-get($spacers, 4);
+  
+  @include media-breakpoint-up(lg) {
+    grid-template-columns: 3fr 1fr;
+  }
+  
+  @media (min-width: 993px) and (max-width: 1366px) {
+    grid-template-columns: 2fr 1fr;
+    gap: map-get($spacers, 3);
+  }
+  
+  @include media-breakpoint-down(lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Equal height cards in a grid
+.card-grid {
+  display: grid;
+  gap: map-get($spacers, 4);
+  
+  @media (min-width: 993px) and (max-width: 1366px) {
+    gap: map-get($spacers, 3);
+  }
+  
+  @include media-breakpoint-down(md) {
+    gap: map-get($spacers, 2);
+  }
+  
+  .card {
+    height: 100%;
+  }
 }

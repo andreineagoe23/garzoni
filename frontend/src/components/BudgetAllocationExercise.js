@@ -1,16 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
-const BudgetAllocationExercise = ({
-  data,
-  exerciseId,
-  onComplete,
-  isCompleted,
-}) => {
+const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
   const [allocations, setAllocations] = useState({});
   const [feedback, setFeedback] = useState("");
   const [feedbackClass, setFeedbackClass] = useState("");
+  const { getAccessToken } = useAuth();
 
   const { question, categories, total } = data;
 
@@ -44,7 +41,9 @@ const BudgetAllocationExercise = ({
         setFeedbackClass("incorrect");
       }
     } else {
-      setFeedback(`Your total must be ${total}. Current total: ${currentTotal}`);
+      setFeedback(
+        `Your total must be ${total}. Current total: ${currentTotal}`
+      );
       setFeedbackClass("incorrect");
     }
   };
@@ -53,11 +52,11 @@ const BudgetAllocationExercise = ({
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
-        { section_id: exerciseId },
+        { section_id: data.id },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
       setAllocations({});
@@ -82,7 +81,7 @@ const BudgetAllocationExercise = ({
               value={allocations[category] ?? ""}
               onChange={(e) => {
                 const rawValue = e.target.value;
-                const sanitizedValue = rawValue.replace(/[^0-9]/g, '');
+                const sanitizedValue = rawValue.replace(/[^0-9]/g, "");
                 handleChange(category, sanitizedValue);
               }}
               disabled={isCompleted}
@@ -96,7 +95,13 @@ const BudgetAllocationExercise = ({
       </div>
 
       <div className="budget-total-display">
-        <span>Current Total: ${Object.values(allocations).reduce((sum, val) => sum + (val ? parseInt(val, 10) : 0), 0)}</span>
+        <span>
+          Current Total: $
+          {Object.values(allocations).reduce(
+            (sum, val) => sum + (val ? parseInt(val, 10) : 0),
+            0
+          )}
+        </span>
         <span>Target: ${total}</span>
       </div>
 
@@ -111,7 +116,9 @@ const BudgetAllocationExercise = ({
       )}
 
       {feedback && (
-        <div className={`drag-drop-exercise-feedback drag-drop-exercise-feedback-${feedbackClass}`}>
+        <div
+          className={`drag-drop-exercise-feedback drag-drop-exercise-feedback-${feedbackClass}`}
+        >
           {feedback}
         </div>
       )}

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "./ThemeContext";
-import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/scss/main.scss";
 import { Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
-  const [emailReminders, setEmailReminders] = useState(false);
-  const [emailFrequency, setEmailFrequency] = useState("daily");
+  const [emailReminderPreference, setEmailReminderPreference] =
+    useState("none");
   const [profileData, setProfileData] = useState({
     username: "",
     email: "",
@@ -17,6 +17,9 @@ function Settings() {
     last_name: "",
   });
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [localDarkMode, setLocalDarkMode] = useState(darkMode);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,74 +28,73 @@ function Settings() {
           `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
 
+        console.log("Settings response:", response.data);
+
         // Update all settings from backend
         const profile = response.data?.profile || {};
-        setEmailReminders(response.data.email_reminders);
-        setEmailFrequency(response.data.email_frequency);
+        setEmailReminderPreference(
+          response.data.email_reminder_preference || "none"
+        );
         setProfileData({
-          username: profile.username,
-          email: profile.email,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
+          username: profile.username || "",
+          email: profile.email || "",
+          first_name: profile.first_name || "",
+          last_name: profile.last_name || "",
         });
 
-        // Sync dark mode with backend and cookies
-        const serverDarkMode = response.data.dark_mode;
-        if (serverDarkMode !== undefined) {
-          Cookies.set("darkMode", serverDarkMode.toString(), {
-            expires: 365,
-            sameSite: "strict",
-          });
-          toggleDarkMode(serverDarkMode);
-        }
+        // Set local dark mode state
+        setLocalDarkMode(response.data.dark_mode || false);
       } catch (error) {
         console.error("Error fetching settings:", error);
+        setErrorMessage("Failed to load settings. Please try again.");
       }
     };
     fetchSettings();
-  }, [toggleDarkMode]);
+  }, [getAccessToken]);
 
   const handleSaveSettings = async () => {
     try {
-      await axios.patch(
+      setErrorMessage("");
+      const response = await axios.patch(
         `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
         {
-          // Add profile fields
           profile: {
             username: profileData.username,
             email: profileData.email,
             first_name: profileData.first_name,
             last_name: profileData.last_name,
           },
-          email_reminders: emailReminders,
-          email_frequency: emailFrequency,
-          dark_mode: darkMode,
+          email_reminder_preference: emailReminderPreference,
+          dark_mode: localDarkMode,
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
+            "Content-Type": "application/json",
           },
         }
       );
+
+      console.log("Settings updated response:", response.data);
       setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
+
+      // Update global dark mode state after successful save
+      toggleDarkMode(localDarkMode);
     } catch (error) {
       console.error("Error updating settings:", error);
+      setErrorMessage("Failed to save settings. Please try again.");
     }
   };
 
   const handleDarkModeToggle = (e) => {
     const newDarkMode = e.target.checked;
-    toggleDarkMode(newDarkMode);
-    Cookies.set("darkMode", newDarkMode.toString(), {
-      expires: 365,
-      sameSite: "strict",
-    });
+    setLocalDarkMode(newDarkMode);
   };
 
   const handleInputChange = (e) => {
@@ -105,6 +107,10 @@ function Settings() {
       <div className="content-wrapper">
         {successMessage && (
           <div className="alert alert-success">{successMessage}</div>
+        )}
+
+        {errorMessage && (
+          <div className="alert alert-danger">{errorMessage}</div>
         )}
 
         <div className="form-layout-narrow">
@@ -166,7 +172,7 @@ function Settings() {
                     className="form-check-input"
                     type="checkbox"
                     id="darkModeToggle"
-                    checked={darkMode}
+                    checked={localDarkMode}
                     onChange={handleDarkModeToggle}
                   />
                   <label className="form-check-label" htmlFor="darkModeToggle">
@@ -175,31 +181,16 @@ function Settings() {
                 </div>
               </div>
 
-              <div className="form-group toggle-group">
-                <div className="form-check form-switch">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="emailReminders"
-                    checked={emailReminders}
-                    onChange={(e) => setEmailReminders(e.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="emailReminders">
-                    Email Reminders
-                  </label>
-                </div>
-              </div>
-
               <div className="form-group">
-                <label>Email Frequency</label>
+                <label>Email Reminders</label>
                 <select
                   className="form-select"
-                  value={emailFrequency}
-                  onChange={(e) => setEmailFrequency(e.target.value)}
+                  value={emailReminderPreference}
+                  onChange={(e) => setEmailReminderPreference(e.target.value)}
                 >
+                  <option value="none">No Reminders</option>
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
                 </select>
               </div>
 

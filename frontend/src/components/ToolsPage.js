@@ -6,13 +6,15 @@ import BasicFinanceTools from "./BasicFinanceTools";
 import NewsCalendars from "./NewsCalendars";
 import Chatbot from "./Chatbot";
 import { Accordion } from "react-bootstrap";
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from "./ErrorBoundary";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 const ToolsPage = () => {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [error, setError] = useState(null);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -21,8 +23,8 @@ const ToolsPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/tools/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
 
@@ -42,7 +44,7 @@ const ToolsPage = () => {
     };
 
     fetchTools();
-  }, []);
+  }, [getAccessToken]);
 
   const handleAccordionToggle = (index) => {
     setActiveCategory(activeCategory === index ? null : index);
@@ -59,10 +61,7 @@ const ToolsPage = () => {
           <Accordion activeKey={activeCategory?.toString()}>
             {categories.map((category, index) => (
               <ErrorBoundary key={index}>
-                <Accordion.Item
-                  eventKey={index.toString()}
-                  className="mb-3"
-                >
+                <Accordion.Item eventKey={index.toString()} className="mb-3">
                   <Accordion.Header
                     onClick={() => handleAccordionToggle(index)}
                     className="fw-semibold"
@@ -75,7 +74,8 @@ const ToolsPage = () => {
                     {category.category === "News & Calendars" && (
                       <NewsCalendars />
                     )}
-                    {category.category === "Basic Finance & Budgeting Tools" && (
+                    {category.category ===
+                      "Basic Finance & Budgeting Tools" && (
                       <BasicFinanceTools />
                     )}
                   </Accordion.Body>

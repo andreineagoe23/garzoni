@@ -10,53 +10,84 @@ from django.db.models import Max
 from django.utils.html import strip_tags
 from django.conf import settings
 from .models import UserProgress
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
 @shared_task
 def send_email_reminders():
     """
-    Send email reminders to users based on their email frequency preferences.
-    
-    - Daily emails are sent every day.
-    - Weekly emails are sent only on Mondays.
-    - Monthly emails are sent on the 1st of each month.
-    
-    Logs the number of emails sent for each frequency type.
+    Send email reminders to users based on their preferences.
+    Daily reminders are sent to users who haven't logged in for 24 hours.
+    Weekly reminders are sent to users who haven't logged in for 7 days.
     """
-    logger.info("Starting send_email_reminders task")
-    try:
-        today = timezone.now().date()
-        daily_users = UserProfile.objects.filter(
-            email_reminders=True,
-            email_frequency='daily'
+    now = timezone.now()
+    
+    # Get users who want daily reminders and haven't logged in for 24 hours
+    daily_users = UserProfile.objects.filter(
+        email_reminder_preference='daily',
+        last_login_date__lt=now.date() - timedelta(days=1)
+    ).exclude(
+        last_reminder_sent__gt=now - timedelta(hours=23)  # Don't send if reminder was sent in last 23 hours
+    )
+
+    # Get users who want weekly reminders and haven't logged in for 7 days
+    weekly_users = UserProfile.objects.filter(
+        email_reminder_preference='weekly',
+        last_login_date__lt=now.date() - timedelta(days=7)
+    ).exclude(
+        last_reminder_sent__gt=now - timedelta(days=6)  # Don't send if reminder was sent in last 6 days
+    )
+
+    # Send daily reminders
+    for profile in daily_users:
+        send_mail(
+            'Daily Reminder: Continue Your Financial Learning Journey',
+            f'''Hi {profile.user.username},
+
+We noticed you haven't logged in for a while. Don't forget to continue your financial learning journey!
+
+Your current progress:
+- Balance: {profile.earned_money} coins
+- Points: {profile.points}
+- Streak: {profile.streak} days
+
+Keep up the great work and maintain your streak!
+
+Best regards,
+The Monevo Team''',
+            settings.DEFAULT_FROM_EMAIL,
+            [profile.user.email],
+            fail_silently=False,
         )
+        profile.last_reminder_sent = now
+        profile.save()
 
-        # Weekly emails only on Mondays
-        if today.weekday() == 0:  # Monday
-            weekly_users = UserProfile.objects.filter(
-                email_reminders=True,
-                email_frequency='weekly'
-            )
-            send_emails(weekly_users, 'weekly')
+    # Send weekly reminders
+    for profile in weekly_users:
+        send_mail(
+            'Weekly Reminder: Your Financial Learning Journey Awaits',
+            f'''Hi {profile.user.username},
 
-        # Monthly emails on 1st of month
-        if today.day == 1:
-            monthly_users = UserProfile.objects.filter(
-                email_reminders=True,
-                email_frequency='monthly'
-            )
-            send_emails(monthly_users, 'monthly')
+It's been a week since your last login. Your financial learning journey is waiting for you!
 
-        # Send daily emails
-        send_emails(daily_users, 'daily')
+Your current progress:
+- Balance: {profile.earned_money} coins
+- Points: {profile.points}
+- Streak: {profile.streak} days
 
-        return f"Sent {daily_users.count()} daily, " \
-               f"{weekly_users.count() if 'weekly_users' in locals() else 0} weekly, " \
-               f"{monthly_users.count() if 'monthly_users' in locals() else 0} monthly emails"
-    except Exception as e:
-        logger.error(f"Task failed: {e}")
-        raise e
+Don't let your streak break! Come back and continue learning.
+
+Best regards,
+The Monevo Team''',
+            settings.DEFAULT_FROM_EMAIL,
+            [profile.user.email],
+            fail_silently=False,
+        )
+        profile.last_reminder_sent = now
+        profile.save()
+
+    return f"Sent {daily_users.count()} daily and {weekly_users.count()} weekly reminders"
 
 @shared_task
 def reset_inactive_streaks():

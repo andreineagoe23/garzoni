@@ -3,14 +3,16 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import Header from "./Header";
+import { useAuth } from "./AuthContext";
 
 const Questionnaire = () => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
-  const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -19,7 +21,7 @@ const Questionnaire = () => {
           `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
@@ -55,7 +57,7 @@ const Questionnaire = () => {
       }
     };
     fetchQuestions();
-  }, []);
+  }, [getAccessToken]);
 
   // Keep handler functions the same
   const handleAnswer = (questionId, answer) => {
@@ -63,8 +65,8 @@ const Questionnaire = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < questions.length - 1) {
-      setCurrentStep((prev) => prev + 1);
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
@@ -86,7 +88,7 @@ const Questionnaire = () => {
         { answers },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
@@ -184,8 +186,8 @@ const Questionnaire = () => {
   if (loading) return <div className="loading">Loading questions...</div>;
   if (error) return <div className="error">{error}</div>;
 
-  const currentQuestion = questions[currentStep];
-  const progress = ((currentStep + 1) / questions.length) * 100;
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
   const hasAnswer = currentQuestion && currentQuestion.id in answers;
 
   return (
@@ -199,16 +201,16 @@ const Questionnaire = () => {
           {renderQuestionInput(currentQuestion)}
 
           <div className="nav-controls">
-            {currentStep > 0 && (
+            {currentQuestionIndex > 0 && (
               <button
                 className="nav-btn prev"
-                onClick={() => setCurrentStep((prev) => prev - 1)}
+                onClick={() => setCurrentQuestionIndex((prev) => prev - 1)}
               >
                 ← Previous
               </button>
             )}
 
-            {currentStep < questions.length - 1 ? (
+            {currentQuestionIndex < questions.length - 1 ? (
               <button
                 className="nav-btn next"
                 onClick={handleNext}

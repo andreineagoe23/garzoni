@@ -20,7 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
 
         # Access profile created by signal
-        user_profile = user.userprofile
+        user_profile = user.profile
         user_profile.save()
 
         if referral_code:
@@ -146,7 +146,7 @@ class UserProfileSettingsSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = UserProfile
-        fields = ['email_reminders']
+        fields = ['email_reminder_preference']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
@@ -312,7 +312,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = [
-            "user", "email_reminders", "earned_money", "points", "profile_picture",
+            "user", "email_reminder_preference", "earned_money", "points", "profile_picture",
             "profile_avatar", "generated_images", "balance", "badges", "referral_code", "dark_mode"
         ]
 

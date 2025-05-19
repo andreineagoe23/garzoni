@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "../styles/scss/main.scss"; 
+import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 function QuizPage() {
   const { courseId } = useParams();
   const [quiz, setQuiz] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [earnedMoney, setEarnedMoney] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -18,10 +21,10 @@ function QuizPage() {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}`,
           {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
-        }
         );
 
         console.log(response.data);
@@ -43,10 +46,10 @@ function QuizPage() {
     };
 
     fetchQuiz();
-  }, [courseId]);
+  }, [courseId, getAccessToken]);
 
   const handleSubmit = async () => {
-    if (selectedAnswer === "") {
+    if (selectedAnswer === null) {
       setFeedback("Please select an answer before submitting.");
       return;
     }
@@ -57,8 +60,8 @@ function QuizPage() {
         { quiz_id: quiz.id, selected_answer: selectedAnswer },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
 
@@ -68,6 +71,7 @@ function QuizPage() {
       if (response.data.earned_money) {
         setEarnedMoney(response.data.earned_money);
       }
+      setIsSubmitted(true);
     } catch (err) {
       console.error("Error submitting answer:", err);
       setFeedback(
@@ -102,7 +106,7 @@ function QuizPage() {
         <button className="submit-button" onClick={handleSubmit}>
           Submit Answer
         </button>
-        {feedback && (
+        {isSubmitted && (
           <div className={`feedback ${earnedMoney > 0 ? "success" : "error"}`}>
             {feedback}
             {earnedMoney > 0 && (

@@ -1,13 +1,18 @@
 [data-theme="dark"] {
   // ========== Core Variables ==========
-  --bg-color: #0A0A0A; // Deep black
-  --text-color: #FFE484; // Soft gold
-  --card-bg: #163A24; // Forest green
+  --bg-color: #121212; // Improved dark background
+  --text-color: #E0E0E0; // Improved readability
+  --card-bg: #1E1E1E; // More neutral dark card background
   --border-color: rgba(255, 215, 0, 0.15); // Gold border
   --primary: #2A6041; // Medium green
+  --primary-rgb: 42, 96, 65; // RGB values for opacity manipulations
   --accent: #FFD700; // Pure gold
-  --input-bg: rgba(0, 0, 0, 0.3); // Transparent black
-  --muted-text: rgba(255, 228, 132, 0.7); // Subdued gold
+  --accent-rgb: 255, 215, 0; // RGB values for opacity manipulations
+  --input-bg: rgba(0, 0, 0, 0.25); // Transparent black
+  --muted-text: rgba(224, 224, 224, 0.7); // Subdued text
+  --shadow-color: rgba(0, 0, 0, 0.5); // Shadow color for depth
+  --error: #d32f2f; // Error color
+  --success: #2e7d32; // Success color
 
   // ========== Base Styles ==========
   body {
@@ -34,7 +39,7 @@
     color: var(--accent);
 
     &:hover {
-      color: darken($accent, 10%);
+      color: darken(#FFD700, 10%);
       border-bottom-style: solid;
     }
   }
@@ -43,7 +48,7 @@
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px var(--shadow-color);
 
     &-header {
       background: rgba(42, 96, 65, 0.3);
@@ -57,7 +62,12 @@
     }
 
     &-text {
-      color: var(--muted-text);
+      color: var(--text-color);
+    }
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px var(--shadow-color);
     }
   }
 
@@ -66,15 +76,17 @@
   .form-select {
     background: var(--input-bg);
     border: 1px solid var(--primary);
-    color: var(--accent);
+    color: var(--text-color);
 
     &:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+      background: var(--input-bg);
+      color: var(--text-color);
     }
 
     &::placeholder {
-      color: rgba(255, 215, 0, 0.5);
+      color: rgba(224, 224, 224, 0.5);
     }
   }
 
@@ -90,9 +102,10 @@
       border-color: var(--accent);
       color: var(--accent);
 
-      &:hover {
+      &:hover, &:focus {
         background: var(--accent);
         color: var(--primary);
+        border-color: var(--accent);
       }
     }
 
@@ -100,9 +113,9 @@
       border-color: var(--primary);
       color: var(--primary);
 
-      &:hover {
+      &:hover, &:focus {
         background: var(--primary);
-        color: var(--bg-color);
+        color: var(--accent);
       }
     }
   }
@@ -131,6 +144,16 @@
     &-primary {
       border-color: var(--accent);
       color: var(--accent);
+    }
+    
+    &-danger {
+      border-color: var(--error);
+      color: var(--error);
+    }
+    
+    &-success {
+      border-color: var(--success);
+      color: var(--success);
     }
   }
 
@@ -164,10 +187,28 @@
     border-color: var(--border-color);
 
     .nav-link {
-      color: var(--muted-text);
+      color: var(--text-color);
 
       &.active {
         background: var(--primary);
+        color: var(--accent);
+      }
+      
+      &:hover {
+        color: var(--accent);
+      }
+    }
+  }
+  
+  // Mobile navigation
+  .mobile-nav {
+    background: var(--card-bg);
+    border-top-color: var(--border-color);
+    
+    .nav-link {
+      color: var(--text-color);
+      
+      &.active {
         color: var(--accent);
       }
     }
@@ -213,6 +254,44 @@
 
   .bg-dark {
     background-color: var(--card-bg) !important;
+  }
+  
+  // Form check styles
+  .form-check {
+    .form-check-input {
+      background-color: var(--input-bg);
+      border: 2px solid var(--primary);
+      
+      &:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
+      }
+    }
+
+    .form-check-label {
+      color: var(--text-color);
+      margin-left: map-get($spacers, 2);
+    }
+
+    // Specific styles for exercise options
+    .option-check {
+      .form-check-label {
+        font-size: 1.1rem;
+        color: var(--muted-text);
+        transition: all 0.2s ease;
+      }
+
+      .form-check-input:checked ~ .form-check-label {
+        color: var(--accent);
+        font-weight: $font-weight-semibold;
+      }
+
+      &:hover {
+        .form-check-label {
+          color: var(--accent);
+        }
+      }
+    }
   }
 }
 

@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import CourseList from "./CourseList";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 function CoursePage() {
   const { pathId } = useParams();
   const [courses, setCourses] = useState([]);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -15,7 +17,7 @@ function CoursePage() {
           `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );

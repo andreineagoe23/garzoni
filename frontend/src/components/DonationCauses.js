@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "../styles/scss/main.scss";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 function DonationCauses({ onDonate }) {
   const [donationCauses, setDonationCauses] = useState([]);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchDonationCauses = async () => {
@@ -12,8 +14,8 @@ function DonationCauses({ onDonate }) {
           `${process.env.REACT_APP_BACKEND_URL}/rewards/donate/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setDonationCauses(response.data);
@@ -22,7 +24,7 @@ function DonationCauses({ onDonate }) {
       }
     };
     fetchDonationCauses();
-  }, []);
+  }, [getAccessToken]);
 
   const handleDonate = async (rewardId) => {
     try {
@@ -31,8 +33,8 @@ function DonationCauses({ onDonate }) {
         { reward_id: rewardId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
 
@@ -47,28 +49,28 @@ function DonationCauses({ onDonate }) {
   };
 
   return (
-    <div className="donate-container">
+    <div className="shop-container">
       <h2 className="text-center">Donation Causes</h2>
-      <div className="causes-grid">
+      <div className="items-grid">
         {donationCauses.map((cause) => (
-          <div key={cause.id} className="donation-card">
-            <img src={cause.image} alt={cause.name} className="cause-image" />
+          <div key={cause.id} className="item-card">
+            <img src={cause.image} alt={cause.name} className="item-image" />
             <div className="card-body">
               <h5 className="card-title">{cause.name}</h5>
               <p className="card-text">{cause.description}</p>
             </div>
             <div className="card-footer">
-              <div className="donation-info">
+              <div className="d-flex justify-content-between align-items-center w-100">
                 <span className="item-cost">{cause.cost} coins</span>
-                <span className="organization">
+                <span className="organization text-muted small">
                   {cause.donation_organization}
                 </span>
               </div>
               <button
-                className="donate-button"
+                className="buy-button w-100 mt-3"
                 onClick={() => handleDonate(cause.id)}
               >
-                Donate
+                Donate Now
               </button>
             </div>
           </div>

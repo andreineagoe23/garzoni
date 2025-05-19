@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'core',
     'django_rest_passwordreset',
     'ckeditor',
+    'captcha',
 ]
 
 MIDDLEWARE = [
@@ -187,6 +188,8 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-xsrf-token',
+    'cache-control',
+    'pragma',
 ]
 
 CORS_EXPOSE_HEADERS = ["Content-Disposition"]
@@ -223,6 +226,12 @@ API_KEY = os.getenv("API_KEY", "")
 
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
 
+# reCAPTCHA Settings
+RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "6Lf5LkArAAAAAKby1cInCi-_nyqedOhkdpSRdt1c")  # Site key
+RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "6Lf5LkArAAAAACxZWqApBjNz59FBxWhoQ6UEOyR_")  # Secret key
+RECAPTCHA_DEFAULT_ACTION = 'generic'
+RECAPTCHA_SCORE_THRESHOLD = 0.5
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -256,7 +265,13 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://andreineagoe23.github.io",
+    "http://localhost:8080",
 ]
+
+CSRF_COOKIE_SECURE = True
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_HTTPONLY = False  # Must be False to allow JavaScript to read it
+CSRF_COOKIE_SAMESITE = 'Lax'  # or 'None' with secure
 
 # settings.py
 STRIPE_SECRET_KEY = 'sk_test_51R9kpVBi8QnQXyouk2SS209GQnsf1expP071qhuR9wWghoP9wppWF5URCTJlDXMmyILvF6YwIOCj7CqPULr4maZk004R9iNUA9' 
@@ -281,3 +296,11 @@ if 'test' in sys.argv:
     ]
 
 print("🔑 HF_API_KEY Loaded:", os.getenv("HF_API_KEY"))
+
+# Celery Beat Settings
+CELERY_BEAT_SCHEDULE = {
+    'send-email-reminders': {
+        'task': 'core.tasks.send_email_reminders',
+        'schedule': 3600.0,  # Run every hour
+    },
+}

@@ -1,8 +1,40 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useReducer,
+  useCallback,
+} from "react";
 import axios from "axios";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { gsap } from "gsap";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
+
+const initialState = {
+  dailyMissions: [],
+  weeklyMissions: [],
+  virtualBalance: 0,
+  loading: true,
+  error: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "setDailyMissions":
+      return { ...state, dailyMissions: action.payload };
+    case "setWeeklyMissions":
+      return { ...state, weeklyMissions: action.payload };
+    case "setVirtualBalance":
+      return { ...state, virtualBalance: action.payload };
+    case "setLoading":
+      return { ...state, loading: action.payload };
+    case "setError":
+      return { ...state, error: action.payload };
+    default:
+      return state;
+  }
+}
 
 function CoinStack({ balance, coinUnit = 10, target = 100 }) {
   const coins = Array.from(
@@ -86,30 +118,87 @@ function FactCard({ fact, onMarkRead }) {
 }
 
 function Missions() {
-  const [dailyMissions, setDailyMissions] = useState([]);
-  const [weeklyMissions, setWeeklyMissions] = useState([]);
-  const [savingsBalance, setSavingsBalance] = useState(0);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { getAccessToken } = useAuth();
   const [showSavingsMenu, setShowSavingsMenu] = useState(false);
   const [savingsAmount, setSavingsAmount] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentFact, setCurrentFact] = useState(null);
 
-  // ✅ Fix: define helper here so it has access to hooks
-  const checkLessonMissionProgress = async () => {
+  // Convert functions to useCallback to avoid dependency cycles
+  const checkLessonMissionProgress = useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/missions/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
-      setDailyMissions(response.data.daily_missions || []);
+      dispatch({
+        type: "setDailyMissions",
+        payload: response.data.daily_missions || [],
+      });
     } catch (error) {
       setErrorMessage("Failed to refresh lesson mission.");
     }
-  };
+  }, [getAccessToken]);
+
+  const fetchMissions = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+      dispatch({
+        type: "setDailyMissions",
+        payload: response.data.daily_missions || [],
+      });
+      dispatch({
+        type: "setWeeklyMissions",
+        payload: response.data.weekly_missions || [],
+      });
+    } catch (error) {
+      setErrorMessage("Failed to load missions. Please try again.");
+    }
+  }, [getAccessToken]);
+
+  const fetchSavingsBalance = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+      dispatch({ type: "setVirtualBalance", payload: response.data.balance });
+    } catch (error) {
+      setErrorMessage("Failed to load savings balance.");
+    }
+  }, [getAccessToken]);
+
+  const loadNewFact = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+      setCurrentFact(response.data);
+    } catch (error) {
+      setCurrentFact(null);
+    }
+  }, [getAccessToken]);
 
   useEffect(() => {
     fetchMissions();
@@ -126,56 +215,12 @@ function Missions() {
       clearInterval(intervalId);
       clearTimeout(lessonMissionSync);
     };
-  }, []);
-
-  const fetchMissions = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      setDailyMissions(response.data.daily_missions || []);
-      setWeeklyMissions(response.data.weekly_missions || []);
-    } catch (error) {
-      setErrorMessage("Failed to load missions. Please try again.");
-    }
-  };
-
-  const fetchSavingsBalance = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      setSavingsBalance(response.data.balance);
-    } catch (error) {
-      setErrorMessage("Failed to load savings balance.");
-    }
-  };
-
-  const loadNewFact = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      setCurrentFact(response.data);
-    } catch (error) {
-      setCurrentFact(null);
-    }
-  };
+  }, [
+    fetchMissions,
+    fetchSavingsBalance,
+    loadNewFact,
+    checkLessonMissionProgress,
+  ]);
 
   const markFactRead = async () => {
     if (!currentFact) return;
@@ -185,7 +230,7 @@ function Missions() {
         { fact_id: currentFact.id },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
@@ -212,7 +257,7 @@ function Missions() {
         { amount: parseFloat(savingsAmount) },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
@@ -272,7 +317,7 @@ function Missions() {
               {showSavingsMenu && (
                 <div className="savings-menu">
                   <CoinStack
-                    balance={savingsBalance}
+                    balance={state.virtualBalance}
                     coinUnit={isDaily ? 1 : 10}
                     target={isDaily ? 10 : 100}
                   />
@@ -327,12 +372,12 @@ function Missions() {
           <div className="alert alert-accent">{errorMessage}</div>
         )}
         <div className="grid-cards grid-2">
-          {dailyMissions.map((m) => renderMissionCard(m, true))}
+          {state.dailyMissions.map((m) => renderMissionCard(m, true))}
         </div>
 
         <h1 className="page-header-title mt-7">Weekly Missions</h1>
         <div className="grid-cards grid-2">
-          {weeklyMissions.map((m) => renderMissionCard(m, false))}
+          {state.weeklyMissions.map((m) => renderMissionCard(m, false))}
         </div>
       </div>
     </div>

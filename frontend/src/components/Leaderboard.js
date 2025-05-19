@@ -4,6 +4,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/scss/main.scss";
 import FriendRequests from "./FriendRequest";
 import ReferralLink from "./ReferralLink";
+import { Tabs, Tab, Table } from "react-bootstrap";
+import { useAuth } from "./AuthContext";
 
 const Leaderboards = () => {
   const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
@@ -12,6 +14,7 @@ const Leaderboards = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [activeTab, setActiveTab] = useState("global");
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,8 +24,8 @@ const Leaderboards = () => {
           `${process.env.REACT_APP_BACKEND_URL}/leaderboard/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setGlobalLeaderboard(globalResponse.data);
@@ -32,8 +35,8 @@ const Leaderboards = () => {
           `${process.env.REACT_APP_BACKEND_URL}/leaderboard/friends/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setFriendsLeaderboard(friendsResponse.data);
@@ -43,8 +46,8 @@ const Leaderboards = () => {
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setReferralCode(profileResponse.data.referral_code);
@@ -56,7 +59,7 @@ const Leaderboards = () => {
     };
 
     fetchData();
-  }, []);
+  }, [getAccessToken]);
 
   const sendFriendRequest = async (receiverId) => {
     try {
@@ -64,10 +67,10 @@ const Leaderboards = () => {
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/`,
         { receiver: receiverId },
         {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
-          }
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
       );
       alert("Friend request sent!");
     } catch (err) {
@@ -106,8 +109,7 @@ const Leaderboards = () => {
 
           <div className="column-side">
             <div className="friend-requests-container">
-              <div className="friend-requests-header">
-              </div>
+              <div className="friend-requests-header"></div>
               <FriendRequests />
             </div>
           </div>

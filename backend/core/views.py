@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -46,13 +46,33 @@ from .serializers import (
 )
 from .dialogflow import detect_intent_from_text, perform_web_search
 from core.tokens import delete_jwt_cookies
+import re
+from django.utils.timezone import now
+from datetime import datetime, timedelta
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
 
 logger = logging.getLogger(__name__)
 
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils.timezone import now
+
+# Add these imports for reCAPTCHA verification
+def verify_recaptcha(token):
+    """Verify the reCAPTCHA token with Google's API"""
+    try:
+        url = "https://www.google.com/recaptcha/api/siteverify"
+        data = {
+            "secret": settings.RECAPTCHA_PRIVATE_KEY,
+            "response": token
+        }
+        response = requests.post(url, data=data)
+        result = response.json()
+        return result.get("success", False) and result.get("score", 0) >= settings.RECAPTCHA_SCORE_THRESHOLD
+    except Exception as e:
+        logger.error(f"reCAPTCHA verification error: {str(e)}")
+        return False
+
 
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -64,8 +84,14 @@ def get_csrf_token(request):
 class HuggingFaceProxyView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # Load the small GPT-style model once when the class is first used
-    local_pipe = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
+    # Load the model for financial assistance once when the class is first used
+    try:
+        from transformers import pipeline
+        local_pipe = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
+    except Exception as e:
+        import logging
+        logging.error(f"Error loading model: {str(e)}")
+        local_pipe = None
 
     def post(self, request):
         prompt = request.data.get("inputs", "").strip()
@@ -75,15 +101,144 @@ class HuggingFaceProxyView(APIView):
             return Response({"error": "Prompt is required."}, status=400)
 
         try:
+            # Check if we should add financial context
+            is_finance_query = self.is_finance_related(prompt.lower())
+            
+            # Add financial context if needed
+            if is_finance_query:
+                prompt = self.add_financial_context(prompt)
+            
+            # Use increased max length for financial responses
+            if "max_new_tokens" not in parameters and is_finance_query:
+                parameters["max_new_tokens"] = 150
+            
             # Run the local model
-            output = self.local_pipe(prompt, **parameters)
-
-            # Extract the generated text (standard format for text-generation)
-            response_text = output[0]["generated_text"]
+            if self.local_pipe:
+                output = self.local_pipe(prompt, **parameters)
+                # Extract the generated text (standard format for text-generation)
+                response_text = output[0]["generated_text"]
+                
+                # Clean up the response
+                response_text = self.clean_response(response_text, prompt)
+            else:
+                # Fallback if model failed to load
+                response_text = "I apologize, but our AI service is temporarily unavailable. Please try again later."
 
             return Response({"response": response_text})
         except Exception as e:
+            logging.error(f"HuggingFaceProxy Error: {str(e)}")
             return Response({"error": str(e)}, status=500)
+    
+    def is_finance_related(self, text):
+        """Check if the query is related to finance."""
+        finance_terms = [
+            'money', 'finance', 'budget', 'invest', 'stock', 'market', 'fund',
+            'saving', 'retirement', 'income', 'expense', 'debt', 'credit', 'loan',
+            'mortgage', 'interest', 'dividend', 'portfolio', 'tax', 'inflation',
+            'economy', 'financial', 'bank', 'crypto', 'bitcoin', 'ethereum',
+            'compound interest', 'apr', 'apy', 'bond', 'etf', 'mutual fund',
+            'forex', 'hedge fund', 'ira', '401k', 'cash flow', 'asset', 'liability',
+            'net worth', 'bull market', 'bear market', 'capital gain', 'diversification',
+            'liquidity', 'amortization', 'annuity', 'depreciation', 'equity', 'leverage',
+            'yield', 'security', 'volatility', 'appreciation', 'depreciation', 'fiduciary',
+            'principal', 'premium', 'maturity', 'roi', 'roic', 'exchange rate', 'roth'
+        ]
+        
+        return any(term in text for term in finance_terms)
+    
+    def add_financial_context(self, prompt):
+        """Add financial context to improve responses."""
+        financial_context = (
+            "You are a helpful and knowledgeable financial assistant. "
+            "Provide accurate, concise information about personal finance, investing, "
+            "budgeting, and financial education. Focus on educational content "
+            "rather than specific investment advice. Your responses should be "
+            "clear, direct, and factual without unnecessary introductions or "
+            "self-references. Avoid saying 'I am a financial assistant' or similar "
+            "phrases. Just provide the useful financial information directly.\n\n"
+        )
+        
+        if "User:" in prompt and "AI:" in prompt:
+            # Add context but preserve conversation format
+            parts = prompt.split("User:", 1)
+            return financial_context + "User:" + parts[1]
+        else:
+            return financial_context + prompt
+    
+    def clean_response(self, response_text, original_prompt):
+        """Clean up the generated response text."""
+        # Remove the original prompt from the beginning if it exists
+        if response_text.startswith(original_prompt):
+            response_text = response_text[len(original_prompt):].strip()
+        
+        # If we have AI: in the text, take only what follows the last AI:
+        if "AI:" in response_text:
+            response_text = response_text.split("AI:")[-1].strip()
+        
+        # Remove any trailing User: or Human: segments and their contents
+        if "User:" in response_text:
+            response_text = response_text.split("User:", 1)[0].strip()
+        if "Human:" in response_text:
+            response_text = response_text.split("Human:", 1)[0].strip()
+        
+        # Extract potential user query to check for repetitions
+        user_query = ""
+        if "User:" in original_prompt:
+            user_query_parts = original_prompt.split("User:")
+            if len(user_query_parts) > 1:
+                user_query = user_query_parts[-1].split("AI:", 1)[0].strip().lower()
+        
+        # Remove repetitions of the user's query
+        if user_query:
+            # Try to match pattern like "how can i buy a house? how can i buy a house?"
+            escaped_query = re.escape(user_query)
+            response_text = re.sub(f"^{escaped_query}\\??\\s*{escaped_query}", "", response_text, flags=re.IGNORECASE)
+            
+            # Remove multiple repetitions
+            repetition_pattern = f"({escaped_query}\\??\\s*){{2,}}"
+            response_text = re.sub(repetition_pattern, "", response_text, flags=re.IGNORECASE)
+            
+            # Remove the question at the beginning
+            response_text = re.sub(f"^{escaped_query}\\??\\s*", "", response_text, flags=re.IGNORECASE)
+        
+        # Remove common bot introduction patterns
+        response_text = response_text.replace("I am a financial assistant.", "")
+        response_text = response_text.replace("I am an AI assistant.", "")
+        response_text = response_text.replace("As a financial advisor,", "")
+        response_text = response_text.replace("As an AI assistant,", "")
+        response_text = response_text.replace("As an AI language model,", "")
+        
+        # Remove introductory phrases
+        intro_phrases = [
+            "I'd be happy to explain",
+            "I'd be glad to help",
+            "I can help with that",
+            "Let me explain",
+            "To answer your question",
+            "Here's information about",
+            "Great question",
+            "Sure,",
+            "Certainly,",
+            "Absolutely,",
+            "Hello,",
+            "Hi,",
+            "I understand you're asking about",
+            "I'd like to help you",
+            "I'd love to assist",
+        ]
+        
+        for phrase in intro_phrases:
+            if response_text.lower().startswith(phrase.lower()):
+                response_text = response_text[len(phrase):].strip()
+                # Remove comma if present
+                if response_text.startswith(","):
+                    response_text = response_text[1:].strip()
+                    
+        # If response is too short, provide a fallback
+        if len(response_text.strip()) < 10:
+            return "I don't have enough information to answer that properly. Could you provide more details about your financial question?"
+            
+        return response_text.strip()
 
 
 class UserProfileView(APIView):
@@ -101,7 +256,7 @@ class UserProfileView(APIView):
                 "last_name": request.user.last_name,
                 "email": request.user.email,
                 "username": request.user.username,
-                "email_reminders": user_profile.email_reminders,
+                "email_reminder_preference": user_profile.email_reminder_preference,
                 "earned_money": float(user_profile.earned_money),
                 "points": user_profile.points,
             },
@@ -113,10 +268,10 @@ class UserProfileView(APIView):
 
     def patch(self, request):
         """Update specific fields in the user's profile."""
-        user_profile = request.user.userprofile
-        email_reminders = request.data.get('email_reminders')
-        if email_reminders is not None:
-            user_profile.email_reminders = email_reminders
+        user_profile = request.user.profile
+        email_reminder_preference = request.data.get('email_reminder_preference')
+        if email_reminder_preference is not None:
+            user_profile.email_reminder_preference = email_reminder_preference
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
 
@@ -178,6 +333,28 @@ class LogoutView(APIView):
         return delete_jwt_cookies(response)
 
 
+class LogoutSecureView(APIView):
+    """Enhanced logout view that clears HttpOnly cookies."""
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Handle POST requests to log out the user and clear cookies."""
+        try:
+            response = Response({"message": "Logout successful."})
+            # Clear the refresh token cookie
+            response.delete_cookie(
+                'refresh_token',
+                path="/",
+                samesite='None',
+                secure=True
+            )
+            return response
+        except Exception as e:
+            logger.error(f"Logout error: {str(e)}")
+            return Response({"error": "Logout failed"}, status=500)
+
+
 class PathViewSet(viewsets.ModelViewSet):
     """ViewSet to manage paths, including listing and retrieving paths."""
 
@@ -193,15 +370,40 @@ class PathViewSet(viewsets.ModelViewSet):
 class UserProfileViewSet(viewsets.ModelViewSet):
     """ViewSet to manage user profiles, including updating and retrieving profile data."""
 
-    queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        return UserProfile.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def update_email_reminder(self, request):
+        preference = request.data.get('email_reminder_preference')
+        if preference not in dict(UserProfile.REMINDER_CHOICES):
+            return Response(
+                {'error': 'Invalid reminder preference'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        profile = self.get_queryset().first()
+        if not profile:
+            return Response(
+                {'error': 'Profile not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        profile.email_reminder_preference = preference
+        profile.save()
+
+        return Response({
+            'message': 'Email reminder preference updated successfully',
+            'email_reminder_preference': preference
+        })
 
     @action(detail=False, methods=["post"], url_path="add-generated-image")
     def add_generated_image(self, request):
         """Handle POST requests to add a generated image to the user's profile."""
-        user_profile = request.user.userprofile
+        user_profile = request.user.profile
         image = request.FILES.get('image')
 
         if not image:
@@ -222,7 +424,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="save-avatar")
     def save_avatar(self, request):
         """Handle POST requests to save the user's avatar URL."""
-        user_profile = request.user.userprofile
+        user_profile = request.user.profile
         avatar_url = request.data.get("avatar_url")
 
         if not avatar_url:
@@ -253,7 +455,7 @@ def update_avatar(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    user_profile = request.user.userprofile
+    user_profile = request.user.profile
     user_profile.profile_avatar = avatar_url
     user_profile.save()
 
@@ -280,7 +482,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         progress.completed_sections.add(section_id)
         progress.save()
 
-        return Response({"message": "Section completed!", "next_section": get_next_section()})
+        return Response({"message": "Section completed!", "next_section": get_next_section()}) # type: ignore
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def with_progress(self, request):
@@ -427,7 +629,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         try:
             lesson = Lesson.objects.get(id=lesson_id)
             course = lesson.course
-            user_profile = request.user.userprofile
+            user_profile = request.user.profile
             user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
 
             user_progress.completed_lessons.add(lesson)
@@ -481,7 +683,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 mission_completion.update_progress()
 
             return Response(
-                {"status": "Lesson completed", "streak": user_progress.user.userprofile.streak},
+                {"status": "Lesson completed", "streak": user_progress.user.profile.streak},
                 status=status.HTTP_200_OK
             )
 
@@ -554,8 +756,8 @@ class UserSettingsView(APIView):
         """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
         return Response({
-            "email_reminders": user_profile.email_reminders,
-            "email_frequency": user_profile.email_frequency,
+            "email_reminder_preference": user_profile.email_reminder_preference,
+            "dark_mode": user_profile.dark_mode,
             "profile": {
                 "username": request.user.username,
                 "email": request.user.email,
@@ -568,7 +770,7 @@ class UserSettingsView(APIView):
     def patch(self, request):
         """Handle PATCH requests to update the user's settings."""
         user = request.user
-        user_profile = user.userprofile
+        user_profile = user.profile
 
         # Update profile data
         profile_data = request.data.get('profile', {})
@@ -584,16 +786,18 @@ class UserSettingsView(APIView):
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
 
-        email_reminders = request.data.get('email_reminders')
-        if email_reminders is not None:
-            user_profile.email_reminders = email_reminders
-
-        email_frequency = request.data.get('email_frequency')
-        if email_frequency in ['daily', 'weekly', 'monthly']:
-            user_profile.email_frequency = email_frequency
+        email_reminder_preference = request.data.get('email_reminder_preference')
+        if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
+            user_profile.email_reminder_preference = email_reminder_preference
 
         user_profile.save()
-        return Response({"message": "Settings updated successfully."})
+        
+        # Return updated settings
+        return Response({
+            "message": "Settings updated successfully.",
+            "dark_mode": user_profile.dark_mode,
+            "email_reminder_preference": user_profile.email_reminder_preference
+        })
 
 
 class MissionView(APIView):
@@ -796,7 +1000,7 @@ class FinanceFactView(APIView):
             ).exists()
 
             if already_read_today:
-                return Response({"message": "You already completed today’s finance fact."}, status=200)
+                return Response({"message": "You already completed today's finance fact."}, status=200)
 
             # ✅ Log the fact as read
             UserFactProgress.objects.create(user=request.user, fact=fact)
@@ -1277,38 +1481,13 @@ class PersonalizedPathView(APIView):
 class EnhancedQuestionnaireView(APIView):
     """API view to handle the enhanced questionnaire functionality, including fetching questions, submitting answers, and generating personalized paths."""
 
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Handle GET requests to fetch questionnaire questions."""
-        try:
-            questions = Question.objects.filter(
-                is_active=True
-            ).order_by('order')[:7]
-
-            if not questions.exists():
-                return Response(
-                    {"error": "No active questions found"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            serializer = QuestionSerializer(questions, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            logger.error(f"Questionnaire GET error: {str(e)}")
-            return Response(
-                {"error": "Failed to load questionnaire"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
     def post(self, request):
         """Handle POST requests to submit questionnaire answers and initiate payment for personalized paths."""
         try:
             user = request.user
 
             # Prevent duplicate payments
-            if user.userprofile.has_paid:
+            if user.profile.has_paid:
                 return Response(
                     {"error": "You already have an active subscription"},
                     status=400
@@ -1341,7 +1520,7 @@ class EnhancedQuestionnaireView(APIView):
                         logger.error(f"Question {qid} not found")
                         continue
 
-                user_profile = UserProfile.objects.get(user=user)
+                user_profile = user.profile
                 user_profile.recommended_courses = []
                 user_profile.save()
 
@@ -1626,7 +1805,7 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
             if not reward_id:
                 return Response({"error": "Missing reward_id"}, status=400)
 
-            user_profile = request.user.userprofile
+            user_profile = request.user.profile
             reward = Reward.objects.get(id=reward_id, is_active=True)
 
             # Check if the user has sufficient funds to purchase the reward
@@ -1942,10 +2121,18 @@ def complete_exercise(request):
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
     exercise_id = request.data.get("exercise_id")
-    if not exercise_id:
-        return Response({"error": "exercise_id is required"}, status=400)
+    section_id = request.data.get("section_id")
+    
+    if not exercise_id and not section_id:
+        return Response({"error": "Either exercise_id or section_id is required"}, status=400)
 
     try:
+        if section_id:
+            # If section_id is provided, find the exercise through the section
+            section = LessonSection.objects.get(id=section_id)
+            exercise = Exercise.objects.get(section=section)
+            exercise_id = exercise.id
+
         progress = UserExerciseProgress.objects.get(
             user=request.user, exercise_id=exercise_id
         )
@@ -1953,5 +2140,216 @@ def reset_exercise(request):
         progress.completed = False
         progress.save()
         return Response({"message": "Progress reset successfully."}, status=200)
-    except UserExerciseProgress.DoesNotExist:
+    except (UserExerciseProgress.DoesNotExist, LessonSection.DoesNotExist, Exercise.DoesNotExist):
         return Response({"error": "No progress found to reset."}, status=404)
+
+
+class LoginSecureView(APIView):
+    """Enhanced login view that uses HttpOnly cookies for refresh tokens and returns access tokens."""
+    
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        """Handle POST requests to authenticate users and issue tokens."""
+        username = request.data.get('username')
+        password = request.data.get('password')
+        recaptcha_token = request.data.get('recaptcha_token')
+        
+        logger.info(f"Login attempt for username: {username}")
+        logger.info(f"Debug: {settings.DEBUG}, RecaptchaKey: {'set' if settings.RECAPTCHA_PRIVATE_KEY else 'not set'}")
+        
+        # Only verify reCAPTCHA if in production and token is provided
+        if settings.RECAPTCHA_PRIVATE_KEY and not settings.DEBUG and recaptcha_token:
+            if not verify_recaptcha(recaptcha_token):
+                logger.warning(f"reCAPTCHA verification failed for {username}")
+                return Response({"detail": "reCAPTCHA verification failed."}, status=400)
+            
+        if not username or not password:
+            logger.warning("Login attempt with missing credentials")
+            return Response({"detail": "Username and password are required."}, status=400)
+        
+        try:
+            user = User.objects.get(username=username)
+            if not user.check_password(password):
+                logger.warning(f"Invalid password for {username}")
+                return Response({"detail": "Invalid username or password."}, status=401)
+                
+            # Create tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+            
+            logger.info(f"Successful login for {username}")
+            
+            logger.info(f"Generated access token for {username}")
+            
+            # Create response with access token in body
+            response = Response({
+                "access": access_token,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name
+                }
+            })
+            
+            # Set refresh token as HttpOnly cookie
+            logger.info(f"Setting refresh token cookie for {username}")
+            
+            response.set_cookie(
+                'refresh_token', 
+                refresh_token, 
+                httponly=True, 
+                secure=False,  # Set to False for local development
+                samesite='Lax',
+                max_age=3600 * 24,  # 24 hours
+                path="/"  # Use root path to ensure cookie is sent for all requests
+            )
+            
+            # Update last login
+            user.last_login = now()
+            user.save(update_fields=['last_login'])
+            
+            return response
+            
+        except User.DoesNotExist:
+            logger.warning(f"Login attempt for non-existent user: {username}")
+            return Response({"detail": "Invalid username or password."}, status=401)
+        except Exception as e:
+            logger.error(f"Login error: {str(e)}")
+            return Response({"detail": "An error occurred during login."}, status=500)
+
+
+class RegisterSecureView(generics.CreateAPIView):
+    """Enhanced registration view that uses HttpOnly cookies for refresh tokens."""
+    
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        # Verify reCAPTCHA token
+        recaptcha_token = request.data.get('recaptcha_token')
+        if not recaptcha_token:
+            return Response(
+                {"error": "reCAPTCHA token is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not verify_recaptcha(recaptcha_token):
+            return Response(
+                {"error": "reCAPTCHA verification failed"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Generate tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        # Create response with access token
+        response = Response({
+            "access": access_token,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name
+            },
+            "next": "/questionnaire"  # Redirect to questionnaire after registration
+        }, status=status.HTTP_201_CREATED)
+
+        # Set refresh token in HttpOnly cookie
+        response.set_cookie(
+            'refresh_token',
+            str(refresh),
+            httponly=True,
+            secure=False,  # Set to False for local development
+            samesite='Lax',
+            max_age=3600 * 24,  # 24 hours
+            path="/"  # Use root path to ensure cookie is sent for all requests
+        )
+
+        return response
+
+class VerifyAuthView(APIView):
+    """View to verify user authentication status and return user data if authenticated."""
+    
+    permission_classes = [AllowAny]  # Changed from IsAuthenticated to AllowAny
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            return Response({
+                'isAuthenticated': True,
+                'user': {
+                    'id': request.user.id,
+                    'username': request.user.username,
+                    'email': request.user.email,
+                },
+                'access': request.auth.token if request.auth else None
+            })
+        return Response({
+            'isAuthenticated': False,
+            'user': None,
+            'access': None
+        })
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Custom token refresh view that extracts the refresh token from cookies
+    instead of requiring it in the request body
+    """
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+        
+        if not refresh_token:
+            logger.error("No refresh token found in cookies")
+            return Response({"detail": "No refresh token found in cookies"}, status=400)
+            
+        # Include the token in the request data
+        request.data['refresh'] = refresh_token
+        
+        try:
+            # Call the parent's post method
+            response = super().post(request, *args, **kwargs)
+            
+            # Get the access token from the response data
+            access_token = response.data.get('access')
+            
+            if access_token:
+                logger.info("Token refresh successful")
+                
+                # If we're using ROTATE_REFRESH_TOKENS, get the new refresh token
+                if settings.SIMPLE_JWT.get('ROTATE_REFRESH_TOKENS', False):
+                    new_refresh_token = response.data.get('refresh')
+                    if new_refresh_token:
+                        # Set the new refresh token cookie
+                        response.set_cookie(
+                            'refresh_token', 
+                            new_refresh_token, 
+                            httponly=True, 
+                            secure=False,
+                            samesite='Lax',
+                            max_age=3600 * 24,  # 24 hours
+                            path="/"  # Use root path to ensure cookie is sent for all requests
+                        )
+                        logger.info("New refresh token cookie set")
+            
+            return response
+            
+        except (InvalidToken, TokenError) as e:
+            logger.error(f"Token refresh error: {str(e)}")
+            response = Response({"detail": str(e)}, status=401)
+            # Clear the invalid refresh token cookie
+            response.delete_cookie('refresh_token', path="/")
+            return response
+        except Exception as e:
+            logger.error(f"Unexpected error during token refresh: {str(e)}", exc_info=True)
+            return Response({"detail": "An error occurred during token refresh."}, status=500)

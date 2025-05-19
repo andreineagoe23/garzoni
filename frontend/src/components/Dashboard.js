@@ -5,7 +5,8 @@ import { Button } from "react-bootstrap";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import UserProgressBox from "./UserProgressBox";
-import Navbar from "./Navbar";
+import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -13,6 +14,7 @@ function Dashboard() {
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { getAccessToken } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,8 +38,8 @@ function Dashboard() {
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setUser(profileResponse.data.user_data);
@@ -55,8 +57,8 @@ function Dashboard() {
           `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setUserProgress(response.data);
@@ -67,27 +69,7 @@ function Dashboard() {
 
     fetchUserData();
     fetchUserProgress();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/logout/`,
-        { refresh: localStorage.getItem('refresh_token') },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
-        }
-      );
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      navigate('/login');
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
+  }, [navigate, getAccessToken]);
 
   const handleCourseClick = (courseId) => {
     navigate(`/lessons/${courseId}`);
@@ -97,8 +79,6 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <Navbar />
-
       <div className="dashboard-main-wrapper">
         <div className="dashboard-content">
           <div className={`main-content ${isMobile ? "mb-4" : ""}`}>
@@ -106,13 +86,6 @@ function Dashboard() {
               <h2 className="dashboard-greeting">
                 Welcome back, {user?.username || "User"}!
               </h2>
-              <Button
-                variant="danger"
-                onClick={handleLogout}
-                className="logout-btn"
-              >
-                Logout
-              </Button>
             </div>
 
             <div className="dashboard-buttons">
@@ -168,7 +141,7 @@ function Dashboard() {
             </div>
           )}
         </div>
-        
+
         {isMobile && userProgress && (
           <div className="mobile-progress-section">
             <div className="container">

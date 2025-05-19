@@ -4,6 +4,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import "../styles/scss/main.scss";
 import Loader from "../components/Loader";
+import { useAuth } from "./AuthContext";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -12,6 +13,7 @@ function PersonalizedPath({ onCourseClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const { getAccessToken, isAuthenticated } = useAuth();
 
   // Define fetchPersonalizedPath first using useCallback
   const fetchPersonalizedPath = useCallback(async () => {
@@ -20,7 +22,7 @@ function PersonalizedPath({ onCourseClick }) {
         `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
             "X-CSRFToken":
               document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
           },
@@ -58,7 +60,7 @@ function PersonalizedPath({ onCourseClick }) {
       }
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, getAccessToken]);
 
   // Now define useEffect that uses fetchPersonalizedPath
   useEffect(() => {
@@ -67,9 +69,7 @@ function PersonalizedPath({ onCourseClick }) {
     const sessionId = queryParams.get("session_id");
 
     const verifyAuthAndPayment = async () => {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
+      if (!isAuthenticated) {
         navigate(
           `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
         );
@@ -81,7 +81,7 @@ function PersonalizedPath({ onCourseClick }) {
         const profileRes = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${getAccessToken()}` },
             params: { _: new Date().getTime() }, // Cache buster
           }
         );
@@ -92,7 +92,7 @@ function PersonalizedPath({ onCourseClick }) {
               const verificationRes = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
                 { session_id: sessionId, force_check: true },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${getAccessToken()}` } }
               );
 
               if (verificationRes.data.status === "verified") {
@@ -136,7 +136,14 @@ function PersonalizedPath({ onCourseClick }) {
       }
     };
     verifyAuthAndPayment();
-  }, [navigate, location.pathname, location.search, fetchPersonalizedPath]);
+  }, [
+    navigate,
+    location.pathname,
+    location.search,
+    fetchPersonalizedPath,
+    isAuthenticated,
+    getAccessToken,
+  ]);
 
   const handleCourseClick = (courseId) => {
     if (onCourseClick) onCourseClick(courseId);
@@ -239,7 +246,7 @@ function PersonalizedPath({ onCourseClick }) {
             </div>
 
             {index < personalizedCourses.length - 1 && (
-              <div className="vertical-connector d-none d-lg-block"></div>
+              <div className="vertical-connector d-none d-md-block"></div>
             )}
           </React.Fragment>
         ))}

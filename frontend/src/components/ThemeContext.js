@@ -4,23 +4,10 @@ import Cookies from "js-cookie";
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    // Check for stored preference in cookies when component mounts
+  const [darkMode, setDarkMode] = useState(() => {
     const storedDarkMode = Cookies.get("darkMode");
-    const prefersDarkMode = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    // Set dark mode based on cookie value or user's system preference
-    if (storedDarkMode !== undefined) {
-      setDarkMode(storedDarkMode === "true");
-    } else if (prefersDarkMode) {
-      setDarkMode(true);
-      Cookies.set("darkMode", "true", { expires: 365, sameSite: "strict" });
-    }
-  }, []);
+    return storedDarkMode === "true";
+  });
 
   useEffect(() => {
     // Apply theme to document when darkMode changes
@@ -29,6 +16,11 @@ export const ThemeProvider = ({ children }) => {
     } else {
       document.documentElement.removeAttribute("data-theme");
     }
+    // Save to cookie
+    Cookies.set("darkMode", darkMode.toString(), {
+      expires: 365,
+      sameSite: "strict",
+    });
   }, [darkMode]);
 
   const toggleDarkMode = (value) => {
