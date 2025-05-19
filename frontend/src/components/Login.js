@@ -7,7 +7,7 @@ import logo from "../assets/monevo.png";
 import loginBg from "../assets/login-bg.jpg";
 import Header from "./Header";
 import { useAuth } from "./AuthContext";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -18,8 +18,8 @@ function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState("");
-  const recaptchaRef = useRef(null);
+  // const [captchaToken, setCaptchaToken] = useState("");
+  // const recaptchaRef = useRef(null);
   const navigate = useNavigate();
   const { loginUser, isAuthenticated } = useAuth();
 
@@ -39,18 +39,18 @@ function Login() {
     setFormData({ ...formData, [e.target.name]: value });
   };
 
-  const handleCaptchaChange = (token) => {
-    setCaptchaToken(token);
-  };
+  // const handleCaptchaChange = (token) => {
+  //   setCaptchaToken(token);
+  // };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     // Only validate reCAPTCHA in production
-    if (isProduction && !captchaToken) {
-      setError("Please complete the reCAPTCHA verification.");
-      return;
-    }
+    // if (isProduction && !captchaToken) {
+    //   setError("Please complete the reCAPTCHA verification.");
+    //   return;
+    // }
 
     setIsLoading(true);
     setError("");
@@ -63,7 +63,7 @@ function Login() {
       const loginData = {
         ...formData,
         // Only include recaptcha_token in production
-        ...(isProduction && { recaptcha_token: captchaToken }),
+        // ...(isProduction && { recaptcha_token: captchaToken }),
       };
 
       console.log("Attempting login with:", { username: loginData.username });
@@ -72,9 +72,9 @@ function Login() {
       if (!result.success) {
         console.error("Login failed:", result.error);
         setError(result.error || "Login failed. Please try again.");
-        if (recaptchaRef.current) {
-          recaptchaRef.current.reset();
-        }
+        // if (recaptchaRef.current) {
+        //   recaptchaRef.current.reset();
+        // }
       } else {
         console.log("Login successful");
       }
@@ -85,9 +85,9 @@ function Login() {
           error.response?.data?.error ||
           "An unexpected error occurred. Please try again."
       );
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
+      // if (recaptchaRef.current) {
+      //   recaptchaRef.current.reset();
+      // }
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +172,7 @@ function Login() {
             </div>
 
             {/* Only show reCAPTCHA in production */}
-            {isProduction && (
+            {/* {isProduction && (
               <div className="mb-4 d-flex justify-content-center">
                 <ReCAPTCHA
                   ref={recaptchaRef}
@@ -183,7 +183,7 @@ function Login() {
                   onChange={handleCaptchaChange}
                 />
               </div>
-            )}
+            )} */}
 
             <div className="d-grid gap-3 mb-4">
               <Button
@@ -191,7 +191,7 @@ function Login() {
                 size="lg"
                 type="submit"
                 className="btn-3d"
-                disabled={isLoading || (isProduction && !captchaToken)}
+                disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
               </Button>

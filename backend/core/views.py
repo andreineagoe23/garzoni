@@ -2153,16 +2153,16 @@ class LoginSecureView(APIView):
         """Handle POST requests to authenticate users and issue tokens."""
         username = request.data.get('username')
         password = request.data.get('password')
-        recaptcha_token = request.data.get('recaptcha_token')
+        # recaptcha_token = request.data.get('recaptcha_token')
         
         logger.info(f"Login attempt for username: {username}")
         logger.info(f"Debug: {settings.DEBUG}, RecaptchaKey: {'set' if settings.RECAPTCHA_PRIVATE_KEY else 'not set'}")
         
         # Only verify reCAPTCHA if in production and token is provided
-        if settings.RECAPTCHA_PRIVATE_KEY and not settings.DEBUG and recaptcha_token:
-            if not verify_recaptcha(recaptcha_token):
-                logger.warning(f"reCAPTCHA verification failed for {username}")
-                return Response({"detail": "reCAPTCHA verification failed."}, status=400)
+        # if settings.RECAPTCHA_PRIVATE_KEY and not settings.DEBUG and recaptcha_token:
+        #     if not verify_recaptcha(recaptcha_token):
+        #         logger.warning(f"reCAPTCHA verification failed for {username}")
+        #         return Response({"detail": "reCAPTCHA verification failed."}, status=400)
             
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
@@ -2230,18 +2230,18 @@ class RegisterSecureView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         # Verify reCAPTCHA token
-        recaptcha_token = request.data.get('recaptcha_token')
-        if not recaptcha_token:
-            return Response(
-                {"error": "reCAPTCHA token is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # recaptcha_token = request.data.get('recaptcha_token')
+        # if not recaptcha_token:
+        #     return Response(
+        #         {"error": "reCAPTCHA token is required"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
-        if not verify_recaptcha(recaptcha_token):
-            return Response(
-                {"error": "reCAPTCHA verification failed"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # if not verify_recaptcha(recaptcha_token):
+        #     return Response(
+        #         {"error": "reCAPTCHA verification failed"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
