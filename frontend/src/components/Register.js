@@ -39,7 +39,7 @@ function Register() {
       const result = await registerUser(formData);
 
       if (result.success) {
-        navigate(result.next);
+        navigate("/all-topics");
       } else {
         setErrorMessage(result.error);
       }
