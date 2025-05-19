@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
@@ -6,7 +6,6 @@ import logo from "../assets/monevo.png";
 import registerBg from "../assets/register-bg.jpg";
 import Header from "./Header";
 import { useAuth } from "./AuthContext";
-import ReCAPTCHA from "react-google-recaptcha";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -20,8 +19,6 @@ function Register() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState("");
-  const recaptchaRef = useRef(null);
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();
@@ -32,46 +29,25 @@ function Register() {
     setFormData({ ...formData, [e.target.name]: value });
   };
 
-  const handleCaptchaChange = (token) => {
-    setCaptchaToken(token);
-  };
-
   const handleRegister = async (e) => {
     e.preventDefault();
-
-    // Validate reCAPTCHA
-    if (!captchaToken) {
-      setErrorMessage("Please complete the reCAPTCHA verification.");
-      return;
-    }
 
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const registerData = {
-        ...formData,
-        recaptcha_token: captchaToken,
-      };
-
-      const result = await registerUser(registerData);
+      const result = await registerUser(formData);
 
       if (result.success) {
         navigate(result.next);
       } else {
         setErrorMessage(result.error);
-        if (recaptchaRef.current) {
-          recaptchaRef.current.reset();
-        }
       }
     } catch (error) {
       console.error("Registration failed", error);
       setErrorMessage(
         error.response?.data?.error || "Registration failed. Please try again."
       );
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
     } finally {
       setIsLoading(false);
     }
@@ -194,24 +170,13 @@ function Register() {
               />
             </Form.Group>
 
-            <div className="mb-4 d-flex justify-content-center">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={
-                  process.env.REACT_APP_RECAPTCHA_SITE_KEY ||
-                  "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-                }
-                onChange={handleCaptchaChange}
-              />
-            </div>
-
             <div className="d-grid gap-3 mb-4">
               <Button
                 variant="primary"
                 size="lg"
                 type="submit"
                 className="btn-3d"
-                disabled={isLoading || !captchaToken}
+                disabled={isLoading}
               >
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
