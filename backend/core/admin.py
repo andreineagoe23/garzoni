@@ -174,12 +174,19 @@ class UserFactProgressAdmin(admin.ModelAdmin):
     list_filter = ('read_at',)
     search_fields = ('user__username', 'fact__text')
 
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    """Admin configuration for managing user profiles."""
+    list_display = ('user', 'earned_money', 'points', 'referral_code', 'has_paid', 'dark_mode', 'email_reminder_preference', 'streak')
+    list_filter = ('has_paid', 'dark_mode', 'email_reminder_preference')
+    search_fields = ('user__username', 'user__email', 'referral_code')
+    readonly_fields = ('earned_money', 'points', 'referral_points', 'streak')
+
 admin.site.register(Badge, BadgeAdmin)
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(Path)
 admin.site.register(Course)
 admin.site.register(Quiz)
-admin.site.register(UserProfile)
 admin.site.register(UserProgress)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(MissionCompletion, MissionCompletionAdmin)
