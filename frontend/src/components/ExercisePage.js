@@ -12,6 +12,7 @@ import { CSSTransition, TransitionGroup } from "react-transition-group";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import { useRef } from "react";
+import { useAuth } from "./AuthContext";
 
 const ExercisePage = () => {
   const [exercises, setExercises] = useState([]);
@@ -28,6 +29,7 @@ const ExercisePage = () => {
     difficulty: "",
   });
   const exerciseRef = useRef(null);
+  const { getAccessToken } = useAuth();
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -41,7 +43,7 @@ const ExercisePage = () => {
         {
           params,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
@@ -65,7 +67,7 @@ const ExercisePage = () => {
       setError("Failed to load exercises. Please try again later.");
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, getAccessToken]);
 
   useEffect(() => {
     fetchExercises();
@@ -101,7 +103,7 @@ const ExercisePage = () => {
         { user_answer: userAnswer },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 const FriendRequests = () => {
   const [requests, setRequests] = useState([]);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -12,8 +14,8 @@ const FriendRequests = () => {
           `${process.env.REACT_APP_BACKEND_URL}/friend-requests/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
         setRequests(response.data);
@@ -22,7 +24,7 @@ const FriendRequests = () => {
       }
     };
     fetchRequests();
-  }, []);
+  }, [getAccessToken]);
 
   const handleAccept = async (requestId) => {
     try {
@@ -30,10 +32,10 @@ const FriendRequests = () => {
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
         { action: "accept" },
         {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
-          }
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
       alert("Friend request accepted!");
@@ -51,10 +53,10 @@ const FriendRequests = () => {
         `${process.env.REACT_APP_BACKEND_URL}/friend-requests/${requestId}/`,
         { action: "reject" },
         {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
-          }
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
       );
       setRequests(requests.filter((request) => request.id !== requestId));
       alert("Friend request rejected.");
@@ -72,7 +74,7 @@ const FriendRequests = () => {
         <h4>Friend Requests</h4>
         <span className="badge">{requests.length}</span>
       </div>
-      
+
       {requests.length === 0 ? (
         <div className="empty-state">
           <span className="icon">📭</span>
@@ -90,7 +92,7 @@ const FriendRequests = () => {
                 </div>
               </div>
               <div className="action-buttons">
-                <button 
+                <button
                   className="btn-accept"
                   onClick={() => handleAccept(request.id)}
                 >

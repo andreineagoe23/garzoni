@@ -30,3 +30,43 @@
     display: block;
   }
 }
+
+// New styles for user info section in progress box
+.user-progress-box {
+  background-color: var(--card-bg);
+  border-radius: $border-radius-lg;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  .user-info-section {
+    background-color: rgba(var(--primary-rgb), 0.03);
+    
+    .user-stats {
+      .stats-item {
+        flex: 1;
+        padding: $spacer;
+        
+        .stats-value {
+          color: var(--primary);
+        }
+        
+        .stats-label {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+  
+  .progress-header {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(var(--primary-rgb), 0.05);
+    }
+  }
+  
+  .progress-content {
+    background-color: var(--card-bg);
+  }
+}

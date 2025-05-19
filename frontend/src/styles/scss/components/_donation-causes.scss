@@ -1,5 +1,9 @@
 @import "../abstracts/variables";
 
+// The donation causes now use the same styles as shop items
+// This file is kept for any future donation-specific styles
+// All common styles are in _shop-items.scss
+
 .donate-container {
   padding: map-get($spacers, 4);
   
@@ -81,6 +85,9 @@
     font-size: 0.9rem;
     max-width: 60%;
     text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -99,5 +106,9 @@
 
   .donation-card {
     margin-bottom: map-get($spacers, 3);
+  }
+
+  .organization {
+    max-width: 50%;
   }
 }

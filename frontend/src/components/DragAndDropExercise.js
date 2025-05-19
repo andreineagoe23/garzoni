@@ -3,6 +3,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 const DragAndDropExercise = ({ data, exerciseId }) => {
   const { items, targets } = data;
@@ -13,6 +14,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   const [feedbackClass, setFeedbackClass] = useState("");
   const [updatedTargets, setUpdatedTargets] = useState(targets);
   const [isCompleted, setIsCompleted] = useState(false);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchExerciseProgress = async () => {
@@ -26,8 +28,8 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
           `${process.env.REACT_APP_BACKEND_URL}/exercises/progress/${exerciseId}/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
 
@@ -41,7 +43,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     };
 
     fetchExerciseProgress();
-  }, [exerciseId]);
+  }, [exerciseId, getAccessToken]);
 
   const handleDrop = (target, item) => {
     setUserAnswers((prevAnswers) => ({
@@ -82,8 +84,8 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
           { lesson_id: exerciseId },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`
-            }
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
         );
       } catch (error) {
@@ -105,8 +107,8 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
         { section_id: exerciseId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
       setUserAnswers({});

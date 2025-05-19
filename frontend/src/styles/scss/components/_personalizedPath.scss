@@ -11,18 +11,31 @@
     rgba($primary, 0.01)
   );
 
+  @include media-breakpoint-between(md, lg) {
+    padding: 3rem 1.5rem;
+  }
+
   .recommendation-message {
     font-size: 1.5rem;
     color: $accent;
     text-align: center;
     margin-bottom: 3rem;
     text-shadow: 0 2px 4px rgba($dark, 0.2);
+    
+    @include media-breakpoint-between(md, lg) {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+    }
   }
 
   .path-container {
     position: relative;
     max-width: 1200px;
     margin: 0 auto;
+    
+    @include media-breakpoint-between(md, lg) {
+      max-width: 900px;
+    }
   }
 
   .path-item {
@@ -44,8 +57,23 @@
         margin-left: 50%;
       }
     }
+    
+    @include media-breakpoint-between(md, lg) {
+      width: 80%;
+      margin: 3rem auto !important;
+      flex-direction: row;
+      min-height: auto;
+      
+      &.left {
+        flex-direction: row-reverse;
+      }
+      
+      &.right {
+        flex-direction: row;
+      }
+    }
 
-    @include media-breakpoint-down(lg) {
+    @include media-breakpoint-down(md) {
       width: 100% !important;
       margin: 2rem 0 !important;
       flex-direction: column !important;
@@ -75,8 +103,16 @@
       );
       background-size: 10px 2px;
     }
+    
+    @include media-breakpoint-between(md, lg) {
+      margin: 0 1.5rem;
+      
+      &::after {
+        display: none;
+      }
+    }
 
-    @include media-breakpoint-down(lg) {
+    @include media-breakpoint-down(md) {
       margin-bottom: 2rem;
       
       &::after {
@@ -93,6 +129,11 @@
     border: 3px solid $accent;
     box-shadow: $box-shadow-lg;
     flex-shrink: 0;
+
+    @include media-breakpoint-between(md, lg) {
+      width: 100px;
+      height: 100px;
+    }
 
     @include media-breakpoint-down(md) {
       width: 100px;
@@ -126,10 +167,19 @@
       box-shadow: 0 8px 25px rgba($primary, 0.3);
     }
 
+    @include media-breakpoint-between(md, lg) {
+      padding: 1.5rem;
+    }
+
     h4 {
       color: $accent !important;
       font-size: 1.4rem;
       margin-bottom: 1rem;
+      
+      @include media-breakpoint-between(md, lg) {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+      }
     }
   }
 
@@ -137,6 +187,10 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
+
+    @include media-breakpoint-between(md, lg) {
+      margin-bottom: 0.75rem;
+    }
 
     .tag {
       background: rgba($accent, 0.1);
@@ -157,6 +211,11 @@
     justify-content: space-between;
     gap: 1rem;
 
+    @include media-breakpoint-between(md, lg) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
     @include media-breakpoint-down(sm) {
       flex-direction: column;
     }
@@ -165,6 +224,10 @@
   .progress-container {
     flex: 1;
     max-width: 300px;
+
+    @include media-breakpoint-between(md, lg) {
+      max-width: 100%;
+    }
 
     .progress {
       height: 8px;
@@ -190,6 +253,11 @@
     display: flex;
     gap: 1.5rem;
 
+    @include media-breakpoint-between(md, lg) {
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
     .stat {
       display: flex;
       align-items: center;
@@ -207,6 +275,10 @@
     text-align: center;
     color: $accent;
 
+    @include media-breakpoint-between(md, lg) {
+      margin-top: 3rem;
+    }
+
     .btn-link {
       color: $accent;
       text-decoration: underline;
@@ -218,6 +290,14 @@
         color: darken($accent, 15%);
         text-decoration: none;
       }
+    }
+  }
+
+  .vertical-connector {
+    @include media-breakpoint-between(md, lg) {
+      height: 60px;
+      border-left: 2px dashed $accent;
+      margin-left: 50%;
     }
   }
 

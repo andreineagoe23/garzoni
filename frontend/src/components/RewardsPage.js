@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
-import "../styles/scss/main.scss";
-import axios from "axios";
 import Chatbot from "./Chatbot";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
   const [balance, setBalance] = useState(0);
+  const { getAccessToken } = useAuth();
 
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
 
@@ -27,11 +29,11 @@ function RewardsPage() {
         alert("Please login to view balance");
       }
     }
-  };
+  }, [getAccessToken]);
 
   useEffect(() => {
     fetchBalance();
-  }, []);
+  }, [fetchBalance]);
 
   return (
     <div className="rewards-page">

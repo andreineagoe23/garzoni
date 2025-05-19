@@ -26,6 +26,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import RewardsPage from "./components/RewardsPage";
 import { ThemeProvider } from "../src/components/ThemeContext";
+import { AuthProvider } from "./components/AuthContext";
 import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
@@ -46,16 +47,18 @@ function App() {
 
   return (
     <Router>
-      <ThemeProvider>
-        <div className="app-container">
-          <AppContent
-            toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
-            isChatbotVisible={isChatbotVisible}
-            setIsChatbotVisible={setIsChatbotVisible}
-            isMobileView={isMobileView}
-          />
-        </div>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <div className="app-container">
+            <AppContent
+              toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
+              isChatbotVisible={isChatbotVisible}
+              setIsChatbotVisible={setIsChatbotVisible}
+              isMobileView={isMobileView}
+            />
+          </div>
+        </ThemeProvider>
+      </AuthProvider>
     </Router>
   );
 }
@@ -94,13 +97,14 @@ const AppContent = ({
     "/cookie-policy",
   ];
 
-  axios.interceptors.request.use((config) => {
-    const tokens = JSON.parse(localStorage.getItem("tokens"));
-    if (tokens?.access) {
-      config.headers.Authorization = `Bearer ${tokens.access}`;
-    }
-    return config;
-  });
+  // We don't need this interceptor anymore as AuthContext.js is handling this
+  // axios.interceptors.request.use((config) => {
+  //   const tokens = JSON.parse(localStorage.getItem("tokens"));
+  //   if (tokens?.access) {
+  //     config.headers.Authorization = `Bearer ${tokens.access}`;
+  //   }
+  //   return config;
+  // });
 
   useEffect(() => {
     if (
@@ -113,7 +117,6 @@ const AppContent = ({
       });
     }
   }, [location.pathname, location.search]);
-
 
   return (
     <Container fluid className="app-layout p-0">

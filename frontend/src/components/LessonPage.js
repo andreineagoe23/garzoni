@@ -7,6 +7,7 @@ import UserProgressBox from "./UserProgressBox";
 import MultipleChoiceExercise from "./MultipleChoiceExercise";
 import BudgetAllocationExercise from "./BudgetAllocationExercise";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 function fixImagePaths(content) {
   if (!content) return "";
@@ -30,6 +31,7 @@ function LessonPage() {
   const [showProgress] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [userProgress, setUserProgress] = useState(null);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -38,7 +40,7 @@ function LessonPage() {
           `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
@@ -77,25 +79,26 @@ function LessonPage() {
       }
     };
 
-    const fetchUserProgress = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            },
-          }
-        );
-        setUserProgress(response.data);
-      } catch (error) {
-        console.error("Error fetching user progress:", error);
-      }
-    };
-
     fetchLessons();
     fetchUserProgress();
-  }, [courseId]);
+  }, [courseId, getAccessToken]);
+
+  // Extract fetchUserProgress to a separate function for reuse
+  const fetchUserProgress = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+      setUserProgress(response.data);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+    }
+  };
 
   useEffect(() => {
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
@@ -110,11 +113,16 @@ function LessonPage() {
         { section_id: sectionId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
+
+      // Update local state
       setCompletedSections((prev) => [...prev, sectionId]);
+
+      // Refresh progress data
+      fetchUserProgress();
     } catch (err) {
       console.error("Failed to complete section:", err);
     }
@@ -127,16 +135,24 @@ function LessonPage() {
         { lesson_id: lessonId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
         }
       );
 
+      // Update completed lessons in local state
       setCompletedLessons((prev) => [...prev, lessonId]);
+
+      // Show success message
       setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
       setTimeout(() => setSuccessMessage(""), 3000);
+
+      // Reset lesson view
       setSelectedLesson(null);
       setActiveTab(0);
+
+      // Immediately fetch updated progress to reflect changes
+      fetchUserProgress();
     } catch (err) {
       setError("Failed to complete lesson. Please try again.");
     }

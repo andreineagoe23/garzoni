@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import (
+    CustomTokenRefreshView,
     UserProfileViewSet,
     CourseViewSet,
     LessonViewSet,
@@ -45,6 +46,10 @@ from .views import (
     StripeWebhookView,
     VerifySessionView,
     HuggingFaceProxyView,
+    LoginSecureView,
+    RegisterSecureView,
+    LogoutSecureView,
+    VerifyAuthView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
@@ -53,11 +58,11 @@ from core.views import CustomTokenObtainPairView, LogoutView
 
 router = DefaultRouter()
 router.register(r'userprogress', UserProgressViewSet, basename='userprogress')
-router.register(r'userprofiles', UserProfileViewSet)
-router.register(r'courses', CourseViewSet)
-router.register(r'lessons', LessonViewSet)
-router.register(r'quizzes', QuizViewSet)
-router.register(r'paths', PathViewSet)
+router.register(r'userprofiles', UserProfileViewSet, basename='userprofile')
+router.register(r'courses', CourseViewSet, basename='course')
+router.register(r'lessons', LessonViewSet, basename='lesson')
+router.register(r'quizzes', QuizViewSet, basename='quiz')
+router.register(r'paths', PathViewSet, basename='path')
 router.register(r'badges', BadgeViewSet, basename='badge')
 router.register(r'user-badges', UserBadgeViewSet, basename='userbadge')
 router.register(r'exercises', ExerciseViewSet, basename='exercise')
@@ -71,8 +76,13 @@ urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
+    path('login-secure/', LoginSecureView.as_view(), name='login-secure'),
+    path('register-secure/', RegisterSecureView.as_view(), name='register-secure'),
+    path('logout-secure/', LogoutSecureView.as_view(), name='logout-secure'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token-refresh'),
+    path('verify-auth/', VerifyAuthView.as_view(), name='verify-auth'),
+
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
     path('userprofiles/update/', UserProfileViewSet.as_view({'put': 'update_profile'}), name='update-profile'),
 

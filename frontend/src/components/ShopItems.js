@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "../styles/scss/main.scss";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 function ShopItems({ onPurchase }) {
   const [shopItems, setShopItems] = useState([]);
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchShopItems = async () => {
@@ -11,10 +13,10 @@ function ShopItems({ onPurchase }) {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/rewards/shop/`,
           {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
           }
-        }
         );
         setShopItems(response.data);
       } catch (error) {
@@ -22,7 +24,7 @@ function ShopItems({ onPurchase }) {
       }
     };
     fetchShopItems();
-  }, []);
+  }, [getAccessToken]);
 
   const handlePurchase = async (rewardId) => {
     try {
@@ -31,8 +33,8 @@ function ShopItems({ onPurchase }) {
         { reward_id: rewardId },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
 

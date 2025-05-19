@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 const SavingsGoalCalculator = () => {
   const [formData, setFormData] = useState({
@@ -12,15 +13,16 @@ const SavingsGoalCalculator = () => {
   });
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const { getAccessToken } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
     const values = Object.values(formData);
-    if (values.some(v => v === "")) {
+    if (values.some((v) => v === "")) {
       setError("Please fill all required fields");
       return false;
     }
@@ -44,14 +46,17 @@ const SavingsGoalCalculator = () => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
       setResult(response.data);
     } catch (err) {
       console.error("Calculation error:", err);
-      setError(err.response?.data?.message || "Failed to calculate. Please check your inputs.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to calculate. Please check your inputs."
+      );
     }
   };
 
@@ -144,9 +149,7 @@ const SavingsGoalCalculator = () => {
       {result && (
         <div className="result" role="alert">
           <p>Projected Value: ${result.final_savings?.toLocaleString()}</p>
-          {result.message && (
-            <p className="text-success">{result.message}</p>
-          )}
+          {result.message && <p className="text-success">{result.message}</p>}
         </div>
       )}
 

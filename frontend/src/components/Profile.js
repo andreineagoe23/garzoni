@@ -4,6 +4,7 @@ import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
 import AvatarSelector from "./AvatarSelector";
+import { useAuth } from "./AuthContext";
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -11,13 +12,14 @@ function Profile() {
     email: "",
     first_name: "",
     last_name: "",
-    earned_money: 0.0,
+    earned_money: 0,
     points: 0,
     streak: 0,
   });
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState("/default-avatar.png");
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
+  const { getAccessToken } = useAuth();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   const handleAvatarChange = (newAvatarUrl) => {
@@ -31,7 +33,7 @@ function Profile() {
           `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
@@ -42,7 +44,7 @@ function Profile() {
           first_name: profileResponse.data.user_data.first_name || "",
           last_name: profileResponse.data.user_data.last_name || "",
           earned_money:
-            parseFloat(profileResponse.data.user_data.earned_money) || 0.0,
+            parseFloat(profileResponse.data.user_data.earned_money) || 0,
           points: profileResponse.data.user_data.points || 0,
           streak: profileResponse.data.streak || 0,
         });
@@ -55,7 +57,7 @@ function Profile() {
           `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
@@ -77,7 +79,7 @@ function Profile() {
           `${process.env.REACT_APP_BACKEND_URL}/user-badges/`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              Authorization: `Bearer ${getAccessToken()}`,
             },
           }
         );
@@ -101,7 +103,7 @@ function Profile() {
     return () => {
       window.removeEventListener("navToggle", handleNavToggle);
     };
-  }, []);
+  }, [getAccessToken]);
 
   const formatActivityText = (activity) => {
     switch (activity.type) {

@@ -3,13 +3,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, Modal, Form, Row, Col } from "react-bootstrap";
 import "../styles/scss/main.scss";
+import { useAuth } from "./AuthContext";
 
 function AvatarSelector({ currentAvatar, onAvatarChange }) {
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { getAccessToken } = useAuth();
   const [selectedStyle, setSelectedStyle] = useState("avataaars");
   const [seed, setSeed] = useState("");
   const [previewAvatar, setPreviewAvatar] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const avatarStyles = [
     { id: "avataaars", name: "People" },
@@ -17,15 +19,13 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     { id: "initials", name: "Initials" },
     { id: "micah", name: "Micah" },
     { id: "adventurer", name: "Adventurer" },
-    { id: "funEmoji", name: "Emoji" }, 
+    { id: "funEmoji", name: "Emoji" },
     { id: "pixelArt", name: "Pixel Art" },
   ];
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
-
     if (!seed && currentAvatar) {
-
       const match = currentAvatar.match(
         /avatars\.dicebear\.com\/(?:api|7\.x)\/([^/]+)\/([^.]+)/
       );
@@ -63,15 +63,15 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
   };
 
   const handleSaveAvatar = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/update-avatar/`,
         { profile_avatar: previewAvatar },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
         }
       );
       onAvatarChange(previewAvatar);
@@ -79,7 +79,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     } catch (error) {
       console.error("Error updating avatar:", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -183,7 +183,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                     width="60"
                     height="60"
                     className={`avatar-selector__example ${
-                      seed === example.seed ? "avatar-selector__example--selected" : ""
+                      seed === example.seed
+                        ? "avatar-selector__example--selected"
+                        : ""
                     }`}
                     onClick={() => selectExample(example.seed)}
                   />
@@ -204,9 +206,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
             variant="primary"
             className="avatar-selector__save"
             onClick={handleSaveAvatar}
-            disabled={isLoading || !previewAvatar}
+            disabled={loading || !previewAvatar}
           >
-            {isLoading ? "Saving..." : "Save Avatar"}
+            {loading ? "Saving..." : "Save Avatar"}
           </Button>
         </Modal.Footer>
       </Modal>

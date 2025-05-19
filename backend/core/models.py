@@ -16,9 +16,15 @@ class UserProfile(models.Model):
     referral details, and preferences such as dark mode and email reminders. It also tracks user activity 
     through streaks and last completed dates, providing methods to update these attributes dynamically.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    REMINDER_CHOICES = [
+        ('none', 'No Reminders'),
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly')
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    points = models.PositiveIntegerField(default=0)
+    points = models.IntegerField(default=0)
     profile_avatar = models.URLField(null=True, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
     referral_code = models.CharField(
@@ -36,14 +42,15 @@ class UserProfile(models.Model):
         null=True,
         db_index=True
     )
-    email_reminders = models.BooleanField(default=True)
-    email_frequency = models.CharField(
+    email_reminder_preference = models.CharField(
         max_length=10,
-        choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')],
-        default='daily',
+        choices=REMINDER_CHOICES,
+        default='none'
     )
-    streak = models.PositiveIntegerField(default=0)
+    streak = models.IntegerField(default=0)
     last_completed_date = models.DateField(null=True, blank=True)
+    last_login_date = models.DateField(null=True, blank=True)
+    last_reminder_sent = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -195,6 +202,8 @@ class UserProgress(models.Model):
     is_questionnaire_completed = models.BooleanField(default=False)
     course_completed_at = models.DateTimeField(null=True, blank=True)
     completed_sections = models.ManyToManyField(LessonSection, through='SectionCompletion', blank=True)
+    last_completed_date = models.DateField(null=True, blank=True)
+    streak = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         user_str = self.user.username if self.user else "Unknown User"
@@ -206,9 +215,26 @@ class UserProgress(models.Model):
         verbose_name_plural = "User Progress"
 
     def update_streak(self):
+        """Update the streak for the user progress."""
+        today = timezone.localtime().date()
         
-        if self.user and hasattr(self.user, 'userprofile'):
-            self.user.userprofile.update_streak()
+        if self.last_completed_date == today:
+            return
+        
+        if self.last_completed_date:
+            difference = (today - self.last_completed_date).days
+            if difference == 1:  # Consecutive day
+                self.streak += 1
+            elif difference > 1:  # Streak broken
+                self.streak = 1
+        else:
+            self.streak = 1
+        
+        self.last_completed_date = today
+        self.save()
+
+        # Also update the global streak in the UserProfile
+        self.user.profile.update_streak()
 
     def mark_course_complete(self):
         self.is_course_complete = True
