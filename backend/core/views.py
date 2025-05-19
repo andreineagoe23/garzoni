@@ -2229,20 +2229,6 @@ class RegisterSecureView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # Verify reCAPTCHA token
-        # recaptcha_token = request.data.get('recaptcha_token')
-        # if not recaptcha_token:
-        #     return Response(
-        #         {"error": "reCAPTCHA token is required"},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
-
-        # if not verify_recaptcha(recaptcha_token):
-        #     return Response(
-        #         {"error": "reCAPTCHA verification failed"},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -2261,7 +2247,7 @@ class RegisterSecureView(generics.CreateAPIView):
                 "first_name": user.first_name,
                 "last_name": user.last_name
             },
-            "next": "/questionnaire"  # Redirect to questionnaire after registration
+            "next": "/all-topics"  # Redirect to all topics after registration
         }, status=status.HTTP_201_CREATED)
 
         # Set refresh token in HttpOnly cookie
