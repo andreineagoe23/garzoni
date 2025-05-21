@@ -5,7 +5,19 @@ import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useAuth } from "./AuthContext";
 
-const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
+const LANGUAGES = [
+  { code: "en-US", name: "English (US)" },
+  { code: "es-ES", name: "Spanish" },
+  { code: "fr-FR", name: "French" },
+  { code: "de-DE", name: "German" },
+  { code: "it-IT", name: "Italian" },
+  { code: "pt-BR", name: "Portuguese" },
+  { code: "ja-JP", name: "Japanese" },
+  { code: "ko-KR", name: "Korean" },
+  { code: "zh-CN", name: "Chinese" },
+];
+
+const Chatbot = ({ isVisible, onClose, isMobile }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +26,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
+  const [userAvatar, setUserAvatar] = useState("/default-avatar.png");
   const messagesEndRef = useRef(null);
   const { getAccessToken } = useAuth();
   const [chatHistory, setChatHistory] = useState([]);
@@ -24,11 +37,12 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     "📈 What's the price of Bitcoin?",
     "💼 How do I start investing?",
   ]);
+  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].code);
 
   const navigate = useNavigate();
 
   const handleCourseClick = (path) => {
-    setIsVisible(false); // Close the chatbot
+    onClose();
 
     // Check if path contains an anchor/hash
     if (path.includes("#")) {
@@ -99,6 +113,28 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     }
   }, [isMobile, voices.length]);
 
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/userprofile/`,
+          {
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
+          }
+        );
+        if (response.data.profile_avatar) {
+          setUserAvatar(response.data.profile_avatar);
+        }
+      } catch (error) {
+        console.error("Error fetching user avatar:", error);
+      }
+    };
+
+    fetchUserAvatar();
+  }, [getAccessToken]);
+
   const startVoiceRecognition = () => {
     if (
       !("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
@@ -110,7 +146,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
+    recognition.lang = selectedLanguage; // Use selected language
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -443,7 +479,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
       {!isMobile && (
         <button
           className="chatbot-toggle btn-accent"
-          onClick={() => setIsVisible(!isVisible)}
+          onClick={() => onClose(!isVisible)}
           aria-label="Open Finance Assistant"
         >
           💰
@@ -457,7 +493,7 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
           <span className="fw-semibold">Finance Assistant</span>
           <button
             className="btn btn-link text-accent p-0"
-            onClick={() => setIsVisible(false)}
+            onClick={onClose}
             aria-label="Close Finance Assistant"
           >
             ✖
@@ -476,24 +512,40 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
           <span className="text-muted">🔊 Speak Answers</span>
 
           {isSpeechEnabled && (
-            <select
-              className="form-select form-select-sm ms-auto"
-              onChange={(e) =>
-                setSelectedVoice(voices.find((v) => v.name === e.target.value))
-              }
-              value={selectedVoice?.name || ""}
-              style={{ maxWidth: "150px" }}
-            >
-              {voices.length > 0 ? (
-                voices.map((voice, index) => (
-                  <option key={index} value={voice.name}>
-                    {voice.name}
+            <div className="d-flex align-items-center ms-auto">
+              <select
+                className="form-select form-select-sm me-2"
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                style={{ maxWidth: "120px" }}
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
                   </option>
-                ))
-              ) : (
-                <option>Loading voices...</option>
-              )}
-            </select>
+                ))}
+              </select>
+              <select
+                className="form-select form-select-sm"
+                onChange={(e) =>
+                  setSelectedVoice(
+                    voices.find((v) => v.name === e.target.value)
+                  )
+                }
+                value={selectedVoice?.name || ""}
+                style={{ maxWidth: "150px" }}
+              >
+                {voices.length > 0 ? (
+                  voices.map((voice, index) => (
+                    <option key={index} value={voice.name}>
+                      {voice.name}
+                    </option>
+                  ))
+                ) : (
+                  <option>Loading voices...</option>
+                )}
+              </select>
+            </div>
           )}
         </div>
 
@@ -511,11 +563,23 @@ const Chatbot = ({ isVisible, setIsVisible, isMobile }) => {
             >
               <div className="message-content d-flex align-items-start">
                 <div className="message-icon me-2">
-                  {msg.sender === "user"
-                    ? "👤"
-                    : msg.sender === "bot"
-                    ? "🤖"
-                    : "⚙️"}
+                  {msg.sender === "user" ? (
+                    <img
+                      src={userAvatar}
+                      alt="User Avatar"
+                      className="user-avatar"
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : msg.sender === "bot" ? (
+                    "🤖"
+                  ) : (
+                    "⚙️"
+                  )}
                 </div>
                 <div className="message-text">
                   {msg.text}
