@@ -28,7 +28,7 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [userAvatar, setUserAvatar] = useState("/default-avatar.png");
   const messagesEndRef = useRef(null);
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, isInitialized, isAuthenticated } = useAuth();
   const [chatHistory, setChatHistory] = useState([]);
   const [quickReplies] = useState([
     "💰 What is compound interest?",
@@ -44,25 +44,14 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
   const handleCourseClick = (path) => {
     onClose();
 
-    // Check if path contains an anchor/hash
     if (path.includes("#")) {
       const [basePath, anchor] = path.split("#");
-      navigate(basePath);
 
-      // Wait for navigation to complete, then scroll to the element
-      setTimeout(() => {
-        const element = document.getElementById(anchor);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-          // Highlight the path card temporarily
-          element.classList.add("highlight-path");
-          setTimeout(() => {
-            element.classList.remove("highlight-path");
-          }, 2000);
-        }
-      }, 100);
+      // Store anchor for delayed scroll after page load
+      sessionStorage.setItem("scrollToPathId", anchor);
+
+      navigate(basePath);
     } else {
-      // Regular navigation
       navigate(path);
     }
   };
@@ -114,6 +103,8 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
   }, [isMobile, voices.length]);
 
   useEffect(() => {
+    if (!isInitialized || !isAuthenticated) return;
+
     const fetchUserAvatar = async () => {
       try {
         const response = await axios.get(
@@ -133,7 +124,7 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
     };
 
     fetchUserAvatar();
-  }, [getAccessToken]);
+  }, [getAccessToken, isInitialized, isAuthenticated]);
 
   const startVoiceRecognition = () => {
     if (
@@ -175,6 +166,18 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
   };
 
   const handleMessageSend = async (message = null) => {
+    if (!isAuthenticated) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          sender: "bot",
+          text: "Please log in to use the chatbot. You will be redirected to the login page.",
+        },
+      ]);
+      navigate("/login");
+      return;
+    }
+
     const userMessage = message || inputMessage;
     if (!userMessage.trim()) return;
 

@@ -97,9 +97,9 @@ const Leaderboards = () => {
   }
 
   return (
-    <div className="leaderboard-container content-wrapper">
-      <div className="container">
-        <div className="dashboard-top-section two-column-layout">
+    <div className="leaderboard-container">
+      <div className="leaderboard-content">
+        <div className="dashboard-top-section">
           <div className="column-main">
             <div className="referral-container">
               <ReferralLink referralCode={referralCode} />

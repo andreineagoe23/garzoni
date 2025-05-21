@@ -1,50 +1,172 @@
 @import "../abstracts/variables";
 
 .leaderboard-container {
-  margin-left: 280px;
-  padding: map-get($spacers, 4);
+  position: relative;
   min-height: 100vh;
-  background-color: var(--bg-color);
-  transition: margin 0.3s ease;
-  
-  @include media-breakpoint-down(lg) {
+  background: var(--bg-color);
+  transition: all 0.3s ease;
+  padding-top: 60px; // Add padding for navbar height
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+
+  @media (max-width: 992px) {
     margin-left: 0;
-    padding: map-get($spacers, 3);
-  }
-  
-  @include media-breakpoint-down(md) {
-    padding: map-get($spacers, 2);
-  }
-}
-
-.dashboard-top-section {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: map-get($spacers, 4);
-  max-width: 1400px;
-  margin: 0 auto map-get($spacers, 5);
-  
-  @include media-breakpoint-between(lg, xxl) {
-    grid-template-columns: repeat(2, minmax(400px, 1fr));
-  }
-  
-  @include media-breakpoint-down(lg) {
-    gap: map-get($spacers, 3);
-    margin-bottom: map-get($spacers, 4);
+    width: 100%;
   }
 
-  @include media-breakpoint-between(md, lg) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: map-get($spacers, 2);
+
+  @media (min-width: 992px) {
+    margin-left: 260px;
   }
 
-  @include media-breakpoint-down(md) {
-    grid-template-columns: 1fr;
-    max-width: 600px;
+  .leaderboard-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    @media (max-width: 992px) {
+      padding: 1rem;
+    }
   }
 
-  @include media-breakpoint-down(sm) {
-    max-width: 100%;
+  .dashboard-top-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    .column-main {
+      width: 100%;
+      
+      .referral-container {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+      }
+    }
+
+    .column-side {
+      width: 100%;
+      
+      .friend-requests-container {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+      }
+    }
+  }
+
+  .search-bar {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    
+    input {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      
+      &:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--accent-color-rgb), 0.25);
+      }
+    }
+  }
+
+  .leaderboard-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+    font-size: 2rem;
+    font-weight: 600;
+  }
+
+  .leaderboard-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+
+    .leaderboard-toggle {
+      .btn {
+        padding: 0.5rem 2rem;
+        font-weight: 500;
+        
+        &.active {
+          background-color: var(--accent-color);
+          border-color: var(--accent-color);
+        }
+      }
+    }
+  }
+
+  .table-responsive {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .leaderboard-table {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+
+    .table-header {
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border-color);
+      
+      th {
+        color: var(--text-color);
+        font-weight: 600;
+        padding: 1rem;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(var(--accent-color-rgb), 0.05);
+        }
+
+        td {
+          padding: 1rem;
+          color: var(--text-color);
+          vertical-align: middle;
+        }
+
+        &.rank-gold {
+          background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+          td:first-child::before {
+            content: '🥇';
+            margin-right: 0.5rem;
+          }
+        }
+
+        &.rank-silver {
+          background: linear-gradient(45deg, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.05));
+          td:first-child::before {
+            content: '🥈';
+            margin-right: 0.5rem;
+          }
+        }
+
+        &.rank-bronze {
+          background: linear-gradient(45deg, rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.05));
+          td:first-child::before {
+            content: '🥉';
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
   }
 }
 
