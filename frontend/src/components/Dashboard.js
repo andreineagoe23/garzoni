@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { Button } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import UserProgressBox from "./UserProgressBox";
@@ -14,7 +14,8 @@ function Dashboard() {
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const { getAccessToken } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { getAccessToken, isAuthenticated, isInitialized } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,6 +33,15 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // Wait for authentication to be initialized
+    if (!isInitialized) return;
+
+    // If not authenticated after initialization, redirect to login
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
     const fetchUserData = async () => {
       try {
         const profileResponse = await axios.get(
@@ -47,7 +57,8 @@ function Dashboard() {
           profileResponse.data.is_questionnaire_completed
         );
       } catch (error) {
-        navigate("/login");
+        console.error("Error fetching user data:", error);
+        // Don't navigate to login here - let the auth interceptor handle it
       }
     };
 
@@ -67,15 +78,37 @@ function Dashboard() {
       }
     };
 
-    fetchUserData();
-    fetchUserProgress();
-  }, [navigate, getAccessToken]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([fetchUserData(), fetchUserProgress()]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate, getAccessToken, isAuthenticated, isInitialized]);
 
   const handleCourseClick = (courseId) => {
     navigate(`/lessons/${courseId}`);
   };
 
   const isMobile = windowWidth < 768;
+
+  // Show loading spinner while initializing
+  if (!isInitialized || isLoading) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <Spinner animation="border" role="status" variant="accent">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
