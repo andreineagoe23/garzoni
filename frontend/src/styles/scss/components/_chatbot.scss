@@ -71,7 +71,7 @@
       bottom: 0;
       right: 0;
       width: 100%;
-      height: 85vh;
+      height: 75vh;
       max-width: 100vw;
       border-radius: $border-radius-lg $border-radius-lg 0 0;
       transform: translateY(100%);
@@ -86,7 +86,7 @@
     }
 
     @include media-breakpoint-down(sm) {
-      height: 90vh;
+      height: 80vh;
       bottom: 0;
       right: 0;
       border-radius: $border-radius-lg $border-radius-lg 0 0;

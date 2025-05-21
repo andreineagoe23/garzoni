@@ -293,6 +293,17 @@
       }
     }
   }
+
+  .progress-item {
+    .exercise-label {
+      color: var(--text-color);
+      font-weight: $font-weight-semibold;
+    }
+    
+    .status-text {
+      color: var(--muted-text);
+    }
+  }
 }
 
 .form-check {
