@@ -295,3 +295,453 @@
     }
   }
 }
+
+// Goals Tracker Styles
+.goal-tracker {
+  .goal-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius-lg;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $box-shadow;
+    }
+    
+    &.completed {
+      border-color: $success;
+      background: rgba($success, 0.05);
+      
+      .progress-bar {
+        background-color: $success;
+      }
+    }
+    
+    .goal-label {
+      font-weight: $font-weight-semibold;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .progress {
+      height: 0.75rem;
+      background-color: rgba(var(--primary-rgb), 0.1);
+      border-radius: $border-radius-pill;
+      overflow: hidden;
+      
+      .progress-bar {
+        transition: width 0.6s ease;
+      }
+    }
+    
+    .text-muted {
+      font-size: 0.875rem;
+    }
+  }
+  
+  @include media-breakpoint-down(md) {
+    .goal-box {
+      padding: 1rem;
+      
+      .goal-label {
+        font-size: 0.9rem;
+      }
+      
+      .text-muted {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  .goal-tracker {
+    .goal-box {
+      background: var(--card-bg);
+      border-color: var(--border-color);
+      
+      &.completed {
+        background: rgba($success, 0.1);
+      }
+      
+      .progress {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// Calendar Heatmap Styles
+.calendar-heatmap {
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  
+  .react-calendar-heatmap {
+    width: 100%;
+    
+    .react-calendar-heatmap-month-label {
+      fill: var(--text-color);
+      font-size: 0.75rem;
+    }
+    
+    .react-calendar-heatmap-weekday-label {
+      fill: var(--text-muted);
+      font-size: 0.7rem;
+    }
+    
+    .react-calendar-heatmap-rectangle {
+      rx: 2;
+      ry: 2;
+    }
+  }
+  
+  // Color scale
+  .color-empty {
+    fill: var(--border-color);
+  }
+  
+  .color-scale-1 {
+    fill: #a2d5c6;
+  }
+  
+  .color-scale-2 {
+    fill: #66b2a4;
+  }
+  
+  .color-scale-3 {
+    fill: #388e7c;
+  }
+  
+  .color-scale-4 {
+    fill: #1e6e5c;
+  }
+  
+  @include media-breakpoint-down(md) {
+    padding: 1rem;
+    
+    .react-calendar-heatmap {
+      .react-calendar-heatmap-month-label {
+        font-size: 0.65rem;
+      }
+      
+      .react-calendar-heatmap-weekday-label {
+        font-size: 0.6rem;
+      }
+    }
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  .calendar-heatmap {
+    .color-empty {
+      fill: rgba(255, 255, 255, 0.1);
+    }
+    
+    .color-scale-1 {
+      fill: #2d8a7a;
+    }
+    
+    .color-scale-2 {
+      fill: #1e6e5c;
+    }
+    
+    .color-scale-3 {
+      fill: #0d4c3e;
+    }
+    
+    .color-scale-4 {
+      fill: #002b1f;
+    }
+  }
+}
+
+// Badge Styles
+.badges-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.card-grid-badges {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(140px, auto)); // 3 rows on larger screens
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(120px, 1fr);
+  gap: 1rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 3px;
+  }
+  
+  // Badge card styles
+  .badge-card {
+    scroll-snap-align: start;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: var(--card-bg);
+    border-radius: $border-radius-lg;
+    padding: 1rem 0.75rem;
+    border: 1px solid var(--border-color);
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: $box-shadow;
+      
+      .badge-image {
+        transform: scale(1.1);
+      }
+    }
+    
+    &.locked {
+      cursor: not-allowed;
+      background: rgba(var(--text-muted-rgb), 0.05);
+      
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    
+    .badge-image-wrapper {
+      position: relative;
+      width: 70px;
+      height: 70px;
+      margin: 0 auto;
+      
+      .badge-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        
+        &.locked {
+          filter: grayscale(100%);
+        }
+      }
+      
+      .badge-lock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        opacity: 0.8;
+      }
+    }
+    
+    .badge-name {
+      font-size: 0.9rem;
+      font-weight: $font-weight-semibold;
+      color: var(--text-color);
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    small {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  
+  // Media queries for responsive layout
+  @include media-breakpoint-down(md) {
+    grid-template-rows: repeat(2, minmax(120px, auto)); // 2 rows on mobile
+    grid-auto-columns: minmax(100px, 1fr);
+    gap: 0.75rem;
+    
+    .badge-card {
+      padding: 0.75rem 0.5rem;
+      
+      .badge-image-wrapper {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .badge-name {
+        font-size: 0.8rem;
+      }
+      
+      small {
+        font-size: 0.7rem;
+      }
+    }
+  }
+}
+
+// Tooltip Styles
+.badge-tooltip {
+  text-align: left;
+  padding: 0.5rem;
+  
+  strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--primary);
+  }
+  
+  p {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {  
+  .card-grid-badges {
+    .badge-card {
+      &.locked {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      
+      .badge-lock-overlay {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+  
+  .badge-tooltip {
+    strong {
+      color: var(--primary);
+    }
+  }
+}
+
+// Timeline Styles
+.profile-timeline {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  
+  .vertical-timeline {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+  
+  .vertical-timeline-element {
+    margin: 1rem 0;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .vertical-timeline-element-content {
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      margin-left: 40px;
+      
+      .vertical-timeline-element-date {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        opacity: 0.8;
+        padding: 0;
+        margin-left: 10px;
+      }
+      
+      .timeline-title {
+        font-size: 1rem;
+        font-weight: $font-weight-semibold;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+      }
+      
+      .timeline-text {
+        font-size: 0.85rem;
+      }
+    }
+    
+    .vertical-timeline-element-icon {
+      width: 32px;
+      height: 32px;
+      left: 8px;
+      box-shadow: 0 0 0 3px var(--primary), 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  // Timeline media queries
+  @include media-breakpoint-down(md) {
+    margin-left: -10px;
+    margin-right: -10px;
+    
+    .vertical-timeline-element-content {
+      margin-left: 30px !important;
+      padding: 12px !important;
+      
+      .vertical-timeline-element-date {
+        font-size: 0.7rem !important;
+      }
+      
+      .timeline-title {
+        font-size: 0.9rem !important;
+      }
+      
+      .timeline-text {
+        font-size: 0.8rem !important;
+      }
+    }
+    
+    .vertical-timeline-element-icon {
+      width: 28px !important;
+      height: 28px !important;
+      left: 4px !important;
+    }
+  }
+}
+
+// Dark mode overrides for timeline
+[data-theme="dark"] {
+  .vertical-timeline-element-content {
+    border-color: var(--border-color) !important;
+    
+    .vertical-timeline-element-date {
+      color: var(--text-muted) !important;
+    }
+  }
+  
+  .vertical-timeline-element-icon {
+    background-color: var(--primary) !important;
+  }
+  
+  .timeline-date {
+    color: var(--text-muted) !important;
+  }
+}
