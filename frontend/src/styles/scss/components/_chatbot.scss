@@ -71,7 +71,7 @@
       bottom: 0;
       right: 0;
       width: 100%;
-      height: 70vh;
+      height: 85vh;
       max-width: 100vw;
       border-radius: $border-radius-lg $border-radius-lg 0 0;
       transform: translateY(100%);
@@ -86,7 +86,7 @@
     }
 
     @include media-breakpoint-down(sm) {
-      height: 60vh;
+      height: 90vh;
       bottom: 0;
       right: 0;
       border-radius: $border-radius-lg $border-radius-lg 0 0;
@@ -368,10 +368,16 @@
       border: 1px solid var(--border-color);
       color: var(--text-color);
       font-size: 0.875rem;
+      max-width: 200px;
       
       &:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 0.15rem rgba(var(--accent-rgb), 0.25);
+      }
+
+      @include media-breakpoint-down(sm) {
+        max-width: 150px;
+        font-size: 0.8rem;
       }
     }
   }

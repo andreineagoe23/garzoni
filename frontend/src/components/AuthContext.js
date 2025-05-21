@@ -21,31 +21,30 @@ const BACKEND_URL =
 const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refresh attempts
 let lastRefreshAttempt = 0;
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, skipInitialAuth = false }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [tokenRefreshInProgress, setTokenRefreshInProgress] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const refreshAttempts = useRef(0);
   const maxRefreshAttempts = 3;
+  const isVerifying = useRef(false);
 
   // Get the token from memory, not from localStorage
   const getAccessToken = () => inMemoryToken;
 
   // Function to refresh the token - wrapped in useCallback
   const refreshToken = useCallback(async () => {
-    if (tokenRefreshInProgress) return false;
+    if (tokenRefreshInProgress || isVerifying.current) return false;
 
     // Check rate limiting
     const now = Date.now();
     if (now - lastRefreshAttempt < REFRESH_COOLDOWN) {
-      console.log("Token refresh cooldown in effect");
       return false;
     }
 
     // Check max attempts
     if (refreshAttempts.current >= maxRefreshAttempts) {
-      console.log("Max refresh attempts reached");
       return false;
     }
 
@@ -53,7 +52,6 @@ export const AuthProvider = ({ children }) => {
       setTokenRefreshInProgress(true);
       lastRefreshAttempt = now;
       refreshAttempts.current += 1;
-      console.log("Attempting to refresh token...");
 
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
@@ -66,7 +64,6 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      console.log("Token refresh successful");
       // Reset refresh attempts on success
       refreshAttempts.current = 0;
       // Update the in-memory token
@@ -80,7 +77,6 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error("Token refresh failed:", error);
       return false;
     } finally {
       setTokenRefreshInProgress(false);
@@ -89,15 +85,22 @@ export const AuthProvider = ({ children }) => {
 
   // Check if we are authenticated on initial load
   useEffect(() => {
+    // Skip auth check if skipInitialAuth is true
+    if (skipInitialAuth) {
+      setIsInitialized(true);
+      return;
+    }
+
     const verifyAuth = async () => {
+      if (isVerifying.current) return;
+
       try {
-        console.log("Verifying authentication...");
+        isVerifying.current = true;
         const response = await axios.get(`${BACKEND_URL}/verify-auth/`, {
           withCredentials: true,
         });
 
         if (response.data.isAuthenticated) {
-          console.log("User is authenticated:", response.data);
           inMemoryToken = response.data.access;
           setIsAuthenticated(true);
           setUser(response.data.user);
@@ -107,7 +110,6 @@ export const AuthProvider = ({ children }) => {
             "Authorization"
           ] = `Bearer ${inMemoryToken}`;
         } else {
-          console.log("User is not authenticated");
           // Only try to refresh if we haven't exceeded max attempts
           if (refreshAttempts.current < maxRefreshAttempts) {
             const refreshSuccess = await refreshToken();
@@ -123,7 +125,6 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error("Auth verification failed:", error);
         // Only try to refresh if we haven't exceeded max attempts
         if (refreshAttempts.current < maxRefreshAttempts) {
           const refreshSuccess = await refreshToken();
@@ -139,11 +140,12 @@ export const AuthProvider = ({ children }) => {
         }
       } finally {
         setIsInitialized(true);
+        isVerifying.current = false;
       }
     };
 
     verifyAuth();
-  }, [refreshToken]);
+  }, [refreshToken, skipInitialAuth]);
 
   // Add axios request interceptor
   useEffect(() => {
@@ -291,6 +293,7 @@ export const AuthProvider = ({ children }) => {
         registerUser,
         logoutUser,
         getAccessToken,
+        isInitialized,
       }}
     >
       {children}
