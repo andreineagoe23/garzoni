@@ -25,86 +25,16 @@ export const AuthProvider = ({ children }) => {
   // Get the token from memory, not from localStorage
   const getAccessToken = () => inMemoryToken;
 
-  // Login function that stores access token in memory only
-  const loginUser = async (credentials) => {
-    try {
-      // Create a clean instance of axios without auth headers
-      const loginInstance = axios.create();
-
-      const response = await loginInstance.post(
-        `${BACKEND_URL}/login-secure/`,
-        credentials,
-        { withCredentials: true }
-      );
-
-      console.log("Login successful, setting token");
-
-      // Store only the access token in memory, refresh token is in HttpOnly cookie
-      inMemoryToken = response.data.access;
-
-      // Set authenticated state
-      setIsAuthenticated(true);
-      setUser(response.data.user);
-
-      // Force immediate update to headers for subsequent requests
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${inMemoryToken}`;
-
-      return { success: true };
-    } catch (error) {
-      console.error("Login error:", error.response?.data || error.message);
-      return {
-        success: false,
-        error:
-          error.response?.data?.detail ||
-          error.response?.data?.error ||
-          "Login failed. Please try again.",
-      };
-    }
-  };
-
-  // Register function that stores access token in memory only
-  const registerUser = async (userData) => {
-    try {
-      const response = await axios.post(
-        `${BACKEND_URL}/register-secure/`,
-        userData,
-        { withCredentials: true }
-      );
-
-      // Store only the access token in memory, refresh token is in HttpOnly cookie
-      inMemoryToken = response.data.access;
-
-      // Set authenticated state
-      setIsAuthenticated(true);
-      setUser(response.data.user);
-
-      return { success: true, next: response.data.next };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || "Registration failed",
-      };
-    }
-  };
-
   // Function to refresh the token - wrapped in useCallback
   const refreshToken = useCallback(async () => {
-    if (tokenRefreshInProgress || !isAuthenticated) return false;
+    if (tokenRefreshInProgress) return false;
 
     try {
       setTokenRefreshInProgress(true);
       console.log("Attempting to refresh token...");
 
-      // Use the direct token refresh endpoint to avoid routing issues
-      const refreshEndpoint = `${
-        process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"
-      }/token/refresh/`;
-      console.log("Using refresh endpoint:", refreshEndpoint);
-
       const response = await axios.post(
-        refreshEndpoint,
+        `${BACKEND_URL}/token/refresh/`,
         {},
         {
           withCredentials: true,
@@ -126,39 +56,12 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      // If refresh fails, logout
       console.error("Token refresh failed:", error);
-      console.error("Response data:", error.response?.data);
-      await logoutUser();
       return false;
     } finally {
       setTokenRefreshInProgress(false);
     }
-  }, [tokenRefreshInProgress, isAuthenticated]);
-
-  // Logout function that clears the token from memory and the cookie
-  const logoutUser = async () => {
-    try {
-      // Only attempt to call logout endpoint if we have a token
-      if (inMemoryToken) {
-        await axios.post(
-          `${BACKEND_URL}/logout/`,
-          {},
-          {
-            withCredentials: true,
-            headers: { Authorization: `Bearer ${inMemoryToken}` },
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Logout API error:", error);
-    } finally {
-      // Clear in-memory token
-      inMemoryToken = null;
-      setIsAuthenticated(false);
-      setUser(null);
-    }
-  };
+  }, [tokenRefreshInProgress]);
 
   // Check if we are authenticated on initial load
   useEffect(() => {
@@ -174,25 +77,37 @@ export const AuthProvider = ({ children }) => {
           inMemoryToken = response.data.access;
           setIsAuthenticated(true);
           setUser(response.data.user);
+
+          // Set the authorization header
+          axios.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${inMemoryToken}`;
         } else {
           console.log("User is not authenticated");
+          // Try to refresh the token if we're not authenticated
+          const refreshSuccess = await refreshToken();
+          if (!refreshSuccess) {
+            inMemoryToken = null;
+            setIsAuthenticated(false);
+            setUser(null);
+          }
         }
       } catch (error) {
-        // Don't log the error for 401 responses as they're expected when not logged in
-        if (error.response?.status !== 401) {
-          console.error("Auth verification failed:", error);
+        console.error("Auth verification failed:", error);
+        // Try to refresh the token on error
+        const refreshSuccess = await refreshToken();
+        if (!refreshSuccess) {
+          inMemoryToken = null;
+          setIsAuthenticated(false);
+          setUser(null);
         }
-        // Clear any lingering state
-        inMemoryToken = null;
-        setIsAuthenticated(false);
-        setUser(null);
       } finally {
         setIsInitialized(true);
       }
     };
 
     verifyAuth();
-  }, []);
+  }, [refreshToken]);
 
   // Add axios request interceptor
   useEffect(() => {
@@ -201,7 +116,6 @@ export const AuthProvider = ({ children }) => {
         // Add token to headers if available
         const token = getAccessToken();
         if (token) {
-          console.log("Adding auth token to request");
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -213,36 +127,24 @@ export const AuthProvider = ({ children }) => {
     const responseInterceptor = axios.interceptors.response.use(
       (response) => response,
       async (error) => {
-        // Handle 401 Unauthorized errors by refreshing the token
         const originalRequest = error.config;
 
         // If the error is 401 and we haven't tried to refresh yet
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          isAuthenticated
-        ) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
-
-          console.log("401 error detected, attempting to refresh token");
 
           try {
             // Try to refresh the token
             const refreshSuccess = await refreshToken();
 
             if (refreshSuccess) {
-              console.log("Token refreshed successfully, retrying request");
               // Update the token in the failed request
               const newToken = getAccessToken();
               originalRequest.headers.Authorization = `Bearer ${newToken}`;
               return axios(originalRequest);
-            } else {
-              console.log("Token refresh failed, rejecting request");
-              return Promise.reject(error);
             }
           } catch (refreshError) {
             console.error("Error during token refresh:", refreshError);
-            return Promise.reject(error);
           }
         }
 
@@ -255,7 +157,86 @@ export const AuthProvider = ({ children }) => {
       axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
     };
-  }, [refreshToken, isAuthenticated]);
+  }, [refreshToken]);
+
+  // Login function that stores access token in memory only
+  const loginUser = async (credentials) => {
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/login-secure/`,
+        credentials,
+        { withCredentials: true }
+      );
+
+      inMemoryToken = response.data.access;
+      setIsAuthenticated(true);
+      setUser(response.data.user);
+
+      // Set the authorization header
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${inMemoryToken}`;
+
+      return { success: true };
+    } catch (error) {
+      console.error("Login error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error:
+          error.response?.data?.detail || "Login failed. Please try again.",
+      };
+    }
+  };
+
+  // Register function that stores access token in memory only
+  const registerUser = async (userData) => {
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/register-secure/`,
+        userData,
+        { withCredentials: true }
+      );
+
+      inMemoryToken = response.data.access;
+      setIsAuthenticated(true);
+      setUser(response.data.user);
+
+      // Set the authorization header
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${inMemoryToken}`;
+
+      return { success: true, next: response.data.next };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || "Registration failed",
+      };
+    }
+  };
+
+  // Logout function that clears the token from memory and the cookie
+  const logoutUser = async () => {
+    try {
+      if (inMemoryToken) {
+        await axios.post(
+          `${BACKEND_URL}/logout/`,
+          {},
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${inMemoryToken}` },
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
+      inMemoryToken = null;
+      setIsAuthenticated(false);
+      setUser(null);
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  };
 
   // Don't render children until initial auth check is complete
   if (!isInitialized) {

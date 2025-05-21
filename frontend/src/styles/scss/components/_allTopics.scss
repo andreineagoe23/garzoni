@@ -9,6 +9,13 @@
         overflow: hidden;
         background: var(--card-bg);
 
+        &.highlight-path {
+            animation: pulse-highlight 2s;
+            border: 3px solid $accent;
+            box-shadow: 0 0 20px rgba($accent, 0.6);
+            transform: translateY(-5px);
+        }
+
         .card-body {
             display: flex;
             flex-direction: column;
@@ -95,5 +102,17 @@
             .card-title { font-size: 1.3rem; }
             .path-image { height: 180px; }
         }
+    }
+}
+
+@keyframes pulse-highlight {
+    0% {
+        box-shadow: 0 0 10px rgba($accent, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba($accent, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba($accent, 0.4);
     }
 }
