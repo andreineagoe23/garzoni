@@ -47,7 +47,25 @@ function AllTopics({ onCourseClick }) {
       <div className="row g-4">
         {learningPaths.map((path) => (
           <div key={path.id} className="col-12 col-md-6">
-            <div className="learning-path-card card h-100 shadow-sm">
+            <div
+              id={path.id}
+              className="learning-path-card card h-100 shadow-sm"
+              ref={(el) => {
+                // Check if URL has anchor matching this path
+                if (window.location.hash === `#${path.id}`) {
+                  // Wait a moment then scroll and highlight
+                  setTimeout(() => {
+                    el?.scrollIntoView({ behavior: "smooth" });
+                    if (el) {
+                      el.classList.add("highlight-path");
+                      setTimeout(() => {
+                        el.classList.remove("highlight-path");
+                      }, 2000);
+                    }
+                  }, 300);
+                }
+              }}
+            >
               <div className="card-body">
                 <h3 className="card-title mb-3">{path.title}</h3>
 

@@ -37,9 +37,9 @@
     position: fixed;
     bottom: map-get($spacers, 3);
     right: map-get($spacers, 3);
-    width: 400px;
+    width: 450px;
     max-width: 95vw;
-    height: 70vh;
+    height: 80vh;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: $border-radius-lg;
@@ -62,8 +62,8 @@
     @include media-breakpoint-up(lg) {
       bottom: map-get($spacers, 4);
       right: map-get($spacers, 4);
-      height: 60vh;
-      max-height: 600px;
+      height: 70vh;
+      max-height: 800px;
     }
 
     @include media-breakpoint-down(md) {
@@ -71,7 +71,7 @@
       bottom: 0;
       right: 0;
       width: 100%;
-      height: 80vh;
+      height: 85vh;
       max-width: 100vw;
       border-radius: $border-radius-lg $border-radius-lg 0 0;
       transform: translateY(100%);
@@ -87,7 +87,7 @@
 
     .chat-history {
       flex: 1;
-      max-height: calc(100% - 120px);
+      max-height: calc(100% - 140px);
       overflow-y: auto;
       background: var(--bg-color);
       padding: map-get($spacers, 3);
@@ -100,6 +100,80 @@
         padding: map-get($spacers, 3);
         line-height: 1.5;
         position: relative;
+
+        .message-content {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+
+        .message-icon {
+          font-size: 1.2rem;
+          min-width: 24px;
+          text-align: center;
+        }
+
+        .message-text {
+          flex: 1;
+
+          .course-link {
+            margin-top: 0.75rem;
+            
+            .btn-accent {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0.5rem 1rem;
+              font-size: 0.9rem;
+              border-radius: 20px;
+              transition: all 0.2s ease;
+              
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+            }
+          }
+          
+          .course-links {
+            margin-top: 0.75rem;
+            
+            p {
+              font-size: 0.85rem;
+              color: var(--text-color);
+              opacity: 0.8;
+              margin-bottom: 0.5rem;
+            }
+            
+            .btn-accent {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0.4rem 0.8rem;
+              font-size: 0.85rem;
+              border-radius: 20px;
+              margin-right: 0.5rem;
+              margin-bottom: 0.5rem;
+              transition: all 0.2s ease;
+              
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+            }
+          }
+        }
+
+        .speaking-indicator {
+          animation: pulse 1.5s infinite;
+          font-size: 1rem;
+        }
+
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
 
         p {
           margin-bottom: 0.5rem;
@@ -145,6 +219,10 @@
           margin-left: auto;
           border-top-right-radius: 0;
           
+          .message-icon {
+            color: $accent;
+          }
+          
           &::after {
             content: '';
             position: absolute;
@@ -162,6 +240,10 @@
           color: var(--text-color);
           border-top-left-radius: 0;
           
+          .message-icon {
+            color: var(--primary);
+          }
+          
           &::after {
             content: '';
             position: absolute;
@@ -171,6 +253,29 @@
             height: 0;
             border-top: 8px solid var(--border-color);
             border-left: 8px solid transparent;
+          }
+
+          .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+          }
+
+          .quick-reply-button {
+            background-color: var(--primary);
+            color: var(--accent);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
           }
         }
       }
@@ -398,6 +503,39 @@
       .value {
         font-variant-numeric: tabular-nums;
       }
+    }
+  }
+
+  .quick-replies-container {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .quick-replies-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .quick-reply-button {
+    background-color: #e9ecef;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #dee2e6;
     }
   }
 }

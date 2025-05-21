@@ -50,6 +50,7 @@ from .views import (
     RegisterSecureView,
     LogoutSecureView,
     VerifyAuthView,
+    OpenRouterProxyView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
@@ -138,6 +139,6 @@ urlpatterns = [
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
 
     path('proxy/hf/', HuggingFaceProxyView.as_view(), name='hf-proxy'),
-
+    path('proxy/openrouter/', OpenRouterProxyView.as_view(), name='openrouter-proxy'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
