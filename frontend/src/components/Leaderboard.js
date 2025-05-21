@@ -4,7 +4,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/scss/main.scss";
 import FriendRequests from "./FriendRequest";
 import ReferralLink from "./ReferralLink";
-import { Tabs, Tab, Table } from "react-bootstrap";
 import { useAuth } from "./AuthContext";
 
 const Leaderboards = () => {
