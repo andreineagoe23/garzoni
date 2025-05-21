@@ -10,11 +10,10 @@
     margin-left: 280px;
     position: relative;
     flex-grow: 1;
-    // Add flex direction for mobile
-    flex-direction: column; // Default to column for mobile-first approach
+    flex-direction: column;
 
     @include media-breakpoint-up(lg) {
-      flex-direction: row; // Switch to row on large screens
+      flex-direction: row;
     }
 
     @include media-breakpoint-down(lg) {
@@ -45,7 +44,7 @@
 
   &-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: map-get($spacers, 4);
     
@@ -68,6 +67,7 @@
 
   &-buttons {
     display: flex;
+    justify-content: center;
     gap: map-get($spacers, 3);
     margin-bottom: map-get($spacers, 4);
     flex-wrap: wrap;

@@ -1,214 +1,165 @@
 import React, {
   createContext,
   useContext,
-  useEffect,
   useState,
-  useCallback,
   useRef,
+  useCallback,
+  useEffect,
 } from "react";
 import axios from "axios";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 // Access token is kept in memory only for better security
 let inMemoryToken = null;
-
-// Define backend URL - either from environment variable or hardcoded fallback
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 // Rate limiting for token refresh
 const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refresh attempts
-let lastRefreshAttempt = 0;
+let refreshAttempts = 0;
+const MAX_REFRESH_ATTEMPTS = 3;
 
-export const AuthProvider = ({ children, skipInitialAuth = false }) => {
+export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [tokenRefreshInProgress, setTokenRefreshInProgress] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const refreshAttempts = useRef(0);
-  const maxRefreshAttempts = 3;
   const isVerifying = useRef(false);
+  const lastRefreshAttempt = useRef(0);
 
-  // Get the token from memory, not from localStorage
-  const getAccessToken = () => inMemoryToken;
+  const clearAuthState = () => {
+    console.log("Clearing auth state");
+    inMemoryToken = null;
+    setIsAuthenticated(false);
+    setUser(null);
+    refreshAttempts = 0;
+    delete axios.defaults.headers.common["Authorization"];
+  };
 
-  // Function to refresh the token - wrapped in useCallback
-  const refreshToken = useCallback(async () => {
-    if (tokenRefreshInProgress || isVerifying.current) return false;
-
-    // Check rate limiting
+  const refreshToken = async () => {
     const now = Date.now();
-    if (now - lastRefreshAttempt < REFRESH_COOLDOWN) {
+    if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
+      console.log("Refresh cooldown active");
       return false;
     }
 
-    // Check max attempts
-    if (refreshAttempts.current >= maxRefreshAttempts) {
+    if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
+      console.error("Max refresh attempts reached");
       return false;
     }
 
     try {
-      setTokenRefreshInProgress(true);
-      lastRefreshAttempt = now;
-      refreshAttempts.current += 1;
+      console.log("Attempting token refresh");
+      lastRefreshAttempt.current = now;
+      refreshAttempts++;
 
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
         {},
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { withCredentials: true }
       );
 
-      // Reset refresh attempts on success
-      refreshAttempts.current = 0;
-      // Update the in-memory token
-      inMemoryToken = response.data.access;
-      setIsAuthenticated(true);
+      if (!response.data.access) {
+        console.error("No access token in refresh response");
+        return false;
+      }
 
-      // Update the default authorization header for all future requests
+      console.log("Token refresh successful");
+      inMemoryToken = response.data.access;
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
 
+      // Verify user data with the new token
+      const verify = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${inMemoryToken}`,
+        },
+      });
+
+      setUser(verify.data.user);
+      setIsAuthenticated(true);
+      refreshAttempts = 0;
       return true;
     } catch (error) {
+      console.error(
+        "Token refresh failed:",
+        error.response?.data || error.message
+      );
       return false;
-    } finally {
-      setTokenRefreshInProgress(false);
     }
-  }, [tokenRefreshInProgress]);
+  };
 
-  // Check if we are authenticated on initial load
-  useEffect(() => {
-    // Skip auth check if skipInitialAuth is true
-    if (skipInitialAuth) {
-      setIsInitialized(true);
-      return;
-    }
+  const verifyAuth = useCallback(async () => {
+    if (isVerifying.current) return;
 
-    const verifyAuth = async () => {
-      if (isVerifying.current) return;
+    try {
+      console.log("Starting auth verification");
+      isVerifying.current = true;
 
+      // Try to refresh token first
+      const refreshed = await refreshToken();
+      if (refreshed) {
+        console.log("Auth verified via token refresh");
+        return;
+      }
+
+      // If refresh failed, try direct verification as fallback
       try {
-        isVerifying.current = true;
-        const response = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+        console.log("Attempting direct verification");
+        const verifyResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
           withCredentials: true,
+          headers: inMemoryToken
+            ? {
+                Authorization: `Bearer ${inMemoryToken}`,
+              }
+            : {},
         });
 
-        if (response.data.isAuthenticated) {
-          inMemoryToken = response.data.access;
+        if (verifyResponse.data.is_authenticated) {
+          console.log("Auth verified directly");
           setIsAuthenticated(true);
-          setUser(response.data.user);
-
-          // Set the authorization header
-          axios.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${inMemoryToken}`;
-        } else {
-          // Only try to refresh if we haven't exceeded max attempts
-          if (refreshAttempts.current < maxRefreshAttempts) {
-            const refreshSuccess = await refreshToken();
-            if (!refreshSuccess) {
-              inMemoryToken = null;
-              setIsAuthenticated(false);
-              setUser(null);
-            }
-          } else {
-            inMemoryToken = null;
-            setIsAuthenticated(false);
-            setUser(null);
-          }
+          setUser(verifyResponse.data.user);
+          return;
         }
-      } catch (error) {
-        // Only try to refresh if we haven't exceeded max attempts
-        if (refreshAttempts.current < maxRefreshAttempts) {
-          const refreshSuccess = await refreshToken();
-          if (!refreshSuccess) {
-            inMemoryToken = null;
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        } else {
-          inMemoryToken = null;
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } finally {
-        setIsInitialized(true);
-        isVerifying.current = false;
+      } catch (verifyError) {
+        console.error(
+          "Direct verification failed:",
+          verifyError.response?.data || verifyError.message
+        );
       }
-    };
 
-    verifyAuth();
-  }, [refreshToken, skipInitialAuth]);
+      // If both refresh and verify failed, clear auth state
+      console.log("All verification attempts failed");
+      clearAuthState();
+    } catch (error) {
+      console.error(
+        "Auth verification failed:",
+        error.response?.data || error.message
+      );
+      clearAuthState();
+    } finally {
+      setIsInitialized(true);
+      isVerifying.current = false;
+    }
+  }, []);
 
-  // Add axios request interceptor
-  useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        // Add token to headers if available
-        const token = getAccessToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    // Add axios response interceptor
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        // If the error is 401 and we haven't tried to refresh yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          // Only attempt refresh if we haven't exceeded max attempts
-          if (refreshAttempts.current < maxRefreshAttempts) {
-            try {
-              // Try to refresh the token
-              const refreshSuccess = await refreshToken();
-
-              if (refreshSuccess) {
-                // Update the token in the failed request
-                const newToken = getAccessToken();
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return axios(originalRequest);
-              }
-            } catch (refreshError) {
-              console.error("Error during token refresh:", refreshError);
-            }
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
-
-    // Cleanup interceptors
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
-    };
-  }, [refreshToken]);
-
-  // Login function that stores access token in memory only
   const loginUser = async (credentials) => {
     try {
+      console.log("Attempting login");
       const response = await axios.post(
         `${BACKEND_URL}/login-secure/`,
         credentials,
         { withCredentials: true }
       );
 
+      if (!response.data.access) {
+        console.error("No access token in login response");
+        throw new Error("No access token received");
+      }
+
+      console.log("Login successful");
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
@@ -220,24 +171,32 @@ export const AuthProvider = ({ children, skipInitialAuth = false }) => {
 
       return { success: true };
     } catch (error) {
-      console.error("Login error:", error.response?.data || error.message);
+      console.error("Login failed:", error.response?.data || error.message);
       return {
         success: false,
         error:
-          error.response?.data?.detail || "Login failed. Please try again.",
+          error.response?.data?.detail ||
+          error.message ||
+          "Login failed. Please try again.",
       };
     }
   };
 
-  // Register function that stores access token in memory only
   const registerUser = async (userData) => {
     try {
+      console.log("Attempting registration");
       const response = await axios.post(
         `${BACKEND_URL}/register-secure/`,
         userData,
         { withCredentials: true }
       );
 
+      if (!response.data.access) {
+        console.error("No access token in registration response");
+        throw new Error("No access token received");
+      }
+
+      console.log("Registration successful");
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
@@ -249,16 +208,21 @@ export const AuthProvider = ({ children, skipInitialAuth = false }) => {
 
       return { success: true, next: response.data.next };
     } catch (error) {
+      console.error(
+        "Registration failed:",
+        error.response?.data || error.message
+      );
       return {
         success: false,
-        error: error.response?.data?.error || "Registration failed",
+        error:
+          error.response?.data?.error || error.message || "Registration failed",
       };
     }
   };
 
-  // Logout function that clears the token from memory and the cookie
   const logoutUser = async () => {
     try {
+      console.log("Attempting logout");
       if (inMemoryToken) {
         await axios.post(
           `${BACKEND_URL}/logout/`,
@@ -270,16 +234,64 @@ export const AuthProvider = ({ children, skipInitialAuth = false }) => {
         );
       }
     } catch (error) {
-      console.error("Logout API error:", error);
+      console.error("Logout failed:", error.response?.data || error.message);
     } finally {
-      inMemoryToken = null;
-      setIsAuthenticated(false);
-      setUser(null);
-      delete axios.defaults.headers.common["Authorization"];
+      clearAuthState();
     }
   };
 
-  // Don't render children until initial auth check is complete
+  const getAccessToken = () => {
+    return inMemoryToken;
+  };
+
+  // Set up axios interceptors
+  axios.interceptors.request.use(
+    (config) => {
+      if (inMemoryToken) {
+        config.headers.Authorization = `Bearer ${inMemoryToken}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        console.log("401 error detected, attempting token refresh");
+        originalRequest._retry = true;
+
+        try {
+          const refreshed = await refreshToken();
+          if (refreshed) {
+            console.log("Token refreshed, retrying request");
+            originalRequest.headers.Authorization = `Bearer ${inMemoryToken}`;
+            return axios(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error(
+            "Token refresh failed in interceptor:",
+            refreshError.response?.data || refreshError.message
+          );
+        }
+
+        clearAuthState();
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  // Verify auth on mount
+  useEffect(() => {
+    verifyAuth();
+  }, [verifyAuth]);
+
   if (!isInitialized) {
     return <div>Loading authentication...</div>;
   }
@@ -301,4 +313,10 @@ export const AuthProvider = ({ children, skipInitialAuth = false }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

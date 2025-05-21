@@ -13,6 +13,7 @@ import axios from "axios";
 import "../styles/scss/main.scss";
 import { useRef } from "react";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const ExercisePage = () => {
   const [exercises, setExercises] = useState([]);
@@ -29,7 +30,8 @@ const ExercisePage = () => {
     difficulty: "",
   });
   const exerciseRef = useRef(null);
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, isInitialized, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -70,8 +72,15 @@ const ExercisePage = () => {
   }, [filters, getAccessToken]);
 
   useEffect(() => {
+    if (!isInitialized) return; // Wait for auth check to complete
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
     fetchExercises();
-  }, [fetchExercises]);
+  }, [isInitialized, isAuthenticated, fetchExercises, navigate]);
 
   const initializeAnswer = (exercise) => {
     if (!exercise) return null;
