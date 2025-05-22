@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -35,14 +35,14 @@ from .models import (
     MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
     LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge,
     Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact,
-    UserFactProgress, ExerciseCompletion
+    UserFactProgress, ExerciseCompletion, FAQ, ContactMessage
 )
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, QuizSerializer,
     PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer,
     QuestionSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
     UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer,
-    ExerciseSerializer, UserExerciseProgressSerializer
+    ExerciseSerializer, UserExerciseProgressSerializer, FAQSerializer
 )
 from .dialogflow import detect_intent_from_text, perform_web_search
 from core.tokens import delete_jwt_cookies
@@ -50,6 +50,7 @@ import re
 from django.utils.timezone import now
 from datetime import datetime, timedelta
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.contrib.auth import update_session_auth_hash
 
 
 
@@ -2730,3 +2731,129 @@ class CustomTokenRefreshView(TokenRefreshView):
         except Exception as e:
             logger.error(f"Unexpected error during token refresh: {str(e)}", exc_info=True)
             return Response({"detail": "An error occurred during token refresh."}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """Allow logged-in users to change their password."""
+    user = request.user
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+
+    if not user.check_password(current_password):
+        return Response({"error": "Current password is incorrect."}, status=400)
+
+    if new_password != confirm_password:
+        return Response({"error": "New passwords do not match."}, status=400)
+
+    if len(new_password) < 8:
+        return Response({"error": "Password must be at least 8 characters."}, status=400)
+
+    user.set_password(new_password)
+    user.save()
+    update_session_auth_hash(request, user)  # Keep the user logged in
+
+    return Response({"message": "Password changed successfully."}, status=200)
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """Delete the currently authenticated user's account."""
+    user = request.user
+    try:
+        # Delete the user (this will cascade delete related objects)
+        user.delete()
+        return Response({"message": "Account deleted successfully."}, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_us(request):
+    """Handle contact form submissions from users"""
+    email = request.data.get("email")
+    topic = request.data.get("topic", "General")
+    message = request.data.get("message")
+    user_id = None
+
+    if request.user.is_authenticated:
+        user_id = request.user.id
+
+    if not email or not message:
+        return Response({"error": "Email and message are required."}, status=400)
+
+    try:
+        # Send email to admin
+        send_mail(
+            subject=f"[Contact Form] {topic}",
+            message=f"From: {email}\nUser ID: {user_id or 'Not logged in'}\nTopic: {topic}\n\n{message}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],  # Send to admin email
+            fail_silently=False,
+        )
+
+        # Store contact in database (optional, for future implementation)
+        # Contact.objects.create(
+        #     email=email,
+        #     topic=topic,
+        #     message=message,
+        #     user_id=user_id
+        # )
+
+        return Response({"message": "Your message has been sent successfully. We'll get back to you soon."})
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        return Response({"error": "Failed to send message. Please try again later."}, status=500)
+
+# FAQ list view
+class FAQListView(generics.ListAPIView):
+    queryset = FAQ.objects.filter(is_active=True).order_by("category", "question")
+    serializer_class = FAQSerializer
+    permission_classes = [AllowAny]
+
+# FAQ voting endpoint
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def vote_faq(request, faq_id):
+    vote = request.data.get("vote")
+    try:
+        faq = FAQ.objects.get(id=faq_id)
+        if vote == "helpful":
+            faq.helpful_count += 1
+        elif vote == "not_helpful":
+            faq.not_helpful_count += 1
+        else:
+            return Response({"error": "Invalid vote"}, status=400)
+        faq.save()
+        return Response({"message": "Thanks for your feedback!"})
+    except FAQ.DoesNotExist:
+        return Response({"error": "FAQ not found"}, status=404)
+
+# Contact form submission handler
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_us(request):
+    email = request.data.get("email")
+    topic = request.data.get("topic")
+    message = request.data.get("message")
+
+    if not email or not message:
+        return Response({"error": "Email and message are required."}, status=400)
+
+    # Save to database
+    ContactMessage.objects.create(email=email, topic=topic, message=message)
+
+    # Send email notification
+    try:
+        send_mail(
+            f"[Contact Form] {topic}",
+            f"From: {email}\n\n{message}",
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.CONTACT_EMAIL],
+        )
+    except Exception as e:
+        # Log the error but don't fail the request
+        print(f"Error sending email: {str(e)}")
+
+    return Response({"message": "Your message has been received!"})

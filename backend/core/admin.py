@@ -20,7 +20,9 @@ from .models import (
     LessonSection,
     PollResponse,
     FinanceFact,
-    UserFactProgress
+    UserFactProgress,
+    FAQ,
+    ContactMessage
 )
 
 @admin.register(Referral)
@@ -193,3 +195,5 @@ admin.site.register(MissionCompletion, MissionCompletionAdmin)
 admin.site.register(SimulatedSavingsAccount, SimulatedSavingsAccountAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Reward, RewardAdmin)
+admin.site.register(FAQ)
+admin.site.register(ContactMessage)

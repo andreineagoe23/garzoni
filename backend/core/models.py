@@ -783,4 +783,25 @@ class StripePayment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} {self.currency}"
+
+class FAQ(models.Model):
+    category = models.CharField(max_length=100)
+    question = models.TextField()
+    answer = models.TextField()
+    is_active = models.BooleanField(default=True)
+    helpful_count = models.PositiveIntegerField(default=0)
+    not_helpful_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.question
+
+class ContactMessage(models.Model):
+    email = models.EmailField()
+    topic = models.CharField(max_length=100)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.email} - {self.topic}"
     

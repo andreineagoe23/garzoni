@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion,
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection)
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection, FAQ)
 
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
@@ -394,4 +394,10 @@ class UserExerciseProgressSerializer(serializers.ModelSerializer):
         model = UserExerciseProgress
         fields = ['exercise', 'completed', 'attempts', 'user_answer']
         read_only_fields = ['user']
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ["id", "category", "question", "answer"]
         
