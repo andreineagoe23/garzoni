@@ -783,7 +783,7 @@ class StripePayment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} {self.currency}"
-
+    
 class FAQ(models.Model):
     category = models.CharField(max_length=100)
     question = models.TextField()

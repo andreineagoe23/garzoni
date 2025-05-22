@@ -59,7 +59,6 @@ function App() {
 const AppContent = ({
   toggleChatbot,
   isChatbotVisible,
-  setIsChatbotVisible,
   isMobileView,
 }) => {
   const location = useLocation();

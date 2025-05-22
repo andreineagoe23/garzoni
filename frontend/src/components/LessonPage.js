@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Chatbot from "./Chatbot";
@@ -32,6 +32,23 @@ function LessonPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [userProgress, setUserProgress] = useState(null);
   const { getAccessToken } = useAuth();
+
+  // Extract fetchUserProgress to a separate function and memoize it
+  const fetchUserProgress = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
+        {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+      setUserProgress(response.data);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+    }
+  }, [getAccessToken]);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -81,24 +98,7 @@ function LessonPage() {
 
     fetchLessons();
     fetchUserProgress();
-  }, [courseId, getAccessToken]);
-
-  // Extract fetchUserProgress to a separate function for reuse
-  const fetchUserProgress = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
-      setUserProgress(response.data);
-    } catch (error) {
-      console.error("Error fetching user progress:", error);
-    }
-  };
+  }, [courseId, getAccessToken, fetchUserProgress]);
 
   useEffect(() => {
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
