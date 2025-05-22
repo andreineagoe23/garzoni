@@ -85,6 +85,21 @@
       }
     }
 
+    // Add styles to prevent body scroll when chatbot is active on mobile
+    @include media-breakpoint-down(md) {
+      &.active {
+        & + .chatbot-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 1099;
+        }
+      }
+    }
+
     @include media-breakpoint-down(sm) {
       height: 80vh;
       bottom: 0;
@@ -418,6 +433,7 @@
       border: none;
       font-weight: $font-weight-semibold;
       transition: all 0.2s ease;
+      max-width: fit-content;
       
       &:hover {
         transform: translateY(-1px);
@@ -426,7 +442,7 @@
     }
     
     .voice-button {
-      min-width: 40px;
+      max-width: 40px;
       height: 40px;
       display: flex;
       align-items: center;

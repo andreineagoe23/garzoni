@@ -68,6 +68,23 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
     }
   }, [isVisible, hasGreeted]);
 
+  // Add body scroll lock effect for mobile
+  useEffect(() => {
+    if (isMobile && isVisible) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.top = `-${window.scrollY}px`;
+    } else if (isMobile) {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.top = "";
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    }
+  }, [isMobile, isVisible]);
+
   useEffect(() => {
     // Auto-scroll chat history to bottom when new messages appear
     if (messagesEndRef.current) {
@@ -489,8 +506,38 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
         </button>
       )}
 
+      {isMobile && isVisible && (
+        <div
+          className="chatbot-overlay"
+          onClick={onClose}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            zIndex: 1099,
+          }}
+        />
+      )}
+
       <div
         className={`chatbot-container ${isVisible ? "active" : ""} shadow-lg`}
+        style={{
+          ...(isMobile &&
+            isVisible && {
+              position: "fixed",
+              bottom: 0,
+              right: 0,
+              width: "100%",
+              height: "75vh",
+              maxWidth: "100vw",
+              borderRadius: "12px 12px 0 0",
+              transform: "translateY(0)",
+              zIndex: 1100,
+            }),
+        }}
       >
         <div className="chatbot-header d-flex align-items-center justify-content-between">
           <span className="fw-semibold">Finance Assistant</span>

@@ -225,15 +225,23 @@
       }
 
       .dropdown-menu {
+        position: fixed;
         bottom: 70px;
+        right: 10px;
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
         box-shadow: var(--shadow-lg);
         max-width: 200px;
         padding: 0.75rem;
-        position: fixed;
-        transform: translateX(200px);
+        z-index: 1100;
+
+        @include media-breakpoint-down(sm) {
+          right: 5px;
+          left: auto;
+          width: auto;
+          min-width: 180px;
+        }
 
         .dropdown-item {
           display: flex;
