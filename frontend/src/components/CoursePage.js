@@ -28,7 +28,7 @@ function CoursePage() {
     };
 
     fetchCourses();
-  }, [pathId]);
+  }, [pathId, getAccessToken]);
 
   return (
     <div className="course-page container-md pt-4">
