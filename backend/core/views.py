@@ -35,7 +35,7 @@ from .models import (
     MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
     LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge,
     Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact,
-    UserFactProgress, ExerciseCompletion, FAQ, ContactMessage
+    UserFactProgress, ExerciseCompletion, FAQ, ContactMessage, FAQFeedback
 )
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, QuizSerializer,
@@ -2812,6 +2812,11 @@ class FAQListView(generics.ListAPIView):
     serializer_class = FAQSerializer
     permission_classes = [AllowAny]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 # FAQ voting endpoint
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -2819,12 +2824,33 @@ def vote_faq(request, faq_id):
     vote = request.data.get("vote")
     try:
         faq = FAQ.objects.get(id=faq_id)
-        if vote == "helpful":
-            faq.helpful_count += 1
-        elif vote == "not_helpful":
-            faq.not_helpful_count += 1
+        user = request.user if request.user.is_authenticated else None
+        
+        # Check if user has already voted
+        existing_feedback = FAQFeedback.objects.filter(faq=faq, user=user).first()
+        if existing_feedback:
+            # If user is changing their vote
+            if existing_feedback.vote != vote:
+                if existing_feedback.vote == 'helpful':
+                    faq.helpful_count -= 1
+                    faq.not_helpful_count += 1
+                else:
+                    faq.not_helpful_count -= 1
+                    faq.helpful_count += 1
+                existing_feedback.vote = vote
+                existing_feedback.save()
+            else:
+                return Response({"message": "You have already voted this way"}, status=400)
         else:
-            return Response({"error": "Invalid vote"}, status=400)
+            # New vote
+            FAQFeedback.objects.create(faq=faq, user=user, vote=vote)
+            if vote == "helpful":
+                faq.helpful_count += 1
+            elif vote == "not_helpful":
+                faq.not_helpful_count += 1
+            else:
+                return Response({"error": "Invalid vote"}, status=400)
+        
         faq.save()
         return Response({"message": "Thanks for your feedback!"})
     except FAQ.DoesNotExist:

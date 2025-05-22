@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion,
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection, FAQ)
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection, FAQ, FAQFeedback)
 
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
@@ -397,7 +397,16 @@ class UserExerciseProgressSerializer(serializers.ModelSerializer):
 
 
 class FAQSerializer(serializers.ModelSerializer):
+    user_vote = serializers.SerializerMethodField()
+
     class Meta:
         model = FAQ
-        fields = ["id", "category", "question", "answer"]
+        fields = ["id", "category", "question", "answer", "helpful_count", "not_helpful_count", "user_vote"]
+
+    def get_user_vote(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            feedback = FAQFeedback.objects.filter(faq=obj, user=request.user).first()
+            return feedback.vote if feedback else None
+        return None
         
