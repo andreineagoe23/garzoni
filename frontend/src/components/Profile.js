@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -58,7 +58,7 @@ function Profile() {
     setImageUrl(newAvatarUrl);
   };
 
-  const generateStreakData = () => {
+  const generateStreakData = useCallback(() => {
     const map = {};
 
     recentActivity.forEach((a) => {
@@ -92,13 +92,13 @@ function Profile() {
     }
 
     setStreakData(data);
-  };
+  }, [recentActivity]);
 
   useEffect(() => {
     if (recentActivity.length > 0) {
       generateStreakData();
     }
-  }, [recentActivity]);
+  }, [recentActivity, generateStreakData]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -227,21 +227,6 @@ function Profile() {
       window.removeEventListener("navToggle", handleNavToggle);
     };
   }, [getAccessToken]);
-
-  const formatActivityText = (activity) => {
-    switch (activity.type) {
-      case "lesson":
-        return `Completed lesson: ${activity.title} ${activity.details}`;
-      case "quiz":
-        return `Completed quiz: ${activity.title}`;
-      case "mission":
-        return `Completed mission: ${activity.title}`;
-      case "course":
-        return `Completed course: ${activity.title}`;
-      default:
-        return `Activity: ${activity.title}`;
-    }
-  };
 
   const renderBadgeTooltip = (badge) => (
     <Tooltip id={`tooltip-${badge.id}`}>
