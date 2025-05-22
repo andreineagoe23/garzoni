@@ -16,7 +16,6 @@ function Navbar({ toggleChatbot }) {
     { path: "/missions", label: "Missions", icon: "🎯" },
     { path: "/tools", label: "Tools", icon: "🛠️" },
     { path: "/rewards", label: "Rewards", icon: "🎁" },
-    { path: "/faq", label: "FAQ", icon: "❓" },
     {
       action: () => {
         console.log("Chat assistant clicked");

@@ -3,13 +3,11 @@ import axios from "axios";
 import { useTheme } from "./ThemeContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/scss/main.scss";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { getAccessToken, logoutUser } = useAuth();
-  const navigate = useNavigate();
   const [emailReminderPreference, setEmailReminderPreference] =
     useState("none");
   const [profileData, setProfileData] = useState({
@@ -21,11 +19,7 @@ function Settings() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [localDarkMode, setLocalDarkMode] = useState(darkMode);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
+  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -106,59 +100,6 @@ function Settings() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleChangePassword = async () => {
-    try {
-      setErrorMessage("");
-      setSuccessMessage("Password updated successfully!");
-      // Clear the success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
-      // Clear the password fields
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error) {
-      const msg = error.response?.data?.error || "Failed to update password.";
-      setErrorMessage(msg);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!isConfirmingDelete) {
-      setIsConfirmingDelete(true);
-      return;
-    }
-
-    if (!deletePassword) {
-      setErrorMessage("Please enter your password to confirm deletion.");
-      return;
-    }
-
-    try {
-      // First verify the password
-
-      // If password is correct, proceed with deletion
-      await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/delete-account/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-          withCredentials: true,
-        }
-      );
-
-      // Log out and redirect to home
-      logoutUser();
-      navigate("/");
-    } catch (error) {
-      if (error.response?.status === 400) {
-        setErrorMessage("Incorrect password. Please try again.");
-      } else {
-        setErrorMessage("Failed to delete account. Please try again.");
-      }
-      setIsConfirmingDelete(false);
-      setDeletePassword("");
-    }
   };
 
   return (
@@ -270,96 +211,12 @@ function Settings() {
                 </Link>
               </div>
 
-              <h4 className="section-title mt-5 mb-4">Change Password</h4>
-              <div className="form-group">
-                <label>Current Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>New Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Confirm New Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-              <div className="d-grid gap-2 mt-3">
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={handleChangePassword}
-                >
-                  Update Password
-                </button>
-              </div>
-
               <button
                 className="btn btn-accent w-100 mt-5"
                 onClick={handleSaveSettings}
               >
                 Save Changes
               </button>
-
-              <hr className="my-4" />
-              <h4 className="section-title text-danger mb-3">Danger Zone</h4>
-              {!isConfirmingDelete ? (
-                <div className="d-grid gap-2">
-                  <button
-                    className="btn btn-outline-danger"
-                    onClick={handleDeleteAccount}
-                  >
-                    Delete My Account
-                  </button>
-                </div>
-              ) : (
-                <div className="delete-confirmation">
-                  <p className="text-danger mb-3">
-                    This action cannot be undone. Please enter your password to
-                    confirm.
-                  </p>
-                  <div className="form-group">
-                    <input
-                      type="password"
-                      className="form-control mb-3"
-                      placeholder="Enter your password"
-                      value={deletePassword}
-                      onChange={(e) => setDeletePassword(e.target.value)}
-                    />
-                  </div>
-                  <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-danger"
-                      onClick={handleDeleteAccount}
-                    >
-                      Confirm Deletion
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => {
-                        setIsConfirmingDelete(false);
-                        setDeletePassword("");
-                        setErrorMessage("");
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
