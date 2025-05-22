@@ -32,7 +32,6 @@ import "./styles/scss/main.scss";
 import Chatbot from "./components/Chatbot";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import CookiePolicy from "./components/CookiePolicy";
-import FAQPage from "./components/FAQPage";
 
 function App() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false);
@@ -152,7 +151,6 @@ const AppContent = ({
                     path="/exercise/:exerciseId"
                     element={<ExercisePage />}
                   />
-                  <Route path="/faq" element={<FAQPage />} />
                 </Routes>
               </ThemeProvider>
             </main>

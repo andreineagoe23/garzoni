@@ -150,6 +150,7 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
       alert("Speech recognition is not supported in your browser");
       return;
     }
+
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();

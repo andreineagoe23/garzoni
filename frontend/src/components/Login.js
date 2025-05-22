@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 // import axios from "axios"; // Removed unused import
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert, InputGroup } from "react-bootstrap";
@@ -24,6 +24,7 @@ function Login() {
   const { loginUser, isAuthenticated } = useAuth();
 
   // Check if we're in production environment
+  const isProduction = process.env.NODE_ENV === "production";
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -198,7 +199,7 @@ function Login() {
 
             <div className="text-center">
               <p className="mb-0">
-                Don&apos;t have an account?{" "}
+                Don't have an account?{" "}
                 <Button
                   variant="link"
                   onClick={() => navigate("/register")}
