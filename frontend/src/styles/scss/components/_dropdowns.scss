@@ -1,8 +1,8 @@
 // Dropdown styles
 .dropdown {
   &-menu {
-    background: var(--card-bg) !important;
-    border: 1px solid var(--border-color) !important;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     box-shadow: $box-shadow-lg;
     border-radius: $border-radius;
     padding: 0.5rem 0;
@@ -25,32 +25,31 @@
   }
 
   &-item {
-    color: var(--text-color) !important;
+    color: var(--text-color);
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent !important;
 
     &:hover, &:focus {
-      background: rgba(var(--primary-rgb), 0.1) !important;
-      color: var(--primary) !important;
+      background: rgba(var(--primary-rgb), 0.1);
+      color: var(--primary);
     }
 
     &:active {
-      background: var(--primary) !important;
-      color: var(--accent) !important;
+      background: var(--primary);
+      color: var(--accent);
     }
 
     &.active {
-      background: var(--primary) !important;
-      color: var(--accent) !important;
+      background: var(--primary);
+      color: var(--accent);
     }
 
     &.disabled {
-      color: var(--text-muted) !important;
+      color: var(--text-muted);
       pointer-events: none;
       opacity: 0.65;
     }
@@ -64,12 +63,12 @@
   }
 
   &-divider {
-    border-top: 1px solid var(--border-color) !important;
+    border-top: 1px solid var(--border-color);
     margin: 0.5rem 0;
   }
 
   &-header {
-    color: var(--text-muted) !important;
+    color: var(--text-muted);
     font-size: 0.8rem;
     text-transform: uppercase;
     font-weight: $font-weight-bold;
@@ -82,22 +81,13 @@
 [data-theme="dark"] {
   .dropdown {
     &-menu {
-      background: var(--card-bg) !important;
-      border-color: var(--border-color) !important;
+      background: var(--card-bg);
+      border-color: var(--border-color);
     }
 
     &-item {
-      color: var(--text-color) !important;
-      background: transparent !important;
-
       &:hover, &:focus {
-        background: rgba(var(--accent-rgb), 0.1) !important;
-        color: var(--accent) !important;
-      }
-
-      &:active, &.active {
-        background: var(--accent) !important;
-        color: var(--primary) !important;
+        background: rgba(var(--accent-rgb), 0.1);
       }
     }
   }
