@@ -796,6 +796,24 @@ class FAQ(models.Model):
     def __str__(self):
         return self.question
 
+class FAQFeedback(models.Model):
+    """
+    Tracks user feedback on FAQs to prevent duplicate votes and maintain user-specific feedback.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    faq = models.ForeignKey(FAQ, on_delete=models.CASCADE)
+    vote = models.CharField(max_length=20, choices=[('helpful', 'Helpful'), ('not_helpful', 'Not Helpful')])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'faq')
+        indexes = [
+            models.Index(fields=['user', 'faq']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username if self.user else 'Anonymous'} - {self.faq.question[:50]}"
+
 class ContactMessage(models.Model):
     email = models.EmailField()
     topic = models.CharField(max_length=100)

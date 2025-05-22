@@ -18,14 +18,19 @@ function FAQPage() {
   const [faqs, setFaqs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [votingStatus, setVotingStatus] = useState({});
 
   // Fetch FAQs from backend
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
+        const headers = {};
+        if (getAccessToken()) {
+          headers.Authorization = `Bearer ${getAccessToken()}`;
+        }
+
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/faq/`
+          `${process.env.REACT_APP_BACKEND_URL}/faq/`,
+          { headers }
         );
         setFaqs(response.data);
 
@@ -43,7 +48,7 @@ function FAQPage() {
     };
 
     fetchFaqs();
-  }, []);
+  }, [getAccessToken]);
 
   // Filter FAQs based on search and category
   const filteredFAQs = faqs.filter((faq) => {
@@ -119,38 +124,38 @@ function FAQPage() {
 
   // Submit vote for FAQ helpfulness
   const submitVote = async (faqId, vote) => {
-    // Prevent double voting
-    if (votingStatus[faqId]) return;
-
     try {
-      setVotingStatus({
-        ...votingStatus,
-        [faqId]: "voting",
-      });
+      const headers = {};
+      if (getAccessToken()) {
+        headers.Authorization = `Bearer ${getAccessToken()}`;
+      }
 
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/faq/${faqId}/vote/`,
-        { vote }
+        { vote },
+        { headers }
       );
 
-      setVotingStatus({
-        ...votingStatus,
-        [faqId]: vote,
-      });
-
-      // Refresh the status after 3 seconds
-      setTimeout(() => {
-        setVotingStatus((prevState) => ({
-          ...prevState,
-          [faqId]: null,
-        }));
-      }, 3000);
+      // Update the FAQ in the state with new vote counts
+      setFaqs((prevFaqs) =>
+        prevFaqs.map((faq) => {
+          if (faq.id === faqId) {
+            return {
+              ...faq,
+              user_vote: vote,
+              helpful_count:
+                vote === "helpful" ? faq.helpful_count + 1 : faq.helpful_count,
+              not_helpful_count:
+                vote === "not_helpful"
+                  ? faq.not_helpful_count + 1
+                  : faq.not_helpful_count,
+            };
+          }
+          return faq;
+        })
+      );
     } catch (err) {
       console.error("Vote failed", err);
-      setVotingStatus({
-        ...votingStatus,
-        [faqId]: "error",
-      });
     }
   };
 
@@ -185,7 +190,7 @@ function FAQPage() {
         </div>
 
         {/* Category filter buttons */}
-        <div className="category-filters text-center">
+        <div className="category-filters">
           <button
             className={`btn ${activeCategory === "all" ? "active" : ""}`}
             onClick={() => setActiveCategory("all")}
@@ -204,7 +209,7 @@ function FAQPage() {
         </div>
 
         {/* FAQ Accordion */}
-        <div className="faq-accordion">
+        <div className="faq-list">
           {loading ? (
             <div className="text-center py-4">
               <p className="mb-0">Loading FAQs...</p>
@@ -217,68 +222,56 @@ function FAQPage() {
               </p>
             </div>
           ) : (
-            <div className="accordion">
-              {filteredFAQs.map((faq, idx) => (
-                <div className="accordion-item" key={idx}>
-                  <h2 className="accordion-header">
-                    <button
-                      className={`accordion-button ${
-                        selectedFaq === idx ? "" : "collapsed"
-                      }`}
-                      type="button"
-                      onClick={() => toggleFaq(idx)}
-                    >
-                      <span className="badge">{faq.category}</span>
-                      {highlightText(faq.question, search)}
-                    </button>
-                  </h2>
-                  <div
-                    className={`accordion-collapse collapse ${
-                      selectedFaq === idx ? "show" : ""
-                    }`}
-                  >
-                    <div className="accordion-body">
-                      {highlightText(faq.answer, search)}
+            filteredFAQs.map((faq, idx) => (
+              <div className="faq-item" key={idx}>
+                <div
+                  className={`faq-question ${
+                    selectedFaq === idx ? "active" : ""
+                  }`}
+                  onClick={() => toggleFaq(idx)}
+                >
+                  <span className="category-tag">{faq.category}</span>
+                  {highlightText(faq.question, search)}
+                  <span className="toggle-icon">▼</span>
+                </div>
+                <div
+                  className={`faq-answer ${
+                    selectedFaq === idx ? "active" : ""
+                  }`}
+                >
+                  {highlightText(faq.answer, search)}
 
-                      {/* Voting UI */}
-                      <div className="faq-vote mt-3">
-                        <span className="me-2">Was this helpful?</span>
-                        {votingStatus[faq.id] === "helpful" ? (
-                          <span className="text-success">
-                            Thanks for your feedback! 👍
-                          </span>
-                        ) : votingStatus[faq.id] === "not_helpful" ? (
-                          <span className="text-danger">
-                            Thanks for your feedback! 👎
-                          </span>
-                        ) : votingStatus[faq.id] === "voting" ? (
-                          <span>Submitting...</span>
-                        ) : votingStatus[faq.id] === "error" ? (
-                          <span className="text-danger">
-                            Vote failed. Please try again.
-                          </span>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => submitVote(faq.id, "helpful")}
-                              className="btn btn-sm btn-outline-success me-2"
-                            >
-                              👍
-                            </button>
-                            <button
-                              onClick={() => submitVote(faq.id, "not_helpful")}
-                              className="btn btn-sm btn-outline-danger"
-                            >
-                              👎
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  {/* Voting UI */}
+                  <div className="faq-vote mt-3">
+                    <span className="me-2">Was this helpful?</span>
+                    {faq.user_vote === "helpful" ? (
+                      <span className="text-success">
+                        Thanks for your feedback! 👍
+                      </span>
+                    ) : faq.user_vote === "not_helpful" ? (
+                      <span className="text-danger">
+                        Thanks for your feedback! 👎
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => submitVote(faq.id, "helpful")}
+                          className="btn btn-sm btn-outline-success me-2"
+                        >
+                          👍
+                        </button>
+                        <button
+                          onClick={() => submitVote(faq.id, "not_helpful")}
+                          className="btn btn-sm btn-outline-danger"
+                        >
+                          👎
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))
           )}
         </div>
 

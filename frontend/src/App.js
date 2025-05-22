@@ -24,6 +24,7 @@ import ToolsPage from "./components/ToolsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import RewardsPage from "./components/RewardsPage";
+import FAQPage from "./components/FAQPage";
 import { ThemeProvider } from "../src/components/ThemeContext";
 import { AuthProvider } from "./components/AuthContext";
 import ExercisePage from "./components/ExercisePage";
@@ -56,11 +57,7 @@ function App() {
   );
 }
 
-const AppContent = ({
-  toggleChatbot,
-  isChatbotVisible,
-  isMobileView,
-}) => {
+const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
   const location = useLocation();
 
   const publicPaths = [
@@ -150,6 +147,7 @@ const AppContent = ({
                     path="/exercise/:exerciseId"
                     element={<ExercisePage />}
                   />
+                  <Route path="/faq" element={<FAQPage />} />
                 </Routes>
               </ThemeProvider>
             </main>
