@@ -137,6 +137,7 @@ class LeaderboardSerializer(serializers.ModelSerializer):
             "id": obj.user.id,
             "username": obj.user.username,
             "email": obj.user.email,
+            "profile_avatar": obj.profile_avatar
         }
 
 class UserProfileSettingsSerializer(serializers.ModelSerializer):

@@ -51,6 +51,7 @@ from django.utils.timezone import now
 from datetime import datetime, timedelta
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth import update_session_auth_hash
+from django.db import models
 
 
 
@@ -1129,13 +1130,57 @@ class LeaderboardViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Handle GET requests to fetch the top 10 users for the leaderboard."""
+        """Handle GET requests to fetch the top users for the leaderboard."""
         try:
-            top_profiles = UserProfile.objects.all().order_by('-points')[:10]
+            # Get time filter parameter
+            time_filter = request.query_params.get('time_filter', 'all-time')
+            
+            # Apply time-based filtering
+            if time_filter == 'week':
+                one_week_ago = timezone.now().date() - timedelta(days=7)
+                top_profiles = UserProfile.objects.filter(
+                    last_completed_date__gte=one_week_ago
+                ).order_by('-points')[:10]
+            elif time_filter == 'month':
+                one_month_ago = timezone.now().date() - timedelta(days=30)
+                top_profiles = UserProfile.objects.filter(
+                    last_completed_date__gte=one_month_ago
+                ).order_by('-points')[:10]
+            else:  # all-time
+                top_profiles = UserProfile.objects.all().order_by('-points')[:10]
+                
             serializer = LeaderboardSerializer(top_profiles, many=True)
             return Response(serializer.data)
         except Exception as e:
             logger.error(f"Leaderboard error: {str(e)}")
+            return Response({"error": str(e)}, status=500)
+            
+            
+class UserRankView(APIView):
+    """API view to retrieve the current user's rank in the leaderboard."""
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Handle GET requests to fetch the current user's rank."""
+        try:
+            user_profile = request.user.profile
+            higher_ranked_users = UserProfile.objects.filter(points__gt=user_profile.points).count()
+            
+            # User's rank is the count of users with more points + 1
+            rank = higher_ranked_users + 1
+            
+            return Response({
+                "rank": rank,
+                "points": user_profile.points,
+                "user": {
+                    "id": request.user.id,
+                    "username": request.user.username,
+                    "profile_avatar": user_profile.profile_avatar
+                }
+            })
+        except Exception as e:
+            logger.error(f"User rank error: {str(e)}")
             return Response({"error": str(e)}, status=500)
 
 
@@ -2327,12 +2372,12 @@ class UserSearchView(APIView):
             return Response({"error": "Error processing search"}, status=500)
 
 
-class FriendRequestView(APIView):
+class FriendRequestView(viewsets.ViewSet):
     """Handle friend request functionality, including sending, accepting, and rejecting requests."""
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def list(self, request):
         """Retrieve all pending friend requests for the authenticated user."""
         requests = FriendRequest.objects.filter(
             receiver=request.user,
@@ -2341,7 +2386,7 @@ class FriendRequestView(APIView):
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
+    def create(self, request):
         """Send a friend request to another user."""
         receiver_id = request.data.get("receiver")
 
@@ -2364,7 +2409,7 @@ class FriendRequestView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request, pk):
+    def update(self, request, pk=None):
         """Accept or reject a friend request."""
         action = request.data.get("action")
 
@@ -2386,6 +2431,35 @@ class FriendRequestView(APIView):
 
         except FriendRequest.DoesNotExist:
             return Response({"error": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'])
+    def get_sent_requests(self, request):
+        """Retrieve all friend requests sent by the authenticated user."""
+        requests = FriendRequest.objects.filter(sender=request.user)
+        serializer = FriendRequestSerializer(requests, many=True)
+        return Response(serializer.data)
+        
+    @action(detail=False, methods=['get'])
+    def get_friends(self, request):
+        """Retrieve all accepted friends of the authenticated user."""
+        friends_ids = FriendRequest.objects.filter(
+            models.Q(sender=request.user, status="accepted") | 
+            models.Q(receiver=request.user, status="accepted")
+        ).values_list(
+            'receiver', 'sender'
+        )
+        
+        # Flatten and remove duplicates
+        user_ids = []
+        for receiver_id, sender_id in friends_ids:
+            if receiver_id != request.user.id:
+                user_ids.append(receiver_id)
+            if sender_id != request.user.id:
+                user_ids.append(sender_id)
+                
+        friends = User.objects.filter(id__in=user_ids)
+        serializer = UserSearchSerializer(friends, many=True)
+        return Response(serializer.data)
 
 
 class FriendsLeaderboardView(APIView):
@@ -2762,7 +2836,6 @@ def delete_account(request):
     """Delete the currently authenticated user's account."""
     user = request.user
     try:
-        # Delete the user (this will cascade delete related objects)
         user.delete()
         return Response({"message": "Account deleted successfully."}, status=200)
     except Exception as e:

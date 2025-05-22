@@ -53,7 +53,9 @@ from .views import (
     OpenRouterProxyView,
     contact_us,
     FAQListView,
-    vote_faq
+    vote_faq,
+    delete_account,
+    UserRankView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
@@ -71,6 +73,7 @@ router.register(r'badges', BadgeViewSet, basename='badge')
 router.register(r'user-badges', UserBadgeViewSet, basename='userbadge')
 router.register(r'exercises', ExerciseViewSet, basename='exercise')
 router.register(r'exercise-progress', UserExerciseProgressViewSet, basename='exercise-progress')
+router.register(r'friend-requests', FriendRequestView, basename='friend-request')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -95,6 +98,7 @@ urlpatterns = [
     path('update-avatar/', views.update_avatar, name='update_avatar'),
 
     path('leaderboard/', LeaderboardViewSet.as_view(), name='leaderboard'),
+    path('leaderboard/rank/', UserRankView.as_view(), name='user-rank'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
 
     path("missions/", MissionView.as_view(), name="missions"),
@@ -134,17 +138,12 @@ urlpatterns = [
 
     path('referrals/', ReferralView.as_view(), name='referrals'),
     path('search-users/', UserSearchView.as_view(), name='user-search'),
-    path('friend-requests/', FriendRequestView.as_view(), name='friend-requests'),
-    path('friend-requests/<int:pk>/accept/', FriendRequestView.as_view(), name='accept-friend-request'),
-    path('friend-requests/<int:pk>/reject/', FriendRequestView.as_view(), name='reject-friend-request'),
-    path('friend-requests/<int:pk>/<str:action>/', FriendRequestView.as_view(), name='friend-request-action'),
-    path('friend-requests/<int:pk>/', FriendRequestView.as_view(), name='friend-request-action'),
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
 
     path('proxy/hf/', HuggingFaceProxyView.as_view(), name='hf-proxy'),
     path('proxy/openrouter/', OpenRouterProxyView.as_view(), name='openrouter-proxy'),
     path('change-password/', views.change_password, name='change-password'),
-    path('delete-account/', views.delete_account, name='delete-account'),
+    path('delete-account/', delete_account, name='delete-account'),
     path('contact/', contact_us, name='contact-us'),
 
     path('faq/', FAQListView.as_view(), name='faq-list'),

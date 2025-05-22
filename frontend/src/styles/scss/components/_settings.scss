@@ -170,3 +170,55 @@
     }
   }
 }
+
+.settings-page {
+  .section-title {
+    color: var(--accent);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+
+    &.text-danger {
+      color: var(--danger);
+      border-bottom-color: var(--danger);
+    }
+  }
+
+  .btn-outline-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+
+    &:hover {
+      background-color: var(--danger);
+      color: var(--bg-color);
+    }
+  }
+
+  .delete-confirmation {
+    background: rgba(var(--danger-rgb), 0.05);
+    border: 1px solid var(--danger);
+    border-radius: $border-radius;
+    padding: map-get($spacers, 3);
+    margin-bottom: map-get($spacers, 3);
+
+    p {
+      font-size: 0.9rem;
+      margin-bottom: map-get($spacers, 2);
+    }
+
+    .form-control {
+      background: var(--input-bg);
+      border-color: var(--danger);
+      
+      &:focus {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 2px rgba(var(--danger-rgb), 0.1);
+      }
+    }
+
+    .btn {
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
