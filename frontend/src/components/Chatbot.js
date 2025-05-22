@@ -209,20 +209,25 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
     const updatedHistory = [...chatHistory, userHistoryObj];
     setChatHistory(updatedHistory);
 
-    // Check for stock price query
-    const stockRegex =
-      /what('|')?s the (?:stock )?price of ([a-zA-Z]{1,5})(\?)?/i;
-    const stockMatch = userMessage.match(stockRegex);
+    // Check for currency pair format (e.g., EUR/USD, eur/usd)
+    const forexPairRegex =
+      /(\b[a-zA-Z]{3})\b\s*(\/|to|and)\s*(\b[a-zA-Z]{3})\b/i;
+    const forexPairMatch = userMessage.match(forexPairRegex);
 
-    // Check for crypto price query
+    // Check for forex exchange rate query with improved pattern
+    const forexRegex =
+      /what(?:'|')?s the exchange rate (?:from|of|between) ([a-zA-Z]{3}) (?:to|and) ([a-zA-Z]{3})(\?)?|forex (?:between|for) ([a-zA-Z]{3}) (?:and|to) ([a-zA-Z]{3})/i;
+    const forexMatch = userMessage.match(forexRegex);
+
+    // Check for crypto price query with improved pattern
     const cryptoRegex =
-      /what('|')?s the (?:price|value) of ([a-zA-Z\s]+)(\?)?/i;
+      /what(?:'|')?s the (?:price|value) of ([a-zA-Z\s]+)(\?)?|([a-zA-Z\s]+) (?:price|value)(\?)?/i;
     const cryptoMatch = userMessage.match(cryptoRegex);
 
-    // Check for forex exchange rate query
-    const forexRegex =
-      /what('|')?s the exchange rate (?:from|of) ([a-zA-Z]{3}) to ([a-zA-Z]{3})(\?)?/i;
-    const forexMatch = userMessage.match(forexRegex);
+    // Check for stock price query
+    const stockRegex =
+      /what(?:'|')?s the (?:stock )?price of ([a-zA-Z]{1,5}) stock(\?)?|([a-zA-Z]{1,5}) stock price/i;
+    const stockMatch = userMessage.match(stockRegex);
 
     setIsLoading(true);
 
@@ -231,47 +236,135 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
       let responseLink = null;
       let responseLinks = null;
 
+      // First check for stock price queries
       if (stockMatch) {
         // Handle stock price query
-        const stockSymbol = stockMatch[2].toUpperCase();
+        const stockSymbol = (stockMatch[1] || stockMatch[3]).toUpperCase();
         const stockData = await fetchStockPrice(stockSymbol);
-        botResponse = `The current price of ${stockSymbol} is $${stockData.price.toFixed(
-          2
-        )}. The stock ${
-          stockData.change >= 0 ? "increased" : "decreased"
-        } by ${Math.abs(stockData.change).toFixed(2)}% today.`;
-      } else if (
-        cryptoMatch &&
-        cryptoMatch[2].toLowerCase().includes("bitcoin")
-      ) {
-        // Handle Bitcoin price query
-        const cryptoData = await fetchCryptoPrice("bitcoin");
-        botResponse = `The current price of Bitcoin is $${cryptoData.price.toFixed(
-          2
-        )}. It's ${cryptoData.change >= 0 ? "up" : "down"} ${Math.abs(
-          cryptoData.change
-        ).toFixed(2)}% in the last 24 hours.`;
-      } else if (
-        cryptoMatch &&
-        cryptoMatch[2].toLowerCase().includes("ethereum")
-      ) {
-        // Handle Ethereum price query
-        const cryptoData = await fetchCryptoPrice("ethereum");
-        botResponse = `The current price of Ethereum is $${cryptoData.price.toFixed(
-          2
-        )}. It's ${cryptoData.change >= 0 ? "up" : "down"} ${Math.abs(
-          cryptoData.change
-        ).toFixed(2)}% in the last 24 hours.`;
-      } else if (forexMatch) {
+
+        if (stockData.price > 0) {
+          botResponse = `The current price of ${stockSymbol} is $${stockData.price.toFixed(
+            2
+          )}. The stock ${
+            stockData.change >= 0 ? "increased" : "decreased"
+          } by ${Math.abs(stockData.change).toFixed(2)}% today.`;
+        } else {
+          botResponse = `I couldn't find current price data for ${stockSymbol}. Please check if the stock symbol is correct.`;
+        }
+      }
+      // Then check for forex queries
+      else if (forexPairMatch || forexMatch) {
         // Handle forex exchange rate query
-        const fromCurrency = forexMatch[2].toUpperCase();
-        const toCurrency = forexMatch[3].toUpperCase();
+        let fromCurrency, toCurrency;
+
+        if (forexPairMatch) {
+          fromCurrency = forexPairMatch[1];
+          toCurrency = forexPairMatch[3];
+        } else if (forexMatch) {
+          fromCurrency = forexMatch[1] || forexMatch[4];
+          toCurrency = forexMatch[2] || forexMatch[5];
+        }
+
+        fromCurrency = fromCurrency.toUpperCase();
+        toCurrency = toCurrency.toUpperCase();
+
+        // Handle special case for Romanian Leu (RON/LEI)
+        if (toCurrency === "LEI") {
+          toCurrency = "RON";
+        }
+
+        if (fromCurrency === "LEI") {
+          fromCurrency = "RON";
+        }
+
         const forexData = await fetchForexRate(fromCurrency, toCurrency);
-        botResponse = `The current exchange rate from ${fromCurrency} to ${toCurrency} is ${forexData.rate.toFixed(
-          4
-        )}. The rate has changed by ${
-          forexData.change >= 0 ? "+" : ""
-        }${forexData.change.toFixed(4)} today.`;
+
+        if (forexData.rate > 0) {
+          botResponse = `The current exchange rate from ${fromCurrency} to ${toCurrency} is ${forexData.rate.toFixed(
+            4
+          )}.`;
+
+          // Only include change if it's meaningful
+          if (Math.abs(forexData.change) > 0.0001) {
+            botResponse += ` The rate has changed by ${
+              forexData.change >= 0 ? "+" : ""
+            }${forexData.change.toFixed(4)} today.`;
+          }
+        } else {
+          botResponse = `I couldn't find the exchange rate between ${fromCurrency} and ${toCurrency}. Please check if both currency codes are valid.`;
+        }
+      }
+      // Then check for crypto queries
+      else if (cryptoMatch) {
+        // Extract the cryptocurrency name
+        const cryptoName = (cryptoMatch[1] || cryptoMatch[3])
+          .toLowerCase()
+          .trim();
+
+        // Map common crypto names/terms to their IDs
+        const cryptoMap = {
+          bitcoin: "bitcoin",
+          btc: "bitcoin",
+          ethereum: "ethereum",
+          eth: "ethereum",
+          cardano: "cardano",
+          ada: "cardano",
+          "binance coin": "binancecoin",
+          bnb: "binancecoin",
+          solana: "solana",
+          sol: "solana",
+          ripple: "ripple",
+          xrp: "ripple",
+          dogecoin: "dogecoin",
+          doge: "dogecoin",
+          polkadot: "polkadot",
+          dot: "polkadot",
+          litecoin: "litecoin",
+          ltc: "litecoin",
+          chainlink: "chainlink",
+          link: "chainlink",
+          uniswap: "uniswap",
+          uni: "uniswap",
+          avalanche: "avalanche-2",
+          avax: "avalanche-2",
+          polygon: "matic-network",
+          matic: "matic-network",
+        };
+
+        // Find the crypto ID based on the name
+        let cryptoId = null;
+        for (const [key, value] of Object.entries(cryptoMap)) {
+          if (cryptoName.includes(key)) {
+            cryptoId = value;
+            break;
+          }
+        }
+
+        if (cryptoId) {
+          const cryptoData = await fetchCryptoPrice(cryptoId);
+
+          if (cryptoData.price > 0) {
+            const displayName =
+              cryptoId.split("-")[0].charAt(0).toUpperCase() +
+              cryptoId.split("-")[0].slice(1);
+            botResponse = `The current price of ${displayName} is $${cryptoData.price.toFixed(
+              2
+            )}. It's ${cryptoData.change >= 0 ? "up" : "down"} ${Math.abs(
+              cryptoData.change
+            ).toFixed(2)}% in the last 24 hours.`;
+
+            if (cryptoData.marketCap) {
+              botResponse += ` Market cap: ${cryptoData.marketCap}.`;
+            }
+          } else {
+            const displayName =
+              cryptoId.split("-")[0].charAt(0).toUpperCase() +
+              cryptoId.split("-")[0].slice(1);
+            botResponse = `I couldn't find current price data for ${displayName}. It may not be listed on the exchanges I have access to.`;
+          }
+        } else {
+          botResponse = `I couldn't identify the cryptocurrency you're asking about. Please try specifying a major cryptocurrency like Bitcoin or Ethereum.`;
+        }
       } else {
         // Use OpenRouter for general queries
         const apiUrl =
@@ -355,20 +448,84 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
 
   const fetchForexRate = async (from, to) => {
     try {
-      const response = await axios.get(
-        `https://api.exchangerate-api.com/v4/latest/${from}`
-      );
+      // Handle special case for RON/LEI (Romanian Leu)
+      if (from === "LEI") from = "RON";
+      if (to === "LEI") to = "RON";
 
-      if (
-        !response.data ||
-        !response.data.rates ||
-        !response.data.rates[to.toUpperCase()]
-      ) {
+      // Ensure currencies are valid 3-letter codes
+      if (!from || !to || from.length !== 3 || to.length !== 3) {
+        console.error("Invalid currency code format");
         return { rate: 0, change: 0 };
       }
 
-      const rate = response.data.rates[to.toUpperCase()];
-      const change = rate - response.data.rates[from.toUpperCase()];
+      // First try with freecurrencyapi.com - has broader currency support
+      try {
+        const freeCurrencyApiKey = process.env.REACT_APP_FREE_CURRENCY_API_KEY;
+        if (!freeCurrencyApiKey) {
+          console.warn("Free Currency API key not found");
+          throw new Error("API key missing");
+        }
+
+        const freeApiResponse = await axios.get(
+          `https://api.freecurrencyapi.com/v1/latest?apikey=${freeCurrencyApiKey}&base_currency=${from}&currencies=${to}`
+        );
+
+        if (
+          freeApiResponse.data &&
+          freeApiResponse.data.data &&
+          freeApiResponse.data.data[to]
+        ) {
+          const rate = freeApiResponse.data.data[to];
+          return { rate, change: 0 }; // API doesn't provide change
+        }
+      } catch (freeApiError) {
+        console.error("Error with freecurrencyapi:", freeApiError);
+        // Continue to fallback API
+      }
+
+      // Use exchangerate-api.com as fallback
+      const exchangeRateApiKey = process.env.REACT_APP_EXCHANGE_RATE_API_KEY;
+      if (!exchangeRateApiKey) {
+        console.warn("Exchange Rate API key not found");
+        throw new Error("API key missing");
+      }
+
+      const response = await axios.get(
+        `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/pair/${from}/${to}`
+      );
+
+      if (!response.data || !response.data.conversion_rate) {
+        // Try fallback with reversed order if the API doesn't have the requested base currency
+        try {
+          const fallbackResponse = await axios.get(
+            `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/pair/${to}/${from}`
+          );
+
+          if (fallbackResponse.data && fallbackResponse.data.conversion_rate) {
+            // Calculate reciprocal rate when using reversed currencies
+            const rate = 1 / fallbackResponse.data.conversion_rate;
+            return { rate, change: 0 };
+          }
+        } catch (fallbackError) {
+          console.error("Error fetching fallback Forex rates:", fallbackError);
+        }
+
+        return { rate: 0, change: 0 };
+      }
+
+      const rate = response.data.conversion_rate;
+
+      // Calculate change if possible, otherwise return 0
+      let change = 0;
+      if (response.data.rates && response.data.rates[from]) {
+        // For same currency, the rate should be 1, so change is 0
+        if (from === to) {
+          change = 0;
+        } else {
+          // Otherwise calculate the difference
+          change = rate - 1;
+        }
+      }
 
       return { rate, change };
     } catch (error) {
@@ -379,51 +536,56 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
 
   const fetchStockPrice = async (symbol) => {
     try {
-      // Using Alpha Vantage API for stock data - fallback to mock data if unavailable
+      // Using Alpha Vantage API for stock data
+      const apiKey = process.env.REACT_APP_ALPHA_VANTAGE_API_KEY;
+
+      if (!apiKey) {
+        console.warn("Alpha Vantage API key not found. Using fallback data.");
+        return {
+          price: 0,
+          change: 0,
+          changePercent: "0.00%",
+        };
+      }
+
       const response = await axios.get(
-        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${
-          process.env.REACT_APP_ALPHA_VANTAGE_API_KEY || "demo"
-        }`
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`
       );
+
+      // Log the response for debugging
+      console.log(`Alpha Vantage response for ${symbol}:`, response.data);
 
       if (
         response.data &&
         response.data["Global Quote"] &&
         response.data["Global Quote"]["05. price"]
       ) {
-        const price = response.data["Global Quote"]["05. price"];
-        const change = response.data["Global Quote"]["09. change"];
-        const changePercent =
-          response.data["Global Quote"]["10. change percent"];
+        const price = parseFloat(response.data["Global Quote"]["05. price"]);
+        const changePercent = parseFloat(
+          response.data["Global Quote"]["10. change percent"].replace("%", "")
+        );
 
-        return { price, change, changePercent };
-      } else {
-        // Use CoinGecko as fallback for popular tech stocks that might be misidentified as crypto
-        try {
-          const fallbackResponse = await axios.get(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${symbol.toLowerCase()}&vs_currencies=usd`
-          );
-
-          if (fallbackResponse.data[symbol.toLowerCase()]) {
-            return {
-              price: fallbackResponse.data[symbol.toLowerCase()].usd,
-              change: 0,
-              changePercent: "0.00%",
-            };
-          } else {
-            return {
-              price: 0,
-              change: 0,
-              changePercent: "0.00%",
-            };
-          }
-        } catch (fallbackError) {
+        if (!price || isNaN(price) || price === 0) {
+          console.warn(`Invalid price data received for ${symbol}`);
           return {
             price: 0,
             change: 0,
             changePercent: "0.00%",
           };
         }
+
+        return {
+          price,
+          change: changePercent,
+          changePercent: `${Math.abs(changePercent).toFixed(2)}%`,
+        };
+      } else {
+        console.warn(`No valid data received for ${symbol}`);
+        return {
+          price: 0,
+          change: 0,
+          changePercent: "0.00%",
+        };
       }
     } catch (error) {
       console.error("Error fetching stock price:", error);
@@ -437,24 +599,89 @@ const Chatbot = ({ isVisible, onClose, isMobile }) => {
 
   const fetchCryptoPrice = async (cryptoId) => {
     try {
+      // Normalize crypto ID for API
+      const normalizedCryptoId = cryptoId.toLowerCase().trim();
+
+      // Use CoinGecko API for crypto prices
       const response = await axios.get(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
+        `https://api.coingecko.com/api/v3/simple/price?ids=${normalizedCryptoId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
       );
 
-      if (response.data[cryptoId]) {
-        const price = response.data[cryptoId].usd;
-        const change = response.data[cryptoId].usd_24h_change;
-        const marketCap = response.data[cryptoId].usd_market_cap;
+      if (response.data[normalizedCryptoId]) {
+        const price = response.data[normalizedCryptoId].usd;
+        const change = response.data[normalizedCryptoId].usd_24h_change || 0;
+        const marketCap = response.data[normalizedCryptoId].usd_market_cap;
+
+        // Format market cap in a readable way
+        let formattedMarketCap = null;
+        if (marketCap) {
+          if (marketCap >= 1000000000) {
+            formattedMarketCap = `$${(marketCap / 1000000000).toFixed(2)}B`;
+          } else if (marketCap >= 1000000) {
+            formattedMarketCap = `$${(marketCap / 1000000).toFixed(2)}M`;
+          } else {
+            formattedMarketCap = `$${(marketCap / 1000).toFixed(2)}K`;
+          }
+        }
 
         return {
           price,
           change,
           changePercent: change ? `${Math.abs(change).toFixed(2)}%` : "0.00%",
-          marketCap: marketCap
-            ? `$${(marketCap / 1000000000).toFixed(2)}B`
-            : null,
+          marketCap: formattedMarketCap,
         };
       } else {
+        // Try fallback with different API endpoint
+        try {
+          const coinListResponse = await axios.get(
+            `https://api.coingecko.com/api/v3/coins/list`
+          );
+
+          const coinMatch = coinListResponse.data.find(
+            (coin) =>
+              coin.name.toLowerCase() === normalizedCryptoId ||
+              coin.symbol.toLowerCase() === normalizedCryptoId
+          );
+
+          if (coinMatch) {
+            // Use the found coin ID to fetch price data
+            const priceResponse = await axios.get(
+              `https://api.coingecko.com/api/v3/simple/price?ids=${coinMatch.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
+            );
+
+            if (priceResponse.data[coinMatch.id]) {
+              const price = priceResponse.data[coinMatch.id].usd;
+              const change =
+                priceResponse.data[coinMatch.id].usd_24h_change || 0;
+              const marketCap = priceResponse.data[coinMatch.id].usd_market_cap;
+
+              let formattedMarketCap = null;
+              if (marketCap) {
+                if (marketCap >= 1000000000) {
+                  formattedMarketCap = `$${(marketCap / 1000000000).toFixed(
+                    2
+                  )}B`;
+                } else if (marketCap >= 1000000) {
+                  formattedMarketCap = `$${(marketCap / 1000000).toFixed(2)}M`;
+                } else {
+                  formattedMarketCap = `$${(marketCap / 1000).toFixed(2)}K`;
+                }
+              }
+
+              return {
+                price,
+                change,
+                changePercent: change
+                  ? `${Math.abs(change).toFixed(2)}%`
+                  : "0.00%",
+                marketCap: formattedMarketCap,
+              };
+            }
+          }
+        } catch (fallbackError) {
+          console.error("Error fetching fallback crypto data:", fallbackError);
+        }
+
         return {
           price: 0,
           change: 0,
