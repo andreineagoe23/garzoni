@@ -51,6 +51,9 @@ from .views import (
     LogoutSecureView,
     VerifyAuthView,
     OpenRouterProxyView,
+    contact_us,
+    FAQListView,
+    vote_faq
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
@@ -140,5 +143,10 @@ urlpatterns = [
 
     path('proxy/hf/', HuggingFaceProxyView.as_view(), name='hf-proxy'),
     path('proxy/openrouter/', OpenRouterProxyView.as_view(), name='openrouter-proxy'),
+    path('change-password/', views.change_password, name='change-password'),
+    path('delete-account/', views.delete_account, name='delete-account'),
+    path('contact/', contact_us, name='contact-us'),
 
+    path('faq/', FAQListView.as_view(), name='faq-list'),
+    path('faq/<int:faq_id>/vote/', vote_faq, name='faq-vote'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
