@@ -643,20 +643,49 @@ class UserProfileView(APIView):
         """Retrieve and return the user's profile data."""
         user_profile = UserProfile.objects.get(user=request.user)
 
+        # Get the current month's activity data
+        today = timezone.now().date()
+        first_day = today.replace(day=1)
+        last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
+        
+        # Get all lesson completions for the current month
+        lesson_completions = LessonCompletion.objects.filter(
+            user_progress__user=request.user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day
+        ).values('completed_at__date').annotate(count=models.Count('id'))
+
+        # Create a dictionary of dates with completion counts
+        activity_calendar = {
+            str(date): 0 for date in [first_day + timezone.timedelta(days=x) for x in range((last_day - first_day).days + 1)]
+        }
+        
+        for completion in lesson_completions:
+            activity_calendar[str(completion['completed_at__date'])] = completion['count']
+
+        # Add current month information
+        current_month = {
+            'first_day': first_day.isoformat(),
+            'last_day': last_day.isoformat(),
+            'month_name': first_day.strftime('%B'),
+            'year': first_day.year
+        }
+
         return Response({
             "user_data": {
                 "first_name": request.user.first_name,
                 "last_name": request.user.last_name,
                 "email": request.user.email,
-                "username": request.user.username,
-                "email_reminder_preference": user_profile.email_reminder_preference,
-                "earned_money": float(user_profile.earned_money),
+                "earned_money": user_profile.earned_money,
                 "points": user_profile.points,
+                "streak": user_profile.streak,
+                "profile_avatar": user_profile.profile_avatar,
+                "dark_mode": user_profile.dark_mode,
+                "email_reminder_preference": user_profile.email_reminder_preference,
+                "has_paid": user_profile.has_paid
             },
-            "streak": user_profile.streak,
-            "profile_avatar": user_profile.profile_avatar,
-            "is_questionnaire_completed": UserResponse.objects.filter(user=request.user).exists(),
-            "referral_code": user_profile.referral_code,
+            "activity_calendar": activity_calendar,
+            "current_month": current_month
         })
 
     def patch(self, request):

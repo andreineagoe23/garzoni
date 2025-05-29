@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/scss/main.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
 import AvatarSelector from "./AvatarSelector";
 import { useAuth } from "./AuthContext";
-import CalendarHeatmap from "react-calendar-heatmap";
-import "react-calendar-heatmap/dist/styles.css";
 import { OverlayTrigger, Tooltip, Spinner } from "react-bootstrap";
 import {
   VerticalTimeline,
@@ -42,7 +40,13 @@ function Profile() {
       completed: false,
     },
   });
-  const [streakData, setStreakData] = useState([]);
+  const [activityCalendar, setActivityCalendar] = useState({});
+  const [currentMonth, setCurrentMonth] = useState({
+    first_day: null,
+    last_day: null,
+    month_name: "",
+    year: null,
+  });
   const { getAccessToken } = useAuth();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
@@ -57,48 +61,6 @@ function Profile() {
   const handleAvatarChange = (newAvatarUrl) => {
     setImageUrl(newAvatarUrl);
   };
-
-  const generateStreakData = useCallback(() => {
-    const map = {};
-
-    recentActivity.forEach((a) => {
-      try {
-        // Parse the timestamp string into a Date object
-        const activityDate = new Date(a.timestamp);
-        if (isNaN(activityDate.getTime())) {
-          console.warn("Invalid date:", a.timestamp);
-          return;
-        }
-
-        // Format the date as YYYY-MM-DD
-        const date = activityDate.toISOString().split("T")[0];
-        map[date] = (map[date] || 0) + 1;
-      } catch (error) {
-        console.warn("Error processing activity date:", error);
-      }
-    });
-
-    const today = new Date();
-    const start = new Date();
-    start.setDate(today.getDate() - 90); // last 90 days
-
-    const data = [];
-    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
-      data.push({
-        date: dateStr,
-        count: map[dateStr] || 0,
-      });
-    }
-
-    setStreakData(data);
-  }, [recentActivity]);
-
-  useEffect(() => {
-    if (recentActivity.length > 0) {
-      generateStreakData();
-    }
-  }, [recentActivity, generateStreakData]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -122,12 +84,48 @@ function Profile() {
           earned_money:
             parseFloat(profileResponse.data.user_data.earned_money) || 0,
           points: profileResponse.data.user_data.points || 0,
-          streak: profileResponse.data.streak || 0,
+          streak: profileResponse.data.user_data.streak || 0,
         });
 
         setImageUrl(
-          profileResponse.data.profile_avatar || "/default-avatar.png"
+          profileResponse.data.user_data.profile_avatar || "/default-avatar.png"
         );
+        setActivityCalendar(profileResponse.data.activity_calendar || {});
+        setCurrentMonth(profileResponse.data.current_month || {});
+
+        // Fetch missions data for daily goal
+        const missionsResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+          {
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
+          }
+        );
+
+        // Find the daily lesson completion mission
+        const dailyLessonMission = missionsResponse.data.daily_missions.find(
+          (mission) => mission.goal_type === "complete_lesson"
+        );
+
+        // Update goals based on missions and points
+        setGoals((prevGoals) => ({
+          daily: {
+            ...prevGoals.daily,
+            current: dailyLessonMission
+              ? Math.round(dailyLessonMission.progress)
+              : 0,
+            completed: dailyLessonMission
+              ? dailyLessonMission.status === "completed"
+              : false,
+          },
+          weekly: {
+            ...prevGoals.weekly,
+            current: profileResponse.data.user_data.points,
+            completed:
+              profileResponse.data.user_data.points >= prevGoals.weekly.target,
+          },
+        }));
 
         // Fetch user activity
         const activityResponse = await axios.get(
@@ -151,29 +149,6 @@ function Profile() {
         );
 
         setRecentActivity(formattedActivities);
-
-        // Update goals based on activity and points
-        const today = new Date().toDateString();
-        const todayActivities = formattedActivities.filter(
-          (activity) => new Date(activity.timestamp).toDateString() === today
-        );
-
-        const dailyLessons = todayActivities.filter(
-          (activity) => activity.type === "lesson"
-        ).length;
-
-        setGoals((prevGoals) => ({
-          daily: {
-            ...prevGoals.daily,
-            current: dailyLessons,
-            completed: dailyLessons >= prevGoals.daily.target,
-          },
-          weekly: {
-            ...prevGoals.weekly,
-            current: profileResponse.data.user_data.points % 500,
-            completed: profileResponse.data.user_data.points >= 500,
-          },
-        }));
 
         // Fetch both earned and all available badges
         const [userBadgesResponse, allBadgesResponse] = await Promise.all([
@@ -241,6 +216,72 @@ function Profile() {
       </div>
     </Tooltip>
   );
+
+  const renderCalendar = () => {
+    if (!currentMonth.first_day || !currentMonth.last_day) return null;
+
+    const firstDay = new Date(currentMonth.first_day);
+    const lastDay = new Date(currentMonth.last_day);
+    const daysInMonth = lastDay.getDate();
+    const firstDayOfWeek = firstDay.getDay();
+
+    // Create array of days in month
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    // Create array of empty cells for days before the first day of the month
+    const emptyCells = Array.from({ length: firstDayOfWeek });
+
+    return (
+      <div className="monthly-calendar">
+        <div className="calendar-header">
+          <h3>
+            {currentMonth.month_name} {currentMonth.year}
+          </h3>
+        </div>
+        <div className="calendar-grid">
+          <div className="weekday-header">Sun</div>
+          <div className="weekday-header">Mon</div>
+          <div className="weekday-header">Tue</div>
+          <div className="weekday-header">Wed</div>
+          <div className="weekday-header">Thu</div>
+          <div className="weekday-header">Fri</div>
+          <div className="weekday-header">Sat</div>
+
+          {emptyCells.map((_, index) => (
+            <div key={`empty-${index}`} className="calendar-day empty"></div>
+          ))}
+
+          {days.map((day) => {
+            const date = new Date(
+              currentMonth.year,
+              new Date(currentMonth.first_day).getMonth(),
+              day
+            );
+            const dateStr = date.toISOString().split("T")[0];
+            const activityCount = activityCalendar[dateStr] || 0;
+
+            return (
+              <div
+                key={day}
+                className={`calendar-day ${
+                  activityCount > 0 ? "has-activity" : ""
+                }`}
+                data-activity-count={activityCount}
+              >
+                <span className="day-number">{day}</span>
+                {activityCount > 0 && (
+                  <div className="activity-indicator">
+                    <span className="activity-count">{activityCount}</span>
+                    <span className="activity-dot"></span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -349,30 +390,7 @@ function Profile() {
               </div>
 
               <h4 className="section-title mt-5 mb-4">Learning Streak</h4>
-              <div className="calendar-heatmap mb-5">
-                <CalendarHeatmap
-                  startDate={
-                    new Date(new Date().setDate(new Date().getDate() - 90))
-                  }
-                  endDate={new Date()}
-                  values={streakData}
-                  classForValue={(value) => {
-                    if (!value || value.count === 0) return "color-empty";
-                    if (value.count === 1) return "color-scale-1";
-                    if (value.count === 2) return "color-scale-2";
-                    if (value.count >= 3) return "color-scale-3";
-                    return "color-scale-4";
-                  }}
-                  tooltipDataAttrs={(value) =>
-                    value.date
-                      ? {
-                          "data-tip": `${value.date}: ${value.count} activities`,
-                        }
-                      : {}
-                  }
-                  showWeekdayLabels
-                />
-              </div>
+              <div className="calendar-section mb-5">{renderCalendar()}</div>
 
               <h4 className="section-title mt-5 mb-4">Statistics</h4>
 
