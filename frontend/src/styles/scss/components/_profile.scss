@@ -745,3 +745,250 @@
     color: var(--text-muted) !important;
   }
 }
+
+.calendar-section {
+  .monthly-calendar {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+
+    .calendar-header {
+      text-align: center;
+      margin-bottom: 1rem;
+
+      h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--text-color);
+      }
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      padding: 0.5rem;
+
+      .weekday-header {
+        text-align: center;
+        font-size: 0.875rem;
+        color: #1e6e5c;
+        padding: 0.5rem 0;
+        font-weight: 500;
+      }
+
+      .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border-radius: 8px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        transition: all 0.2s ease;
+
+        &.empty {
+          background: transparent;
+          border: none;
+        }
+
+        &.has-activity {
+          background: var(--primary-light);
+          border-color: var(--primary);
+
+          .day-number {
+            color: var(--primary);
+            font-weight: 600;
+          }
+        }
+
+        .day-number {
+          font-size: 0.875rem;
+          color: var(--text-color);
+        }
+
+        .activity-indicator {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+
+          .activity-count {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+          }
+
+          .activity-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 553px) {
+    .monthly-calendar {
+      padding: 1rem;
+      margin: 0 -1rem;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+
+      .calendar-header {
+        margin-bottom: 0.75rem;
+
+        h3 {
+          font-size: 1.1rem;
+        }
+      }
+
+      .calendar-grid {
+        gap: 0.25rem;
+        padding: 0.25rem;
+
+        .weekday-header {
+          font-size: 0.75rem;
+          padding: 0.25rem 0;
+        }
+
+        .calendar-day {
+          padding: 0.25rem;
+
+          .day-number {
+            font-size: 0.75rem;
+          }
+
+          .activity-indicator {
+            .activity-count {
+              font-size: 0.65rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  .calendar-section {
+    .monthly-calendar {
+      .calendar-grid {
+        .weekday-header {
+          color: #ffd700;
+        }
+      }
+    }
+  }
+}
+
+// Monthly Calendar Styles
+.monthly-calendar {
+  background: var(--card-bg);
+  border-radius: $border-radius-lg;
+  padding: $spacer;
+  box-shadow: $box-shadow;
+  margin-bottom: $spacer * 2;
+
+  .calendar-header {
+    text-align: center;
+    margin-bottom: $spacer;
+    
+    h3 {
+      color: var(--text-color);
+      font-size: 1.25rem;
+      margin: 0;
+    }
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: $spacer;
+    background: var(--card-bg);
+    border-radius: $border-radius;
+  }
+
+  .weekday-header {
+    text-align: center;
+    font-weight: $font-weight-semibold;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    padding: 4px;
+  }
+
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: $border-radius;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    position: relative;
+    transition: all 0.2s ease;
+
+    &.empty {
+      background: transparent;
+      border: none;
+    }
+
+    &.has-activity {
+      background: rgba(var(--primary-rgb), 0.1);
+      border-color: var(--primary);
+    }
+
+    .day-number {
+      font-size: 0.875rem;
+      color: var(--text-color);
+      font-weight: $font-weight-medium;
+    }
+
+    .activity-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+
+      .activity-count {
+        font-size: 0.75rem;
+        color: var(--primary);
+        font-weight: $font-weight-bold;
+      }
+
+      .activity-dot {
+        width: 4px;
+        height: 4px;
+        background: var(--primary);
+        border-radius: 50%;
+      }
+    }
+  }
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  .monthly-calendar {
+    .calendar-day {
+      &.has-activity {
+        background: rgba(var(--primary-rgb), 0.2);
+      }
+    }
+  }
+}
