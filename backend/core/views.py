@@ -35,14 +35,16 @@ from .models import (
     MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
     LessonCompletion, QuizCompletion, Reward, UserPurchase, Badge, UserBadge,
     Referral, FriendRequest, Exercise, UserExerciseProgress, FinanceFact,
-    UserFactProgress, ExerciseCompletion, FAQ, ContactMessage, FAQFeedback
+    UserFactProgress, ExerciseCompletion, FAQ, ContactMessage, FAQFeedback,
+    PortfolioEntry, FinancialGoal
 )
 from .serializers import (
     UserProfileSerializer, CourseSerializer, LessonSerializer, QuizSerializer,
     PathSerializer, RegisterSerializer, UserProgressSerializer, LeaderboardSerializer,
     QuestionSerializer, RewardSerializer, UserPurchaseSerializer, BadgeSerializer,
     UserBadgeSerializer, ReferralSerializer, UserSearchSerializer, FriendRequestSerializer,
-    ExerciseSerializer, UserExerciseProgressSerializer, FAQSerializer
+    ExerciseSerializer, UserExerciseProgressSerializer, FAQSerializer,
+    PortfolioEntrySerializer, FinancialGoalSerializer
 )
 from .dialogflow import detect_intent_from_text, perform_web_search
 from core.tokens import delete_jwt_cookies
@@ -3004,3 +3006,69 @@ def contact_us(request):
         print(f"Error sending email: {str(e)}")
 
     return Response({"message": "Your message has been received!"})
+
+class PortfolioViewSet(viewsets.ModelViewSet):
+    serializer_class = PortfolioEntrySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return PortfolioEntry.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        portfolio = self.get_queryset()
+        total_value = sum(entry.calculate_value() for entry in portfolio)
+        total_gain_loss = sum(entry.calculate_gain_loss() for entry in portfolio)
+        
+        # Calculate allocation by asset type
+        allocation = {}
+        for entry in portfolio:
+            value = entry.calculate_value()
+            if entry.asset_type not in allocation:
+                allocation[entry.asset_type] = 0
+            allocation[entry.asset_type] += value
+
+        return Response({
+            'total_value': total_value,
+            'total_gain_loss': total_gain_loss,
+            'allocation': allocation
+        })
+
+class FinancialGoalViewSet(viewsets.ModelViewSet):
+    serializer_class = FinancialGoalSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return FinancialGoal.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def add_funds(self, request, pk=None):
+        goal = self.get_object()
+        amount = Decimal(request.data.get('amount', 0))
+        
+        if amount <= 0:
+            return Response(
+                {'error': 'Amount must be greater than 0'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        goal.current_amount += amount
+        goal.save()
+
+        # Check if goal is completed
+        if goal.current_amount >= goal.target_amount:
+            # Create a mission completion for goal achievement
+            MissionCompletion.objects.create(
+                user=request.user,
+                mission_type='goal_completion',
+                description=f'Completed goal: {goal.goal_name}',
+                points=100  # Award points for completing a goal
+            )
+
+        return Response(self.get_serializer(goal).data)
