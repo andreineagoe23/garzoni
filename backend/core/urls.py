@@ -55,7 +55,9 @@ from .views import (
     FAQListView,
     vote_faq,
     delete_account,
-    UserRankView
+    UserRankView,
+    PortfolioViewSet,
+    FinancialGoalViewSet
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
@@ -74,6 +76,8 @@ router.register(r'user-badges', UserBadgeViewSet, basename='userbadge')
 router.register(r'exercises', ExerciseViewSet, basename='exercise')
 router.register(r'exercise-progress', UserExerciseProgressViewSet, basename='exercise-progress')
 router.register(r'friend-requests', FriendRequestView, basename='friend-request')
+router.register(r'portfolio', PortfolioViewSet, basename='portfolio')
+router.register(r'financial-goals', FinancialGoalViewSet, basename='financial-goals')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -2,6 +2,7 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  margin-left: 250px;
 
   .content-wrapper {
     background-color: var(--card-bg);
@@ -223,9 +224,11 @@
 }
 
 // Responsive styles
-@media (max-width: 768px) {
+@media (max-width: 993px) {
   .faq-page {
+    margin-left: 0;
     padding: 1rem;
+    padding-top: 80px;
 
     .content-wrapper {
       padding: 1rem;
@@ -254,34 +257,36 @@
       }
 
       .btn {
+        flex: 0 0 auto;
         white-space: nowrap;
-        flex-shrink: 0;
-        min-width: auto;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .faq-page {
+    padding: 1rem;
+    padding-top: 70px;
+
+    .content-wrapper {
+      padding: 1rem;
+    }
+
+    .faq-header {
+      h1 {
+        font-size: 1.75rem;
       }
     }
 
-    .faq-list {
-      .faq-item {
-        .faq-question {
-          padding: 1rem;
-          flex-wrap: wrap;
-          gap: 0.5rem;
+    .faq-question {
+      padding: 1rem !important;
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 0.5rem;
 
-          .category-tag {
-            margin-right: 0.5rem;
-            font-size: 0.8rem;
-          }
-        }
-
-        .faq-answer {
-          padding: 0 1rem;
-
-          &.active {
-            padding: 1rem;
-          }
-        }
+      .category-tag {
+        margin-right: 0;
       }
     }
   }

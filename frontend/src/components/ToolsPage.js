@@ -1,92 +1,89 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import ForexTools from "./ForexTools";
-import CryptoTools from "./CryptoTools";
-import BasicFinanceTools from "./BasicFinanceTools";
-import NewsCalendars from "./NewsCalendars";
-import Chatbot from "./Chatbot";
-import { Accordion } from "react-bootstrap";
-import ErrorBoundary from "./ErrorBoundary";
-import "../styles/scss/main.scss";
+import React, { useState } from "react";
+import { Container, Accordion } from "react-bootstrap";
 import { useAuth } from "./AuthContext";
+import PortfolioAnalyzer from "./PortfolioAnalyzer";
+import SavingsGoalCalculator from "./SavingsGoalCalculator";
+import CryptoTools from "./CryptoTools";
+import ForexTools from "./ForexTools";
+import NewsCalendars from "./NewsCalendars";
+import FinancialGoalsTracker from "./FinancialGoalsTracker";
+import ErrorBoundary from "./ErrorBoundary";
 
 const ToolsPage = () => {
-  const [categories, setCategories] = useState([]);
+  const { isAuthenticated } = useAuth();
   const [activeCategory, setActiveCategory] = useState(null);
-  const [error, setError] = useState(null);
-  const { getAccessToken } = useAuth();
 
-  useEffect(() => {
-    const fetchTools = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/tools/`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
-        );
-
-        const reorderedCategories = response.data.sort((a, b) =>
-          a.category === "Crypto Tools"
-            ? -1
-            : b.category === "Crypto Tools"
-            ? 1
-            : 0
-        );
-
-        setCategories(reorderedCategories);
-        setActiveCategory(0);
-      } catch (error) {
-        setError(error.message || "Error fetching tools.");
-      }
-    };
-
-    fetchTools();
-  }, [getAccessToken]);
-
-  const handleAccordionToggle = (index) => {
-    setActiveCategory(activeCategory === index ? null : index);
+  const handleAccordionToggle = (category) => {
+    setActiveCategory(activeCategory === category ? null : category);
   };
 
-  return (
-    <div className="tools-page">
-      <div className="content-container">
-        <h1 className="tools-title display-4 fw-bold">Financial Tools</h1>
+  const categories = [
+    {
+      title: "Portfolio Analyzer",
+      component: <PortfolioAnalyzer />,
+      description:
+        "Track and analyze your stock and cryptocurrency investments",
+    },
+    {
+      title: "Financial Goals Tracker",
+      component: <FinancialGoalsTracker />,
+      description:
+        "Set and track your personal financial goals with progress indicators",
+    },
+    {
+      title: "Savings Goal Calculator",
+      component: <SavingsGoalCalculator />,
+      description:
+        "Calculate how long it will take to reach your savings goals",
+    },
+    {
+      title: "Crypto Tools",
+      component: <CryptoTools />,
+      description: "Track cryptocurrency prices and market trends",
+    },
+    {
+      title: "Forex Tools",
+      component: <ForexTools />,
+      description: "Monitor foreign exchange rates and currency pairs",
+    },
+    {
+      title: "News & Economic Calendar",
+      component: <NewsCalendars />,
+      description: "Stay updated with financial news and economic events",
+    },
+  ];
 
-        {error ? (
-          <div className="alert alert-danger text-center">{error}</div>
-        ) : (
-          <Accordion activeKey={activeCategory?.toString()}>
-            {categories.map((category, index) => (
-              <ErrorBoundary key={index}>
-                <Accordion.Item eventKey={index.toString()} className="mb-3">
-                  <Accordion.Header
-                    onClick={() => handleAccordionToggle(index)}
-                    className="fw-semibold"
-                  >
-                    {category.category}
-                  </Accordion.Header>
-                  <Accordion.Body>
-                    {category.category === "Forex Tools" && <ForexTools />}
-                    {category.category === "Crypto Tools" && <CryptoTools />}
-                    {category.category === "News & Calendars" && (
-                      <NewsCalendars />
-                    )}
-                    {category.category ===
-                      "Basic Finance & Budgeting Tools" && (
-                      <BasicFinanceTools />
-                    )}
-                  </Accordion.Body>
-                </Accordion.Item>
-              </ErrorBoundary>
-            ))}
-          </Accordion>
-        )}
-      </div>
-      <Chatbot />
-    </div>
+  if (!isAuthenticated) {
+    return (
+      <Container className="py-5 text-center">
+        <h2>Please log in to access financial tools</h2>
+        <p>These tools are available to registered users only.</p>
+      </Container>
+    );
+  }
+
+  return (
+    <Container className="py-4">
+      <h1 className="mb-4">Financial Tools</h1>
+      <Accordion activeKey={activeCategory?.toString()}>
+        {categories.map((category, index) => (
+          <ErrorBoundary key={index}>
+            <Accordion.Item eventKey={index.toString()} className="mb-3">
+              <Accordion.Header
+                onClick={() => handleAccordionToggle(index)}
+                className="fw-semibold"
+              >
+                {category.title}
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted mb-3">{category.description}</p>
+                {category.component}
+              </Accordion.Body>
+            </Accordion.Item>
+          </ErrorBoundary>
+        ))}
+      </Accordion>
+    </Container>
   );
 };
 

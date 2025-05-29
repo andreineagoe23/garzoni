@@ -823,3 +823,52 @@ class ContactMessage(models.Model):
     def __str__(self):
         return f"{self.email} - {self.topic}"
     
+
+class PortfolioEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    asset_type = models.CharField(max_length=20, choices=[('stock', 'Stock'), ('crypto', 'Crypto')])
+    symbol = models.CharField(max_length=10)  # e.g., AAPL, BTC
+    quantity = models.DecimalField(max_digits=20, decimal_places=8)
+    purchase_price = models.DecimalField(max_digits=20, decimal_places=8)
+    purchase_date = models.DateField()
+    current_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def calculate_value(self):
+        return self.quantity * (self.current_price or self.purchase_price)
+
+    def calculate_gain_loss(self):
+        if not self.current_price:
+            return 0
+        return (self.current_price - self.purchase_price) * self.quantity
+
+    def calculate_gain_loss_percentage(self):
+        if not self.current_price:
+            return 0
+        return ((self.current_price - self.purchase_price) / self.purchase_price) * 100
+
+    class Meta:
+        verbose_name_plural = "Portfolio Entries"
+        ordering = ['-purchase_date']
+    
+
+class FinancialGoal(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    goal_name = models.CharField(max_length=100)
+    target_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    current_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    deadline = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def progress_percentage(self):
+        return (self.current_amount / self.target_amount) * 100 if self.target_amount > 0 else 0
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Financial Goal'
+        verbose_name_plural = 'Financial Goals'
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.goal_name}"
+    

@@ -2,7 +2,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import ( UserProfile, Course, Lesson, Quiz, Path, UserProgress, Questionnaire, Tool, Mission, MissionCompletion,
-SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection, FAQ, FAQFeedback)
+SimulatedSavingsAccount, Question, UserResponse, PathRecommendation, Reward, UserPurchase, Badge, UserBadge, Referral, FriendRequest, Exercise, UserExerciseProgress, LessonSection, FAQ, FAQFeedback, PortfolioEntry, FinancialGoal)
+from django.utils import timezone
 
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
@@ -409,5 +410,51 @@ class FAQSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             feedback = FAQFeedback.objects.filter(faq=obj, user=request.user).first()
             return feedback.vote if feedback else None
+        return None
+
+class PortfolioEntrySerializer(serializers.ModelSerializer):
+    current_value = serializers.SerializerMethodField()
+    gain_loss = serializers.SerializerMethodField()
+    gain_loss_percentage = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioEntry
+        fields = [
+            'id', 'asset_type', 'symbol', 'quantity', 'purchase_price',
+            'purchase_date', 'current_price', 'last_updated',
+            'current_value', 'gain_loss', 'gain_loss_percentage'
+        ]
+        read_only_fields = ['current_price', 'last_updated']
+
+    def get_current_value(self, obj):
+        return obj.calculate_value()
+
+    def get_gain_loss(self, obj):
+        return obj.calculate_gain_loss()
+
+    def get_gain_loss_percentage(self, obj):
+        return obj.calculate_gain_loss_percentage()
+
+class FinancialGoalSerializer(serializers.ModelSerializer):
+    progress_percentage = serializers.SerializerMethodField()
+    remaining_amount = serializers.SerializerMethodField()
+    days_remaining = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FinancialGoal
+        fields = ['id', 'goal_name', 'target_amount', 'current_amount', 
+                 'deadline', 'created_at', 'updated_at', 'progress_percentage',
+                 'remaining_amount', 'days_remaining']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def get_progress_percentage(self, obj):
+        return obj.progress_percentage()
+
+    def get_remaining_amount(self, obj):
+        return obj.target_amount - obj.current_amount
+
+    def get_days_remaining(self, obj):
+        if obj.deadline:
+            return (obj.deadline - timezone.now().date()).days
         return None
         
