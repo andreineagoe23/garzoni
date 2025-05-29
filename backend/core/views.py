@@ -2492,41 +2492,60 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Filter exercises based on query parameters."""
-        queryset = super().get_queryset()
-        exercise_type = self.request.query_params.get('type')
-        category = self.request.query_params.get('category')
-        difficulty = self.request.query_params.get('difficulty')
+        queryset = Exercise.objects.all()
+        exercise_type = self.request.query_params.get('type', None)
+        category = self.request.query_params.get('category', None)
+        difficulty = self.request.query_params.get('difficulty', None)
 
         if exercise_type:
             queryset = queryset.filter(type=exercise_type)
         if category:
-            queryset = queryset.filter(category__iexact=category)
+            queryset = queryset.filter(category=category)
         if difficulty:
-            queryset = queryset.filter(difficulty__iexact=difficulty)
+            queryset = queryset.filter(difficulty=difficulty)
+
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        """Get all unique exercise categories."""
+        categories = Exercise.objects.values_list('category', flat=True).distinct()
+        return Response(list(categories))
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
-        """Submit an answer for a specific exercise and track progress."""
+        """Submit an answer for an exercise."""
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
 
+        if not user_answer:
+            return Response(
+                {'error': 'User answer is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get or create user progress
         progress, created = UserExerciseProgress.objects.get_or_create(
             user=request.user,
-            exercise=exercise,
-            defaults={'user_answer': user_answer}
+            exercise=exercise
         )
 
+        # Update progress
         progress.attempts += 1
         progress.user_answer = user_answer
-        progress.completed = (user_answer == exercise.correct_answer)
+        progress.last_attempt = timezone.now()
+
+        # Check if answer is correct
+        is_correct = exercise.correct_answer == user_answer
+        if is_correct:
+            progress.completed = True
+
         progress.save()
 
         return Response({
-            'correct': progress.completed,
-            'correct_answer': exercise.correct_answer,
-            'attempts': progress.attempts
+            'correct': is_correct,
+            'attempts': progress.attempts,
+            'explanation': exercise.explanation if hasattr(exercise, 'explanation') else None
         })
 
 
