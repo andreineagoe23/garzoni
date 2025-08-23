@@ -70,18 +70,31 @@ export const AuthProvider = ({ children }) => {
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
 
-      // Verify user data with the new token
-      const verify = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${inMemoryToken}`,
-        },
-      });
+      // Get user data with the new token
+      try {
+        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${inMemoryToken}`,
+          },
+        });
 
-      setUser(verify.data.user);
-      setIsAuthenticated(true);
-      refreshAttempts = 0;
-      return true;
+        if (userResponse.data.isAuthenticated) {
+          setUser(userResponse.data.user);
+          setIsAuthenticated(true);
+          refreshAttempts = 0;
+          return true;
+        } else {
+          console.error("User verification failed after token refresh");
+          return false;
+        }
+      } catch (userError) {
+        console.error(
+          "Failed to get user data after token refresh:",
+          userError
+        );
+        return false;
+      }
     } catch (error) {
       console.error(
         "Token refresh failed:",
@@ -98,40 +111,16 @@ export const AuthProvider = ({ children }) => {
       console.log("Starting auth verification");
       isVerifying.current = true;
 
-      // Try to refresh token first
+      // Try to refresh token first - this should work if we have a valid refresh token in cookies
       const refreshed = await refreshToken();
       if (refreshed) {
-        console.log("Auth verified via token refresh");
+        console.log("Auth verified via token refresh - user is authenticated");
+        setIsAuthenticated(true);
         return;
       }
 
-      // If refresh failed, try direct verification as fallback
-      try {
-        console.log("Attempting direct verification");
-        const verifyResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-          withCredentials: true,
-          headers: inMemoryToken
-            ? {
-                Authorization: `Bearer ${inMemoryToken}`,
-              }
-            : {},
-        });
-
-        if (verifyResponse.data.is_authenticated) {
-          console.log("Auth verified directly");
-          setIsAuthenticated(true);
-          setUser(verifyResponse.data.user);
-          return;
-        }
-      } catch (verifyError) {
-        console.error(
-          "Direct verification failed:",
-          verifyError.response?.data || verifyError.message
-        );
-      }
-
-      // If both refresh and verify failed, clear auth state
-      console.log("All verification attempts failed");
+      // If refresh failed, we're not authenticated
+      console.log("Token refresh failed - user not authenticated");
       clearAuthState();
     } catch (error) {
       console.error(
@@ -140,6 +129,7 @@ export const AuthProvider = ({ children }) => {
       );
       clearAuthState();
     } finally {
+      console.log("Auth verification completed, setting initialized to true");
       setIsInitialized(true);
       isVerifying.current = false;
     }

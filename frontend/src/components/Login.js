@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 // import axios from "axios"; // Removed unused import
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import logo from "../assets/monevo.png";
@@ -21,6 +21,7 @@ function Login() {
   // const [captchaToken, setCaptchaToken] = useState("");
   // const recaptchaRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { loginUser, isAuthenticated } = useAuth();
 
   // Check if we're in production environment
@@ -28,9 +29,11 @@ function Login() {
   // Check if user is already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/all-topics");
+      // Redirect to the page they were trying to access, or default to all-topics
+      const from = location.state?.from?.pathname || "/all-topics";
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location.state]);
 
   const handleChange = (e) => {
     const value =
@@ -55,10 +58,6 @@ function Login() {
     setError("");
 
     try {
-      // Clear any stored tokens first to prevent token validation issues
-      document.cookie =
-        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
       const loginData = {
         ...formData,
         // Only include recaptcha_token in production
