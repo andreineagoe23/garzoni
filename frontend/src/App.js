@@ -27,6 +27,7 @@ import RewardsPage from "./components/RewardsPage";
 import FAQPage from "./components/FAQPage";
 import { ThemeProvider } from "../src/components/ThemeContext";
 import { AuthProvider } from "./components/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ExercisePage from "./components/ExercisePage";
 import PaymentRequired from "./components/PaymentRequired";
 import "./styles/scss/main.scss";
@@ -76,8 +77,6 @@ const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
   const noNavbarPaths = publicPaths;
   const noChatbotPaths = publicPaths;
 
-  const isPublicRoute = publicPaths.includes(location.pathname);
-
   useEffect(() => {
     if (
       typeof window.gtag === "function" &&
@@ -91,7 +90,7 @@ const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
   }, [location.pathname, location.search]);
 
   return (
-    <AuthProvider skipInitialAuth={isPublicRoute}>
+    <AuthProvider>
       <ThemeProvider>
         <div className="app-container">
           <Container fluid className="app-layout p-0">
@@ -111,43 +110,128 @@ const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
                   <Route
                     path="/all-topics"
                     element={
-                      <Dashboard key="all-topics" activePage="all-topics" />
+                      <ProtectedRoute>
+                        <Dashboard key="all-topics" activePage="all-topics" />
+                      </ProtectedRoute>
                     }
                   />
                   <Route
                     path="/personalized-path"
                     element={
-                      <Dashboard
-                        key="personalized-path"
-                        activePage="personalized-path"
-                      />
+                      <ProtectedRoute>
+                        <Dashboard
+                          key="personalized-path"
+                          activePage="personalized-path"
+                        />
+                      </ProtectedRoute>
                     }
                   />
                   <Route
                     path="/payment-required"
                     element={<PaymentRequired />}
                   />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/rewards" element={<RewardsPage />} />
-                  <Route path="/courses/:pathId" element={<CoursePage />} />
-                  <Route path="/lessons/:courseId" element={<LessonPage />} />
-                  <Route path="/quiz/:courseId" element={<QuizPage />} />
-                  <Route path="/leaderboards" element={<Leaderboards />} />
-                  <Route path="/missions" element={<Missions />} />
-                  <Route path="/tools" element={<ToolsPage />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/rewards"
+                    element={
+                      <ProtectedRoute>
+                        <RewardsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/courses/:pathId"
+                    element={
+                      <ProtectedRoute>
+                        <CoursePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/lessons/:courseId"
+                    element={
+                      <ProtectedRoute>
+                        <LessonPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/quiz/:courseId"
+                    element={
+                      <ProtectedRoute>
+                        <QuizPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/leaderboards"
+                    element={
+                      <ProtectedRoute>
+                        <Leaderboards />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/missions"
+                    element={
+                      <ProtectedRoute>
+                        <Missions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools"
+                    element={
+                      <ProtectedRoute>
+                        <ToolsPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/welcome" element={<Welcome />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route
                     path="/password-reset/:uidb64/:token"
                     element={<ResetPassword />}
                   />
-                  <Route path="/exercises" element={<ExercisePage />} />
+                  <Route
+                    path="/exercises"
+                    element={
+                      <ProtectedRoute>
+                        <ExercisePage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/exercise/:exerciseId"
-                    element={<ExercisePage />}
+                    element={
+                      <ProtectedRoute>
+                        <ExercisePage />
+                      </ProtectedRoute>
+                    }
                   />
-                  <Route path="/faq" element={<FAQPage />} />
+                  <Route
+                    path="/faq"
+                    element={
+                      <ProtectedRoute>
+                        <FAQPage />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Routes>
               </ThemeProvider>
             </main>
