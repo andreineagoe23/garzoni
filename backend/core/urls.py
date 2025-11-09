@@ -45,7 +45,6 @@ from .views import (
     TokenObtainPairView,
     StripeWebhookView,
     VerifySessionView,
-    HuggingFaceProxyView,
     LoginSecureView,
     RegisterSecureView,
     LogoutSecureView,
@@ -144,7 +143,6 @@ urlpatterns = [
     path('search-users/', UserSearchView.as_view(), name='user-search'),
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
 
-    path('proxy/hf/', HuggingFaceProxyView.as_view(), name='hf-proxy'),
     path('proxy/openrouter/', OpenRouterProxyView.as_view(), name='openrouter-proxy'),
     path('change-password/', views.change_password, name='change-password'),
     path('delete-account/', delete_account, name='delete-account'),

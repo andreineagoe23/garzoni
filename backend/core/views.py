@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth.models import User
@@ -29,7 +30,6 @@ import requests
 import logging
 import os
 import json
-from transformers import pipeline
 from .models import (
     LessonSection, UserProfile, Course, Lesson, Quiz, Path, UserProgress,
     MissionCompletion, SimulatedSavingsAccount, Question, UserResponse,
@@ -59,6 +59,54 @@ from django.db import models
 
 logger = logging.getLogger(__name__)
 
+REFRESH_COOKIE_NAME = "refresh_token"
+DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24  # 24 hours
+OVERRIDE_TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in OVERRIDE_TRUE_VALUES
+
+
+def _get_refresh_cookie_kwargs():
+    """
+    Build keyword arguments for setting the refresh token cookie, adapting to
+    local development (DEBUG=True) vs. hosted environments.
+    """
+    secure = _env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
+    default_samesite = "None" if secure else "Lax"
+    samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
+    max_age = int(os.getenv("REFRESH_TOKEN_MAX_AGE", DEFAULT_REFRESH_MAX_AGE))
+
+    cookie_kwargs = {
+        "httponly": True,
+        "secure": secure,
+        "samesite": samesite,
+        "max_age": max_age,
+        "path": "/",
+    }
+
+    cookie_domain = os.getenv("REFRESH_COOKIE_DOMAIN")
+    if cookie_domain:
+        cookie_kwargs["domain"] = cookie_domain
+
+    return cookie_kwargs
+
+
+def set_refresh_cookie(response, token: str):
+    """Attach the refresh token cookie to the response."""
+    response.set_cookie(REFRESH_COOKIE_NAME, token, **_get_refresh_cookie_kwargs())
+
+
+def clear_refresh_cookie(response):
+    """Remove the refresh token cookie from the response."""
+    base_kwargs = _get_refresh_cookie_kwargs()
+    delete_kwargs = {k: v for k, v in base_kwargs.items() if k in {"path", "domain", "secure", "httponly", "samesite"}}
+    response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
+
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 # Add these imports for reCAPTCHA verification
@@ -83,166 +131,6 @@ def get_csrf_token(request):
     """Retrieve and return a CSRF token for the client."""
     token = get_token(request)
     return JsonResponse({"csrfToken": token})
-
-
-class HuggingFaceProxyView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # Load the model for financial assistance once when the class is first used
-    try:
-        from transformers import pipeline
-        local_pipe = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
-    except Exception as e:
-        import logging
-        logging.error(f"Error loading model: {str(e)}")
-        local_pipe = None
-
-    def post(self, request):
-        prompt = request.data.get("inputs", "").strip()
-        parameters = request.data.get("parameters", {})
-
-        if not prompt:
-            return Response({"error": "Prompt is required."}, status=400)
-
-        try:
-            # Check if we should add financial context
-            is_finance_query = self.is_finance_related(prompt.lower())
-            
-            # Add financial context if needed
-            if is_finance_query:
-                prompt = self.add_financial_context(prompt)
-            
-            # Use increased max length for financial responses
-            if "max_new_tokens" not in parameters and is_finance_query:
-                parameters["max_new_tokens"] = 150
-            
-            # Run the local model
-            if self.local_pipe:
-                output = self.local_pipe(prompt, **parameters)
-                # Extract the generated text (standard format for text-generation)
-                response_text = output[0]["generated_text"]
-                
-                # Clean up the response
-                response_text = self.clean_response(response_text, prompt)
-            else:
-                # Fallback if model failed to load
-                response_text = "I apologize, but our AI service is temporarily unavailable. Please try again later."
-
-            return Response({"response": response_text})
-        except Exception as e:
-            logging.error(f"HuggingFaceProxy Error: {str(e)}")
-            return Response({"error": str(e)}, status=500)
-    
-    def is_finance_related(self, text):
-        """Check if the query is related to finance."""
-        finance_terms = [
-            'money', 'finance', 'budget', 'invest', 'stock', 'market', 'fund',
-            'saving', 'retirement', 'income', 'expense', 'debt', 'credit', 'loan',
-            'mortgage', 'interest', 'dividend', 'portfolio', 'tax', 'inflation',
-            'economy', 'financial', 'bank', 'crypto', 'bitcoin', 'ethereum',
-            'compound interest', 'apr', 'apy', 'bond', 'etf', 'mutual fund',
-            'forex', 'hedge fund', 'ira', '401k', 'cash flow', 'asset', 'liability',
-            'net worth', 'bull market', 'bear market', 'capital gain', 'diversification',
-            'liquidity', 'amortization', 'annuity', 'depreciation', 'equity', 'leverage',
-            'yield', 'security', 'volatility', 'appreciation', 'depreciation', 'fiduciary',
-            'principal', 'premium', 'maturity', 'roi', 'roic', 'exchange rate', 'roth'
-        ]
-        
-        return any(term in text for term in finance_terms)
-    
-    def add_financial_context(self, prompt):
-        """Add financial context to improve responses."""
-        financial_context = (
-            "You are a helpful and knowledgeable financial assistant. "
-            "Provide accurate, concise information about personal finance, investing, "
-            "budgeting, and financial education. Focus on educational content "
-            "rather than specific investment advice. Your responses should be "
-            "clear, direct, and factual without unnecessary introductions or "
-            "self-references. Avoid saying 'I am a financial assistant' or similar "
-            "phrases. Just provide the useful financial information directly.\n\n"
-        )
-        
-        if "User:" in prompt and "AI:" in prompt:
-            # Add context but preserve conversation format
-            parts = prompt.split("User:", 1)
-            return financial_context + "User:" + parts[1]
-        else:
-            return financial_context + prompt
-    
-    def clean_response(self, response_text, original_prompt):
-        """Clean up the generated response text."""
-        # Remove the original prompt from the beginning if it exists
-        if response_text.startswith(original_prompt):
-            response_text = response_text[len(original_prompt):].strip()
-        
-        # If we have AI: in the text, take only what follows the last AI:
-        if "AI:" in response_text:
-            response_text = response_text.split("AI:")[-1].strip()
-        
-        # Remove any trailing User: or Human: segments and their contents
-        if "User:" in response_text:
-            response_text = response_text.split("User:", 1)[0].strip()
-        if "Human:" in response_text:
-            response_text = response_text.split("Human:", 1)[0].strip()
-        
-        # Extract potential user query to check for repetitions
-        user_query = ""
-        if "User:" in original_prompt:
-            user_query_parts = original_prompt.split("User:")
-            if len(user_query_parts) > 1:
-                user_query = user_query_parts[-1].split("AI:", 1)[0].strip().lower()
-        
-        # Remove repetitions of the user's query
-        if user_query:
-            # Try to match pattern like "how can i buy a house? how can i buy a house?"
-            escaped_query = re.escape(user_query)
-            response_text = re.sub(f"^{escaped_query}\\??\\s*{escaped_query}", "", response_text, flags=re.IGNORECASE)
-            
-            # Remove multiple repetitions
-            repetition_pattern = f"({escaped_query}\\??\\s*){{2,}}"
-            response_text = re.sub(repetition_pattern, "", response_text, flags=re.IGNORECASE)
-            
-            # Remove the question at the beginning
-            response_text = re.sub(f"^{escaped_query}\\??\\s*", "", response_text, flags=re.IGNORECASE)
-        
-        # Remove common bot introduction patterns
-        response_text = response_text.replace("I am a financial assistant.", "")
-        response_text = response_text.replace("I am an AI assistant.", "")
-        response_text = response_text.replace("As a financial advisor,", "")
-        response_text = response_text.replace("As an AI assistant,", "")
-        response_text = response_text.replace("As an AI language model,", "")
-        
-        # Remove introductory phrases
-        intro_phrases = [
-            "I'd be happy to explain",
-            "I'd be glad to help",
-            "I can help with that",
-            "Let me explain",
-            "To answer your question",
-            "Here's information about",
-            "Great question",
-            "Sure,",
-            "Certainly,",
-            "Absolutely,",
-            "Hello,",
-            "Hi,",
-            "I understand you're asking about",
-            "I'd like to help you",
-            "I'd love to assist",
-        ]
-        
-        for phrase in intro_phrases:
-            if response_text.lower().startswith(phrase.lower()):
-                response_text = response_text[len(phrase):].strip()
-                # Remove comma if present
-                if response_text.startswith(","):
-                    response_text = response_text[1:].strip()
-                    
-        # If response is too short, provide a fallback
-        if len(response_text.strip()) < 10:
-            return "I don't have enough information to answer that properly. Could you provide more details about your financial question?"
-            
-        return response_text.strip()
 
 
 class OpenRouterProxyView(APIView):
@@ -754,7 +642,9 @@ class LogoutView(APIView):
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
         response = JsonResponse({"message": "Logout successful."})
-        return delete_jwt_cookies(response)
+        response = delete_jwt_cookies(response)
+        clear_refresh_cookie(response)
+        return response
 
 
 class LogoutSecureView(APIView):
@@ -766,13 +656,7 @@ class LogoutSecureView(APIView):
         """Handle POST requests to log out the user and clear cookies."""
         try:
             response = Response({"message": "Logout successful."})
-            # Clear the refresh token cookie
-            response.delete_cookie(
-                'refresh_token',
-                path="/",
-                samesite='None',
-                secure=True
-            )
+            clear_refresh_cookie(response)
             return response
         except Exception as e:
             logger.error(f"Logout error: {str(e)}")
@@ -1439,7 +1323,7 @@ class FinanceFactView(APIView):
             ).exclude(id__in=read_facts).order_by('?').first()
 
             if not fact:
-                return Response({"message": "No new facts available"}, status=404)
+                return Response(status=204)
 
             return Response({
                 "id": fact.id,
@@ -2714,15 +2598,7 @@ class LoginSecureView(APIView):
             # Set refresh token as HttpOnly cookie
             logger.info(f"Setting refresh token cookie for {username}")
             
-            response.set_cookie(
-                'refresh_token', 
-                refresh_token, 
-                httponly=True, 
-                secure=False,  # Set to False for local development
-                samesite='Lax',
-                max_age=3600 * 24,  # 24 hours
-                path="/"  # Use root path to ensure cookie is sent for all requests
-            )
+            set_refresh_cookie(response, refresh_token)
             
             # Update last login
             user.last_login = now()
@@ -2767,15 +2643,7 @@ class RegisterSecureView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
         # Set refresh token in HttpOnly cookie
-        response.set_cookie(
-            'refresh_token',
-            str(refresh),
-            httponly=True,
-            secure=False,  # Set to False for local development
-            samesite='Lax',
-            max_age=3600 * 24,  # 24 hours
-            path="/"  # Use root path to ensure cookie is sent for all requests
-        )
+        set_refresh_cookie(response, str(refresh))
 
         return response
 
@@ -2783,23 +2651,35 @@ class VerifyAuthView(APIView):
     """View to verify user authentication status and return user data if authenticated."""
     
     permission_classes = [AllowAny]  # Changed from IsAuthenticated to AllowAny
+    authentication_classes = [JWTAuthentication]
     
     def get(self, request):
-        if request.user.is_authenticated:
-            return Response({
-                'isAuthenticated': True,
-                'user': {
-                    'id': request.user.id,
-                    'username': request.user.username,
-                    'email': request.user.email,
-                },
-                'access': request.auth.token if request.auth else None
-            })
-        return Response({
-            'isAuthenticated': False,
-            'user': None,
-            'access': None
-        })
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+            authenticator = JWTAuthentication()
+            try:
+                validated_token = authenticator.get_validated_token(token)
+                user = authenticator.get_user(validated_token)
+                return Response(
+                    {
+                        "isAuthenticated": True,
+                        "user": {
+                            "id": user.id,
+                            "username": user.username,
+                            "email": user.email,
+                        },
+                    }
+                )
+            except Exception:
+                pass
+
+        return Response(
+            {
+                "isAuthenticated": False,
+                "user": None,
+            }
+        )
 
 class CustomTokenRefreshView(TokenRefreshView):
     """
@@ -2809,52 +2689,52 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get('refresh_token')
-        
+        refresh_token = (
+            request.COOKIES.get(REFRESH_COOKIE_NAME)
+            or request.data.get("refresh")
+            or request.headers.get("X-Refresh-Token")
+        )
+
         if not refresh_token:
-            logger.error("No refresh token found in cookies")
-            return Response({"detail": "No refresh token found in cookies"}, status=400)
-            
-        # Include the token in the request data
-        request.data['refresh'] = refresh_token
-        
+            logger.error("No refresh token provided for refresh endpoint")
+            return Response({"detail": "No refresh token provided."}, status=400)
+
+        serializer = self.get_serializer(data={"refresh": refresh_token})
+
         try:
-            # Call the parent's post method
-            response = super().post(request, *args, **kwargs)
-            
-            # Get the access token from the response data
-            access_token = response.data.get('access')
-            
-            if access_token:
-                logger.info("Token refresh successful")
-                
-                # If we're using ROTATE_REFRESH_TOKENS, get the new refresh token
-                if settings.SIMPLE_JWT.get('ROTATE_REFRESH_TOKENS', False):
-                    new_refresh_token = response.data.get('refresh')
-                    if new_refresh_token:
-                        # Set the new refresh token cookie
-                        response.set_cookie(
-                            'refresh_token', 
-                            new_refresh_token, 
-                            httponly=True, 
-                            secure=False,
-                            samesite='Lax',
-                            max_age=3600 * 24,  # 24 hours
-                            path="/"  # Use root path to ensure cookie is sent for all requests
-                        )
-                        logger.info("New refresh token cookie set")
-            
+            serializer.is_valid(raise_exception=True)
+        except TokenError as exc:
+            logger.error(f"Token refresh error: {exc}")
+            response = Response({"detail": str(exc)}, status=401)
+            clear_refresh_cookie(response)
             return response
-            
-        except (InvalidToken, TokenError) as e:
-            logger.error(f"Token refresh error: {str(e)}")
-            response = Response({"detail": str(e)}, status=401)
-            # Clear the invalid refresh token cookie
-            response.delete_cookie('refresh_token', path="/")
-            return response
-        except Exception as e:
-            logger.error(f"Unexpected error during token refresh: {str(e)}", exc_info=True)
-            return Response({"detail": "An error occurred during token refresh."}, status=500)
+        except Exception as exc:
+            logger.error(
+                f"Unexpected error during token refresh: {exc}", exc_info=True
+            )
+            return Response(
+                {"detail": "An error occurred during token refresh."},
+                status=500,
+            )
+
+        response_data = serializer.validated_data
+        access_token = response_data.get("access")
+
+        if not access_token:
+            logger.error("Token refresh failed to provide an access token")
+            return Response({"detail": "Token refresh failed."}, status=401)
+
+        response = Response({"access": access_token}, status=status.HTTP_200_OK)
+
+        if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
+            new_refresh_token = response_data.get("refresh")
+            if new_refresh_token:
+                set_refresh_cookie(response, new_refresh_token)
+                logger.info("Refresh token rotated and cookie updated")
+        else:
+            set_refresh_cookie(response, refresh_token)
+
+        return response
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
