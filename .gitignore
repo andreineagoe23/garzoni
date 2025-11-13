@@ -13,6 +13,8 @@ backend/cache/__pycache__/
 .pyc
 # Frontend
 /frontend/.env
+/frontend/build/
+frontend/build/
 .env
 # Distribution / packaging
 .Python
