@@ -40,6 +40,7 @@ $spacers: (
 // Typography
 $font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
 $font-weight-normal: 400;
+$font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 $line-height-base: 1.6;
@@ -89,24 +90,29 @@ $container-max-widths: (
   xxl: 1320px
 );
 
-// Custom properties (CSS variables)
+// Custom properties (CSS variables) - Light Mode
 :root {
   // Colors
   --primary: #{$primary};
   --primary-dark: #{$primary-dark};
   --primary-light: #{$primary-light};
+  --primary-rgb: 29, 83, 48; // RGB values for opacity manipulations
   --accent: #{$accent};
   --accent-dark: #{$accent-dark};
+  --accent-rgb: 255, 215, 0; // RGB values for opacity manipulations
   --secondary: #{$secondary};
-  --danger: #{$danger};
+  --danger: #dc2626;
   --success: #{$success};
+  --error: #dc2626;
   
-  // Theme colors
-  --bg-color: #ffffff;
-  --text-color: #333333;
-  --card-bg: #ffffff;
-  --border-color: #dddddd;
-  --input-bg: #ffffff;
+  // Theme colors - Light Mode
+  --bg-color: #f8fafc; // Soft off-white for better contrast
+  --text-color: #111827; // Dark gray for excellent readability
+  --card-bg: #ffffff; // Pure white cards
+  --border-color: rgba(0, 0, 0, 0.1); // Subtle border with better visibility
+  --input-bg: #ffffff; // White inputs
+  --muted-text: #6b7280; // Medium gray for secondary text
+  --shadow-color: rgba(0, 0, 0, 0.1); // Light shadow for depth
   
   // Structure
   --border-radius: #{$border-radius};

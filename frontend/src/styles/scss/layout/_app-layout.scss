@@ -11,42 +11,25 @@
 
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  flex-direction: column;
   width: 100%;
+  min-height: calc(100vh - var(--top-nav-height, 72px));
   position: relative;
+  padding: map-get($spacers, 4) map-get($spacers, 3);
+
+  @include media-breakpoint-down(md) {
+    padding: map-get($spacers, 3);
+  }
+
+  @include media-breakpoint-down(sm) {
+    padding: map-get($spacers, 3) map-get($spacers, 2);
+  }
 }
 
 .content {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
   width: 100%;
-  padding: map-get($spacers, 3);
-  transition: all 0.3s ease;
   margin-left: 0 !important;
-
-  // Laptop screens specific adjustments
-  @media (min-width: 993px) and (max-width: 1366px) {
-    padding: map-get($spacers, 3);
-    
-    .has-sidebar & {
-      margin-left: 280px;
-    }
-  }
-
-  @include media-breakpoint-up(md) {
-    padding: map-get($spacers, 4);
-  }
-  
-  @include media-breakpoint-up(lg) {
-    padding: map-get($spacers, 3);
-    .has-sidebar & {
-      margin-left: 280px;
-    }
-  }
-  
-  @include media-breakpoint-down(lg) {
-    padding-bottom: 70px; // Space for mobile navigation
-  }
 }
 
 .content-no-sidebar {
@@ -54,24 +37,27 @@
 }
 
 .content-wrapper {
-  padding: map-get($spacers, 4);
-  max-width: 1320px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: map-get($spacers, 4);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   
   // Laptop screens
   @media (min-width: 993px) and (max-width: 1366px) {
+    max-width: 95%;
     padding: map-get($spacers, 3);
-    max-width: 96%;
   }
   
   @include media-breakpoint-down(md) {
     padding: map-get($spacers, 3);
-    padding-bottom: map-get($spacers, 6);
   }
   
   @include media-breakpoint-down(sm) {
-    padding: map-get($spacers, 2);
-    padding-bottom: map-get($spacers, 5);
+    padding: map-get($spacers, 3) map-get($spacers, 2);
   }
 }
 
@@ -181,29 +167,6 @@
     @include media-breakpoint-down(md) {
       font-size: 1rem;
     }
-  }
-}
-
-// Mobile navigation dropdown menu
-.mobile-nav .dropdown-menu {
-  display: block;
-  visibility: visible;
-  opacity: 1;
-  z-index: 9999;
-  position: fixed;
-  bottom: 60px;
-  right: 10px;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
-  padding: map-get($spacers, 2);
-  min-width: 200px;
-  
-  @include media-breakpoint-down(sm) {
-    right: 5px;
-    left: 5px;
-    width: auto;
   }
 }
 

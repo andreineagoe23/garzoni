@@ -26,7 +26,7 @@ services:
     branch: staging
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000
+    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -92,7 +92,7 @@ services:
     branch: master
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000
+    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared

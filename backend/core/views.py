@@ -60,7 +60,7 @@ from django.db import models
 logger = logging.getLogger(__name__)
 
 REFRESH_COOKIE_NAME = "refresh_token"
-DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24  # 24 hours
+DEFAULT_REFRESH_MAX_AGE = 0  # Session cookie by default
 OVERRIDE_TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
 
 
@@ -79,15 +79,32 @@ def _get_refresh_cookie_kwargs():
     secure = _env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
     default_samesite = "None" if secure else "Lax"
     samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
-    max_age = int(os.getenv("REFRESH_TOKEN_MAX_AGE", DEFAULT_REFRESH_MAX_AGE))
+    max_age_setting = os.getenv("REFRESH_TOKEN_MAX_AGE")
+    max_age = DEFAULT_REFRESH_MAX_AGE
+
+    if max_age_setting is not None:
+        cleaned_value = max_age_setting.strip().lower()
+        if cleaned_value in {"session", "none", ""}:
+            max_age = 0
+        else:
+            try:
+                max_age = int(cleaned_value)
+            except ValueError:
+                logger.warning(
+                    "Invalid REFRESH_TOKEN_MAX_AGE value '%s'; falling back to session cookie.",
+                    max_age_setting,
+                )
+                max_age = 0
 
     cookie_kwargs = {
         "httponly": True,
         "secure": secure,
         "samesite": samesite,
-        "max_age": max_age,
         "path": "/",
     }
+
+    if max_age > 0:
+        cookie_kwargs["max_age"] = max_age
 
     cookie_domain = os.getenv("REFRESH_COOKIE_DOMAIN")
     if cookie_domain:
