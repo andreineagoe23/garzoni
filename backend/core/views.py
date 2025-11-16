@@ -121,7 +121,12 @@ def set_refresh_cookie(response, token: str):
 def clear_refresh_cookie(response):
     """Remove the refresh token cookie from the response."""
     base_kwargs = _get_refresh_cookie_kwargs()
-    delete_kwargs = {k: v for k, v in base_kwargs.items() if k in {"path", "domain", "secure", "httponly", "samesite"}}
+    # Django 4+ delete_cookie only accepts: key, path, domain, samesite
+    delete_kwargs = {
+        k: v
+        for k, v in base_kwargs.items()
+        if k in {"path", "domain", "samesite"}
+    }
     response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
 
 from django.views.decorators.csrf import ensure_csrf_cookie
