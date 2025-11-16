@@ -15,25 +15,11 @@
   width: 100%;
   min-height: calc(100vh - var(--top-nav-height, 72px));
   position: relative;
-  padding: map-get($spacers, 4) map-get($spacers, 3);
-
-  @include media-breakpoint-down(md) {
-    padding: map-get($spacers, 3);
-  }
-
-  @include media-breakpoint-down(sm) {
-    padding: map-get($spacers, 3) map-get($spacers, 2);
-  }
 }
 
 .content {
   flex: 1 1 auto;
   width: 100%;
-  margin-left: 0 !important;
-}
-
-.content-no-sidebar {
-  margin-left: 0 !important;
 }
 
 .content-wrapper {
