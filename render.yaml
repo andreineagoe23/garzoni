@@ -1,0 +1,246 @@
+version: 1
+
+databases:
+  - name: chartwise-db-staging
+    plan: starter
+    databaseName: chartwise_staging
+    user: chartwise
+  - name: chartwise-db-production
+    plan: starter
+    databaseName: chartwise
+    user: chartwise
+
+services:
+  - type: redis
+    name: chartwise-redis-staging
+    plan: starter
+
+  - type: redis
+    name: chartwise-redis-production
+    plan: starter
+
+  - type: web
+    name: chartwise-web-staging
+    env: docker
+    plan: starter
+    branch: staging
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-staging
+          type: redis
+          property: connectionString
+
+  - type: worker
+    name: chartwise-worker-staging
+    env: docker
+    plan: starter
+    branch: staging
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: celery -A chartwise worker --loglevel=info
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-staging
+          type: redis
+          property: connectionString
+
+  - type: worker
+    name: chartwise-beat-staging
+    env: docker
+    plan: starter
+    branch: staging
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: celery -A chartwise beat -S django --loglevel=info
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-staging
+          type: redis
+          property: connectionString
+
+  - type: web
+    name: chartwise-web-production
+    env: docker
+    plan: starter
+    branch: master
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-production
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-production
+          type: redis
+          property: connectionString
+
+  - type: worker
+    name: chartwise-worker-production
+    env: docker
+    plan: starter
+    branch: master
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: celery -A chartwise worker --loglevel=info
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-production
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-production
+          type: redis
+          property: connectionString
+
+  - type: worker
+    name: chartwise-beat-production
+    env: docker
+    plan: starter
+    branch: master
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: celery -A chartwise beat -S django --loglevel=info
+    autoDeploy: true
+    envVars:
+      - fromGroup: chartwise-shared
+      - fromGroup: chartwise-production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chartwise-db-production
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: chartwise-redis-production
+          type: redis
+          property: connectionString
+
+envVarGroups:
+  - name: chartwise-shared
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: TIME_ZONE
+        value: "UTC"
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: RECAPTCHA_PUBLIC_KEY
+        sync: false
+      - key: RECAPTCHA_PRIVATE_KEY
+        sync: false
+      - key: RECAPTCHA_REQUIRED_SCORE
+        value: "0.5"
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        sync: false
+      - key: DIALOGFLOW_PROJECT_ID
+        sync: false
+      - key: CSE_ID
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: RECRAFT_API_KEY
+        sync: false
+      - key: REFRESH_COOKIE_DOMAIN
+        sync: false
+      - key: REFRESH_COOKIE_SECURE
+        value: "True"
+      - key: REFRESH_COOKIE_SAMESITE
+        value: "None"
+      - key: REFRESH_TOKEN_MAX_AGE
+        value: "86400"
+
+  - name: chartwise-staging
+    envVars:
+      - key: DEBUG
+        value: "True"
+      - key: ALLOWED_HOSTS_CSV
+        value: "chartwise-web-staging.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS_CSV
+        value: "https://monevo-alpha.vercel.app,https://monevo.vercel.app"
+      - key: CSRF_TRUSTED_ORIGINS_CSV
+        value: "https://monevo-alpha.vercel.app,https://monevo.vercel.app"
+      - key: FRONTEND_URL
+        value: "https://monevo-alpha.vercel.app"
+      - key: CSRF_COOKIE_DOMAIN
+        value: ""
+      - key: REFRESH_COOKIE_DOMAIN
+        value: ""
+      - key: REFRESH_COOKIE_SECURE
+        value: "False"
+      - key: REFRESH_COOKIE_SAMESITE
+        value: "None"
+
+  - name: chartwise-production
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS_CSV
+        value: "chartwise-web-production.onrender.com,monevo.tech,www.monevo.tech"
+      - key: CORS_ALLOWED_ORIGINS_CSV
+        value: "https://www.monevo.tech,https://monevo.tech,https://monevo.vercel.app"
+      - key: CSRF_TRUSTED_ORIGINS_CSV
+        value: "https://www.monevo.tech,https://monevo.tech,https://monevo.vercel.app"
+      - key: FRONTEND_URL
+        value: "https://www.monevo.tech"
+      - key: CSRF_COOKIE_DOMAIN
+        value: "monevo.tech"
+      - key: REFRESH_COOKIE_DOMAIN
+        value: "monevo.tech"
+      - key: REFRESH_COOKIE_SECURE
+        value: "True"
+      - key: REFRESH_COOKIE_SAMESITE
+        value: "None"
+
+
