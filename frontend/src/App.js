@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   HashRouter as Router,
   Route,
@@ -34,29 +34,14 @@ import PrivacyPolicy from "components/legal/PrivacyPolicy";
 import CookiePolicy from "components/legal/CookiePolicy";
 
 function App() {
-  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth <= 992);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   return (
     <Router>
-      <AppContent
-        toggleChatbot={() => setIsChatbotVisible(!isChatbotVisible)}
-        isChatbotVisible={isChatbotVisible}
-        setIsChatbotVisible={setIsChatbotVisible}
-        isMobileView={isMobileView}
-      />
+      <AppContent />
     </Router>
   );
 }
 
-const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
+const AppContent = () => {
   const location = useLocation();
 
   const publicPaths = [
@@ -92,7 +77,14 @@ const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <div className="app-container">
+        <div
+          className={[
+            "app-container",
+            noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
+          ]
+            .join(" ")
+            .trim()}
+        >
           {hasNavbar && <Navbar />}
 
           <div className="app-layout w-full p-0">
@@ -232,13 +224,7 @@ const AppContent = ({ toggleChatbot, isChatbotVisible, isMobileView }) => {
               </Routes>
             </main>
 
-            {!noChatbotPaths.includes(location.pathname) && (
-              <Chatbot
-                isVisible={isChatbotVisible}
-                onClose={toggleChatbot}
-                isMobile={isMobileView}
-              />
-            )}
+            {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
           </div>
         </div>
       </ThemeProvider>

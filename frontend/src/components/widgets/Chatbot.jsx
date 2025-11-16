@@ -16,17 +16,8 @@ const LANGUAGES = [
   { code: "zh-CN", name: "Chinese" },
 ];
 
-const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
-  // Handle onClose - it might be a toggle function or accept a boolean
-  // If onClose is not provided, create a no-op function
-  const handleClose = (value) => {
-    if (typeof onClose === 'function') {
-      // Call with value - if it's a toggle function, it will ignore the argument
-      // If it accepts a boolean, it will use it
-      onClose(value);
-    }
-    // If onClose is not a function, do nothing (component can work standalone)
-  };
+const Chatbot = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +44,7 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
   ];
 
   const handleCourseClick = (path) => {
-    handleClose(false);
+    setIsOpen(false);
 
     if (path.includes("#")) {
       const [basePath, anchor] = path.split("#");
@@ -65,7 +56,7 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
   };
 
   useEffect(() => {
-    if (isVisible && !hasGreeted) {
+    if (!hasGreeted) {
       setMessages([
         {
           sender: "bot",
@@ -74,24 +65,9 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
       ]);
       setHasGreeted(true);
     }
-  }, [isVisible, hasGreeted]);
+  }, [hasGreeted]);
 
-  useEffect(() => {
-    if (isMobile && isVisible) {
-      const scrollY = window.scrollY;
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.top = `-${scrollY}px`;
-      return () => {
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.width = "";
-        document.body.style.top = "";
-        window.scrollTo(0, scrollY);
-      };
-    }
-  }, [isMobile, isVisible]);
+  // Removed mobile/visibility side-effects
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -106,25 +82,16 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
         setVoices(availableVoices);
         setSelectedVoice(
           (prev) =>
-            prev || availableVoices.find((voice) => voice.default) || availableVoices[0]
+            prev ||
+            availableVoices.find((voice) => voice.default) ||
+            availableVoices[0]
         );
       }
     };
 
     window.speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
-
-    if (isMobile && voices.length === 0) {
-      const interval = setInterval(() => {
-        const mobileVoices = window.speechSynthesis.getVoices();
-        if (mobileVoices.length > 0) {
-          clearInterval(interval);
-          loadVoices();
-        }
-      }, 500);
-      return () => clearInterval(interval);
-    }
-  }, [isMobile, voices.length]);
+  }, [voices.length]);
 
   useEffect(() => {
     if (!isInitialized || !isAuthenticated) return;
@@ -162,7 +129,10 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    setMessages((prev) => [...prev, { sender: "system", text: "Listening..." }]);
+    setMessages((prev) => [
+      ...prev,
+      { sender: "system", text: "Listening..." },
+    ]);
     recognition.start();
 
     recognition.onresult = (event) => {
@@ -676,24 +646,27 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
     <>
       <button
         type="button"
-        onClick={() => handleClose(!isVisible)}
-        aria-label={isVisible ? "Close Finance Assistant" : "Open Finance Assistant"}
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={
+          isOpen ? "Close Finance Assistant" : "Open Finance Assistant"
+        }
         className="fixed bottom-6 right-6 z-[1100] group inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/80 backdrop-blur-md border border-[color:var(--border-color,rgba(255,255,255,0.2))] text-white text-lg transition hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 shadow-sm sm:bottom-8 sm:right-8 touch-manipulation"
-        style={{ WebkitTapHighlightColor: 'transparent', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+        style={{
+          WebkitTapHighlightColor: "transparent",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         <span className="transition group-hover:-translate-y-1">💬</span>
       </button>
 
-      {(isVisible || isMobile) && (
+      {isOpen && (
         <div
-          className={[
-            "flex max-h-[70vh] w-[min(90vw,420px)] flex-col overflow-hidden rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg transition-transform",
-            isVisible ? "translate-y-0" : "translate-y-4 opacity-0",
-            isMobile
-              ? "fixed inset-x-4 bottom-2 top-24 w-auto z-[1100]"
-              : "fixed bottom-24 right-6 z-[1100] sm:bottom-28 sm:right-8",
-          ].join(" ")}
-          style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+          className="fixed bottom-24 right-6 z-[1100] flex max-h-[70vh] w-[min(90vw,420px)] flex-col overflow-hidden rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg"
+          style={{
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
         >
           <header className="flex items-center justify-between border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-5 py-4">
             <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -701,7 +674,7 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
             </span>
             <button
               type="button"
-              onClick={() => handleClose(false)}
+              onClick={() => setIsOpen(false)}
               className="rounded-full bg-transparent px-3 py-1 text-sm text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
               ✕
@@ -789,7 +762,10 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
                     </div>
                   </div>
                 ) : msg.sender === "system" ? (
-                  <GlassCard padding="sm" className="max-w-[80%] bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
+                  <GlassCard
+                    padding="sm"
+                    className="max-w-[80%] bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]"
+                  >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
                         <span>⚙️</span>
@@ -800,7 +776,10 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
                     </div>
                   </GlassCard>
                 ) : (
-                  <GlassCard padding="sm" className="max-w-[80%] text-[color:var(--text-color,#111827)]">
+                  <GlassCard
+                    padding="sm"
+                    className="max-w-[80%] text-[color:var(--text-color,#111827)]"
+                  >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
                         <span>🤖</span>
@@ -848,7 +827,10 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
             ))}
             {isLoading && (
               <div className="mb-3 flex justify-start">
-                <GlassCard padding="sm" className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <GlassCard
+                  padding="sm"
+                  className="text-sm text-[color:var(--muted-text,#6b7280)]"
+                >
                   <div className="flex items-center gap-2">
                     <span>🤖</span>
                     <span>Typing...</span>
@@ -858,7 +840,10 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
             )}
             {messages.length <= 1 && (
               <div className="mb-3 flex justify-start">
-                <GlassCard padding="sm" className="text-sm text-[color:var(--text-color,#111827)]">
+                <GlassCard
+                  padding="sm"
+                  className="text-sm text-[color:var(--text-color,#111827)]"
+                >
                   <div className="flex items-start gap-2">
                     <span>🤖</span>
                     <div className="space-y-2">
@@ -897,7 +882,9 @@ const Chatbot = ({ isVisible = false, onClose, isMobile = false }) => {
               type="text"
               value={inputMessage}
               onChange={(event) => setInputMessage(event.target.value)}
-              onKeyDown={(event) => event.key === "Enter" && handleMessageSend()}
+              onKeyDown={(event) =>
+                event.key === "Enter" && handleMessageSend()
+              }
               placeholder="Ask me about finance, budgeting, investing..."
               className="h-10 flex-1 min-w-0 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               aria-label="Chat input"

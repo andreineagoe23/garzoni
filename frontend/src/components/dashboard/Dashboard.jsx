@@ -14,7 +14,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -69,18 +68,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     );
   }, [location.pathname]);
 
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // Removed mobile view tracking
 
   const handleCourseClick = (courseId) => {
     navigate(`/lessons/${courseId}`);
   };
 
-  const isMobile = windowWidth < 1024;
   const profile = useMemo(() => {
     if (authProfile?.user_data) {
       return authProfile.user_data;
@@ -172,21 +165,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             </section>
           </main>
 
-          {!isMobile && (
-            <aside className="flex min-h-0 w-full max-w-[320px] shrink-0">
-              <UserProgressBox progressData={userProgress} />
-            </aside>
-          )}
+          <aside className="flex min-h-0 w-full max-w-[320px] shrink-0">
+            <UserProgressBox progressData={userProgress} />
+          </aside>
         </div>
 
-        {isMobile && userProgress && (
-          <GlassCard padding="lg">
-            <h4 className="mb-4 flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
-              <span>Learning Progress</span>
-            </h4>
-            <UserProgressBox progressData={userProgress} initiallyExpanded />
-          </GlassCard>
-        )}
+        {/* Removed mobile-only progress card */}
       </div>
     </div>
   );
