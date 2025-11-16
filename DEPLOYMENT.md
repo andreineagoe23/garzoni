@@ -32,7 +32,7 @@ The application is configured with:
 
 1. Go to Render Dashboard → New → Blueprint
 2. Connect your GitHub repository
-3. Render will automatically detect `backend/render.yaml`
+3. Render will automatically detect `render.yaml` in the repository root
 4. Review the services and click "Apply"
 
 ### 2. Environment Variable Groups
@@ -128,7 +128,7 @@ Or use an online generator: https://djecrety.ir/
 
 1. **Push to GitHub**: Ensure your code is pushed to the repository
 2. **Create Blueprint**: In Render, create a new Blueprint and select your repository
-3. **Review Services**: Render will detect `backend/render.yaml` and create all services
+3. **Review Services**: Render will detect `render.yaml` and create all services
 4. **Set Environment Variables**: Configure all environment variables in the groups
 5. **Deploy**: Render will automatically deploy on the first setup
 
