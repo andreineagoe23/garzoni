@@ -14,10 +14,14 @@ services:
   - type: redis
     name: chartwise-redis-staging
     plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
 
   - type: redis
     name: chartwise-redis-production
     plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
 
   - type: web
     name: chartwise-web-staging
@@ -26,7 +30,6 @@ services:
     branch: staging
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -48,7 +51,7 @@ services:
     branch: staging
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: celery -A chartwise worker --loglevel=info
+    dockerCommand: celery -A chartwise worker --loglevel=info
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -70,7 +73,7 @@ services:
     branch: staging
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: celery -A chartwise beat -S django --loglevel=info
+    dockerCommand: celery -A chartwise beat -S django --loglevel=info
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -92,7 +95,6 @@ services:
     branch: master
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: gunicorn chartwise.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -114,7 +116,7 @@ services:
     branch: master
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: celery -A chartwise worker --loglevel=info
+    dockerCommand: celery -A chartwise worker --loglevel=info
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
@@ -136,7 +138,7 @@ services:
     branch: master
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    startCommand: celery -A chartwise beat -S django --loglevel=info
+    dockerCommand: celery -A chartwise beat -S django --loglevel=info
     autoDeploy: true
     envVars:
       - fromGroup: chartwise-shared
