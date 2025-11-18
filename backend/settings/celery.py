@@ -2,9 +2,9 @@ from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery, shared_task  # Add shared_task import
 from celery.schedules import crontab
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chartwise.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.settings')
 
-app = Celery('chartwise')
+app = Celery('settings')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 

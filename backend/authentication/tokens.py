@@ -57,3 +57,4 @@ def delete_jwt_cookies(response):
     response.delete_cookie(auth_cookie)
     response.delete_cookie(refresh_cookie)
     return response
+
