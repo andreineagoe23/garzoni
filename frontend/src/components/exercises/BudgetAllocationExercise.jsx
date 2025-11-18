@@ -104,7 +104,7 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
               value={allocations[category] ?? ""}
               onChange={(event) => handleChange(category, event.target.value)}
               disabled={isCompleted}
-              className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60"
               pattern="[0-9]*"
               inputMode="numeric"
               placeholder="0"

@@ -277,7 +277,7 @@ const DroppableTarget = ({
         {target.text}
       </p>
       {userAnswer && (
-        <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-2 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+        <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-[color:var(--muted-text,#6b7280)] shadow-inner">
           Answer: {itemsById[userAnswer]?.text || userAnswer}
         </div>
       )}

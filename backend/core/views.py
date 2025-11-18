@@ -46,7 +46,6 @@ from .serializers import (
     ExerciseSerializer, UserExerciseProgressSerializer, FAQSerializer,
     PortfolioEntrySerializer, FinancialGoalSerializer
 )
-from .dialogflow import detect_intent_from_text, perform_web_search
 from core.tokens import delete_jwt_cookies
 import re
 from django.utils.timezone import now
@@ -610,52 +609,6 @@ class UserProfileView(APIView):
         return Response({"message": "Profile updated successfully."})
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    """Custom view to obtain JWT tokens and include user details in the response."""
-
-    def post(self, request, *args, **kwargs):
-        """Handle POST requests to generate access and refresh tokens."""
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            user = request.user
-            if user.is_authenticated:
-                return Response({
-                    'access': response.data['access'],
-                    'refresh': response.data['refresh'],
-                    'user': {
-                        'username': user.username,
-                        'email': user.email
-                    }
-                })
-        return response
-
-
-class RegisterView(generics.CreateAPIView):
-    """View to handle user registration and return JWT tokens upon successful registration."""
-
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        """Handle user registration and return access and refresh tokens."""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email
-            },
-            "next": "/all-topics/"
-        }, status=status.HTTP_201_CREATED)
-
-
 class LogoutView(APIView):
     """Handles user logout by clearing JWT cookies."""
 
@@ -669,20 +622,6 @@ class LogoutView(APIView):
         return response
 
 
-class LogoutSecureView(APIView):
-    """Enhanced logout view that clears HttpOnly cookies."""
-    
-    permission_classes = [IsAuthenticated]
-    
-    def post(self, request):
-        """Handle POST requests to log out the user and clear cookies."""
-        try:
-            response = Response({"message": "Logout successful."})
-            clear_refresh_cookie(response)
-            return response
-        except Exception as e:
-            logger.error(f"Logout error: {str(e)}")
-            return Response({"error": "Logout failed"}, status=500)
 
 
 class PathViewSet(viewsets.ModelViewSet):
@@ -697,72 +636,6 @@ class PathViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 
-class UserProfileViewSet(viewsets.ModelViewSet):
-    """ViewSet to manage user profiles, including updating and retrieving profile data."""
-
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return UserProfile.objects.filter(user=self.request.user)
-
-    @action(detail=False, methods=['post'])
-    def update_email_reminder(self, request):
-        preference = request.data.get('email_reminder_preference')
-        if preference not in dict(UserProfile.REMINDER_CHOICES):
-            return Response(
-                {'error': 'Invalid reminder preference'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        profile = self.get_queryset().first()
-        if not profile:
-            return Response(
-                {'error': 'Profile not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        profile.email_reminder_preference = preference
-        profile.save()
-
-        return Response({
-            'message': 'Email reminder preference updated successfully',
-            'email_reminder_preference': preference
-        })
-
-    @action(detail=False, methods=["post"], url_path="add-generated-image")
-    def add_generated_image(self, request):
-        """Handle POST requests to add a generated image to the user's profile."""
-        user_profile = request.user.profile
-        image = request.FILES.get('image')
-
-        if not image:
-            return Response({"error": "No image file provided."}, status=status.HTTP_400_BAD_REQUEST)
-
-        file_path = default_storage.save(f'generated_images/{image.name}', ContentFile(image.read()))
-
-        user_profile.add_generated_image(file_path)
-
-        return Response({"message": "Image added successfully!", "file_path": file_path}, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=["get"], url_path="get-generated-images")
-    def get_generated_images(self, request):
-        """Handle GET requests to retrieve all generated images for the user."""
-        user_profile = request.user.userprofile
-        return Response({"generated_images": user_profile.generated_images})
-
-    @action(detail=False, methods=["post"], url_path="save-avatar")
-    def save_avatar(self, request):
-        """Handle POST requests to save the user's avatar URL."""
-        user_profile = request.user.profile
-        avatar_url = request.data.get("avatar_url")
-
-        if not avatar_url:
-            return Response({"error": "Avatar URL is missing."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user_profile.profile_avatar = avatar_url
-        user_profile.save()
-        return Response({"message": "Avatar saved successfully.", "avatar_url": avatar_url})
 
 class CourseViewSet(viewsets.ModelViewSet):
     """ViewSet to manage courses, including listing, retrieving, and updating course data."""
@@ -1403,68 +1276,6 @@ class FinanceFactView(APIView):
 
 
 
-class ChatbotView(APIView):
-    """API view to handle chatbot interactions, including sending user input to Dialogflow and receiving responses."""
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        """Handle POST requests to process user input and return a response from Dialogflow."""
-        user_input = request.data.get("text", "")
-        session_id = str(request.user.id)
-
-        if not user_input:
-            return Response({"error": "No input provided"}, status=400)
-
-        try:
-            project_id = os.environ.get("DIALOGFLOW_PROJECT_ID", "monevo-443011")
-            response_text = detect_intent_from_text(
-                project_id=project_id,
-                text=user_input,
-                session_id=session_id
-            )
-            return Response({"response": response_text}, status=200)
-        except Exception as e:
-            print("Dialogflow Error:", e)
-            return Response({"error": str(e)}, status=500)
-
-    @staticmethod
-    def dialogflow_webhook(request):
-        """Handle webhook requests from Dialogflow and provide appropriate responses based on the intent."""
-        try:
-            req = json.loads(request.body)
-            intent_name = req.get("queryResult", {}).get("intent", {}).get("displayName")
-
-            if intent_name == "SearchTheWeb":
-                search_query = req.get("queryResult", {}).get("queryText", "")
-                response_text = perform_web_search(search_query)
-            else:
-                response_text = f"Intent '{intent_name}' is not implemented yet."
-
-            return JsonResponse({
-                "fulfillmentText": response_text
-            })
-
-        except Exception as e:
-            return JsonResponse({
-                "fulfillmentText": f"An error occurred: {str(e)}"
-            })
-
-
-class ToolListView(APIView):
-    """API view to provide a list of tool categories available for users."""
-
-    def get(self, request):
-        """Handle GET requests to return a list of predefined tool categories."""
-        tools = [
-            {"category": "Forex Tools"},
-            {"category": "Crypto Tools"},
-            {"category": "News & Calendars"},
-            {"category": "Basic Finance & Budgeting Tools"},
-        ]
-        return Response(tools)
-
-
 class SavingsGoalCalculatorView(APIView):
     """API view to manage savings goal calculations and update user savings progress."""
 
@@ -1567,94 +1378,9 @@ class PasswordResetConfirmView(APIView):
         return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
 
-class QuestionnaireView(APIView):
-    """Handle the retrieval and submission of questionnaire questions and answers."""
-
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        """Retrieve and return all active questionnaire questions in order."""
-        questions = Question.objects.order_by('order')
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        """Submit answers to the questionnaire and save them for the user."""
-        answers = request.data.get('answers', {})
-        user = request.user if request.user.is_authenticated else None
-
-        for question_id, answer in answers.items():
-            try:
-                question = Question.objects.get(id=question_id)
-                UserResponse.objects.create(user=user, question=question, answer=answer)
-            except Question.DoesNotExist:
-                return Response({"error": f"Question {question_id} does not exist."}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
 
 
-class RecommendationView(APIView):
-    """Provide personalized path recommendations based on user responses."""
 
-    def get(self, request, user_id):
-        """Retrieve user responses and recommend a learning path."""
-        responses = UserResponse.objects.filter(user_id=user_id)
-        recommended_path = None
-
-        recommendations = {
-            "Basic Finance": "It looks like you're interested in budgeting and saving. Start with Basic Finance to build strong financial habits!",
-            "Crypto": "You've mentioned crypto or blockchain. Our Crypto path will guide you through the fundamentals of digital assets.",
-            "Real Estate": "Since you showed interest in real estate, we recommend the Real Estate path to explore property investment.",
-            "Forex": "Your responses indicate interest in currency trading. The Forex path will help you master trading strategies.",
-            "Personal Finance": "Want to improve overall financial wellness? The Personal Finance path is the best place to start!",
-            "Financial Mindset": "A strong mindset is key to financial success! Learn about wealth psychology with the Financial Mindset path."
-        }
-
-        for response in responses:
-            for path, message in recommendations.items():
-                if path.lower() in response.answer.lower():
-                    recommended_path = path
-                    recommendation_message = message
-                    break
-
-        if not recommended_path:
-            recommended_path = "Basic Finance"
-            recommendation_message = "Start with Basic Finance to strengthen your foundation in money management."
-
-        return Response({
-            "path": recommended_path,
-            "message": recommendation_message
-        })
-
-
-class QuestionnaireSubmitView(APIView):
-    """Handle the submission of questionnaire answers by authenticated users."""
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        """Save user responses to the questionnaire and update their profile."""
-        user = request.user
-        answers = request.data.get('answers', {})
-
-        if not answers:
-            return Response({"error": "No answers provided."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            for question_id, answer in answers.items():
-                question = Question.objects.get(id=question_id)
-                UserResponse.objects.create(user=user, question=question, answer=answer)
-
-            user_profile = UserProfile.objects.get(user=user)
-            user_profile.save()
-
-            return Response({"message": "Questionnaire submitted successfully."}, status=status.HTTP_201_CREATED)
-
-        except Question.DoesNotExist:
-            return Response({"error": "Invalid question ID."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Error in QuestionnaireSubmitView: {e}")
-            return Response({"error": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PersonalizedPathView(APIView):
@@ -2231,82 +1957,8 @@ class UserBadgeViewSet(viewsets.ReadOnlyModelViewSet):
         return UserBadge.objects.filter(user=self.request.user)
 
 
-class ReferralView(APIView):
-    """Handle referral functionality, including retrieving referrals and applying referral codes."""
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Retrieve all referrals made by the authenticated user."""
-        try:
-            referrals = Referral.objects.filter(referrer=request.user)
-            serializer = ReferralSerializer(referrals, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            logger.error(f"Error fetching referrals: {str(e)}")
-            return Response({"error": "Error fetching referrals"}, status=500)
-
-    def post(self, request):
-        """Apply a referral code to the authenticated user's account."""
-        referral_code = request.data.get('referral_code', '').strip().upper()
-
-        if not referral_code:
-            return Response({"error": "Referral code is required"}, status=400)
-
-        try:
-            referrer_profile = UserProfile.objects.get(referral_code=referral_code)
-
-            if referrer_profile.user == request.user:
-                return Response({"error": "You cannot use your own referral code"}, status=400)
-
-            if Referral.objects.filter(referred_user=request.user).exists():
-                return Response({"error": "You already used a referral code"}, status=400)
-
-            Referral.objects.create(
-                referrer=referrer_profile.user,
-                referred_user=request.user
-            )
-
-            with transaction.atomic():
-                UserProfile.objects.filter(pk=referrer_profile.pk).update(
-                    points=F('points') + 100
-                )
-                UserProfile.objects.filter(user=request.user).update(
-                    points=F('points') + 50
-                )
-
-            return Response({"message": "Referral applied successfully!"})
-
-        except UserProfile.DoesNotExist:
-            return Response({"error": "Invalid referral code"}, status=400)
-        except Exception as e:
-            logger.error(f"Referral error: {str(e)}")
-            return Response({"error": "Server error processing referral"}, status=500)
 
 
-class UserSearchView(APIView):
-    """Handle user search functionality, allowing authenticated users to search for other users."""
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Search for users by username, excluding the authenticated user."""
-        try:
-            search_query = request.query_params.get('search', '').strip()
-
-            if not search_query or len(search_query) < 3:
-                return Response({"error": "Search query must be at least 3 characters"}, status=400)
-
-            users = User.objects.filter(
-                username__icontains=search_query
-            ).exclude(id=request.user.id)[:5]
-
-            serializer = UserSearchSerializer(users, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            logger.error(f"User search error: {str(e)}")
-            return Response({"error": "Error processing search"}, status=500)
 
 
 class FriendRequestView(viewsets.ViewSet):
@@ -2455,7 +2107,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
 
-        if not user_answer:
+        if user_answer is None:
             return Response(
                 {'error': 'User answer is required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -2472,8 +2124,17 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         progress.user_answer = user_answer
         progress.last_attempt = timezone.now()
 
-        # Check if answer is correct
-        is_correct = exercise.correct_answer == user_answer
+        # Check if answer is correct - normalize JSON for comparison
+        correct_answer = exercise.correct_answer
+        # Normalize both answers to JSON strings for comparison
+        try:
+            correct_json = json.dumps(correct_answer, sort_keys=True) if correct_answer is not None else None
+            user_json = json.dumps(user_answer, sort_keys=True) if user_answer is not None else None
+            is_correct = correct_json == user_json
+        except (TypeError, ValueError):
+            # Fallback to direct comparison if JSON serialization fails
+            is_correct = correct_answer == user_answer
+
         if is_correct:
             progress.completed = True
 
@@ -2482,62 +2143,12 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         return Response({
             'correct': is_correct,
             'attempts': progress.attempts,
-            'explanation': exercise.explanation if hasattr(exercise, 'explanation') else None
+            'explanation': getattr(exercise, 'explanation', None)
         })
 
 
-class UserExerciseProgressViewSet(viewsets.ModelViewSet):
-    """Manage the progress of exercises completed by the authenticated user."""
-
-    serializer_class = UserExerciseProgressSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """Retrieve all exercise progress records for the authenticated user."""
-        return UserExerciseProgress.objects.filter(user=self.request.user)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def complete_exercise(request):
-    """Handle the completion of an exercise by saving the user's progress and marking the section as completed if the exercise is correct."""
-    section_id = request.data.get('section_id')
-    exercise_data = request.data.get('exercise_data')
-
-    try:
-        section = LessonSection.objects.get(id=section_id)
-        exercise, _ = Exercise.objects.get_or_create(
-            section=section,
-            defaults={
-                'type': section.exercise_type,
-                'exercise_data': section.exercise_data
-            }
-        )
-
-        completion, created = ExerciseCompletion.objects.get_or_create(
-            user=request.user,
-            exercise=exercise,
-            section=section,
-            defaults={'user_answer': exercise_data}
-        )
-
-        if not created:
-            completion.attempts += 1
-            completion.user_answer = exercise_data
-            completion.save()
-
-        # Mark section as completed if exercise is correct
-        if exercise_data.get('is_correct', False):
-            progress, _ = UserProgress.objects.get_or_create(
-                user=request.user,
-                course=section.lesson.course
-            )
-            progress.completed_sections.add(section)
-
-        return Response({"status": "Exercise progress saved", "attempts": completion.attempts})
-
-    except LessonSection.DoesNotExist:
-        return Response({"error": "Section not found"}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
