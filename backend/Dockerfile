@@ -30,7 +30,7 @@ FROM python:3.12-slim AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=chartwise.settings \
+    DJANGO_SETTINGS_MODULE=settings.settings \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
@@ -62,5 +62,5 @@ RUN python manage.py collectstatic --noinput || true
 EXPOSE 8000
 
 # Use exec form for better signal handling
-CMD ["gunicorn", "chartwise.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
+CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
 

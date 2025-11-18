@@ -93,7 +93,7 @@ const FinancialGoalsTracker = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-white px-6 py-6 shadow-xl shadow-black/5">
+      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <form
           onSubmit={handleAddGoal}
           className="grid gap-4 md:grid-cols-2"
@@ -108,7 +108,7 @@ const FinancialGoalsTracker = () => {
               onChange={handleInputChange}
               placeholder="e.g., Emergency Fund"
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -122,7 +122,7 @@ const FinancialGoalsTracker = () => {
               placeholder="5000"
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -136,7 +136,7 @@ const FinancialGoalsTracker = () => {
               placeholder="1000"
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -148,7 +148,7 @@ const FinancialGoalsTracker = () => {
               value={newGoal.target_date}
               onChange={handleInputChange}
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 

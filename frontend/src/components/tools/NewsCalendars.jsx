@@ -44,7 +44,7 @@ const NewsCalendars = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-4 shadow-xl shadow-black/5">
+      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <div
           id="economic-calendar-widget"
           className="h-[600px] overflow-hidden rounded-2xl bg-[color:var(--bg-color,#f8fafc)]"

@@ -53,6 +53,13 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    # Domain-specific apps
+    "authentication",
+    "education",
+    "gamification",
+    "finance",
+    "support",
+    # Legacy core app (to be removed after full migration)
     "core",
     "django_rest_passwordreset",
     "ckeditor",
@@ -72,7 +79,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "chartwise.urls"
+ROOT_URLCONF = "settings.urls"
 
 TEMPLATES = [
     {
@@ -90,7 +97,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "chartwise.wsgi.application"
+WSGI_APPLICATION = "settings.wsgi.application"
 
 database_url = os.getenv("DATABASE_URL")
 if database_url and database_url.startswith("postgres://"):
