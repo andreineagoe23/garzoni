@@ -361,17 +361,15 @@ const ExercisePage = () => {
                   </span>
                   <input
                     type="number"
-                    value={userAnswer[category] || 0}
-                    onChange={(event) =>
+                    value={userAnswer[category] ?? ""}
+                    onChange={(event) => {
+                      const value = event.target.value;
                       setUserAnswer((prev) => ({
                         ...prev,
-                        [category]: Math.max(
-                          0,
-                          parseInt(event.target.value, 10) || 0
-                        ),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                        [category]: value === "" ? "" : Math.max(0, parseFloat(value) || 0),
+                      }));
+                    }}
+                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                   />
                 </label>
               ))}

@@ -71,7 +71,7 @@ const SavingsGoalCalculator = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-white px-6 py-6 shadow-xl shadow-black/5">
+      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <form
           onSubmit={handleSubmit}
           className="grid gap-4 md:grid-cols-2"
@@ -88,7 +88,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -103,7 +103,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -118,7 +118,7 @@ const SavingsGoalCalculator = () => {
               required
               min="1"
               max="50"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -134,7 +134,7 @@ const SavingsGoalCalculator = () => {
               min="0"
               max="30"
               step="0.1"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
@@ -144,7 +144,7 @@ const SavingsGoalCalculator = () => {
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
               <option value="1">Annually</option>
               <option value="4">Quarterly</option>

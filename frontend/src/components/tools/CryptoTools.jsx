@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
+import { useTheme } from "contexts/ThemeContext";
 
 const CryptoTools = () => {
   const container = useRef(null);
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     const currentContainer = container.current;
@@ -16,7 +18,7 @@ const CryptoTools = () => {
       symbol: "BITSTAMP:BTCUSD",
       interval: "D",
       timezone: "Europe/London",
-      theme: "light",
+      theme: darkMode ? "dark" : "light",
       style: "1",
       locale: "en",
       withdateranges: true,
@@ -45,7 +47,7 @@ const CryptoTools = () => {
         currentContainer.removeChild(script);
       }
     };
-  }, []);
+  }, [darkMode]);
 
   return (
     <section className="space-y-4">
@@ -59,9 +61,9 @@ const CryptoTools = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-white shadow-lg shadow-black/5">
-        <div className="tradingview-widget-container" ref={container}>
-          <div className="tradingview-widget-container__widget" />
+      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+        <div className="tradingview-widget-container" ref={container} style={{ width: '100%', border: 0, overflow: 'hidden', height: '500px' }}>
+          <div className="tradingview-widget-container__widget" style={{ width: '100%', height: '100%' }} />
           <div className="tradingview-widget-copyright text-center text-xs">
             <a
               href="https://www.tradingview.com/"

@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { useTheme } from "contexts/ThemeContext";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
 function Settings() {
-  const { darkMode, toggleDarkMode } = useTheme();
   const { getAccessToken, logoutUser, loadSettings } = useAuth();
   const navigate = useNavigate();
 
@@ -21,7 +19,6 @@ function Settings() {
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [localDarkMode, setLocalDarkMode] = useState(darkMode);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -47,7 +44,6 @@ function Settings() {
           first_name: profile.first_name || "",
           last_name: profile.last_name || "",
         });
-        setLocalDarkMode(data.dark_mode ?? darkMode);
       } catch (error) {
         console.error("Error fetching settings:", error);
         setErrorMessage("Failed to load settings. Please try again.");
@@ -61,7 +57,7 @@ function Settings() {
     return () => {
       isMounted = false;
     };
-  }, [darkMode, loadSettings]);
+  }, [loadSettings]);
 
   const handleSaveSettings = async () => {
     try {
@@ -76,7 +72,6 @@ function Settings() {
             last_name: profileData.last_name,
           },
           email_reminder_preference: emailReminderPreference,
-          dark_mode: localDarkMode,
         },
         {
           headers: {
@@ -85,10 +80,6 @@ function Settings() {
           },
         }
       );
-
-      if (localDarkMode !== darkMode) {
-        toggleDarkMode(localDarkMode);
-      }
 
       setSuccessMessage("Settings updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -283,21 +274,6 @@ function Settings() {
                 </header>
 
                 <div className="space-y-4">
-                  <label className="flex items-center gap-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-inner shadow-black/5">
-                    <input
-                      type="checkbox"
-                      checked={localDarkMode}
-                      onChange={(event) => setLocalDarkMode(event.target.checked)}
-                      className="h-5 w-5 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold">Dark Mode</p>
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                        Switch between light and dark interfaces.
-                      </p>
-                    </div>
-                  </label>
-
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
                       Email Reminders
