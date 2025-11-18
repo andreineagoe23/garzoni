@@ -53,6 +53,13 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    # Domain-specific apps
+    "authentication",
+    "education",
+    "gamification",
+    "finance",
+    "support",
+    # Legacy core app (to be removed after full migration)
     "core",
     "django_rest_passwordreset",
     "ckeditor",
