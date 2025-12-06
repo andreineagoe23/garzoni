@@ -93,12 +93,64 @@ TEMPLATES = [
 WSGI_APPLICATION = "settings.wsgi.application"
 
 database_url = os.getenv("DATABASE_URL")
+# Convert postgres:// to postgresql:// for compatibility
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
+# Track if we're connecting to localhost (local development)
+is_localhost = False
+
+# Check if DATABASE_URL points to Docker hostname "db" and we're not in Docker
+# This works for any database type (MySQL, PostgreSQL, etc.)
+if database_url and "@db:" in database_url:
+    try:
+        # Try to resolve "db" hostname to check if we're in Docker
+        socket.gethostbyname("db")
+        # If successful, we're in Docker, keep the URL as is
+    except (socket.gaierror, OSError):
+        # Can't resolve "db", we're not in Docker, replace with localhost
+        # Works for both MySQL (mysql://user:pass@db:3306/db) and PostgreSQL (postgresql://user:pass@db:5432/db)
+        database_url = database_url.replace("@db:", "@localhost:")
+        is_localhost = True
+
+# Check if connecting to localhost (either from replacement above or already set)
+if database_url and ("@localhost:" in database_url or "@127.0.0.1:" in database_url):
+    is_localhost = True
+    # Remove SSL parameters from URL for localhost connections
+    # PostgreSQL: remove ?sslmode=require or similar
+    if "?" in database_url:
+        url_parts = database_url.split("?")
+        base_url = url_parts[0]
+        params = url_parts[1].split("&")
+        # Filter out SSL-related parameters
+        non_ssl_params = [p for p in params if not p.lower().startswith(("sslmode", "ssl", "sslrootcert", "sslcert", "sslkey"))]
+        if non_ssl_params:
+            database_url = base_url + "?" + "&".join(non_ssl_params)
+        else:
+            database_url = base_url
+
 default_db = None
 if database_url:
-    default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=not DEBUG)
+    # Don't require SSL for localhost connections or in DEBUG mode
+    ssl_required = not DEBUG and not is_localhost
+    default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=ssl_required)
+    
+    # For localhost connections, explicitly disable SSL in OPTIONS
+    if is_localhost and default_db:
+        if "OPTIONS" not in default_db:
+            default_db["OPTIONS"] = {}
+        # PostgreSQL - explicitly disable SSL
+        if default_db.get("ENGINE") == "django.db.backends.postgresql":
+            default_db["OPTIONS"]["sslmode"] = "disable"
+        # MySQL - disable SSL by removing SSL options
+        elif "mysql" in default_db.get("ENGINE", "").lower():
+            # Remove any SSL-related options that might have been set
+            default_db["OPTIONS"].pop("ssl", None)
+            default_db["OPTIONS"].pop("ssl_mode", None)
+            default_db["OPTIONS"].pop("ssl_ca", None)
+            default_db["OPTIONS"].pop("ssl_cert", None)
+            default_db["OPTIONS"].pop("ssl_key", None)
+            
 if not default_db:
     if DEBUG:
         default_db = {
