@@ -182,9 +182,16 @@ class QuizViewSet(viewsets.ModelViewSet):
                 user_profile.add_points(20)
                 user_profile.save()
 
-                return Response({"message": "Quiz completed!"}, status=status.HTTP_200_OK)
+                return Response({
+                    "message": "Quiz completed!",
+                    "correct": True,
+                    "earned_money": 10.00
+                }, status=status.HTTP_200_OK)
             else:
-                return Response({"message": "Incorrect answer."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "message": "Incorrect answer. Please try again.",
+                    "correct": False
+                }, status=status.HTTP_200_OK)
         except Quiz.DoesNotExist:
             return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
 

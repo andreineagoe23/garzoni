@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
 
-function UserProgressBox({ progressData, initiallyExpanded = true }) {
-  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
+function UserProgressBox({ progressData }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -60,7 +59,7 @@ function UserProgressBox({ progressData, initiallyExpanded = true }) {
   const paths = progressData?.paths || [];
 
   return (
-    <GlassContainer className="relative flex h-full min-h-0 flex-col overflow-hidden">
+    <GlassContainer className="relative flex w-full flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%', minHeight: 0 }}>
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent pointer-events-none" />
       <div className="relative shrink-0 space-y-4 px-5 py-4">
         <div className="flex items-center justify-between">
@@ -105,31 +104,20 @@ function UserProgressBox({ progressData, initiallyExpanded = true }) {
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setIsExpanded((prev) => !prev)}
-        className="relative shrink-0 flex w-full items-center justify-between border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-4 text-left backdrop-blur-sm transition-all hover:bg-[color:var(--card-bg,#ffffff)]/60"
-        style={{
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
-      >
+      <div className="relative shrink-0 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-4 backdrop-blur-sm" style={{ backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
         <h3 className="flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
           <span>Learning Progress</span>
         </h3>
-        <span className="text-lg text-[color:var(--muted-text,#6b7280)] transition-transform">
-          {isExpanded ? "▲" : "▼"}
-        </span>
-      </button>
+      </div>
 
-      {isExpanded && (
-        <div
-          className="flex min-h-0 flex-1 flex-col overflow-y-auto border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-5 backdrop-blur-sm scrollbar-neutral"
-          style={{
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
-        >
+      <div
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-5 backdrop-blur-sm scrollbar-neutral"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          maxHeight: '100%',
+        }}
+      >
           <div className="space-y-5">
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
@@ -187,7 +175,6 @@ function UserProgressBox({ progressData, initiallyExpanded = true }) {
             )}
           </div>
         </div>
-      )}
     </GlassContainer>
   );
 }
