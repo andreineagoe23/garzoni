@@ -163,6 +163,38 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return Response(lesson_data)
 
+    @action(detail=True, methods=["post"], url_path="sections/reorder")
+    def reorder_sections(self, request, pk=None):
+        lesson = self.get_object()
+        new_order = request.data.get("order", [])
+
+        if not isinstance(new_order, list):
+            return Response({"error": "Order must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            for index, section_id in enumerate(new_order, start=1):
+                LessonSection.objects.filter(id=section_id, lesson=lesson).update(
+                    order=index, updated_by=request.user
+                )
+
+        ordered_sections = lesson.sections.order_by("order")
+
+        log_admin_action(
+            user=request.user,
+            action="reordered_sections",
+            target_type="Lesson",
+            target_id=lesson.id,
+            metadata={"order": new_order},
+        )
+
+        return Response(
+            {
+                "sections": LessonSectionSerializer(
+                    ordered_sections, many=True, context={"request": request}
+                ).data
+            }
+        )
+
     @action(detail=True, methods=["post"], url_path="sections")
     def add_section(self, request, pk=None):
         lesson = self.get_object()
@@ -198,7 +230,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["patch"],
-        url_path="sections/(?P<section_id>[^/.]+)",
+        url_path="sections/(?P<section_id>\\d+)",
     )
     def update_section(self, request, pk=None, section_id=None):
         lesson = self.get_object()
@@ -238,7 +270,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["delete"],
-        url_path="sections/(?P<section_id>[^/.]+)",
+        url_path="sections/(?P<section_id>\\d+)",
     )
     def delete_section(self, request, pk=None, section_id=None):
         lesson = self.get_object()
@@ -265,38 +297,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(detail=True, methods=["post"], url_path="sections/reorder")
-    def reorder_sections(self, request, pk=None):
-        lesson = self.get_object()
-        new_order = request.data.get("order", [])
-
-        if not isinstance(new_order, list):
-            return Response({"error": "Order must be a list"}, status=status.HTTP_400_BAD_REQUEST)
-
-        with transaction.atomic():
-            for index, section_id in enumerate(new_order, start=1):
-                LessonSection.objects.filter(id=section_id, lesson=lesson).update(
-                    order=index, updated_by=request.user
-                )
-
-        ordered_sections = lesson.sections.order_by("order")
-
-        log_admin_action(
-            user=request.user,
-            action="reordered_sections",
-            target_type="Lesson",
-            target_id=lesson.id,
-            metadata={"order": new_order},
-        )
-
-        return Response(
-            {
-                "sections": LessonSectionSerializer(
-                    ordered_sections, many=True, context={"request": request}
-                ).data
-            }
-        )
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):
