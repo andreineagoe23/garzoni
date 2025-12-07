@@ -73,6 +73,12 @@ function QuizPage() {
 
       setFeedback(response.data.message);
       setEarnedMoney(response.data.earned_money || 0);
+      
+      // If answer is incorrect, don't treat it as an error
+      if (!response.data.correct) {
+        // User can try again
+        setSelectedAnswer(null);
+      }
     } catch (err) {
       console.error("Error submitting answer:", err);
       setFeedback(
@@ -166,6 +172,8 @@ function QuizPage() {
             className={`rounded-2xl border px-5 py-4 text-sm shadow-inner ${
               earnedMoney > 0
                 ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-300"
+                : feedback.includes("Incorrect")
+                ? "border-amber-400/60 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                 : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
             }`}
           >
