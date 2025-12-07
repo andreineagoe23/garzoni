@@ -8,3 +8,8 @@ backup.json
 *.dump.json
 cookies.txt
 monevo_backup.sql
+staticfiles/
+*.pyc
+__pycache__/
+*.sql
+!docker/mysql-init.sql

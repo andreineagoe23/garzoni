@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 from django.utils import timezone
 
 class Path(models.Model):
@@ -55,7 +55,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
     short_description = models.TextField(blank=True)
-    detailed_content = RichTextField()
+    detailed_content = CKEditor5Field(config_name="extends")
     image = models.ImageField(upload_to='lesson_images/', blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(
@@ -92,7 +92,7 @@ class LessonSection(models.Model):
     order = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default='text')
-    text_content = RichTextField(blank=True, null=True)
+    text_content = CKEditor5Field(config_name="extends", blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)

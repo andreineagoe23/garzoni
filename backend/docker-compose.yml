@@ -9,9 +9,10 @@ services:
       MYSQL_PASSWORD: monevopassword
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "3307:3306"
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=caching_sha2_password
 
   redis:
     image: redis:7-alpine
