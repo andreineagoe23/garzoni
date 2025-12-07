@@ -1,16 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Chatbot from "components/widgets/Chatbot";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import UserProgressBox from "components/widgets/UserProgressBox";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
 import PageContainer from "components/common/PageContainer";
+import Breadcrumbs from "components/common/Breadcrumbs";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
-import { GlassCard } from "components/ui";
+import { GlassButton, GlassCard } from "components/ui";
 import LessonSectionEditorPanel from "./LessonSectionEditorPanel";
+import Skeleton from "components/common/Skeleton";
+import {
+  completeLesson,
+  completeSection,
+  createLessonSection,
+  deleteLessonSection,
+  fetchExercises,
+  fetchLessonsWithProgress,
+  fetchProgressSummary,
+  reorderLessonSections,
+  updateLessonSection,
+} from "services/userService";
+import { attachToken } from "services/httpClient";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -22,108 +36,100 @@ function fixImagePaths(content) {
   });
 }
 
-function LessonPage() {
-  const { courseId } = useParams();
-  const navigate = useNavigate();
-  const [lessons, setLessons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [completedLessons, setCompletedLessons] = useState([]);
-  const [completedSections, setCompletedSections] = useState([]);
-  const [selectedLesson, setSelectedLesson] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [courseCompleted, setCourseCompleted] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-  const [userProgress, setUserProgress] = useState(null);
-  const { getAccessToken } = useAuth();
-  const { adminMode } = useAdmin();
-  const [editingLessonId, setEditingLessonId] = useState(null);
-  const [editingSectionId, setEditingSectionId] = useState(null);
-  const [draftSection, setDraftSection] = useState(null);
-  const [saveState, setSaveState] = useState({ status: "idle", message: "" });
-  const [exercises, setExercises] = useState([]);
-  const [loadingExercises, setLoadingExercises] = useState(false);
-  const [pendingAutosave, setPendingAutosave] = useState(false);
-  const autosaveTimer = useRef(null);
-  const lessonsRef = useRef([]);
+  function LessonPage() {
+    const { courseId } = useParams();
+    const navigate = useNavigate();
+    const [lessons, setLessons] = useState([]);
+    const [error, setError] = useState(null);
+    const [completedLessons, setCompletedLessons] = useState([]);
+    const [completedSections, setCompletedSections] = useState([]);
+    const [selectedLesson, setSelectedLesson] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [courseCompleted, setCourseCompleted] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
+    const { getAccessToken } = useAuth();
+    const { adminMode } = useAdmin();
+    const [editingLessonId, setEditingLessonId] = useState(null);
+    const [editingSectionId, setEditingSectionId] = useState(null);
+    const [draftSection, setDraftSection] = useState(null);
+    const [saveState, setSaveState] = useState({ status: "idle", message: "" });
+    const [pendingAutosave, setPendingAutosave] = useState(false);
+    const lessonsRef = useRef([]);
+    const queryClient = useQueryClient();
 
-  useEffect(() => {
-    lessonsRef.current = lessons;
-  }, [lessons]);
+    useEffect(() => {
+      lessonsRef.current = lessons;
+    }, [lessons]);
 
-  const fetchUserProgress = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${BACKEND_URL}/userprogress/progress_summary/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
-      setUserProgress(response.data);
-    } catch (err) {
-      console.error("Error fetching user progress:", err);
-    }
-  }, [getAccessToken]);
+    useEffect(() => {
+      attachToken(getAccessToken());
+    }, [getAccessToken]);
 
-  useEffect(() => {
-    const fetchLessons = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${BACKEND_URL}/lessons/with_progress/?course=${courseId}&include_unpublished=${adminMode}`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
-        );
+    const normalizeSection = useCallback(
+      (section, lessonId) => ({
+        ...section,
+        lessonId,
+        text_content: section.text_content ? fixImagePaths(section.text_content) : "",
+        video_url: section.video_url || "",
+        exercise_data: section.exercise_data || {},
+        order: section.order || 0,
+        is_published:
+          typeof section.is_published === "boolean" ? section.is_published : true,
+      }),
+      []
+    );
 
-        const lessonsWithSections = response.data.map((lesson) => ({
+    const normalizeLessons = useCallback(
+      (lessonList) =>
+        (lessonList || []).map((lesson) => ({
           ...lesson,
           sections: (lesson.sections || [])
-            .map((section) => ({
-              ...section,
-              lessonId: lesson.id,
-              text_content: section.text_content
-                ? fixImagePaths(section.text_content)
-                : "",
-              video_url: section.video_url || "",
-              exercise_data: section.exercise_data || {},
-              order: section.order || 0,
-              is_published:
-                typeof section.is_published === "boolean"
-                  ? section.is_published
-                  : true,
-            }))
+            .map((section) => normalizeSection(section, lesson.id))
             .sort((a, b) => a.order - b.order),
-        }));
+        })),
+      [normalizeSection]
+    );
 
-        lessonsRef.current = lessonsWithSections;
-        setLessons(lessonsWithSections);
-        setCompletedLessons(
-          lessonsWithSections
-            .filter((lesson) => lesson.is_completed)
-            .map((lesson) => lesson.id)
-        );
+    const {
+      data: lessonsData,
+      isLoading: isLessonsLoading,
+      error: lessonsError,
+    } = useQuery({
+      queryKey: ["lessons", courseId, adminMode],
+      queryFn: () => fetchLessonsWithProgress(courseId, adminMode),
+      select: (response) => response.data || [],
+    });
 
-        const completed = lessonsWithSections
-          .flatMap((lesson) => lesson.sections || [])
-          .filter((section) => section.is_completed)
-          .map((section) => section.id);
-        setCompletedSections(completed);
-        setError(null);
-      } catch (err) {
-        setError("Failed to load lessons. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const { data: progressData } = useQuery({
+      queryKey: ["progress-summary"],
+      queryFn: () => fetchProgressSummary().then((response) => response.data),
+    });
 
-    fetchLessons();
-    fetchUserProgress();
-  }, [adminMode, courseId, getAccessToken, fetchUserProgress]);
+    const { data: exercisesData, isLoading: loadingExercises } = useQuery({
+      queryKey: ["exercises"],
+      queryFn: () => fetchExercises().then((response) => response.data || []),
+      enabled: adminMode,
+    });
+
+    useEffect(() => {
+      if (!lessonsData) return;
+
+      const lessonsWithSections = normalizeLessons(lessonsData);
+      lessonsRef.current = lessonsWithSections;
+      setLessons(lessonsWithSections);
+      setCompletedLessons(
+        lessonsWithSections
+          .filter((lesson) => lesson.is_completed)
+          .map((lesson) => lesson.id)
+      );
+
+      const completed = lessonsWithSections
+        .flatMap((lesson) => lesson.sections || [])
+        .filter((section) => section.is_completed)
+        .map((section) => section.id);
+      setCompletedSections(completed);
+      setError(null);
+    }, [lessonsData, normalizeLessons]);
 
   useEffect(() => {
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
@@ -131,59 +137,62 @@ function LessonPage() {
     }
   }, [lessons, completedLessons]);
 
-  useEffect(() => {
-    if (!adminMode) {
-      return;
-    }
-
-    const loadExercises = async () => {
-      try {
-        setLoadingExercises(true);
-        const response = await axios.get(`${BACKEND_URL}/exercises/`, {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        });
-        setExercises(response.data || []);
-      } catch (err) {
-        console.error("Failed to load exercises", err);
-      } finally {
-        setLoadingExercises(false);
-      }
-    };
-
-    loadExercises();
-  }, [adminMode, getAccessToken]);
-
-  const normalizeSection = useCallback((section, lessonId) => ({
-    ...section,
-    lessonId,
-    text_content: section.text_content ? fixImagePaths(section.text_content) : "",
-    video_url: section.video_url || "",
-    exercise_data: section.exercise_data || {},
-    order: section.order || 0,
-    is_published:
-      typeof section.is_published === "boolean" ? section.is_published : true,
-  }), []);
-
-  const snapshotLessons = useCallback(
-    () =>
-      lessonsRef.current.map((lesson) => ({
-        ...lesson,
-        sections: (lesson.sections || []).map((section) => ({ ...section })),
-      })),
-    []
-  );
-
-  const updateLessonSections = useCallback((lessonId, updater) => {
-    setLessons((prev) =>
-      prev.map((lesson) =>
-        lesson.id === lessonId
-          ? { ...lesson, sections: updater(lesson.sections || []) }
-          : lesson
-      )
+    const snapshotLessons = useCallback(
+      () =>
+        lessonsRef.current.map((lesson) => ({
+          ...lesson,
+          sections: (lesson.sections || []).map((section) => ({ ...section })),
+        })),
+      []
     );
-  }, []);
+
+    const updateLessonSections = useCallback((lessonId, updater) => {
+      setLessons((prev) =>
+        prev.map((lesson) =>
+          lesson.id === lessonId
+            ? { ...lesson, sections: updater(lesson.sections || []) }
+            : lesson
+        )
+      );
+    }, []);
+
+    const exercises = exercisesData || [];
+
+    const completeSectionMutation = useMutation({
+      mutationFn: completeSection,
+      onSuccess: (_, sectionId) => {
+        setCompletedSections((prev) =>
+          prev.includes(sectionId) ? prev : [...prev, sectionId]
+        );
+        queryClient.invalidateQueries({ queryKey: ["progress-summary"] });
+      },
+      onError: () =>
+        toast.error("Failed to complete section. Please try again."),
+    });
+
+    const completeLessonMutation = useMutation({
+      mutationFn: completeLesson,
+      onSuccess: (_, lessonId) => {
+        setCompletedLessons((prev) =>
+          prev.includes(lessonId) ? prev : [...prev, lessonId]
+        );
+        setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
+        setTimeout(() => setSuccessMessage(""), 3000);
+        setSelectedLesson(null);
+        setActiveTab(0);
+        queryClient.invalidateQueries({ queryKey: ["progress-summary"] });
+      },
+      onError: () => setError("Failed to complete lesson. Please try again."),
+    });
+
+  const handleOfflineSave = useCallback(() => {
+    if (!lessons.length) return;
+    localStorage.setItem(
+      `offline-lessons-${courseId}`,
+      JSON.stringify({ lessons })
+    );
+    toast.success("Lessons saved for offline review.");
+  }, [courseId, lessons]);
 
   const beginEditingSection = (lessonId, section) => {
     setEditingLessonId(lessonId);
@@ -223,8 +232,9 @@ function LessonPage() {
       });
 
       try {
-        const response = await axios.patch(
-          `${BACKEND_URL}/lessons/${sectionPayload.lessonId}/sections/${sectionPayload.id}/`,
+        const response = await updateLessonSection(
+          sectionPayload.lessonId,
+          sectionPayload.id,
           {
             title: sectionPayload.title,
             content_type: sectionPayload.content_type,
@@ -234,9 +244,6 @@ function LessonPage() {
             exercise_data: sectionPayload.exercise_data,
             is_published: sectionPayload.is_published,
             order: sectionPayload.order,
-          },
-          {
-            headers: { Authorization: `Bearer ${getAccessToken()}` },
           }
         );
 
@@ -256,7 +263,7 @@ function LessonPage() {
         });
       }
     },
-    [getAccessToken, normalizeSection, updateLessonSections]
+    [normalizeSection, updateLessonSections]
   );
 
   const handleAddSection = async (lessonId) => {
@@ -283,19 +290,13 @@ function LessonPage() {
     );
     beginEditingSection(lessonId, newSection);
 
-    try {
-      const response = await axios.post(
-        `${BACKEND_URL}/lessons/${lessonId}/sections/`,
-        newSection,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
-      const normalized = normalizeSection(response.data, lessonId);
-      updateLessonSections(lessonId, (sections) =>
-        sections.map((section) => (section.id === tempId ? normalized : section))
-      );
-      setDraftSection(normalized);
+      try {
+        const response = await createLessonSection(lessonId, newSection);
+        const normalized = normalizeSection(response.data, lessonId);
+        updateLessonSections(lessonId, (sections) =>
+          sections.map((section) => (section.id === tempId ? normalized : section))
+        );
+        setDraftSection(normalized);
       setEditingSectionId(normalized.id);
     } catch (err) {
       console.error("Failed to create section", err);
@@ -312,12 +313,7 @@ function LessonPage() {
     );
 
     try {
-      await axios.delete(
-        `${BACKEND_URL}/lessons/${lessonId}/sections/${sectionId}/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
+      await deleteLessonSection(lessonId, sectionId);
 
       if (editingSectionId === sectionId) {
         beginEditingSection(null, null);
@@ -358,12 +354,9 @@ function LessonPage() {
     setActiveTab(targetIndex);
 
     try {
-      await axios.post(
-        `${BACKEND_URL}/lessons/${lessonId}/sections/reorder/`,
-        { order: reordered.map((section) => section.id) },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
+      await reorderLessonSections(
+        lessonId,
+        reordered.map((section) => section.id)
       );
     } catch (err) {
       console.error("Failed to reorder sections", err);
@@ -404,47 +397,13 @@ function LessonPage() {
     return () => clearTimeout(timer);
   }, [adminMode, draftSection, pendingAutosave, saveSectionToServer]);
 
-  const handleCompleteSection = async (sectionId) => {
-    try {
-      await axios.post(
-        `${BACKEND_URL}/userprogress/complete_section/`,
-        { section_id: sectionId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+    const handleCompleteSection = (sectionId) => {
+      completeSectionMutation.mutate(sectionId);
+    };
 
-      setCompletedSections((prev) => [...prev, sectionId]);
-      fetchUserProgress();
-    } catch (err) {
-      console.error("Failed to complete section:", err);
-    }
-  };
-
-  const handleCompleteLesson = async (lessonId) => {
-    try {
-      await axios.post(
-        `${BACKEND_URL}/userprogress/complete/`,
-        { lesson_id: lessonId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
-
-      setCompletedLessons((prev) => [...prev, lessonId]);
-      setSuccessMessage("Lesson completed! The next lesson is now unlocked.");
-      setTimeout(() => setSuccessMessage(""), 3000);
-      setSelectedLesson(null);
-      setActiveTab(0);
-      fetchUserProgress();
-    } catch (err) {
-      setError("Failed to complete lesson. Please try again.");
-    }
-  };
+    const handleCompleteLesson = (lessonId) => {
+      completeLessonMutation.mutate(lessonId);
+    };
 
   const handleCourseCompletion = () => {
     navigate(`/quiz/${courseId}`);
@@ -744,25 +703,33 @@ function LessonPage() {
     );
   };
 
-  if (loading) {
-    return (
-      <PageContainer maxWidth="7xl" layout="centered">
-        <div className="flex items-center gap-3 text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
-          Loading lessons...
+    const queryErrorMessage =
+      lessonsError?.response?.data?.detail ||
+      lessonsError?.response?.data?.error ||
+      lessonsError?.message;
+    const displayError = error || queryErrorMessage;
+
+    if (isLessonsLoading) {
+      return (
+        <PageContainer maxWidth="7xl" layout="centered">
+          <div className="w-full space-y-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
       </PageContainer>
     );
   }
 
-  if (error) {
-    return (
-      <PageContainer maxWidth="7xl">
-        <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-5 py-6 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/10">
-          {error}
-        </div>
-      </PageContainer>
-    );
+    if (displayError) {
+      return (
+        <PageContainer maxWidth="7xl">
+          <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-5 py-6 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/10">
+            {displayError}
+          </div>
+        </PageContainer>
+      );
   }
 
   return (
@@ -772,6 +739,17 @@ function LessonPage() {
       innerClassName="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(320px,1fr)]"
     >
       <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Breadcrumbs
+              items={[
+                { label: "Dashboard", to: "/all-topics" },
+                { label: "Course Lessons" },
+              ]}
+            />
+            <GlassButton variant="ghost" onClick={handleOfflineSave}>
+              Save lessons offline
+            </GlassButton>
+          </div>
           {successMessage && (
             <div className="rounded-2xl border border-emerald-400/60 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-200 shadow-inner shadow-emerald-500/20">
               {successMessage}
@@ -858,13 +836,12 @@ function LessonPage() {
             </div>
           )}
 
-        <Chatbot />
-      </div>
+        </div>
 
       <aside className="space-y-4 lg:pl-2">
         <div className="sticky top-[90px]">
-          {userProgress ? (
-            <UserProgressBox progressData={userProgress} />
+          {progressData ? (
+            <UserProgressBox progressData={progressData} />
           ) : (
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               Loading progress...
