@@ -1,5 +1,16 @@
+# gamification/utils.py
 def check_and_award_badge(user, criteria_type):
-    from .models import Badge, UserBadge, LessonCompletion, UserProgress, MissionCompletion
+    """
+    Check if a user meets the criteria for a badge and award it if they do.
+    
+    Args:
+        user: The user to check
+        criteria_type: The type of criteria to check (e.g., 'lessons_completed', 'courses_completed', etc.)
+    """
+    from gamification.models import Badge, UserBadge
+    from education.models import LessonCompletion, UserProgress
+    from gamification.models import MissionCompletion
+    
     badges = Badge.objects.filter(criteria_type=criteria_type, is_active=True)
     for badge in badges:
         if UserBadge.objects.filter(user=user, badge=badge).exists():
@@ -21,3 +32,4 @@ def check_and_award_badge(user, criteria_type):
         
         if earned:
             UserBadge.objects.create(user=user, badge=badge)
+

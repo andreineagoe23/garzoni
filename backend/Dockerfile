@@ -13,10 +13,12 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    default-libmysqlclient-dev \
     libjpeg-dev \
     zlib1g-dev \
     libfreetype6-dev \
     libffi-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -39,6 +41,8 @@ WORKDIR /app
 # Install only runtime dependencies (no build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    default-mysql-client \
+    libmariadb-dev \
     libjpeg62-turbo \
     zlib1g \
     libfreetype6 \
