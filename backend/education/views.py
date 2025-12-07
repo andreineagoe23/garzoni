@@ -79,7 +79,6 @@ class LessonViewSet(viewsets.ModelViewSet):
             "destroy",
             "add_section",
             "update_section",
-            "delete_section",
             "reorder_sections",
         }
 
@@ -229,7 +228,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=["patch"],
+        methods=["patch", "delete"],
         url_path="sections/(?P<section_id>\\d+)",
     )
     def update_section(self, request, pk=None, section_id=None):
@@ -239,6 +238,26 @@ class LessonViewSet(viewsets.ModelViewSet):
             section = lesson.sections.get(id=section_id)
         except LessonSection.DoesNotExist:
             return Response({"error": "Section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Handle section deletion on the same endpoint to avoid router collisions
+        if request.method == "DELETE":
+            section_order = section.order
+            section_id_value = section.id
+            section.delete()
+
+            LessonSection.objects.filter(lesson=lesson, order__gt=section_order).update(
+                order=F("order") - 1
+            )
+
+            log_admin_action(
+                user=request.user,
+                action="deleted_section",
+                target_type="LessonSection",
+                target_id=section_id_value,
+                metadata={"lesson_id": lesson.id},
+            )
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         serializer = LessonSectionWriteSerializer(
             section, data=request.data, partial=True
@@ -266,37 +285,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         return Response(
             LessonSectionSerializer(section, context={"request": request}).data
         )
-
-    @action(
-        detail=True,
-        methods=["delete"],
-        url_path="sections/(?P<section_id>\\d+)",
-    )
-    def delete_section(self, request, pk=None, section_id=None):
-        lesson = self.get_object()
-
-        try:
-            section = lesson.sections.get(id=section_id)
-        except LessonSection.DoesNotExist:
-            return Response({"error": "Section not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        section_order = section.order
-        section_id = section.id
-        section.delete()
-
-        LessonSection.objects.filter(lesson=lesson, order__gt=section_order).update(
-            order=F("order") - 1
-        )
-
-        log_admin_action(
-            user=request.user,
-            action="deleted_section",
-            target_type="LessonSection",
-            target_id=section_id,
-            metadata={"lesson_id": lesson.id},
-        )
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):

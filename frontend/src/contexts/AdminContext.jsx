@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useAuth } from "./AuthContext";
 
 const AdminContext = createContext(null);
@@ -17,7 +24,9 @@ export const AdminProvider = ({ children }) => {
       return;
     }
 
-    const persisted = sessionStorage.getItem(`${STORAGE_KEY}:${user?.id || ""}`);
+    const persisted = sessionStorage.getItem(
+      `${STORAGE_KEY}:${user?.id || ""}`
+    );
     if (persisted === "true") {
       setAdminMode(true);
     }
@@ -29,20 +38,28 @@ export const AdminProvider = ({ children }) => {
       return;
     }
 
-    sessionStorage.setItem(`${STORAGE_KEY}:${user?.id || ""}`, adminMode.toString());
+    sessionStorage.setItem(
+      `${STORAGE_KEY}:${user?.id || ""}`,
+      adminMode.toString()
+    );
   }, [adminMode, canAdminister, user?.id]);
 
-  const toggleAdminMode = (value) => {
-    if (!canAdminister) return;
-    setAdminMode(typeof value === "boolean" ? value : (prev) => !prev);
-  };
+  const toggleAdminMode = useCallback(
+    (value) => {
+      if (!canAdminister) return;
+      setAdminMode(typeof value === "boolean" ? value : (prev) => !prev);
+    },
+    [canAdminister]
+  );
 
   const value = useMemo(
     () => ({ adminMode, toggleAdminMode, canAdminister }),
-    [adminMode, canAdminister]
+    [adminMode, canAdminister, toggleAdminMode]
   );
 
-  return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
+  return (
+    <AdminContext.Provider value={value}>{children}</AdminContext.Provider>
+  );
 };
 
 export const useAdmin = () => {

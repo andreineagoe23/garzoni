@@ -4,8 +4,8 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -14,7 +14,7 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
@@ -52,4 +52,63 @@ code {
 
 .scrollbar-neutral::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
+}
+
+/* CKEditor 5 Dark Mode Support */
+/* Container wrapper styling - ensure it respects dark mode */
+.ckeditor-wrapper {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #d1d5db);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Ensure dark mode applies to container */
+html[data-theme="dark"] .ckeditor-wrapper,
+[data-theme="dark"] .ckeditor-wrapper {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* CKEditor editor styling - CSS Variables are inherited from :root when data-theme="dark" */
+[data-theme="dark"] .ck.ck-editor {
+  background-color: transparent;
+}
+
+[data-theme="dark"] .ck.ck-editor__editable {
+  background-color: var(--ck-color-base-background, #121212) !important;
+  color: var(--ck-color-text, #eeeeee) !important;
+}
+
+[data-theme="dark"] .ck.ck-toolbar {
+  background-color: var(--ck-color-toolbar-background, #212121) !important;
+  border-color: var(--ck-color-toolbar-border, #353535) !important;
+}
+
+[data-theme="dark"] .ck.ck-button {
+  color: var(--ck-color-text, #eeeeee) !important;
+}
+
+[data-theme="dark"] .ck.ck-button:not(.ck-disabled):hover {
+  background-color: var(
+    --ck-color-button-default-hover-background,
+    #1b1b1b
+  ) !important;
+}
+
+[data-theme="dark"] .ck.ck-dropdown__panel {
+  background-color: var(
+    --ck-color-dropdown-panel-background,
+    #212121
+  ) !important;
+  border-color: var(--ck-color-dropdown-panel-border, #353535) !important;
+}
+
+[data-theme="dark"] .ck.ck-input {
+  background-color: var(--ck-color-input-background, #121212) !important;
+  border-color: var(--ck-color-input-border, #353535) !important;
+  color: var(--ck-color-input-text, #eeeeee) !important;
+}
+
+[data-theme="dark"] .ck.ck-list {
+  background-color: var(--ck-color-list-background, #212121) !important;
 }
