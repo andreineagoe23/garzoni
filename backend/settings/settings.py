@@ -149,7 +149,7 @@ if database_url:
         # PostgreSQL - explicitly disable SSL
         if default_db.get("ENGINE") == "django.db.backends.postgresql":
             default_db["OPTIONS"]["sslmode"] = "disable"
-        # MySQL - disable SSL by removing SSL options
+        # MySQL - disable SSL by removing SSL options and set charset
         elif "mysql" in default_db.get("ENGINE", "").lower():
             # Remove any SSL-related options that might have been set
             default_db["OPTIONS"].pop("ssl", None)
@@ -157,6 +157,11 @@ if database_url:
             default_db["OPTIONS"].pop("ssl_ca", None)
             default_db["OPTIONS"].pop("ssl_cert", None)
             default_db["OPTIONS"].pop("ssl_key", None)
+            # Set charset to utf8mb4 for proper Unicode support
+            if "OPTIONS" not in default_db:
+                default_db["OPTIONS"] = {}
+            default_db["OPTIONS"]["charset"] = "utf8mb4"
+            default_db["OPTIONS"]["init_command"] = "SET sql_mode='STRICT_TRANS_TABLES', character_set_connection=utf8mb4, collation_connection=utf8mb4_unicode_ci"
             
 if not default_db:
     if DEBUG:
@@ -309,6 +314,12 @@ CKEDITOR_CONFIGS = {
 }
 
 CKEDITOR_UPLOAD_PATH = "uploads/ckeditor/"
+
+# Prevent Django from creating migrations for core app
+# since all models have been moved to other apps
+MIGRATION_MODULES = {
+    'core': None,  # Disable migrations for core app
+}
 
 if "test" in sys.argv:
     DATABASES = {

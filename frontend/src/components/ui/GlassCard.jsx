@@ -1,12 +1,12 @@
 import React from "react";
 
-const GlassCard = ({
+const GlassCard = React.forwardRef(({
   children,
   className = "",
   hover = true,
   padding = "md",
   ...props
-}) => {
+}, ref) => {
   // Theme-aware border: darker in light mode, lighter in dark mode
   const borderStyle = "border-[color:var(--border-color,rgba(0,0,0,0.1))]";
   const baseStyles =
@@ -28,6 +28,7 @@ const GlassCard = ({
 
   return (
     <div
+      ref={ref}
       className={combinedClassName}
       style={{
         backdropFilter: "blur(12px)",
@@ -38,7 +39,9 @@ const GlassCard = ({
       {children}
     </div>
   );
-};
+});
+
+GlassCard.displayName = "GlassCard";
 
 export default GlassCard;
 
