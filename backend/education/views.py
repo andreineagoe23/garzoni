@@ -462,14 +462,7 @@ class EnhancedQuestionnaireView(APIView):
         """Handle POST requests to submit questionnaire answers and initiate payment for personalized paths."""
         try:
             user = request.user
-
-            # Prevent duplicate payments
-            if user.profile.has_paid:
-                return Response(
-                    {"error": "You already have an active subscription"},
-                    status=400
-                )
-
+            user_profile = user.profile
             answers = request.data.get('answers', {})
 
             if not answers:
@@ -497,9 +490,17 @@ class EnhancedQuestionnaireView(APIView):
                         logger.error(f"Question {qid} not found")
                         continue
 
-                user_profile = user.profile
                 user_profile.recommended_courses = []
+                user_profile.is_questionnaire_completed = True
                 user_profile.save()
+
+            # If user has already paid, allow them to update questionnaire and redirect to personalized path
+            if user_profile.has_paid:
+                return Response({
+                    "success": True,
+                    "redirect": "/personalized-path",
+                    "message": "Questionnaire updated successfully"
+                }, status=200)
 
             # Configure Stripe with your API key
             stripe.api_key = settings.STRIPE_SECRET_KEY

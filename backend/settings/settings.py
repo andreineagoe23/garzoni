@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     # Legacy core app (to be removed after full migration)
     "core",
     "django_rest_passwordreset",
-    "ckeditor",
+    "django_ckeditor_5",
     "django_celery_results",
     "django_celery_beat",
 ]
@@ -303,17 +303,211 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
-CKEDITOR_CONFIGS = {
+# CKEditor 5 Configuration
+CKEDITOR_5_CONFIGS = {
     "default": {
-        "toolbar": "Full",
-        "height": 300,
-        "width": "auto",
-        "extraPlugins": "uploadimage",
-        "filebrowserUploadUrl": "/ckeditor/upload/",
+        "toolbar": [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "link",
+            "bulletedList",
+            "numberedList",
+            "blockQuote",
+            "imageUpload",
+            "|",
+            "undo",
+            "redo",
+        ],
+    },
+    "extends": {
+        "blockToolbar": [
+            "paragraph",
+            "heading1",
+            "heading2",
+            "heading3",
+            "heading4",
+            "heading5",
+            "heading6",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "blockQuote",
+        ],
+        "toolbar": [
+            "undo",
+            "redo",
+            "|",
+            "heading",
+            "|",
+            "fontSize",
+            "fontFamily",
+            "fontColor",
+            "fontBackgroundColor",
+            "|",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "subscript",
+            "superscript",
+            "code",
+            "removeFormat",
+            "|",
+            "alignment",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "todoList",
+            "outdent",
+            "indent",
+            "|",
+            "link",
+            "insertImage",
+            "insertImageViaUrl",
+            "insertTable",
+            "mediaEmbed",
+            "blockQuote",
+            "codeBlock",
+            "horizontalLine",
+            "pageBreak",
+            "|",
+            "specialCharacters",
+            "|",
+            "sourceEditing",
+        ],
+        "image": {
+            "toolbar": [
+                "imageTextAlternative",
+                "|",
+                "imageStyle:inline",
+                "imageStyle:wrapText",
+                "imageStyle:breakText",
+                "|",
+                "imageStyle:alignLeft",
+                "imageStyle:alignRight",
+                "imageStyle:alignCenter",
+                "imageStyle:side",
+                "|",
+                "toggleImageCaption",
+                "resizeImage",
+            ],
+        },
+        "table": {
+            "contentToolbar": [
+                "tableColumn",
+                "tableRow",
+                "mergeTableCells",
+                "tableProperties",
+                "tableCellProperties",
+            ],
+            "tableProperties": {
+                "borderColors": "custom",
+                "backgroundColors": "custom",
+            },
+            "tableCellProperties": {
+                "borderColors": "custom",
+                "backgroundColors": "custom",
+            },
+        },
+        "heading": {
+            "options": [
+                {
+                    "model": "paragraph",
+                    "title": "Paragraph",
+                    "class": "ck-heading_paragraph",
+                },
+                {
+                    "model": "heading1",
+                    "view": "h1",
+                    "title": "Heading 1",
+                    "class": "ck-heading_heading1",
+                },
+                {
+                    "model": "heading2",
+                    "view": "h2",
+                    "title": "Heading 2",
+                    "class": "ck-heading_heading2",
+                },
+                {
+                    "model": "heading3",
+                    "view": "h3",
+                    "title": "Heading 3",
+                    "class": "ck-heading_heading3",
+                },
+                {
+                    "model": "heading4",
+                    "view": "h4",
+                    "title": "Heading 4",
+                    "class": "ck-heading_heading4",
+                },
+                {
+                    "model": "heading5",
+                    "view": "h5",
+                    "title": "Heading 5",
+                    "class": "ck-heading_heading5",
+                },
+                {
+                    "model": "heading6",
+                    "view": "h6",
+                    "title": "Heading 6",
+                    "class": "ck-heading_heading6",
+                },
+            ],
+        },
+        "fontSize": {
+            "options": [9, 11, 13, "default", 17, 19, 21],
+            "supportAllValues": True,
+        },
+        "fontFamily": {
+            "supportAllValues": True,
+        },
+        "htmlSupport": {
+            "allow": [
+                {
+                    "name": "^.*$",
+                    "styles": True,
+                    "attributes": True,
+                    "classes": True,
+                }
+            ],
+        },
+        "link": {
+            "addTargetToExternalLinks": True,
+            "defaultProtocol": "https://",
+            "decorators": {
+                "toggleDownloadable": {
+                    "mode": "manual",
+                    "label": "Downloadable",
+                    "attributes": {
+                        "download": "file",
+                    },
+                },
+            },
+        },
+        "list": {
+            "properties": {
+                "styles": True,
+                "startIndex": True,
+                "reversed": True,
+            },
+        },
+        "licenseKey": "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjYzNjE1OTksImp0aSI6Ijg0OWU3Y2M0LWY3OTktNDVmYy1iNGYwLTMzZDI4N2Y5ZjVlNiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjgzMTFjMmQ2In0.h_kaJ2F9B79VlBU9unjEpRqtg7oErZ3EJQlzSKWfmml6jY-MO3uws1lm2KZvzKojsQUmbpeO_Q5zToCnbNx5VQ",
     },
 }
 
-CKEDITOR_UPLOAD_PATH = "uploads/ckeditor/"
+customColorPalette = [
+    {"color": "hsl(4, 90%, 58%)", "label": "Red"},
+    {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
+    {"color": "hsl(291, 64%, 42%)", "label": "Purple"},
+    {"color": "hsl(262, 52%, 47%)", "label": "Deep Purple"},
+    {"color": "hsl(231, 48%, 48%)", "label": "Indigo"},
+    {"color": "hsl(207, 90%, 54%)", "label": "Blue"},
+]
+
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 
 # Prevent Django from creating migrations for core app
 # since all models have been moved to other apps
