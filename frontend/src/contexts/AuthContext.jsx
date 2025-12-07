@@ -7,6 +7,7 @@ import React, {
   useEffect,
 } from "react";
 import axios from "axios";
+import { attachToken } from "services/httpClient";
 
 const AuthContext = createContext(null);
 
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
+      attachToken(inMemoryToken);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
@@ -182,6 +184,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
+      attachToken(inMemoryToken);
 
       return { success: true };
     } catch (error) {
@@ -219,6 +222,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
+      attachToken(inMemoryToken);
 
       return { success: true, next: response.data.next };
     } catch (error) {
@@ -252,6 +256,7 @@ export const AuthProvider = ({ children }) => {
       logoutFlagRef.current = true;
       setLogoutFlag(true);
       clearAuthState();
+      attachToken(null);
     }
   };
 
@@ -402,10 +407,6 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     didRequestInitialVerifyRef.current = true;
-    verifyAuth();
-  }, [verifyAuth]);
-
-  useEffect(() => {
     verifyAuth();
   }, [verifyAuth]);
 
