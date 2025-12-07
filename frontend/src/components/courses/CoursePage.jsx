@@ -1,44 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
 import CourseList from "./CourseList";
 import { GlassCard } from "components/ui";
+import Skeleton from "components/common/Skeleton";
+import Breadcrumbs from "components/common/Breadcrumbs";
+import { fetchLearningPathCourses } from "services/userService";
+import { attachToken } from "services/httpClient";
 
 function CoursePage() {
   const { pathId } = useParams();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const { getAccessToken } = useAuth();
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/learningpaths/${pathId}/courses/`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
-        );
-        setCourses(response.data);
-        setError("");
-      } catch (err) {
-        console.error("Failed to fetch courses:", err);
-        setError(
-          "We couldn't load the courses for this path. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+  React.useEffect(() => {
+    attachToken(getAccessToken());
+  }, [getAccessToken]);
 
-    fetchCourses();
-  }, [pathId, getAccessToken]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["courses", pathId],
+    queryFn: () => fetchLearningPathCourses(pathId),
+  });
 
   return (
     <PageContainer maxWidth="5xl">
@@ -51,17 +34,28 @@ function CoursePage() {
         </p>
       </header>
 
-      {loading ? (
-        <GlassCard padding="md" className="flex items-center gap-3 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          Loading courses...
+      <Breadcrumbs
+        className="mt-2"
+        items={[
+          { label: "Dashboard", to: "/all-topics" },
+          { label: "Courses" },
+        ]}
+      />
+
+      {isLoading ? (
+        <GlassCard
+          padding="md"
+          className="flex items-center gap-3 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)]"
+        >
+          <Skeleton className="h-5 w-5 rounded-full" />
+          <Skeleton className="h-4 w-48" />
         </GlassCard>
       ) : error ? (
         <GlassCard padding="md" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
-          {error}
+          {error?.message || "We couldn't load the courses for this path. Please try again."}
         </GlassCard>
       ) : (
-        <CourseList courses={courses} />
+        <CourseList courses={data?.data || []} />
       )}
     </PageContainer>
   );

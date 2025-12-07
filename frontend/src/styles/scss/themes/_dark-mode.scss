@@ -304,6 +304,41 @@
       color: var(--muted-text);
     }
   }
+
+  // ========== CKEditor 5 Dark Mode ==========
+  --ck-color-base-background: #121212;
+  --ck-color-base-foreground: #eeeeee;
+  --ck-color-toolbar-background: #212121;
+  --ck-color-toolbar-border: #353535;
+  --ck-color-button-default-background: #212121;
+  --ck-color-button-default-hover-background: #1b1b1b;
+  --ck-color-button-default-active-background: #1b1b1b;
+  --ck-color-button-on-background: #1b1b1b;
+  --ck-color-button-on-hover-background: #272727;
+  --ck-color-button-on-active-background: #272727;
+  --ck-color-button-disabled-background: #1b1b1b;
+  --ck-color-button-save: #264b5d;
+  --ck-color-button-cancel: #570808;
+  --ck-color-dropdown-panel-background: #212121;
+  --ck-color-dropdown-panel-border: #353535;
+  --ck-color-input-background: #121212;
+  --ck-color-input-border: #353535;
+  --ck-color-input-text: #eeeeee;
+  --ck-color-input-focus-border: #81d4fa;
+  --ck-color-list-background: #212121;
+  --ck-color-list-button-hover-background: #1b1b1b;
+  --ck-color-list-button-on-background: #1b1b1b;
+  --ck-color-list-button-on-background-focus: #272727;
+  --ck-color-panel-background: #212121;
+  --ck-color-panel-border: #353535;
+  --ck-color-tooltip-background: #212121;
+  --ck-color-tooltip-text: #eeeeee;
+  --ck-color-base-border: #353535;
+  --ck-color-base-action: #81d4fa;
+  --ck-color-base-focus: #81d4fa;
+  --ck-color-text: #eeeeee;
+  --ck-color-shadow-drop: rgba(0, 0, 0, 0.3);
+  --ck-color-shadow-drop-active: rgba(0, 0, 0, 0.4);
 }
 
 .form-check {

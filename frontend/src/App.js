@@ -1,42 +1,51 @@
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import {
   HashRouter as Router,
   Route,
   Routes,
   useLocation,
 } from "react-router-dom";
-import Login from "components/auth/Login";
-import Register from "components/auth/Register";
-import Welcome from "components/landing/Welcome";
-import CoursePage from "components/courses/CoursePage";
-import LessonPage from "components/courses/LessonPage";
-import Dashboard from "components/dashboard/Dashboard";
-import Navbar from "components/layout/Navbar";
-import Profile from "components/profile/Profile";
-import Settings from "components/profile/Settings";
-import QuizPage from "components/courses/QuizPage";
-import Leaderboards from "components/engagement/Leaderboard";
-import Missions from "components/engagement/Missions";
-import Questionnaire from "components/onboarding/Questionnaire";
-import ToolsPage from "components/tools/ToolsPage";
-import ForgotPassword from "components/auth/ForgotPassword";
-import ResetPassword from "components/auth/ResetPassword";
-import RewardsPage from "components/rewards/RewardsPage";
-import FAQPage from "components/support/FAQPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "contexts/ThemeContext";
 import { AuthProvider } from "contexts/AuthContext";
+import { AdminProvider } from "contexts/AdminContext";
 import ProtectedRoute from "components/auth/ProtectedRoute";
-import ExercisePage from "components/exercises/ExercisePage";
-import PaymentRequired from "components/billing/PaymentRequired";
-import "styles/scss/main.scss";
 import Chatbot from "components/widgets/Chatbot";
-import PrivacyPolicy from "components/legal/PrivacyPolicy";
-import CookiePolicy from "components/legal/CookiePolicy";
+import ErrorBoundary from "components/common/ErrorBoundary";
+import "styles/scss/main.scss";
+
+const Login = React.lazy(() => import("components/auth/Login"));
+const Register = React.lazy(() => import("components/auth/Register"));
+const Welcome = React.lazy(() => import("components/landing/Welcome"));
+const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
+const LessonPage = React.lazy(() => import("components/courses/LessonPage"));
+const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
+const Navbar = React.lazy(() => import("components/layout/Navbar"));
+const Profile = React.lazy(() => import("components/profile/Profile"));
+const Settings = React.lazy(() => import("components/profile/Settings"));
+const QuizPage = React.lazy(() => import("components/courses/QuizPage"));
+const Leaderboards = React.lazy(() => import("components/engagement/Leaderboard"));
+const Missions = React.lazy(() => import("components/engagement/Missions"));
+const Questionnaire = React.lazy(() => import("components/onboarding/Questionnaire"));
+const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
+const ForgotPassword = React.lazy(() => import("components/auth/ForgotPassword"));
+const ResetPassword = React.lazy(() => import("components/auth/ResetPassword"));
+const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
+const FAQPage = React.lazy(() => import("components/support/FAQPage"));
+const ExercisePage = React.lazy(() => import("components/exercises/ExercisePage"));
+const PaymentRequired = React.lazy(() => import("components/billing/PaymentRequired"));
+const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
+const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <Router>
-      <AppContent />
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
     </Router>
   );
 }
@@ -74,23 +83,33 @@ const AppContent = () => {
 
   const hasNavbar = !noNavbarPaths.includes(location.pathname);
 
-  return (
-    <AuthProvider>
-      <ThemeProvider>
-        <div
-          className={[
-            "app-container",
-            noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
-          ]
-            .join(" ")
-            .trim()}
-        >
-          {hasNavbar && <Navbar />}
+  const content = (
+    <ThemeProvider>
+      <div
+        className={[
+          "app-container",
+          noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
+        ]
+          .join(" ")
+          .trim()}
+      >
+        {hasNavbar && (
+          <Suspense fallback={<div className="p-4">Loading navigation...</div>}>
+            <Navbar />
+          </Suspense>
+        )}
 
-          <div className="app-layout w-full p-0">
-            <main
-              className="content"
-              style={hasNavbar ? { paddingTop: "88px" } : undefined}
+        <div className="app-layout w-full p-0">
+          <main
+            className="content"
+            style={hasNavbar ? { paddingTop: "88px" } : undefined}
+          >
+            <Suspense
+              fallback={
+                <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Loading page...
+                </div>
+              }
             >
               <Routes>
                 <Route path="/" element={<Welcome />} />
@@ -222,12 +241,21 @@ const AppContent = () => {
                   }
                 />
               </Routes>
-            </main>
+            </Suspense>
+          </main>
 
-            {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
-          </div>
+          {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
         </div>
-      </ThemeProvider>
+      </div>
+      <Toaster position="top-right" />
+    </ThemeProvider>
+  );
+
+  return (
+    <AuthProvider>
+      <AdminProvider>
+        <ErrorBoundary>{content}</ErrorBoundary>
+      </AdminProvider>
     </AuthProvider>
   );
 };

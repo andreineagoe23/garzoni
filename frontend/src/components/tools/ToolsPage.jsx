@@ -9,6 +9,7 @@ import ForexTools from "./ForexTools";
 import NewsCalendars from "./NewsCalendars";
 import FinancialGoalsTracker from "./FinancialGoalsTracker";
 import { GlassCard } from "components/ui";
+import FinancialSandbox from "./FinancialSandbox";
 
 const ToolsPage = () => {
   const { isAuthenticated } = useAuth();
@@ -47,6 +48,12 @@ const ToolsPage = () => {
       title: "News & Economic Calendar",
       description: "Stay updated with financial news and economic events",
       component: <NewsCalendars />,
+    },
+    {
+      title: "Financial Sandbox",
+      description:
+        "Run what-if scenarios for recurring investments without affecting your data",
+      component: <FinancialSandbox />,
     },
   ];
 

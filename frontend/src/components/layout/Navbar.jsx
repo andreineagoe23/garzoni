@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
+import { useAdmin } from "contexts/AdminContext";
 import { GlassContainer } from "components/ui";
 
 const NAV_ITEMS = [
@@ -22,6 +23,7 @@ function Navbar() {
   const { darkMode, toggleDarkMode } = useTheme();
   const { profile, user, loadProfile, isAuthenticated, isInitialized } =
     useAuth();
+  const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -131,6 +133,21 @@ function Navbar() {
         </div>
 
         <div className="flex min-w-[180px] flex-1 items-center justify-end gap-4 lg:min-w-[240px]">
+          {canAdminister && (
+            <button
+              type="button"
+              onClick={() => toggleAdminMode()}
+              aria-pressed={adminMode}
+              className={`relative z-10 inline-flex items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 ${
+                adminMode
+                  ? "border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)] text-white shadow"
+                  : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)]"
+              } focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation`}
+            >
+              {adminMode ? "Admin Mode" : "Enable Admin"}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleDarkModeToggle}
