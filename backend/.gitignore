@@ -7,3 +7,4 @@
 backup.json
 *.dump.json
 cookies.txt
+monevo_backup.sql

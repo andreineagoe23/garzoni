@@ -19,11 +19,11 @@ def debug_task():
 # Periodic tasks
 app.conf.beat_schedule = {
     'send-daily-email-reminders': {
-        'task': 'core.tasks.send_email_reminders',
+        'task': 'authentication.tasks.send_email_reminders',
         'schedule': crontab(hour=12, minute=0),
     },
     'reset-inactive-streaks': {
-        'task': 'core.tasks.reset_inactive_streaks',
+        'task': 'education.tasks.reset_inactive_streaks',
         'schedule': crontab(hour=0, minute=0),
     },
 }

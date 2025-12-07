@@ -1,15 +1,17 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: mysql:8.0
     restart: unless-stopped
     environment:
-      POSTGRES_USER: chartwise
-      POSTGRES_PASSWORD: chartwise
-      POSTGRES_DB: chartwise
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: monevo
+      MYSQL_USER: monevo
+      MYSQL_PASSWORD: monevopassword
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     ports:
-      - "5432:5432"
+      - "3307:3306"
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   redis:
     image: redis:7-alpine
@@ -33,7 +35,7 @@ services:
     environment:
       DEBUG: "True"
       SECRET_KEY: change-me
-      DATABASE_URL: postgresql://chartwise:chartwise@db:5432/chartwise
+      DATABASE_URL: mysql://monevo:monevopassword@db:3306/monevo
       REDIS_URL: redis://redis:6379/0
       ALLOWED_HOSTS_CSV: localhost,127.0.0.1
       CORS_ALLOWED_ORIGINS_CSV: http://localhost:3000,http://127.0.0.1:3000
@@ -43,5 +45,5 @@ services:
       - redis
 
 volumes:
-  postgres_data:
+  mysql_data:
 

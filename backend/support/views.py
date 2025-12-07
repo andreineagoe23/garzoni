@@ -78,16 +78,12 @@ def contact_us(request):
     email = request.data.get("email")
     topic = request.data.get("topic", "General")
     message = request.data.get("message")
-    user_id = None
-
-    if request.user.is_authenticated:
-        user_id = request.user.id
 
     if not email or not message:
         return Response({"error": "Email and message are required."}, status=400)
 
     # Save to database
-    ContactMessage.objects.create(email=email, topic=topic, message=message, user_id=user_id)
+    ContactMessage.objects.create(email=email, topic=topic, message=message)
 
     # Send email notification
     try:
