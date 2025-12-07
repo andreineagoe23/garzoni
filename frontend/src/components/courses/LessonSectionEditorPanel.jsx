@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GlassCard } from "components/ui";
+import { useTheme } from "contexts/ThemeContext";
 
-const CKEDITOR_SRC = "https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js";
+const CKEDITOR_SRC =
+  "https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js";
 
 const loadEditor = () => {
   if (window.ClassicEditor) {
@@ -26,6 +28,7 @@ const loadEditor = () => {
 const RichTextEditor = ({ value, onChange }) => {
   const containerRef = useRef(null);
   const editorRef = useRef(null);
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     let isMounted = true;
@@ -61,7 +64,8 @@ const RichTextEditor = ({ value, onChange }) => {
         editorRef.current = null;
       }
     };
-  }, [onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onChange]); // value is handled separately in the effect below to avoid editor re-initialization
 
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.getData()) {
@@ -69,9 +73,25 @@ const RichTextEditor = ({ value, onChange }) => {
     }
   }, [value]);
 
+  // Update editor UI class when theme changes
+  useEffect(() => {
+    if (containerRef.current) {
+      const editorElement =
+        containerRef.current.closest(".ck-editor__editable") ||
+        containerRef.current.querySelector(".ck-editor__editable");
+      if (editorElement) {
+        if (darkMode) {
+          editorElement.setAttribute("data-theme", "dark");
+        } else {
+          editorElement.removeAttribute("data-theme");
+        }
+      }
+    }
+  }, [darkMode]);
+
   return (
-    <div className="overflow-hidden rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-sm">
-      <div ref={containerRef} />
+    <div className="ckeditor-wrapper overflow-hidden rounded-xl border shadow-sm">
+      <div ref={containerRef} className="ckeditor-container" />
     </div>
   );
 };
@@ -96,8 +116,12 @@ const LessonSectionEditorPanel = ({
   useEffect(() => {
     setPreviewMode(false);
     setJsonError("");
-    setExerciseJson(section?.exercise_data ? JSON.stringify(section.exercise_data, null, 2) : "{}");
-  }, [section?.id]);
+    setExerciseJson(
+      section?.exercise_data
+        ? JSON.stringify(section.exercise_data, null, 2)
+        : "{}"
+    );
+  }, [section?.id, section?.exercise_data]);
 
   const handleJsonChange = (value) => {
     setExerciseJson(value);
@@ -126,7 +150,8 @@ const LessonSectionEditorPanel = ({
     return (
       <GlassCard padding="lg" className="h-full space-y-4">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Select a section to begin editing or create a new section from the lesson view.
+          Select a section to begin editing or create a new section from the
+          lesson view.
         </p>
         {currentSectionTitle && (
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -193,7 +218,9 @@ const LessonSectionEditorPanel = ({
           {savingState?.status === "saving" && <span>Autosaving changes…</span>}
           {savingState?.status === "saved" && <span>Changes saved</span>}
           {savingState?.status === "error" && (
-            <span className="text-[color:var(--error,#dc2626)]">{savingState?.message}</span>
+            <span className="text-[color:var(--error,#dc2626)]">
+              {savingState?.message}
+            </span>
           )}
         </div>
       </header>
@@ -234,7 +261,9 @@ const LessonSectionEditorPanel = ({
               type="number"
               value={section.order || 0}
               min={1}
-              onChange={(event) => onChange({ order: Number(event.target.value) })}
+              onChange={(event) =>
+                onChange({ order: Number(event.target.value) })
+              }
               className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             />
           </div>
@@ -286,7 +315,9 @@ const LessonSectionEditorPanel = ({
                 disabled={loadingExercises}
               >
                 <option value="">
-                  {loadingExercises ? "Loading exercises..." : "Select an exercise"}
+                  {loadingExercises
+                    ? "Loading exercises..."
+                    : "Select an exercise"}
                 </option>
                 {exercises?.map((exercise) => (
                   <option key={exercise.id} value={exercise.id}>
@@ -306,7 +337,9 @@ const LessonSectionEditorPanel = ({
                 className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               />
               {jsonError && (
-                <p className="text-xs text-[color:var(--error,#dc2626)]">{jsonError}</p>
+                <p className="text-xs text-[color:var(--error,#dc2626)]">
+                  {jsonError}
+                </p>
               )}
             </div>
           </div>
