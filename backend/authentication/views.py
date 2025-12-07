@@ -235,7 +235,9 @@ class LoginSecureView(APIView):
                     "username": user.username,
                     "email": user.email,
                     "first_name": user.first_name,
-                    "last_name": user.last_name
+                    "last_name": user.last_name,
+                    "is_staff": user.is_staff,
+                    "is_superuser": user.is_superuser
                 }
             })
             
@@ -280,7 +282,9 @@ class RegisterSecureView(generics.CreateAPIView):
                 "username": user.username,
                 "email": user.email,
                 "first_name": user.first_name,
-                "last_name": user.last_name
+                "last_name": user.last_name,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser
             },
             "next": "/all-topics"  # Redirect to all topics after registration
         }, status=status.HTTP_201_CREATED)
@@ -312,6 +316,8 @@ class VerifyAuthView(APIView):
                             "id": user.id,
                             "username": user.username,
                             "email": user.email,
+                            "is_staff": user.is_staff,
+                            "is_superuser": user.is_superuser,
                         },
                     }
                 )

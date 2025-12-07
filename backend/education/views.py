@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import F, Prefetch
 from decimal import Decimal
 from collections import defaultdict
 import json
@@ -19,9 +20,18 @@ from education.models import (
     Question, UserResponse
 )
 from education.serializers import (
-    PathSerializer, CourseSerializer, LessonSerializer, QuizSerializer,
-    UserProgressSerializer, ExerciseSerializer, QuestionSerializer
+    PathSerializer,
+    CourseSerializer,
+    LessonSerializer,
+    LessonSectionSerializer,
+    LessonSectionWriteSerializer,
+    QuizSerializer,
+    UserProgressSerializer,
+    ExerciseSerializer,
+    QuestionSerializer,
 )
+from education.permissions import IsStaffOrSuperuser
+from education.utils import log_admin_action
 from authentication.models import UserProfile
 from gamification.models import MissionCompletion
 
@@ -61,6 +71,25 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        admin_actions = {
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "add_section",
+            "update_section",
+            "delete_section",
+            "reorder_sections",
+        }
+
+        if getattr(self, "action", None) in admin_actions:
+            permissions = [IsAuthenticated, IsStaffOrSuperuser]
+        else:
+            permissions = [IsAuthenticated]
+
+        return [permission() for permission in permissions]
+
     @action(detail=True, methods=['post'])
     def complete_section(self, request, pk=None):
         """Mark a specific section of a lesson as completed."""
@@ -74,6 +103,10 @@ class LessonViewSet(viewsets.ModelViewSet):
         )
         try:
             section = LessonSection.objects.get(id=section_id)
+            if not section.is_published and not (
+                request.user.is_staff or request.user.is_superuser
+            ):
+                return Response({"error": "Section not available."}, status=403)
             progress.completed_sections.add(section)
             progress.save()
             return Response({"message": "Section completed!"})
@@ -87,6 +120,11 @@ class LessonViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
 
+        include_unpublished = (
+            request.query_params.get("include_unpublished") == "true"
+            and (request.user.is_staff or request.user.is_superuser)
+        )
+
         try:
             user_progress = UserProgress.objects.get(
                 user=request.user,
@@ -98,7 +136,17 @@ class LessonViewSet(viewsets.ModelViewSet):
             completed_lesson_ids = []
             completed_sections = []
 
-        lessons = self.get_queryset().filter(course_id=course_id).prefetch_related('sections')
+        section_queryset = LessonSection.objects.all()
+        if not include_unpublished:
+            section_queryset = section_queryset.filter(is_published=True)
+
+        lessons = (
+            self.get_queryset()
+            .filter(course_id=course_id)
+            .prefetch_related(
+                Prefetch("sections", queryset=section_queryset.order_by("order"))
+            )
+        )
         serializer = self.get_serializer(
             lessons,
             many=True,
@@ -114,6 +162,141 @@ class LessonViewSet(viewsets.ModelViewSet):
             lesson['progress'] = f"{(completed / total * 100) if total > 0 else 0}%"
 
         return Response(lesson_data)
+
+    @action(detail=True, methods=["post"], url_path="sections")
+    def add_section(self, request, pk=None):
+        lesson = self.get_object()
+        data = request.data.copy()
+        order = data.get("order")
+
+        if order is None:
+            order = lesson.sections.count() + 1
+
+        data["order"] = order
+        serializer = LessonSectionWriteSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            LessonSection.objects.filter(lesson=lesson, order__gte=order).update(
+                order=F("order") + 1
+            )
+            section = serializer.save(lesson=lesson, updated_by=request.user)
+
+        log_admin_action(
+            user=request.user,
+            action="created_section",
+            target_type="LessonSection",
+            target_id=section.id,
+            metadata={"lesson_id": lesson.id},
+        )
+
+        return Response(
+            LessonSectionSerializer(section, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(
+        detail=True,
+        methods=["patch"],
+        url_path="sections/(?P<section_id>[^/.]+)",
+    )
+    def update_section(self, request, pk=None, section_id=None):
+        lesson = self.get_object()
+
+        try:
+            section = lesson.sections.get(id=section_id)
+        except LessonSection.DoesNotExist:
+            return Response({"error": "Section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = LessonSectionWriteSerializer(
+            section, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+
+        desired_order = serializer.validated_data.get("order")
+
+        with transaction.atomic():
+            if desired_order is not None and desired_order != section.order:
+                LessonSection.objects.filter(
+                    lesson=lesson, order__gte=desired_order
+                ).exclude(id=section.id).update(order=F("order") + 1)
+
+            section = serializer.save(updated_by=request.user)
+
+        log_admin_action(
+            user=request.user,
+            action="updated_section",
+            target_type="LessonSection",
+            target_id=section.id,
+            metadata={"lesson_id": lesson.id},
+        )
+
+        return Response(
+            LessonSectionSerializer(section, context={"request": request}).data
+        )
+
+    @action(
+        detail=True,
+        methods=["delete"],
+        url_path="sections/(?P<section_id>[^/.]+)",
+    )
+    def delete_section(self, request, pk=None, section_id=None):
+        lesson = self.get_object()
+
+        try:
+            section = lesson.sections.get(id=section_id)
+        except LessonSection.DoesNotExist:
+            return Response({"error": "Section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        section_order = section.order
+        section_id = section.id
+        section.delete()
+
+        LessonSection.objects.filter(lesson=lesson, order__gt=section_order).update(
+            order=F("order") - 1
+        )
+
+        log_admin_action(
+            user=request.user,
+            action="deleted_section",
+            target_type="LessonSection",
+            target_id=section_id,
+            metadata={"lesson_id": lesson.id},
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="sections/reorder")
+    def reorder_sections(self, request, pk=None):
+        lesson = self.get_object()
+        new_order = request.data.get("order", [])
+
+        if not isinstance(new_order, list):
+            return Response({"error": "Order must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            for index, section_id in enumerate(new_order, start=1):
+                LessonSection.objects.filter(id=section_id, lesson=lesson).update(
+                    order=index, updated_by=request.user
+                )
+
+        ordered_sections = lesson.sections.order_by("order")
+
+        log_admin_action(
+            user=request.user,
+            action="reordered_sections",
+            target_type="Lesson",
+            target_id=lesson.id,
+            metadata={"order": new_order},
+        )
+
+        return Response(
+            {
+                "sections": LessonSectionSerializer(
+                    ordered_sections, many=True, context={"request": request}
+                ).data
+            }
+        )
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def complete(self, request):
@@ -308,6 +491,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         user = request.user
         try:
             section = LessonSection.objects.get(id=section_id)
+            if not section.is_published and not (
+                user.is_staff or user.is_superuser
+            ):
+                return Response({"error": "Section not available."}, status=403)
             progress, _ = UserProgress.objects.get_or_create(
                 user=user,
                 course=section.lesson.course
