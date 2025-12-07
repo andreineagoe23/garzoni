@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import UserProgressBox from "components/widgets/UserProgressBox";
 import { GlassButton, GlassCard } from "components/ui";
+import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
+import { fetchProgressSummary } from "services/userService";
+import { attachToken } from "services/httpClient";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
-  const [userProgress, setUserProgress] = useState(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [activePage, setActivePage] = useState(initialActivePage);
   const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
     useState(false);
@@ -24,41 +24,32 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   } = useAuth();
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        const token = getAccessToken();
-        const [profilePayload, progressResponse] = await Promise.all([
-          loadProfile(),
-          axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
-            {
-              headers: token
-                ? {
-                    Authorization: `Bearer ${token}`,
-                  }
-                : undefined,
-            }
-          ),
-        ]);
+    attachToken(getAccessToken());
+  }, [getAccessToken]);
 
-        if (profilePayload) {
-          setIsQuestionnaireCompleted(
-            Boolean(profilePayload.is_questionnaire_completed)
-          );
-        }
+  const {
+    data: profilePayload,
+    isLoading: isProfileLoading,
+  } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => loadProfile(),
+  });
 
-        setUserProgress(progressResponse.data || null);
-        setIsInitialized(true);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const {
+    data: progressResponse,
+    isLoading: isProgressLoading,
+  } = useQuery({
+    queryKey: ["progress-summary"],
+    queryFn: fetchProgressSummary,
+  });
 
-    fetchDashboardData();
-  }, [getAccessToken, loadProfile]);
+  useEffect(() => {
+    if (profilePayload) {
+      setIsQuestionnaireCompleted(
+        Boolean(profilePayload.is_questionnaire_completed)
+      );
+    }
+  }, [profilePayload]);
 
   useEffect(() => {
     setActivePage(
@@ -81,12 +72,31 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     return authProfile || null;
   }, [authProfile]);
 
-  if (!isInitialized || isLoading) {
+  const isLoading = isProfileLoading || isProgressLoading;
+
+  if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#ffffff)]">
-        <div className="flex items-center gap-3 text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          Loading dashboard...
+      <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] pb-10">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
+          <GlassCard className="relative overflow-hidden" padding="lg">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="mt-2 h-4 w-72" />
+            <div className="mt-6 flex gap-3">
+              <Skeleton className="h-10 w-28" />
+              <Skeleton className="h-10 w-40" />
+            </div>
+          </GlassCard>
+          <div className="flex flex-col gap-6 lg:flex-row lg:gap-10 lg:items-stretch">
+            <main className="flex flex-1 flex-col space-y-6 min-h-0">
+              <SkeletonGroup>
+                <Skeleton className="h-40 w-full rounded-2xl" />
+                <Skeleton className="h-40 w-full rounded-2xl" />
+              </SkeletonGroup>
+            </main>
+            <aside className="flex w-full max-w-[320px] shrink-0 min-h-0">
+              <Skeleton className="h-64 w-full rounded-2xl" />
+            </aside>
+          </div>
         </div>
       </div>
     );
@@ -164,7 +174,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           </main>
 
           <aside className="flex w-full max-w-[320px] shrink-0 min-h-0">
-            <UserProgressBox progressData={userProgress} />
+            <UserProgressBox progressData={progressResponse?.data || null} />
           </aside>
         </div>
       </div>

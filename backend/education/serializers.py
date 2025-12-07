@@ -15,13 +15,44 @@ class QuizSerializer(serializers.ModelSerializer):
 # Serializer for lesson sections, supporting various content types like text, video, and exercises.
 class LessonSectionSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
+    updated_by = serializers.SerializerMethodField()
 
     class Meta:
         model = LessonSection
         fields = [
-            'id', 'order', 'title', 'content_type',
-            'text_content', 'video_url', 'exercise_type', 'exercise_data'
+            'id',
+            'order',
+            'title',
+            'content_type',
+            'text_content',
+            'video_url',
+            'exercise_type',
+            'exercise_data',
+            'is_published',
+            'updated_at',
+            'updated_by',
         ]
+
+    def get_updated_by(self, obj):
+        return obj.updated_by.username if obj.updated_by else None
+
+
+class LessonSectionWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonSection
+        fields = [
+            'id',
+            'lesson',
+            'order',
+            'title',
+            'content_type',
+            'text_content',
+            'video_url',
+            'exercise_type',
+            'exercise_data',
+            'is_published',
+        ]
+        read_only_fields = ['id', 'lesson']
 
 # Serializer for lessons, including sections and a computed field for completion status.
 class LessonSerializer(serializers.ModelSerializer):
