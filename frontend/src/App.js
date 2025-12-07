@@ -25,6 +25,7 @@ import RewardsPage from "components/rewards/RewardsPage";
 import FAQPage from "components/support/FAQPage";
 import { ThemeProvider } from "contexts/ThemeContext";
 import { AuthProvider } from "contexts/AuthContext";
+import { AdminProvider } from "contexts/AdminContext";
 import ProtectedRoute from "components/auth/ProtectedRoute";
 import ExercisePage from "components/exercises/ExercisePage";
 import PaymentRequired from "components/billing/PaymentRequired";
@@ -76,23 +77,24 @@ const AppContent = () => {
 
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <div
-          className={[
-            "app-container",
-            noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
-          ]
-            .join(" ")
-            .trim()}
-        >
-          {hasNavbar && <Navbar />}
+      <AdminProvider>
+        <ThemeProvider>
+          <div
+            className={[
+              "app-container",
+              noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
+            ]
+              .join(" ")
+              .trim()}
+          >
+            {hasNavbar && <Navbar />}
 
-          <div className="app-layout w-full p-0">
-            <main
-              className="content"
-              style={hasNavbar ? { paddingTop: "88px" } : undefined}
-            >
-              <Routes>
+            <div className="app-layout w-full p-0">
+              <main
+                className="content"
+                style={hasNavbar ? { paddingTop: "88px" } : undefined}
+              >
+                <Routes>
                 <Route path="/" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
@@ -221,13 +223,14 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }
                 />
-              </Routes>
-            </main>
+                </Routes>
+              </main>
 
-            {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
+              {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
+            </div>
           </div>
-        </div>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AdminProvider>
     </AuthProvider>
   );
 };
