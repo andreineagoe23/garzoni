@@ -96,6 +96,15 @@ class LessonSection(models.Model):
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)
+    is_published = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="edited_lesson_sections",
+    )
 
     class Meta:
         ordering = ['order']
@@ -180,6 +189,30 @@ class SectionCompletion(models.Model):
 
     class Meta:
         db_table = 'core_sectioncompletion'
+
+
+class EducationAuditLog(models.Model):
+    """Simple audit log for administrative changes within the education domain."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="education_audit_logs",
+    )
+    action = models.CharField(max_length=255)
+    target_type = models.CharField(max_length=100)
+    target_id = models.PositiveIntegerField()
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        db_table = 'education_audit_log'
+
+    def __str__(self):
+        return f"{self.action} on {self.target_type} {self.target_id} by {self.user or 'system'}"
 
 class Quiz(models.Model):
     """

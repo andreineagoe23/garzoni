@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Chatbot from "components/widgets/Chatbot";
@@ -8,11 +8,15 @@ import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise"
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
+import { useAdmin } from "contexts/AdminContext";
 import { GlassCard } from "components/ui";
+import LessonSectionEditorPanel from "./LessonSectionEditorPanel";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function fixImagePaths(content) {
   if (!content) return "";
-  const mediaUrl = `${process.env.REACT_APP_BACKEND_URL}/media/`;
+  const mediaUrl = `${BACKEND_URL}/media/`;
   return content.replace(/src="\/media\/([^"]+)"/g, (_, filename) => {
     return `src="${mediaUrl}${filename}"`;
   });
@@ -32,11 +36,25 @@ function LessonPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [userProgress, setUserProgress] = useState(null);
   const { getAccessToken } = useAuth();
+  const { adminMode } = useAdmin();
+  const [editingLessonId, setEditingLessonId] = useState(null);
+  const [editingSectionId, setEditingSectionId] = useState(null);
+  const [draftSection, setDraftSection] = useState(null);
+  const [saveState, setSaveState] = useState({ status: "idle", message: "" });
+  const [exercises, setExercises] = useState([]);
+  const [loadingExercises, setLoadingExercises] = useState(false);
+  const [pendingAutosave, setPendingAutosave] = useState(false);
+  const autosaveTimer = useRef(null);
+  const lessonsRef = useRef([]);
+
+  useEffect(() => {
+    lessonsRef.current = lessons;
+  }, [lessons]);
 
   const fetchUserProgress = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/progress_summary/`,
+        `${BACKEND_URL}/userprogress/progress_summary/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -54,7 +72,7 @@ function LessonPage() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/lessons/with_progress/?course=${courseId}`,
+          `${BACKEND_URL}/lessons/with_progress/?course=${courseId}&include_unpublished=${adminMode}`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -67,16 +85,22 @@ function LessonPage() {
           sections: (lesson.sections || [])
             .map((section) => ({
               ...section,
+              lessonId: lesson.id,
               text_content: section.text_content
                 ? fixImagePaths(section.text_content)
                 : "",
               video_url: section.video_url || "",
               exercise_data: section.exercise_data || {},
               order: section.order || 0,
+              is_published:
+                typeof section.is_published === "boolean"
+                  ? section.is_published
+                  : true,
             }))
             .sort((a, b) => a.order - b.order),
         }));
 
+        lessonsRef.current = lessonsWithSections;
         setLessons(lessonsWithSections);
         setCompletedLessons(
           lessonsWithSections
@@ -99,7 +123,7 @@ function LessonPage() {
 
     fetchLessons();
     fetchUserProgress();
-  }, [courseId, getAccessToken, fetchUserProgress]);
+  }, [adminMode, courseId, getAccessToken, fetchUserProgress]);
 
   useEffect(() => {
     if (lessons.length > 0 && completedLessons.length === lessons.length) {
@@ -107,10 +131,283 @@ function LessonPage() {
     }
   }, [lessons, completedLessons]);
 
+  useEffect(() => {
+    if (!adminMode) {
+      return;
+    }
+
+    const loadExercises = async () => {
+      try {
+        setLoadingExercises(true);
+        const response = await axios.get(`${BACKEND_URL}/exercises/`, {
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        });
+        setExercises(response.data || []);
+      } catch (err) {
+        console.error("Failed to load exercises", err);
+      } finally {
+        setLoadingExercises(false);
+      }
+    };
+
+    loadExercises();
+  }, [adminMode, getAccessToken]);
+
+  const normalizeSection = useCallback((section, lessonId) => ({
+    ...section,
+    lessonId,
+    text_content: section.text_content ? fixImagePaths(section.text_content) : "",
+    video_url: section.video_url || "",
+    exercise_data: section.exercise_data || {},
+    order: section.order || 0,
+    is_published:
+      typeof section.is_published === "boolean" ? section.is_published : true,
+  }), []);
+
+  const snapshotLessons = useCallback(
+    () =>
+      lessonsRef.current.map((lesson) => ({
+        ...lesson,
+        sections: (lesson.sections || []).map((section) => ({ ...section })),
+      })),
+    []
+  );
+
+  const updateLessonSections = useCallback((lessonId, updater) => {
+    setLessons((prev) =>
+      prev.map((lesson) =>
+        lesson.id === lessonId
+          ? { ...lesson, sections: updater(lesson.sections || []) }
+          : lesson
+      )
+    );
+  }, []);
+
+  const beginEditingSection = (lessonId, section) => {
+    setEditingLessonId(lessonId);
+    setEditingSectionId(section?.id || null);
+    setDraftSection(section ? { ...section, lessonId } : null);
+    setPendingAutosave(false);
+    setSaveState({ status: "idle", message: "" });
+  };
+
+  const updateDraftSection = (updates) => {
+    let didUpdate = false;
+    setDraftSection((previous) => {
+      if (!previous) return previous;
+      didUpdate = true;
+      const next = { ...previous, ...updates };
+      updateLessonSections(previous.lessonId, (sections) =>
+        sections.map((section) =>
+          section.id === previous.id ? { ...section, ...updates } : section
+        )
+      );
+      return next;
+    });
+    if (didUpdate) {
+      setPendingAutosave(true);
+    }
+  };
+
+  const saveSectionToServer = useCallback(
+    async (sectionPayload, { silent = false } = {}) => {
+      if (!sectionPayload?.lessonId || typeof sectionPayload.id !== "number") {
+        return;
+      }
+
+      setSaveState({
+        status: "saving",
+        message: silent ? "" : "Saving changes...",
+      });
+
+      try {
+        const response = await axios.patch(
+          `${BACKEND_URL}/lessons/${sectionPayload.lessonId}/sections/${sectionPayload.id}/`,
+          {
+            title: sectionPayload.title,
+            content_type: sectionPayload.content_type,
+            text_content: sectionPayload.text_content,
+            video_url: sectionPayload.video_url,
+            exercise_type: sectionPayload.exercise_type,
+            exercise_data: sectionPayload.exercise_data,
+            is_published: sectionPayload.is_published,
+            order: sectionPayload.order,
+          },
+          {
+            headers: { Authorization: `Bearer ${getAccessToken()}` },
+          }
+        );
+
+        const normalized = normalizeSection(response.data, sectionPayload.lessonId);
+        updateLessonSections(sectionPayload.lessonId, (sections) =>
+          sections.map((section) =>
+            section.id === normalized.id ? normalized : section
+          )
+        );
+        setDraftSection(normalized);
+        setSaveState({ status: "saved", message: silent ? "" : "Saved" });
+      } catch (err) {
+        console.error("Failed to save section", err);
+        setSaveState({
+          status: "error",
+          message: "Could not save changes.",
+        });
+      }
+    },
+    [getAccessToken, normalizeSection, updateLessonSections]
+  );
+
+  const handleAddSection = async (lessonId) => {
+    const tempId = `temp-${Date.now()}`;
+    const previousSnapshot = snapshotLessons();
+    const existingSections =
+      lessonsRef.current.find((lesson) => lesson.id === lessonId)?.sections || [];
+
+    const newSection = {
+      id: tempId,
+      lessonId,
+      title: "New section",
+      content_type: "text",
+      text_content: "",
+      video_url: "",
+      exercise_type: "",
+      exercise_data: {},
+      order: existingSections.length + 1,
+      is_published: false,
+    };
+
+    updateLessonSections(lessonId, (sections) =>
+      [...sections, newSection].sort((a, b) => a.order - b.order)
+    );
+    beginEditingSection(lessonId, newSection);
+
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/lessons/${lessonId}/sections/`,
+        newSection,
+        {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+        }
+      );
+      const normalized = normalizeSection(response.data, lessonId);
+      updateLessonSections(lessonId, (sections) =>
+        sections.map((section) => (section.id === tempId ? normalized : section))
+      );
+      setDraftSection(normalized);
+      setEditingSectionId(normalized.id);
+    } catch (err) {
+      console.error("Failed to create section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Could not create section." });
+      beginEditingSection(null, null);
+    }
+  };
+
+  const handleDeleteSection = async (lessonId, sectionId) => {
+    const previousSnapshot = snapshotLessons();
+    updateLessonSections(lessonId, (sections) =>
+      sections.filter((section) => section.id !== sectionId)
+    );
+
+    try {
+      await axios.delete(
+        `${BACKEND_URL}/lessons/${lessonId}/sections/${sectionId}/`,
+        {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+        }
+      );
+
+      if (editingSectionId === sectionId) {
+        beginEditingSection(null, null);
+      }
+    } catch (err) {
+      console.error("Failed to delete section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Failed to delete section." });
+    }
+  };
+
+  const handleReorderSection = async (lessonId, sectionId, direction) => {
+    const previousSnapshot = snapshotLessons();
+    const lesson = lessonsRef.current.find((item) => item.id === lessonId);
+
+    if (!lesson) return;
+
+    const sections = (lesson.sections || []).map((section) => ({ ...section }));
+    const currentIndex = sections.findIndex((section) => section.id === sectionId);
+    const offset = direction === "up" ? -1 : 1;
+    const targetIndex = currentIndex + offset;
+
+    if (currentIndex === -1 || targetIndex < 0 || targetIndex >= sections.length) {
+      return;
+    }
+
+    [sections[currentIndex], sections[targetIndex]] = [
+      sections[targetIndex],
+      sections[currentIndex],
+    ];
+
+    const reordered = sections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+    }));
+
+    updateLessonSections(lessonId, () => reordered);
+    setActiveTab(targetIndex);
+
+    try {
+      await axios.post(
+        `${BACKEND_URL}/lessons/${lessonId}/sections/reorder/`,
+        { order: reordered.map((section) => section.id) },
+        {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+        }
+      );
+    } catch (err) {
+      console.error("Failed to reorder sections", err);
+      setLessons(previousSnapshot);
+      setSaveState({
+        status: "error",
+        message: "Could not update ordering.",
+      });
+    }
+  };
+
+  const handleManualSave = () => {
+    if (draftSection && typeof draftSection.id === "number") {
+      saveSectionToServer(draftSection);
+    }
+  };
+
+  const handlePublishToggle = () => {
+    if (draftSection) {
+      updateDraftSection({ is_published: !draftSection.is_published });
+    }
+  };
+
+  useEffect(() => {
+    if (!adminMode || !draftSection || typeof draftSection.id !== "number") {
+      return undefined;
+    }
+
+    if (!pendingAutosave) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setPendingAutosave(false);
+      saveSectionToServer(draftSection, { silent: true });
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [adminMode, draftSection, pendingAutosave, saveSectionToServer]);
+
   const handleCompleteSection = async (sectionId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete_section/`,
+        `${BACKEND_URL}/userprogress/complete_section/`,
         { section_id: sectionId },
         {
           headers: {
@@ -129,7 +426,7 @@ function LessonPage() {
   const handleCompleteLesson = async (lessonId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/userprogress/complete/`,
+        `${BACKEND_URL}/userprogress/complete/`,
         { lesson_id: lessonId },
         {
           headers: {
@@ -167,9 +464,15 @@ function LessonPage() {
 
   const renderSectionContent = (section) => {
     const isCompleted = completedSections.includes(section.id);
+    const isDraft = !section.is_published;
 
     return (
       <div className="space-y-6">
+        {adminMode && isDraft && (
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-400">
+            Draft - hidden from learners
+          </div>
+        )}
         {section.content_type === "text" && section.text_content && (
           <div
             className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
@@ -247,11 +550,16 @@ function LessonPage() {
     const hasSections = lesson.sections?.length > 0;
     const currentSection = lesson.sections?.[activeTab];
     const isLastTab = activeTab === (lesson.sections?.length || 0) - 1;
+    const isEditingCurrent =
+      adminMode &&
+      editingLessonId === lesson.id &&
+      editingSectionId === currentSection?.id;
+    const showEditorForLesson = adminMode && editingLessonId === lesson.id;
 
-    return (
+    const content = (
       <div className="space-y-6">
         {hasSections && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {lesson.sections.map((section, index) => (
               <button
                 key={section.id || index}
@@ -267,8 +575,63 @@ function LessonPage() {
                 {completedSections.includes(section.id) && (
                   <span className="text-xs text-emerald-300">✓</span>
                 )}
+                {adminMode && !section.is_published && (
+                  <span className="text-[10px] uppercase text-amber-400">Draft</span>
+                )}
               </button>
             ))}
+          </div>
+        )}
+
+        {adminMode && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              onClick={() => handleAddSection(lesson.id)}
+            >
+              Add section
+            </button>
+            {currentSection && (
+              <>
+                <button
+                  type="button"
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 ${
+                    isEditingCurrent
+                      ? "border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)] text-white"
+                      : "border border-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)] hover:text-[color:var(--primary,#1d5330)]"
+                  }`}
+                  onClick={() =>
+                    beginEditingSection(lesson.id, {
+                      ...currentSection,
+                      lessonId: lesson.id,
+                    })
+                  }
+                >
+                  {isEditingCurrent ? "Editing" : "Edit section"}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)]"
+                  disabled={activeTab === 0}
+                  onClick={() =>
+                    handleReorderSection(lesson.id, currentSection.id, "up")
+                  }
+                >
+                  Move up
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)]"
+                  disabled={activeTab >= (lesson.sections?.length || 0) - 1}
+                  onClick={() =>
+                    handleReorderSection(lesson.id, currentSection.id, "down")
+                  }
+                >
+                  Move down
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -345,6 +708,38 @@ function LessonPage() {
             )}
           </GlassCard>
         )}
+      </div>
+    );
+
+    if (!adminMode) {
+      return content;
+    }
+
+    return (
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2.15fr)_minmax(320px,1fr)]">
+        {content}
+        <LessonSectionEditorPanel
+          section={showEditorForLesson ? draftSection : null}
+          onChange={updateDraftSection}
+          onDelete={() =>
+            draftSection && handleDeleteSection(lesson.id, draftSection.id)
+          }
+          onPublishToggle={handlePublishToggle}
+          onSave={handleManualSave}
+          savingState={saveState}
+          exercises={exercises}
+          loadingExercises={loadingExercises}
+          onExerciseAttach={(exercise) => {
+            if (!exercise) return;
+            updateDraftSection({
+              content_type: "exercise",
+              exercise_type: exercise.type,
+              exercise_data: exercise.exercise_data || {},
+            });
+          }}
+          onCloseRequest={() => beginEditingSection(null, null)}
+          currentSectionTitle={currentSection?.title}
+        />
       </div>
     );
   };
