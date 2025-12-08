@@ -85,6 +85,33 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const isLoading = isProfileLoading || isProgressLoading;
 
+  const usage =
+    progressResponse?.data?.usage || progressResponse?.usage || undefined;
+
+  const quotaChips = [
+    {
+      label: "Free lessons today",
+      used: usage?.free_lessons?.used ?? 2,
+      total: usage?.free_lessons?.total ?? 5,
+      helper: "Short sessions keep momentum strong.",
+      icon: "📖",
+    },
+    {
+      label: "Practice quizzes",
+      used: usage?.practice_quizzes?.used ?? 1,
+      total: usage?.practice_quizzes?.total ?? 3,
+      helper: "Quiz yourself to lock in learning.",
+      icon: "🧠",
+    },
+    {
+      label: "AI coach replies",
+      used: usage?.ai_responses?.used ?? 8,
+      total: usage?.ai_responses?.total ?? 10,
+      helper: "Chat with Monevo for instant clarity.",
+      icon: "🤖",
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] pb-10">
@@ -142,10 +169,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <GlassButton
                 variant={activePage === "all-topics" ? "active" : "ghost"}
                 onClick={() => {
                   setActivePage("all-topics");
+                  navigate("/all-topics");
                   navigate("/all-topics");
                 }}
                 icon="📚"
@@ -153,6 +182,63 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 All Topics
               </GlassButton>
 
+              <GlassButton
+                variant={
+                  activePage === "personalized-path" ? "active" : "ghost"
+                }
+                onClick={() => {
+                  setActivePage("personalized-path");
+                  navigate("/personalized-path");
+                }}
+                disabled={!isQuestionnaireCompleted}
+                icon="🎯"
+              >
+                Personalized Path
+                {!isQuestionnaireCompleted && (
+                  <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
+                    Complete Questionnaire
+                  </span>
+                )}
+              </GlassButton>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {quotaChips.map((chip) => {
+                const total = Number(chip.total) || 0;
+                const used = Number(chip.used) || 0;
+                const percent = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
+
+                return (
+                  <div
+                    key={chip.label}
+                    className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-lg"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                    <div className="relative flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                          <span aria-hidden="true">{chip.icon}</span>
+                          <span>{chip.label}</span>
+                        </div>
+                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{chip.helper}</p>
+                      </div>
+                      <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-[11px] font-semibold text-[color:var(--primary,#1d5330)]">
+                        {used}/{total || "∞"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-500"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </GlassCard>
               <GlassButton
                 variant={
                   activePage === "personalized-path" ? "active" : "ghost"
