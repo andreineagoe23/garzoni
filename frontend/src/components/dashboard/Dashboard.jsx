@@ -65,6 +65,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     navigate(`/lessons/${courseId}`);
   };
 
+  const handlePersonalizedPathClick = () => {
+    if (isQuestionnaireCompleted) {
+      setActivePage("personalized-path");
+      navigate("/personalized-path");
+      return;
+    }
+
+    navigate("/questionnaire");
+  };
+
   const profile = useMemo(() => {
     if (authProfile?.user_data) {
       return authProfile.user_data;
@@ -146,11 +156,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 variant={
                   activePage === "personalized-path" ? "active" : "ghost"
                 }
-                onClick={() => {
-                  setActivePage("personalized-path");
-                  navigate("/personalized-path");
-                }}
-                disabled={!isQuestionnaireCompleted}
+                onClick={handlePersonalizedPathClick}
                 icon="🎯"
               >
                 Personalized Path
