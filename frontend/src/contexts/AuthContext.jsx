@@ -16,6 +16,8 @@ let inMemoryToken = null;
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 const LOGOUT_FLAG_KEY = "monevo:manual-logout";
+const ENTITLEMENT_SUPPORT_URL =
+  "mailto:support@monevo.com?subject=Billing%20support";
 
 const getLogoutFlag = () => {
   if (typeof window === "undefined") {
@@ -45,6 +47,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [entitlements, setEntitlements] = useState({
+    plan: "free",
+    entitled: false,
+    fallback: false,
+  });
+  const [entitlementError, setEntitlementError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const isVerifying = useRef(false);
@@ -53,6 +61,7 @@ export const AuthProvider = ({ children }) => {
   const inFlightRequestsRef = useRef(new Map());
   const profileRef = useRef(null);
   const settingsRef = useRef(null);
+  const entitlementsRef = useRef(null);
   const didRequestInitialVerifyRef = useRef(false);
 
   const clearAuthState = useCallback(() => {
@@ -61,8 +70,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setProfile(null);
     setSettings(null);
+    setEntitlements({ plan: "free", entitled: false, fallback: false });
+    setEntitlementError(null);
     profileRef.current = null;
     settingsRef.current = null;
+    entitlementsRef.current = null;
     refreshAttempts = 0;
     delete axios.defaults.headers.common["Authorization"];
     inFlightRequestsRef.current.clear();
@@ -352,6 +364,75 @@ export const AuthProvider = ({ children }) => {
     [cacheRequest, isAuthenticated]
   );
 
+  const loadEntitlements = useCallback(
+    async ({ force = false } = {}) => {
+      if (!isAuthenticated) {
+        const fallbackEntitlements = {
+          plan: "free",
+          entitled: false,
+          fallback: false,
+        };
+        entitlementsRef.current = fallbackEntitlements;
+        setEntitlements(fallbackEntitlements);
+        setEntitlementError(null);
+        return fallbackEntitlements;
+      }
+
+      if (!force && entitlementsRef.current) {
+        return entitlementsRef.current;
+      }
+
+      try {
+        const data = await cacheRequest(
+          "entitlements",
+          async () => {
+            const response = await axios.get(
+              `${BACKEND_URL}/finance/entitlements/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${inMemoryToken}`,
+                },
+              }
+            );
+            return response.data;
+          },
+          { force }
+        );
+
+        const normalized = {
+          plan: data?.plan || "free",
+          entitled: Boolean(data?.entitled),
+          fallback: false,
+          checked_at: data?.checked_at,
+        };
+
+        entitlementsRef.current = normalized;
+        setEntitlements(normalized);
+        setEntitlementError(null);
+        return normalized;
+      } catch (error) {
+        const fallbackEntitlements = {
+          plan: "free",
+          entitled: false,
+          fallback: true,
+        };
+        entitlementsRef.current = fallbackEntitlements;
+        setEntitlements(fallbackEntitlements);
+        setEntitlementError(
+          error.response?.data?.error ||
+            "We could not confirm your entitlements right now."
+        );
+        return fallbackEntitlements;
+      }
+    },
+    [cacheRequest, isAuthenticated]
+  );
+
+  const reloadEntitlements = useCallback(
+    () => loadEntitlements({ force: true }),
+    [loadEntitlements]
+  );
+
   const refreshProfile = useCallback(async () => {
     await loadProfile({ force: true });
   }, [loadProfile]);
@@ -410,6 +491,20 @@ export const AuthProvider = ({ children }) => {
     verifyAuth();
   }, [verifyAuth]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setEntitlements({ plan: "free", entitled: false, fallback: false });
+      setEntitlementError(null);
+      entitlementsRef.current = null;
+      return;
+    }
+
+    loadEntitlements().catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error("Failed to prefetch entitlements:", error);
+    });
+  }, [isAuthenticated, loadEntitlements]);
+
   if (!isInitialized) {
     return <div>Loading authentication...</div>;
   }
@@ -429,6 +524,11 @@ export const AuthProvider = ({ children }) => {
         loadProfile,
         refreshProfile,
         loadSettings,
+        loadEntitlements,
+        reloadEntitlements,
+        entitlements,
+        entitlementError,
+        entitlementSupportLink: ENTITLEMENT_SUPPORT_URL,
       }}
     >
       {children}
