@@ -160,7 +160,9 @@ class UserProfileView(APIView):
                 "profile_avatar": user_profile.profile_avatar,
                 "dark_mode": user_profile.dark_mode,
                 "email_reminder_preference": user_profile.email_reminder_preference,
-                "has_paid": user_profile.has_paid
+                "has_paid": user_profile.has_paid,
+                "is_premium": user_profile.is_premium,
+                "subscription_status": user_profile.subscription_status
             },
             "activity_calendar": activity_calendar,
             "current_month": current_month
