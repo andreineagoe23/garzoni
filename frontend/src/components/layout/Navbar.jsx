@@ -8,6 +8,7 @@ import { GlassContainer } from "components/ui";
 
 const NAV_ITEMS = [
   { path: "/all-topics", label: "Dashboard", icon: "🏠" },
+  { path: "/personalized-path", label: "My Path", icon: "🧭" },
   { path: "/leaderboards", label: "Leaderboards", icon: "🏆" },
   { path: "/exercises", label: "Exercises", icon: "💪" },
   { path: "/missions", label: "Missions", icon: "🎯" },

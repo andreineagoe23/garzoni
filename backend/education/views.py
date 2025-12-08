@@ -667,8 +667,12 @@ class EnhancedQuestionnaireView(APIView):
                         continue
 
                 user_profile.recommended_courses = []
-                user_profile.is_questionnaire_completed = True
-                user_profile.save()
+                user_profile.save(update_fields=["recommended_courses"])
+
+                # Persist questionnaire completion for all of the user's progress records
+                UserProgress.objects.filter(user=user).update(
+                    is_questionnaire_completed=True
+                )
 
             # If user has already paid, allow them to update questionnaire and redirect to personalized path
             if user_profile.has_paid:
@@ -734,6 +738,15 @@ class PersonalizedPathView(APIView):
         """Retrieve personalized course recommendations for the user."""
         try:
             user_profile = UserProfile.objects.get(user=request.user)
+
+            if not self._has_completed_questionnaire(request.user):
+                return Response(
+                    {
+                        "error": "Please complete the questionnaire to unlock your personalized path.",
+                        "redirect": "/questionnaire",
+                    },
+                    status=400,
+                )
 
             if not user_profile.has_paid:
                 return Response({
@@ -890,3 +903,14 @@ class PersonalizedPathView(APIView):
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
             return Course.objects.filter(is_active=True).order_by('?')[:10]
+
+    def _has_completed_questionnaire(self, user):
+        """Check whether the user has answered all active questionnaire prompts."""
+        total_questions = Question.objects.filter(is_active=True).count()
+        if total_questions == 0:
+            return True
+
+        answered_questions = UserResponse.objects.filter(
+            user=user, question__is_active=True
+        ).count()
+        return answered_questions >= total_questions
