@@ -13,6 +13,7 @@ import json
 import logging
 import stripe
 from django.conf import settings
+from finance.utils import record_funnel_event
 
 from education.models import (
     Path, Course, Lesson, LessonSection, Quiz, UserProgress,
@@ -681,6 +682,10 @@ class EnhancedQuestionnaireView(APIView):
             stripe.api_key = settings.STRIPE_SECRET_KEY
 
             # Create Stripe Checkout Session
+            logger.info(
+                "Creating Stripe checkout session",
+                extra={"user_id": request.user.id},
+            )
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -694,6 +699,16 @@ class EnhancedQuestionnaireView(APIView):
                 client_reference_id=str(request.user.id)
             )
 
+            record_funnel_event(
+                "checkout_created",
+                user=request.user,
+                session_id=getattr(checkout_session, 'id', ''),
+                metadata={
+                    "mode": checkout_session.mode,
+                    "amount_total": getattr(checkout_session, 'amount_total', None),
+                }
+            )
+
             return Response({
                 "success": True,
                 "redirect_url": checkout_session.url
@@ -701,6 +716,12 @@ class EnhancedQuestionnaireView(APIView):
 
         except Exception as e:
             logger.error(f"Stripe error: {str(e)}")
+            record_funnel_event(
+                "checkout_created",
+                status="error",
+                user=request.user,
+                metadata={"error": str(e)},
+            )
             return Response({"error": "Payment processing failed"}, status=500)
 
 
