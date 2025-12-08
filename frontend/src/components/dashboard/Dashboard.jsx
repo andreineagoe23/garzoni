@@ -9,6 +9,7 @@ import { GlassButton, GlassCard } from "components/ui";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import { fetchProgressSummary } from "services/userService";
 import { attachToken } from "services/httpClient";
+import PremiumUpsellPanel from "components/billing/PremiumUpsellPanel";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
@@ -174,7 +175,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           </main>
 
           <aside className="flex w-full max-w-[320px] shrink-0 min-h-0">
-            <UserProgressBox progressData={progressResponse?.data || null} />
+            <div className="flex w-full flex-col gap-4">
+              <UserProgressBox progressData={progressResponse?.data || null} />
+              <PremiumUpsellPanel />
+            </div>
           </aside>
         </div>
       </div>
