@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import viewsets
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError
@@ -17,9 +16,9 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
 from django.db import models
-import os
 import logging
 import requests
+import os
 
 from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import (
@@ -28,24 +27,16 @@ from authentication.serializers import (
 )
 from authentication.tokens import delete_jwt_cookies
 from education.models import LessonCompletion
+from core.utils import env_bool
 
 logger = logging.getLogger(__name__)
 
 REFRESH_COOKIE_NAME = "refresh_token"
 DEFAULT_REFRESH_MAX_AGE = 0
-OVERRIDE_TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
-
-
-def _env_bool(name: str, default: bool) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in OVERRIDE_TRUE_VALUES
-
 
 def _get_refresh_cookie_kwargs():
     """Build keyword arguments for setting the refresh token cookie."""
-    secure = _env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
+    secure = env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
     default_samesite = "None" if secure else "Lax"
     samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
     max_age_setting = os.getenv("REFRESH_TOKEN_MAX_AGE")
@@ -296,38 +287,22 @@ class RegisterSecureView(generics.CreateAPIView):
 
 
 class VerifyAuthView(APIView):
-    """View to verify user authentication status and return user data if authenticated."""
-    
-    permission_classes = [AllowAny]
-    authentication_classes = [JWTAuthentication]
-    
-    def get(self, request):
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header.split(" ", 1)[1].strip()
-            authenticator = JWTAuthentication()
-            try:
-                validated_token = authenticator.get_validated_token(token)
-                user = authenticator.get_user(validated_token)
-                return Response(
-                    {
-                        "isAuthenticated": True,
-                        "user": {
-                            "id": user.id,
-                            "username": user.username,
-                            "email": user.email,
-                            "is_staff": user.is_staff,
-                            "is_superuser": user.is_superuser,
-                        },
-                    }
-                )
-            except Exception:
-                pass
+    """Verify authentication using DRF's built-in authentication pipeline."""
 
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
         return Response(
             {
-                "isAuthenticated": False,
-                "user": None,
+                "isAuthenticated": True,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "is_staff": user.is_staff,
+                    "is_superuser": user.is_superuser,
+                },
             }
         )
 
