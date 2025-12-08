@@ -7,11 +7,7 @@ import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
-import {
-  consumeEntitlement,
-  fetchEntitlements,
-  FEATURE_COPY,
-} from "services/entitlementsService";
+import { consumeEntitlement, fetchEntitlements } from "services/entitlementsService";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
@@ -105,11 +101,22 @@ function RewardsPage() {
       const canvas = await html2canvas(target);
       const dataUrl = canvas.toDataURL("image/png");
 
-      if (navigator.share) {
+      // Use the Web Share API with files when possible; otherwise fall back to download
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "monevo-achievement.png", {
+        type: "image/png",
+      });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "I just unlocked rewards on Monevo!",
           text: "Check out my latest achievement.",
-          url: dataUrl,
+          files: [file],
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: "I just unlocked rewards on Monevo!",
+          text: "Check out my latest achievement.",
         });
       } else {
         const link = document.createElement("a");

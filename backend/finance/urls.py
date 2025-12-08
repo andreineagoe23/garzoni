@@ -25,6 +25,8 @@ router.register(r'financial-goals', FinancialGoalViewSet, basename='financial-go
 
 urlpatterns = [
     path('', include(router.urls)),
+    # Compatibility prefix for clients hitting /api/finance/entitlements/
+    path('finance/entitlements/', EntitlementStatusView.as_view(), name='entitlements-compat'),
     path('savings-account/', SavingsAccountView.as_view(), name='savings-account'),
     path('finance-fact/', FinanceFactView.as_view(), name='finance-fact'),
     path('calculate-savings-goal/', SavingsGoalCalculatorView.as_view(), name='calculate_savings_goal'),

@@ -28,18 +28,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const {
-    data: profilePayload,
-    isLoading: isProfileLoading,
-  } = useQuery({
+  const { data: profilePayload, isLoading: isProfileLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: () => loadProfile(),
   });
 
-  const {
-    data: progressResponse,
-    isLoading: isProgressLoading,
-  } = useQuery({
+  const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
     queryKey: ["progress-summary"],
     queryFn: fetchProgressSummary,
   });
@@ -162,19 +156,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   Welcome back{displayName ? `, ${displayName}` : ""}!
                 </h2>
                 <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Explore your learning paths and track progress in one
-                  place.
+                  Explore your learning paths and track progress in one place.
                 </p>
               </div>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
-            <div className="mt-6 flex flex-wrap gap-3">
               <GlassButton
                 variant={activePage === "all-topics" ? "active" : "ghost"}
                 onClick={() => {
                   setActivePage("all-topics");
-                  navigate("/all-topics");
                   navigate("/all-topics");
                 }}
                 icon="📚"
@@ -186,11 +177,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 variant={
                   activePage === "personalized-path" ? "active" : "ghost"
                 }
-                onClick={() => {
-                  setActivePage("personalized-path");
-                  navigate("/personalized-path");
-                }}
-                disabled={!isQuestionnaireCompleted}
+                onClick={handlePersonalizedPathClick}
                 icon="🎯"
               >
                 Personalized Path
@@ -206,7 +193,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               {quotaChips.map((chip) => {
                 const total = Number(chip.total) || 0;
                 const used = Number(chip.used) || 0;
-                const percent = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
+                const percent =
+                  total > 0
+                    ? Math.min(100, Math.round((used / total) * 100))
+                    : 0;
 
                 return (
                   <div
@@ -220,7 +210,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           <span aria-hidden="true">{chip.icon}</span>
                           <span>{chip.label}</span>
                         </div>
-                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{chip.helper}</p>
+                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          {chip.helper}
+                        </p>
                       </div>
                       <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-[11px] font-semibold text-[color:var(--primary,#1d5330)]">
                         {used}/{total || "∞"}
@@ -236,23 +228,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        </GlassCard>
-              <GlassButton
-                variant={
-                  activePage === "personalized-path" ? "active" : "ghost"
-                }
-                onClick={handlePersonalizedPathClick}
-                icon="🎯"
-              >
-                Personalized Path
-                {!isQuestionnaireCompleted && (
-                  <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-                    Complete Questionnaire
-                  </span>
-                )}
-              </GlassButton>
             </div>
           </div>
         </GlassCard>
