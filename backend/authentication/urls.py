@@ -16,6 +16,8 @@ from .views import (
     PasswordResetConfirmView,
     FriendRequestView,
     FriendsLeaderboardView,
+    EntitlementsView,
+    ConsumeEntitlementView,
     get_csrf_token,
 )
 
@@ -30,6 +32,8 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('userprofile/', UserProfileView.as_view(), name='userprofile'),
     path('update-avatar/', update_avatar, name='update_avatar'),
+    path('entitlements/', EntitlementsView.as_view(), name='entitlements'),
+    path('entitlements/consume/', ConsumeEntitlementView.as_view(), name='consume-entitlement'),
     path('user/settings/', UserSettingsView.as_view(), name='user-settings'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
