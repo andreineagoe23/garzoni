@@ -31,7 +31,7 @@ from authentication.entitlements import (
     entitlement_usage_snapshot,
     get_entitlements_for_user,
 )
-from education.models import LessonCompletion
+from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
 
 logger = logging.getLogger(__name__)
@@ -146,6 +146,12 @@ class UserProfileView(APIView):
         for completion in lesson_completions:
             activity_calendar[str(completion['completed_at__date'])] = completion['count']
 
+        active_questions = Question.objects.filter(is_active=True).count()
+        answered_questions = UserResponse.objects.filter(
+            user=request.user, question__is_active=True
+        ).count()
+        questionnaire_completed = active_questions == 0 or answered_questions >= active_questions
+
         # Add current month information
         current_month = {
             'first_day': first_day.isoformat(),
@@ -167,7 +173,8 @@ class UserProfileView(APIView):
                 "email_reminder_preference": user_profile.email_reminder_preference,
                 "has_paid": user_profile.has_paid,
                 "is_premium": user_profile.is_premium,
-                "subscription_status": user_profile.subscription_status
+                "subscription_status": user_profile.subscription_status,
+                "is_questionnaire_completed": questionnaire_completed
             },
             "activity_calendar": activity_calendar,
             "current_month": current_month
@@ -620,6 +627,7 @@ class FriendRequestView(viewsets.ViewSet):
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
 
+
     def create(self, request):
         """Send a friend request to another user."""
         receiver_id = request.data.get("receiver")
@@ -677,7 +685,7 @@ class FriendRequestView(viewsets.ViewSet):
     def get_friends(self, request):
         """Retrieve all accepted friends of the authenticated user."""
         friends_ids = FriendRequest.objects.filter(
-            models.Q(sender=request.user, status="accepted") | 
+            models.Q(sender=request.user, status="accepted") |
             models.Q(receiver=request.user, status="accepted")
         ).values_list(
             'receiver', 'sender'
@@ -690,10 +698,48 @@ class FriendRequestView(viewsets.ViewSet):
                 user_ids.append(receiver_id)
             if sender_id != request.user.id:
                 user_ids.append(sender_id)
-                
+
         friends = User.objects.filter(id__in=user_ids)
         serializer = UserSearchSerializer(friends, many=True)
         return Response(serializer.data)
+
+
+class ReferralApplyView(APIView):
+    """Allow authenticated users to apply a referral code."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        referral_code = request.data.get("referral_code")
+
+        if not referral_code:
+            return Response({"message": "Referral code is required."}, status=400)
+
+        try:
+            referrer_profile = UserProfile.objects.get(referral_code=referral_code)
+        except UserProfile.DoesNotExist:
+            return Response({"message": "Invalid referral code."}, status=404)
+
+        if referrer_profile.user_id == request.user.id:
+            return Response({"message": "You cannot refer yourself."}, status=400)
+
+        if Referral.objects.filter(referred_user=request.user).exists():
+            return Response({"message": "Referral already applied."}, status=400)
+
+        Referral.objects.create(
+            referrer=referrer_profile.user,
+            referred_user=request.user,
+            referral_code=referral_code,
+        )
+
+        referrer_profile.referral_points = (referrer_profile.referral_points or 0) + 10
+        referrer_profile.save(update_fields=["referral_points"])
+
+        user_profile = request.user.profile
+        user_profile.referral_points = (user_profile.referral_points or 0) + 5
+        user_profile.save(update_fields=["referral_points"])
+
+        return Response({"message": "Referral applied successfully"}, status=200)
 
 
 class FriendsLeaderboardView(APIView):

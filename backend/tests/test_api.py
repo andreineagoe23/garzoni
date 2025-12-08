@@ -65,7 +65,7 @@ class ReferralTest(AuthenticatedTestCase):
     """Test case for referral submission, ensuring referral codes are applied successfully."""
     def test_referral_submission(self):
         referrer = User.objects.create_user(username='referrer', password='pass123')
-        referrer_profile = referrer.userprofile
+        referrer_profile = referrer.profile
         referral_code = referrer_profile.referral_code
         response = self.client.post('/api/referrals/', {"referral_code": referral_code}, format='json')
         self.assertEqual(response.status_code, 200)
