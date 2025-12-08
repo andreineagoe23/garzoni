@@ -11,6 +11,7 @@ import {
 import { useAuth } from "contexts/AuthContext";
 
 const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 function PortfolioAnalyzer() {
   const [entries, setEntries] = useState([]);
@@ -28,10 +29,13 @@ function PortfolioAnalyzer() {
 
   const fetchStockPrice = async (symbol) => {
     try {
-      const response = await axios.get(
-        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${process.env.REACT_APP_ALPHA_VANTAGE_API_KEY}`
-      );
-      return parseFloat(response.data["Global Quote"]["05. price"]);
+      const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
+        params: { symbol },
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        withCredentials: true,
+      });
+
+      return response.data?.price ?? null;
     } catch (err) {
       console.error("Error fetching stock price:", err);
       return null;
@@ -40,10 +44,12 @@ function PortfolioAnalyzer() {
 
   const fetchCryptoPrice = async (symbol) => {
     try {
-      const response = await axios.get(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${symbol.toLowerCase()}&vs_currencies=usd`
-      );
-      return response.data[symbol.toLowerCase()]?.usd || null;
+      const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
+        params: { id: symbol },
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        withCredentials: true,
+      });
+      return response.data?.price ?? null;
     } catch (err) {
       console.error("Error fetching crypto price:", err);
       return null;
@@ -53,12 +59,9 @@ function PortfolioAnalyzer() {
   const fetchPortfolio = useCallback(async () => {
     try {
       setLoading(true);
-      const entriesRes = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/portfolio/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
+      const entriesRes = await axios.get(`${BACKEND_URL}/portfolio/`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+      });
 
       const entriesWithPrices = await Promise.all(
         entriesRes.data.map(async (entry) => {
@@ -137,11 +140,9 @@ function PortfolioAnalyzer() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/portfolio/`,
-        newEntry,
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await axios.post(`${BACKEND_URL}/portfolio/`, newEntry, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+      });
       setNewEntry({
         asset_type: "stock",
         symbol: "",
@@ -158,10 +159,9 @@ function PortfolioAnalyzer() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/portfolio/${id}/`,
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await axios.delete(`${BACKEND_URL}/portfolio/${id}/`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+      });
       fetchPortfolio();
     } catch (err) {
       setError("Failed to delete portfolio entry");

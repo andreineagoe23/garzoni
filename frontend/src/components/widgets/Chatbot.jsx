@@ -15,6 +15,7 @@ const LANGUAGES = [
   { code: "ko-KR", name: "Korean" },
   { code: "zh-CN", name: "Chinese" },
 ];
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -315,8 +316,7 @@ const Chatbot = () => {
           botResponse = `I couldn't identify the cryptocurrency you're asking about. Please try specifying a major cryptocurrency like Bitcoin or Ethereum.`;
         }
       } else {
-        const apiUrl =
-          process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
+        const apiUrl = BACKEND_URL;
         const token = getAccessToken();
 
         if (!token) {
@@ -392,75 +392,18 @@ const Chatbot = () => {
 
   const fetchForexRate = async (from, to) => {
     try {
-      if (from === "LEI") from = "RON";
-      if (to === "LEI") to = "RON";
-
-      if (!from || !to || from.length !== 3 || to.length !== 3) {
-        console.error("Invalid currency code format");
-        return { rate: 0, change: 0 };
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication token is missing");
       }
 
-      try {
-        const freeCurrencyApiKey = process.env.REACT_APP_FREE_CURRENCY_API_KEY;
-        if (!freeCurrencyApiKey) {
-          console.warn("Free Currency API key not found");
-          throw new Error("API key missing");
-        }
+      const response = await axios.get(`${BACKEND_URL}/forex-rate/`, {
+        params: { from, to },
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const freeApiResponse = await axios.get(
-          `https://api.freecurrencyapi.com/v1/latest?apikey=${freeCurrencyApiKey}&base_currency=${from}&currencies=${to}`
-        );
-
-        if (
-          freeApiResponse.data &&
-          freeApiResponse.data.data &&
-          freeApiResponse.data.data[to]
-        ) {
-          const rate = freeApiResponse.data.data[to];
-          return { rate, change: 0 };
-        }
-      } catch (freeApiError) {
-        console.error("Error with freecurrencyapi:", freeApiError);
-      }
-
-      const exchangeRateApiKey = process.env.REACT_APP_EXCHANGE_RATE_API_KEY;
-      if (!exchangeRateApiKey) {
-        console.warn("Exchange Rate API key not found");
-        throw new Error("API key missing");
-      }
-
-      const response = await axios.get(
-        `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/pair/${from}/${to}`
-      );
-
-      if (!response.data || !response.data.conversion_rate) {
-        try {
-          const fallbackResponse = await axios.get(
-            `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/pair/${to}/${from}`
-          );
-
-          if (fallbackResponse.data && fallbackResponse.data.conversion_rate) {
-            const rate = 1 / fallbackResponse.data.conversion_rate;
-            return { rate, change: 0 };
-          }
-        } catch (fallbackError) {
-          console.error("Error fetching fallback Forex rates:", fallbackError);
-        }
-
-        return { rate: 0, change: 0 };
-      }
-
-      const rate = response.data.conversion_rate;
-
-      let change = 0;
-      if (response.data.rates && response.data.rates[from]) {
-        if (from === to) {
-          change = 0;
-        } else {
-          change = rate - 1;
-        }
-      }
-
+      const { rate = 0, change = 0 } = response.data || {};
       return { rate, change };
     } catch (error) {
       console.error("Error fetching Forex rates:", error);
@@ -470,52 +413,24 @@ const Chatbot = () => {
 
   const fetchStockPrice = async (symbol) => {
     try {
-      const apiKey = process.env.REACT_APP_ALPHA_VANTAGE_API_KEY;
-
-      if (!apiKey) {
-        console.warn("Alpha Vantage API key not found. Using fallback data.");
-        return {
-          price: 0,
-          change: 0,
-          changePercent: "0.00%",
-        };
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication token is missing");
       }
 
-      const response = await axios.get(
-        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`
-      );
+      const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
+        params: { symbol },
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      if (
-        response.data &&
-        response.data["Global Quote"] &&
-        response.data["Global Quote"]["05. price"]
-      ) {
-        const price = parseFloat(response.data["Global Quote"]["05. price"]);
-        const changePercent = parseFloat(
-          response.data["Global Quote"]["10. change percent"].replace("%", "")
-        );
+      const { price = 0, change = 0, changePercent = "0.00%" } =
+        response.data || {};
 
-        if (!price || Number.isNaN(price) || price === 0) {
-          console.warn(`Invalid price data received for ${symbol}`);
-          return {
-            price: 0,
-            change: 0,
-            changePercent: "0.00%",
-          };
-        }
-
-        return {
-          price,
-          change: changePercent,
-          changePercent: `${Math.abs(changePercent).toFixed(2)}%`,
-        };
-      }
-
-      console.warn(`No valid data received for ${symbol}`);
       return {
-        price: 0,
-        change: 0,
-        changePercent: "0.00%",
+        price,
+        change,
+        changePercent,
       };
     } catch (error) {
       console.error("Error fetching stock price:", error);
@@ -529,96 +444,34 @@ const Chatbot = () => {
 
   const fetchCryptoPrice = async (cryptoId) => {
     try {
-      const normalizedCryptoId = cryptoId.toLowerCase().trim();
-
-      const response = await axios.get(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${normalizedCryptoId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
-      );
-
-      if (response.data[normalizedCryptoId]) {
-        const price = response.data[normalizedCryptoId].usd;
-        const change = response.data[normalizedCryptoId].usd_24h_change || 0;
-        const marketCap = response.data[normalizedCryptoId].usd_market_cap;
-
-        let formattedMarketCap = null;
-        if (marketCap) {
-          if (marketCap >= 1000000000) {
-            formattedMarketCap = `$${(marketCap / 1000000000).toFixed(2)}B`;
-          } else if (marketCap >= 1000000) {
-            formattedMarketCap = `$${(marketCap / 1000000).toFixed(2)}M`;
-          } else {
-            formattedMarketCap = `$${(marketCap / 1000).toFixed(2)}K`;
-          }
-        }
-
-        return {
-          price,
-          change,
-          changePercent: change ? `${Math.abs(change).toFixed(2)}%` : "0.00%",
-          marketCap: formattedMarketCap,
-        };
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Authentication token is missing");
       }
 
-      try {
-        const coinListResponse = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/list`
-        );
+      const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
+        params: { id: cryptoId },
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const coinMatch = coinListResponse.data.find(
-          (coin) =>
-            coin.name.toLowerCase() === normalizedCryptoId ||
-            coin.symbol.toLowerCase() === normalizedCryptoId
-        );
+      const { price = 0, change = 0, marketCap = 0 } = response.data || {};
 
-        if (coinMatch) {
-          const priceResponse = await axios.get(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${coinMatch.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
-          );
-
-          if (priceResponse.data[coinMatch.id]) {
-            const price = priceResponse.data[coinMatch.id].usd;
-            const change = priceResponse.data[coinMatch.id].usd_24h_change || 0;
-            const marketCap = priceResponse.data[coinMatch.id].usd_market_cap;
-
-            let formattedMarketCap = null;
-            if (marketCap) {
-              if (marketCap >= 1000000000) {
-                formattedMarketCap = `$${(marketCap / 1000000000).toFixed(2)}B`;
-              } else if (marketCap >= 1000000) {
-                formattedMarketCap = `$${(marketCap / 1000000).toFixed(2)}M`;
-              } else {
-                formattedMarketCap = `$${(marketCap / 1000).toFixed(2)}K`;
-              }
-            }
-
-            return {
-              price,
-              change,
-              changePercent: change
-                ? `${Math.abs(change).toFixed(2)}%`
-                : "0.00%",
-              marketCap: formattedMarketCap,
-            };
-          }
+      let formattedMarketCap = null;
+      if (marketCap) {
+        if (marketCap >= 1000000000) {
+          formattedMarketCap = `$${(marketCap / 1000000000).toFixed(2)}B`;
+        } else if (marketCap >= 1000000) {
+          formattedMarketCap = `$${(marketCap / 1000000).toFixed(2)}M`;
+        } else {
+          formattedMarketCap = `$${marketCap.toFixed(0)}`;
         }
-      } catch (fallbackError) {
-        console.error("Error fetching fallback crypto data:", fallbackError);
       }
 
-      return {
-        price: 0,
-        change: 0,
-        changePercent: "0.00%",
-        marketCap: null,
-      };
+      return { price, change, marketCap: formattedMarketCap };
     } catch (error) {
       console.error("Error fetching crypto price:", error);
-      return {
-        price: 0,
-        change: 0,
-        changePercent: "0.00%",
-        marketCap: null,
-      };
+      return { price: 0, change: 0, marketCap: null };
     }
   };
 
