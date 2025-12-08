@@ -26,6 +26,11 @@ from authentication.serializers import (
     UserSearchSerializer, UserProfileSettingsSerializer
 )
 from authentication.tokens import delete_jwt_cookies
+from authentication.entitlements import (
+    check_and_consume_entitlement,
+    entitlement_usage_snapshot,
+    get_entitlements_for_user,
+)
 from education.models import LessonCompletion
 from core.utils import env_bool
 
@@ -176,6 +181,49 @@ class UserProfileView(APIView):
             user_profile.email_reminder_preference = email_reminder_preference
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
+
+
+class EntitlementsView(APIView):
+    """Expose the current user's plan and entitlement limits."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        entitlements = get_entitlements_for_user(request.user)
+        entitlements["usage"] = entitlement_usage_snapshot(request.user)
+        return Response(entitlements)
+
+
+class ConsumeEntitlementView(APIView):
+    """Consume a unit from an entitlement if the user is allowed to use it."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        feature = request.data.get("feature")
+        if not feature:
+            return Response({"error": "Feature is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        allowed, meta = check_and_consume_entitlement(request.user, feature)
+        status_code = status.HTTP_200_OK
+
+        if not allowed:
+            status_code = (
+                status.HTTP_402_PAYMENT_REQUIRED
+                if meta.get("reason") == "upgrade"
+                else status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        response_payload = {
+            "feature": feature,
+            "allowed": allowed,
+            **{k: v for k, v in meta.items() if k != "error"},
+        }
+
+        if not allowed:
+            response_payload["error"] = meta.get("error", "Feature unavailable.")
+
+        return Response(response_payload, status=status_code)
 
 
 class LogoutView(APIView):
