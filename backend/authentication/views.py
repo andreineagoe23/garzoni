@@ -278,6 +278,7 @@ class LoginSecureView(APIView):
             # Create response with access token in body
             response = Response({
                 "access": access_token,
+                "refresh": refresh_token,
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -325,6 +326,7 @@ class RegisterSecureView(generics.CreateAPIView):
         # Create response with access token
         response = Response({
             "access": access_token,
+            "refresh": str(refresh),
             "user": {
                 "id": user.id,
                 "username": user.username,
@@ -397,12 +399,16 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         response_data = serializer.validated_data
         access_token = response_data.get("access")
+        response_refresh = response_data.get("refresh") or refresh_token
 
         if not access_token:
             logger.error("Token refresh failed to provide an access token")
             return Response({"detail": "Token refresh failed."}, status=401)
 
-        response = Response({"access": access_token}, status=status.HTTP_200_OK)
+        response = Response({
+            "access": access_token,
+            "refresh": response_refresh,
+        }, status=status.HTTP_200_OK)
 
         if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
             new_refresh_token = response_data.get("refresh")
