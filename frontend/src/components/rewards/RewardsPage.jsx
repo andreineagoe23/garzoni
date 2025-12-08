@@ -1,17 +1,35 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
+import UpsellModal from "components/billing/UpsellModal";
+import {
+  consumeEntitlement,
+  fetchEntitlements,
+  FEATURE_COPY,
+} from "services/entitlementsService";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
   const [balance, setBalance] = useState("0.00");
   const didFetchRef = useRef(false);
   const shareCardRef = useRef(null);
+  const [lockedFeature, setLockedFeature] = useState(null);
+  const [showUpsell, setShowUpsell] = useState(false);
   const { loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: entitlementsData } = useQuery({
+    queryKey: ["entitlements"],
+    queryFn: fetchEntitlements,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const downloadsFeature = entitlementsData?.data?.features?.downloads;
 
   const fetchBalance = useCallback(
     async (force = false) => {
@@ -39,6 +57,35 @@ function RewardsPage() {
     }
   }, [fetchBalance]);
 
+  const guardDownloads = useCallback(async () => {
+    if (!downloadsFeature) return true;
+
+    if (!downloadsFeature.enabled || downloadsFeature.remaining_today === 0) {
+      setLockedFeature("downloads");
+      setShowUpsell(true);
+      toast.error(
+        downloadsFeature.enabled
+          ? "You've reached today's download limit. Upgrade for unlimited downloads."
+          : "Downloads are Premium only. Upgrade to unlock."
+      );
+      return false;
+    }
+
+    try {
+      await consumeEntitlement("downloads");
+      queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+      return true;
+    } catch (error) {
+      setLockedFeature("downloads");
+      setShowUpsell(true);
+      toast.error(
+        error.response?.data?.error ||
+          "We couldn't verify your download allowance. Please try again."
+      );
+      return false;
+    }
+  }, [downloadsFeature, queryClient]);
+
   const handlePurchase = useCallback(async () => {
     await fetchBalance(true);
   }, [fetchBalance]);
@@ -49,6 +96,9 @@ function RewardsPage() {
 
   const handleShare = useCallback(async () => {
     try {
+      const allowed = await guardDownloads();
+      if (!allowed) return;
+
       const target = shareCardRef.current;
       if (!target) return;
       const html2canvas = (await import("html2canvas")).default;
@@ -72,7 +122,7 @@ function RewardsPage() {
       console.error("Share failed", error);
       toast.error("Unable to generate share image right now.");
     }
-  }, []);
+  }, [guardDownloads]);
 
   return (
     <PageContainer maxWidth="6xl" layout="none" innerClassName="flex flex-col gap-8">
@@ -117,8 +167,15 @@ function RewardsPage() {
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
             Coins refresh automatically after each purchase or donation.
           </p>
-          <GlassButton variant="ghost" onClick={handleShare}>
-            Share achievement card
+          <GlassButton
+            variant="ghost"
+            onClick={handleShare}
+            icon={downloadsFeature && !downloadsFeature.enabled ? "🔒" : "⬇️"}
+            disabled={downloadsFeature?.remaining_today === 0}
+          >
+            {downloadsFeature?.remaining_today === 0
+              ? "Download limit reached"
+              : "Share achievement card"}
           </GlassButton>
         </div>
 
@@ -129,6 +186,11 @@ function RewardsPage() {
           <DonationCauses onDonate={handleDonation} />
         )}
       </GlassCard>
+      <UpsellModal
+        open={showUpsell}
+        onClose={() => setShowUpsell(false)}
+        feature={lockedFeature || "downloads"}
+      />
     </PageContainer>
   );
 }
