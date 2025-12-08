@@ -15,6 +15,7 @@ import requests
 from support.models import FAQ, FAQFeedback, ContactMessage
 from support.serializers import FAQSerializer
 from authentication.models import UserProfile
+from authentication.entitlements import check_and_consume_entitlement
 from education.models import Path, UserProgress
 
 logger = logging.getLogger(__name__)
@@ -189,6 +190,17 @@ class OpenRouterProxyView(APIView):
                 return Response(cached_response)
 
         try:
+            allowed, entitlement_meta = check_and_consume_entitlement(request.user, "ai_tutor")
+            if not allowed:
+                status_code = status.HTTP_402_PAYMENT_REQUIRED if entitlement_meta.get("reason") == "upgrade" else status.HTTP_429_TOO_MANY_REQUESTS
+                return Response(
+                    {
+                        "error": entitlement_meta.get("error", "AI tutor is not available for your plan."),
+                        **entitlement_meta,
+                    },
+                    status=status_code,
+                )
+
             if not hasattr(self, 'path_links'):
                 self.get_available_paths()
                 
