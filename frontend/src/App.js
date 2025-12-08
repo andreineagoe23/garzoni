@@ -38,6 +38,9 @@ const PaymentRequired = React.lazy(() => import("components/billing/PaymentRequi
 const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
 const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
 const PricingPage = React.lazy(() => import("components/landing/Pricing"));
+const PricingFunnelDashboard = React.lazy(
+  () => import("components/analytics/PricingFunnelDashboard")
+);
 
 const queryClient = new QueryClient();
 
@@ -202,6 +205,14 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <Missions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pricing-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <PricingFunnelDashboard />
                     </ProtectedRoute>
                   }
                 />

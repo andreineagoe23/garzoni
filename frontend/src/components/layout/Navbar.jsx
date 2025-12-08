@@ -26,6 +26,17 @@ function Navbar() {
   const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
 
+  const navItems = useMemo(
+    () =>
+      adminMode && canAdminister
+        ? [
+            ...NAV_ITEMS,
+            { path: "/pricing-dashboard", label: "Conversions", icon: "📈" },
+          ]
+        : NAV_ITEMS,
+    [adminMode, canAdminister]
+  );
+
   useEffect(() => {
     const closeOnResize = () => {
       if (window.innerWidth >= 1024) {
@@ -121,7 +132,7 @@ function Navbar() {
             variant="subtle"
             className="flex items-center gap-2 rounded-full px-2 py-1 shadow-inner shadow-black/5"
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -229,10 +240,10 @@ function Navbar() {
         className={`${menuVisibility} relative z-[1201] flex-col gap-2 px-4 pb-4 pt-2 lg:hidden`}
         style={{ pointerEvents: "auto" }}
       >
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
             className={createLinkClassName(
               "relative z-10 no-underline hover:no-underline touch-manipulation"
             )}
