@@ -14,6 +14,9 @@ from .views import (
     StockPriceView,
     ForexRateView,
     CryptoPriceView,
+    EntitlementStatusView,
+    FunnelEventIngestView,
+    FunnelMetricsView,
 )
 
 router = DefaultRouter()
@@ -30,6 +33,9 @@ urlpatterns = [
     path('purchases/', UserPurchaseViewSet.as_view({'post': 'create'}), name='purchases-create'),
     path('stripe-webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
     path('verify-session/', VerifySessionView.as_view(), name='verify-session'),
+    path('entitlements/', EntitlementStatusView.as_view(), name='entitlements'),
+    path('funnel/events/', FunnelEventIngestView.as_view(), name='funnel-events'),
+    path('funnel/metrics/', FunnelMetricsView.as_view(), name='funnel-metrics'),
     path('stock-price/', StockPriceView.as_view(), name='stock-price'),
     path('forex-rate/', ForexRateView.as_view(), name='forex-rate'),
     path('crypto-price/', CryptoPriceView.as_view(), name='crypto-price'),
