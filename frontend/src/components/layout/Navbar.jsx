@@ -111,15 +111,20 @@ function Navbar() {
       }}
     >
       <div className="relative z-[1201] mx-auto flex w-full max-w-6xl items-center justify-center gap-10 px-4 py-3 lg:px-6">
-        <div className="flex min-w-[160px] flex-1 items-center justify-start lg:min-w-[240px]">
-          <NavLink
-            to="/all-topics"
-            onClick={closeMenu}
-            className="relative z-10 text-lg font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation"
-            style={{ WebkitTapHighlightColor: "transparent" }}
-          >
-            Monevo
-          </NavLink>
+        <div className="flex min-w-[160px] flex-1 items-center justify-start gap-3 lg:min-w-[240px]">
+          <div className="flex items-center gap-2">
+            <NavLink
+              to="/all-topics"
+              onClick={closeMenu}
+              className="relative z-10 text-lg font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation"
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              Monevo
+            </NavLink>
+            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm shadow-[color:var(--primary,#1d5330)]/30">
+              ✨ Premium
+            </span>
+          </div>
         </div>
 
         <div className="hidden flex-[2] items-center justify-center lg:flex">
@@ -144,6 +149,14 @@ function Navbar() {
         </div>
 
         <div className="flex min-w-[180px] flex-1 items-center justify-end gap-4 lg:min-w-[240px]">
+          <button
+            type="button"
+            onClick={() => navigate("/pricing")}
+            className="relative z-10 hidden items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] shadow-sm shadow-[color:var(--primary,#1d5330)]/30 transition hover:border-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/20 lg:inline-flex touch-manipulation"
+          >
+            Upgrade
+          </button>
+
           {canAdminister && (
             <button
               type="button"
@@ -241,6 +254,19 @@ function Navbar() {
             <span>{item.label}</span>
           </NavLink>
         ))}
+
+        <button
+          type="button"
+          onClick={() => {
+            closeMenu();
+            navigate("/pricing");
+          }}
+          className={createLinkClassName("font-semibold text-[color:var(--primary,#1d5330)]")({ isActive: false })}
+          style={{ WebkitTapHighlightColor: "transparent" }}
+        >
+          <span aria-hidden="true">⚡</span>
+          <span>Upgrade</span>
+        </button>
       </GlassContainer>
     </nav>
   );

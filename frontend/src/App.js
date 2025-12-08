@@ -37,6 +37,7 @@ const ExercisePage = React.lazy(() => import("components/exercises/ExercisePage"
 const PaymentRequired = React.lazy(() => import("components/billing/PaymentRequired"));
 const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
 const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
+const PricingPage = React.lazy(() => import("components/landing/Pricing"));
 const PricingFunnelDashboard = React.lazy(
   () => import("components/analytics/PricingFunnelDashboard")
 );
@@ -67,6 +68,7 @@ const AppContent = () => {
     "/payment-required",
     "/privacy-policy",
     "/cookie-policy",
+    "/pricing",
   ];
 
   const noNavbarPaths = publicPaths;
@@ -118,6 +120,7 @@ const AppContent = () => {
                 <Route path="/" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
