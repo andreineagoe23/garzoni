@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import UpsellModal from "components/billing/UpsellModal";
+import { fetchEntitlements } from "services/entitlementsService";
 
 const LANGUAGES = [
   { code: "en-US", name: "English (US)" },
@@ -30,11 +33,21 @@ const Chatbot = () => {
   const [userAvatar, setUserAvatar] = useState("/default-avatar.png");
   const [chatHistory, setChatHistory] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].code);
+  const [lockedFeature, setLockedFeature] = useState(null);
+  const [showUpsell, setShowUpsell] = useState(false);
 
   const messagesEndRef = useRef(null);
   const { getAccessToken, isInitialized, isAuthenticated, loadProfile } =
     useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: entitlementResponse } = useQuery({
+    queryKey: ["entitlements"],
+    queryFn: fetchEntitlements,
+    staleTime: 5 * 60 * 1000,
+    enabled: isAuthenticated,
+  });
 
   const quickReplies = [
     "💰 What is compound interest?",
@@ -43,6 +56,22 @@ const Chatbot = () => {
     "📈 What's the price of Bitcoin?",
     "💼 How do I start investing?",
   ];
+
+  const aiTutorFeature = entitlementResponse?.data?.features?.ai_tutor;
+
+  const blockAiTutor = (message) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        sender: "bot",
+        text:
+          message ||
+          "AI tutor access is limited on your current plan. Upgrade to keep chatting.",
+      },
+    ]);
+    setLockedFeature("ai_tutor");
+    setShowUpsell(true);
+  };
 
   const handleCourseClick = (path) => {
     setIsOpen(false);
@@ -173,6 +202,22 @@ const Chatbot = () => {
     const userHistoryObj = { role: "user", content: userMessage };
     const updatedHistory = [...chatHistory, userHistoryObj];
     setChatHistory(updatedHistory);
+
+    if (aiTutorFeature) {
+      if (!aiTutorFeature.enabled) {
+        blockAiTutor(
+          "AI tutor is available on Premium plans. Upgrade to continue chatting."
+        );
+        return;
+      }
+
+      if (aiTutorFeature.remaining_today === 0) {
+        blockAiTutor(
+          "You've reached today's AI tutor limit. Upgrade for more conversations."
+        );
+        return;
+      }
+    }
 
     const forexPairRegex =
       /(\b[a-zA-Z]{3})\b\s*(\/|to|and)\s*(\b[a-zA-Z]{3})\b/i;
@@ -373,6 +418,15 @@ const Chatbot = () => {
       if (error.response) {
         if (error.response.status === 401) {
           errorMessage = "Your session has expired. Please log in again.";
+        } else if (
+          [402, 429].includes(error.response.status) &&
+          error.response.data?.flag === "feature.ai.tutor"
+        ) {
+          errorMessage =
+            error.response.data?.error ||
+            "You've reached today's AI tutor limit. Upgrade for more conversations.";
+          blockAiTutor(errorMessage);
+          return;
         } else if (error.response.status === 429) {
           errorMessage =
             "You've reached the rate limit. Please try again in a moment.";
@@ -387,6 +441,9 @@ const Chatbot = () => {
       ]);
     } finally {
       setIsLoading(false);
+      if (isAuthenticated) {
+        queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+      }
     }
   };
 
@@ -752,6 +809,11 @@ const Chatbot = () => {
           </div>
         </div>
       )}
+      <UpsellModal
+        open={showUpsell}
+        onClose={() => setShowUpsell(false)}
+        feature={lockedFeature || "ai_tutor"}
+      />
     </>
   );
 };

@@ -179,3 +179,24 @@ class FinancialGoal(models.Model):
     def __str__(self):
         return f"{self.user.username}'s {self.goal_name}"
 
+
+class FunnelEvent(models.Model):
+    """Capture funnel activity for pricing and checkout flows."""
+
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    event_type = models.CharField(max_length=64)
+    status = models.CharField(max_length=32, default="success")
+    session_id = models.CharField(max_length=255, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event_type', 'created_at']),
+            models.Index(fields=['status', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.event_type} ({self.status})"
+

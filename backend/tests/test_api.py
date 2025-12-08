@@ -82,5 +82,9 @@ class PaymentVerificationTest(AuthenticatedTestCase):
             response = self.client.post('/api/verify-session/', {"session_id": session_id}, format='json')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["status"], "verified")
+            profile = UserProfile.objects.get(user=self.user)
+            self.assertTrue(profile.has_paid)
+            self.assertTrue(profile.is_premium)
+            self.assertEqual(profile.subscription_status, 'active')
             logger.info("✅ test_payment_verification_success passed")
 

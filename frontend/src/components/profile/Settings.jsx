@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import EntitlementMatrix from "components/billing/EntitlementMatrix";
+import { fetchEntitlements } from "services/entitlementsService";
 
 function Settings() {
   const { getAccessToken, logoutUser, loadSettings } = useAuth();
@@ -25,6 +28,12 @@ function Settings() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const { data: entitlementsData } = useQuery({
+    queryKey: ["entitlements"],
+    queryFn: fetchEntitlements,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -429,6 +438,7 @@ function Settings() {
             </div>
           )}
       </GlassCard>
+      <EntitlementMatrix entitlements={entitlementsData?.data} />
     </PageContainer>
   );
 }
