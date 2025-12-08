@@ -502,11 +502,39 @@ class StripeWebhookView(APIView):
             if event['type'] == 'checkout.session.completed':
                 session = event['data']['object']
                 user_id = session['client_reference_id']
+                payment_status = session.get('payment_status', '')
+                session_status = session.get('status', '')
+                subscription_status = 'active' if payment_status == 'paid' else (payment_status or session_status or 'completed')
 
                 with transaction.atomic():
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
                     if not user_profile.has_paid:
                         user_profile.has_paid = True
+                    user_profile.is_premium = True
+                    user_profile.subscription_status = subscription_status
+                    user_profile.stripe_payment_id = session.get('payment_intent', '')
+                    user_profile.save(update_fields=[
+                        'has_paid',
+                        'is_premium',
+                        'subscription_status',
+                        'stripe_payment_id'
+                    ])
+
+                    cache.delete_many([
+                        f'user_payment_status_{user_id}',
+                        f'user_profile_{user_id}'
+                    ])
+
+            elif event['type'] in {'checkout.session.expired', 'checkout.session.async_payment_failed'}:
+                session = event['data']['object']
+                user_id = session.get('client_reference_id')
+                if user_id:
+                    session_status = session.get('status', 'expired')
+                    with transaction.atomic():
+                        user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
+                        user_profile.subscription_status = session_status
+                        user_profile.save(update_fields=['subscription_status'])
+
                         user_profile.stripe_payment_id = session.get('payment_intent', '')
                         user_profile.save(update_fields=['has_paid', 'stripe_payment_id'])
 
@@ -559,6 +587,29 @@ class VerifySessionView(APIView):
                 expand=['payment_intent']
             )
 
+            if session.payment_status == 'paid':
+                with transaction.atomic():
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    profile.has_paid = True
+                    profile.is_premium = True
+                    profile.subscription_status = 'active'
+                    profile.stripe_payment_id = session.payment_intent.id if session.payment_intent else ''
+                    profile.save(update_fields=[
+                        'has_paid',
+                        'is_premium',
+                        'subscription_status',
+                        'stripe_payment_id'
+                    ])
+                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
+                    return Response({"status": "verified"})
+
+            return Response({"status": "pending"}, status=202)
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error: {str(e)}")
+            return Response({"error": "Payment verification failed"}, status=400)
+        except Exception as e:
+            logger.error(f"Verification error: {str(e)}")
+            return Response({"error": "Server error"}, status=500)
             if session.payment_status == 'paid':
                 with transaction.atomic():
                     profile = UserProfile.objects.select_for_update().get(user=request.user)
