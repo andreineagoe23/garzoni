@@ -9,6 +9,7 @@ import { GlassButton, GlassCard } from "components/ui";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import { fetchProgressSummary } from "services/userService";
 import { attachToken } from "services/httpClient";
+import PremiumUpsellPanel from "components/billing/PremiumUpsellPanel";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
@@ -63,6 +64,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const handleCourseClick = (courseId) => {
     navigate(`/lessons/${courseId}`);
+  };
+
+  const handlePersonalizedPathClick = () => {
+    if (isQuestionnaireCompleted) {
+      setActivePage("personalized-path");
+      navigate("/personalized-path");
+      return;
+    }
+
+    navigate("/questionnaire");
   };
 
   const profile = useMemo(() => {
@@ -158,10 +169,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <GlassButton
                 variant={activePage === "all-topics" ? "active" : "ghost"}
                 onClick={() => {
                   setActivePage("all-topics");
+                  navigate("/all-topics");
                   navigate("/all-topics");
                 }}
                 icon="📚"
@@ -226,6 +239,23 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             </div>
           </div>
         </GlassCard>
+              <GlassButton
+                variant={
+                  activePage === "personalized-path" ? "active" : "ghost"
+                }
+                onClick={handlePersonalizedPathClick}
+                icon="🎯"
+              >
+                Personalized Path
+                {!isQuestionnaireCompleted && (
+                  <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
+                    Complete Questionnaire
+                  </span>
+                )}
+              </GlassButton>
+            </div>
+          </div>
+        </GlassCard>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-10 lg:items-stretch">
           <main className="flex flex-1 flex-col space-y-6 min-h-0">
@@ -237,7 +267,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           </main>
 
           <aside className="flex w-full max-w-[320px] shrink-0 min-h-0">
-            <UserProgressBox progressData={progressResponse?.data || null} />
+            <div className="flex w-full flex-col gap-4">
+              <UserProgressBox progressData={progressResponse?.data || null} />
+              <PremiumUpsellPanel />
+            </div>
           </aside>
         </div>
       </div>
