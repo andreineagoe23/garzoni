@@ -9,6 +9,9 @@ import React, {
 import axios from "axios";
 import { attachToken } from "services/httpClient";
 
+// Always send cookies (refresh token) on cross-site requests
+axios.defaults.withCredentials = true;
+
 const AuthContext = createContext(null);
 
 // Access token is kept in memory only for better security

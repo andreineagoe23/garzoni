@@ -637,9 +637,15 @@ class EntitlementStatusView(APIView):
         try:
             profile = UserProfile.objects.get(user=request.user)
             plan = "paid" if profile.has_paid else "free"
+            subscription = {
+                "is_premium": bool(getattr(profile, "is_premium", False)),
+                "status": getattr(profile, "subscription_status", "inactive"),
+                "has_paid": bool(profile.has_paid),
+            }
             payload = {
                 "entitled": bool(profile.has_paid),
                 "plan": plan,
+                "subscription": subscription,
                 "checked_at": timezone.now(),
             }
             record_funnel_event(
