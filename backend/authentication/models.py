@@ -30,11 +30,17 @@ class UserProfile(models.Model):
     referral_points = models.PositiveIntegerField(default=0)
     dark_mode = models.BooleanField(default=False)
     has_paid = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
     stripe_payment_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         db_index=True
+    )
+    subscription_status = models.CharField(
+        max_length=50,
+        default='inactive',
+        help_text="Tracks the latest status returned by Stripe for this user's checkout session."
     )
     email_reminder_preference = models.CharField(
         max_length=10,
