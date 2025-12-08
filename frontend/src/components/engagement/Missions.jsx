@@ -221,11 +221,7 @@ function Missions() {
           },
         }
       );
-      gsap.to(".fact-card", {
-        duration: 0.5,
-        backgroundColor: "#e8f5e9",
-        onComplete: loadNewFact,
-      });
+      await loadNewFact();
       await fetchMissions();
     } catch (error) {
       setErrorMessage("Failed to mark fact as read.");

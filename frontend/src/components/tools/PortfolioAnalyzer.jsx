@@ -27,34 +27,40 @@ function PortfolioAnalyzer() {
   });
   const { getAccessToken } = useAuth();
 
-  const fetchStockPrice = async (symbol) => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
-        params: { symbol },
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        withCredentials: true,
-      });
+  const fetchStockPrice = useCallback(
+    async (symbol) => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
+          params: { symbol },
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+          withCredentials: true,
+        });
 
-      return response.data?.price ?? null;
-    } catch (err) {
-      console.error("Error fetching stock price:", err);
-      return null;
-    }
-  };
+        return response.data?.price ?? null;
+      } catch (err) {
+        console.error("Error fetching stock price:", err);
+        return null;
+      }
+    },
+    [getAccessToken]
+  );
 
-  const fetchCryptoPrice = async (symbol) => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
-        params: { id: symbol },
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        withCredentials: true,
-      });
-      return response.data?.price ?? null;
-    } catch (err) {
-      console.error("Error fetching crypto price:", err);
-      return null;
-    }
-  };
+  const fetchCryptoPrice = useCallback(
+    async (symbol) => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
+          params: { id: symbol },
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+          withCredentials: true,
+        });
+        return response.data?.price ?? null;
+      } catch (err) {
+        console.error("Error fetching crypto price:", err);
+        return null;
+      }
+    },
+    [getAccessToken]
+  );
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -121,7 +127,7 @@ function PortfolioAnalyzer() {
     } finally {
       setLoading(false);
     }
-  }, [getAccessToken]);
+  }, [fetchCryptoPrice, fetchStockPrice, getAccessToken]);
 
   useEffect(() => {
     fetchPortfolio();
