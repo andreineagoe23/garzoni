@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
 import logging
+import requests
 import stripe
 from django.conf import settings
 
@@ -106,6 +107,183 @@ class SavingsAccountView(APIView):
         except Exception as e:
             logger.error(f"Savings error: {str(e)}", exc_info=True)
             return Response({"error": "Server error processing savings"}, status=500)
+
+
+class StockPriceView(APIView):
+    """Proxy Alpha Vantage price lookups through the backend."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        symbol = request.query_params.get("symbol")
+        if not symbol:
+            return Response({"error": "Stock symbol is required."}, status=400)
+
+        api_key = settings.ALPHA_VANTAGE_API_KEY
+        if not api_key:
+            logger.error("ALPHA_VANTAGE_API_KEY is not configured.")
+            return Response({"error": "Price feed unavailable."}, status=503)
+
+        cache_key = f"alpha_quote_{symbol.upper()}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        try:
+            response = requests.get(
+                "https://www.alphavantage.co/query",
+                params={
+                    "function": "GLOBAL_QUOTE",
+                    "symbol": symbol,
+                    "apikey": api_key,
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.error("Alpha Vantage request failed: %s", exc)
+            return Response({"error": "Unable to fetch price data."}, status=502)
+
+        payload = response.json()
+        quote = payload.get("Global Quote", {})
+        price_raw = quote.get("05. price")
+
+        try:
+            price = float(price_raw) if price_raw is not None else None
+        except (TypeError, ValueError):
+            price = None
+
+        change_percent_raw = quote.get("10. change percent", "0")
+        try:
+            change_percent = float(str(change_percent_raw).rstrip("%"))
+        except (TypeError, ValueError):
+            change_percent = 0.0
+
+        if price is None:
+            logger.warning("Alpha Vantage returned no price for symbol %s", symbol)
+            return Response({"error": "No price data available."}, status=502)
+
+        result = {
+            "price": price,
+            "change": change_percent,
+            "changePercent": f"{abs(change_percent):.2f}%",
+        }
+        cache.set(cache_key, result, timeout=60)
+        return Response(result)
+
+
+class ForexRateView(APIView):
+    """Proxy forex rate lookups to keep API keys server-side."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        base_currency = request.query_params.get("from")
+        quote_currency = request.query_params.get("to")
+
+        if not base_currency or not quote_currency:
+            return Response({"error": "Both 'from' and 'to' currencies are required."}, status=400)
+
+        base_currency = base_currency.upper().replace("LEI", "RON")
+        quote_currency = quote_currency.upper().replace("LEI", "RON")
+
+        if len(base_currency) != 3 or len(quote_currency) != 3:
+            return Response({"error": "Currencies must be 3-letter ISO codes."}, status=400)
+
+        cache_key = f"forex_{base_currency}_{quote_currency}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        free_currency_key = settings.FREE_CURRENCY_API_KEY
+        exchange_rate_key = settings.EXCHANGE_RATE_API_KEY
+
+        result = None
+
+        if free_currency_key:
+            try:
+                free_response = requests.get(
+                    "https://api.freecurrencyapi.com/v1/latest",
+                    params={
+                        "apikey": free_currency_key,
+                        "base_currency": base_currency,
+                        "currencies": quote_currency,
+                    },
+                    timeout=10,
+                )
+                free_response.raise_for_status()
+                data = free_response.json().get("data", {})
+                rate = data.get(quote_currency)
+                if rate:
+                    result = {"rate": float(rate), "change": 0}
+            except requests.RequestException as exc:
+                logger.warning("FreeCurrencyAPI lookup failed: %s", exc)
+
+        if result is None and exchange_rate_key:
+            try:
+                fx_response = requests.get(
+                    f"https://v6.exchangerate-api.com/v6/{exchange_rate_key}/pair/{base_currency}/{quote_currency}",
+                    timeout=10,
+                )
+                fx_response.raise_for_status()
+                data = fx_response.json()
+                conversion_rate = data.get("conversion_rate")
+                if conversion_rate:
+                    result = {"rate": float(conversion_rate), "change": 0}
+            except requests.RequestException as exc:
+                logger.warning("ExchangeRate-API lookup failed: %s", exc)
+
+        if result is None:
+            return Response({"error": "Unable to fetch forex rate."}, status=502)
+
+        cache.set(cache_key, result, timeout=120)
+        return Response(result)
+
+
+class CryptoPriceView(APIView):
+    """Proxy CoinGecko lookups to shield rate limits and API usage."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        crypto_id = request.query_params.get("id")
+        if not crypto_id:
+            return Response({"error": "Crypto id is required."}, status=400)
+
+        crypto_id = crypto_id.strip().lower()
+        cache_key = f"crypto_{crypto_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        try:
+            response = requests.get(
+                "https://api.coingecko.com/api/v3/simple/price",
+                params={
+                    "ids": crypto_id,
+                    "vs_currencies": "usd",
+                    "include_24hr_change": "true",
+                    "include_market_cap": "true",
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.error("CoinGecko request failed: %s", exc)
+            return Response({"error": "Unable to fetch crypto price."}, status=502)
+
+        payload = response.json().get(crypto_id)
+        if not payload:
+            return Response({"error": "Crypto not found."}, status=404)
+
+        result = {
+            "price": float(payload.get("usd", 0) or 0),
+            "change": float(payload.get("usd_24h_change", 0) or 0),
+            "marketCap": float(payload.get("usd_market_cap", 0) or 0),
+        }
+
+        cache.set(cache_key, result, timeout=60)
+        return Response(result)
 
 
 class FinanceFactView(APIView):
@@ -297,9 +475,16 @@ class StripeWebhookView(APIView):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
 
+        webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+        if not webhook_secret:
+            logger.error("STRIPE_WEBHOOK_SECRET is not configured.")
+            return HttpResponse(status=500)
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+                payload, sig_header, webhook_secret
             )
 
             if event['type'] == 'checkout.session.completed':
@@ -318,6 +503,9 @@ class StripeWebhookView(APIView):
                             f'user_profile_{user_id}'
                         ])
 
+        except stripe.error.SignatureVerificationError as exc:
+            logger.warning("Stripe signature verification failed: %s", exc)
+            return HttpResponse(status=400)
         except Exception as e:
             logger.error(f"Webhook error: {str(e)}")
 

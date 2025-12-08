@@ -9,24 +9,10 @@ from corsheaders.defaults import default_headers
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from core.utils import env_bool, env_csv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
-
-
-def env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
-
-
-def env_csv(name: str, default=None):
-    value = os.getenv(name)
-    if value:
-        return [item.strip() for item in value.split(",") if item.strip()]
-    return [] if default is None else default
-
-
 DEBUG = env_bool("DEBUG", False)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -38,7 +24,11 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
-    default=["localhost", "127.0.0.1"] if DEBUG else [],
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "andreineagoe23.pythonanywhere.com",
+    ],
 )
 
 INSTALLED_APPS = [
@@ -104,65 +94,19 @@ database_url = os.getenv("DATABASE_URL")
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-# Track if we're connecting to localhost (local development)
-is_localhost = False
-
-# Check if DATABASE_URL points to Docker hostname "db" and we're not in Docker
-# This works for any database type (MySQL, PostgreSQL, etc.)
-if database_url and "@db:" in database_url:
-    try:
-        # Try to resolve "db" hostname to check if we're in Docker
-        socket.gethostbyname("db")
-        # If successful, we're in Docker, keep the URL as is
-    except (socket.gaierror, OSError):
-        # Can't resolve "db", we're not in Docker, replace with localhost
-        # Works for both MySQL (mysql://user:pass@db:3306/db) and PostgreSQL (postgresql://user:pass@db:5432/db)
-        database_url = database_url.replace("@db:", "@localhost:")
-        is_localhost = True
-
-# Check if connecting to localhost (either from replacement above or already set)
-if database_url and ("@localhost:" in database_url or "@127.0.0.1:" in database_url):
-    is_localhost = True
-    # Remove SSL parameters from URL for localhost connections
-    # PostgreSQL: remove ?sslmode=require or similar
-    if "?" in database_url:
-        url_parts = database_url.split("?")
-        base_url = url_parts[0]
-        params = url_parts[1].split("&")
-        # Filter out SSL-related parameters
-        non_ssl_params = [p for p in params if not p.lower().startswith(("sslmode", "ssl", "sslrootcert", "sslcert", "sslkey"))]
-        if non_ssl_params:
-            database_url = base_url + "?" + "&".join(non_ssl_params)
-        else:
-            database_url = base_url
-
 default_db = None
 if database_url:
-    # Don't require SSL for localhost connections or in DEBUG mode
-    ssl_required = not DEBUG and not is_localhost
-    default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=ssl_required)
-    
-    # For localhost connections, explicitly disable SSL in OPTIONS
-    if is_localhost and default_db:
+    default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=False)
+
+    if default_db:
         if "OPTIONS" not in default_db:
             default_db["OPTIONS"] = {}
-        # PostgreSQL - explicitly disable SSL
-        if default_db.get("ENGINE") == "django.db.backends.postgresql":
-            default_db["OPTIONS"]["sslmode"] = "disable"
-        # MySQL - disable SSL by removing SSL options and set charset
-        elif "mysql" in default_db.get("ENGINE", "").lower():
-            # Remove any SSL-related options that might have been set
-            default_db["OPTIONS"].pop("ssl", None)
-            default_db["OPTIONS"].pop("ssl_mode", None)
-            default_db["OPTIONS"].pop("ssl_ca", None)
-            default_db["OPTIONS"].pop("ssl_cert", None)
-            default_db["OPTIONS"].pop("ssl_key", None)
-            # Set charset to utf8mb4 for proper Unicode support
-            if "OPTIONS" not in default_db:
-                default_db["OPTIONS"] = {}
+
+        if "mysql" in default_db.get("ENGINE", "").lower():
+            default_db["OPTIONS"].pop("sslmode", None)
             default_db["OPTIONS"]["charset"] = "utf8mb4"
-            default_db["OPTIONS"]["init_command"] = "SET sql_mode='STRICT_TRANS_TABLES', character_set_connection=utf8mb4, collation_connection=utf8mb4_unicode_ci"
-            
+            default_db["OPTIONS"]["init_command"] = "SET sql_mode='STRICT_TRANS_TABLES'"
+
 if not default_db:
     if DEBUG:
         default_db = {
@@ -294,8 +238,12 @@ DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID", "")
 CSE_ID = os.getenv("CSE_ID", "")
 API_KEY = os.getenv("API_KEY", "")
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "")
+FREE_CURRENCY_API_KEY = os.getenv("FREE_CURRENCY_API_KEY", "")
+EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
-CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or (os.getenv("REDIS_URL") if DEBUG else None)
+CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
