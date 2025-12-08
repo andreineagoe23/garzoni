@@ -1,12 +1,10 @@
 import React, {
   useState,
   useEffect,
-  useRef,
   useReducer,
   useCallback,
 } from "react";
 import axios from "axios";
-import { gsap } from "gsap";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
@@ -43,23 +41,6 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
   );
   const unlockedCoins = Math.floor(balance / coinUnit);
 
-  useEffect(() => {
-    const newUnlocked = Math.floor(balance / coinUnit);
-    if (newUnlocked > 0) {
-      gsap.fromTo(
-        `.coin:nth-child(-n+${newUnlocked})`,
-        { scale: 0, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: "back.out",
-        }
-      );
-    }
-  }, [balance, coinUnit]);
-
   return (
     <GlassCard padding="md" className="bg-[color:var(--bg-color,#f8fafc)]/60">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
@@ -92,24 +73,8 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
 }
 
 function FactCard({ fact, onMarkRead }) {
-  const factRef = useRef(null);
-
-  useEffect(() => {
-    if (fact && factRef.current) {
-      gsap.set(factRef.current, { opacity: 0, y: 16 });
-      const animation = gsap.to(factRef.current, {
-        duration: 0.6,
-        opacity: 1,
-        y: 0,
-        ease: "power3.out",
-      });
-      return () => animation.kill();
-    }
-  }, [fact]);
-
   return (
     <GlassCard
-      ref={factRef}
       padding="md"
       className="bg-[color:var(--card-bg,#ffffff)]/60"
     >
@@ -256,11 +221,7 @@ function Missions() {
           },
         }
       );
-      gsap.to(".fact-card", {
-        duration: 0.5,
-        backgroundColor: "#e8f5e9",
-        onComplete: loadNewFact,
-      });
+      await loadNewFact();
       await fetchMissions();
     } catch (error) {
       setErrorMessage("Failed to mark fact as read.");
