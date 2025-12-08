@@ -19,6 +19,7 @@ let inMemoryToken = null;
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 const LOGOUT_FLAG_KEY = "monevo:manual-logout";
+const REFRESH_STORAGE_KEY = "monevo:refresh-token";
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:support@monevo.com?subject=Billing%20support";
 
@@ -37,6 +38,25 @@ const setLogoutFlag = (value) => {
     sessionStorage.setItem(LOGOUT_FLAG_KEY, "true");
   } else {
     sessionStorage.removeItem(LOGOUT_FLAG_KEY);
+    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
+  }
+};
+
+const getStoredRefreshToken = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return sessionStorage.getItem(REFRESH_STORAGE_KEY);
+};
+
+const setStoredRefreshToken = (token) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (token) {
+    sessionStorage.setItem(REFRESH_STORAGE_KEY, token);
+  } else {
+    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
   }
 };
 
@@ -81,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     refreshAttempts = 0;
     delete axios.defaults.headers.common["Authorization"];
     inFlightRequestsRef.current.clear();
+    setStoredRefreshToken(null);
   }, []);
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
@@ -103,10 +124,16 @@ export const AuthProvider = ({ children }) => {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
+      const refreshHeader = {};
+      const storedRefreshToken = getStoredRefreshToken();
+      if (storedRefreshToken) {
+        refreshHeader["X-Refresh-Token"] = storedRefreshToken;
+      }
+
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
         {},
-        { withCredentials: true }
+        { withCredentials: true, headers: refreshHeader }
       );
 
       if (!response.data.access) {
@@ -114,6 +141,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       inMemoryToken = response.data.access;
+      if (response.data.refresh) {
+        setStoredRefreshToken(response.data.refresh);
+      }
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
@@ -192,6 +222,7 @@ export const AuthProvider = ({ children }) => {
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
+      setStoredRefreshToken(response.data.refresh);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
@@ -230,6 +261,7 @@ export const AuthProvider = ({ children }) => {
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
+      setStoredRefreshToken(response.data.refresh);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
