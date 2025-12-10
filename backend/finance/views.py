@@ -22,6 +22,7 @@ from finance.models import (
     FinanceFact, UserFactProgress, SimulatedSavingsAccount, Reward,
     UserPurchase, PortfolioEntry, FinancialGoal, FunnelEvent
 )
+from django.contrib.auth import get_user_model
 from finance.serializers import (
     SimulatedSavingsAccountSerializer, RewardSerializer, UserPurchaseSerializer,
     PortfolioEntrySerializer, FinancialGoalSerializer
@@ -572,7 +573,7 @@ class StripeWebhookView(APIView):
 class VerifySessionView(APIView):
     """Verify the payment status of a Stripe checkout session."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Check the payment status of a session and update the user's profile if paid."""
@@ -587,23 +588,57 @@ class VerifySessionView(APIView):
                 expand=['payment_intent']
             )
 
-            if session.payment_status == 'paid':
+            if session.payment_status != 'paid':
+                return Response({"status": "pending"}, status=202)
+
+            target_user_id = session.client_reference_id or session.metadata.get('user_id')
+
+            if not target_user_id:
+                return Response({"error": "Missing user context for session"}, status=400)
+
+            try:
+                user_id_int = int(target_user_id)
+            except (TypeError, ValueError):
+                return Response({"error": "Invalid user context"}, status=400)
+
+            User = get_user_model()
+            try:
                 with transaction.atomic():
-                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    profile = UserProfile.objects.select_for_update().get(user_id=user_id_int)
                     profile.has_paid = True
                     profile.is_premium = True
                     profile.subscription_status = 'active'
-                    profile.stripe_payment_id = session.payment_intent.id if session.payment_intent else ''
+                    profile.stripe_payment_id = (
+                        session.payment_intent.id if session.payment_intent else ''
+                    )
                     profile.save(update_fields=[
                         'has_paid',
                         'is_premium',
                         'subscription_status',
                         'stripe_payment_id'
                     ])
-                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
-                    return Response({"status": "verified"})
+                    cache.set(f'user_payment_status_{user_id_int}', 'paid', 300)
 
-            return Response({"status": "pending"}, status=202)
+                    try:
+                        user_for_event = User.objects.get(id=user_id_int)
+                    except User.DoesNotExist:
+                        user_for_event = None
+
+                    record_funnel_event(
+                        "checkout_verified",
+                        user=user_for_event,
+                        session_id=session.get('id', ''),
+                        metadata={
+                            "payment_intent": session.get('payment_intent', ''),
+                            "amount_total": session.get('amount_total'),
+                            "currency": session.get('currency')
+                        }
+                    )
+            except UserProfile.DoesNotExist:
+                logger.warning("No profile found for verified session %s", session_id)
+                return Response({"error": "Profile not found"}, status=404)
+
+            return Response({"status": "verified"})
         except stripe.error.StripeError as e:
             logger.error(f"Stripe error: {str(e)}")
             return Response({"error": "Payment verification failed"}, status=400)

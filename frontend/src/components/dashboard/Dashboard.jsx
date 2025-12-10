@@ -13,8 +13,6 @@ import PremiumUpsellPanel from "components/billing/PremiumUpsellPanel";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
-  const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
-    useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -24,17 +22,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     loadProfile,
     profile: authProfile,
     refreshProfile,
+    reloadEntitlements,
   } = useAuth();
 
   useEffect(() => {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const { data: profilePayload, isLoading: isProfileLoading } = useQuery({
+  const {
+    data: profilePayload,
+    isFetching: isProfileFetching,
+    isInitialLoading: isProfileLoading,
+  } = useQuery({
     queryKey: ["profile"],
     queryFn: () => loadProfile(),
     staleTime: 0, // Always consider stale to refetch when navigating
     cacheTime: 30000, // Keep in cache for 30 seconds
+    initialData: authProfile,
+    keepPreviousData: true,
   });
 
   const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
@@ -43,28 +48,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   });
 
   const profile = useMemo(() => {
+    if (profilePayload?.user_data) {
+      return profilePayload.user_data;
+    }
     if (authProfile?.user_data) {
       return authProfile.user_data;
     }
-    return authProfile || null;
-  }, [authProfile]);
+    return profilePayload || authProfile || null;
+  }, [authProfile, profilePayload]);
 
-  const hasPaid =
-    Boolean(profilePayload?.has_paid) ||
-    Boolean(profilePayload?.user_data?.has_paid) ||
-    Boolean(profile?.has_paid) ||
-    Boolean(profile?.user_data?.has_paid);
+  const hasPaid = Boolean(
+    profile?.has_paid || profile?.user_data?.has_paid || profilePayload?.has_paid
+  );
 
-  useEffect(() => {
-    if (profilePayload) {
-      setIsQuestionnaireCompleted(
-        Boolean(
-          profilePayload.is_questionnaire_completed ??
-            profilePayload.user_data?.is_questionnaire_completed
-        )
-      );
-    }
-  }, [profilePayload]);
+  const isQuestionnaireCompleted = Boolean(
+    profile?.is_questionnaire_completed ||
+      profile?.user_data?.is_questionnaire_completed ||
+      profilePayload?.is_questionnaire_completed
+  );
 
   useEffect(() => {
     setActivePage(
@@ -82,8 +83,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     if (sessionId) {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       refreshProfile().catch(console.error);
+      reloadEntitlements?.();
     }
-  }, [location.pathname, queryClient, refreshProfile]);
+  }, [location.pathname, queryClient, refreshProfile, reloadEntitlements]);
 
   // Removed mobile view tracking
 
@@ -92,13 +94,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   };
 
   const handlePersonalizedPathClick = () => {
-    // Simple redirect logic: if paid, go to personalized path, otherwise go to questionnaire
-    if (hasPaid) {
-      setActivePage("personalized-path");
-      navigate("/personalized-path");
-    } else {
+    if (!isQuestionnaireCompleted) {
       navigate("/questionnaire");
+      return;
     }
+
+    if (!hasPaid) {
+      navigate("/upgrade", { state: { from: location.pathname } });
+      return;
+    }
+
+    setActivePage("personalized-path");
+    navigate("/personalized-path");
   };
 
   const isLoading = isProfileLoading || isProgressLoading;
@@ -200,18 +207,19 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               <button
                 type="button"
                 onClick={handlePersonalizedPathClick}
-                disabled={false}
+                aria-disabled={isProfileLoading}
                 className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm ${
                   activePage === "personalized-path"
                     ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
                     : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40"
+                } ${
+                  isProfileFetching
+                    ? "opacity-80 cursor-progress"
+                    : "cursor-pointer"
                 }`}
                 style={{
                   backdropFilter: "blur(8px)",
                   WebkitBackdropFilter: "blur(8px)",
-                  pointerEvents: "auto",
-                  cursor: "pointer",
-                  opacity: "1",
                 }}
               >
                 <span>🎯</span>
