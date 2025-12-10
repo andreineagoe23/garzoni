@@ -25,8 +25,7 @@ import {
   updateLessonSection,
 } from "services/userService";
 import { attachToken } from "services/httpClient";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { BACKEND_URL } from "services/backendUrl";
 
 function fixImagePaths(content) {
   if (!content) return "";

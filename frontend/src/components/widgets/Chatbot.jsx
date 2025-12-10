@@ -6,6 +6,7 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
+import { BACKEND_URL } from "services/backendUrl";
 
 const LANGUAGES = [
   { code: "en-US", name: "English (US)" },
@@ -18,7 +19,6 @@ const LANGUAGES = [
   { code: "ko-KR", name: "Korean" },
   { code: "zh-CN", name: "Chinese" },
 ];
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
