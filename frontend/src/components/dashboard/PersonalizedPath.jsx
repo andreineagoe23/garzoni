@@ -15,32 +15,37 @@ function PersonalizedPath({ onCourseClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { getAccessToken, isAuthenticated, loadProfile, refreshProfile } =
-    useAuth();
+  const {
+    getAccessToken,
+    isAuthenticated,
+    loadProfile,
+    refreshProfile,
+    reloadEntitlements,
+    entitlements,
+  } = useAuth();
 
   const { sessionId, redirectIntent } = useMemo(() => {
     const hashParams = (location.hash || "").split("?")[1] || "";
-    const queryParams = new URLSearchParams(hashParams);
+    const hashQuery = new URLSearchParams(hashParams);
+    const searchQuery = new URLSearchParams(location.search || "");
 
-    return {
-      sessionId: queryParams.get("session_id"),
-      redirectIntent: queryParams.get("redirect"),
-    };
-  }, [location.hash]);
+    const sessionId =
+      searchQuery.get("session_id") || hashQuery.get("session_id");
+    const redirectIntent =
+      searchQuery.get("redirect") || hashQuery.get("redirect");
+
+    return { sessionId, redirectIntent };
+  }, [location.hash, location.search]);
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/personalized-path/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-            "X-CSRFToken":
-              document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
-          },
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/personalized-path/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+          "X-CSRFToken": document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+        },
+        withCredentials: true,
+      });
 
       setPersonalizedCourses(
         response.data.courses.map((course) => ({
@@ -68,6 +73,12 @@ function PersonalizedPath({ onCourseClick }) {
 
   useEffect(() => {
     const verifyAuthAndPayment = async () => {
+      console.info("[pp] start verifyAuthAndPayment", {
+        isAuthenticated,
+        sessionId,
+        redirectIntent,
+      });
+
       if (!isAuthenticated) {
         navigate(
           `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
@@ -76,7 +87,15 @@ function PersonalizedPath({ onCourseClick }) {
       }
 
       try {
-        let profilePayload = await loadProfile();
+        // Always force-refresh to avoid stale has_paid/questionnaire flags after checkout
+        let profilePayload = await loadProfile({ force: true });
+        console.info("[pp] profile loaded", {
+          has_paid: profilePayload?.has_paid,
+          has_paid_user_data: profilePayload?.user_data?.has_paid,
+          is_questionnaire_completed:
+            profilePayload?.is_questionnaire_completed,
+          entitlementsEntitled: entitlements?.entitled,
+        });
 
         if (!profilePayload?.has_paid && sessionId) {
           profilePayload = await loadProfile({ force: true });
@@ -89,6 +108,7 @@ function PersonalizedPath({ onCourseClick }) {
               );
 
               if (verificationRes.data.status === "verified") {
+                console.info("[pp] verify-session verified");
                 window.history.replaceState(
                   {},
                   document.title,
@@ -96,11 +116,8 @@ function PersonalizedPath({ onCourseClick }) {
                 );
                 await refreshProfile();
                 queryClient.invalidateQueries({ queryKey: ["profile"] });
+                reloadEntitlements?.();
                 setPaymentVerified(true);
-                if (redirectIntent === "upgradeComplete") {
-                  navigate("/upgrade?redirect=upgradeComplete");
-                  return;
-                }
                 return fetchPersonalizedPath();
               }
 
@@ -111,12 +128,19 @@ function PersonalizedPath({ onCourseClick }) {
                 return pollPaymentStatus(attempt + 1);
               }
 
+              console.warn(
+                "[pp] verify-session polling exceeded attempts; go upgrade"
+              );
               navigate("/upgrade");
             } catch (err) {
               if (attempt < 8) {
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 return pollPaymentStatus(attempt + 1);
               }
+              console.warn(
+                "[pp] verify-session polling failed; go upgrade",
+                err
+              );
               navigate("/upgrade");
             }
           };
@@ -125,22 +149,46 @@ function PersonalizedPath({ onCourseClick }) {
           return;
         }
 
+        const hasPaidFlag =
+          profilePayload?.has_paid ||
+          profilePayload?.user_data?.has_paid ||
+          entitlements?.entitled ||
+          false;
+
+        // If the user is paid, allow access even if questionnaire flag is stale
+        if (hasPaidFlag) {
+          console.info("[pp] paid gate passed", { hasPaidFlag });
+          await fetchPersonalizedPath();
+          setPaymentVerified(true);
+          // Clean up URL to remove session/redirect params without navigating away
+          window.history.replaceState(
+            {},
+            document.title,
+            "/#/personalized-path"
+          );
+          return;
+        }
+
         if (!profilePayload?.is_questionnaire_completed) {
+          console.info("[pp] redirect questionnaire (flag false)");
           navigate("/questionnaire");
           return;
         }
 
         if (!profilePayload?.has_paid) {
+          console.info("[pp] redirect upgrade (has_paid false)");
           navigate("/upgrade");
           return;
         }
 
+        console.info("[pp] reach fetch path (fallback branch)");
         await fetchPersonalizedPath();
         setPaymentVerified(true);
         if (sessionId && redirectIntent === "upgradeComplete") {
           navigate("/upgrade?redirect=upgradeComplete");
         }
       } catch (err) {
+        console.error("[pp] verifyAuthAndPayment error", err);
         setError(
           err.response?.data?.error ||
             "We couldn't verify your payment. Please try again."
@@ -161,6 +209,9 @@ function PersonalizedPath({ onCourseClick }) {
     queryClient,
     sessionId,
     redirectIntent,
+    entitlements?.entitled,
+    reloadEntitlements,
+    location.search,
   ]);
 
   const handleCourseClick = (courseId) => {

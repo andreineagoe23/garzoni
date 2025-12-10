@@ -126,8 +126,15 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserWithToken = useCallback(async (token) => {
     if (!token) {
+      console.info("[auth] fetchUserWithToken skipped: no token");
       return false;
     }
+
+    console.info(
+      "[auth] fetchUserWithToken using token",
+      token.slice(0, 12),
+      "..."
+    );
 
     try {
       const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
@@ -141,40 +148,43 @@ export const AuthProvider = ({ children }) => {
         setUser(userResponse.data.user);
         setIsAuthenticated(true);
         refreshAttempts = 0;
+        console.info("[auth] verify-auth success");
         return true;
       }
+      console.warn("[auth] verify-auth returned unauthenticated payload");
       return false;
     } catch (userError) {
-      if (userError.response?.status !== 401) {
-        console.error(
-          "Failed to get user data after token refresh:",
-          userError
-        );
+      if (userError.response?.status === 401) {
+        console.warn("[auth] verify-auth 401");
+        return { unauthorized: true };
       }
+      console.error(
+        "Failed to get user data after token refresh:",
+        userError.response?.data || userError.message
+      );
       return false;
     }
   }, []);
 
   const refreshToken = useCallback(async () => {
     if (logoutFlagRef.current) {
-      return false;
+      return { ok: false, reason: "logout-flag" };
     }
-
-    const storedRefreshToken = getStoredRefreshToken();
 
     const now = Date.now();
     if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
-      return false;
+      return { ok: false, reason: "cooldown" };
     }
 
     if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
-      return false;
+      return { ok: false, reason: "max-attempts" };
     }
 
     try {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
+      const storedRefreshToken = getStoredRefreshToken();
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
         storedRefreshToken ? { refresh: storedRefreshToken } : {},
@@ -186,6 +196,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       inMemoryToken = response.data.access;
+      console.info(
+        "[auth] new access token",
+        inMemoryToken.slice(0, 12),
+        "..."
+      );
       setStoredAccessToken(inMemoryToken);
       if (response.data.refresh) {
         setStoredRefreshToken(response.data.refresh);
@@ -196,32 +211,55 @@ export const AuthProvider = ({ children }) => {
       attachToken(inMemoryToken);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
+      console.info("[auth] refresh success");
 
-      const userFetched = await fetchUserWithToken(inMemoryToken);
-      return userFetched;
+      return { ok: true, token: inMemoryToken };
     } catch (error) {
+      const status = error.response?.status;
+      const code = error.response?.data?.code;
+
+      if (code === "user_not_found") {
+        console.warn("[auth] refresh failed: user_not_found; clearing state");
+        clearAuthState();
+        setLogoutFlag(true);
+        logoutFlagRef.current = true;
+        return { ok: false, reason: "user-not-found" };
+      }
+
       // Don't log 400 errors as they're expected when refresh token is invalid/expired
       // Only log unexpected errors
-      if (error.response?.status !== 400) {
+      if (status !== 400) {
         console.error(
           "Token refresh failed:",
           error.response?.data || error.message
         );
       }
-      return false;
+      console.warn("[auth] refresh failed", status);
+      return { ok: false, reason: "refresh-failed" };
     }
-  }, [fetchUserWithToken]);
+  }, [clearAuthState]);
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
 
     const storedAccessToken = getStoredAccessToken();
-    const hasStoredTokens = !!getStoredRefreshToken() || !!storedAccessToken;
+    const storedRefreshToken = getStoredRefreshToken();
+    const hasStoredTokens = !!storedRefreshToken || !!storedAccessToken;
 
     if (storedAccessToken && !inMemoryToken) {
       inMemoryToken = storedAccessToken;
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedAccessToken}`;
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${storedAccessToken}`;
       attachToken(storedAccessToken);
+    }
+
+    // If we have neither a refresh token in storage nor an in-memory/access token, treat as logged out
+    if (!hasStoredTokens && !inMemoryToken) {
+      console.info("[auth] verifyAuth skipped: no tokens");
+      clearAuthState();
+      setIsInitialized(true);
+      return;
     }
 
     if (logoutFlagRef.current && !hasStoredTokens) {
@@ -232,19 +270,34 @@ export const AuthProvider = ({ children }) => {
 
     try {
       isVerifying.current = true;
+      console.info("[auth] verifyAuth start");
       const refreshed = await refreshToken();
-      if (refreshed) {
-        setIsAuthenticated(true);
+      if (refreshed?.reason === "user-not-found") {
+        clearAuthState();
+        setIsInitialized(true);
         return;
       }
 
-      if (inMemoryToken) {
-        const validated = await fetchUserWithToken(inMemoryToken);
-        if (validated) {
+      if (refreshed?.ok) {
+        // Assume authenticated on successful refresh; attempt to fetch user, but don't log out on a single verify failure
+        setIsAuthenticated(true);
+        const validated = await fetchUserWithToken(refreshed.token);
+        if (validated === true) {
           return;
         }
+
+        if (validated?.unauthorized) {
+          console.warn(
+            "[auth] verify-auth 401 after refresh; keeping session and will rely on next call/flow"
+          );
+          return;
+        }
+
+        // Non-401 fetch errors: keep session, they might be transient
+        return;
       }
 
+      console.warn("[auth] refresh did not succeed in verifyAuth", refreshed);
       clearAuthState();
     } catch (error) {
       console.error(
@@ -402,14 +455,11 @@ export const AuthProvider = ({ children }) => {
       const data = await cacheRequest(
         "profile",
         async () => {
-          const response = await axios.get(
-            `${BACKEND_URL}/userprofile/`,
-            {
-              headers: {
-                Authorization: `Bearer ${inMemoryToken}`,
-              },
-            }
-          );
+          const response = await axios.get(`${BACKEND_URL}/userprofile/`, {
+            headers: {
+              Authorization: `Bearer ${inMemoryToken}`,
+            },
+          });
           return response.data;
         },
         { force }
@@ -433,14 +483,11 @@ export const AuthProvider = ({ children }) => {
       const data = await cacheRequest(
         "settings",
         async () => {
-          const response = await axios.get(
-            `${BACKEND_URL}/user/settings/`,
-            {
-              headers: {
-                Authorization: `Bearer ${inMemoryToken}`,
-              },
-            }
-          );
+          const response = await axios.get(`${BACKEND_URL}/user/settings/`, {
+            headers: {
+              Authorization: `Bearer ${inMemoryToken}`,
+            },
+          });
           return response.data;
         },
         { force }
@@ -553,8 +600,8 @@ export const AuthProvider = ({ children }) => {
 
           try {
             const refreshed = await refreshToken();
-            if (refreshed) {
-              originalRequest.headers.Authorization = `Bearer ${inMemoryToken}`;
+            if (refreshed?.ok) {
+              originalRequest.headers.Authorization = `Bearer ${refreshed.token}`;
               return axios(originalRequest);
             }
           } catch (refreshError) {
