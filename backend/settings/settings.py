@@ -223,7 +223,10 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost")
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
+if DEBUG:
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+else:
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")

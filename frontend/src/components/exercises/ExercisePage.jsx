@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { BACKEND_URL } from "services/backendUrl";
 import { GlassCard } from "components/ui";
 
 const ExercisePage = () => {
@@ -46,7 +47,7 @@ const ExercisePage = () => {
       if (filters.difficulty) params.append("difficulty", filters.difficulty);
 
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/exercises/`,
+        `${BACKEND_URL}/exercises/`,
         {
           params,
           headers: {
@@ -79,7 +80,7 @@ const ExercisePage = () => {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/exercises/categories/`,
+        `${BACKEND_URL}/exercises/categories/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -190,7 +191,7 @@ const ExercisePage = () => {
       }));
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/exercises/${currentExercise.id}/submit/`,
+        `${BACKEND_URL}/exercises/${currentExercise.id}/submit/`,
         { user_answer: userAnswer },
         {
           headers: {
