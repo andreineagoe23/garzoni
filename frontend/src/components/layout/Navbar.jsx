@@ -8,7 +8,6 @@ import { GlassContainer } from "components/ui";
 
 const NAV_ITEMS = [
   { path: "/all-topics", label: "Dashboard", icon: "🏠" },
-  { path: "/personalized-path", label: "My Path", icon: "🧭" },
   { path: "/leaderboards", label: "Leaderboards", icon: "🏆" },
   { path: "/exercises", label: "Exercises", icon: "💪" },
   { path: "/missions", label: "Missions", icon: "🎯" },
@@ -122,9 +121,6 @@ function Navbar() {
             >
               Monevo
             </NavLink>
-            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm shadow-[color:var(--primary,#1d5330)]/30">
-              ✨ Premium
-            </span>
           </div>
         </div>
 
@@ -150,13 +146,6 @@ function Navbar() {
         </div>
 
         <div className="flex min-w-[180px] flex-1 items-center justify-end gap-4 lg:min-w-[240px]">
-          <button
-            type="button"
-            onClick={() => navigate("/pricing")}
-            className="relative z-10 hidden items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] shadow-sm shadow-[color:var(--primary,#1d5330)]/30 transition hover:border-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/20 lg:inline-flex touch-manipulation"
-          >
-            Upgrade
-          </button>
 
           {canAdminister && (
             <button
@@ -255,19 +244,6 @@ function Navbar() {
             <span>{item.label}</span>
           </NavLink>
         ))}
-
-        <button
-          type="button"
-          onClick={() => {
-            closeMenu();
-            navigate("/pricing");
-          }}
-          className={createLinkClassName("font-semibold text-[color:var(--primary,#1d5330)]")({ isActive: false })}
-          style={{ WebkitTapHighlightColor: "transparent" }}
-        >
-          <span aria-hidden="true">⚡</span>
-          <span>Upgrade</span>
-        </button>
       </GlassContainer>
     </nav>
   );

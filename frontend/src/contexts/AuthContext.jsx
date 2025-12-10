@@ -174,10 +174,14 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.error(
-        "Token refresh failed:",
-        error.response?.data || error.message
-      );
+      // Don't log 400 errors as they're expected when refresh token is invalid/expired
+      // Only log unexpected errors
+      if (error.response?.status !== 400) {
+        console.error(
+          "Token refresh failed:",
+          error.response?.data || error.message
+        );
+      }
       return false;
     }
   }, []);
