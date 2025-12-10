@@ -24,6 +24,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     loadProfile,
     profile: authProfile,
     refreshProfile,
+    reloadEntitlements,
   } = useAuth();
 
   useEffect(() => {
@@ -49,11 +50,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     return authProfile || null;
   }, [authProfile]);
 
-  const hasPaid =
-    Boolean(profilePayload?.has_paid) ||
-    Boolean(profilePayload?.user_data?.has_paid) ||
-    Boolean(profile?.has_paid) ||
-    Boolean(profile?.user_data?.has_paid);
+  const hasPaid = Boolean(
+    profilePayload?.has_paid ||
+      profilePayload?.user_data?.has_paid ||
+      profile?.has_paid ||
+      profile?.user_data?.has_paid
+  );
 
   useEffect(() => {
     if (profilePayload) {
@@ -82,8 +84,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     if (sessionId) {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       refreshProfile().catch(console.error);
+      reloadEntitlements?.();
     }
-  }, [location.pathname, queryClient, refreshProfile]);
+  }, [location.pathname, queryClient, refreshProfile, reloadEntitlements]);
 
   // Removed mobile view tracking
 
@@ -92,13 +95,22 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   };
 
   const handlePersonalizedPathClick = () => {
-    // Simple redirect logic: if paid, go to personalized path, otherwise go to questionnaire
-    if (hasPaid) {
-      setActivePage("personalized-path");
-      navigate("/personalized-path");
-    } else {
-      navigate("/questionnaire");
+    if (isProfileLoading) return;
+
+    const questionnaireDone = Boolean(isQuestionnaireCompleted);
+
+    if (!hasPaid) {
+      navigate("/payment-required", { state: { from: location.pathname } });
+      return;
     }
+
+    if (!questionnaireDone) {
+      navigate("/questionnaire");
+      return;
+    }
+
+    setActivePage("personalized-path");
+    navigate("/personalized-path");
   };
 
   const isLoading = isProfileLoading || isProgressLoading;
