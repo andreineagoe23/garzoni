@@ -8,6 +8,7 @@ import axios from "axios";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const initialState = {
   dailyMissions: [],
@@ -114,7 +115,7 @@ function Missions() {
   const checkLessonMissionProgress = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        `${BACKEND_URL}/missions/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -134,7 +135,7 @@ function Missions() {
     dispatch({ type: "setLoading", payload: true });
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+        `${BACKEND_URL}/missions/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -159,7 +160,7 @@ function Missions() {
   const fetchSavingsBalance = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
+        `${BACKEND_URL}/savings-account/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -175,7 +176,7 @@ function Missions() {
   const loadNewFact = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
+        `${BACKEND_URL}/finance-fact/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -213,7 +214,7 @@ function Missions() {
     if (!currentFact) return;
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/finance-fact/`,
+        `${BACKEND_URL}/finance-fact/`,
         { fact_id: currentFact.id },
         {
           headers: {
@@ -237,7 +238,7 @@ function Missions() {
     }
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/savings-account/`,
+        `${BACKEND_URL}/savings-account/`,
         { amount },
         {
           headers: {

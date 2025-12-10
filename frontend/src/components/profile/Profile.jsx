@@ -11,6 +11,7 @@ import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const activityIcons = {
   lesson: "📘",
@@ -104,7 +105,7 @@ function Profile() {
           : undefined;
 
         const missionsResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+          `${BACKEND_URL}/missions/`,
           {
             headers: authHeaders,
           }
@@ -132,7 +133,7 @@ function Profile() {
         }));
 
         const activityResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
+          `${BACKEND_URL}/recent-activity/`,
           {
             headers: authHeaders,
           }
@@ -154,10 +155,10 @@ function Profile() {
         }
 
         const [userBadgesResponse, allBadgesResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/user-badges/`, {
+          axios.get(`${BACKEND_URL}/user-badges/`, {
             headers: authHeaders,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/badges/`, {
+          axios.get(`${BACKEND_URL}/badges/`, {
             headers: authHeaders,
           }),
         ]);

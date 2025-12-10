@@ -9,9 +9,9 @@ import {
   Tooltip,
 } from "recharts";
 import { useAuth } from "contexts/AuthContext";
+import { BACKEND_URL } from "services/backendUrl";
 
 const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 
 function PortfolioAnalyzer() {
   const [entries, setEntries] = useState([]);

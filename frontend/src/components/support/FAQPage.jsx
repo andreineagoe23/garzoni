@@ -3,6 +3,7 @@ import axios from "axios";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const highlightText = (text, query) => {
   if (!query?.trim()) return text;
@@ -52,8 +53,8 @@ function FAQPage() {
           headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/faq/`,
+      const response = await axios.get(
+        `${BACKEND_URL}/faq/`,
           { headers }
         );
         setFaqs(response.data);
@@ -96,7 +97,7 @@ function FAQPage() {
       }
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/contact/`,
+        `${BACKEND_URL}/contact/`,
         contactData,
         { headers }
       );
@@ -125,7 +126,7 @@ function FAQPage() {
       }
 
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/faq/${faqId}/vote/`,
+        `${BACKEND_URL}/faq/${faqId}/vote/`,
         { vote },
         { headers }
       );
