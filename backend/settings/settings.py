@@ -195,6 +195,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "content-type",
     "x-csrftoken",
     "x-requested-with",
+    "x-refresh-token",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Disposition", "Set-Cookie", "X-CSRFToken"]
 
