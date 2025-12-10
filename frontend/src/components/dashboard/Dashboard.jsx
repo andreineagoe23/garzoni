@@ -29,11 +29,17 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const { data: profilePayload, isLoading: isProfileLoading } = useQuery({
+  const {
+    data: profilePayload,
+    isFetching: isProfileFetching,
+    isInitialLoading: isProfileLoading,
+  } = useQuery({
     queryKey: ["profile"],
     queryFn: () => loadProfile(),
     staleTime: 0, // Always consider stale to refetch when navigating
     cacheTime: 30000, // Keep in cache for 30 seconds
+    initialData: authProfile,
+    keepPreviousData: true,
   });
 
   const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
@@ -88,8 +94,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   };
 
   const handlePersonalizedPathClick = () => {
-    if (isProfileLoading) return;
-
     if (!isQuestionnaireCompleted) {
       navigate("/questionnaire");
       return;
@@ -208,7 +212,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   activePage === "personalized-path"
                     ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
                     : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40"
-                } ${isProfileLoading ? "opacity-60 cursor-progress pointer-events-none" : "cursor-pointer"}`}
+                } ${
+                  isProfileFetching
+                    ? "opacity-80 cursor-progress"
+                    : "cursor-pointer"
+                }`}
                 style={{
                   backdropFilter: "blur(8px)",
                   WebkitBackdropFilter: "blur(8px)",

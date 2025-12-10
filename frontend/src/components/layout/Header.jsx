@@ -13,8 +13,6 @@ function Header() {
   const { darkMode, toggleDarkMode } = useTheme();
   const { isAuthenticated, isInitialized } = useAuth();
   
-  const isLoginOrRegister = location.pathname === "/login" || location.pathname === "/register";
-
   if (!VISIBLE_PATHS.has(location.pathname)) {
     return null;
   }
@@ -55,16 +53,6 @@ function Header() {
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
           </button>
-
-          {!isLoginOrRegister && (
-            <button
-              type="button"
-              onClick={() => navigate("/pricing")}
-              className="inline-flex items-center rounded-full border border-[color:var(--primary,#2563eb)]/40 px-5 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] shadow-sm transition hover:border-[color:var(--primary,#2563eb)] hover:text-white hover:bg-[color:var(--primary,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/50"
-            >
-              Upgrade
-            </button>
-          )}
 
           <button
             type="button"

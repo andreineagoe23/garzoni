@@ -198,6 +198,17 @@ function PersonalizedPath({ onCourseClick }) {
     );
   }
 
+  if (!paymentVerified || isLoading) {
+    return (
+      <GlassCard
+        padding="xl"
+        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+      >
+        Verifying your access...
+      </GlassCard>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <GlassCard padding="lg" className="text-center">
