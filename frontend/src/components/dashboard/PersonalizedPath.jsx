@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
@@ -12,7 +13,9 @@ function PersonalizedPath({ onCourseClick }) {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { getAccessToken, isAuthenticated, loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+  const { getAccessToken, isAuthenticated, loadProfile, refreshProfile } =
+    useAuth();
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
@@ -92,6 +95,9 @@ function PersonalizedPath({ onCourseClick }) {
                   document.title,
                   "/#/personalized-path"
                 );
+                // Invalidate and refetch profile to update payment status
+                await refreshProfile();
+                queryClient.invalidateQueries({ queryKey: ["profile"] });
                 setPaymentVerified(true);
                 return fetchPersonalizedPath();
               }
@@ -133,6 +139,8 @@ function PersonalizedPath({ onCourseClick }) {
     isAuthenticated,
     getAccessToken,
     loadProfile,
+    refreshProfile,
+    queryClient,
   ]);
 
   const handleCourseClick = (courseId) => {
@@ -141,7 +149,10 @@ function PersonalizedPath({ onCourseClick }) {
 
   if (!paymentVerified || isLoading) {
     return (
-      <GlassCard padding="xl" className="text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+      <GlassCard
+        padding="xl"
+        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+      >
         Verifying your access...
       </GlassCard>
     );
@@ -149,7 +160,10 @@ function PersonalizedPath({ onCourseClick }) {
 
   if (error) {
     return (
-      <GlassCard padding="lg" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
+      <GlassCard
+        padding="lg"
+        className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+      >
         <h2 className="mb-3 text-lg font-semibold">
           ⚠️ Error Loading Recommendations
         </h2>
@@ -205,42 +219,42 @@ function PersonalizedPath({ onCourseClick }) {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    {course.path_title}
-                  </span>
-                  <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                    {course.estimated_duration || 4} hrs ·{" "}
-                    {course.exercises || 3} exercises
-                  </span>
-                </div>
-                <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
-                  {course.title}
-                </h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                        {course.path_title}
+                      </span>
+                      <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+                        {course.estimated_duration || 4} hrs ·{" "}
+                        {course.exercises || 3} exercises
+                      </span>
+                    </div>
+                    <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
+                      {course.title}
+                    </h4>
 
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[color:var(--muted-text,#6b7280)]">
-                      Progress
-                    </span>
-                    <span className="font-semibold text-[color:var(--accent,#111827)]">
-                      {course.progress}/{course.totalLessons} lessons
-                    </span>
-                  </div>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[color:var(--muted-text,#6b7280)]">
+                          Progress
+                        </span>
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          {course.progress}/{course.totalLessons} lessons
+                        </span>
+                      </div>
 
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                    <div
-                      className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]"
-                      style={{
-                        width: `${
-                          course.totalLessons
-                            ? (course.progress / course.totalLessons) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                        <div
+                          className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]"
+                          style={{
+                            width: `${
+                              course.totalLessons
+                                ? (course.progress / course.totalLessons) * 100
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -270,4 +284,3 @@ function PersonalizedPath({ onCourseClick }) {
 }
 
 export default PersonalizedPath;
-

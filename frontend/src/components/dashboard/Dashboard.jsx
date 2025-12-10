@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
@@ -17,11 +17,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const {
     getAccessToken,
     user: authUser,
     loadProfile,
     profile: authProfile,
+    refreshProfile,
   } = useAuth();
 
   useEffect(() => {
@@ -31,6 +33,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const { data: profilePayload, isLoading: isProfileLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: () => loadProfile(),
+    staleTime: 0, // Always consider stale to refetch when navigating
+    cacheTime: 30000, // Keep in cache for 30 seconds
   });
 
   const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
@@ -38,10 +42,26 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     queryFn: fetchProgressSummary,
   });
 
+  const profile = useMemo(() => {
+    if (authProfile?.user_data) {
+      return authProfile.user_data;
+    }
+    return authProfile || null;
+  }, [authProfile]);
+
+  const hasPaid =
+    Boolean(profilePayload?.has_paid) ||
+    Boolean(profilePayload?.user_data?.has_paid) ||
+    Boolean(profile?.has_paid) ||
+    Boolean(profile?.user_data?.has_paid);
+
   useEffect(() => {
     if (profilePayload) {
       setIsQuestionnaireCompleted(
-        Boolean(profilePayload.is_questionnaire_completed)
+        Boolean(
+          profilePayload.is_questionnaire_completed ??
+            profilePayload.user_data?.is_questionnaire_completed
+        )
       );
     }
   }, [profilePayload]);
@@ -52,7 +72,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         ? "personalized-path"
         : "all-topics"
     );
-  }, [location.pathname]);
+
+    // Check if we're returning from Stripe payment (has session_id in URL)
+    const hashParams = window.location.hash.split("?")[1] || "";
+    const queryParams = new URLSearchParams(hashParams);
+    const sessionId = queryParams.get("session_id");
+
+    // If we have a session_id, invalidate profile to refetch payment status
+    if (sessionId) {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      refreshProfile().catch(console.error);
+    }
+  }, [location.pathname, queryClient, refreshProfile]);
 
   // Removed mobile view tracking
 
@@ -61,21 +92,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   };
 
   const handlePersonalizedPathClick = () => {
-    if (isQuestionnaireCompleted) {
+    // Simple redirect logic: if paid, go to personalized path, otherwise go to questionnaire
+    if (hasPaid) {
       setActivePage("personalized-path");
       navigate("/personalized-path");
-      return;
+    } else {
+      navigate("/questionnaire");
     }
-
-    navigate("/questionnaire");
   };
-
-  const profile = useMemo(() => {
-    if (authProfile?.user_data) {
-      return authProfile.user_data;
-    }
-    return authProfile || null;
-  }, [authProfile]);
 
   const isLoading = isProfileLoading || isProgressLoading;
 
@@ -173,20 +197,31 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 All Topics
               </GlassButton>
 
-              <GlassButton
-                variant={
-                  activePage === "personalized-path" ? "active" : "ghost"
-                }
+              <button
+                type="button"
                 onClick={handlePersonalizedPathClick}
-                icon="🎯"
+                disabled={false}
+                className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm ${
+                  activePage === "personalized-path"
+                    ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
+                    : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40"
+                }`}
+                style={{
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
+                  pointerEvents: "auto",
+                  cursor: "pointer",
+                  opacity: "1",
+                }}
               >
+                <span>🎯</span>
                 Personalized Path
                 {!isQuestionnaireCompleted && (
                   <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
                     Complete Questionnaire
                   </span>
                 )}
-              </GlassButton>
+              </button>
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
