@@ -95,7 +95,6 @@ function PersonalizedPath({ onCourseClick }) {
                   document.title,
                   "/#/personalized-path"
                 );
-                // Invalidate and refetch profile to update payment status
                 await refreshProfile();
                 queryClient.invalidateQueries({ queryKey: ["profile"] });
                 setPaymentVerified(true);
@@ -120,14 +119,27 @@ function PersonalizedPath({ onCourseClick }) {
           };
 
           await pollPaymentStatus();
-        } else {
-          setPaymentVerified(true);
-          fetchPersonalizedPath();
+          return;
         }
+
+        if (!profilePayload?.is_questionnaire_completed) {
+          navigate("/questionnaire");
+          return;
+        }
+
+        if (!profilePayload?.has_paid) {
+          navigate("/payment-required");
+          return;
+        }
+
+        await fetchPersonalizedPath();
+        setPaymentVerified(true);
       } catch (err) {
-        console.error("Verification error:", err);
-        localStorage.removeItem("access_token");
-        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+        setError(
+          err.response?.data?.error ||
+            "We couldn't verify your payment. Please try again."
+        );
+        setPaymentVerified(false);
       }
     };
 
@@ -147,17 +159,6 @@ function PersonalizedPath({ onCourseClick }) {
     if (onCourseClick) onCourseClick(courseId);
   };
 
-  if (!paymentVerified || isLoading) {
-    return (
-      <GlassCard
-        padding="xl"
-        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
-      >
-        Verifying your access...
-      </GlassCard>
-    );
-  }
-
   if (error) {
     return (
       <GlassCard
@@ -175,6 +176,17 @@ function PersonalizedPath({ onCourseClick }) {
         >
           Try Again
         </button>
+      </GlassCard>
+    );
+  }
+
+  if (!paymentVerified || isLoading) {
+    return (
+      <GlassCard
+        padding="xl"
+        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+      >
+        Verifying your access...
       </GlassCard>
     );
   }
