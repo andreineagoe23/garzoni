@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 function QuizPage() {
   const { courseId } = useParams();
@@ -20,7 +21,7 @@ function QuizPage() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/quizzes/?course=${courseId}`,
+          `${BACKEND_URL}/quizzes/?course=${courseId}`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -62,7 +63,7 @@ function QuizPage() {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/quizzes/complete/`,
+        `${BACKEND_URL}/quizzes/complete/`,
         { quiz_id: quiz.id, selected_answer: selectedAnswer },
         {
           headers: {

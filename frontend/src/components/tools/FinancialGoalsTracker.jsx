@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
+import { BACKEND_URL } from "services/backendUrl";
 
 const STATUS_COLORS = {
   not_started: "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
@@ -23,7 +24,7 @@ const FinancialGoalsTracker = () => {
   const fetchGoals = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/financial-goals/`,
+        `${BACKEND_URL}/financial-goals/`,
         {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
         }
@@ -51,7 +52,7 @@ const FinancialGoalsTracker = () => {
     event.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/financial-goals/`,
+        `${BACKEND_URL}/financial-goals/`,
         newGoal,
         { headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
@@ -72,7 +73,7 @@ const FinancialGoalsTracker = () => {
   const handleDeleteGoal = async (goalId) => {
     try {
       await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/financial-goals/${goalId}/`,
+        `${BACKEND_URL}/financial-goals/${goalId}/`,
         { headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));

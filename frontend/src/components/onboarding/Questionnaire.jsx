@@ -4,6 +4,7 @@ import axios from "axios";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const Questionnaire = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -20,7 +21,7 @@ const Questionnaire = () => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
+          `${BACKEND_URL}/enhanced-questionnaire/`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -88,7 +89,7 @@ const Questionnaire = () => {
       setSubmitFeedback("Preparing secure checkout session...");
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
+        `${BACKEND_URL}/enhanced-questionnaire/`,
         { answers },
         {
           headers: {
