@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 function ShopItems({ onPurchase }) {
   const [shopItems, setShopItems] = useState([]);
@@ -12,7 +13,7 @@ function ShopItems({ onPurchase }) {
     const fetchShopItems = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/rewards/shop/`,
+          `${BACKEND_URL}/rewards/shop/`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -34,7 +35,7 @@ function ShopItems({ onPurchase }) {
   const handlePurchase = async (rewardId) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/purchases/`,
+        `${BACKEND_URL}/purchases/`,
         { reward_id: rewardId },
         {
           headers: {

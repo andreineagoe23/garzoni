@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
+import { BACKEND_URL } from "services/backendUrl";
 
 const SavingsGoalCalculator = () => {
   const [formData, setFormData] = useState({
@@ -41,7 +42,7 @@ const SavingsGoalCalculator = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/calculate-savings-goal/`,
+        `${BACKEND_URL}/calculate-savings-goal/`,
         formData,
         {
           headers: {

@@ -7,6 +7,7 @@ import React, {
   useEffect,
 } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { attachToken } from "services/httpClient";
 
 // Always send cookies (refresh token) on cross-site requests
@@ -16,8 +17,6 @@ const AuthContext = createContext(null);
 
 // Access token is kept in memory only for better security
 let inMemoryToken = null;
-const BACKEND_URL =
-  process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 const LOGOUT_FLAG_KEY = "monevo:manual-logout";
 const REFRESH_STORAGE_KEY = "monevo:refresh-token";
 const ACCESS_STORAGE_KEY = "monevo:access-token";

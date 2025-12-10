@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { PencilSquare, X } from "react-bootstrap-icons";
 import { useAuth } from "contexts/AuthContext";
 
@@ -76,7 +77,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     setLoading(true);
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/update-avatar/`,
+        `${BACKEND_URL}/update-avatar/`,
         { profile_avatar: previewAvatar },
         {
           headers: {

@@ -6,6 +6,7 @@ import ReferralLink from "components/profile/ReferralLink";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const timeFilterOptions = [
   { value: "all-time", label: "All Time" },
@@ -45,18 +46,12 @@ const Leaderboards = () => {
 
         const [globalResponse, friendsResponse, rankResponse, profilePayload] =
           await Promise.all([
-            axios.get(`${process.env.REACT_APP_BACKEND_URL}/leaderboard/`, {
+            axios.get(`${BACKEND_URL}/leaderboard/`, {
               ...authHeaders,
               params: { time_filter: timeFilter },
             }),
-            axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/leaderboard/friends/`,
-              authHeaders
-            ),
-            axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/leaderboard/rank/`,
-              authHeaders
-            ),
+            axios.get(`${BACKEND_URL}/leaderboard/friends/`, authHeaders),
+            axios.get(`${BACKEND_URL}/leaderboard/rank/`, authHeaders),
             loadProfile(),
           ]);
 
@@ -67,7 +62,7 @@ const Leaderboards = () => {
 
         try {
           const sentRes = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/friend-requests/get_sent_requests/`,
+            `${BACKEND_URL}/friend-requests/get_sent_requests/`,
             authHeaders
           );
           setSentRequests(sentRes.data);
@@ -78,7 +73,7 @@ const Leaderboards = () => {
 
         try {
           const friendsRes = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/friend-requests/get_friends/`,
+            `${BACKEND_URL}/friend-requests/get_friends/`,
             authHeaders
           );
           setFriends(friendsRes.data);
@@ -103,7 +98,7 @@ const Leaderboards = () => {
   const sendFriendRequest = async (receiverId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/friend-requests/`,
+        `${BACKEND_URL}/friend-requests/`,
         { receiver: receiverId },
         {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
@@ -111,7 +106,7 @@ const Leaderboards = () => {
       );
 
       const sentRequestsResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/friend-requests/get_sent_requests/`,
+        `${BACKEND_URL}/friend-requests/get_sent_requests/`,
         {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
         }
