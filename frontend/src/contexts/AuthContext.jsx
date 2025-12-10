@@ -161,9 +161,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     const storedRefreshToken = getStoredRefreshToken();
-    if (!storedRefreshToken) {
-      return false;
-    }
 
     const now = Date.now();
     if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
@@ -218,16 +215,16 @@ export const AuthProvider = ({ children }) => {
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
 
-    const hasStoredTokens =
-      !!getStoredRefreshToken() || !!getStoredAccessToken();
+    const storedAccessToken = getStoredAccessToken();
+    const hasStoredTokens = !!getStoredRefreshToken() || !!storedAccessToken;
 
-    if (logoutFlagRef.current && !hasStoredTokens) {
-      clearAuthState();
-      setIsInitialized(true);
-      return;
+    if (storedAccessToken && !inMemoryToken) {
+      inMemoryToken = storedAccessToken;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedAccessToken}`;
+      attachToken(storedAccessToken);
     }
 
-    if (!hasStoredTokens) {
+    if (logoutFlagRef.current && !hasStoredTokens) {
       clearAuthState();
       setIsInitialized(true);
       return;
