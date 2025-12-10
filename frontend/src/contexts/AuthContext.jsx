@@ -210,7 +210,7 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     }
-  }, []);
+  }, [fetchUserWithToken]);
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;

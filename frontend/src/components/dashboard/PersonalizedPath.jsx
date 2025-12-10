@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -16,6 +16,16 @@ function PersonalizedPath({ onCourseClick }) {
   const queryClient = useQueryClient();
   const { getAccessToken, isAuthenticated, loadProfile, refreshProfile } =
     useAuth();
+
+  const { sessionId, redirectIntent } = useMemo(() => {
+    const hashParams = (location.hash || "").split("?")[1] || "";
+    const queryParams = new URLSearchParams(hashParams);
+
+    return {
+      sessionId: queryParams.get("session_id"),
+      redirectIntent: queryParams.get("redirect"),
+    };
+  }, [location.hash]);
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
@@ -56,11 +66,6 @@ function PersonalizedPath({ onCourseClick }) {
   }, [navigate, getAccessToken]);
 
   useEffect(() => {
-    const hashParams = window.location.hash.split("?")[1] || "";
-    const queryParams = new URLSearchParams(hashParams);
-    const sessionId = queryParams.get("session_id");
-    const redirectIntent = queryParams.get("redirect");
-
     const verifyAuthAndPayment = async () => {
       if (!isAuthenticated) {
         navigate(
