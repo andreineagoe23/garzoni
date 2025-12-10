@@ -35,7 +35,7 @@ const UpsellModal = ({ open, onClose, feature }) => {
         </p>
 
         <div className="flex flex-wrap gap-3">
-          <GlassButton className="flex-1 justify-center" onClick={() => (window.location.href = "/payment-required")}> 
+          <GlassButton className="flex-1 justify-center" onClick={() => (window.location.href = "/upgrade")}>
             Upgrade to Premium
           </GlassButton>
           <GlassButton variant="ghost" className="flex-1 justify-center" onClick={onClose}>

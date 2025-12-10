@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -17,6 +17,16 @@ function PersonalizedPath({ onCourseClick }) {
   const { getAccessToken, isAuthenticated, loadProfile, refreshProfile } =
     useAuth();
 
+  const { sessionId, redirectIntent } = useMemo(() => {
+    const hashParams = (location.hash || "").split("?")[1] || "";
+    const queryParams = new URLSearchParams(hashParams);
+
+    return {
+      sessionId: queryParams.get("session_id"),
+      redirectIntent: queryParams.get("redirect"),
+    };
+  }, [location.hash]);
+
   const fetchPersonalizedPath = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -30,14 +40,6 @@ function PersonalizedPath({ onCourseClick }) {
           withCredentials: true,
         }
       );
-
-      if (response.status === 403) {
-        if (response.data.redirect) {
-          navigate(response.data.redirect);
-          return;
-        }
-        throw new Error(response.data.error || "Access denied");
-      }
 
       setPersonalizedCourses(
         response.data.courses.map((course) => ({
@@ -54,7 +56,7 @@ function PersonalizedPath({ onCourseClick }) {
         if (errorMessage.includes("questionnaire")) {
           navigate("/questionnaire");
         } else if (errorMessage.includes("Payment")) {
-          navigate("/payment-required");
+          navigate("/upgrade");
         }
       } else {
         setError("Failed to load recommendations. Please try again later.");
@@ -64,10 +66,6 @@ function PersonalizedPath({ onCourseClick }) {
   }, [navigate, getAccessToken]);
 
   useEffect(() => {
-    const hashParams = window.location.hash.split("?")[1] || "";
-    const queryParams = new URLSearchParams(hashParams);
-    const sessionId = queryParams.get("session_id");
-
     const verifyAuthAndPayment = async () => {
       if (!isAuthenticated) {
         navigate(
@@ -98,6 +96,10 @@ function PersonalizedPath({ onCourseClick }) {
                 await refreshProfile();
                 queryClient.invalidateQueries({ queryKey: ["profile"] });
                 setPaymentVerified(true);
+                if (redirectIntent === "upgradeComplete") {
+                  navigate("/upgrade?redirect=upgradeComplete");
+                  return;
+                }
                 return fetchPersonalizedPath();
               }
 
@@ -108,13 +110,13 @@ function PersonalizedPath({ onCourseClick }) {
                 return pollPaymentStatus(attempt + 1);
               }
 
-              navigate("/payment-required");
+              navigate("/upgrade");
             } catch (err) {
               if (attempt < 8) {
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 return pollPaymentStatus(attempt + 1);
               }
-              navigate("/payment-required");
+              navigate("/upgrade");
             }
           };
 
@@ -128,12 +130,15 @@ function PersonalizedPath({ onCourseClick }) {
         }
 
         if (!profilePayload?.has_paid) {
-          navigate("/payment-required");
+          navigate("/upgrade");
           return;
         }
 
         await fetchPersonalizedPath();
         setPaymentVerified(true);
+        if (sessionId && redirectIntent === "upgradeComplete") {
+          navigate("/upgrade?redirect=upgradeComplete");
+        }
       } catch (err) {
         setError(
           err.response?.data?.error ||
@@ -153,6 +158,8 @@ function PersonalizedPath({ onCourseClick }) {
     loadProfile,
     refreshProfile,
     queryClient,
+    sessionId,
+    redirectIntent,
   ]);
 
   const handleCourseClick = (courseId) => {

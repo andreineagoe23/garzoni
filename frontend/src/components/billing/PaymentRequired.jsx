@@ -1,17 +1,25 @@
 // PaymentRequired.js
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 
 const PaymentRequired = () => {
+  const location = useLocation();
   const {
     entitlements,
     entitlementError,
     entitlementSupportLink,
     reloadEntitlements,
   } = useAuth();
+
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+
+  const upgradeComplete = searchParams.get("redirect") === "upgradeComplete";
 
   useEffect(() => {
     if (typeof recordFunnelEvent === "function") {
@@ -38,6 +46,11 @@ const PaymentRequired = () => {
               and complete checkout. We’ll keep you signed in and redirect you
               back to your tailored learning path after payment.
             </p>
+            {upgradeComplete && (
+              <p className="rounded-lg bg-[color:var(--success,#16a34a)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--success,#16a34a)]">
+                Payment confirmed! Click below to continue to your personalized path.
+              </p>
+            )}
             {entitlements?.fallback && (
               <p className="rounded-lg bg-[color:var(--warning,#facc15)]/20 px-3 py-2 text-xs text-[color:var(--accent,#92400e)]">
                 We could not confirm your subscription status. You are temporarily
@@ -65,10 +78,10 @@ const PaymentRequired = () => {
                   : "Best for full personalized journeys with premium support."}
               </p>
               <Link
-                to="/questionnaire"
+                to={upgradeComplete ? "/personalized-path" : "/questionnaire"}
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                Start with Questionnaire
+                {upgradeComplete ? "Continue to your path" : "Start with Questionnaire"}
               </Link>
             </div>
           ))}
