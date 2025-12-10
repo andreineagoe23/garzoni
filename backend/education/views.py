@@ -697,8 +697,11 @@ class EnhancedQuestionnaireView(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
-                cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
+                success_url=(
+                    f"{settings.FRONTEND_URL}/#/personalized-path?"
+                    "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
+                ),
+                cancel_url=f"{settings.FRONTEND_URL}/#/upgrade",
                 metadata={'user_id': str(request.user.id)},
                 client_reference_id=str(request.user.id)
             )
@@ -751,7 +754,7 @@ class PersonalizedPathView(APIView):
             if not user_profile.has_paid:
                 return Response({
                     "error": "Payment required for personalized path",
-                    "redirect": "/payment-required"
+                    "redirect": "/upgrade"
                 }, status=403)
 
             # Generate recommendations if not already present

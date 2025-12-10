@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
@@ -16,6 +17,11 @@ function RewardsPage() {
   const shareCardRef = useRef(null);
   const [lockedFeature, setLockedFeature] = useState(null);
   const [showUpsell, setShowUpsell] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState({
+    hasPaid: false,
+    questionnaireComplete: false,
+  });
+  const navigate = useNavigate();
   const { loadProfile } = useAuth();
   const queryClient = useQueryClient();
 
@@ -33,12 +39,16 @@ function RewardsPage() {
         const profilePayload = await loadProfile(
           force ? { force: true } : undefined
         );
+        const userData = profilePayload?.user_data || profilePayload || {};
         const earned =
-          profilePayload?.user_data?.earned_money ??
-          profilePayload?.earned_money ??
+          userData?.earned_money ??
           0;
         const normalized = Number.parseFloat(earned) || 0;
         setBalance(normalized.toFixed(2));
+        setSubscriptionInfo({
+          hasPaid: Boolean(userData?.has_paid),
+          questionnaireComplete: Boolean(userData?.is_questionnaire_completed),
+        });
       } catch (error) {
         console.error("Error fetching balance:", error);
       }
@@ -89,6 +99,18 @@ function RewardsPage() {
   const handleDonation = useCallback(async () => {
     await fetchBalance(true);
   }, [fetchBalance]);
+
+  const handleSubscriptionNavigate = useCallback(() => {
+    if (!subscriptionInfo.questionnaireComplete) {
+      navigate("/questionnaire");
+      return;
+    }
+    if (!subscriptionInfo.hasPaid) {
+      navigate("/upgrade", { state: { from: "/rewards" } });
+      return;
+    }
+    navigate("/personalized-path");
+  }, [navigate, subscriptionInfo.hasPaid, subscriptionInfo.questionnaireComplete]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -154,6 +176,31 @@ function RewardsPage() {
             {balance} coins
           </p>
         </div>
+      </GlassCard>
+
+      <GlassCard
+        padding="md"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+            Subscription status
+          </p>
+          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            {subscriptionInfo.hasPaid
+              ? "You're all set with Premium access."
+              : "Upgrade to unlock unlimited personalized learning."}
+          </p>
+        </div>
+        <GlassButton
+          variant="ghost"
+          onClick={handleSubscriptionNavigate}
+          icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
+        >
+          {subscriptionInfo.hasPaid
+            ? "View your personalized path"
+            : "Check subscription options"}
+        </GlassButton>
       </GlassCard>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
