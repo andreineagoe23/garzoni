@@ -38,7 +38,6 @@ const setLogoutFlag = (value) => {
     sessionStorage.setItem(LOGOUT_FLAG_KEY, "true");
   } else {
     sessionStorage.removeItem(LOGOUT_FLAG_KEY);
-    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
   }
 };
 
@@ -126,6 +125,10 @@ export const AuthProvider = ({ children }) => {
   const getAccessToken = useCallback(() => inMemoryToken, []);
 
   const fetchUserWithToken = useCallback(async (token) => {
+    if (!token) {
+      return false;
+    }
+
     try {
       const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
         withCredentials: true,
@@ -142,10 +145,12 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (userError) {
-      console.error(
-        "Failed to get user data after token refresh:",
-        userError
-      );
+      if (userError.response?.status !== 401) {
+        console.error(
+          "Failed to get user data after token refresh:",
+          userError
+        );
+      }
       return false;
     }
   }, []);
@@ -168,16 +173,12 @@ export const AuthProvider = ({ children }) => {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
-      const refreshHeader = {};
       const storedRefreshToken = getStoredRefreshToken();
-      if (storedRefreshToken) {
-        refreshHeader["X-Refresh-Token"] = storedRefreshToken;
-      }
 
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
-        {},
-        { withCredentials: true, headers: refreshHeader }
+        storedRefreshToken ? { refresh: storedRefreshToken } : {},
+        { withCredentials: true }
       );
 
       if (!response.data.access) {
@@ -213,6 +214,16 @@ export const AuthProvider = ({ children }) => {
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
+
+    if (
+      logoutFlagRef.current &&
+      !getStoredRefreshToken() &&
+      !getStoredAccessToken()
+    ) {
+      clearAuthState();
+      setIsInitialized(true);
+      return;
+    }
 
     try {
       isVerifying.current = true;
