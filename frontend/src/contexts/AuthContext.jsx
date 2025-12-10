@@ -160,6 +160,11 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
 
+    const storedRefreshToken = getStoredRefreshToken();
+    if (!storedRefreshToken) {
+      return false;
+    }
+
     const now = Date.now();
     if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
       return false;
@@ -172,8 +177,6 @@ export const AuthProvider = ({ children }) => {
     try {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
-
-      const storedRefreshToken = getStoredRefreshToken();
 
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
@@ -215,11 +218,16 @@ export const AuthProvider = ({ children }) => {
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
 
-    if (
-      logoutFlagRef.current &&
-      !getStoredRefreshToken() &&
-      !getStoredAccessToken()
-    ) {
+    const hasStoredTokens =
+      !!getStoredRefreshToken() || !!getStoredAccessToken();
+
+    if (logoutFlagRef.current && !hasStoredTokens) {
+      clearAuthState();
+      setIsInitialized(true);
+      return;
+    }
+
+    if (!hasStoredTokens) {
       clearAuthState();
       setIsInitialized(true);
       return;
@@ -539,6 +547,12 @@ export const AuthProvider = ({ children }) => {
 
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
+
+          const storedRefreshToken = getStoredRefreshToken();
+          if (!storedRefreshToken) {
+            clearAuthState();
+            return Promise.reject(error);
+          }
 
           try {
             const refreshed = await refreshToken();
