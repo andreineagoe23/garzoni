@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -30,7 +31,7 @@ function PersonalizedPath({ onCourseClick }) {
   const fetchPersonalizedPath = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
+        `${BACKEND_URL}/personalized-path/`,
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -82,7 +83,7 @@ function PersonalizedPath({ onCourseClick }) {
           const pollPaymentStatus = async (attempt = 0) => {
             try {
               const verificationRes = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+                `${BACKEND_URL}/verify-session/`,
                 { session_id: sessionId, force_check: true },
                 { headers: { Authorization: `Bearer ${getAccessToken()}` } }
               );

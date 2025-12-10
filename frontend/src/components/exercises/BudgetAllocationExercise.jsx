@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
@@ -60,7 +61,7 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
   const handleRetry = async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
+        `${BACKEND_URL}/exercises/reset/`,
         { section_id: id },
         {
           headers: {

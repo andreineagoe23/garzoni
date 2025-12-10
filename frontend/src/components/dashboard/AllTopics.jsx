@@ -3,6 +3,7 @@ import axios from "axios";
 import LearningPathList from "components/courses/LearningPathList";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const AllTopics = ({ onCourseClick }) => {
   const [learningPaths, setLearningPaths] = useState([]);
@@ -16,7 +17,7 @@ const AllTopics = ({ onCourseClick }) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/paths/`,
+          `${BACKEND_URL}/paths/`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,

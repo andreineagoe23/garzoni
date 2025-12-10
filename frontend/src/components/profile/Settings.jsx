@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
@@ -72,7 +73,7 @@ function Settings() {
     try {
       setErrorMessage("");
       await axios.patch(
-        `${process.env.REACT_APP_BACKEND_URL}/user/settings/`,
+        `${BACKEND_URL}/user/settings/`,
         {
           profile: {
             username: profileData.username,
@@ -126,7 +127,7 @@ function Settings() {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/change-password/`,
+        `${BACKEND_URL}/change-password/`,
         {
           current_password: currentPassword,
           new_password: newPassword,
@@ -165,7 +166,7 @@ function Settings() {
 
     try {
       await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/delete-account/`,
+        `${BACKEND_URL}/delete-account/`,
         {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
           withCredentials: true,
