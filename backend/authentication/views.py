@@ -397,6 +397,31 @@ class CustomTokenRefreshView(TokenRefreshView):
                 status=500,
             )
 
+        # Validate that the referenced user still exists; otherwise clear cookies
+        try:
+            token_obj = RefreshToken(refresh_token)
+            user_id = token_obj.get("user_id")
+            User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            logger.error("Token refresh attempted for missing user id=%s", user_id)
+            response = Response(
+                {"detail": "User not found", "code": "user_not_found"},
+                status=401,
+            )
+            clear_refresh_cookie(response)
+            return response
+        except Exception as exc:
+            logger.error(
+                "Unexpected error while validating refresh token user: %s",
+                exc,
+                exc_info=True,
+            )
+            response = Response(
+                {"detail": "User validation failed."}, status=401
+            )
+            clear_refresh_cookie(response)
+            return response
+
         response_data = serializer.validated_data
         access_token = response_data.get("access")
         response_refresh = response_data.get("refresh") or refresh_token

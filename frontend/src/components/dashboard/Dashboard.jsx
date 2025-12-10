@@ -23,6 +23,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: authProfile,
     refreshProfile,
     reloadEntitlements,
+    entitlements,
   } = useAuth();
 
   useEffect(() => {
@@ -57,9 +58,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     return profilePayload || authProfile || null;
   }, [authProfile, profilePayload]);
 
-  const hasPaid = Boolean(
-    profile?.has_paid || profile?.user_data?.has_paid || profilePayload?.has_paid
+  const hasPaidProfile = Boolean(
+    profile?.has_paid ||
+      profile?.user_data?.has_paid ||
+      profilePayload?.has_paid ||
+      profilePayload?.user_data?.has_paid
   );
+  const hasPaid = hasPaidProfile || Boolean(entitlements?.entitled);
 
   const isQuestionnaireCompleted = Boolean(
     profile?.is_questionnaire_completed ||
@@ -76,14 +81,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
     // Check if we're returning from Stripe payment (has session_id in URL)
     const hashParams = window.location.hash.split("?")[1] || "";
-    const queryParams = new URLSearchParams(hashParams);
-    const sessionId = queryParams.get("session_id");
+    const hashQuery = new URLSearchParams(hashParams);
+    const searchQuery = new URLSearchParams(window.location.search || "");
+    const sessionId =
+      searchQuery.get("session_id") || hashQuery.get("session_id");
 
     // If we have a session_id, invalidate profile to refetch payment status
     if (sessionId) {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       refreshProfile().catch(console.error);
       reloadEntitlements?.();
+      // eslint-disable-next-line no-console
+      console.info(
+        "[dashboard] detected session_id in URL; refreshing profile/entitlements"
+      );
     }
   }, [location.pathname, queryClient, refreshProfile, reloadEntitlements]);
 
@@ -94,6 +105,22 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   };
 
   const handlePersonalizedPathClick = () => {
+    // Debug log to trace gating decisions
+    // eslint-disable-next-line no-console
+    console.info("[personalized-path] click", {
+      hasPaidProfile,
+      entitlementsEntitled: Boolean(entitlements?.entitled),
+      isQuestionnaireCompleted,
+      activePage,
+    });
+
+    // Paid users can go straight to personalized path even if questionnaire flag is stale
+    if (hasPaid) {
+      setActivePage("personalized-path");
+      navigate("/personalized-path");
+      return;
+    }
+
     if (!isQuestionnaireCompleted) {
       navigate("/questionnaire");
       return;
