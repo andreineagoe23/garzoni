@@ -20,6 +20,7 @@ const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/api";
 const LOGOUT_FLAG_KEY = "monevo:manual-logout";
 const REFRESH_STORAGE_KEY = "monevo:refresh-token";
+const ACCESS_STORAGE_KEY = "monevo:access-token";
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:support@monevo.com?subject=Billing%20support";
 
@@ -57,6 +58,24 @@ const setStoredRefreshToken = (token) => {
     sessionStorage.setItem(REFRESH_STORAGE_KEY, token);
   } else {
     sessionStorage.removeItem(REFRESH_STORAGE_KEY);
+  }
+};
+
+const getStoredAccessToken = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return sessionStorage.getItem(ACCESS_STORAGE_KEY);
+};
+
+const setStoredAccessToken = (token) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (token) {
+    sessionStorage.setItem(ACCESS_STORAGE_KEY, token);
+  } else {
+    sessionStorage.removeItem(ACCESS_STORAGE_KEY);
   }
 };
 
@@ -102,9 +121,35 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common["Authorization"];
     inFlightRequestsRef.current.clear();
     setStoredRefreshToken(null);
+    setStoredAccessToken(null);
   }, []);
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
+
+  const fetchUserWithToken = useCallback(async (token) => {
+    try {
+      const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (userResponse.data.isAuthenticated) {
+        setUser(userResponse.data.user);
+        setIsAuthenticated(true);
+        refreshAttempts = 0;
+        return true;
+      }
+      return false;
+    } catch (userError) {
+      console.error(
+        "Failed to get user data after token refresh:",
+        userError
+      );
+      return false;
+    }
+  }, []);
 
   const refreshToken = useCallback(async () => {
     if (logoutFlagRef.current) {
@@ -141,6 +186,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       inMemoryToken = response.data.access;
+      setStoredAccessToken(inMemoryToken);
       if (response.data.refresh) {
         setStoredRefreshToken(response.data.refresh);
       }
@@ -151,28 +197,8 @@ export const AuthProvider = ({ children }) => {
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
-      try {
-        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${inMemoryToken}`,
-          },
-        });
-
-        if (userResponse.data.isAuthenticated) {
-          setUser(userResponse.data.user);
-          setIsAuthenticated(true);
-          refreshAttempts = 0;
-          return true;
-        }
-        return false;
-      } catch (userError) {
-        console.error(
-          "Failed to get user data after token refresh:",
-          userError
-        );
-        return false;
-      }
+      const userFetched = await fetchUserWithToken(inMemoryToken);
+      return userFetched;
     } catch (error) {
       // Don't log 400 errors as they're expected when refresh token is invalid/expired
       // Only log unexpected errors
@@ -197,6 +223,13 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      if (inMemoryToken) {
+        const validated = await fetchUserWithToken(inMemoryToken);
+        if (validated) {
+          return;
+        }
+      }
+
       clearAuthState();
     } catch (error) {
       console.error(
@@ -208,7 +241,7 @@ export const AuthProvider = ({ children }) => {
       setIsInitialized(true);
       isVerifying.current = false;
     }
-  }, [clearAuthState, refreshToken]);
+  }, [clearAuthState, fetchUserWithToken, refreshToken]);
 
   const loginUser = async (credentials) => {
     try {
@@ -227,6 +260,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setUser(response.data.user);
       setStoredRefreshToken(response.data.refresh);
+      setStoredAccessToken(inMemoryToken);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
@@ -266,6 +300,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setUser(response.data.user);
       setStoredRefreshToken(response.data.refresh);
+      setStoredAccessToken(inMemoryToken);
       logoutFlagRef.current = false;
       setLogoutFlag(false);
 
@@ -527,6 +562,12 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     didRequestInitialVerifyRef.current = true;
+    const storedAccess = getStoredAccessToken();
+    if (storedAccess) {
+      inMemoryToken = storedAccess;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
+      attachToken(storedAccess);
+    }
     verifyAuth();
   }, [verifyAuth]);
 
