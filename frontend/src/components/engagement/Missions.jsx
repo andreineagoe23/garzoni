@@ -3,12 +3,15 @@ import React, {
   useEffect,
   useReducer,
   useCallback,
+  useMemo,
+  useRef,
 } from "react";
 import axios from "axios";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
+import toast from "react-hot-toast";
 
 const initialState = {
   dailyMissions: [],
@@ -106,11 +109,14 @@ function FactCard({ fact, onMarkRead }) {
 
 function Missions() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, loadProfile } = useAuth();
   const [showSavingsMenu, setShowSavingsMenu] = useState(false);
   const [savingsAmount, setSavingsAmount] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentFact, setCurrentFact] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [celebrationMessage, setCelebrationMessage] = useState("");
+  const completedMissionsRef = useRef(new Set());
 
   const checkLessonMissionProgress = useCallback(async () => {
     try {
@@ -150,6 +156,33 @@ function Missions() {
         type: "setWeeklyMissions",
         payload: response.data.weekly_missions || [],
       });
+
+      const allMissions = [
+        ...(response.data.daily_missions || []),
+        ...(response.data.weekly_missions || []),
+      ];
+
+      const newCompletions = allMissions.filter(
+        (mission) => mission.status === "completed"
+      );
+
+      newCompletions.forEach((mission) => {
+        if (!completedMissionsRef.current.has(mission.id)) {
+          completedMissionsRef.current.add(mission.id);
+          const announcement = `Completed ${mission.name} (+${mission.points_reward} XP)`;
+          setCelebrationMessage(announcement);
+          toast.success(announcement, {
+            icon: "🎉",
+            duration: 3000,
+          });
+        }
+      });
+
+      allMissions
+        .filter((mission) => mission.status !== "completed")
+        .forEach((mission) => {
+          completedMissionsRef.current.delete(mission.id);
+        });
     } catch (error) {
       setErrorMessage("Failed to load missions. Please try again.");
     } finally {
@@ -190,6 +223,16 @@ function Missions() {
   }, [getAccessToken]);
 
   useEffect(() => {
+    const hydrateProfile = async () => {
+      try {
+        const profilePayload = await loadProfile();
+        setProfile(profilePayload);
+      } catch (error) {
+        setErrorMessage("Failed to load profile insights.");
+      }
+    };
+
+    hydrateProfile();
     fetchMissions();
     fetchSavingsBalance();
     loadNewFact();
@@ -208,6 +251,7 @@ function Missions() {
     fetchSavingsBalance,
     loadNewFact,
     checkLessonMissionProgress,
+    loadProfile,
   ]);
 
   const markFactRead = async () => {
@@ -254,6 +298,77 @@ function Missions() {
     }
   };
 
+  const userLevel = useMemo(() => {
+    const points = profile?.user_data?.points ?? profile?.points ?? 0;
+    if (points >= 2500) return "advanced";
+    if (points >= 750) return "intermediate";
+    return "beginner";
+  }, [profile]);
+
+  const getLessonRequirement = (mission) => {
+    const baseRequired = mission.goal_reference?.required_lessons;
+    if (baseRequired) return baseRequired;
+    if (userLevel === "advanced") return 3;
+    if (userLevel === "intermediate") return 2;
+    return 1;
+  };
+
+  const purposeStatement = (mission) => {
+    switch (mission.goal_type) {
+      case "complete_lesson":
+        return "Building lesson momentum strengthens recall and keeps your streak alive.";
+      case "add_savings":
+        return "Adding to your savings jar nudges you closer to your emergency fund.";
+      case "read_fact":
+        return "Quick money facts sharpen your intuition for smarter choices.";
+      case "complete_path":
+        return "Finishing a path cements mastery across related skills.";
+      default:
+        return "Completing this mission keeps your learning loop tight.";
+    }
+  };
+
+  const suggestedSavings = useMemo(() => {
+    const coinUnit = showSavingsMenu ? 1 : 1;
+    const target = showSavingsMenu ? 10 : 10;
+    if (state.virtualBalance >= target) return coinUnit;
+    const remainder = state.virtualBalance % coinUnit;
+    return remainder === 0 ? coinUnit : coinUnit - remainder;
+  }, [showSavingsMenu, state.virtualBalance]);
+
+  useEffect(() => {
+    if (showSavingsMenu && !savingsAmount) {
+      setSavingsAmount(String(suggestedSavings));
+    }
+  }, [showSavingsMenu, suggestedSavings, savingsAmount]);
+
+  const totalXpEarned = useMemo(() => {
+    const missions = [...state.dailyMissions, ...state.weeklyMissions];
+    return missions
+      .filter((mission) => mission.status === "completed")
+      .reduce((total, mission) => total + (mission.points_reward || 0), 0);
+  }, [state.dailyMissions, state.weeklyMissions]);
+
+  const missionsRemaining = state.dailyMissions.filter(
+    (mission) => mission.status !== "completed"
+  ).length;
+
+  const dailyXpEarned = state.dailyMissions
+    .filter((mission) => mission.status === "completed")
+    .reduce((total, mission) => total + (mission.points_reward || 0), 0);
+
+  const dailyXpRemaining = state.dailyMissions
+    .filter((mission) => mission.status !== "completed")
+    .reduce((total, mission) => total + (mission.points_reward || 0), 0);
+
+  const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
+
+  const allDailyCompleted =
+    state.dailyMissions.length > 0 && missionsRemaining === 0;
+
+  const streakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
+  const reviewDue = profile?.reviews_due ?? 0;
+
   const renderMissionCard = (mission, isDaily = true) => {
     const progressPercent = Math.min(
       100,
@@ -272,8 +387,18 @@ function Missions() {
         : mission.goal_type === "read_fact"
         ? `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`
         : mission.goal_type === "complete_lesson"
-        ? `${progressPercent}% of required lesson(s)`
+        ? `${progressPercent}% of your ${getLessonRequirement(mission)}-lesson target`
         : `${progressPercent}% complete`;
+
+    const completedLessons =
+      mission.goal_type === "complete_lesson"
+        ? Math.min(
+            getLessonRequirement(mission),
+            Math.round(
+              (Math.max(mission.progress, 0) / 100) * getLessonRequirement(mission)
+            )
+          )
+        : null;
 
     return (
       <GlassCard
@@ -295,6 +420,9 @@ function Missions() {
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
             {mission.description}
           </p>
+          <p className="text-xs font-semibold text-[color:var(--accent,#2563eb)]">
+            Why this matters: {purposeStatement(mission)}
+          </p>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
               <span>Progress</span>
@@ -311,12 +439,25 @@ function Missions() {
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
               {isCompleted ? "Completed! 🎉" : progressDetail}
             </p>
+            {completedLessons !== null && (
+              <p className="text-[0.7rem] text-[color:var(--muted-text,#6b7280)]">
+                Level-aware target: {getLessonRequirement(mission)} lesson
+                {getLessonRequirement(mission) !== 1 ? "s" : ""}. Estimated
+                completed today: {completedLessons}.
+              </p>
+            )}
           </div>
         </header>
 
         {isCompleted ? (
-          <div className="mt-4 inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-500">
-            Completed! 🎉
+          <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-700 shadow-inner shadow-emerald-500/20">
+            <div className="flex items-center justify-between font-semibold">
+              <span>Mission complete</span>
+              <span>+{mission.points_reward} XP</span>
+            </div>
+            <p className="text-[color:var(--muted-text,#047857)]">
+              Great work! Keep the momentum to unlock streak and leaderboard boosts.
+            </p>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
@@ -336,6 +477,9 @@ function Missions() {
                       coinUnit={isDaily ? 1 : 10}
                       target={isDaily ? 10 : 100}
                     />
+                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                      Suggested deposit is prefilled to unlock your next coin faster.
+                    </p>
                     <form
                       onSubmit={handleSavingsSubmit}
                       className="flex flex-col gap-3 sm:flex-row"
@@ -403,6 +547,39 @@ function Missions() {
           </p>
         </header>
 
+        <GlassCard padding="md" className="bg-[color:var(--card-bg,#ffffff)]/70">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                Progress at a glance
+              </p>
+              <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                {missionsRemaining} mission{missionsRemaining === 1 ? "" : "s"} left today
+              </p>
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                {dailyXpEarned} XP earned · {dailyXpRemaining} XP still on the table
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent,#111827)] md:text-right">
+              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-4 py-3 shadow-sm">
+                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  Streak
+                </p>
+                <p className="text-base font-semibold">{streakCount} days</p>
+              </div>
+              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-4 py-3 shadow-sm">
+                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  Total XP today
+                </p>
+                <p className="text-base font-semibold">{dailyXpEarned} / {dailyXpTotal}</p>
+              </div>
+            </div>
+          </div>
+          <div className="sr-only" aria-live="polite">
+            {celebrationMessage}
+          </div>
+        </GlassCard>
+
         {errorMessage && (
           <GlassCard padding="md" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20">
             {errorMessage}
@@ -420,6 +597,27 @@ function Missions() {
                 renderMissionCard(mission, true)
               )}
             </div>
+
+            {allDailyCompleted && (
+              <GlassCard padding="lg" className="bg-[color:var(--card-bg,#ffffff)]/80">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                      Daily mission wrap-up
+                    </p>
+                    <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                      You banked {dailyXpEarned} XP today
+                    </p>
+                    <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                      Streak: {streakCount} day{streakCount === 1 ? "" : "s"} · Review due: {reviewDue}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)] shadow-[color:var(--accent,#2563eb)]/20">
+                    Keep going! Weekly missions and reviews will boost mastery next.
+                  </div>
+                </div>
+              </GlassCard>
+            )}
 
             {state.weeklyMissions.length > 0 && (
               <div className="space-y-6">
