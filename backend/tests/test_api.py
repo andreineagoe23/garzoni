@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class AuthenticatedTestCase(APITestCase):
     """Base test case for authenticated users, setting up a user, path, course, and lesson for testing."""
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="password123")
+        self.user = User.objects.create_user(username="testuser", password="unit-test-password!")
         self.client.force_authenticate(user=self.user)
         self.path = Path.objects.create(title="Test Path", description="...")
         self.course = Course.objects.create(title="Test Course", description="...", path=self.path)
@@ -22,9 +22,9 @@ class AuthenticatedTestCase(APITestCase):
 class UserLoginTest(APITestCase):
     """Test case for user login functionality, ensuring token generation works as expected."""
     def test_login(self):
-        User.objects.create_user(username="testuser", password="password123")
+        User.objects.create_user(username="testuser", password="unit-test-password!")
         url = reverse('token_obtain_pair')
-        data = {"username": "testuser", "password": "password123"}
+        data = {"username": "testuser", "password": "unit-test-password!"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)
@@ -64,8 +64,8 @@ class MissionLogicTest(AuthenticatedTestCase):
 class ReferralTest(AuthenticatedTestCase):
     """Test case for referral submission, ensuring referral codes are applied successfully."""
     def test_referral_submission(self):
-        referrer = User.objects.create_user(username='referrer', password='pass123')
-        referrer_profile = referrer.userprofile
+        referrer = User.objects.create_user(username='referrer', password='unit-test-password!')
+        referrer_profile = referrer.profile
         referral_code = referrer_profile.referral_code
         response = self.client.post('/api/referrals/', {"referral_code": referral_code}, format='json')
         self.assertEqual(response.status_code, 200)
@@ -82,5 +82,9 @@ class PaymentVerificationTest(AuthenticatedTestCase):
             response = self.client.post('/api/verify-session/', {"session_id": session_id}, format='json')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["status"], "verified")
+            profile = UserProfile.objects.get(user=self.user)
+            self.assertTrue(profile.has_paid)
+            self.assertTrue(profile.is_premium)
+            self.assertEqual(profile.subscription_status, 'active')
             logger.info("✅ test_payment_verification_success passed")
 

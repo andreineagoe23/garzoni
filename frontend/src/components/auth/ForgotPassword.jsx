@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/monevo.png";
 
@@ -18,7 +19,7 @@ function ForgotPassword() {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/password-reset/`,
+        `${BACKEND_URL}/password-reset/`,
         { email }
       );
       setMessage(response.data.message || "Reset link sent. Please check your inbox.");

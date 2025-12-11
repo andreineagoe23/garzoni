@@ -21,8 +21,14 @@ function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || "/all-topics";
-      navigate(from, { replace: true });
+      // Avoid redirect loops into gated flows that immediately bounce to questionnaires/upgrade
+      const from = location.state?.from?.pathname;
+      const gatedPaths = ["/personalized-path", "/upgrade", "/payment-required"];
+      const destination = gatedPaths.includes(from) ? "/all-topics" : from;
+
+      // Default to the main dashboard when there's no safe destination
+      const targetPath = destination || "/all-topics";
+      navigate(targetPath, { replace: true });
     }
   }, [isAuthenticated, navigate, location.state]);
 

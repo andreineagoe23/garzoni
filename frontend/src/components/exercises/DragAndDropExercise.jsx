@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
@@ -37,7 +38,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
       if (!exerciseId) return;
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/exercises/progress/${exerciseId}/`,
+          `${BACKEND_URL}/exercises/progress/${exerciseId}/`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -89,7 +90,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 
       try {
         await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/lessons/complete/`,
+          `${BACKEND_URL}/lessons/complete/`,
           { lesson_id: exerciseId },
           {
             headers: {
@@ -113,7 +114,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   const handleRetry = async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/exercises/reset/`,
+        `${BACKEND_URL}/exercises/reset/`,
         { section_id: exerciseId },
         {
           headers: {

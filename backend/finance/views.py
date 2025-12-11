@@ -4,8 +4,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from datetime import timedelta
+
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Count
+from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
@@ -16,14 +20,16 @@ from django.conf import settings
 
 from finance.models import (
     FinanceFact, UserFactProgress, SimulatedSavingsAccount, Reward,
-    UserPurchase, PortfolioEntry, FinancialGoal
+    UserPurchase, PortfolioEntry, FinancialGoal, FunnelEvent
 )
+from django.contrib.auth import get_user_model
 from finance.serializers import (
     SimulatedSavingsAccountSerializer, RewardSerializer, UserPurchaseSerializer,
     PortfolioEntrySerializer, FinancialGoalSerializer
 )
 from authentication.models import UserProfile
 from gamification.models import MissionCompletion
+from finance.utils import record_funnel_event
 
 logger = logging.getLogger(__name__)
 
@@ -486,15 +492,50 @@ class StripeWebhookView(APIView):
             event = stripe.Webhook.construct_event(
                 payload, sig_header, webhook_secret
             )
+            logger.info("Stripe webhook received", extra={"event_type": event.get('type')})
+
+            record_funnel_event(
+                "webhook_received",
+                user=request.user if request.user.is_authenticated else None,
+                metadata={"event_type": event.get("type")},
+            )
 
             if event['type'] == 'checkout.session.completed':
                 session = event['data']['object']
                 user_id = session['client_reference_id']
+                payment_status = session.get('payment_status', '')
+                session_status = session.get('status', '')
+                subscription_status = 'active' if payment_status == 'paid' else (payment_status or session_status or 'completed')
 
                 with transaction.atomic():
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
                     if not user_profile.has_paid:
                         user_profile.has_paid = True
+                    user_profile.is_premium = True
+                    user_profile.subscription_status = subscription_status
+                    user_profile.stripe_payment_id = session.get('payment_intent', '')
+                    user_profile.save(update_fields=[
+                        'has_paid',
+                        'is_premium',
+                        'subscription_status',
+                        'stripe_payment_id'
+                    ])
+
+                    cache.delete_many([
+                        f'user_payment_status_{user_id}',
+                        f'user_profile_{user_id}'
+                    ])
+
+            elif event['type'] in {'checkout.session.expired', 'checkout.session.async_payment_failed'}:
+                session = event['data']['object']
+                user_id = session.get('client_reference_id')
+                if user_id:
+                    session_status = session.get('status', 'expired')
+                    with transaction.atomic():
+                        user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
+                        user_profile.subscription_status = session_status
+                        user_profile.save(update_fields=['subscription_status'])
+
                         user_profile.stripe_payment_id = session.get('payment_intent', '')
                         user_profile.save(update_fields=['has_paid', 'stripe_payment_id'])
 
@@ -503,11 +544,28 @@ class StripeWebhookView(APIView):
                             f'user_profile_{user_id}'
                         ])
 
+                        record_funnel_event(
+                            "checkout_completed",
+                            user=user_profile.user,
+                            session_id=session.get('id', ''),
+                            metadata={
+                                "payment_intent": session.get('payment_intent', ''),
+                                "amount_total": session.get('amount_total'),
+                                "currency": session.get('currency')
+                            }
+                        )
+
         except stripe.error.SignatureVerificationError as exc:
             logger.warning("Stripe signature verification failed: %s", exc)
             return HttpResponse(status=400)
         except Exception as e:
             logger.error(f"Webhook error: {str(e)}")
+            record_funnel_event(
+                "webhook_received",
+                status="error",
+                user=request.user if request.user.is_authenticated else None,
+                metadata={"error": str(e)},
+            )
 
         return HttpResponse(status=200)
 
@@ -515,7 +573,7 @@ class StripeWebhookView(APIView):
 class VerifySessionView(APIView):
     """Verify the payment status of a Stripe checkout session."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Check the payment status of a session and update the user's profile if paid."""
@@ -530,22 +588,200 @@ class VerifySessionView(APIView):
                 expand=['payment_intent']
             )
 
-            if session.payment_status == 'paid':
-                with transaction.atomic():
-                    profile = UserProfile.objects.select_for_update().get(user=request.user)
-                    profile.has_paid = True
-                    profile.stripe_payment_id = session.payment_intent.id if session.payment_intent else ''
-                    profile.save(update_fields=['has_paid', 'stripe_payment_id'])
-                    cache.set(f'user_payment_status_{request.user.id}', 'paid', 300)
-                    return Response({"status": "verified"})
+            if session.payment_status != 'paid':
+                return Response({"status": "pending"}, status=202)
 
-            return Response({"status": "pending"}, status=202)
+            target_user_id = session.client_reference_id or session.metadata.get('user_id')
+
+            if not target_user_id:
+                return Response({"error": "Missing user context for session"}, status=400)
+
+            try:
+                user_id_int = int(target_user_id)
+            except (TypeError, ValueError):
+                return Response({"error": "Invalid user context"}, status=400)
+
+            User = get_user_model()
+            try:
+                with transaction.atomic():
+                    profile = UserProfile.objects.select_for_update().get(user_id=user_id_int)
+                    profile.has_paid = True
+                    profile.is_premium = True
+                    profile.subscription_status = 'active'
+                    profile.stripe_payment_id = (
+                        session.payment_intent.id if session.payment_intent else ''
+                    )
+                    profile.save(update_fields=[
+                        'has_paid',
+                        'is_premium',
+                        'subscription_status',
+                        'stripe_payment_id'
+                    ])
+                    cache.set(f'user_payment_status_{user_id_int}', 'paid', 300)
+
+                    try:
+                        user_for_event = User.objects.get(id=user_id_int)
+                    except User.DoesNotExist:
+                        user_for_event = None
+
+                    record_funnel_event(
+                        "checkout_verified",
+                        user=user_for_event,
+                        session_id=session.get('id', ''),
+                        metadata={
+                            "payment_intent": session.get('payment_intent', ''),
+                            "amount_total": session.get('amount_total'),
+                            "currency": session.get('currency')
+                        }
+                    )
+            except UserProfile.DoesNotExist:
+                logger.warning("No profile found for verified session %s", session_id)
+                return Response({"error": "Profile not found"}, status=404)
+
+            return Response({"status": "verified"})
         except stripe.error.StripeError as e:
             logger.error(f"Stripe error: {str(e)}")
             return Response({"error": "Payment verification failed"}, status=400)
         except Exception as e:
             logger.error(f"Verification error: {str(e)}")
             return Response({"error": "Server error"}, status=500)
+
+
+class EntitlementStatusView(APIView):
+    """Expose entitlement information for authenticated users."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            plan = "paid" if profile.has_paid else "free"
+            subscription = {
+                "is_premium": bool(getattr(profile, "is_premium", False)),
+                "status": getattr(profile, "subscription_status", "inactive"),
+                "has_paid": bool(profile.has_paid),
+            }
+            payload = {
+                "entitled": bool(profile.has_paid),
+                "plan": plan,
+                "subscription": subscription,
+                "checked_at": timezone.now(),
+            }
+            record_funnel_event(
+                "entitlement_lookup",
+                user=request.user,
+                status="success",
+                metadata={"plan": plan},
+            )
+            return Response(payload)
+        except Exception as exc:
+            logger.error("Failed to fetch entitlements for user %s: %s", request.user.id, exc)
+            record_funnel_event(
+                "entitlement_lookup",
+                user=request.user,
+                status="error",
+                metadata={"error": str(exc)},
+            )
+            return Response(
+                {"error": "Unable to verify entitlements right now."}, status=503
+            )
+
+
+class FunnelEventIngestView(APIView):
+    """Allow clients to log funnel events such as pricing page views."""
+
+    permission_classes = [AllowAny]
+
+    ALLOWED_EVENT_TYPES = {
+        "pricing_view",
+        "checkout_created",
+        "checkout_completed",
+        "entitlement_lookup",
+        "webhook_received",
+    }
+
+    def post(self, request):
+        event_type = request.data.get("event_type")
+        status = request.data.get("status", "success")
+        session_id = request.data.get("session_id", "")
+        metadata = request.data.get("metadata", {}) or {}
+
+        if event_type not in self.ALLOWED_EVENT_TYPES:
+            return Response({"error": "Unsupported event type"}, status=400)
+
+        record_funnel_event(
+            event_type,
+            status=status,
+            user=request.user if request.user.is_authenticated else None,
+            session_id=session_id,
+            metadata=metadata,
+        )
+
+        logger.info(
+            "Funnel event recorded",
+            extra={"event_type": event_type, "status": status},
+        )
+
+        return Response({"ok": True})
+
+
+class FunnelMetricsView(APIView):
+    """Summarise funnel performance for administrators."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response(status=403)
+
+        days = int(request.query_params.get("days", 30))
+        since = timezone.now() - timedelta(days=days)
+
+        events = FunnelEvent.objects.filter(created_at__gte=since)
+
+        def count(event_type, status=None):
+            queryset = events.filter(event_type=event_type)
+            if status:
+                queryset = queryset.filter(status=status)
+            return queryset.count()
+
+        pricing_views = count("pricing_view")
+        checkouts_created = count("checkout_created")
+        checkouts_completed = count("checkout_completed")
+        entitlement_success = count("entitlement_lookup", status="success")
+        entitlement_failures = count("entitlement_lookup", status="error")
+
+        daily = (
+            events.annotate(day=TruncDate("created_at"))
+            .values("event_type", "day")
+            .annotate(total=Count("id"))
+            .order_by("day")
+        )
+
+        def rate(numerator, denominator):
+            return round((numerator / denominator) * 100, 2) if denominator else 0.0
+
+        return Response(
+            {
+                "summary": {
+                    "pricing_views": pricing_views,
+                    "checkouts_created": checkouts_created,
+                    "checkouts_completed": checkouts_completed,
+                    "entitlement_success": entitlement_success,
+                    "entitlement_failures": entitlement_failures,
+                    "pricing_to_checkout_rate": rate(
+                        checkouts_created, pricing_views
+                    ),
+                    "checkout_to_paid_rate": rate(
+                        checkouts_completed, checkouts_created
+                    ),
+                    "entitlement_success_rate": rate(
+                        entitlement_success, entitlement_success + entitlement_failures
+                    ),
+                },
+                "daily_breakdown": list(daily),
+            }
+        )
 
 
 class PortfolioViewSet(viewsets.ModelViewSet):

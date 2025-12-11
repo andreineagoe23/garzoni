@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "services/backendUrl";
 import { useParams, useNavigate } from "react-router-dom";
 
 function ResetPassword() {
@@ -26,7 +27,7 @@ function ResetPassword() {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/password-reset-confirm/${uidb64}/${token}/`,
+        `${BACKEND_URL}/password-reset-confirm/${uidb64}/${token}/`,
         { new_password: password, confirm_password: confirmPassword }
       );
 

@@ -34,9 +34,13 @@ const ResetPassword = React.lazy(() => import("components/auth/ResetPassword"));
 const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
 const FAQPage = React.lazy(() => import("components/support/FAQPage"));
 const ExercisePage = React.lazy(() => import("components/exercises/ExercisePage"));
-const PaymentRequired = React.lazy(() => import("components/billing/PaymentRequired"));
+const UpgradePage = React.lazy(() => import("components/billing/Upgrade"));
 const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
 const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
+const PricingPage = React.lazy(() => import("components/landing/Pricing"));
+const PricingFunnelDashboard = React.lazy(
+  () => import("components/analytics/PricingFunnelDashboard")
+);
 
 const queryClient = new QueryClient();
 
@@ -60,10 +64,12 @@ const AppContent = () => {
     "/welcome",
     "/forgot-password",
     "/password-reset",
+    "/upgrade",
     "/questionnaire",
     "/payment-required",
     "/privacy-policy",
     "/cookie-policy",
+    "/pricing",
   ];
 
   const noNavbarPaths = publicPaths;
@@ -115,7 +121,9 @@ const AppContent = () => {
                 <Route path="/" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/questionnaire" element={<Questionnaire />} />
+                <Route path="/upgrade" element={<UpgradePage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route
@@ -137,7 +145,7 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/payment-required" element={<PaymentRequired />} />
+                <Route path="/payment-required" element={<UpgradePage />} />
                 <Route
                   path="/profile"
                   element={
@@ -199,6 +207,14 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <Missions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pricing-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <PricingFunnelDashboard />
                     </ProtectedRoute>
                   }
                 />

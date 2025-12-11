@@ -3,14 +3,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import Cookies from "js-cookie";
 import { useTheme } from "contexts/ThemeContext";
+import { useAuth } from "contexts/AuthContext";
 
-const VISIBLE_PATHS = new Set(["/", "/register", "/login"]);
+const VISIBLE_PATHS = new Set(["/", "/register", "/login", "/pricing"]);
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
-
+  const { isAuthenticated, isInitialized } = useAuth();
+  
   if (!VISIBLE_PATHS.has(location.pathname)) {
     return null;
   }
@@ -27,12 +29,20 @@ function Header() {
   return (
     <header className="fixed left-0 right-0 top-0 z-[1100] border-b border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
       <div className="mx-auto flex h-[70px] w-full max-w-5xl items-center justify-between px-4 sm:px-6">
-        <a
-          href="/"
-          className="text-2xl font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]"
-        >
-          monevo
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            href="/"
+            className="text-2xl font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]"
+          >
+            monevo
+          </a>
+
+          {isInitialized && isAuthenticated && (
+            <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30">
+              Premium Ready
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           <button

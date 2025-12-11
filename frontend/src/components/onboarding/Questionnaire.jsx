@@ -4,6 +4,7 @@ import axios from "axios";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const Questionnaire = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -11,6 +12,8 @@ const Questionnaire = () => {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [submitStatus, setSubmitStatus] = useState("idle");
+  const [submitFeedback, setSubmitFeedback] = useState("");
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
 
@@ -18,7 +21,7 @@ const Questionnaire = () => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
+          `${BACKEND_URL}/enhanced-questionnaire/`,
           {
             headers: {
               Authorization: `Bearer ${getAccessToken()}`,
@@ -82,8 +85,11 @@ const Questionnaire = () => {
 
   const handleSubmit = async () => {
     try {
+      setSubmitStatus("submitting");
+      setSubmitFeedback("Preparing secure checkout session...");
+
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/enhanced-questionnaire/`,
+        `${BACKEND_URL}/enhanced-questionnaire/`,
         { answers },
         {
           headers: {
@@ -93,12 +99,19 @@ const Questionnaire = () => {
       );
 
       if (response.data.redirect_url) {
-        window.location.href = response.data.redirect_url;
+        setSubmitStatus("success");
+        setSubmitFeedback("Redirecting to secure checkout...");
+        window.location.assign(response.data.redirect_url);
       } else {
+        setSubmitStatus("success");
+        setSubmitFeedback("Questionnaire submitted! Loading your personalized path.");
         navigate("/personalized-path");
       }
     } catch (submitError) {
-      setError(submitError.response?.data?.error || "Payment setup failed");
+      setSubmitStatus("error");
+      setSubmitFeedback(
+        submitError.response?.data?.error || "Payment setup failed"
+      );
     }
   };
 
@@ -315,13 +328,27 @@ const Questionnaire = () => {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!hasAnswer}
+                disabled={!hasAnswer || submitStatus === "submitting"}
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Submit Questionnaire
+                {submitStatus === "submitting"
+                  ? "Submitting..."
+                  : "Submit Questionnaire"}
               </button>
             )}
           </div>
+
+          {submitStatus !== "idle" && (
+            <div
+              className={`rounded-2xl border px-4 py-3 text-sm ${
+                submitStatus === "error"
+                  ? "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                  : "border-[color:var(--accent,#2563eb)]/30 bg-[color:var(--accent,#2563eb)]/5 text-[color:var(--accent,#2563eb)]"
+              }`}
+            >
+              {submitFeedback}
+            </div>
+          )}
         </GlassCard>
       </div>
     </section>

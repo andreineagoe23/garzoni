@@ -1,17 +1,37 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
+import UpsellModal from "components/billing/UpsellModal";
+import { consumeEntitlement, fetchEntitlements } from "services/entitlementsService";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
   const [balance, setBalance] = useState("0.00");
   const didFetchRef = useRef(false);
   const shareCardRef = useRef(null);
+  const [lockedFeature, setLockedFeature] = useState(null);
+  const [showUpsell, setShowUpsell] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState({
+    hasPaid: false,
+    questionnaireComplete: false,
+  });
+  const navigate = useNavigate();
   const { loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: entitlementsData } = useQuery({
+    queryKey: ["entitlements"],
+    queryFn: fetchEntitlements,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const downloadsFeature = entitlementsData?.data?.features?.downloads;
 
   const fetchBalance = useCallback(
     async (force = false) => {
@@ -19,12 +39,16 @@ function RewardsPage() {
         const profilePayload = await loadProfile(
           force ? { force: true } : undefined
         );
+        const userData = profilePayload?.user_data || profilePayload || {};
         const earned =
-          profilePayload?.user_data?.earned_money ??
-          profilePayload?.earned_money ??
+          userData?.earned_money ??
           0;
         const normalized = Number.parseFloat(earned) || 0;
         setBalance(normalized.toFixed(2));
+        setSubscriptionInfo({
+          hasPaid: Boolean(userData?.has_paid),
+          questionnaireComplete: Boolean(userData?.is_questionnaire_completed),
+        });
       } catch (error) {
         console.error("Error fetching balance:", error);
       }
@@ -39,6 +63,35 @@ function RewardsPage() {
     }
   }, [fetchBalance]);
 
+  const guardDownloads = useCallback(async () => {
+    if (!downloadsFeature) return true;
+
+    if (!downloadsFeature.enabled || downloadsFeature.remaining_today === 0) {
+      setLockedFeature("downloads");
+      setShowUpsell(true);
+      toast.error(
+        downloadsFeature.enabled
+          ? "You've reached today's download limit. Upgrade for unlimited downloads."
+          : "Downloads are Premium only. Upgrade to unlock."
+      );
+      return false;
+    }
+
+    try {
+      await consumeEntitlement("downloads");
+      queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+      return true;
+    } catch (error) {
+      setLockedFeature("downloads");
+      setShowUpsell(true);
+      toast.error(
+        error.response?.data?.error ||
+          "We couldn't verify your download allowance. Please try again."
+      );
+      return false;
+    }
+  }, [downloadsFeature, queryClient]);
+
   const handlePurchase = useCallback(async () => {
     await fetchBalance(true);
   }, [fetchBalance]);
@@ -47,19 +100,45 @@ function RewardsPage() {
     await fetchBalance(true);
   }, [fetchBalance]);
 
+  const handleSubscriptionNavigate = useCallback(() => {
+    if (!subscriptionInfo.questionnaireComplete) {
+      navigate("/questionnaire");
+      return;
+    }
+    if (!subscriptionInfo.hasPaid) {
+      navigate("/upgrade", { state: { from: "/rewards" } });
+      return;
+    }
+    navigate("/personalized-path");
+  }, [navigate, subscriptionInfo.hasPaid, subscriptionInfo.questionnaireComplete]);
+
   const handleShare = useCallback(async () => {
     try {
+      const allowed = await guardDownloads();
+      if (!allowed) return;
+
       const target = shareCardRef.current;
       if (!target) return;
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(target);
       const dataUrl = canvas.toDataURL("image/png");
 
-      if (navigator.share) {
+      // Use the Web Share API with files when possible; otherwise fall back to download
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "monevo-achievement.png", {
+        type: "image/png",
+      });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "I just unlocked rewards on Monevo!",
           text: "Check out my latest achievement.",
-          url: dataUrl,
+          files: [file],
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: "I just unlocked rewards on Monevo!",
+          text: "Check out my latest achievement.",
         });
       } else {
         const link = document.createElement("a");
@@ -72,7 +151,7 @@ function RewardsPage() {
       console.error("Share failed", error);
       toast.error("Unable to generate share image right now.");
     }
-  }, []);
+  }, [guardDownloads]);
 
   return (
     <PageContainer maxWidth="6xl" layout="none" innerClassName="flex flex-col gap-8">
@@ -99,6 +178,31 @@ function RewardsPage() {
         </div>
       </GlassCard>
 
+      <GlassCard
+        padding="md"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+            Subscription status
+          </p>
+          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            {subscriptionInfo.hasPaid
+              ? "You're all set with Premium access."
+              : "Upgrade to unlock unlimited personalized learning."}
+          </p>
+        </div>
+        <GlassButton
+          variant="ghost"
+          onClick={handleSubscriptionNavigate}
+          icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
+        >
+          {subscriptionInfo.hasPaid
+            ? "View your personalized path"
+            : "Check subscription options"}
+        </GlassButton>
+      </GlassCard>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
           <GlassButton
@@ -117,8 +221,15 @@ function RewardsPage() {
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
             Coins refresh automatically after each purchase or donation.
           </p>
-          <GlassButton variant="ghost" onClick={handleShare}>
-            Share achievement card
+          <GlassButton
+            variant="ghost"
+            onClick={handleShare}
+            icon={downloadsFeature && !downloadsFeature.enabled ? "🔒" : "⬇️"}
+            disabled={downloadsFeature?.remaining_today === 0}
+          >
+            {downloadsFeature?.remaining_today === 0
+              ? "Download limit reached"
+              : "Share achievement card"}
           </GlassButton>
         </div>
 
@@ -129,6 +240,11 @@ function RewardsPage() {
           <DonationCauses onDonate={handleDonation} />
         )}
       </GlassCard>
+      <UpsellModal
+        open={showUpsell}
+        onClose={() => setShowUpsell(false)}
+        feature={lockedFeature || "downloads"}
+      />
     </PageContainer>
   );
 }
