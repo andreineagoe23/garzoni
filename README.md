@@ -1,185 +1,64 @@
-# Monevo: A Gamified Platform for Financial Learning
+# Monevo: Gamified Financial Learning Platform
 
-Monevo is an interactive and engaging financial education platform designed to make learning about personal finance, investing, and trading more accessible and enjoyable. By incorporating gamification elements such as personalized learning paths, badges, leaderboards, and quizzes, Monevo transforms financial education into a dynamic experience.
+Monevo delivers interactive personal finance education with gamified progression and AI tutoring. Users complete learning paths, earn badges, compete on leaderboards, and explore finance tools across budgeting, investing, and trading.
 
-## 🚀 Features
+## Features
 
-### 📚 Personalized Learning
+- Personalized learning paths (Basic Finance, Forex, Crypto, Real Estate, Budgeting).
+- Gamification: badges, streaks, leaderboards, rewards.
+- AI tutor via OpenRouter-powered assistant for finance Q&A.
+- Finance tools: converters, calculators, trackers, and portfolio helpers.
 
-- Users receive a customized learning pathway based on their financial knowledge and goals.
-- Lessons cover Forex, Crypto, Real Estate, Budgeting, and Basic Finance.
+## Tech Stack
 
-### 🎮 Gamification Elements
+- Frontend: React, SCSS, Vite (dev), Vercel (typical deploy).
+- Backend: Django REST Framework, Celery, Redis, MySQL (prod) or SQLite (dev).
+- Auth: JWT via djangorestframework-simplejwt.
+- Background work: Celery beat/results for scheduled tasks.
 
-- Badges and achievement rewards for completing lessons.
-- Streak tracking for consistent learning.
-- Leaderboard with global and friends-only ranking.
+## Getting Started
 
-### 🤖 AI-Powered Chatbot
+### Clone
 
-- Provides real-time market data and financial insights.
-- Assists users with finance-related queries.
+git clone https://github.com/andreineagoe23/monevo.git
+cd monevo
 
-### 📊 Financial Tools
+### Backend (API)
 
-- **Forex Tools:** Currency converter, economic calendar, chart analysis.
-- **Crypto Tools:** Price tracker, portfolio manager, blockchain explorer.
-- **Real Estate Tools:** Mortgage calculator, rental yield estimator.
-- **Budgeting Tools:** Expense tracker, savings goal planner, debt repayment calculator.
+cd backend
+python -m venv venv
+venv\Scripts\activate  # on Windows; use source venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
 
-## 🛠️ Tech Stack
+- By default uses SQLite in DEBUG. Set DATABASE_URL for MySQL/Postgres in production.
+- Celery/Redis are optional in local dev; enable when running scheduled tasks.
+- Environment variables are documented in backend/ENV_VARIABLES.md.
 
-### Frontend
+### Frontend (Web)
 
-- **React.js** (UI development, responsive design)
-- **SCSS** (Custom styling)
-- **Vercel** (Deployment)
+cd frontend
+npm install
+npm run dev
 
-### Backend
+- Set REACT_APP_BACKEND_URL to point to your API.
+- Build for production with npm run build.
 
-- **Django REST Framework** (API development)
-- **MySQL** (Database management)
-- **Celery & Redis** (Asynchronous task processing)
-- **PythonAnywhere** (Backend deployment)
+## Deployment Notes
 
-### APIs & Integrations
+- Frontend: Vercel-friendly static build (npm run build).
+- Backend: WSGI-compatible (e.g., PythonAnywhere). Configure ALLOWED_HOSTS, CORS/CSRF origins, SECRET_KEY, DB credentials, Stripe keys, reCAPTCHA, and email settings via environment variables.
+- Static files served by WhiteNoise; media served from MEDIA_ROOT or external storage in production.
 
-- **TradingView, CoinGecko, Plaid** (Financial data and tools)
-- **Dialogflow** (AI-powered chatbot)
+## Security & Operations
 
-## 📦 Installation & Setup
+- Keep secrets in environment variables; do not commit credentials. Rotate any previously committed keys.
+- Use HTTPS and restrict CORS_ALLOWED_ORIGINS/CSRF_TRUSTED_ORIGINS to trusted domains.
+- JWTs: access tokens via Authorization header; configure lifetimes in SIMPLE_JWT.
+- Run dependency checks regularly (pip-audit, npm audit) and keep requirements.txt/package-lock.json updated.
 
-### 1️⃣ Clone the Repository
+## Contributing
 
-```sh
- git clone https://github.com/andreineagoe23/monevo.git
- cd monevo
-```
+Pull requests are welcome. Please open an issue for major changes first to discuss what you would like to modify. Ensure lint/tests pass before submitting.
 
-### 2️⃣ Backend Setup
-
-```sh
- cd backend
- python -m venv venv
- source venv/bin/activate  # On Windows: venv\Scripts\activate
- pip install -r requirements.txt
- python manage.py migrate
- python manage.py runserver
-```
-
-### 3️⃣ Frontend Setup
-
-```sh
- cd ../frontend
- npm install
- npm run dev
-```
-
-## 🚀 Deployment
-
-- **Frontend:** Vercel - [Live Demo](https://www.monevo.tech)
-- **Backend:** PythonAnywhere
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to fork the repository and submit pull requests.
-
-## 📩 Contact
-
-For any questions or collaboration opportunities, reach out via email: `neagoe.andrei23@yahoo.com`
-
----
-
-**Monevo - Transforming Financial Education Through Gamification** 🎓💰
-
-# Security and Deployment Guide
-
-## Security Enhancements
-
-This application has been updated with enhanced security features:
-
-1. **Token Handling**
-
-   - Access tokens are stored in memory (not localStorage)
-   - Refresh tokens are stored in HttpOnly cookies
-   - Automatic token refresh on 401 errors
-
-2. **reCAPTCHA Integration**
-
-   - Login and Registration forms use Google reCAPTCHA
-   - Protection against automated attacks
-   - Sign up for an API key at https://www.google.com/recaptcha
-
-3. **Environment Variables**
-   - All sensitive information is stored in environment variables
-   - `.env.example` file provided as a template
-
-## Deployment Setup
-
-### Backend (PythonAnywhere)
-
-1. **Update settings.py**
-
-   - Replace the current `settings.py` with the new version
-   - Create a `.env` file in the same directory
-   - Fill in all required environment variables
-
-2. **Environment Variables Required**
-
-   ```
-   SECRET_KEY=your-secret-key-here
-   DEBUG=False
-   DB_PASSWORD=your-database-password
-   EMAIL_HOST_USER=your-email@gmail.com
-   EMAIL_HOST_PASSWORD=your-app-password
-   STRIPE_SECRET_KEY=your-stripe-secret-key
-   STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
-   STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
-   RECAPTCHA_PUBLIC_KEY=your-recaptcha-public-key
-   RECAPTCHA_PRIVATE_KEY=your-recaptcha-private-key
-   ```
-
-3. **API Updates**
-   - New secure authentication endpoints:
-     - `/login-secure/`
-     - `/register-secure/`
-     - `/logout-secure/`
-     - `/token/refresh/`
-     - `/verify-auth/`
-
-### Frontend (Vercel)
-
-1. **Environment Variables Required**
-
-   - Add these to your Vercel project settings:
-
-   ```
-   REACT_APP_BACKEND_URL=https://andreineagoe23.pythonanywhere.com
-   REACT_APP_RECAPTCHA_SITE_KEY=your-recaptcha-site-key
-   ```
-
-2. **Token Handling Updates**
-   - Authentication now uses in-memory tokens
-   - Automatic token refresh implemented
-   - No sensitive data in localStorage
-
-## Additional Security Recommendations
-
-1. **Always use HTTPS**
-
-   - Ensure all communication uses HTTPS
-   - Update CORS settings to only allow HTTPS origins
-
-2. **Rate Limiting**
-
-   - API rate limiting already configured
-   - Monitor for suspicious activity
-
-3. **Regular Updates**
-
-   - Keep all dependencies updated
-   - Monitor security advisories
-
-4. **Data Backups**
-   - Regularly backup your database
-   - Test restoration procedures
