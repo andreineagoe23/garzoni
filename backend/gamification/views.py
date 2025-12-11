@@ -46,6 +46,7 @@ class MissionView(APIView):
                     "progress": completion.progress,
                     "status": completion.status,
                     "goal_type": completion.mission.goal_type,
+                    "goal_reference": completion.mission.goal_reference or {},
                 })
 
             for completion in weekly_completions:
@@ -57,6 +58,7 @@ class MissionView(APIView):
                     "progress": completion.progress,
                     "status": completion.status,
                     "goal_type": completion.mission.goal_type,
+                    "goal_reference": completion.mission.goal_reference or {},
                 })
 
             return Response({
