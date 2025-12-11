@@ -61,15 +61,12 @@ const ExercisePage = () => {
       if (filters.category) params.append("category", filters.category);
       if (filters.difficulty) params.append("difficulty", filters.difficulty);
 
-      const response = await axios.get(
-        `${BACKEND_URL}/exercises/`,
-        {
-          params,
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/exercises/`, {
+        params,
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
 
       const validatedExercises = response.data.filter(
         (exercise) =>
@@ -99,14 +96,11 @@ const ExercisePage = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/exercises/categories/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/exercises/categories/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
       setCategories(response.data);
     } catch (err) {
       console.error("Failed to load categories:", err);
@@ -152,7 +146,7 @@ const ExercisePage = () => {
     } catch (err) {
       console.error("Failed to load review exercises", err);
     }
-  }, [BACKEND_URL, getAccessToken, lessonExercises, reviewQueue]);
+  }, [getAccessToken, lessonExercises, reviewQueue]);
 
   const exitReviewMode = useCallback(() => {
     setMode("lesson");
@@ -195,7 +189,13 @@ const ExercisePage = () => {
     } catch (err) {
       console.error("Failed to fetch next recommended exercise", err);
     }
-  }, [BACKEND_URL, currentExerciseIndex, exercises, getAccessToken, lessonExercises.length, progress]);
+  }, [
+    currentExerciseIndex,
+    exercises,
+    getAccessToken,
+    lessonExercises.length,
+    progress,
+  ]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -544,7 +544,9 @@ const ExercisePage = () => {
                 type="text"
                 value={userAnswer ?? ""}
                 onChange={(event) => setUserAnswer(event.target.value)}
-                placeholder={exercise.exercise_data?.placeholder || "Enter a number"}
+                placeholder={
+                  exercise.exercise_data?.placeholder || "Enter a number"
+                }
                 className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
               />
               {exercise.exercise_data?.unit && (
@@ -583,7 +585,10 @@ const ExercisePage = () => {
                       const value = event.target.value;
                       setUserAnswer((prev) => ({
                         ...prev,
-                        [category]: value === "" ? "" : Math.max(0, parseFloat(value) || 0),
+                        [category]:
+                          value === ""
+                            ? ""
+                            : Math.max(0, parseFloat(value) || 0),
                       }));
                     }}
                     className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
@@ -623,7 +628,10 @@ const ExercisePage = () => {
   if (error) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <GlassCard padding="lg" className="w-full max-w-lg border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20">
+        <GlassCard
+          padding="lg"
+          className="w-full max-w-lg border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20"
+        >
           <p>{error}</p>
           <button
             type="button"
@@ -654,13 +662,14 @@ const ExercisePage = () => {
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] lg:justify-start">
             <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/30 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#2563eb)]">
               Review Queue
-              <span className="rounded-full bg-white/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
+              <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
                 Due • {reviewQueue.count || 0}
               </span>
             </span>
             {reviewQueue.due?.length > 0 && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                Next up: {reviewQueue.due[0].skill} — {reviewQueue.due[0].question}
+                Next up: {reviewQueue.due[0].skill} —{" "}
+                {reviewQueue.due[0].question}
               </span>
             )}
             <button
@@ -669,7 +678,7 @@ const ExercisePage = () => {
               disabled={!reviewQueue?.count}
               className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
                 reviewQueue?.count
-                  ? "border border-[color:var(--accent,#2563eb)]/40 bg-white text-[color:var(--accent,#2563eb)] hover:border-[color:var(--accent,#2563eb)]/60"
+                  ? "border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#2563eb)] hover:border-[color:var(--accent,#2563eb)]/60"
                   : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
               }`}
             >
@@ -679,10 +688,17 @@ const ExercisePage = () => {
         </header>
 
         {mode === "review" && exercises.length === 0 && (
-          <GlassCard padding="lg" className="border-[color:var(--accent,#2563eb)]/30 bg-white">
+          <GlassCard
+            padding="lg"
+            className="border-[color:var(--accent,#2563eb)]/30 bg-white"
+          >
             <div className="flex flex-col gap-3 text-center">
-              <p className="text-base font-semibold text-[color:var(--accent,#111827)]">All caught up!</p>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">No review items are due right now.</p>
+              <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                All caught up!
+              </p>
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                No review items are due right now.
+              </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   type="button"
@@ -704,9 +720,12 @@ const ExercisePage = () => {
         )}
 
         {showStats && (
-          <GlassCard padding="md" className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20">
-            🎉 Congratulations! You've completed this session. Review your
-            stats or start a new round below.
+          <GlassCard
+            padding="md"
+            className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20"
+          >
+            🎉 Congratulations! You've completed this session. Review your stats
+            or start a new round below.
           </GlassCard>
         )}
 
@@ -824,7 +843,9 @@ const ExercisePage = () => {
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">Hints</h4>
+                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                    Hints
+                  </h4>
                   <button
                     type="button"
                     onClick={revealNextHint}
@@ -845,13 +866,17 @@ const ExercisePage = () => {
                       </div>
                     ))}
                   {hintIndex === 0 && (
-                    <p className="italic">Use hints if you need a nudge. Each one costs a little XP.</p>
+                    <p className="italic">
+                      Use hints if you need a nudge. Each one costs a little XP.
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
-                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">Assist</h4>
+                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  Assist
+                </h4>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                     Scratchpad
@@ -871,7 +896,9 @@ const ExercisePage = () => {
                     <input
                       type="text"
                       value={calculatorValue}
-                      onChange={(event) => setCalculatorValue(event.target.value)}
+                      onChange={(event) =>
+                        setCalculatorValue(event.target.value)
+                      }
                       className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                       placeholder="e.g. (1+0.05/12)^12-1"
                     />
@@ -896,7 +923,8 @@ const ExercisePage = () => {
                 )}
                 {showCorrection && explanation && (
                   <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-700">
-                    <span className="font-semibold">Remember:</span> {explanation}
+                    <span className="font-semibold">Remember:</span>{" "}
+                    {explanation}
                   </div>
                 )}
               </div>
@@ -904,7 +932,9 @@ const ExercisePage = () => {
 
             <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--accent,#111827)]">Confidence</span>
+                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  Confidence
+                </span>
                 <select
                   value={confidence}
                   onChange={(event) => setConfidence(event.target.value)}
@@ -914,7 +944,9 @@ const ExercisePage = () => {
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
                 </select>
-                <span className="text-xs">Low confidence will schedule similar practice sooner.</span>
+                <span className="text-xs">
+                  Low confidence will schedule similar practice sooner.
+                </span>
               </div>
 
               {showCorrection ? (
@@ -990,35 +1022,58 @@ const ExercisePage = () => {
               Your Progress
             </h3>
             <div className="mt-4 space-y-3">
-              {exercises.map((_, index) => (
-                <div
-                  key={`progress-${index}`}
-                  className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
-                    progress[index]?.correct
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                      : progress[index]
-                      ? "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
-                  }`}
-                >
-                  <span className="font-medium">Exercise {index + 1}</span>
-                  <span className="text-xs uppercase tracking-wide">
-                    {progress[index]?.status === "completed"
-                      ? "Completed"
-                      : progress[index]
-                      ? "Attempted"
-                      : "Not Started"}
-                  </span>
+              {exercises
+                .map((exercise, index) => ({
+                  exercise,
+                  index,
+                  progress: progress[index],
+                }))
+                .filter(
+                  ({ progress: prog }) => prog !== undefined && prog !== null
+                )
+                .map(({ index, progress: prog }) => (
+                  <div
+                    key={`progress-${index}`}
+                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
+                      prog?.correct
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                        : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                    }`}
+                  >
+                    <span className="font-medium">Exercise {index + 1}</span>
+                    <span className="text-xs uppercase tracking-wide">
+                      {prog?.status === "completed" ? "Completed" : "Attempted"}
+                    </span>
+                  </div>
+                ))}
+              {exercises.filter(
+                (_, index) =>
+                  progress[index] !== undefined && progress[index] !== null
+              ).length === 0 && (
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <p>
+                    No progress yet. Start an exercise to see your progress
+                    here!
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </GlassCard>
         </div>
       </div>
 
       {showStats && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-          <GlassCard padding="lg" className="w-full max-w-xl shadow-2xl shadow-black/30">
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          style={{
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+          }}
+        >
+          <GlassCard
+            padding="lg"
+            className="w-full max-w-xl shadow-2xl shadow-black/30"
+          >
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
               <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 <span className="mr-2">🏆</span> Exercise Session Summary
@@ -1052,9 +1107,18 @@ const ExercisePage = () => {
                   <p>{(stats.firstTryAccuracy || 0).toFixed(1)}%</p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">XP Earned</h4>
-                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">{xpTotal}</p>
-                  <p className="text-xs">Streak multiplier: {streakMultiplier > 1 ? `x${streakMultiplier.toFixed(1)}` : "none"}</p>
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    XP Earned
+                  </h4>
+                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                    {xpTotal}
+                  </p>
+                  <p className="text-xs">
+                    Streak multiplier:{" "}
+                    {streakMultiplier > 1
+                      ? `x${streakMultiplier.toFixed(1)}`
+                      : "none"}
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
@@ -1063,11 +1127,14 @@ const ExercisePage = () => {
                   <p>{stats.averageAttempts.toFixed(1)} per question</p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">Review Due</h4>
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    Review Due
+                  </h4>
                   <p>{reviewQueue.count || 0} exercises queued</p>
                   {reviewQueue.due?.length > 0 && (
                     <p className="text-xs">
-                      Next: {reviewQueue.due[0].skill} ({reviewQueue.due[0].type})
+                      Next: {reviewQueue.due[0].skill} (
+                      {reviewQueue.due[0].type})
                     </p>
                   )}
                 </div>
@@ -1096,11 +1163,16 @@ const ExercisePage = () => {
               </div>
               {Object.keys(skillGains).length > 0 && (
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
-                  <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">Skill highlights</h4>
+                  <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                    Skill highlights
+                  </h4>
                   <ul className="space-y-1 text-[color:var(--muted-text,#6b7280)]">
                     {Object.entries(skillGains).map(([skill, gain]) => (
                       <li key={skill}>
-                        <span className="font-semibold text-[color:var(--accent,#111827)]">{skill}:</span> +{gain} mastery points
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          {skill}:
+                        </span>{" "}
+                        +{gain} mastery points
                       </li>
                     ))}
                   </ul>
@@ -1109,10 +1181,14 @@ const ExercisePage = () => {
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
                 {reviewQueue.count ? (
                   <p>
-                    You have {reviewQueue.count} item(s) waiting. Do your reviews now to lock in gains.
+                    You have {reviewQueue.count} item(s) waiting. Do your
+                    reviews now to lock in gains.
                   </p>
                 ) : (
-                  <p>No reviews due. Continue the lesson or jump to a recommended next exercise.</p>
+                  <p>
+                    No reviews due. Continue the lesson or jump to a recommended
+                    next exercise.
+                  </p>
                 )}
               </div>
               <div className="flex flex-wrap justify-end gap-3">
