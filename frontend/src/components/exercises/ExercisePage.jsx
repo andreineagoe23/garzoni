@@ -7,6 +7,7 @@ import { GlassCard } from "components/ui";
 
 const ExercisePage = () => {
   const [exercises, setExercises] = useState([]);
+  const [lessonExercises, setLessonExercises] = useState([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState(null);
   const [progress, setProgress] = useState([]);
@@ -30,6 +31,7 @@ const ExercisePage = () => {
     averageAccuracy: 0,
     averageAttempts: 0,
     totalTimeSpent: 0,
+    firstTryAccuracy: 0,
   });
   const [startTime, setStartTime] = useState(Date.now());
   const [isTimedMode, setIsTimedMode] = useState(false);
@@ -38,6 +40,19 @@ const ExercisePage = () => {
   const timerRef = useRef(null);
   const [savedAnswers, setSavedAnswers] = useState({});
   const [isRetrying, setIsRetrying] = useState(false);
+  const [hintIndex, setHintIndex] = useState(0);
+  const [scratchpad, setScratchpad] = useState("");
+  const [calculatorValue, setCalculatorValue] = useState("");
+  const [submissionFeedback, setSubmissionFeedback] = useState("");
+  const [confidence, setConfidence] = useState("medium");
+  const [reviewQueue, setReviewQueue] = useState({ due: [], count: 0 });
+  const [xpTotal, setXpTotal] = useState(0);
+  const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [mode, setMode] = useState("lesson");
+  const [skillGains, setSkillGains] = useState({});
+  const [skillProficiency, setSkillProficiency] = useState({});
+  const [firstTryCorrect, setFirstTryCorrect] = useState(0);
+  const [streakMultiplier, setStreakMultiplier] = useState(1);
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -46,15 +61,12 @@ const ExercisePage = () => {
       if (filters.category) params.append("category", filters.category);
       if (filters.difficulty) params.append("difficulty", filters.difficulty);
 
-      const response = await axios.get(
-        `${BACKEND_URL}/exercises/`,
-        {
-          params,
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/exercises/`, {
+        params,
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
 
       const validatedExercises = response.data.filter(
         (exercise) =>
@@ -63,35 +75,127 @@ const ExercisePage = () => {
           exercise.exercise_data &&
           ((exercise.type === "multiple-choice" &&
             Array.isArray(exercise.exercise_data.options)) ||
+            (exercise.type === "numeric" &&
+              typeof exercise.exercise_data?.expected_value !== "undefined") ||
             (exercise.type === "drag-and-drop" &&
               Array.isArray(exercise.exercise_data.items)) ||
             (exercise.type === "budget-allocation" &&
               Array.isArray(exercise.exercise_data.categories)))
       );
 
-      setExercises(validatedExercises);
+      setLessonExercises(validatedExercises);
+      if (mode === "lesson") {
+        setExercises(validatedExercises);
+      }
       setLoading(false);
     } catch (err) {
       setError("Failed to load exercises. Please try again later.");
       setLoading(false);
     }
-  }, [filters, getAccessToken]);
+  }, [filters, getAccessToken, mode]);
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/exercises/categories/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/exercises/categories/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
       setCategories(response.data);
     } catch (err) {
       console.error("Failed to load categories:", err);
     }
   }, [getAccessToken]);
+
+  const fetchReviewQueue = useCallback(async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/review-queue/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
+      setReviewQueue(response.data);
+    } catch (err) {
+      console.error("Failed to load review queue", err);
+    }
+  }, [getAccessToken]);
+
+  const startReviewMode = useCallback(async () => {
+    if (!reviewQueue?.due?.length) {
+      setMode("lesson");
+      setExercises(lessonExercises);
+      setCurrentExerciseIndex(0);
+      return;
+    }
+
+    try {
+      const details = await Promise.all(
+        reviewQueue.due.map((item) =>
+          axios.get(`${BACKEND_URL}/exercises/${item.exercise_id}/`, {
+            headers: { Authorization: `Bearer ${getAccessToken()}` },
+          })
+        )
+      );
+      setMode("review");
+      setExercises(details.map((d) => d.data));
+      setCurrentExerciseIndex(0);
+      setProgress([]);
+      setUserAnswer(null);
+      setSubmissionFeedback("");
+      setExplanation("");
+    } catch (err) {
+      console.error("Failed to load review exercises", err);
+    }
+  }, [getAccessToken, lessonExercises, reviewQueue]);
+
+  const exitReviewMode = useCallback(() => {
+    setMode("lesson");
+    setExercises(lessonExercises);
+    setCurrentExerciseIndex(0);
+    setSubmissionFeedback("");
+    setExplanation("");
+    setProgress([]);
+  }, [lessonExercises]);
+
+  const goToRecommended = useCallback(async () => {
+    try {
+      const lastExercise = exercises[currentExerciseIndex];
+      const response = await axios.post(
+        `${BACKEND_URL}/next/`,
+        {
+          last_exercise_id: lastExercise?.id,
+          last_correct: progress[currentExerciseIndex]?.correct,
+        },
+        {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+        }
+      );
+
+      if (response.data?.exercise_id) {
+        const detail = await axios.get(
+          `${BACKEND_URL}/exercises/${response.data.exercise_id}/`,
+          { headers: { Authorization: `Bearer ${getAccessToken()}` } }
+        );
+        setMode("lesson");
+        setExercises([detail.data]);
+        if (!lessonExercises.length) {
+          setLessonExercises([detail.data]);
+        }
+        setCurrentExerciseIndex(0);
+        setProgress([]);
+        setSubmissionFeedback("");
+        setExplanation("");
+      }
+    } catch (err) {
+      console.error("Failed to fetch next recommended exercise", err);
+    }
+  }, [
+    currentExerciseIndex,
+    exercises,
+    getAccessToken,
+    lessonExercises.length,
+    progress,
+  ]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -101,12 +205,14 @@ const ExercisePage = () => {
     }
 
     fetchCategories();
+    fetchReviewQueue();
     fetchExercises();
   }, [
     isInitialized,
     isAuthenticated,
     fetchExercises,
     fetchCategories,
+    fetchReviewQueue,
     navigate,
   ]);
 
@@ -116,6 +222,8 @@ const ExercisePage = () => {
     switch (exercise.type) {
       case "drag-and-drop":
         return exercise.exercise_data.items.map((_, index) => index);
+      case "numeric":
+        return "";
       case "budget-allocation":
         return exercise.exercise_data.categories.reduce((acc, category) => {
           acc[category] = 0;
@@ -129,6 +237,10 @@ const ExercisePage = () => {
   useEffect(() => {
     if (exercises.length > 0) {
       setUserAnswer(initializeAnswer(exercises[currentExerciseIndex]));
+      setHintIndex(0);
+      setSubmissionFeedback("");
+      setScratchpad("");
+      setConfidence("medium");
     }
   }, [exercises, currentExerciseIndex]);
 
@@ -160,6 +272,12 @@ const ExercisePage = () => {
     };
   }, [isTimedMode, exercises.length]);
 
+  useEffect(() => {
+    if (sessionCompleted) {
+      setShowStats(true);
+    }
+  }, [sessionCompleted]);
+
   const handleRetry = () => {
     setIsRetrying(true);
     const updatedProgress = [...progress];
@@ -178,12 +296,16 @@ const ExercisePage = () => {
 
     setShowCorrection(false);
     setExplanation("");
+    setSubmissionFeedback("");
     setIsRetrying(false);
   };
 
   const handleSubmit = async () => {
     try {
       const currentExercise = exercises[currentExerciseIndex];
+
+      const previousProgress = progress[currentExerciseIndex] || {};
+      const wasFreshAttempt = !previousProgress.attempts;
 
       setSavedAnswers((prev) => ({
         ...prev,
@@ -192,7 +314,7 @@ const ExercisePage = () => {
 
       const response = await axios.post(
         `${BACKEND_URL}/exercises/${currentExercise.id}/submit/`,
-        { user_answer: userAnswer },
+        { user_answer: userAnswer, confidence, hints_used: hintIndex },
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -210,12 +332,38 @@ const ExercisePage = () => {
 
       setProgress(updated);
       setExplanation(response.data.explanation || "");
+      setSubmissionFeedback(response.data.feedback || "");
+      setXpTotal((prev) => prev + (response.data.xp_delta || 0));
+      fetchReviewQueue();
       setShowCorrection(true);
 
+      const projectedFirstTry =
+        response.data.correct && wasFreshAttempt
+          ? firstTryCorrect + 1
+          : firstTryCorrect;
+
+      if (response.data.correct && wasFreshAttempt) {
+        setFirstTryCorrect((prev) => prev + 1);
+      }
+
       if (response.data.correct) {
-        setStreak((prev) => prev + 1);
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        setStreakMultiplier(newStreak >= 3 ? 1.2 : 1);
       } else {
         setStreak(0);
+        setStreakMultiplier(1);
+      }
+
+      const skill = currentExercise.category || "General";
+      const before = skillProficiency[skill] || 0;
+      const after = response.data.proficiency ?? before;
+      setSkillProficiency((prev) => ({ ...prev, [skill]: after }));
+      if (after - before > 0) {
+        setSkillGains((prev) => ({
+          ...prev,
+          [skill]: (prev[skill] || 0) + (after - before),
+        }));
       }
 
       const correctAnswers = updated.filter((p) => p.correct).length;
@@ -232,6 +380,9 @@ const ExercisePage = () => {
           ? totalAttempts / exercises.length
           : 0,
         totalTimeSpent: timeSpent,
+        firstTryAccuracy: exercises.length
+          ? (projectedFirstTry / exercises.length) * 100
+          : 0,
       });
 
       if (correctAnswers === exercises.length) {
@@ -245,11 +396,43 @@ const ExercisePage = () => {
     }
   };
 
+  const revealNextHint = () => {
+    const currentExercise = exercises[currentExerciseIndex];
+    const hints = currentExercise?.exercise_data?.hints || [];
+    if (hintIndex < hints.length) {
+      setHintIndex((prev) => prev + 1);
+    }
+  };
+
+  const evaluateCalculator = () => {
+    if (!calculatorValue.trim()) return;
+    const sanitized = calculatorValue.replace(/[^0-9+\-*/().%\s]/g, "");
+    try {
+      // eslint-disable-next-line no-new-func
+      const compute = new Function(
+        `"use strict"; return (${sanitized.replace(/%/g, "*0.01")});`
+      );
+      const result = compute();
+      if (Number.isFinite(result)) {
+        setCalculatorValue(String(result));
+      }
+    } catch (err) {
+      setCalculatorValue("Check expression");
+    }
+  };
+
   const handleNext = () => {
     setShowCorrection(false);
     setExplanation("");
+    setSubmissionFeedback("");
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex((prev) => prev + 1);
+    } else {
+      setSessionCompleted(true);
+      fetchReviewQueue();
+      if (mode === "review") {
+        setExercises([]);
+      }
     }
   };
 
@@ -345,6 +528,41 @@ const ExercisePage = () => {
           </div>
         );
 
+      case "numeric":
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              {exercise.question}
+            </h3>
+            {exercise.exercise_data?.prompt && (
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                {exercise.exercise_data.prompt}
+              </p>
+            )}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <input
+                type="text"
+                value={userAnswer ?? ""}
+                onChange={(event) => setUserAnswer(event.target.value)}
+                placeholder={
+                  exercise.exercise_data?.placeholder || "Enter a number"
+                }
+                className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+              />
+              {exercise.exercise_data?.unit && (
+                <span className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)]">
+                  {exercise.exercise_data.unit}
+                </span>
+              )}
+            </div>
+            {exercise.exercise_data?.validation && (
+              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                {exercise.exercise_data.validation}
+              </div>
+            )}
+          </div>
+        );
+
       case "budget-allocation":
         return (
           <div className="space-y-4">
@@ -367,7 +585,10 @@ const ExercisePage = () => {
                       const value = event.target.value;
                       setUserAnswer((prev) => ({
                         ...prev,
-                        [category]: value === "" ? "" : Math.max(0, parseFloat(value) || 0),
+                        [category]:
+                          value === ""
+                            ? ""
+                            : Math.max(0, parseFloat(value) || 0),
                       }));
                     }}
                     className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
@@ -407,7 +628,10 @@ const ExercisePage = () => {
   if (error) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <GlassCard padding="lg" className="w-full max-w-lg border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20">
+        <GlassCard
+          padding="lg"
+          className="w-full max-w-lg border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20"
+        >
           <p>{error}</p>
           <button
             type="button"
@@ -435,12 +659,73 @@ const ExercisePage = () => {
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
             Practice interactive challenges to strengthen your money skills.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] lg:justify-start">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/30 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#2563eb)]">
+              Review Queue
+              <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
+                Due • {reviewQueue.count || 0}
+              </span>
+            </span>
+            {reviewQueue.due?.length > 0 && (
+              <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                Next up: {reviewQueue.due[0].skill} —{" "}
+                {reviewQueue.due[0].question}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={startReviewMode}
+              disabled={!reviewQueue?.count}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                reviewQueue?.count
+                  ? "border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#2563eb)] hover:border-[color:var(--accent,#2563eb)]/60"
+                  : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
+              }`}
+            >
+              Start Review
+            </button>
+          </div>
         </header>
 
+        {mode === "review" && exercises.length === 0 && (
+          <GlassCard
+            padding="lg"
+            className="border-[color:var(--accent,#2563eb)]/30 bg-white"
+          >
+            <div className="flex flex-col gap-3 text-center">
+              <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                All caught up!
+              </p>
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                No review items are due right now.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={exitReviewMode}
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/50"
+                >
+                  Back to lesson mode
+                </button>
+                <button
+                  type="button"
+                  onClick={fetchExercises}
+                  className="rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30"
+                >
+                  Refresh content
+                </button>
+              </div>
+            </div>
+          </GlassCard>
+        )}
+
         {showStats && (
-          <GlassCard padding="md" className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20">
-            🎉 Congratulations! You've completed this session. Review your
-            stats or start a new round below.
+          <GlassCard
+            padding="md"
+            className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20"
+          >
+            🎉 Congratulations! You've completed this session. Review your stats
+            or start a new round below.
           </GlassCard>
         )}
 
@@ -463,6 +748,7 @@ const ExercisePage = () => {
                 >
                   <option value="">All Types</option>
                   <option value="multiple-choice">Multiple Choice</option>
+                  <option value="numeric">Numeric</option>
                   <option value="drag-and-drop">Drag and Drop</option>
                   <option value="budget-allocation">Budget Allocation</option>
                 </select>
@@ -554,13 +840,115 @@ const ExercisePage = () => {
 
             <div className="pt-6">{renderExercise()}</div>
 
-            {showCorrection && explanation && (
-              <div className="mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)]">
-                💡 Explanation: {explanation}
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                    Hints
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={revealNextHint}
+                    className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                  >
+                    Show next hint (-5 XP)
+                  </button>
+                </div>
+                <div className="mt-3 space-y-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  {(exercises[currentExerciseIndex]?.exercise_data?.hints || [])
+                    .slice(0, hintIndex)
+                    .map((hint, index) => (
+                      <div
+                        key={`${hint}-${index}`}
+                        className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/60 px-3 py-2"
+                      >
+                        {hint}
+                      </div>
+                    ))}
+                  {hintIndex === 0 && (
+                    <p className="italic">
+                      Use hints if you need a nudge. Each one costs a little XP.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
+                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  Assist
+                </h4>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    Scratchpad
+                  </label>
+                  <textarea
+                    value={scratchpad}
+                    onChange={(event) => setScratchpad(event.target.value)}
+                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                    placeholder="Work through the steps here"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    Calculator
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={calculatorValue}
+                      onChange={(event) =>
+                        setCalculatorValue(event.target.value)
+                      }
+                      className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                      placeholder="e.g. (1+0.05/12)^12-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={evaluateCalculator}
+                      className="rounded-xl bg-[color:var(--primary,#2563eb)] px-3 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30"
+                    >
+                      =
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {(submissionFeedback || showCorrection) && (
+              <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+                {submissionFeedback && (
+                  <div className="rounded-xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-3 py-2 text-[color:var(--accent,#2563eb)]">
+                    {submissionFeedback}
+                  </div>
+                )}
+                {showCorrection && explanation && (
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-700">
+                    <span className="font-semibold">Remember:</span>{" "}
+                    {explanation}
+                  </div>
+                )}
               </div>
             )}
 
             <div className="mt-6 flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  Confidence
+                </span>
+                <select
+                  value={confidence}
+                  onChange={(event) => setConfidence(event.target.value)}
+                  className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+                <span className="text-xs">
+                  Low confidence will schedule similar practice sooner.
+                </span>
+              </div>
+
               {showCorrection ? (
                 <div className="space-y-4 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                   <div
@@ -605,6 +993,16 @@ const ExercisePage = () => {
                         ? "Finish"
                         : "Next Exercise"}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        fetchExercises();
+                        setCurrentExerciseIndex(0);
+                      }}
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                    >
+                      Try Variant
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -624,35 +1022,58 @@ const ExercisePage = () => {
               Your Progress
             </h3>
             <div className="mt-4 space-y-3">
-              {exercises.map((_, index) => (
-                <div
-                  key={`progress-${index}`}
-                  className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
-                    progress[index]?.correct
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                      : progress[index]
-                      ? "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
-                  }`}
-                >
-                  <span className="font-medium">Exercise {index + 1}</span>
-                  <span className="text-xs uppercase tracking-wide">
-                    {progress[index]?.status === "completed"
-                      ? "Completed"
-                      : progress[index]
-                      ? "Attempted"
-                      : "Not Started"}
-                  </span>
+              {exercises
+                .map((exercise, index) => ({
+                  exercise,
+                  index,
+                  progress: progress[index],
+                }))
+                .filter(
+                  ({ progress: prog }) => prog !== undefined && prog !== null
+                )
+                .map(({ index, progress: prog }) => (
+                  <div
+                    key={`progress-${index}`}
+                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
+                      prog?.correct
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                        : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                    }`}
+                  >
+                    <span className="font-medium">Exercise {index + 1}</span>
+                    <span className="text-xs uppercase tracking-wide">
+                      {prog?.status === "completed" ? "Completed" : "Attempted"}
+                    </span>
+                  </div>
+                ))}
+              {exercises.filter(
+                (_, index) =>
+                  progress[index] !== undefined && progress[index] !== null
+              ).length === 0 && (
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <p>
+                    No progress yet. Start an exercise to see your progress
+                    here!
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </GlassCard>
         </div>
       </div>
 
       {showStats && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-          <GlassCard padding="lg" className="w-full max-w-xl shadow-2xl shadow-black/30">
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          style={{
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+          }}
+        >
+          <GlassCard
+            padding="lg"
+            className="w-full max-w-xl shadow-2xl shadow-black/30"
+          >
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
               <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 <span className="mr-2">🏆</span> Exercise Session Summary
@@ -681,9 +1102,41 @@ const ExercisePage = () => {
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    First-Try Accuracy
+                  </h4>
+                  <p>{(stats.firstTryAccuracy || 0).toFixed(1)}%</p>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    XP Earned
+                  </h4>
+                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                    {xpTotal}
+                  </p>
+                  <p className="text-xs">
+                    Streak multiplier:{" "}
+                    {streakMultiplier > 1
+                      ? `x${streakMultiplier.toFixed(1)}`
+                      : "none"}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     Average Attempts
                   </h4>
                   <p>{stats.averageAttempts.toFixed(1)} per question</p>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    Review Due
+                  </h4>
+                  <p>{reviewQueue.count || 0} exercises queued</p>
+                  {reviewQueue.due?.length > 0 && (
+                    <p className="text-xs">
+                      Next: {reviewQueue.due[0].skill} (
+                      {reviewQueue.due[0].type})
+                    </p>
+                  )}
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
@@ -708,6 +1161,36 @@ const ExercisePage = () => {
                   </div>
                 )}
               </div>
+              {Object.keys(skillGains).length > 0 && (
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+                  <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                    Skill highlights
+                  </h4>
+                  <ul className="space-y-1 text-[color:var(--muted-text,#6b7280)]">
+                    {Object.entries(skillGains).map(([skill, gain]) => (
+                      <li key={skill}>
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          {skill}:
+                        </span>{" "}
+                        +{gain} mastery points
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+                {reviewQueue.count ? (
+                  <p>
+                    You have {reviewQueue.count} item(s) waiting. Do your
+                    reviews now to lock in gains.
+                  </p>
+                ) : (
+                  <p>
+                    No reviews due. Continue the lesson or jump to a recommended
+                    next exercise.
+                  </p>
+                )}
+              </div>
               <div className="flex flex-wrap justify-end gap-3">
                 <button
                   type="button"
@@ -716,6 +1199,28 @@ const ExercisePage = () => {
                 >
                   Close
                 </button>
+                {reviewQueue.count > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStats(false);
+                      startReviewMode();
+                    }}
+                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)]/50 px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] shadow-sm shadow-[color:var(--accent,#2563eb)]/20 transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white"
+                  >
+                    Do your reviews
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowStats(false);
+                    goToRecommended();
+                  }}
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                >
+                  Next recommended
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -723,7 +1228,11 @@ const ExercisePage = () => {
                     setCurrentExerciseIndex(0);
                     setProgress([]);
                     setStreak(0);
+                    setSessionCompleted(false);
+                    setXpTotal(0);
                     setStartTime(Date.now());
+                    setFirstTryCorrect(0);
+                    setSkillGains({});
                     if (isTimedMode) {
                       const baseTime = 300;
                       const timePerExercise = 30;

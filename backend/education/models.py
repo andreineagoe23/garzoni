@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django_ckeditor_5.fields import CKEditor5Field
 from django.utils import timezone
+from datetime import timedelta
 
 class Path(models.Model):
     """
@@ -85,6 +86,7 @@ class LessonSection(models.Model):
     EXERCISE_TYPES = [
         ('drag-and-drop', 'Drag and Drop'),
         ('multiple-choice', 'Multiple Choice'),
+        ('numeric', 'Numeric'),
         ('budget-allocation', 'Budget Allocation'),
     ]
 
@@ -256,6 +258,7 @@ class Exercise(models.Model):
     EXERCISE_TYPES = [
         ('drag-and-drop', 'Drag and Drop'),
         ('multiple-choice', 'Multiple Choice'),
+        ('numeric', 'Numeric'),
         ('budget-allocation', 'Budget Allocation'),
     ]
 
@@ -269,6 +272,10 @@ class Exercise(models.Model):
         ('intermediate', 'Intermediate'),
         ('advanced', 'Advanced')
     ], default='beginner')
+    version = models.PositiveIntegerField(default=1, help_text="Immutable version for published exercises")
+    is_published = models.BooleanField(default=False)
+    misconception_tags = models.JSONField(default=list, blank=True)
+    error_patterns = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -276,6 +283,53 @@ class Exercise(models.Model):
         
     class Meta:
         db_table = 'core_exercise'
+
+
+class Mastery(models.Model):
+    """Tracks spaced-repetition style mastery for a user/skill pair."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    skill = models.CharField(max_length=100)
+    proficiency = models.PositiveIntegerField(default=0)
+    due_at = models.DateTimeField(default=timezone.now)
+    last_reviewed = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'skill')
+        db_table = 'core_mastery'
+
+    def bump(self, correct: bool, confidence: str | None = None, hints_used: int = 0, attempts: int = 1):
+        """Simple Leitner-style scheduler with confidence + hint shaping.
+
+        Correct + high confidence gives a bigger jump; low confidence tempers gains.
+        Hints diminish gains. Wrong answers demote and force an immediate review.
+        Repeated wrong attempts drop to the bottom bucket.
+        """
+
+        confidence_bonus = {
+            'low': -3,
+            'medium': 0,
+            'high': 6,
+        }.get(confidence or 'medium', 0)
+        hint_penalty = min(10, max(0, hints_used) * 2)
+
+        if correct:
+            gain = 12 + confidence_bonus - hint_penalty
+            self.proficiency = max(0, min(100, self.proficiency + gain))
+        else:
+            drop = 15 if attempts < 3 else 30
+            self.proficiency = max(0, self.proficiency - drop)
+
+        if not correct and attempts >= 3:
+            self.proficiency = 0
+
+        # Map proficiency bands to a light spacing schedule
+        band = max(0, min(4, self.proficiency // 20))
+        intervals = [1, 1, 2, 4, 7]
+        days = intervals[band]
+
+        self.due_at = timezone.now() + timedelta(days=days) if correct else timezone.now()
+        self.save()
 
 class UserExerciseProgress(models.Model):
     """
