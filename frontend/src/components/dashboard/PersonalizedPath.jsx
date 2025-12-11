@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -12,29 +14,38 @@ function PersonalizedPath({ onCourseClick }) {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { getAccessToken, isAuthenticated, loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+  const {
+    getAccessToken,
+    isAuthenticated,
+    loadProfile,
+    refreshProfile,
+    reloadEntitlements,
+    entitlements,
+  } = useAuth();
+
+  const { sessionId, redirectIntent } = useMemo(() => {
+    const hashParams = (location.hash || "").split("?")[1] || "";
+    const hashQuery = new URLSearchParams(hashParams);
+    const searchQuery = new URLSearchParams(location.search || "");
+
+    const sessionId =
+      searchQuery.get("session_id") || hashQuery.get("session_id");
+    const redirectIntent =
+      searchQuery.get("redirect") || hashQuery.get("redirect");
+
+    return { sessionId, redirectIntent };
+  }, [location.hash, location.search]);
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/personalized-path/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-            "X-CSRFToken":
-              document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 403) {
-        if (response.data.redirect) {
-          navigate(response.data.redirect);
-          return;
-        }
-        throw new Error(response.data.error || "Access denied");
-      }
+      const response = await axios.get(`${BACKEND_URL}/personalized-path/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+          "X-CSRFToken": document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+        },
+        withCredentials: true,
+      });
 
       setPersonalizedCourses(
         response.data.courses.map((course) => ({
@@ -51,7 +62,7 @@ function PersonalizedPath({ onCourseClick }) {
         if (errorMessage.includes("questionnaire")) {
           navigate("/questionnaire");
         } else if (errorMessage.includes("Payment")) {
-          navigate("/payment-required");
+          navigate("/upgrade");
         }
       } else {
         setError("Failed to load recommendations. Please try again later.");
@@ -61,11 +72,13 @@ function PersonalizedPath({ onCourseClick }) {
   }, [navigate, getAccessToken]);
 
   useEffect(() => {
-    const hashParams = window.location.hash.split("?")[1] || "";
-    const queryParams = new URLSearchParams(hashParams);
-    const sessionId = queryParams.get("session_id");
-
     const verifyAuthAndPayment = async () => {
+      console.info("[pp] start verifyAuthAndPayment", {
+        isAuthenticated,
+        sessionId,
+        redirectIntent,
+      });
+
       if (!isAuthenticated) {
         navigate(
           `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
@@ -74,24 +87,36 @@ function PersonalizedPath({ onCourseClick }) {
       }
 
       try {
-        let profilePayload = await loadProfile();
+        // Always force-refresh to avoid stale has_paid/questionnaire flags after checkout
+        let profilePayload = await loadProfile({ force: true });
+        console.info("[pp] profile loaded", {
+          has_paid: profilePayload?.has_paid,
+          has_paid_user_data: profilePayload?.user_data?.has_paid,
+          is_questionnaire_completed:
+            profilePayload?.is_questionnaire_completed,
+          entitlementsEntitled: entitlements?.entitled,
+        });
 
         if (!profilePayload?.has_paid && sessionId) {
           profilePayload = await loadProfile({ force: true });
           const pollPaymentStatus = async (attempt = 0) => {
             try {
               const verificationRes = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/verify-session/`,
+                `${BACKEND_URL}/verify-session/`,
                 { session_id: sessionId, force_check: true },
                 { headers: { Authorization: `Bearer ${getAccessToken()}` } }
               );
 
               if (verificationRes.data.status === "verified") {
+                console.info("[pp] verify-session verified");
                 window.history.replaceState(
                   {},
                   document.title,
                   "/#/personalized-path"
                 );
+                await refreshProfile();
+                queryClient.invalidateQueries({ queryKey: ["profile"] });
+                reloadEntitlements?.();
                 setPaymentVerified(true);
                 return fetchPersonalizedPath();
               }
@@ -103,25 +128,72 @@ function PersonalizedPath({ onCourseClick }) {
                 return pollPaymentStatus(attempt + 1);
               }
 
-              navigate("/payment-required");
+              console.warn(
+                "[pp] verify-session polling exceeded attempts; go upgrade"
+              );
+              navigate("/upgrade");
             } catch (err) {
               if (attempt < 8) {
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 return pollPaymentStatus(attempt + 1);
               }
-              navigate("/payment-required");
+              console.warn(
+                "[pp] verify-session polling failed; go upgrade",
+                err
+              );
+              navigate("/upgrade");
             }
           };
 
           await pollPaymentStatus();
-        } else {
+          return;
+        }
+
+        const hasPaidFlag =
+          profilePayload?.has_paid ||
+          profilePayload?.user_data?.has_paid ||
+          entitlements?.entitled ||
+          false;
+
+        // If the user is paid, allow access even if questionnaire flag is stale
+        if (hasPaidFlag) {
+          console.info("[pp] paid gate passed", { hasPaidFlag });
+          await fetchPersonalizedPath();
           setPaymentVerified(true);
-          fetchPersonalizedPath();
+          // Clean up URL to remove session/redirect params without navigating away
+          window.history.replaceState(
+            {},
+            document.title,
+            "/#/personalized-path"
+          );
+          return;
+        }
+
+        if (!profilePayload?.is_questionnaire_completed) {
+          console.info("[pp] redirect questionnaire (flag false)");
+          navigate("/questionnaire");
+          return;
+        }
+
+        if (!profilePayload?.has_paid) {
+          console.info("[pp] redirect upgrade (has_paid false)");
+          navigate("/upgrade");
+          return;
+        }
+
+        console.info("[pp] reach fetch path (fallback branch)");
+        await fetchPersonalizedPath();
+        setPaymentVerified(true);
+        if (sessionId && redirectIntent === "upgradeComplete") {
+          navigate("/upgrade?redirect=upgradeComplete");
         }
       } catch (err) {
-        console.error("Verification error:", err);
-        localStorage.removeItem("access_token");
-        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+        console.error("[pp] verifyAuthAndPayment error", err);
+        setError(
+          err.response?.data?.error ||
+            "We couldn't verify your payment. Please try again."
+        );
+        setPaymentVerified(false);
       }
     };
 
@@ -133,23 +205,25 @@ function PersonalizedPath({ onCourseClick }) {
     isAuthenticated,
     getAccessToken,
     loadProfile,
+    refreshProfile,
+    queryClient,
+    sessionId,
+    redirectIntent,
+    entitlements?.entitled,
+    reloadEntitlements,
+    location.search,
   ]);
 
   const handleCourseClick = (courseId) => {
     if (onCourseClick) onCourseClick(courseId);
   };
 
-  if (!paymentVerified || isLoading) {
-    return (
-      <GlassCard padding="xl" className="text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-        Verifying your access...
-      </GlassCard>
-    );
-  }
-
   if (error) {
     return (
-      <GlassCard padding="lg" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
+      <GlassCard
+        padding="lg"
+        className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+      >
         <h2 className="mb-3 text-lg font-semibold">
           ⚠️ Error Loading Recommendations
         </h2>
@@ -161,6 +235,28 @@ function PersonalizedPath({ onCourseClick }) {
         >
           Try Again
         </button>
+      </GlassCard>
+    );
+  }
+
+  if (!paymentVerified || isLoading) {
+    return (
+      <GlassCard
+        padding="xl"
+        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+      >
+        Verifying your access...
+      </GlassCard>
+    );
+  }
+
+  if (!paymentVerified || isLoading) {
+    return (
+      <GlassCard
+        padding="xl"
+        className="text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+      >
+        Verifying your access...
       </GlassCard>
     );
   }
@@ -205,42 +301,42 @@ function PersonalizedPath({ onCourseClick }) {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    {course.path_title}
-                  </span>
-                  <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                    {course.estimated_duration || 4} hrs ·{" "}
-                    {course.exercises || 3} exercises
-                  </span>
-                </div>
-                <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
-                  {course.title}
-                </h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                        {course.path_title}
+                      </span>
+                      <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+                        {course.estimated_duration || 4} hrs ·{" "}
+                        {course.exercises || 3} exercises
+                      </span>
+                    </div>
+                    <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
+                      {course.title}
+                    </h4>
 
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[color:var(--muted-text,#6b7280)]">
-                      Progress
-                    </span>
-                    <span className="font-semibold text-[color:var(--accent,#111827)]">
-                      {course.progress}/{course.totalLessons} lessons
-                    </span>
-                  </div>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[color:var(--muted-text,#6b7280)]">
+                          Progress
+                        </span>
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          {course.progress}/{course.totalLessons} lessons
+                        </span>
+                      </div>
 
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                    <div
-                      className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]"
-                      style={{
-                        width: `${
-                          course.totalLessons
-                            ? (course.progress / course.totalLessons) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                        <div
+                          className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]"
+                          style={{
+                            width: `${
+                              course.totalLessons
+                                ? (course.progress / course.totalLessons) * 100
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -270,4 +366,3 @@ function PersonalizedPath({ onCourseClick }) {
 }
 
 export default PersonalizedPath;
-

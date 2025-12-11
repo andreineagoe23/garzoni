@@ -13,6 +13,7 @@ import json
 import logging
 import stripe
 from django.conf import settings
+from finance.utils import record_funnel_event
 
 from education.models import (
     Path, Course, Lesson, LessonSection, Quiz, UserProgress,
@@ -666,8 +667,12 @@ class EnhancedQuestionnaireView(APIView):
                         continue
 
                 user_profile.recommended_courses = []
-                user_profile.is_questionnaire_completed = True
-                user_profile.save()
+                user_profile.save(update_fields=["recommended_courses"])
+
+                # Persist questionnaire completion for all of the user's progress records
+                UserProgress.objects.filter(user=user).update(
+                    is_questionnaire_completed=True
+                )
 
             # If user has already paid, allow them to update questionnaire and redirect to personalized path
             if user_profile.has_paid:
@@ -681,6 +686,10 @@ class EnhancedQuestionnaireView(APIView):
             stripe.api_key = settings.STRIPE_SECRET_KEY
 
             # Create Stripe Checkout Session
+            logger.info(
+                "Creating Stripe checkout session",
+                extra={"user_id": request.user.id},
+            )
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -688,10 +697,23 @@ class EnhancedQuestionnaireView(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f'{settings.FRONTEND_URL}/#/personalized-path?session_id={{CHECKOUT_SESSION_ID}}',
-                cancel_url=f'{settings.FRONTEND_URL}/#/questionnaire',
+                success_url=(
+                    f"{settings.FRONTEND_URL}/#/personalized-path?"
+                    "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
+                ),
+                cancel_url=f"{settings.FRONTEND_URL}/#/upgrade",
                 metadata={'user_id': str(request.user.id)},
                 client_reference_id=str(request.user.id)
+            )
+
+            record_funnel_event(
+                "checkout_created",
+                user=request.user,
+                session_id=getattr(checkout_session, 'id', ''),
+                metadata={
+                    "mode": checkout_session.mode,
+                    "amount_total": getattr(checkout_session, 'amount_total', None),
+                }
             )
 
             return Response({
@@ -701,6 +723,12 @@ class EnhancedQuestionnaireView(APIView):
 
         except Exception as e:
             logger.error(f"Stripe error: {str(e)}")
+            record_funnel_event(
+                "checkout_created",
+                status="error",
+                user=request.user,
+                metadata={"error": str(e)},
+            )
             return Response({"error": "Payment processing failed"}, status=500)
 
 
@@ -714,10 +742,19 @@ class PersonalizedPathView(APIView):
         try:
             user_profile = UserProfile.objects.get(user=request.user)
 
+            if not self._has_completed_questionnaire(request.user):
+                return Response(
+                    {
+                        "error": "Please complete the questionnaire to unlock your personalized path.",
+                        "redirect": "/questionnaire",
+                    },
+                    status=400,
+                )
+
             if not user_profile.has_paid:
                 return Response({
                     "error": "Payment required for personalized path",
-                    "redirect": "/payment-required"
+                    "redirect": "/upgrade"
                 }, status=403)
 
             # Generate recommendations if not already present
@@ -869,3 +906,14 @@ class PersonalizedPathView(APIView):
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
             return Course.objects.filter(is_active=True).order_by('?')[:10]
+
+    def _has_completed_questionnaire(self, user):
+        """Check whether the user has answered all active questionnaire prompts."""
+        total_questions = Question.objects.filter(is_active=True).count()
+        if total_questions == 0:
+            return True
+
+        answered_questions = UserResponse.objects.filter(
+            user=user, question__is_active=True
+        ).count()
+        return answered_questions >= total_questions

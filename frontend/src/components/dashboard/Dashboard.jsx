@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
@@ -9,18 +9,21 @@ import { GlassButton, GlassCard } from "components/ui";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import { fetchProgressSummary } from "services/userService";
 import { attachToken } from "services/httpClient";
+import PremiumUpsellPanel from "components/billing/PremiumUpsellPanel";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
-  const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] =
-    useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const {
     getAccessToken,
     user: authUser,
     loadProfile,
     profile: authProfile,
+    refreshProfile,
+    reloadEntitlements,
+    entitlements,
   } = useAuth();
 
   useEffect(() => {
@@ -29,27 +32,45 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const {
     data: profilePayload,
-    isLoading: isProfileLoading,
+    isFetching: isProfileFetching,
+    isInitialLoading: isProfileLoading,
   } = useQuery({
     queryKey: ["profile"],
     queryFn: () => loadProfile(),
+    staleTime: 0, // Always consider stale to refetch when navigating
+    cacheTime: 30000, // Keep in cache for 30 seconds
+    initialData: authProfile,
+    keepPreviousData: true,
   });
 
-  const {
-    data: progressResponse,
-    isLoading: isProgressLoading,
-  } = useQuery({
+  const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
     queryKey: ["progress-summary"],
     queryFn: fetchProgressSummary,
   });
 
-  useEffect(() => {
-    if (profilePayload) {
-      setIsQuestionnaireCompleted(
-        Boolean(profilePayload.is_questionnaire_completed)
-      );
+  const profile = useMemo(() => {
+    if (profilePayload?.user_data) {
+      return profilePayload.user_data;
     }
-  }, [profilePayload]);
+    if (authProfile?.user_data) {
+      return authProfile.user_data;
+    }
+    return profilePayload || authProfile || null;
+  }, [authProfile, profilePayload]);
+
+  const hasPaidProfile = Boolean(
+    profile?.has_paid ||
+      profile?.user_data?.has_paid ||
+      profilePayload?.has_paid ||
+      profilePayload?.user_data?.has_paid
+  );
+  const hasPaid = hasPaidProfile || Boolean(entitlements?.entitled);
+
+  const isQuestionnaireCompleted = Boolean(
+    profile?.is_questionnaire_completed ||
+      profile?.user_data?.is_questionnaire_completed ||
+      profilePayload?.is_questionnaire_completed
+  );
 
   useEffect(() => {
     setActivePage(
@@ -57,7 +78,25 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         ? "personalized-path"
         : "all-topics"
     );
-  }, [location.pathname]);
+
+    // Check if we're returning from Stripe payment (has session_id in URL)
+    const hashParams = window.location.hash.split("?")[1] || "";
+    const hashQuery = new URLSearchParams(hashParams);
+    const searchQuery = new URLSearchParams(window.location.search || "");
+    const sessionId =
+      searchQuery.get("session_id") || hashQuery.get("session_id");
+
+    // If we have a session_id, invalidate profile to refetch payment status
+    if (sessionId) {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      refreshProfile().catch(console.error);
+      reloadEntitlements?.();
+      // eslint-disable-next-line no-console
+      console.info(
+        "[dashboard] detected session_id in URL; refreshing profile/entitlements"
+      );
+    }
+  }, [location.pathname, queryClient, refreshProfile, reloadEntitlements]);
 
   // Removed mobile view tracking
 
@@ -65,14 +104,65 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     navigate(`/lessons/${courseId}`);
   };
 
-  const profile = useMemo(() => {
-    if (authProfile?.user_data) {
-      return authProfile.user_data;
+  const handlePersonalizedPathClick = () => {
+    // Debug log to trace gating decisions
+    // eslint-disable-next-line no-console
+    console.info("[personalized-path] click", {
+      hasPaidProfile,
+      entitlementsEntitled: Boolean(entitlements?.entitled),
+      isQuestionnaireCompleted,
+      activePage,
+    });
+
+    // Paid users can go straight to personalized path even if questionnaire flag is stale
+    if (hasPaid) {
+      setActivePage("personalized-path");
+      navigate("/personalized-path");
+      return;
     }
-    return authProfile || null;
-  }, [authProfile]);
+
+    if (!isQuestionnaireCompleted) {
+      navigate("/questionnaire");
+      return;
+    }
+
+    if (!hasPaid) {
+      navigate("/upgrade", { state: { from: location.pathname } });
+      return;
+    }
+
+    setActivePage("personalized-path");
+    navigate("/personalized-path");
+  };
 
   const isLoading = isProfileLoading || isProgressLoading;
+
+  const usage =
+    progressResponse?.data?.usage || progressResponse?.usage || undefined;
+
+  const quotaChips = [
+    {
+      label: "Free lessons today",
+      used: usage?.free_lessons?.used ?? 2,
+      total: usage?.free_lessons?.total ?? 5,
+      helper: "Short sessions keep momentum strong.",
+      icon: "📖",
+    },
+    {
+      label: "Practice quizzes",
+      used: usage?.practice_quizzes?.used ?? 1,
+      total: usage?.practice_quizzes?.total ?? 3,
+      helper: "Quiz yourself to lock in learning.",
+      icon: "🧠",
+    },
+    {
+      label: "AI coach replies",
+      used: usage?.ai_responses?.used ?? 8,
+      total: usage?.ai_responses?.total ?? 10,
+      helper: "Chat with Monevo for instant clarity.",
+      icon: "🤖",
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -124,8 +214,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   Welcome back{displayName ? `, ${displayName}` : ""}!
                 </h2>
                 <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Explore your learning paths and track progress in one
-                  place.
+                  Explore your learning paths and track progress in one place.
                 </p>
               </div>
             </div>
@@ -142,24 +231,73 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 All Topics
               </GlassButton>
 
-              <GlassButton
-                variant={
-                  activePage === "personalized-path" ? "active" : "ghost"
-                }
-                onClick={() => {
-                  setActivePage("personalized-path");
-                  navigate("/personalized-path");
+              <button
+                type="button"
+                onClick={handlePersonalizedPathClick}
+                aria-disabled={isProfileLoading}
+                className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm ${
+                  activePage === "personalized-path"
+                    ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
+                    : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40"
+                } ${
+                  isProfileFetching
+                    ? "opacity-80 cursor-progress"
+                    : "cursor-pointer"
+                }`}
+                style={{
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
                 }}
-                disabled={!isQuestionnaireCompleted}
-                icon="🎯"
               >
+                <span>🎯</span>
                 Personalized Path
                 {!isQuestionnaireCompleted && (
                   <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
                     Complete Questionnaire
                   </span>
                 )}
-              </GlassButton>
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {quotaChips.map((chip) => {
+                const total = Number(chip.total) || 0;
+                const used = Number(chip.used) || 0;
+                const percent =
+                  total > 0
+                    ? Math.min(100, Math.round((used / total) * 100))
+                    : 0;
+
+                return (
+                  <div
+                    key={chip.label}
+                    className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-lg"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                    <div className="relative flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                          <span aria-hidden="true">{chip.icon}</span>
+                          <span>{chip.label}</span>
+                        </div>
+                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          {chip.helper}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-[11px] font-semibold text-[color:var(--primary,#1d5330)]">
+                        {used}/{total || "∞"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-500"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </GlassCard>
@@ -174,7 +312,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           </main>
 
           <aside className="flex w-full max-w-[320px] shrink-0 min-h-0">
-            <UserProgressBox progressData={progressResponse?.data || null} />
+            <div className="flex w-full flex-col gap-4">
+              <UserProgressBox progressData={progressResponse?.data || null} />
+              <PremiumUpsellPanel />
+            </div>
           </aside>
         </div>
       </div>

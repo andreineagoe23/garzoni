@@ -26,6 +26,17 @@ function Navbar() {
   const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
 
+  const navItems = useMemo(
+    () =>
+      adminMode && canAdminister
+        ? [
+            ...NAV_ITEMS,
+            { path: "/pricing-dashboard", label: "Conversions", icon: "📈" },
+          ]
+        : NAV_ITEMS,
+    [adminMode, canAdminister]
+  );
+
   useEffect(() => {
     const closeOnResize = () => {
       if (window.innerWidth >= 1024) {
@@ -100,15 +111,17 @@ function Navbar() {
       }}
     >
       <div className="relative z-[1201] mx-auto flex w-full max-w-6xl items-center justify-center gap-10 px-4 py-3 lg:px-6">
-        <div className="flex min-w-[160px] flex-1 items-center justify-start lg:min-w-[240px]">
-          <NavLink
-            to="/all-topics"
-            onClick={closeMenu}
-            className="relative z-10 text-lg font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation"
-            style={{ WebkitTapHighlightColor: "transparent" }}
-          >
-            Monevo
-          </NavLink>
+        <div className="flex min-w-[160px] flex-1 items-center justify-start gap-3 lg:min-w-[240px]">
+          <div className="flex items-center gap-2">
+            <NavLink
+              to="/all-topics"
+              onClick={closeMenu}
+              className="relative z-10 text-lg font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation"
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              Monevo
+            </NavLink>
+          </div>
         </div>
 
         <div className="hidden flex-[2] items-center justify-center lg:flex">
@@ -116,7 +129,7 @@ function Navbar() {
             variant="subtle"
             className="flex items-center gap-2 rounded-full px-2 py-1 shadow-inner shadow-black/5"
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -133,6 +146,7 @@ function Navbar() {
         </div>
 
         <div className="flex min-w-[180px] flex-1 items-center justify-end gap-4 lg:min-w-[240px]">
+
           {canAdminister && (
             <button
               type="button"
@@ -216,10 +230,10 @@ function Navbar() {
         className={`${menuVisibility} relative z-[1201] flex-col gap-2 px-4 pb-4 pt-2 lg:hidden`}
         style={{ pointerEvents: "auto" }}
       >
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
             className={createLinkClassName(
               "relative z-10 no-underline hover:no-underline touch-manipulation"
             )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   VerticalTimeline,
   VerticalTimelineElement,
@@ -10,6 +11,7 @@ import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { BACKEND_URL } from "services/backendUrl";
 
 const activityIcons = {
   lesson: "📘",
@@ -59,6 +61,7 @@ function Profile() {
 
   const { getAccessToken, loadProfile, isAuthenticated, isInitialized } =
     useAuth();
+  const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
 
   const handleAvatarChange = (newAvatarUrl) => {
@@ -102,7 +105,7 @@ function Profile() {
           : undefined;
 
         const missionsResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/missions/`,
+          `${BACKEND_URL}/missions/`,
           {
             headers: authHeaders,
           }
@@ -130,7 +133,7 @@ function Profile() {
         }));
 
         const activityResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/recent-activity/`,
+          `${BACKEND_URL}/recent-activity/`,
           {
             headers: authHeaders,
           }
@@ -152,10 +155,10 @@ function Profile() {
         }
 
         const [userBadgesResponse, allBadgesResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/user-badges/`, {
+          axios.get(`${BACKEND_URL}/user-badges/`, {
             headers: authHeaders,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/badges/`, {
+          axios.get(`${BACKEND_URL}/badges/`, {
             headers: authHeaders,
           }),
         ]);
@@ -300,6 +303,17 @@ function Profile() {
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {profileData.email}
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/personalized-path")}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--accent,#1d4ed8)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/40"
+            >
+              <span aria-hidden>🧭</span>
+              Jump to Personalized Path
+            </button>
           </div>
         </section>
 

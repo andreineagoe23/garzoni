@@ -195,6 +195,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "content-type",
     "x-csrftoken",
     "x-requested-with",
+    "x-refresh-token",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Disposition", "Set-Cookie", "X-CSRFToken"]
 
@@ -223,7 +224,10 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost")
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
+if DEBUG:
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+else:
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
@@ -234,7 +238,6 @@ RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
 RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.5"))
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID", "")
 CSE_ID = os.getenv("CSE_ID", "")
 API_KEY = os.getenv("API_KEY", "")
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
