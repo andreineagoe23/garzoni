@@ -7,7 +7,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import F, Prefetch
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 import json
 import logging
@@ -18,7 +18,7 @@ from finance.utils import record_funnel_event
 from education.models import (
     Path, Course, Lesson, LessonSection, Quiz, UserProgress,
     LessonCompletion, QuizCompletion, Exercise, UserExerciseProgress,
-    Question, UserResponse
+    Question, UserResponse, Mastery
 )
 from education.serializers import (
     PathSerializer,
@@ -495,6 +495,125 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             return Response({"error": "Invalid section"}, status=400)
 
 
+def _safe_decimal(value):
+    """Convert numeric-like strings to Decimal while handling percentages."""
+    if value is None:
+        return None
+    try:
+        if isinstance(value, (int, float)):
+            return Decimal(str(value))
+        string_value = str(value).strip()
+        if not string_value:
+            return None
+        if string_value.endswith('%'):
+            number = string_value.rstrip('%')
+            return Decimal(number) / Decimal('100')
+        return Decimal(string_value)
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _get_or_create_mastery(user, skill):
+    mastery, _ = Mastery.objects.get_or_create(user=user, skill=skill)
+    return mastery
+
+
+def _select_skill(exercise):
+    return getattr(exercise, 'category', 'General') or 'General'
+
+
+def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
+    base = 15 if is_correct else -5
+    if is_correct and attempts == 1:
+        base += 5
+    base -= hints_used * 2
+    if confidence == 'low' and is_correct:
+        base += 2
+    elif confidence == 'high' and not is_correct:
+        base -= 2
+    return base
+
+
+def _evaluate_numeric(exercise, user_answer):
+    """Evaluate numeric answers with tolerance and simple error diagnostics."""
+    data = exercise.exercise_data or {}
+    tolerance = Decimal(str(data.get('tolerance', '0.01')))
+    expected_raw = exercise.correct_answer or data.get('expected_value')
+    expected_value = _safe_decimal(expected_raw)
+    user_value = _safe_decimal(user_answer)
+
+    if expected_value is None or user_value is None:
+        return False, "We couldn't understand the number you entered. Try again with a plain number."
+
+    diff = abs(user_value - expected_value)
+    relative_band = (abs(expected_value) * tolerance)
+    absolute_band = tolerance if tolerance > 0 else Decimal('0')
+    threshold = max(relative_band, absolute_band)
+
+    if diff <= threshold:
+        return True, "Correct — you're inside the expected range."
+
+    # Diagnostics
+    diagnostics = []
+    period_hint = data.get('period_hint', 'annual')
+    if period_hint == 'annual':
+        if expected_value != 0 and abs(user_value - (expected_value / Decimal('12'))) <= threshold:
+            diagnostics.append("It looks like you divided an annual figure by 12 — watch the period.")
+        if abs(user_value - (expected_value * Decimal('12'))) <= threshold:
+            diagnostics.append("You treated an annual figure as monthly; align the period with the prompt.")
+
+    if expected_value != 0:
+        ratio = user_value / expected_value
+        if Decimal('0.98') <= ratio <= Decimal('1.02'):
+            diagnostics.append("Close! You may have rounded too early. Keep more precision until the end.")
+        if ratio.quantize(Decimal('0.01')) == Decimal('100.00'):
+            diagnostics.append("Looks like you skipped converting % to a decimal. Try dividing the rate by 100.")
+
+    if not diagnostics:
+        diagnostics.append("Check your compounding and base values, then retry.")
+
+    return False, " ".join(diagnostics)
+
+
+def _evaluate_budget(exercise, user_answer):
+    data = exercise.exercise_data or {}
+    target = data.get('target')
+    expected = exercise.correct_answer or {}
+    if not isinstance(user_answer, dict):
+        return False, "Please fill out each category with a number."
+
+    allocations = {k: _safe_decimal(v) for k, v in user_answer.items()}
+    if any(v is None for v in allocations.values()):
+        return False, "All categories need a valid number."
+
+    total = sum(allocations.values())
+    income = _safe_decimal(data.get('income'))
+    messages = []
+    is_correct = True
+
+    if income is not None and total != income:
+        is_correct = False
+        messages.append("Your categories should add up to your income.")
+
+    if target and isinstance(target, dict):
+        target_key = target.get('category')
+        target_min = _safe_decimal(target.get('min'))
+        if target_key and target_min is not None:
+            allocation = allocations.get(target_key, Decimal('0'))
+            if allocation < target_min:
+                is_correct = False
+                messages.append(f"Aim for at least {target_min} in {target_key} to hit the goal.")
+
+    if expected:
+        expected_decimals = {k: _safe_decimal(v) for k, v in expected.items()}
+        if allocations != expected_decimals:
+            is_correct = False
+            messages.append("Your plan differs from the target solution. Adjust and try again.")
+
+    feedback = " ".join(messages) if messages else "Great allocation — you met the constraints."
+    return is_correct, feedback
+
+
 class ExerciseViewSet(viewsets.ModelViewSet):
     """Manage exercises, including filtering by type, category, and difficulty."""
 
@@ -525,9 +644,11 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
-        """Submit an answer for an exercise."""
+        """Submit an answer for an exercise and update mastery/XP."""
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
+        confidence = request.data.get('confidence')
+        hints_used = int(request.data.get('hints_used', 0))
 
         if user_answer is None:
             return Response(
@@ -535,37 +656,79 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Get or create user progress
-        progress, created = UserExerciseProgress.objects.get_or_create(
+        # Get or create user progress and prevent duplicate rapid submissions
+        progress, _ = UserExerciseProgress.objects.get_or_create(
             user=request.user,
             exercise=exercise
         )
+        now = timezone.now()
+        if progress.attempts and progress.last_attempt and (now - progress.last_attempt).total_seconds() < 1.5:
+            return Response(
+                {'error': 'Please wait before submitting again'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
 
+        already_completed = progress.completed
         # Update progress
         progress.attempts += 1
         progress.user_answer = user_answer
-        progress.last_attempt = timezone.now()
+        progress.last_attempt = now
 
-        # Check if answer is correct - normalize JSON for comparison
         correct_answer = exercise.correct_answer
-        # Normalize both answers to JSON strings for comparison
-        try:
-            correct_json = json.dumps(correct_answer, sort_keys=True) if correct_answer is not None else None
-            user_json = json.dumps(user_answer, sort_keys=True) if user_answer is not None else None
-            is_correct = correct_json == user_json
-        except (TypeError, ValueError):
-            # Fallback to direct comparison if JSON serialization fails
-            is_correct = correct_answer == user_answer
+        is_correct = False
+        feedback = None
+
+        if exercise.type == 'numeric':
+            is_correct, feedback = _evaluate_numeric(exercise, user_answer)
+        elif exercise.type == 'budget-allocation':
+            is_correct, feedback = _evaluate_budget(exercise, user_answer)
+        else:
+            try:
+                correct_json = json.dumps(correct_answer, sort_keys=True) if correct_answer is not None else None
+                user_json = json.dumps(user_answer, sort_keys=True) if user_answer is not None else None
+                is_correct = correct_json == user_json
+            except (TypeError, ValueError):
+                is_correct = correct_answer == user_answer
 
         if is_correct:
             progress.completed = True
 
         progress.save()
 
+        mastery = _get_or_create_mastery(request.user, _select_skill(exercise))
+        mastery_before = mastery.proficiency
+        mastery.bump(is_correct, confidence, hints_used=hints_used, attempts=progress.attempts)
+
+        xp_delta = 0 if already_completed and is_correct else _compute_xp_delta(
+            is_correct, progress.attempts, hints_used, confidence
+        )
+
+        logger.info(
+            "attempt_submitted",
+            extra={
+                'user_id': request.user.id,
+                'exercise_id': exercise.id,
+                'exercise_type': exercise.type,
+                'correct': is_correct,
+                'confidence': confidence,
+                'hints_used': hints_used,
+                'attempts': progress.attempts,
+                'mastery_before': mastery_before,
+                'mastery_after': mastery.proficiency,
+                'due_at': mastery.due_at,
+            }
+        )
+
         return Response({
             'correct': is_correct,
             'attempts': progress.attempts,
-            'explanation': getattr(exercise, 'explanation', None)
+            'explanation': getattr(exercise, 'explanation', None),
+            'feedback': feedback or (
+                "On point — keep going!" if is_correct else "Not quite. Re-read the prompt and try again."
+            ),
+            'xp_delta': xp_delta,
+            'due_at': mastery.due_at,
+            'proficiency': mastery.proficiency,
         })
 
 
@@ -621,6 +784,74 @@ def reset_exercise(request):
         return Response({"message": "Progress reset successfully."}, status=200)
     except (UserExerciseProgress.DoesNotExist, LessonSection.DoesNotExist, Exercise.DoesNotExist):
         return Response({"error": "No progress found to reset."}, status=404)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def review_queue(request):
+    """Return a lightweight review queue based on mastery due dates."""
+    now = timezone.now()
+    due_mastery = Mastery.objects.filter(user=request.user, due_at__lte=now).order_by('due_at')
+    queue = []
+    for mastery in due_mastery:
+        exercise = Exercise.objects.filter(category=mastery.skill).order_by('difficulty', 'id').first()
+        if not exercise:
+            continue
+        queue.append({
+            'skill': mastery.skill,
+            'exercise_id': exercise.id,
+            'question': exercise.question,
+            'type': exercise.type,
+            'due_at': mastery.due_at,
+            'proficiency': mastery.proficiency,
+        })
+    logger.info(
+        "review_queue",
+        extra={
+            'user_id': request.user.id,
+            'count': len(queue),
+        }
+    )
+    return Response({'due': queue, 'count': len(queue)})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def next_exercise(request):
+    """Return the next recommended exercise based on mastery gaps and recent attempt."""
+    last_exercise_id = request.data.get('last_exercise_id')
+    last_correct = request.data.get('last_correct')
+
+    queue_response = review_queue(request)
+    if queue_response.data.get('due'):
+        return Response({
+            'exercise_id': queue_response.data['due'][0]['exercise_id'],
+            'reason': 'review_due'
+        })
+
+    completed_ids = set(
+        UserExerciseProgress.objects.filter(user=request.user, completed=True)
+        .values_list('exercise_id', flat=True)
+    )
+
+    if last_exercise_id and not last_correct:
+        retry = Exercise.objects.filter(id=last_exercise_id).first()
+        if retry:
+            return Response({'exercise_id': retry.id, 'reason': 'remediate'})
+
+    next_available = Exercise.objects.exclude(id__in=completed_ids).order_by('difficulty', 'id').first()
+    if next_available:
+        return Response({'exercise_id': next_available.id, 'reason': 'fresh'})
+
+    fallback = Exercise.objects.order_by('-created_at').first()
+    if fallback:
+        return Response({'exercise_id': fallback.id, 'reason': 'fallback'})
+
+    logger.info(
+        "next_exercise_not_found",
+        extra={'user_id': request.user.id}
+    )
+    return Response({'error': 'No exercises available'}, status=404)
 
 
 class EnhancedQuestionnaireView(APIView):

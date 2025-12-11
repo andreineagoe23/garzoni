@@ -13,6 +13,7 @@ from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
+import json
 import logging
 import requests
 import stripe
@@ -597,49 +598,69 @@ class VerifySessionView(APIView):
             if session.payment_status != 'paid':
                 return Response({"status": "pending"}, status=202)
 
-            target_user_id = session.client_reference_id or session.metadata.get('user_id')
+            metadata = getattr(session, "metadata", {}) or {}
+            target_user_id = session.client_reference_id or metadata.get('user_id')
 
-            if not target_user_id:
+            if request.user and request.user.is_authenticated:
+                user_id_int = request.user.id
+            elif target_user_id:
+                try:
+                    user_id_int = int(target_user_id)
+                except (TypeError, ValueError):
+                    return Response({"error": "Invalid user context"}, status=400)
+            else:
                 return Response({"error": "Missing user context for session"}, status=400)
-
-            try:
-                user_id_int = int(target_user_id)
-            except (TypeError, ValueError):
-                return Response({"error": "Invalid user context"}, status=400)
 
             User = get_user_model()
             try:
+                stripe_payment_id = (
+                    getattr(getattr(session, "payment_intent", None), "id", "")
+                )
                 with transaction.atomic():
-                    profile = UserProfile.objects.select_for_update().get(user_id=user_id_int)
+                    profile, _ = UserProfile.objects.select_for_update().get_or_create(
+                        user_id=user_id_int,
+                        defaults={
+                            'has_paid': True,
+                            'is_premium': True,
+                            'subscription_status': 'active',
+                            'stripe_payment_id': stripe_payment_id,
+                        }
+                    )
+
                     profile.has_paid = True
                     profile.is_premium = True
                     profile.subscription_status = 'active'
-                    profile.stripe_payment_id = (
-                        session.payment_intent.id if session.payment_intent else ''
-                    )
+                    profile.stripe_payment_id = stripe_payment_id
                     profile.save(update_fields=[
                         'has_paid',
                         'is_premium',
                         'subscription_status',
                         'stripe_payment_id'
                     ])
+
                     cache.set(f'user_payment_status_{user_id_int}', 'paid', 300)
 
-                    try:
-                        user_for_event = User.objects.get(id=user_id_int)
-                    except User.DoesNotExist:
-                        user_for_event = None
+                try:
+                    user_for_event = User.objects.get(id=user_id_int)
+                except User.DoesNotExist:
+                    user_for_event = None
 
-                    record_funnel_event(
-                        "checkout_verified",
-                        user=user_for_event,
-                        session_id=session.get('id', ''),
-                        metadata={
-                            "payment_intent": session.get('payment_intent', ''),
-                            "amount_total": session.get('amount_total'),
-                            "currency": session.get('currency')
-                        }
-                    )
+                event_metadata = {
+                    "payment_intent": str(getattr(session, 'payment_intent', '') or ''),
+                    "amount_total": getattr(session, 'amount_total', None),
+                    "currency": getattr(session, 'currency', None),
+                }
+                try:
+                    json.dumps(event_metadata)
+                except TypeError:
+                    event_metadata = {}
+
+                record_funnel_event(
+                    "checkout_verified",
+                    user=user_for_event,
+                    session_id=str(getattr(session, 'id', '') or ''),
+                    metadata=event_metadata,
+                )
             except UserProfile.DoesNotExist:
                 logger.warning("No profile found for verified session %s", session_id)
                 return Response({"error": "Profile not found"}, status=404)
