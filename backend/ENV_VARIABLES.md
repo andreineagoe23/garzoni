@@ -37,12 +37,11 @@ Quick reference for all environment variables used in the Monevo backend.
 | `RECAPTCHA_PRIVATE_KEY` | reCAPTCHA secret key | - |
 | `RECAPTCHA_REQUIRED_SCORE` | Minimum score (0.0-1.0) | `0.5` |
 
-## Google Cloud / Dialogflow
+## Google Cloud
 
 | Variable | Description |
 |----------|-------------|
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to Google Cloud credentials JSON file |
-| `DIALOGFLOW_PROJECT_ID` | Dialogflow project ID |
 | `CSE_ID` | Custom Search Engine ID |
 | `API_KEY` | Google API key |
 
