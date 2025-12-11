@@ -19,8 +19,13 @@ import stripe
 from django.conf import settings
 
 from finance.models import (
-    FinanceFact, UserFactProgress, SimulatedSavingsAccount, Reward,
-    UserPurchase, PortfolioEntry, FinancialGoal, FunnelEvent
+    FinanceFact,
+    UserFactProgress,
+    SimulatedSavingsAccount,
+    Reward,
+    UserPurchase,
+    PortfolioEntry,
+    FinancialGoal,
 )
 from django.contrib.auth import get_user_model
 from finance.serializers import (
@@ -30,6 +35,7 @@ from finance.serializers import (
 from authentication.models import UserProfile
 from gamification.models import MissionCompletion
 from finance.utils import record_funnel_event
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
@@ -701,6 +707,10 @@ class FunnelEventIngestView(APIView):
     }
 
     def post(self, request):
+        FunnelEvent = apps.get_model("finance", "FunnelEvent")
+        if FunnelEvent is None:
+            return Response({"error": "FunnelEvent model unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         event_type = request.data.get("event_type")
         status = request.data.get("status", "success")
         session_id = request.data.get("session_id", "")
@@ -733,6 +743,10 @@ class FunnelMetricsView(APIView):
     def get(self, request):
         if not (request.user.is_staff or request.user.is_superuser):
             return Response(status=403)
+
+        FunnelEvent = apps.get_model("finance", "FunnelEvent")
+        if FunnelEvent is None:
+            return Response({"error": "FunnelEvent model unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         days = int(request.query_params.get("days", 30))
         since = timezone.now() - timedelta(days=days)

@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from django.contrib.auth.models import AbstractBaseUser
 
-from finance.models import FunnelEvent
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,11 @@ def record_funnel_event(
     metadata: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Persist a funnel event without breaking the caller on failure."""
+
+    FunnelEvent = apps.get_model("finance", "FunnelEvent")
+    if FunnelEvent is None:
+        logger.warning("FunnelEvent model not available; skipping event %s", event_type)
+        return
 
     try:
         FunnelEvent.objects.create(
