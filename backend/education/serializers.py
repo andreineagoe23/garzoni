@@ -179,7 +179,10 @@ class ExerciseSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Exercise
-        fields = ['id', 'type', 'question', 'exercise_data', 'category', 'difficulty']
+        fields = [
+            'id', 'type', 'question', 'exercise_data', 'category', 'difficulty',
+            'version', 'is_published', 'misconception_tags', 'error_patterns'
+        ]
 
 
 class UserExerciseProgressSerializer(serializers.ModelSerializer):

@@ -1,5 +1,7 @@
 # education/admin.py
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+
 from education.models import (
     Path, Course, Lesson, LessonSection, Quiz, UserProgress,
     Question, Exercise, UserExerciseProgress, PollResponse
@@ -62,9 +64,35 @@ class LessonAdmin(admin.ModelAdmin):
 @admin.register(Exercise)
 class ExerciseAdmin(admin.ModelAdmin):
     """Admin configuration for managing exercises."""
-    list_display = ('type', 'category', 'difficulty', 'created_at')
-    list_filter = ('type', 'category', 'difficulty')
-    search_fields = ('question', 'category')
+    list_display = ('type', 'category', 'difficulty', 'version', 'is_published', 'created_at')
+    list_filter = ('type', 'category', 'difficulty', 'is_published')
+    search_fields = ('question', 'category', 'misconception_tags')
+    readonly_fields = ('preview',)
+    fieldsets = (
+        (None, {
+            'fields': ('type', 'category', 'difficulty', 'version', 'is_published')
+        }),
+        ('Content', {
+            'fields': ('question', 'exercise_data', 'correct_answer', 'preview')
+        }),
+        ('Quality Metadata', {
+            'fields': ('misconception_tags', 'error_patterns')
+        })
+    )
+
+    def preview(self, obj):
+        return obj.question
+
+    preview.short_description = "Learner preview"
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            existing = Exercise.objects.get(pk=obj.pk)
+            if existing.is_published and existing.version == obj.version:
+                raise ValidationError(
+                    "Published exercises are immutable. Increment version to publish a new revision."
+                )
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(UserExerciseProgress)

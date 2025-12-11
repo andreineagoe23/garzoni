@@ -78,7 +78,12 @@ class PaymentVerificationTest(AuthenticatedTestCase):
         session_id = "cs_test_valid123456789"
         with patch('stripe.checkout.Session.retrieve') as mock_retrieve:
             mock_intent = Mock(id="pi_test_123")
-            mock_retrieve.return_value = Mock(payment_status="paid", payment_intent=mock_intent)
+            mock_retrieve.return_value = Mock(
+                payment_status="paid",
+                payment_intent=mock_intent,
+                client_reference_id=str(self.user.id),
+                metadata={"user_id": self.user.id},
+            )
             response = self.client.post('/api/verify-session/', {"session_id": session_id}, format='json')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["status"], "verified")
