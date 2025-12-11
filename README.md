@@ -8,6 +8,7 @@ Monevo delivers interactive personal finance education with gamified progression
 - Gamification: badges, streaks, leaderboards, rewards.
 - AI tutor via OpenRouter-powered assistant for finance Q&A.
 - Finance tools: converters, calculators, trackers, and portfolio helpers.
+- Exercise experience plan focused on MCQ, numeric, and budget formats (see `docs/exercise-experience-plan.md`).
 
 ## Tech Stack
 

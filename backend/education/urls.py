@@ -12,6 +12,8 @@ from .views import (
     PersonalizedPathView,
     get_exercise_progress,
     reset_exercise,
+    review_queue,
+    next_exercise,
 )
 
 router = DefaultRouter()
@@ -28,6 +30,8 @@ urlpatterns = [
     path('personalized-path/', PersonalizedPathView.as_view(), name='personalized-path'),
     path('exercises/progress/<int:exercise_id>/', get_exercise_progress, name='exercise-progress'),
     path('exercises/reset/', reset_exercise, name='reset-exercise'),
+    path('review-queue/', review_queue, name='review-queue'),
+    path('next/', next_exercise, name='next-exercise'),
     path('progress/complete/', UserProgressViewSet.as_view({'post': 'complete'}), name='progress-complete'),
 ]
 
