@@ -67,6 +67,7 @@ class Mission(models.Model):
         ('add_savings', 'Add Savings'),
         ('read_fact', 'Read Finance Fact'),
         ('complete_path', 'Complete Path'),
+        ('clear_review_queue', 'Clear Review Queue'),
     ]
 
     name = models.CharField(max_length=100)
@@ -83,9 +84,60 @@ class Mission(models.Model):
         limit_choices_to={'is_active': True},
         related_name='missions'
     )
+    # Template fields for admin
+    is_template = models.BooleanField(default=False, help_text="If True, this is a template for generating missions")
+    purpose_statement = models.TextField(blank=True, help_text="Why this mission matters to the user")
+    # Mastery targeting
+    target_weakest_skills = models.BooleanField(default=False, help_text="Target user's weakest skills for this mission")
+    min_difficulty = models.IntegerField(null=True, blank=True, help_text="Minimum difficulty level")
+    max_difficulty = models.IntegerField(null=True, blank=True, help_text="Maximum difficulty level")
 
     def __str__(self):
         return f"{self.name} ({self.mission_type})"
+    
+    def clean(self):
+        """Validate goal_reference based on goal_type."""
+        from django.core.exceptions import ValidationError
+        
+        if not self.goal_reference:
+            self.goal_reference = {}
+        
+        if self.goal_type == "complete_lesson":
+            if "required_lessons" not in self.goal_reference:
+                self.goal_reference["required_lessons"] = 1
+            if not isinstance(self.goal_reference.get("required_lessons"), int):
+                raise ValidationError("required_lessons must be an integer")
+            if self.goal_reference["required_lessons"] < 1:
+                raise ValidationError("required_lessons must be at least 1")
+        
+        elif self.goal_type == "add_savings":
+            if "target" not in self.goal_reference:
+                self.goal_reference["target"] = 100
+            if not isinstance(self.goal_reference.get("target"), (int, float)):
+                raise ValidationError("target must be a number")
+            if self.goal_reference["target"] <= 0:
+                raise ValidationError("target must be positive")
+        
+        elif self.goal_type == "clear_review_queue":
+            if "target_count" not in self.goal_reference:
+                self.goal_reference["target_count"] = 5
+            if not isinstance(self.goal_reference.get("target_count"), int):
+                raise ValidationError("target_count must be an integer")
+            if self.goal_reference["target_count"] < 1:
+                raise ValidationError("target_count must be at least 1")
+        
+        elif self.goal_type == "complete_path":
+            # Path completion doesn't need specific goal_reference
+            pass
+        
+        elif self.goal_type == "read_fact":
+            # Fact reading doesn't need specific goal_reference
+            pass
+    
+    def save(self, *args, **kwargs):
+        """Override save to run validation."""
+        self.clean()
+        super().save(*args, **kwargs)
         
     class Meta:
         db_table = 'core_mission'
@@ -110,9 +162,32 @@ class MissionCompletion(models.Model):
         default='not_started'
     )
     completed_at = models.DateTimeField(null=True, blank=True)
+    # Mission swapping
+    swapped_at = models.DateTimeField(null=True, blank=True, help_text="When this mission was swapped")
+    swapped_from_mission = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='swapped_to'
+    )
+    # Completion tracking for analytics
+    first_try_bonus = models.BooleanField(default=False, help_text="Completed without retries/hints")
+    mastery_bonus = models.BooleanField(default=False, help_text="Completed with high mastery")
+    xp_awarded = models.IntegerField(default=0, help_text="Actual XP awarded (server-calculated)")
+    completion_time_seconds = models.IntegerField(null=True, blank=True, help_text="Time to complete in seconds")
+    # Idempotency
+    completion_idempotency_key = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="Prevents duplicate completions"
+    )
 
     class Meta:
         db_table = 'core_missioncompletion'
+        unique_together = [('user', 'mission', 'completion_idempotency_key')]
 
     def update_progress(self, increment=0):
         if self.status == 'completed':
@@ -159,6 +234,21 @@ class MissionCompletion(models.Model):
         elif goal_type == "complete_lesson":
             required = goal_reference.get('required_lessons', 1)
             self.progress = min(self.progress + (100 / required), 100)
+        
+        elif goal_type == "clear_review_queue":
+            # Late import to avoid circular dependency
+            from education.models import Mastery
+            now = timezone.now()
+            due_count = Mastery.objects.filter(
+                user=self.user,
+                due_at__lte=now
+            ).count()
+            target = goal_reference.get('target_count', 5)
+            if due_count == 0:
+                self.progress = 100
+            else:
+                completed = target - due_count
+                self.progress = min(int((completed / target) * 100), 100)
 
         # Finalize mission if complete
         if self.progress >= 100:
@@ -198,4 +288,52 @@ def reset_weekly_missions():
         mission__mission_type="weekly"
     )
     completions.update(progress=0, status="not_started", completed_at=None)
+
+
+class StreakItem(models.Model):
+    """
+    Represents items that users can use to preserve streaks or boost XP.
+    """
+    ITEM_TYPES = [
+        ('streak_freeze', 'Streak Freeze'),
+        ('streak_boost', 'Streak Boost'),
+    ]
+    
+    user = models.ForeignKey(User, related_name="streak_items", on_delete=models.CASCADE)
+    item_type = models.CharField(max_length=20, choices=ITEM_TYPES)
+    quantity = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'core_streakitem'
+        unique_together = [('user', 'item_type')]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_item_type_display()} x{self.quantity}"
+
+
+class MissionPerformance(models.Model):
+    """
+    Tracks analytics for mission performance and skill impact.
+    """
+    user = models.ForeignKey(User, related_name="mission_performance", on_delete=models.CASCADE)
+    mission = models.ForeignKey(Mission, related_name="performance", on_delete=models.CASCADE)
+    completion = models.OneToOneField(
+        MissionCompletion,
+        related_name="performance",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    # Performance metrics
+    time_to_completion_seconds = models.IntegerField(null=True, blank=True)
+    drop_off_stage = models.CharField(max_length=50, null=True, blank=True)
+    skill_improvements = models.JSONField(default=dict, help_text="Skill proficiency changes")
+    mastery_before = models.JSONField(default=dict, help_text="Mastery levels before mission")
+    mastery_after = models.JSONField(default=dict, help_text="Mastery levels after mission")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'core_missionperformance'
 
