@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -58,6 +58,9 @@ function Profile() {
     month_name: "",
     year: null,
   });
+  const [badgeFilter, setBadgeFilter] = useState("all"); // all | earned | locked
+  const [showAllBadges, setShowAllBadges] = useState(false);
+  const [isLgUp, setIsLgUp] = useState(false);
 
   const { getAccessToken, loadProfile, isAuthenticated, isInitialized } =
     useAuth();
@@ -84,10 +87,20 @@ function Profile() {
         hasFetchedRef.current = true;
 
         const profileUserData = profilePayload.user_data || {};
+        const resolvedUsername =
+          profileUserData.username ||
+          profilePayload.username ||
+          profilePayload.user?.username ||
+          "";
+        const resolvedEmail =
+          profileUserData.email ||
+          profilePayload.email ||
+          profilePayload.user?.email ||
+          "";
 
         setProfileData({
-          username: profileUserData.username || "",
-          email: profileUserData.email || "",
+          username: resolvedUsername,
+          email: resolvedEmail,
           first_name: profileUserData.first_name || "",
           last_name: profileUserData.last_name || "",
           earned_money: parseFloat(profileUserData.earned_money) || 0,
@@ -193,6 +206,14 @@ function Profile() {
     };
   }, [getAccessToken, loadProfile, isAuthenticated, isInitialized]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)"); // tailwind lg
+    const update = () => setIsLgUp(Boolean(mq.matches));
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
   const renderCalendar = () => {
     if (!currentMonth.first_day || !currentMonth.last_day) return null;
 
@@ -262,6 +283,22 @@ function Profile() {
     );
   };
 
+  const displayUsername =
+    profileData.username ||
+    (profileData.email ? profileData.email.split("@")[0] : "") ||
+    "User";
+
+  const visibleBadgeLimit = isLgUp ? 9 : 4; // 3x3 on lg+, 2x2 on smaller
+  const filteredBadges = useMemo(() => {
+    if (badgeFilter === "earned") return badges.filter((b) => b.earned);
+    if (badgeFilter === "locked") return badges.filter((b) => !b.earned);
+    return badges;
+  }, [badges, badgeFilter]);
+
+  const badgesToRender = showAllBadges
+    ? filteredBadges
+    : filteredBadges.slice(0, visibleBadgeLimit);
+
   if (isLoading) {
     return (
       <PageContainer maxWidth="5xl" layout="centered">
@@ -292,7 +329,7 @@ function Profile() {
           </div>
           <div className="space-y-1">
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-              @{profileData.username}
+              {displayUsername}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {profileData.first_name} {profileData.last_name}
@@ -440,19 +477,57 @@ function Profile() {
         </section>
 
         <section className="space-y-6">
-          <header>
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              Achievements
-            </h3>
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                Achievements
+              </h3>
+              <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                Showing {Math.min(badgesToRender.length, filteredBadges.length)}{" "}
+                of {filteredBadges.length}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <label
+                htmlFor="badge-filter"
+                className="text-sm font-medium text-[color:var(--text-color,#111827)]"
+              >
+                Filter:
+              </label>
+              <select
+                id="badge-filter"
+                value={badgeFilter}
+                onChange={(e) => {
+                  setBadgeFilter(e.target.value);
+                  setShowAllBadges(false);
+                }}
+                className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              >
+                <option value="all">All</option>
+                <option value="earned">Earned</option>
+                <option value="locked">Locked</option>
+              </select>
+
+              {filteredBadges.length > visibleBadgeLimit && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllBadges((prev) => !prev)}
+                  className="rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                >
+                  {showAllBadges ? "Show less" : "Show all"}
+                </button>
+              )}
+            </div>
           </header>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {badges.length > 0 ? (
-              badges.map((userBadge) => (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {badgesToRender.length > 0 ? (
+              badgesToRender.map((userBadge) => (
                 <GlassCard
                   key={userBadge.badge.id}
                   padding="md"
-                  className={`flex h-36 flex-col items-center justify-center bg-[color:var(--input-bg,#f3f4f6)]/60 text-center transition`}
+                  className="flex h-28 flex-col items-center justify-center bg-[color:var(--input-bg,#f3f4f6)]/60 text-center transition"
                   title={`${userBadge.badge.name}\n${
                     userBadge.badge.description || "Earned achievement"
                   }`}
@@ -465,7 +540,7 @@ function Profile() {
                   <img
                     src={userBadge.badge.image_url}
                     alt={userBadge.badge.name}
-                    className="h-16 w-16 rounded-full object-cover"
+                    className="h-14 w-14 rounded-full object-cover"
                   />
                   <p className="mt-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
                     {userBadge.earned ? userBadge.badge.name : "Locked"}
