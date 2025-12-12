@@ -9,15 +9,12 @@ export const fetchLearningPathCourses = (pathId) =>
   apiClient.get(`/learningpaths/${pathId}/courses/`);
 
 export const fetchLessonsWithProgress = (courseId, includeUnpublished) =>
-  apiClient.get(
-    `/lessons/with_progress/`,
-    {
-      params: {
-        course: courseId,
-        include_unpublished: includeUnpublished,
-      },
-    }
-  );
+  apiClient.get(`/lessons/with_progress/`, {
+    params: {
+      course: courseId,
+      include_unpublished: includeUnpublished,
+    },
+  });
 
 export const fetchExercises = () => apiClient.get(`/exercises/`);
 
@@ -38,3 +35,9 @@ export const updateLessonSection = (lessonId, sectionId, payload) =>
 
 export const deleteLessonSection = (lessonId, sectionId) =>
   apiClient.delete(`/lessons/${lessonId}/sections/${sectionId}/`);
+
+export const fetchReviewQueue = () => apiClient.get("/review-queue/");
+
+export const fetchMasterySummary = () => apiClient.get("/mastery-summary/");
+
+export const fetchMissions = () => apiClient.get("/missions/");

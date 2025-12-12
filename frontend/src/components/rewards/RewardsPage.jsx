@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
-import { consumeEntitlement, fetchEntitlements } from "services/entitlementsService";
+import {
+  consumeEntitlement,
+  fetchEntitlements,
+} from "services/entitlementsService";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
@@ -17,11 +19,6 @@ function RewardsPage() {
   const shareCardRef = useRef(null);
   const [lockedFeature, setLockedFeature] = useState(null);
   const [showUpsell, setShowUpsell] = useState(false);
-  const [subscriptionInfo, setSubscriptionInfo] = useState({
-    hasPaid: false,
-    questionnaireComplete: false,
-  });
-  const navigate = useNavigate();
   const { loadProfile } = useAuth();
   const queryClient = useQueryClient();
 
@@ -40,15 +37,9 @@ function RewardsPage() {
           force ? { force: true } : undefined
         );
         const userData = profilePayload?.user_data || profilePayload || {};
-        const earned =
-          userData?.earned_money ??
-          0;
+        const earned = userData?.earned_money ?? 0;
         const normalized = Number.parseFloat(earned) || 0;
         setBalance(normalized.toFixed(2));
-        setSubscriptionInfo({
-          hasPaid: Boolean(userData?.has_paid),
-          questionnaireComplete: Boolean(userData?.is_questionnaire_completed),
-        });
       } catch (error) {
         console.error("Error fetching balance:", error);
       }
@@ -100,18 +91,6 @@ function RewardsPage() {
     await fetchBalance(true);
   }, [fetchBalance]);
 
-  const handleSubscriptionNavigate = useCallback(() => {
-    if (!subscriptionInfo.questionnaireComplete) {
-      navigate("/questionnaire");
-      return;
-    }
-    if (!subscriptionInfo.hasPaid) {
-      navigate("/upgrade", { state: { from: "/rewards" } });
-      return;
-    }
-    navigate("/personalized-path");
-  }, [navigate, subscriptionInfo.hasPaid, subscriptionInfo.questionnaireComplete]);
-
   const handleShare = useCallback(async () => {
     try {
       const allowed = await guardDownloads();
@@ -154,7 +133,11 @@ function RewardsPage() {
   }, [guardDownloads]);
 
   return (
-    <PageContainer maxWidth="6xl" layout="none" innerClassName="flex flex-col gap-8">
+    <PageContainer
+      maxWidth="6xl"
+      layout="none"
+      innerClassName="flex flex-col gap-8"
+    >
       <GlassCard
         ref={shareCardRef}
         padding="md"
@@ -165,10 +148,17 @@ function RewardsPage() {
             Rewards
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Spend your coins on exclusive rewards or donate to causes that matter.
+            Spend your coins on exclusive rewards or donate to causes that
+            matter.
           </p>
         </div>
-        <div className="rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--bg-color,#f8fafc)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+        <div
+          className="rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--bg-color,#f8fafc)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]"
+          style={{
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
+        >
           <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
             Available Balance
           </span>
@@ -176,31 +166,6 @@ function RewardsPage() {
             {balance} coins
           </p>
         </div>
-      </GlassCard>
-
-      <GlassCard
-        padding="md"
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-            Subscription status
-          </p>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            {subscriptionInfo.hasPaid
-              ? "You're all set with Premium access."
-              : "Upgrade to unlock unlimited personalized learning."}
-          </p>
-        </div>
-        <GlassButton
-          variant="ghost"
-          onClick={handleSubscriptionNavigate}
-          icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
-        >
-          {subscriptionInfo.hasPaid
-            ? "View your personalized path"
-            : "Check subscription options"}
-        </GlassButton>
       </GlassCard>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -218,20 +183,20 @@ function RewardsPage() {
             Donate
           </GlassButton>
         </div>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            Coins refresh automatically after each purchase or donation.
-          </p>
-          <GlassButton
-            variant="ghost"
-            onClick={handleShare}
-            icon={downloadsFeature && !downloadsFeature.enabled ? "🔒" : "⬇️"}
-            disabled={downloadsFeature?.remaining_today === 0}
-          >
-            {downloadsFeature?.remaining_today === 0
-              ? "Download limit reached"
-              : "Share achievement card"}
-          </GlassButton>
-        </div>
+        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+          Coins refresh automatically after each purchase or donation.
+        </p>
+        <GlassButton
+          variant="ghost"
+          onClick={handleShare}
+          icon={downloadsFeature && !downloadsFeature.enabled ? "🔒" : "⬇️"}
+          disabled={downloadsFeature?.remaining_today === 0}
+        >
+          {downloadsFeature?.remaining_today === 0
+            ? "Download limit reached"
+            : "Share achievement card"}
+        </GlassButton>
+      </div>
 
       <GlassCard padding="lg">
         {activeTab === "shop" ? (

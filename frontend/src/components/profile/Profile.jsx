@@ -104,12 +104,9 @@ function Profile() {
           ? { Authorization: `Bearer ${token}` }
           : undefined;
 
-        const missionsResponse = await axios.get(
-          `${BACKEND_URL}/missions/`,
-          {
-            headers: authHeaders,
-          }
-        );
+        const missionsResponse = await axios.get(`${BACKEND_URL}/missions/`, {
+          headers: authHeaders,
+        });
 
         const dailyLessonMission = missionsResponse.data.daily_missions.find(
           (mission) => mission.goal_type === "complete_lesson"
@@ -313,6 +310,14 @@ function Profile() {
             >
               <span aria-hidden>🧭</span>
               Jump to Personalized Path
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/upgrade")}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            >
+              <span aria-hidden>💳</span>
+              Jump to Subscription
             </button>
           </div>
         </section>
