@@ -725,6 +725,13 @@ class FunnelEventIngestView(APIView):
         "checkout_completed",
         "entitlement_lookup",
         "webhook_received",
+        # Dashboard analytics events
+        "dashboard_view",
+        "cta_click",
+        "weak_skill_click",
+        "sort_change",
+        "filter_change",
+        "improve_recommendation_click",
     }
 
     def post(self, request):

@@ -815,6 +815,23 @@ def review_queue(request):
     return Response({'due': queue, 'count': len(queue)})
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mastery_summary(request):
+    """Return mastery data for all skills, sorted by proficiency (lowest first)."""
+    masteries = Mastery.objects.filter(user=request.user).order_by('proficiency', 'skill')
+    mastery_data = [
+        {
+            'skill': mastery.skill,
+            'proficiency': mastery.proficiency,
+            'due_at': mastery.due_at,
+            'last_reviewed': mastery.last_reviewed,
+        }
+        for mastery in masteries
+    ]
+    return Response({'masteries': mastery_data})
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def next_exercise(request):
