@@ -1,5 +1,9 @@
 import React from "react";
-import { Check2Circle, ShieldCheck, LightningCharge } from "react-bootstrap-icons";
+import {
+  Check2Circle,
+  ShieldCheck,
+  LightningCharge,
+} from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import Header from "components/layout/Header";
 import { GlassButton, GlassCard, GlassContainer } from "components/ui";
@@ -112,10 +116,10 @@ function Pricing() {
   const navigate = useNavigate();
 
   return (
-    <div className="app-container min-h-screen bg-gradient-to-b from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--bg-color,#eef2ff)] text-[color:var(--text-color,#111827)]">
+    <div className="app-container min-h-screen flex flex-col bg-gradient-to-b from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--bg-color,#eef2ff)] text-[color:var(--text-color,#111827)]">
       <Header />
 
-      <main className="pt-[90px]">
+      <main className="flex-1 pt-[90px]">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pb-20 sm:px-6 lg:px-8">
           <section className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] shadow-inner shadow-[color:var(--primary,#1d5330)]/10">
@@ -127,7 +131,8 @@ function Pricing() {
               Choose the plan that grows with you
             </h1>
             <p className="mt-3 text-base text-[color:var(--muted-text,#6b7280)] sm:text-lg">
-              Start free, upgrade when you need more AI coaching, downloads, and personalized support.
+              Start free, upgrade when you need more AI coaching, downloads, and
+              personalized support.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -164,12 +169,18 @@ function Pricing() {
                 )}
 
                 <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">{plan.name}</h3>
+                  <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+                    {plan.name}
+                  </h3>
                   <div className="flex items-baseline gap-1 text-4xl font-extrabold text-[color:var(--text-color,#0f172a)]">
                     {plan.price}
-                    <span className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">{plan.cadence}</span>
+                    <span className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+                      {plan.cadence}
+                    </span>
                   </div>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">{plan.description}</p>
+                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                    {plan.description}
+                  </p>
                 </div>
 
                 <ul className="mt-6 space-y-3 text-sm text-[color:var(--text-color,#111827)]">
@@ -184,7 +195,9 @@ function Pricing() {
                 <GlassButton
                   className="mt-8 w-full"
                   variant={plan.highlight ? "primary" : "ghost"}
-                  onClick={() => navigate(plan.highlight ? "/register" : "/pricing")}
+                  onClick={() =>
+                    navigate(plan.highlight ? "/register" : "/pricing")
+                  }
                 >
                   {plan.cta}
                 </GlassButton>
@@ -198,7 +211,9 @@ function Pricing() {
                 <ShieldCheck />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">Compare features</h2>
+                <h2 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+                  Compare features
+                </h2>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                   See how each plan stacks up for your daily and weekly goals.
                 </p>
@@ -218,10 +233,17 @@ function Pricing() {
                   </thead>
                   <tbody>
                     {comparisons.map((row) => (
-                      <tr key={row.feature} className="border-t border-[color:var(--border-color,#e5e7eb)]">
-                        <td className="px-4 py-3 text-[color:var(--text-color,#111827)]">{row.feature}</td>
+                      <tr
+                        key={row.feature}
+                        className="border-t border-[color:var(--border-color,#e5e7eb)]"
+                      >
+                        <td className="px-4 py-3 text-[color:var(--text-color,#111827)]">
+                          {row.feature}
+                        </td>
                         <td className="px-4 py-3">{row.starter}</td>
-                        <td className="px-4 py-3 font-semibold text-[color:var(--primary,#1d5330)]">{row.plus}</td>
+                        <td className="px-4 py-3 font-semibold text-[color:var(--primary,#1d5330)]">
+                          {row.plus}
+                        </td>
                         <td className="px-4 py-3">{row.pro}</td>
                       </tr>
                     ))}
@@ -241,17 +263,34 @@ function Pricing() {
                   Talk with a real human
                 </h3>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Tell us about your goals and we will recommend the right plan for your timeline.
+                  Tell us about your goals and we will recommend the right plan
+                  for your timeline.
                 </p>
-                <GlassButton variant="primary" className="w-full" onClick={() => navigate("/register")}>Schedule a call</GlassButton>
-                <GlassButton variant="ghost" className="w-full" onClick={() => navigate("/login")}>I'm already a member</GlassButton>
+                <GlassButton
+                  variant="primary"
+                  className="w-full"
+                  onClick={() => navigate("/register")}
+                >
+                  Schedule a call
+                </GlassButton>
+                <GlassButton
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => navigate("/login")}
+                >
+                  I'm already a member
+                </GlassButton>
               </div>
             </GlassCard>
 
             <GlassCard className="lg:col-span-2 p-6 sm:p-8 space-y-4">
               <div>
-                <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">Frequently asked questions</h3>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">Everything you need to know about billing and quotas.</p>
+                <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+                  Frequently asked questions
+                </h3>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Everything you need to know about billing and quotas.
+                </p>
               </div>
               <div className="space-y-4">
                 {faqs.map((item) => (
@@ -259,8 +298,12 @@ function Pricing() {
                     key={item.question}
                     className="rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm"
                   >
-                    <h4 className="text-base font-semibold text-[color:var(--text-color,#111827)]">{item.question}</h4>
-                    <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">{item.answer}</p>
+                    <h4 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
+                      {item.question}
+                    </h4>
+                    <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                      {item.answer}
+                    </p>
                   </div>
                 ))}
               </div>

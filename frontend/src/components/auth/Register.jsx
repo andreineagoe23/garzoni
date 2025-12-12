@@ -37,7 +37,9 @@ function Register() {
       if (result.success) {
         navigate("/all-topics");
       } else {
-        setErrorMessage(result.error || "Registration failed. Please try again.");
+        setErrorMessage(
+          result.error || "Registration failed. Please try again."
+        );
       }
     } catch (registerError) {
       setErrorMessage(
@@ -93,7 +95,7 @@ function Register() {
                 <div className="space-y-2">
                   <label
                     htmlFor="first_name"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                    className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
                     First Name
                   </label>
@@ -106,14 +108,14 @@ function Register() {
                     required
                     autoComplete="given-name"
                     placeholder="Enter your first name"
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label
                     htmlFor="last_name"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                    className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
                     Last Name
                   </label>
@@ -126,7 +128,7 @@ function Register() {
                     required
                     autoComplete="family-name"
                     placeholder="Enter your last name"
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
               </div>
@@ -194,7 +196,9 @@ function Register() {
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
@@ -206,7 +210,8 @@ function Register() {
                   htmlFor="referral_code"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Referral Code <span className="text-gray-400">(optional)</span>
+                  Referral Code{" "}
+                  <span className="text-gray-400">(optional)</span>
                 </label>
                 <input
                   id="referral_code"
@@ -249,4 +254,3 @@ function Register() {
 }
 
 export default Register;
-

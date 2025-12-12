@@ -33,10 +33,10 @@ function Welcome() {
   const navigate = useNavigate();
 
   return (
-    <div className="app-container min-h-screen bg-[color:var(--bg-color,#ffffff)] text-[color:var(--text-color,#111827)]">
+    <div className="app-container min-h-screen flex flex-col bg-[color:var(--bg-color,#ffffff)] text-[color:var(--text-color,#111827)]">
       <Header />
 
-      <main className="relative pt-[90px]">
+      <main className="relative flex-1 pt-[90px]">
         <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-[color:var(--primary,#1d5330)]/15 to-transparent blur-3xl" />
 
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-16 sm:px-6 lg:px-8">
@@ -80,11 +80,7 @@ function Welcome() {
           </section>
 
           {featureSections.map((feature, index) => (
-            <GlassCard
-              key={feature.title}
-              padding="lg"
-              className="p-6 lg:p-12"
-            >
+            <GlassCard key={feature.title} padding="lg" className="p-6 lg:p-12">
               <div
                 className={`flex flex-col gap-10 lg:flex-row ${
                   index % 2 !== 0 ? "lg:flex-row-reverse" : ""
@@ -153,4 +149,3 @@ function Welcome() {
 }
 
 export default Welcome;
-
