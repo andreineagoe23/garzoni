@@ -627,12 +627,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 ) : weakestSkills.length > 0 ? (
                   <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl" aria-hidden="true">
+                      <span className="text-lg" aria-hidden="true">
                         🎯
                       </span>
-                      <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                      <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
                         Weakest Skills
-                      </h3>
+                      </span>
                     </div>
                     <p className="text-sm text-[color:var(--muted-text,#6b7280)] mb-4">
                       Focus on these areas to strengthen your learning

@@ -884,7 +884,7 @@ const ExercisePage = () => {
                   <textarea
                     value={scratchpad}
                     onChange={(event) => setScratchpad(event.target.value)}
-                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                     placeholder="Work through the steps here"
                   />
                 </div>
@@ -899,7 +899,7 @@ const ExercisePage = () => {
                       onChange={(event) =>
                         setCalculatorValue(event.target.value)
                       }
-                      className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                      className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                       placeholder="e.g. (1+0.05/12)^12-1"
                     />
                     <button
