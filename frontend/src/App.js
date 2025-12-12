@@ -22,24 +22,35 @@ const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
 const LessonPage = React.lazy(() => import("components/courses/LessonPage"));
 const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
 const Navbar = React.lazy(() => import("components/layout/Navbar"));
+const Footer = React.lazy(() => import("components/layout/Footer"));
 const Profile = React.lazy(() => import("components/profile/Profile"));
 const Settings = React.lazy(() => import("components/profile/Settings"));
 const QuizPage = React.lazy(() => import("components/courses/QuizPage"));
-const Leaderboards = React.lazy(() => import("components/engagement/Leaderboard"));
+const Leaderboards = React.lazy(() =>
+  import("components/engagement/Leaderboard")
+);
 const Missions = React.lazy(() => import("components/engagement/Missions"));
-const Questionnaire = React.lazy(() => import("components/onboarding/Questionnaire"));
+const Questionnaire = React.lazy(() =>
+  import("components/onboarding/Questionnaire")
+);
 const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
-const ForgotPassword = React.lazy(() => import("components/auth/ForgotPassword"));
+const ForgotPassword = React.lazy(() =>
+  import("components/auth/ForgotPassword")
+);
 const ResetPassword = React.lazy(() => import("components/auth/ResetPassword"));
 const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
 const FAQPage = React.lazy(() => import("components/support/FAQPage"));
-const ExercisePage = React.lazy(() => import("components/exercises/ExercisePage"));
+const ExercisePage = React.lazy(() =>
+  import("components/exercises/ExercisePage")
+);
 const UpgradePage = React.lazy(() => import("components/billing/Upgrade"));
-const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
+const PrivacyPolicy = React.lazy(() =>
+  import("components/legal/PrivacyPolicy")
+);
 const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
 const PricingPage = React.lazy(() => import("components/landing/Pricing"));
-const PricingFunnelDashboard = React.lazy(
-  () => import("components/analytics/PricingFunnelDashboard")
+const PricingFunnelDashboard = React.lazy(() =>
+  import("components/analytics/PricingFunnelDashboard")
 );
 
 const queryClient = new QueryClient();
@@ -64,7 +75,6 @@ const AppContent = () => {
     "/welcome",
     "/forgot-password",
     "/password-reset",
-    "/upgrade",
     "/questionnaire",
     "/payment-required",
     "/privacy-policy",
@@ -74,6 +84,16 @@ const AppContent = () => {
 
   const noNavbarPaths = publicPaths;
   const noChatbotPaths = publicPaths;
+  // Pages that render a standalone marketing/auth layout (they render their own Footer)
+  const noFooterPaths = [
+    "/",
+    "/welcome",
+    "/pricing",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/password-reset",
+  ];
 
   useEffect(() => {
     if (
@@ -88,12 +108,16 @@ const AppContent = () => {
   }, [location.pathname, location.search]);
 
   const hasNavbar = !noNavbarPaths.includes(location.pathname);
+  const hasFooter = !noFooterPaths.some(
+    (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
+  );
 
   const content = (
     <ThemeProvider>
       <div
         className={[
           "app-container",
+          "min-h-screen flex flex-col",
           noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
         ]
           .join(" ")
@@ -105,9 +129,9 @@ const AppContent = () => {
           </Suspense>
         )}
 
-        <div className="app-layout w-full p-0">
+        <div className="app-layout w-full flex-1 flex flex-col p-0">
           <main
-            className="content"
+            className="content flex-1"
             style={hasNavbar ? { paddingTop: "88px" } : undefined}
           >
             <Suspense
@@ -261,6 +285,12 @@ const AppContent = () => {
           </main>
 
           {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
+
+          {hasFooter && (
+            <Suspense fallback={null}>
+              <Footer />
+            </Suspense>
+          )}
         </div>
       </div>
       <Toaster position="top-right" />

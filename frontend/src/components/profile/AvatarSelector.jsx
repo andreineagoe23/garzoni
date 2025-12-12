@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { PencilSquare, X } from "react-bootstrap-icons";
@@ -15,7 +15,11 @@ const AVATAR_STYLES = [
 ];
 
 const getAvatarUrl = (style, seed) =>
-  seed ? `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}` : null;
+  seed
+    ? `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(
+        seed
+      )}`
+    : null;
 
 function AvatarSelector({ currentAvatar, onAvatarChange }) {
   const { getAccessToken, refreshProfile } = useAuth();
@@ -24,6 +28,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
   const [selectedStyle, setSelectedStyle] = useState("avataaars");
   const [seed, setSeed] = useState("");
   const [previewAvatar, setPreviewAvatar] = useState(null);
+  const popoverRef = useRef(null);
+  const buttonRef = useRef(null);
+  const [popoverTop, setPopoverTop] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,6 +56,36 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     setSeed(inferredSeed);
     setPreviewAvatar(getAvatarUrl(inferredStyle, inferredSeed));
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const updatePosition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPopoverTop(Math.round(rect.bottom + 12)); // 12px gap under button
+    };
+
+    updatePosition();
+
+    const onMouseDown = (event) => {
+      if (!popoverRef.current) return;
+      if (!popoverRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -95,156 +132,161 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
   };
 
   return (
-    <>
+    <div ref={popoverRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => setIsOpen((prev) => !prev)}
         className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-2 text-[color:var(--muted-text,#4b5563)] shadow-sm transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
         aria-label="Change avatar"
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
       >
         <PencilSquare className="text-base" />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 px-4 py-8 backdrop-blur-sm" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
-          <div className="relative w-full max-w-3xl rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-2xl shadow-black/30">
-            <div className="flex items-start justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                  Customize Your Avatar
-                </h3>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Pick a style and personalize your look.
+        <div
+          className="fixed left-1/2 z-[2000] w-[min(92vw,48rem)] -translate-x-1/2 overflow-x-auto overflow-y-visible rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-2xl shadow-black/30"
+          style={{ top: popoverTop ?? 0 }}
+        >
+          <div className="flex items-start justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
+            <div>
+              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                Customize Your Avatar
+              </h3>
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                Pick a style and personalize your look.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={closeModal}
+              className="ml-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              aria-label="Close avatar selector"
+            >
+              <X className="text-lg" />
+            </button>
+          </div>
+
+          <div className="space-y-8 px-6 py-6 sm:px-8">
+            <div className="flex flex-col items-center gap-6 lg:flex-row">
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-40 w-40 items-center justify-center rounded-full border-4 border-[color:var(--accent,#2563eb)] bg-white/10 shadow-inner">
+                  {previewAvatar ? (
+                    <img
+                      src={previewAvatar}
+                      alt="Avatar preview"
+                      className="h-36 w-36 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl text-[color:var(--muted-text,#6b7280)]">
+                      🙂
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  Each avatar is generated from your seed text.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="ml-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Close avatar selector"
-              >
-                <X className="text-lg" />
-              </button>
-            </div>
 
-            <div className="space-y-8 px-6 py-6 sm:px-8">
-              <div className="flex flex-col items-center gap-6 lg:flex-row">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex h-40 w-40 items-center justify-center rounded-full border-4 border-[color:var(--accent,#2563eb)] bg-white/10 shadow-inner">
-                    {previewAvatar ? (
-                      <img
-                        src={previewAvatar}
-                        alt="Avatar preview"
-                        className="h-36 w-36 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-4xl text-[color:var(--muted-text,#6b7280)]">
-                        🙂
-                      </span>
-                    )}
-                  </div>
+              <div className="w-full space-y-5">
+                <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  Avatar Style
+                </label>
+                <select
+                  value={selectedStyle}
+                  onChange={(event) => setSelectedStyle(event.target.value)}
+                  className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                >
+                  {AVATAR_STYLES.map((style) => (
+                    <option key={style.id} value={style.id}>
+                      {style.name}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Customization Seed
+                  </label>
+                  <input
+                    type="text"
+                    value={seed}
+                    onChange={(event) => setSeed(event.target.value)}
+                    placeholder="Enter text to customize your avatar"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    Each avatar is generated from your seed text.
+                    Different words create different avatars.
                   </p>
                 </div>
-
-                <div className="w-full space-y-5">
-                  <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Avatar Style
-                  </label>
-                  <select
-                    value={selectedStyle}
-                    onChange={(event) => setSelectedStyle(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                  >
-                    {AVATAR_STYLES.map((style) => (
-                      <option key={style.id} value={style.id}>
-                        {style.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Customization Seed
-                    </label>
-                    <input
-                      type="text"
-                      value={seed}
-                      onChange={(event) => setSeed(event.target.value)}
-                      placeholder="Enter text to customize your avatar"
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                      Different words create different avatars.
-                    </p>
-                  </div>
-                </div>
               </div>
+            </div>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                    Quick Options
-                  </h4>
+            <div>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  Quick Options
+                </h4>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSeed(Math.random().toString(36).slice(2, 8))
+                  }
+                  className="text-xs font-medium text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                >
+                  Randomize
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                Click any avatar below to use it.
+              </p>
+
+              <div className="mt-4 grid grid-cols-3 gap-4 sm:grid-cols-6">
+                {quickOptions.map((example, index) => (
                   <button
+                    key={`${example.seed}-${index}`}
                     type="button"
-                    onClick={() => setSeed(Math.random().toString(36).slice(2, 8))}
-                    className="text-xs font-medium text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                    onClick={() => setSeed(example.seed)}
+                    className={`flex h-16 w-16 items-center justify-center rounded-full border transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                      seed === example.seed
+                        ? "border-[color:var(--accent,#2563eb)] shadow-lg shadow-[color:var(--accent,#2563eb)]/30"
+                        : "border-transparent bg-[color:var(--input-bg,#f3f4f6)] hover:border-[color:var(--accent,#2563eb)]/60"
+                    }`}
                   >
-                    Randomize
+                    <img
+                      src={example.url}
+                      alt={`Avatar option ${index + 1}`}
+                      className="h-12 w-12 rounded-full object-cover"
+                    />
                   </button>
-                </div>
-                <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Click any avatar below to use it.
-                </p>
-
-                <div className="mt-4 grid grid-cols-3 gap-4 sm:grid-cols-6">
-                  {quickOptions.map((example, index) => (
-                    <button
-                      key={`${example.seed}-${index}`}
-                      type="button"
-                      onClick={() => setSeed(example.seed)}
-                      className={`flex h-16 w-16 items-center justify-center rounded-full border transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
-                        seed === example.seed
-                          ? "border-[color:var(--accent,#2563eb)] shadow-lg shadow-[color:var(--accent,#2563eb)]/30"
-                          : "border-transparent bg-[color:var(--input-bg,#f3f4f6)] hover:border-[color:var(--accent,#2563eb)]/60"
-                      }`}
-                    >
-                      <img
-                        src={example.url}
-                        alt={`Avatar option ${index + 1}`}
-                        className="h-12 w-12 rounded-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--border-color,#d1d5db)] px-6 py-5 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={closeModal}
-                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveAvatar}
-                disabled={loading || !previewAvatar}
-                className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? "Saving..." : "Save Avatar"}
-              </button>
-            </div>
+          <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--border-color,#d1d5db)] px-6 py-5 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={saveAvatar}
+              disabled={loading || !previewAvatar}
+              className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? "Saving..." : "Save Avatar"}
+            </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
 export default AvatarSelector;
-

@@ -740,13 +740,13 @@ function Missions() {
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent,#111827)] md:text-right">
-              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-4 py-3 shadow-sm">
+              <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                   Streak
                 </p>
                 <p className="text-base font-semibold">{streakCount} days</p>
               </div>
-              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-4 py-3 shadow-sm">
+              <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                   Total XP today
                 </p>

@@ -23,7 +23,11 @@ function Login() {
     if (isAuthenticated) {
       // Avoid redirect loops into gated flows that immediately bounce to questionnaires/upgrade
       const from = location.state?.from?.pathname;
-      const gatedPaths = ["/personalized-path", "/upgrade", "/payment-required"];
+      const gatedPaths = [
+        "/personalized-path",
+        "/upgrade",
+        "/payment-required",
+      ];
       const destination = gatedPaths.includes(from) ? "/all-topics" : from;
 
       // Default to the main dashboard when there's no safe destination
@@ -145,7 +149,9 @@ function Login() {
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
@@ -202,4 +208,3 @@ function Login() {
 }
 
 export default Login;
-
