@@ -6,7 +6,14 @@ import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
-const DragAndDropExercise = ({ data, exerciseId }) => {
+const DragAndDropExercise = ({
+  data,
+  exerciseId,
+  onComplete,
+  onAttempt,
+  isCompleted: isCompletedProp = false,
+  disabled = false,
+}) => {
   const { items = [], targets = [] } = data || {};
   const { getAccessToken } = useAuth();
 
@@ -17,6 +24,12 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
     targets.map((target) => ({ ...target, status: null }))
   );
   const [isCompleted, setIsCompleted] = useState(false);
+
+  useEffect(() => {
+    if (isCompletedProp) {
+      setIsCompleted(true);
+    }
+  }, [isCompletedProp]);
 
   const itemsById = useMemo(() => {
     return items.reduce((acc, item) => {
@@ -53,7 +66,8 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
           setTargetStates(
             targets.map((target) => ({
               ...target,
-              status: savedAnswers[target.id] === target.id ? "correct" : "incorrect",
+              status:
+                savedAnswers[target.id] === target.id ? "correct" : "incorrect",
             }))
           );
           setFeedback("This exercise is already completed.");
@@ -68,7 +82,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   }, [exerciseId, getAccessToken, targets]);
 
   const handleDrop = (target, item) => {
-    if (isCompleted) return;
+    if (isCompleted || disabled) return;
     setUserAnswers((prev) => ({
       ...prev,
       [target.id]: item.id,
@@ -76,30 +90,30 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
   };
 
   const handleSubmit = async () => {
+    if (disabled) return;
     const results = targets.map((target) => {
       const isCorrect = userAnswers[target.id] === target.id;
       return { ...target, status: isCorrect ? "correct" : "incorrect" };
     });
 
-    const correctCount = results.filter((target) => target.status === "correct").length;
+    const correctCount = results.filter(
+      (target) => target.status === "correct"
+    ).length;
+    const allCorrect = correctCount === targets.length;
+    onAttempt?.({ correct: allCorrect });
 
-    if (correctCount === targets.length) {
+    if (allCorrect) {
       setFeedback("Great job! You completed the exercise!");
       setFeedbackType("success");
       setIsCompleted(true);
 
       try {
-        await axios.post(
-          `${BACKEND_URL}/lessons/complete/`,
-          { lesson_id: exerciseId },
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
-        );
+        await onComplete?.();
       } catch (error) {
         console.error("Error saving exercise progress:", error);
+        setFeedback("Error saving progress. Please try again.");
+        setFeedbackType("error");
+        setIsCompleted(false);
       }
     } else {
       setFeedback(
@@ -113,6 +127,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
 
   const handleRetry = async () => {
     try {
+      if (!exerciseId) return;
       await axios.post(
         `${BACKEND_URL}/exercises/reset/`,
         { section_id: exerciseId },
@@ -140,7 +155,8 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
             Match The Correct Items
           </h3>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Drag each item to the matching target. Submit your answers when you are ready.
+            Drag each item to the matching target. Submit your answers when you
+            are ready.
           </p>
         </header>
 
@@ -151,7 +167,11 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
             </h4>
             <div className="mt-3 flex flex-wrap gap-3">
               {items.map((item) => (
-                <DraggableItem key={item.id} item={item} isDisabled={isCompleted} />
+                <DraggableItem
+                  key={item.id}
+                  item={item}
+                  isDisabled={isCompleted || disabled}
+                />
               ))}
             </div>
           </div>
@@ -169,7 +189,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
                   onDrop={handleDrop}
                   userAnswer={userAnswers[target.id]}
                   itemsById={itemsById}
-                  isDisabled={isCompleted}
+                  isDisabled={isCompleted || disabled}
                 />
               ))}
             </div>
@@ -189,6 +209,7 @@ const DragAndDropExercise = ({ data, exerciseId }) => {
             <button
               type="button"
               onClick={handleSubmit}
+              disabled={disabled}
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
               Submit Answers
@@ -230,7 +251,11 @@ const DraggableItem = ({ item, isDisabled }) => {
       ref={drag}
       className={`min-w-[140px] rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-3 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition ${
         isDragging ? "opacity-60" : "opacity-100"
-      } ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-move hover:border-[color:var(--accent,#2563eb)]/40"}`}
+      } ${
+        isDisabled
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-move hover:border-[color:var(--accent,#2563eb)]/40"
+      }`}
       style={{
         backgroundColor: item.color || "var(--card-bg,#ffffff)",
       }}
@@ -271,7 +296,9 @@ const DroppableTarget = ({
     <div
       ref={drop}
       className={`rounded-2xl border px-4 py-4 text-center shadow-inner transition ${
-        isOver ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10" : statusClasses
+        isOver
+          ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10"
+          : statusClasses
       }`}
     >
       <p className="text-sm font-semibold text-[color:var(--accent,#111827)]">

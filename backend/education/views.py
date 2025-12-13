@@ -494,6 +494,53 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         except LessonSection.DoesNotExist:
             return Response({"error": "Invalid section"}, status=400)
 
+    @action(detail=False, methods=["get", "post"], url_path="flow_state")
+    def flow_state(self, request):
+        """
+        Persist / fetch the current index for the immersive course flow.
+
+        GET  /api/userprogress/flow_state/?course=<course_id>
+        POST /api/userprogress/flow_state/ { course: <course_id>, current_index: <int> }
+        """
+        course_id = request.query_params.get("course") if request.method == "GET" else request.data.get("course")
+        if not course_id:
+            return Response({"error": "course is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            course_id = int(course_id)
+        except (TypeError, ValueError):
+            return Response({"error": "course must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        progress, _ = UserProgress.objects.get_or_create(user=request.user, course_id=course_id)
+
+        if request.method == "GET":
+            return Response(
+                {
+                    "course": course_id,
+                    "current_index": int(getattr(progress, "flow_current_index", 0) or 0),
+                    "updated_at": progress.flow_updated_at.isoformat() if getattr(progress, "flow_updated_at", None) else None,
+                }
+            )
+
+        current_index = request.data.get("current_index", 0)
+        try:
+            current_index = int(current_index)
+        except (TypeError, ValueError):
+            return Response({"error": "current_index must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+        if current_index < 0:
+            return Response({"error": "current_index must be >= 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        progress.flow_current_index = current_index
+        progress.save(update_fields=["flow_current_index", "flow_updated_at"])
+
+        return Response(
+            {
+                "course": course_id,
+                "current_index": int(progress.flow_current_index or 0),
+                "updated_at": progress.flow_updated_at.isoformat() if progress.flow_updated_at else None,
+            }
+        )
+
 
 def _safe_decimal(value):
     """Convert numeric-like strings to Decimal while handling percentages."""

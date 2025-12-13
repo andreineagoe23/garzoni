@@ -21,6 +21,10 @@ from .views import (
     ConsumeEntitlementView,
     get_csrf_token,
     ReferralApplyView,
+    UserHeartsView,
+    UserHeartsDecrementView,
+    UserHeartsGrantView,
+    UserHeartsRefillView,
 )
 
 router = DefaultRouter()
@@ -45,6 +49,11 @@ urlpatterns = [
     path('leaderboard/friends/', FriendsLeaderboardView.as_view(), name='friends-leaderboard'),
     path('referrals/', ReferralApplyView.as_view(), name='apply-referral'),
     path('csrf/', get_csrf_token, name='get_csrf_token'),
+    # Hearts (lives) system
+    path('user/hearts/', UserHeartsView.as_view(), name='user-hearts'),
+    path('user/hearts/decrement/', UserHeartsDecrementView.as_view(), name='user-hearts-decrement'),
+    path('user/hearts/grant/', UserHeartsGrantView.as_view(), name='user-hearts-grant'),
+    path('user/hearts/refill/', UserHeartsRefillView.as_view(), name='user-hearts-refill'),
     # Include router URLs for ViewSet endpoints
     path('', include(router.urls)),
 ]

@@ -232,8 +232,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   // Removed mobile view tracking
 
-  const handleCourseClick = (courseId) => {
-    navigate(`/lessons/${courseId}`);
+  const handleCourseClick = (courseId, pathId) => {
+    const useFlow = preferences?.immersiveCourseFlow !== false;
+    if (pathId) {
+      navigate(
+        useFlow
+          ? `/courses/${pathId}/lessons/${courseId}/flow`
+          : `/courses/${pathId}/lessons/${courseId}`
+      );
+      return;
+    }
+    // Fallback: legacy route; pages will redirect to canonical when possible.
+    navigate(useFlow ? `/lessons/${courseId}/flow` : `/lessons/${courseId}`);
   };
 
   const handlePersonalizedPathClick = () => {

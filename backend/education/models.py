@@ -128,6 +128,9 @@ class UserProgress(models.Model):
     completed_sections = models.ManyToManyField(LessonSection, through='SectionCompletion', blank=True)
     last_completed_date = models.DateField(null=True, blank=True)
     streak = models.PositiveIntegerField(default=0)
+    # Persist immersive course/lesson flow position (section index within flattened flow)
+    flow_current_index = models.PositiveIntegerField(default=0)
+    flow_updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         user_str = self.user.username if self.user else "Unknown User"
