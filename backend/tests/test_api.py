@@ -93,3 +93,35 @@ class PaymentVerificationTest(AuthenticatedTestCase):
             self.assertEqual(profile.subscription_status, 'active')
             logger.info("✅ test_payment_verification_success passed")
 
+
+class HeartsAndFlowStateTest(AuthenticatedTestCase):
+    """Validate hearts endpoints and flow_state persistence."""
+
+    def test_hearts_default_and_decrement(self):
+        response = self.client.get("/api/user/hearts/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["max_hearts"], 5)
+        self.assertEqual(response.data["hearts"], 5)
+
+        response = self.client.post("/api/user/hearts/decrement/", {"amount": 1}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["hearts"], 4)
+        self.assertIn("last_refill_at", response.data)
+
+    def test_flow_state_roundtrip(self):
+        response = self.client.get(f"/api/userprogress/flow_state/?course={self.course.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_index"], 0)
+
+        response = self.client.post(
+            "/api/userprogress/flow_state/",
+            {"course": self.course.id, "current_index": 3},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_index"], 3)
+
+        response = self.client.get(f"/api/userprogress/flow_state/?course={self.course.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_index"], 3)
+

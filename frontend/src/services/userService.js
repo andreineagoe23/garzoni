@@ -6,7 +6,7 @@ export const fetchProgressSummary = () =>
   apiClient.get("/userprogress/progress_summary/");
 
 export const fetchLearningPathCourses = (pathId) =>
-  apiClient.get(`/learningpaths/${pathId}/courses/`);
+  apiClient.get(`/courses/`, { params: { path: pathId } });
 
 export const fetchLessonsWithProgress = (courseId, includeUnpublished) =>
   apiClient.get(`/lessons/with_progress/`, {
@@ -15,6 +15,9 @@ export const fetchLessonsWithProgress = (courseId, includeUnpublished) =>
       include_unpublished: includeUnpublished,
     },
   });
+
+export const fetchCourseById = (courseId) =>
+  apiClient.get(`/courses/${courseId}/`);
 
 export const fetchExercises = () => apiClient.get(`/exercises/`);
 
@@ -41,3 +44,20 @@ export const fetchReviewQueue = () => apiClient.get("/review-queue/");
 export const fetchMasterySummary = () => apiClient.get("/mastery-summary/");
 
 export const fetchMissions = () => apiClient.get("/missions/");
+
+// Hearts (lives) system
+export const fetchHearts = () => apiClient.get("/user/hearts/");
+export const decrementHearts = (amount = 1) =>
+  apiClient.post("/user/hearts/decrement/", { amount });
+export const grantHearts = (amount = 1) =>
+  apiClient.post("/user/hearts/grant/", { amount });
+export const refillHearts = () => apiClient.post("/user/hearts/refill/", {});
+
+// Immersive course flow state (per course)
+export const fetchCourseFlowState = (courseId) =>
+  apiClient.get("/userprogress/flow_state/", { params: { course: courseId } });
+export const saveCourseFlowState = (courseId, currentIndex) =>
+  apiClient.post("/userprogress/flow_state/", {
+    course: courseId,
+    current_index: currentIndex,
+  });

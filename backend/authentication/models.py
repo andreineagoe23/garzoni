@@ -51,6 +51,9 @@ class UserProfile(models.Model):
     last_completed_date = models.DateField(null=True, blank=True)
     last_login_date = models.DateField(null=True, blank=True)
     last_reminder_sent = models.DateTimeField(null=True, blank=True)
+    # Duolingo-like hearts system (lives)
+    hearts = models.PositiveSmallIntegerField(default=5)
+    hearts_last_refill_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.user.username

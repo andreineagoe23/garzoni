@@ -214,8 +214,8 @@ function PersonalizedPath({ onCourseClick }) {
     location.search,
   ]);
 
-  const handleCourseClick = (courseId) => {
-    if (onCourseClick) onCourseClick(courseId);
+  const handleCourseClick = (courseId, pathId) => {
+    if (onCourseClick) onCourseClick(courseId, pathId);
   };
 
   if (error) {
@@ -297,7 +297,7 @@ function PersonalizedPath({ onCourseClick }) {
                 <GlassCard
                   padding="lg"
                   className="group flex-1 cursor-pointer transition"
-                  onClick={() => handleCourseClick(course.id)}
+                  onClick={() => handleCourseClick(course.id, course.path)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">

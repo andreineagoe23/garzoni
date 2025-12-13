@@ -4,7 +4,14 @@ import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
-const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
+const BudgetAllocationExercise = ({
+  data,
+  exerciseId,
+  onComplete,
+  onAttempt,
+  isCompleted,
+  disabled = false,
+}) => {
   const { question, categories = [], total = 0, id } = data || {};
   const { getAccessToken } = useAuth();
   const initialAllocations = useMemo(() => {
@@ -33,6 +40,7 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
   }, [allocations]);
 
   const handleChange = (category, value) => {
+    if (disabled) return;
     const sanitized = value.replace(/[^0-9]/g, "");
     setAllocations((prev) => ({
       ...prev,
@@ -41,11 +49,13 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
   };
 
   const handleSubmit = async () => {
+    if (disabled) return;
     if (currentTotal === total) {
       setFeedback("Great job! Your budget allocation is correct!");
       setFeedbackType("success");
+      onAttempt?.({ correct: true });
       try {
-        await onComplete();
+        await onComplete?.();
       } catch (error) {
         setFeedback("Error saving progress. Please try again.");
         setFeedbackType("error");
@@ -55,14 +65,17 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
         `Your total must be ${total}. Current total: ${currentTotal}`
       );
       setFeedbackType("error");
+      onAttempt?.({ correct: false });
     }
   };
 
   const handleRetry = async () => {
     try {
+      const sectionId = exerciseId || id;
+      if (!sectionId) return;
       await axios.post(
         `${BACKEND_URL}/exercises/reset/`,
-        { section_id: id },
+        { section_id: sectionId },
         {
           headers: {
             Authorization: `Bearer ${getAccessToken()}`,
@@ -104,7 +117,7 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
               step="1"
               value={allocations[category] ?? ""}
               onChange={(event) => handleChange(category, event.target.value)}
-              disabled={isCompleted}
+              disabled={isCompleted || disabled}
               className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60"
               pattern="[0-9]*"
               inputMode="numeric"
@@ -142,6 +155,7 @@ const BudgetAllocationExercise = ({ data, onComplete, isCompleted }) => {
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={disabled}
             className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
             Submit Allocation
