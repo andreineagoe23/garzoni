@@ -9,24 +9,30 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useAuth } from "contexts/AuthContext";
+import { useAdmin } from "contexts/AdminContext";
 import {
   completeLesson,
   completeSection,
+  createLessonSection,
   decrementHearts,
-  fetchCourseById,
-  fetchLearningPathCourses,
-  fetchLessonsWithProgress,
+  deleteLessonSection,
   fetchCourseFlowState,
   fetchHearts,
+  fetchLearningPathCourses,
+  fetchLessonsWithProgress,
+  fetchExercises,
   grantHearts,
   refillHearts,
+  reorderLessonSections,
   saveCourseFlowState,
+  updateLessonSection,
 } from "services/userService";
 import { attachToken } from "services/httpClient";
 import { BACKEND_URL } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
+import LessonSectionEditorPanel from "./LessonSectionEditorPanel";
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 
@@ -86,7 +92,15 @@ function CourseFlowPage() {
   const queryClient = useQueryClient();
   const { getAccessToken } = useAuth();
   const { preferences } = usePreferences();
-  const useImmersive = preferences?.immersiveCourseFlow !== false;
+  const { adminMode } = useAdmin();
+
+  const [lessons, setLessons] = useState([]);
+  const lessonsRef = useRef([]);
+  const [editingLessonId, setEditingLessonId] = useState(null);
+  const [editingSectionId, setEditingSectionId] = useState(null);
+  const [draftSection, setDraftSection] = useState(null);
+  const [saveState, setSaveState] = useState({ status: "idle", message: "" });
+  const [pendingAutosave, setPendingAutosave] = useState(false);
 
   const [flowSections, setFlowSections] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -100,10 +114,17 @@ function CourseFlowPage() {
   const [didApplyInitialIndex, setDidApplyInitialIndex] = useState(false);
 
   useEffect(() => {
+    lessonsRef.current = lessons;
+  }, [lessons]);
+
+  useEffect(() => {
     setDidApplyInitialIndex(false);
     setCourseComplete(false);
     setCurrentIndex(0);
     setShowOutOfHearts(false);
+    setEditingLessonId(null);
+    setEditingSectionId(null);
+    setDraftSection(null);
   }, [courseIdNumber]);
 
   useEffect(() => {
@@ -122,35 +143,36 @@ function CourseFlowPage() {
     };
   }, []);
 
-  const shouldRedirectToCanonical =
-    Number.isFinite(courseIdNumber) && !Number.isFinite(pathIdNumber);
-
-  const { data: courseMeta, isLoading: isCourseMetaLoading } = useQuery({
-    queryKey: ["course", courseIdNumber],
-    queryFn: () => fetchCourseById(courseIdNumber).then((r) => r.data),
-    enabled: shouldRedirectToCanonical,
-  });
-
-  useEffect(() => {
-    if (!shouldRedirectToCanonical) return;
-    const canonicalPathId = courseMeta?.path;
-    if (!canonicalPathId) return;
-    navigate(`/courses/${canonicalPathId}/lessons/${courseIdNumber}/flow`, {
-      replace: true,
-    });
-  }, [courseIdNumber, courseMeta?.path, navigate, shouldRedirectToCanonical]);
-
   const {
     data: lessonsData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lessons", courseId, "flow"],
-    queryFn: () => fetchLessonsWithProgress(courseId, false),
+    queryKey: ["lessons", courseId, adminMode ? "admin" : "learner"],
+    queryFn: () => fetchLessonsWithProgress(courseId, adminMode),
     select: (response) => response.data || [],
-    enabled:
-      !shouldRedirectToCanonical || (!isCourseMetaLoading && !courseMeta?.path),
   });
+
+  const { data: exercisesData, isLoading: loadingExercises } = useQuery({
+    queryKey: ["exercises"],
+    queryFn: () => fetchExercises().then((response) => response.data || []),
+    enabled: adminMode,
+  });
+
+  const exercises = exercisesData || [];
+
+  useEffect(() => {
+    if (!lessonsData) return;
+
+    const normalized = normalizeLessons(lessonsData);
+    lessonsRef.current = normalized;
+    setLessons(normalized);
+    const completed = normalized
+      .flatMap((lesson) => lesson.sections || [])
+      .filter((section) => section.is_completed)
+      .map((section) => section.id);
+    setCompletedSectionIds(completed);
+  }, [lessonsData, normalizeLessons]);
 
   const { data: heartsData, refetch: refetchHearts } = useQuery({
     queryKey: ["hearts"],
@@ -168,9 +190,7 @@ function CourseFlowPage() {
   const { data: flowStateData, isFetched: isFlowStateFetched } = useQuery({
     queryKey: ["flow-state", courseIdNumber],
     queryFn: () => fetchCourseFlowState(courseIdNumber).then((r) => r.data),
-    enabled:
-      Number.isFinite(courseIdNumber) &&
-      (!shouldRedirectToCanonical || !isCourseMetaLoading),
+    enabled: Number.isFinite(courseIdNumber),
   });
 
   const { data: pathCourses, isLoading: isPathCoursesLoading } = useQuery({
@@ -241,30 +261,26 @@ function CourseFlowPage() {
     []
   );
 
-  const normalizedLessons = useMemo(() => {
-    return (lessonsData || []).map((lesson) => ({
-      ...lesson,
-      sections: (lesson.sections || [])
-        .map((section) => normalizeSection(section, lesson.id))
-        .sort((a, b) => a.order - b.order),
-    }));
-  }, [lessonsData, normalizeSection]);
-
-  useEffect(() => {
-    const completed = normalizedLessons
-      .flatMap((lesson) => lesson.sections || [])
-      .filter((section) => section.is_completed)
-      .map((section) => section.id);
-    setCompletedSectionIds(completed);
-  }, [normalizedLessons]);
+  const normalizeLessons = useCallback(
+    (lessonList) =>
+      (lessonList || []).map((lesson) => ({
+        ...lesson,
+        sections: (lesson.sections || [])
+          .map((section) => normalizeSection(section, lesson.id))
+          .sort((a, b) => a.order - b.order),
+      })),
+    [normalizeSection]
+  );
 
   useEffect(() => {
     const items = [];
 
-    normalizedLessons.forEach((lesson, lessonIndex) => {
-      const sections = (lesson.sections || []).filter(
-        (s) => s && (s.is_published ?? true)
-      );
+    lessons.forEach((lesson, lessonIndex) => {
+      const sections = (lesson.sections || []).filter((section) => {
+        if (!section) return false;
+        if (adminMode) return true;
+        return section.is_published ?? true;
+      });
 
       if (!sections.length) {
         // Fallback: treat a lesson without sections as one flow item.
@@ -299,7 +315,7 @@ function CourseFlowPage() {
     });
 
     setFlowSections(items);
-  }, [normalizedLessons]);
+  }, [adminMode, lessons]);
 
   useEffect(() => {
     if (didApplyInitialIndex) return;
@@ -399,6 +415,239 @@ function CourseFlowPage() {
   const isLast = currentIndex >= flowSections.length - 1;
 
   const isBlocked = heartsEnabled && hearts <= 0;
+
+  const snapshotLessons = useCallback(
+    () =>
+      lessonsRef.current.map((lesson) => ({
+        ...lesson,
+        sections: (lesson.sections || []).map((section) => ({ ...section })),
+      })),
+    []
+  );
+
+  const updateLessonSections = useCallback((lessonId, updater) => {
+    setLessons((prev) =>
+      prev.map((lesson) =>
+        lesson.id === lessonId
+          ? { ...lesson, sections: updater(lesson.sections || []) }
+          : lesson
+      )
+    );
+  }, []);
+
+  const beginEditingSection = (lessonId, section) => {
+    setEditingLessonId(lessonId);
+    setEditingSectionId(section?.id || null);
+    setDraftSection(section ? { ...section, lessonId } : null);
+    setPendingAutosave(false);
+    setSaveState({ status: "idle", message: "" });
+  };
+
+  const updateDraftSection = (updates) => {
+    let didUpdate = false;
+    setDraftSection((previous) => {
+      if (!previous) return previous;
+      didUpdate = true;
+      const next = { ...previous, ...updates };
+      updateLessonSections(previous.lessonId, (sections) =>
+        sections.map((section) =>
+          section.id === previous.id ? { ...section, ...updates } : section
+        )
+      );
+      return next;
+    });
+    if (didUpdate) {
+      setPendingAutosave(true);
+    }
+  };
+
+  const saveSectionToServer = useCallback(
+    async (sectionPayload, { silent = false } = {}) => {
+      if (!sectionPayload?.lessonId || typeof sectionPayload.id !== "number") {
+        return;
+      }
+
+      setSaveState({
+        status: "saving",
+        message: silent ? "" : "Saving changes...",
+      });
+
+      try {
+        const response = await updateLessonSection(
+          sectionPayload.lessonId,
+          sectionPayload.id,
+          {
+            title: sectionPayload.title,
+            content_type: sectionPayload.content_type,
+            text_content: sectionPayload.text_content,
+            video_url: sectionPayload.video_url,
+            exercise_type: sectionPayload.exercise_type,
+            exercise_data: sectionPayload.exercise_data,
+            is_published: sectionPayload.is_published,
+            order: sectionPayload.order,
+          }
+        );
+
+        const normalized = normalizeSection(
+          response.data,
+          sectionPayload.lessonId
+        );
+        updateLessonSections(sectionPayload.lessonId, (sections) =>
+          sections.map((section) =>
+            section.id === normalized.id ? normalized : section
+          )
+        );
+        setDraftSection(normalized);
+        setSaveState({ status: "saved", message: silent ? "" : "Saved" });
+      } catch (err) {
+        console.error("Failed to save section", err);
+        setSaveState({
+          status: "error",
+          message: "Could not save changes.",
+        });
+      }
+    },
+    [normalizeSection, updateLessonSections]
+  );
+
+  const handleAddSection = async (lessonId) => {
+    const tempId = `temp-${Date.now()}`;
+    const previousSnapshot = snapshotLessons();
+    const existingSections =
+      lessonsRef.current.find((lesson) => lesson.id === lessonId)?.sections ||
+      [];
+
+    const newSection = {
+      id: tempId,
+      lessonId,
+      title: "New section",
+      content_type: "text",
+      text_content: "",
+      video_url: "",
+      exercise_type: "",
+      exercise_data: {},
+      order: existingSections.length + 1,
+      is_published: false,
+    };
+
+    updateLessonSections(lessonId, (sections) =>
+      [...sections, newSection].sort((a, b) => a.order - b.order)
+    );
+    beginEditingSection(lessonId, newSection);
+
+    try {
+      const response = await createLessonSection(lessonId, newSection);
+      const normalized = normalizeSection(response.data, lessonId);
+      updateLessonSections(lessonId, (sections) =>
+        sections.map((section) =>
+          section.id === tempId ? normalized : section
+        )
+      );
+      setDraftSection(normalized);
+      setEditingSectionId(normalized.id);
+    } catch (err) {
+      console.error("Failed to create section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Could not create section." });
+      beginEditingSection(null, null);
+    }
+  };
+
+  const handleDeleteSection = async (lessonId, sectionId) => {
+    const previousSnapshot = snapshotLessons();
+    updateLessonSections(lessonId, (sections) =>
+      sections.filter((section) => section.id !== sectionId)
+    );
+
+    try {
+      await deleteLessonSection(lessonId, sectionId);
+
+      if (editingSectionId === sectionId) {
+        beginEditingSection(null, null);
+      }
+    } catch (err) {
+      console.error("Failed to delete section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Failed to delete section." });
+    }
+  };
+
+  const handleReorderSection = async (lessonId, sectionId, direction) => {
+    const previousSnapshot = snapshotLessons();
+    const lesson = lessonsRef.current.find((item) => item.id === lessonId);
+
+    if (!lesson) return;
+
+    const sections = (lesson.sections || []).map((section) => ({ ...section }));
+    const currentIndexInLesson = sections.findIndex(
+      (section) => section.id === sectionId
+    );
+    const offset = direction === "up" ? -1 : 1;
+    const targetIndex = currentIndexInLesson + offset;
+
+    if (
+      currentIndexInLesson === -1 ||
+      targetIndex < 0 ||
+      targetIndex >= sections.length
+    ) {
+      return;
+    }
+
+    [sections[currentIndexInLesson], sections[targetIndex]] = [
+      sections[targetIndex],
+      sections[currentIndexInLesson],
+    ];
+
+    const reordered = sections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+    }));
+
+    updateLessonSections(lessonId, () => reordered);
+
+    try {
+      await reorderLessonSections(
+        lessonId,
+        reordered.map((section) => section.id)
+      );
+    } catch (err) {
+      console.error("Failed to reorder sections", err);
+      setLessons(previousSnapshot);
+      setSaveState({
+        status: "error",
+        message: "Could not update ordering.",
+      });
+    }
+  };
+
+  const handleManualSave = () => {
+    if (draftSection && typeof draftSection.id === "number") {
+      saveSectionToServer(draftSection);
+    }
+  };
+
+  const handlePublishToggle = () => {
+    if (draftSection) {
+      updateDraftSection({ is_published: !draftSection.is_published });
+    }
+  };
+
+  useEffect(() => {
+    if (!adminMode || !draftSection || typeof draftSection.id !== "number") {
+      return undefined;
+    }
+
+    if (!pendingAutosave) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setPendingAutosave(false);
+      saveSectionToServer(draftSection, { silent: true });
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [adminMode, draftSection, pendingAutosave, saveSectionToServer]);
 
   const goNext = useCallback(() => {
     setCurrentIndex((prev) => {
@@ -529,12 +778,8 @@ function CourseFlowPage() {
     }
 
     const destination = Number.isFinite(pathIdNumber)
-      ? useImmersive
-        ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
-        : `/courses/${pathIdNumber}/lessons/${nextCourseId}`
-      : useImmersive
-      ? `/lessons/${nextCourseId}/flow`
-      : `/lessons/${nextCourseId}`;
+      ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
+      : `/lessons/${nextCourseId}/flow`;
 
     navigate(destination);
   };
@@ -596,6 +841,19 @@ function CourseFlowPage() {
     heartsFetchedAtMs,
     nextHeartInSecondsRaw,
   ]);
+
+  const currentLesson = useMemo(
+    () =>
+      lessons.find((lesson) => lesson.id === currentItem?.lessonId) || null,
+    [currentItem?.lessonId, lessons]
+  );
+
+  const currentLessonSections = currentLesson?.sections || [];
+  const currentSectionIndex = currentLessonSections.findIndex(
+    (section) => section.id === currentItem?.section?.id
+  );
+  const currentSection =
+    currentItem?.kind === "section" ? currentItem.section : null;
 
   const headerText = useMemo(() => {
     if (!currentItem) return null;
@@ -748,20 +1006,6 @@ function CourseFlowPage() {
     );
   }
 
-  if (shouldRedirectToCanonical && isCourseMetaLoading) {
-    return (
-      <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)]">
-        <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-24">
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-48 w-full rounded-2xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-6 py-16">
@@ -897,12 +1141,70 @@ function CourseFlowPage() {
           {!courseComplete &&
             currentItem?.kind === "section" &&
             currentItem.section?.title && (
-              <div className="mb-6">
+              <div className="mb-6 flex flex-wrap items-center gap-3">
                 <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
                   {currentItem.section.title}
                 </h2>
+                {adminMode && !currentItem.section.is_published && (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-600">
+                    Draft – hidden from learners
+                  </span>
+                )}
               </div>
             )}
+
+          {adminMode && currentItem?.kind === "section" && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleAddSection(currentItem.lessonId)}
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)]"
+              >
+                Add section
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  beginEditingSection(currentItem.lessonId, currentItem.section)
+                }
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)]"
+              >
+                Edit section
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleReorderSection(currentItem.lessonId, currentItem.section.id, "up")
+                }
+                disabled={currentSectionIndex <= 0}
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:cursor-not-allowed disabled:border-[color:var(--border-color,#d1d5db)] disabled:text-[color:var(--muted-text,#6b7280)]"
+              >
+                Move up
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleReorderSection(currentItem.lessonId, currentItem.section.id, "down")
+                }
+                disabled={
+                  currentSectionIndex === -1 ||
+                  currentSectionIndex >= currentLessonSections.length - 1
+                }
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:cursor-not-allowed disabled:border-[color:var(--border-color,#d1d5db)] disabled:text-[color:var(--muted-text,#6b7280)]"
+              >
+                Move down
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleDeleteSection(currentItem.lessonId, currentItem.section.id)
+                }
+                className="rounded-full border border-rose-500/60 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:border-rose-500 hover:text-rose-800"
+              >
+                Delete
+              </button>
+            </div>
+          )}
 
           {!courseComplete && (
             <div className="space-y-8">{renderSectionBody()}</div>
@@ -1000,6 +1302,32 @@ function CourseFlowPage() {
           )}
         </div>
       </div>
+
+      {adminMode && (draftSection || editingLessonId) && (
+        <LessonSectionEditorPanel
+          section={draftSection}
+          onChange={updateDraftSection}
+          onDelete={() => {
+            if (!draftSection) return;
+            handleDeleteSection(draftSection.lessonId, draftSection.id);
+          }}
+          onPublishToggle={handlePublishToggle}
+          onSave={handleManualSave}
+          savingState={saveState}
+          exercises={exercises}
+          loadingExercises={loadingExercises}
+          onExerciseAttach={(exercise) => {
+            if (!exercise) return;
+            updateDraftSection({
+              content_type: "exercise",
+              exercise_type: exercise.type,
+              exercise_data: exercise.exercise_data || {},
+            });
+          }}
+          onCloseRequest={() => beginEditingSection(null, null)}
+          currentSectionTitle={draftSection?.title || currentSection?.title}
+        />
+      )}
 
       {/* Out of hearts modal */}
       {showOutOfHearts && !courseComplete && (
