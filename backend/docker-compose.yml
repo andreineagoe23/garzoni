@@ -35,8 +35,8 @@ services:
       /bin/sh -c
       "i=0;
        until python manage.py migrate --noinput; do
-         i=$((i+1));
-         if [ $i -ge 60 ]; then
+         i=$$((i+1));
+         if [ $$i -ge 60 ]; then
            echo '[web] migrate still failing after 60 tries; exiting';
            exit 1;
          fi;
