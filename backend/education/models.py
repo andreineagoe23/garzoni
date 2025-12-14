@@ -288,6 +288,25 @@ class Exercise(models.Model):
         db_table = 'core_exercise'
 
 
+class MultipleChoiceChoice(models.Model):
+    """Discrete choice rows for multiple-choice exercises."""
+
+    exercise = models.ForeignKey(
+        Exercise, on_delete=models.CASCADE, related_name="multiple_choice_choices"
+    )
+    order = models.PositiveIntegerField(default=0)
+    text = models.TextField()
+    is_correct = models.BooleanField(default=False)
+    explanation = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        db_table = 'core_multiplechoicechoice'
+
+    def __str__(self):
+        return f"Choice {self.order + 1} for {self.exercise_id}"
+
+
 class Mastery(models.Model):
     """Tracks spaced-repetition style mastery for a user/skill pair."""
 

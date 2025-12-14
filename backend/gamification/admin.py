@@ -18,6 +18,7 @@ class MissionAdmin(admin.ModelAdmin):
     )
     list_filter = ('mission_type', 'goal_type', 'is_template', 'target_weakest_skills')
     search_fields = ('name', 'description', 'purpose_statement')
+    actions = ['duplicate_templates_as_live']
     
     def preview_link(self, obj):
         """Link to preview the mission as users will see it."""
@@ -73,6 +74,21 @@ class MissionAdmin(admin.ModelAdmin):
         if obj.goal_type == "read_fact":
             return "1 Fact" if obj.mission_type == "daily" else "5 Facts"
         return obj.goal_reference
+
+    @admin.action(description="Duplicate selected templates as live missions")
+    def duplicate_templates_as_live(self, request, queryset):
+        created = 0
+        for mission in queryset.filter(is_template=True):
+            mission_data = {
+                field.name: getattr(mission, field.name)
+                for field in mission._meta.fields
+                if field.name not in ('id', 'pk')
+            }
+            mission_data['is_template'] = False
+            mission_data['name'] = f"{mission.name} (Live Copy)"
+            Mission.objects.create(**mission_data)
+            created += 1
+        self.message_user(request, f"Created {created} live mission(s) from templates.")
 
 
 class MissionCompletionAdmin(admin.ModelAdmin):
