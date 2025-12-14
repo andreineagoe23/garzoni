@@ -9,26 +9,33 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useAuth } from "contexts/AuthContext";
+import { useAdmin } from "contexts/AdminContext";
 import {
   completeLesson,
   completeSection,
+  createLessonSection,
   decrementHearts,
-  fetchCourseById,
-  fetchLearningPathCourses,
-  fetchLessonsWithProgress,
+  deleteLessonSection,
   fetchCourseFlowState,
   fetchHearts,
+  fetchLearningPathCourses,
+  fetchLessonsWithProgress,
+  fetchExercises,
   grantHearts,
   refillHearts,
+  reorderLessonSections,
   saveCourseFlowState,
+  updateLessonSection,
 } from "services/userService";
 import { attachToken } from "services/httpClient";
 import { BACKEND_URL } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
+import LessonSectionEditorPanel from "./LessonSectionEditorPanel";
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
+import { GlassButton } from "components/ui";
 
 const DEFAULT_MAX_HEARTS = 5;
 
@@ -86,7 +93,15 @@ function CourseFlowPage() {
   const queryClient = useQueryClient();
   const { getAccessToken } = useAuth();
   const { preferences } = usePreferences();
-  const useImmersive = preferences?.immersiveCourseFlow !== false;
+  const { adminMode } = useAdmin();
+
+  const [lessons, setLessons] = useState([]);
+  const lessonsRef = useRef([]);
+  const [editingLessonId, setEditingLessonId] = useState(null);
+  const [editingSectionId, setEditingSectionId] = useState(null);
+  const [draftSection, setDraftSection] = useState(null);
+  const [saveState, setSaveState] = useState({ status: "idle", message: "" });
+  const [pendingAutosave, setPendingAutosave] = useState(false);
 
   const [flowSections, setFlowSections] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -100,10 +115,17 @@ function CourseFlowPage() {
   const [didApplyInitialIndex, setDidApplyInitialIndex] = useState(false);
 
   useEffect(() => {
+    lessonsRef.current = lessons;
+  }, [lessons]);
+
+  useEffect(() => {
     setDidApplyInitialIndex(false);
     setCourseComplete(false);
     setCurrentIndex(0);
     setShowOutOfHearts(false);
+    setEditingLessonId(null);
+    setEditingSectionId(null);
+    setDraftSection(null);
   }, [courseIdNumber]);
 
   useEffect(() => {
@@ -122,35 +144,63 @@ function CourseFlowPage() {
     };
   }, []);
 
-  const shouldRedirectToCanonical =
-    Number.isFinite(courseIdNumber) && !Number.isFinite(pathIdNumber);
-
-  const { data: courseMeta, isLoading: isCourseMetaLoading } = useQuery({
-    queryKey: ["course", courseIdNumber],
-    queryFn: () => fetchCourseById(courseIdNumber).then((r) => r.data),
-    enabled: shouldRedirectToCanonical,
-  });
-
-  useEffect(() => {
-    if (!shouldRedirectToCanonical) return;
-    const canonicalPathId = courseMeta?.path;
-    if (!canonicalPathId) return;
-    navigate(`/courses/${canonicalPathId}/lessons/${courseIdNumber}/flow`, {
-      replace: true,
-    });
-  }, [courseIdNumber, courseMeta?.path, navigate, shouldRedirectToCanonical]);
-
   const {
     data: lessonsData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lessons", courseId, "flow"],
-    queryFn: () => fetchLessonsWithProgress(courseId, false),
+    queryKey: ["lessons", courseId, adminMode ? "admin" : "learner"],
+    queryFn: () => fetchLessonsWithProgress(courseId, adminMode),
     select: (response) => response.data || [],
-    enabled:
-      !shouldRedirectToCanonical || (!isCourseMetaLoading && !courseMeta?.path),
   });
+
+  const { data: exercisesData, isLoading: loadingExercises } = useQuery({
+    queryKey: ["exercises"],
+    queryFn: () => fetchExercises().then((response) => response.data || []),
+    enabled: adminMode,
+  });
+
+  const exercises = exercisesData || [];
+
+  const normalizeSection = useCallback(
+    (section, lessonId) => ({
+      ...section,
+      lessonId,
+      text_content: section.text_content
+        ? fixImagePaths(section.text_content)
+        : "",
+      video_url: section.video_url || "",
+      exercise_data: section.exercise_data || {},
+      order: section.order || 0,
+      is_published:
+        typeof section.is_published === "boolean" ? section.is_published : true,
+    }),
+    []
+  );
+
+  const normalizeLessons = useCallback(
+    (lessonList) =>
+      (lessonList || []).map((lesson) => ({
+        ...lesson,
+        sections: (lesson.sections || [])
+          .map((section) => normalizeSection(section, lesson.id))
+          .sort((a, b) => a.order - b.order),
+      })),
+    [normalizeSection]
+  );
+
+  useEffect(() => {
+    if (!lessonsData) return;
+
+    const normalized = normalizeLessons(lessonsData);
+    lessonsRef.current = normalized;
+    setLessons(normalized);
+    const completed = normalized
+      .flatMap((lesson) => lesson.sections || [])
+      .filter((section) => section.is_completed)
+      .map((section) => section.id);
+    setCompletedSectionIds(completed);
+  }, [lessonsData, normalizeLessons]);
 
   const { data: heartsData, refetch: refetchHearts } = useQuery({
     queryKey: ["hearts"],
@@ -168,9 +218,7 @@ function CourseFlowPage() {
   const { data: flowStateData, isFetched: isFlowStateFetched } = useQuery({
     queryKey: ["flow-state", courseIdNumber],
     queryFn: () => fetchCourseFlowState(courseIdNumber).then((r) => r.data),
-    enabled:
-      Number.isFinite(courseIdNumber) &&
-      (!shouldRedirectToCanonical || !isCourseMetaLoading),
+    enabled: Number.isFinite(courseIdNumber),
   });
 
   const { data: pathCourses, isLoading: isPathCoursesLoading } = useQuery({
@@ -225,46 +273,15 @@ function CourseFlowPage() {
     }
   }, [hearts, heartsEnabled]);
 
-  const normalizeSection = useCallback(
-    (section, lessonId) => ({
-      ...section,
-      lessonId,
-      text_content: section.text_content
-        ? fixImagePaths(section.text_content)
-        : "",
-      video_url: section.video_url || "",
-      exercise_data: section.exercise_data || {},
-      order: section.order || 0,
-      is_published:
-        typeof section.is_published === "boolean" ? section.is_published : true,
-    }),
-    []
-  );
-
-  const normalizedLessons = useMemo(() => {
-    return (lessonsData || []).map((lesson) => ({
-      ...lesson,
-      sections: (lesson.sections || [])
-        .map((section) => normalizeSection(section, lesson.id))
-        .sort((a, b) => a.order - b.order),
-    }));
-  }, [lessonsData, normalizeSection]);
-
-  useEffect(() => {
-    const completed = normalizedLessons
-      .flatMap((lesson) => lesson.sections || [])
-      .filter((section) => section.is_completed)
-      .map((section) => section.id);
-    setCompletedSectionIds(completed);
-  }, [normalizedLessons]);
-
   useEffect(() => {
     const items = [];
 
-    normalizedLessons.forEach((lesson, lessonIndex) => {
-      const sections = (lesson.sections || []).filter(
-        (s) => s && (s.is_published ?? true)
-      );
+    lessons.forEach((lesson, lessonIndex) => {
+      const sections = (lesson.sections || []).filter((section) => {
+        if (!section) return false;
+        if (adminMode) return true;
+        return section.is_published ?? true;
+      });
 
       if (!sections.length) {
         // Fallback: treat a lesson without sections as one flow item.
@@ -299,7 +316,7 @@ function CourseFlowPage() {
     });
 
     setFlowSections(items);
-  }, [normalizedLessons]);
+  }, [adminMode, lessons]);
 
   useEffect(() => {
     if (didApplyInitialIndex) return;
@@ -398,7 +415,240 @@ function CourseFlowPage() {
   const currentItem = flowSections[currentIndex] || null;
   const isLast = currentIndex >= flowSections.length - 1;
 
-  const isBlocked = heartsEnabled && hearts <= 0;
+  const isBlocked = !adminMode && heartsEnabled && hearts <= 0;
+
+  const snapshotLessons = useCallback(
+    () =>
+      lessonsRef.current.map((lesson) => ({
+        ...lesson,
+        sections: (lesson.sections || []).map((section) => ({ ...section })),
+      })),
+    []
+  );
+
+  const updateLessonSections = useCallback((lessonId, updater) => {
+    setLessons((prev) =>
+      prev.map((lesson) =>
+        lesson.id === lessonId
+          ? { ...lesson, sections: updater(lesson.sections || []) }
+          : lesson
+      )
+    );
+  }, []);
+
+  const beginEditingSection = (lessonId, section) => {
+    setEditingLessonId(lessonId);
+    setEditingSectionId(section?.id || null);
+    setDraftSection(section ? { ...section, lessonId } : null);
+    setPendingAutosave(false);
+    setSaveState({ status: "idle", message: "" });
+  };
+
+  const updateDraftSection = (updates) => {
+    let didUpdate = false;
+    setDraftSection((previous) => {
+      if (!previous) return previous;
+      didUpdate = true;
+      const next = { ...previous, ...updates };
+      updateLessonSections(previous.lessonId, (sections) =>
+        sections.map((section) =>
+          section.id === previous.id ? { ...section, ...updates } : section
+        )
+      );
+      return next;
+    });
+    if (didUpdate) {
+      setPendingAutosave(true);
+    }
+  };
+
+  const saveSectionToServer = useCallback(
+    async (sectionPayload, { silent = false } = {}) => {
+      if (!sectionPayload?.lessonId || typeof sectionPayload.id !== "number") {
+        return;
+      }
+
+      setSaveState({
+        status: "saving",
+        message: silent ? "" : "Saving changes...",
+      });
+
+      try {
+        const response = await updateLessonSection(
+          sectionPayload.lessonId,
+          sectionPayload.id,
+          {
+            title: sectionPayload.title,
+            content_type: sectionPayload.content_type,
+            text_content: sectionPayload.text_content,
+            video_url: sectionPayload.video_url,
+            exercise_type: sectionPayload.exercise_type,
+            exercise_data: sectionPayload.exercise_data,
+            is_published: sectionPayload.is_published,
+            order: sectionPayload.order,
+          }
+        );
+
+        const normalized = normalizeSection(
+          response.data,
+          sectionPayload.lessonId
+        );
+        updateLessonSections(sectionPayload.lessonId, (sections) =>
+          sections.map((section) =>
+            section.id === normalized.id ? normalized : section
+          )
+        );
+        setDraftSection(normalized);
+        setSaveState({ status: "saved", message: silent ? "" : "Saved" });
+      } catch (err) {
+        console.error("Failed to save section", err);
+        setSaveState({
+          status: "error",
+          message: "Could not save changes.",
+        });
+      }
+    },
+    [normalizeSection, updateLessonSections]
+  );
+
+  const handleAddSection = async (lessonId) => {
+    const tempId = `temp-${Date.now()}`;
+    const previousSnapshot = snapshotLessons();
+    const existingSections =
+      lessonsRef.current.find((lesson) => lesson.id === lessonId)?.sections ||
+      [];
+
+    const newSection = {
+      id: tempId,
+      lessonId,
+      title: "New section",
+      content_type: "text",
+      text_content: "",
+      video_url: "",
+      exercise_type: "",
+      exercise_data: {},
+      order: existingSections.length + 1,
+      is_published: false,
+    };
+
+    updateLessonSections(lessonId, (sections) =>
+      [...sections, newSection].sort((a, b) => a.order - b.order)
+    );
+    beginEditingSection(lessonId, newSection);
+
+    try {
+      const response = await createLessonSection(lessonId, newSection);
+      const normalized = normalizeSection(response.data, lessonId);
+      updateLessonSections(lessonId, (sections) =>
+        sections.map((section) =>
+          section.id === tempId ? normalized : section
+        )
+      );
+      setDraftSection(normalized);
+      setEditingSectionId(normalized.id);
+    } catch (err) {
+      console.error("Failed to create section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Could not create section." });
+      beginEditingSection(null, null);
+    }
+  };
+
+  const handleDeleteSection = async (lessonId, sectionId) => {
+    const previousSnapshot = snapshotLessons();
+    updateLessonSections(lessonId, (sections) =>
+      sections.filter((section) => section.id !== sectionId)
+    );
+
+    try {
+      await deleteLessonSection(lessonId, sectionId);
+
+      if (editingSectionId === sectionId) {
+        beginEditingSection(null, null);
+      }
+    } catch (err) {
+      console.error("Failed to delete section", err);
+      setLessons(previousSnapshot);
+      setSaveState({ status: "error", message: "Failed to delete section." });
+    }
+  };
+
+  const handleReorderSection = async (lessonId, sectionId, direction) => {
+    const previousSnapshot = snapshotLessons();
+    const lesson = lessonsRef.current.find((item) => item.id === lessonId);
+
+    if (!lesson) return;
+
+    const sections = (lesson.sections || []).map((section) => ({ ...section }));
+    const currentIndexInLesson = sections.findIndex(
+      (section) => section.id === sectionId
+    );
+    const offset = direction === "up" ? -1 : 1;
+    const targetIndex = currentIndexInLesson + offset;
+
+    if (
+      currentIndexInLesson === -1 ||
+      targetIndex < 0 ||
+      targetIndex >= sections.length
+    ) {
+      return;
+    }
+
+    [sections[currentIndexInLesson], sections[targetIndex]] = [
+      sections[targetIndex],
+      sections[currentIndexInLesson],
+    ];
+
+    const reordered = sections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+    }));
+
+    updateLessonSections(lessonId, () => reordered);
+
+    try {
+      await reorderLessonSections(
+        lessonId,
+        reordered.map((section) => section.id)
+      );
+    } catch (err) {
+      console.error("Failed to reorder sections", err);
+      setLessons(previousSnapshot);
+      setSaveState({
+        status: "error",
+        message: "Could not update ordering.",
+      });
+    }
+  };
+
+  const handleManualSave = () => {
+    if (draftSection && typeof draftSection.id === "number") {
+      saveSectionToServer(draftSection);
+    }
+  };
+
+  const handlePublishToggle = () => {
+    if (draftSection) {
+      updateDraftSection({ is_published: !draftSection.is_published });
+    }
+  };
+
+  useEffect(() => {
+    if (!adminMode || !draftSection || typeof draftSection.id !== "number") {
+      return undefined;
+    }
+
+    if (!pendingAutosave) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setPendingAutosave(false);
+      saveSectionToServer(draftSection, { silent: true });
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [adminMode, draftSection, pendingAutosave, saveSectionToServer]);
 
   const goNext = useCallback(() => {
     setCurrentIndex((prev) => {
@@ -468,6 +718,14 @@ function CourseFlowPage() {
     flowSections.length,
   ]);
 
+  // If the flow length changes (publish toggle, delete, reorder), keep the index valid.
+  useEffect(() => {
+    setCurrentIndex((prev) => {
+      if (!flowSections.length) return 0;
+      return Math.max(0, Math.min(prev, flowSections.length - 1));
+    });
+  }, [flowSections.length]);
+
   const handleExit = async () => {
     try {
       await persistFlowIndex();
@@ -520,33 +778,61 @@ function CourseFlowPage() {
     return list.filter((c) => c?.id && c.id !== courseIdNumber);
   }, [courseIdNumber, pathCourses]);
 
-  const handleGoToCourse = async (nextCourseId) => {
+  const nextCourseIdInPath = useMemo(() => {
+    if (!Number.isFinite(pathIdNumber)) return null;
+    const list = Array.isArray(pathCourses) ? pathCourses : [];
+    const index = list.findIndex((course) => course?.id === courseIdNumber);
+    if (index === -1) return null;
+    return list[index + 1]?.id ?? null;
+  }, [courseIdNumber, pathCourses, pathIdNumber]);
+
+  const handleGoToCourse = async (nextCourseId, flowIndexOverride = null) => {
     if (!nextCourseId) return;
     try {
-      await persistFlowIndex();
+      if (typeof flowIndexOverride === "number") {
+        await persistFlowIndex(flowIndexOverride);
+      } else {
+        await persistFlowIndex();
+      }
     } catch {
       // ignore
     }
 
     const destination = Number.isFinite(pathIdNumber)
-      ? useImmersive
-        ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
-        : `/courses/${pathIdNumber}/lessons/${nextCourseId}`
-      : useImmersive
-      ? `/lessons/${nextCourseId}/flow`
-      : `/lessons/${nextCourseId}`;
+      ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
+      : `/lessons/${nextCourseId}/flow`;
 
     navigate(destination);
   };
 
   const handleAttempt = useCallback(
     ({ correct }) => {
+      if (adminMode) return;
       if (!heartsEnabled) return;
       if (correct) return;
       decrementHeartsMutation.mutate();
     },
-    [decrementHeartsMutation, heartsEnabled]
+    [adminMode, decrementHeartsMutation, heartsEnabled]
   );
+
+  const handleNavigateForward = useCallback(() => {
+    if (isLast) {
+      if (nextCourseIdInPath) {
+        handleGoToCourse(nextCourseIdInPath, flowSections.length);
+        return;
+      }
+      setCourseComplete(true);
+      return;
+    }
+    goNext();
+  }, [
+    goNext,
+    handleGoToCourse,
+    isLast,
+    nextCourseIdInPath,
+    flowSections.length,
+    setCourseComplete,
+  ]);
 
   const handleCompleteCurrent = useCallback(async () => {
     if (!currentItem) return;
@@ -564,19 +850,13 @@ function CourseFlowPage() {
       }
     }
 
-    if (isLast) {
-      setCourseComplete(true);
-      return;
-    }
-    goNext();
+    handleNavigateForward();
   }, [
     completeLessonMutation,
     completeSectionMutation,
     currentItem,
-    goNext,
+    handleNavigateForward,
     isBlocked,
-    isLast,
-    setCourseComplete,
   ]);
 
   const heartCountdownMs = useMemo(() => {
@@ -596,6 +876,18 @@ function CourseFlowPage() {
     heartsFetchedAtMs,
     nextHeartInSecondsRaw,
   ]);
+
+  const currentLesson = useMemo(
+    () => lessons.find((lesson) => lesson.id === currentItem?.lessonId) || null,
+    [currentItem?.lessonId, lessons]
+  );
+
+  const currentLessonSections = currentLesson?.sections || [];
+  const currentSectionIndex = currentLessonSections.findIndex(
+    (section) => section.id === currentItem?.section?.id
+  );
+  const currentSection =
+    currentItem?.kind === "section" ? currentItem.section : null;
 
   const headerText = useMemo(() => {
     if (!currentItem) return null;
@@ -748,20 +1040,6 @@ function CourseFlowPage() {
     );
   }
 
-  if (shouldRedirectToCanonical && isCourseMetaLoading) {
-    return (
-      <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)]">
-        <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-24">
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-48 w-full rounded-2xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-6 py-16">
@@ -852,7 +1130,7 @@ function CourseFlowPage() {
       </div>
 
       {/* Content (scrolls internally; page stays fixed) */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         <div className="mx-auto w-full max-w-5xl px-6 pb-24 pt-10">
           {courseComplete && (
             <div className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-8 text-center shadow-xl shadow-emerald-500/10">
@@ -863,20 +1141,28 @@ function CourseFlowPage() {
                 You&apos;ve completed all sections. Ready for the quiz?
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleFinishCourse}
-                  className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:shadow-xl hover:shadow-emerald-600/35 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                >
-                  Take the course quiz
-                </button>
-                <button
-                  type="button"
-                  onClick={handleExit}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-6 py-3 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
-                >
+                {nextCourseIdInPath ? (
+                  <GlassButton
+                    variant="active"
+                    size="xl"
+                    onClick={() =>
+                      handleGoToCourse(nextCourseIdInPath, flowSections.length)
+                    }
+                  >
+                    Next course
+                  </GlassButton>
+                ) : (
+                  <GlassButton
+                    variant="active"
+                    size="xl"
+                    onClick={handleFinishCourse}
+                  >
+                    Take the course quiz
+                  </GlassButton>
+                )}
+                <GlassButton variant="ghost" size="xl" onClick={handleExit}>
                   Back to dashboard
-                </button>
+                </GlassButton>
               </div>
             </div>
           )}
@@ -897,33 +1183,131 @@ function CourseFlowPage() {
           {!courseComplete &&
             currentItem?.kind === "section" &&
             currentItem.section?.title && (
-              <div className="mb-6">
+              <div className="mb-6 flex flex-wrap items-center gap-3">
                 <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
                   {currentItem.section.title}
                 </h2>
+                {adminMode && !currentItem.section.is_published && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[color:rgba(var(--accent-rgb,255,215,0),0.35)] bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#FFD700)]">
+                    Draft – hidden from learners
+                  </span>
+                )}
               </div>
             )}
+
+          {adminMode && currentItem?.kind === "section" && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <GlassButton
+                size="sm"
+                variant="ghost"
+                onClick={() => handleAddSection(currentItem.lessonId)}
+              >
+                Add section
+              </GlassButton>
+              <GlassButton
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  beginEditingSection(currentItem.lessonId, currentItem.section)
+                }
+              >
+                Edit section
+              </GlassButton>
+              <GlassButton
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  handleReorderSection(
+                    currentItem.lessonId,
+                    currentItem.section.id,
+                    "up"
+                  )
+                }
+                disabled={currentSectionIndex <= 0}
+              >
+                Move up
+              </GlassButton>
+              <GlassButton
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  handleReorderSection(
+                    currentItem.lessonId,
+                    currentItem.section.id,
+                    "down"
+                  )
+                }
+                disabled={
+                  currentSectionIndex === -1 ||
+                  currentSectionIndex >= currentLessonSections.length - 1
+                }
+              >
+                Move down
+              </GlassButton>
+              <GlassButton
+                size="sm"
+                variant="danger"
+                onClick={() =>
+                  handleDeleteSection(
+                    currentItem.lessonId,
+                    currentItem.section.id
+                  )
+                }
+              >
+                Delete
+              </GlassButton>
+            </div>
+          )}
 
           {!courseComplete && (
             <div className="space-y-8">{renderSectionBody()}</div>
           )}
 
-          {/* Continue button for non-exercises */}
-          {!courseComplete &&
-            currentItem &&
-            !isBlocked &&
-            (currentItem.kind !== "section" ||
-              currentItem.section?.content_type !== "exercise") && (
-              <div className="mt-10 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleCompleteCurrent}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/25 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/35 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+          {!courseComplete && currentItem && (
+            <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+              <GlassButton
+                variant="ghost"
+                size="lg"
+                onClick={() => {
+                  if (currentIndex <= 0) {
+                    handleGoToPathCourses();
+                    return;
+                  }
+                  setCurrentIndex((prev) => Math.max(0, prev - 1));
+                }}
+              >
+                {currentIndex <= 0
+                  ? Number.isFinite(pathIdNumber)
+                    ? "Back to courses"
+                    : "Back to dashboard"
+                  : "Back"}
+              </GlassButton>
+
+              {!isBlocked && (
+                <GlassButton
+                  variant="active"
+                  size="xl"
+                  onClick={() => {
+                    // For exercises, just navigate forward without marking complete
+                    const isExercise =
+                      currentItem.kind === "section" &&
+                      currentItem.section?.content_type === "exercise";
+                    if (isExercise) {
+                      handleNavigateForward();
+                    } else {
+                      handleCompleteCurrent();
+                    }
+                  }}
                 >
-                  {isLast ? "Finish" : "Continue"}
-                </button>
-              </div>
-            )}
+                  {isLast
+                    ? nextCourseIdInPath
+                      ? "Next course"
+                      : "Finish"
+                    : "Continue"}
+                </GlassButton>
+              )}
+            </div>
+          )}
 
           {!courseComplete && isBlocked && (
             <div className="mt-10 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-sm text-rose-700">
@@ -1000,6 +1384,56 @@ function CourseFlowPage() {
           )}
         </div>
       </div>
+
+      {adminMode && (draftSection || editingLessonId) && (
+        <div
+          className="fixed inset-0 z-[1400] bg-[color:var(--bg-color,#f8fafc)]/92 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Lesson section editor"
+        >
+          <div className="relative h-full w-full">
+            <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+              <GlassButton
+                variant="ghost"
+                size="sm"
+                onClick={() => beginEditingSection(null, null)}
+                aria-label="Close editor"
+              >
+                ✕
+              </GlassButton>
+            </div>
+
+            <div className="h-full w-full overflow-hidden p-4 sm:p-6">
+              <LessonSectionEditorPanel
+                section={draftSection}
+                onChange={updateDraftSection}
+                onDelete={() => {
+                  if (!draftSection) return;
+                  handleDeleteSection(draftSection.lessonId, draftSection.id);
+                }}
+                onPublishToggle={handlePublishToggle}
+                onSave={handleManualSave}
+                savingState={saveState}
+                exercises={exercises}
+                loadingExercises={loadingExercises}
+                onExerciseAttach={(exercise) => {
+                  if (!exercise) return;
+                  updateDraftSection({
+                    content_type: "exercise",
+                    exercise_type: exercise.type,
+                    exercise_data: exercise.exercise_data || {},
+                  });
+                }}
+                onCloseRequest={() => beginEditingSection(null, null)}
+                currentSectionTitle={
+                  draftSection?.title || currentSection?.title
+                }
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Out of hearts modal */}
       {showOutOfHearts && !courseComplete && (

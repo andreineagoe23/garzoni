@@ -19,7 +19,6 @@ const Login = React.lazy(() => import("components/auth/Login"));
 const Register = React.lazy(() => import("components/auth/Register"));
 const Welcome = React.lazy(() => import("components/landing/Welcome"));
 const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
-const LessonPage = React.lazy(() => import("components/courses/LessonPage"));
 const CourseFlowPage = React.lazy(() =>
   import("components/courses/CourseFlowPage")
 );
@@ -207,22 +206,6 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <CoursePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/lessons/:courseId"
-                  element={
-                    <ProtectedRoute>
-                      <LessonPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/courses/:pathId/lessons/:courseId"
-                  element={
-                    <ProtectedRoute>
-                      <LessonPage />
                     </ProtectedRoute>
                   }
                 />

@@ -1,13 +1,10 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GlassCard } from "components/ui";
-import { usePreferences } from "hooks/usePreferences";
 
 function CourseList({ courses }) {
   const navigate = useNavigate();
   const { pathId } = useParams();
-  const { preferences } = usePreferences();
-  const useFlow = preferences?.immersiveCourseFlow !== false;
   const pathIdSegment = pathId ? `/courses/${pathId}` : null;
 
   if (!courses?.length) {
@@ -31,24 +28,16 @@ function CourseList({ courses }) {
           onClick={() =>
             navigate(
               pathIdSegment
-                ? useFlow
-                  ? `${pathIdSegment}/lessons/${course.id}/flow`
-                  : `${pathIdSegment}/lessons/${course.id}`
-                : useFlow
-                ? `/lessons/${course.id}/flow`
-                : `/lessons/${course.id}`
+                ? `${pathIdSegment}/lessons/${course.id}/flow`
+                : `/lessons/${course.id}/flow`
             )
           }
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               navigate(
                 pathIdSegment
-                  ? useFlow
-                    ? `${pathIdSegment}/lessons/${course.id}/flow`
-                    : `${pathIdSegment}/lessons/${course.id}`
-                  : useFlow
-                  ? `/lessons/${course.id}/flow`
-                  : `/lessons/${course.id}`
+                  ? `${pathIdSegment}/lessons/${course.id}/flow`
+                  : `/lessons/${course.id}/flow`
               );
             }
           }}
