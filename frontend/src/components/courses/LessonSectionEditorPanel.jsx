@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { GlassCard } from "components/ui";
+import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
 
 const CKEDITOR_SRC =
@@ -148,7 +148,7 @@ const LessonSectionEditorPanel = ({
 
   if (!section) {
     return (
-      <GlassCard padding="lg" className="h-full space-y-4">
+      <GlassCard padding="lg" className="h-full min-h-0 space-y-4">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
           Select a section to begin editing or create a new section from the
           lesson view.
@@ -158,20 +158,16 @@ const LessonSectionEditorPanel = ({
             Current selection: {currentSectionTitle}
           </p>
         )}
-        <button
-          type="button"
-          className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)] hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-          onClick={onCloseRequest}
-        >
+        <GlassButton variant="ghost" size="sm" onClick={onCloseRequest}>
           Close editor
-        </button>
+        </GlassButton>
       </GlassCard>
     );
   }
 
   return (
-    <GlassCard padding="lg" className="h-full space-y-4">
-      <header className="space-y-2">
+    <GlassCard padding="lg" className="h-full min-h-0 flex flex-col">
+      <header className="flex-none space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -185,33 +181,25 @@ const LessonSectionEditorPanel = ({
             <span
               className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                 section.is_published
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "bg-amber-500/15 text-amber-300"
+                  ? "bg-[color:rgba(var(--primary-rgb,29,83,48),0.18)] text-[color:var(--primary,#1d5330)]"
+                  : "bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] text-[color:var(--accent,#FFD700)]"
               }`}
             >
               {section.is_published ? "Published" : "Draft"}
             </span>
-            <button
-              type="button"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            <GlassButton
+              variant="ghost"
+              size="sm"
               onClick={() => setPreviewMode((prev) => !prev)}
             >
               {previewMode ? "Hide preview" : "Show preview"}
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-[color:var(--primary,#1d5330)] px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-              onClick={onPublishToggle}
-            >
+            </GlassButton>
+            <GlassButton variant="primary" size="sm" onClick={onPublishToggle}>
               {section.is_published ? "Move to draft" : "Publish"}
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-[color:var(--error,#dc2626)]/50 px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
-              onClick={onDelete}
-            >
+            </GlassButton>
+            <GlassButton variant="danger" size="sm" onClick={onDelete}>
               Delete
-            </button>
+            </GlassButton>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -225,7 +213,7 @@ const LessonSectionEditorPanel = ({
         </div>
       </header>
 
-      <div className="space-y-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1 pt-4">
         <div className="space-y-1">
           <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
             Title
@@ -358,7 +346,7 @@ const LessonSectionEditorPanel = ({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-2">
+      <div className="flex-none flex flex-wrap items-center gap-2 pt-4">
         <button
           type="button"
           className="rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
