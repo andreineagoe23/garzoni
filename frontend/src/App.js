@@ -20,6 +20,9 @@ const Register = React.lazy(() => import("components/auth/Register"));
 const Welcome = React.lazy(() => import("components/landing/Welcome"));
 const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
 const LessonPage = React.lazy(() => import("components/courses/LessonPage"));
+const CourseFlowPage = React.lazy(() =>
+  import("components/courses/CourseFlowPage")
+);
 const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
 const Navbar = React.lazy(() => import("components/layout/Navbar"));
 const Footer = React.lazy(() => import("components/layout/Footer"));
@@ -67,6 +70,9 @@ function App() {
 
 const AppContent = () => {
   const location = useLocation();
+  const isCourseFlowPath =
+    location.pathname.includes("/lessons/") &&
+    location.pathname.endsWith("/flow");
 
   const publicPaths = [
     "/",
@@ -107,10 +113,12 @@ const AppContent = () => {
     }
   }, [location.pathname, location.search]);
 
-  const hasNavbar = !noNavbarPaths.includes(location.pathname);
-  const hasFooter = !noFooterPaths.some(
-    (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
-  );
+  const hasNavbar =
+    !noNavbarPaths.includes(location.pathname) && !isCourseFlowPath;
+  const hasFooter =
+    !noFooterPaths.some(
+      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
+    ) && !isCourseFlowPath;
 
   const content = (
     <ThemeProvider>
@@ -211,6 +219,30 @@ const AppContent = () => {
                   }
                 />
                 <Route
+                  path="/courses/:pathId/lessons/:courseId"
+                  element={
+                    <ProtectedRoute>
+                      <LessonPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/lessons/:courseId/flow"
+                  element={
+                    <ProtectedRoute>
+                      <CourseFlowPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/courses/:pathId/lessons/:courseId/flow"
+                  element={
+                    <ProtectedRoute>
+                      <CourseFlowPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/quiz/:courseId"
                   element={
                     <ProtectedRoute>
@@ -284,7 +316,9 @@ const AppContent = () => {
             </Suspense>
           </main>
 
-          {!noChatbotPaths.includes(location.pathname) && <Chatbot />}
+          {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && (
+            <Chatbot />
+          )}
 
           {hasFooter && (
             <Suspense fallback={null}>

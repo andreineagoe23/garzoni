@@ -7,6 +7,9 @@ const DEFAULT_PREFERENCES = {
   defaultSort: "default",
   remindAboutReviews: false,
   reducedMotion: false,
+  // Feature flags / experiments
+  immersiveCourseFlow: true,
+  heartsEnabled: true,
 };
 
 /**
