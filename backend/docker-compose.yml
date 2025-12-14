@@ -13,6 +13,11 @@ services:
     ports:
       - "3307:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=caching_sha2_password
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -prootpassword --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7-alpine
@@ -25,7 +30,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    command: >
+      /bin/sh -c
+      "i=0;
+       until python manage.py migrate --noinput; do
+         i=$((i+1));
+         if [ $i -ge 60 ]; then
+           echo '[web] migrate still failing after 60 tries; exiting';
+           exit 1;
+         fi;
+         echo '[web] waiting for database...';
+         sleep 2;
+       done;
+       python manage.py runserver 0.0.0.0:8000"
     working_dir: /app
     volumes:
       - ./:/app
@@ -42,8 +60,10 @@ services:
       CORS_ALLOWED_ORIGINS_CSV: http://localhost:3000,http://127.0.0.1:3000
       CSRF_TRUSTED_ORIGINS_CSV: http://localhost:3000,http://127.0.0.1:3000
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   mysql_data:

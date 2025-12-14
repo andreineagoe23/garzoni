@@ -8,7 +8,9 @@ const MultipleChoiceExercise = ({
   data,
   exerciseId,
   onComplete,
+  onAttempt,
   isCompleted,
+  disabled = false,
 }) => {
   const { question, options = [], correctAnswer } = data || {};
   const { getAccessToken } = useAuth();
@@ -23,13 +25,15 @@ const MultipleChoiceExercise = ({
   }, [exerciseId, isCompleted]);
 
   const handleSubmit = async () => {
+    if (disabled) return;
     if (selectedAnswer === null) return;
 
     if (selectedAnswer === correctAnswer) {
       setFeedback("Correct! Well done!");
       setFeedbackType("success");
+      onAttempt?.({ correct: true });
       try {
-        await onComplete();
+        await onComplete?.();
       } catch (error) {
         setFeedback("Error saving progress. Please try again.");
         setFeedbackType("error");
@@ -37,11 +41,13 @@ const MultipleChoiceExercise = ({
     } else {
       setFeedback("Incorrect. Try again!");
       setFeedbackType("error");
+      onAttempt?.({ correct: false });
     }
   };
 
   const handleRetry = async () => {
     try {
+      if (!exerciseId) return;
       await axios.post(
         `${BACKEND_URL}/exercises/reset/`,
         { section_id: exerciseId },
@@ -77,13 +83,17 @@ const MultipleChoiceExercise = ({
             <button
               key={index}
               type="button"
-              onClick={() => !isCompleted && setSelectedAnswer(index)}
-              disabled={isCompleted}
+              onClick={() =>
+                !isCompleted && !disabled && setSelectedAnswer(index)
+              }
+              disabled={isCompleted || disabled}
               className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
                 isSelected
                   ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)] shadow-inner"
                   : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#2563eb)]/40"
-              } ${isCompleted ? "cursor-not-allowed opacity-70" : ""}`}
+              } ${
+                isCompleted || disabled ? "cursor-not-allowed opacity-70" : ""
+              }`}
             >
               <span>{option}</span>
               {isSelected && (
@@ -109,9 +119,9 @@ const MultipleChoiceExercise = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={selectedAnswer === null}
+            disabled={selectedAnswer === null || disabled}
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
-              selectedAnswer === null
+              selectedAnswer === null || disabled
                 ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
                 : "bg-[color:var(--primary,#2563eb)] text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
             }`}
