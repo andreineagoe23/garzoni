@@ -233,17 +233,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   // Removed mobile view tracking
 
   const handleCourseClick = (courseId, pathId) => {
-    const useFlow = preferences?.immersiveCourseFlow !== false;
     if (pathId) {
-      navigate(
-        useFlow
-          ? `/courses/${pathId}/lessons/${courseId}/flow`
-          : `/courses/${pathId}/lessons/${courseId}`
-      );
+      navigate(`/courses/${pathId}/lessons/${courseId}/flow`);
       return;
     }
-    // Fallback: legacy route; pages will redirect to canonical when possible.
-    navigate(useFlow ? `/lessons/${courseId}/flow` : `/lessons/${courseId}`);
+    navigate(`/lessons/${courseId}/flow`);
   };
 
   const handlePersonalizedPathClick = () => {
@@ -341,7 +335,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               mission_id: lessonMission.id,
             });
             if (lessonMission.goal_reference?.course_id) {
-              navigate(`/lessons/${lessonMission.goal_reference.course_id}`);
+              navigate(
+                `/lessons/${lessonMission.goal_reference.course_id}/flow`
+              );
             } else {
               navigate("/all-topics");
             }

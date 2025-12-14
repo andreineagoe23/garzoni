@@ -70,24 +70,29 @@ html[data-theme="dark"] .ckeditor-wrapper,
 }
 
 /* CKEditor editor styling - CSS Variables are inherited from :root when data-theme="dark" */
+html[data-theme="dark"] .ck.ck-editor,
 [data-theme="dark"] .ck.ck-editor {
   background-color: transparent;
 }
 
+html[data-theme="dark"] .ck.ck-editor__editable,
 [data-theme="dark"] .ck.ck-editor__editable {
-  background-color: var(--ck-color-base-background, #121212) !important;
-  color: var(--ck-color-text, #eeeeee) !important;
+  background-color: var(--card-bg, #1e1e1e) !important;
+  color: var(--text-color, #e0e0e0) !important;
 }
 
+html[data-theme="dark"] .ck.ck-toolbar,
 [data-theme="dark"] .ck.ck-toolbar {
-  background-color: var(--ck-color-toolbar-background, #212121) !important;
-  border-color: var(--ck-color-toolbar-border, #353535) !important;
+  background-color: var(--card-bg, #1e1e1e) !important;
+  border-color: var(--border-color, rgba(255, 215, 0, 0.15)) !important;
 }
 
+html[data-theme="dark"] .ck.ck-button,
 [data-theme="dark"] .ck.ck-button {
-  color: var(--ck-color-text, #eeeeee) !important;
+  color: var(--text-color, #e0e0e0) !important;
 }
 
+html[data-theme="dark"] .ck.ck-button:not(.ck-disabled):hover,
 [data-theme="dark"] .ck.ck-button:not(.ck-disabled):hover {
   background-color: var(
     --ck-color-button-default-hover-background,
@@ -95,20 +100,33 @@ html[data-theme="dark"] .ckeditor-wrapper,
   ) !important;
 }
 
+html[data-theme="dark"] .ck.ck-dropdown__panel,
 [data-theme="dark"] .ck.ck-dropdown__panel {
   background-color: var(
     --ck-color-dropdown-panel-background,
     #212121
   ) !important;
-  border-color: var(--ck-color-dropdown-panel-border, #353535) !important;
+  border-color: var(--border-color, rgba(255, 215, 0, 0.15)) !important;
 }
 
+html[data-theme="dark"] .ck.ck-input,
 [data-theme="dark"] .ck.ck-input {
-  background-color: var(--ck-color-input-background, #121212) !important;
-  border-color: var(--ck-color-input-border, #353535) !important;
-  color: var(--ck-color-input-text, #eeeeee) !important;
+  background-color: var(--input-bg, rgba(0, 0, 0, 0.25)) !important;
+  border-color: var(--border-color, rgba(255, 215, 0, 0.15)) !important;
+  color: var(--text-color, #e0e0e0) !important;
 }
 
+html[data-theme="dark"] .ck.ck-list,
 [data-theme="dark"] .ck.ck-list {
-  background-color: var(--ck-color-list-background, #212121) !important;
+  background-color: var(--card-bg, #1e1e1e) !important;
+}
+
+html[data-theme="dark"] .ck.ck-list__item .ck-button,
+[data-theme="dark"] .ck.ck-list__item .ck-button {
+  color: var(--text-color, #e0e0e0) !important;
+}
+
+html[data-theme="dark"] .ck.ck-list__item .ck-button:hover,
+[data-theme="dark"] .ck.ck-list__item .ck-button:hover {
+  background-color: rgba(0, 0, 0, 0.25) !important;
 }
