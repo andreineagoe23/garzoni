@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Robot, Compass, Trophy } from "react-bootstrap-icons";
 import Header from "components/layout/Header";
 import { GlassCard, GlassButton } from "components/ui";
-import logo from "assets/monevo.png";
+import logo from "assets/logo/monevo-logo-png.png";
 import mockup1 from "assets/mobile-1.png";
 import mockup2 from "assets/mobile-2.png";
 import mockup3 from "assets/mobile-3.png";
@@ -44,7 +44,7 @@ function Welcome() {
             <img
               src={logo}
               alt="Monevo logo"
-              className="mb-8 h-20 w-auto"
+              className="mb-8 h-32 w-auto sm:h-40 md:h-48"
               loading="lazy"
             />
 
