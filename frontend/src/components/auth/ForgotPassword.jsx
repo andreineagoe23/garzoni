@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useNavigate } from "react-router-dom";
-import logo from "assets/monevo.png";
+import logo from "assets/logo/monevo-logo-png.png";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -18,11 +18,12 @@ function ForgotPassword() {
     setError("");
 
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/password-reset/`,
-        { email }
+      const response = await axios.post(`${BACKEND_URL}/password-reset/`, {
+        email,
+      });
+      setMessage(
+        response.data.message || "Reset link sent. Please check your inbox."
       );
-      setMessage(response.data.message || "Reset link sent. Please check your inbox.");
     } catch (requestError) {
       setError(
         requestError.response?.data?.error ||
@@ -38,7 +39,13 @@ function ForgotPassword() {
     <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0f172a)] transition-colors">
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/20 via-transparent to-transparent" />
       <div className="relative w-full max-w-lg px-6 py-12 sm:px-10">
-        <div className="flex flex-col items-center rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#ffffff)] px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur transition-colors" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+        <div
+          className="flex flex-col items-center rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#ffffff)] px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur transition-colors"
+          style={{
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
+        >
           <img
             src={logo}
             alt="Monevo logo"
@@ -49,7 +56,8 @@ function ForgotPassword() {
             Forgot Password
           </h2>
           <p className="mt-2 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-            Enter the email address associated with your account and we&apos;ll send you a reset link.
+            Enter the email address associated with your account and we&apos;ll
+            send you a reset link.
           </p>
 
           {message && (
@@ -70,7 +78,10 @@ function ForgotPassword() {
             </div>
           )}
 
-          <form onSubmit={handleForgotPassword} className="mt-6 w-full space-y-6">
+          <form
+            onSubmit={handleForgotPassword}
+            className="mt-6 w-full space-y-6"
+          >
             <div className="space-y-2">
               <label
                 htmlFor="email"
@@ -112,4 +123,3 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
-
