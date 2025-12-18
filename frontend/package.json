@@ -13,6 +13,7 @@
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
     "js-cookies": "^1.0.4",
+    "lucide-react": "^0.562.0",
     "react": "^18.2.0",
     "react-bootstrap-icons": "^1.11.5",
     "react-calendar-heatmap": "^1.10.0",
@@ -29,6 +30,7 @@
     "react-vertical-timeline-component": "^3.5.3",
     "recharts": "^2.15.3",
     "sass": "^1.85.1",
+    "three": "^0.182.0",
     "web-vitals": "^4.2.4",
     "yahoo-finance2": "^2.13.3"
   },

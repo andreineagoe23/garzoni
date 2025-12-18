@@ -130,3 +130,218 @@ html[data-theme="dark"] .ck.ck-list__item .ck-button:hover,
 [data-theme="dark"] .ck.ck-list__item .ck-button:hover {
   background-color: rgba(0, 0, 0, 0.25) !important;
 }
+
+/* ---------------------------------------------
+   Landing / Welcome page (animated dark backdrop)
+   --------------------------------------------- */
+.landing-theme {
+  /* Brand palette */
+  --primary: #1d5330; /* Dark Forest Green */
+  --primary-rgb: 29, 83, 48;
+  --gold: #e6c87a; /* Soft Gold / Warm Accent */
+  --gold-rgb: 230, 200, 122;
+
+  /* Surfaces */
+  --bg-color: #0b0f14; /* Dark Charcoal / Near-Black */
+  --landing-bg-rgb: 11, 15, 20;
+  --text-color: #e5e7eb;
+  --muted-text: rgba(229, 231, 235, 0.72);
+  --accent: #e5e7eb;
+  --card-bg: #111827;
+  --input-bg: #111827;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --shadow-color: rgba(0, 0, 0, 0.55);
+}
+
+.landing-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-animated-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(
+      var(--landing-parallax-x, 0px),
+      var(--landing-parallax-y, 0px),
+      0
+    )
+    scale(1.03);
+  transform-origin: center;
+  will-change: transform;
+  background: radial-gradient(
+      900px circle at 18% 10%,
+      rgba(var(--primary-rgb, 29, 83, 48), 0.46),
+      transparent 60%
+    ),
+    radial-gradient(
+      760px circle at 82% 18%,
+      rgba(var(--gold-rgb, 230, 200, 122), 0.16),
+      transparent 62%
+    ),
+    radial-gradient(
+      920px circle at 50% 92%,
+      rgba(var(--primary-rgb, 29, 83, 48), 0.18),
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
+      var(--bg-color, #0b0f14) 0%,
+      var(--card-bg, #111827) 55%,
+      var(--bg-color, #0b0f14) 100%
+    );
+  background-size: 200% 200%;
+  animation: landingGradientShift 18s ease-in-out infinite;
+}
+
+.landing-animated-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.22) 1px,
+    transparent 1px
+  );
+  background-size: 44px 44px;
+  background-position: 0 0;
+  mask-image: radial-gradient(
+    circle at 50% 20%,
+    rgba(0, 0, 0, 1),
+    transparent 70%
+  );
+  animation: landingGridDrift 22s linear infinite;
+}
+
+.landing-animated-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background: radial-gradient(
+      480px circle at 35% 40%,
+      rgba(255, 255, 255, 0.07),
+      transparent 65%
+    ),
+    radial-gradient(
+      520px circle at 65% 58%,
+      rgba(230, 200, 122, 0.08),
+      transparent 68%
+    );
+  filter: blur(2px);
+  animation: landingGlowPulse 10s ease-in-out infinite;
+}
+
+@keyframes landingGradientShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes landingGridDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-44px, 44px, 0);
+  }
+}
+
+@keyframes landingGlowPulse {
+  0%,
+  100% {
+    opacity: 0.14;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+/* ---------------------------------------------
+   Landing reviews marquee (infinite horizontal)
+   --------------------------------------------- */
+.landing-review-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 6px 0;
+}
+
+.landing-review-marquee::before,
+.landing-review-marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.landing-review-marquee::before {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--landing-bg-rgb, 11, 15, 20), 1) 0%,
+    rgba(var(--landing-bg-rgb, 11, 15, 20), 0) 100%
+  );
+}
+
+.landing-review-marquee::after {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    rgba(var(--landing-bg-rgb, 11, 15, 20), 1) 0%,
+    rgba(var(--landing-bg-rgb, 11, 15, 20), 0) 100%
+  );
+}
+
+.landing-review-track {
+  display: flex;
+  width: max-content;
+  gap: 16px;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  animation: landingReviewMarquee var(--landing-review-duration, 42s) linear
+    infinite;
+}
+
+.landing-review-card {
+  width: min(360px, 86vw);
+  flex: 0 0 auto;
+  cursor: default;
+}
+
+/* Pause on hover/click (active) and keyboard focus */
+.landing-review-marquee:hover .landing-review-track,
+.landing-review-marquee:active .landing-review-track,
+.landing-review-marquee:focus-within .landing-review-track {
+  animation-play-state: paused;
+}
+
+@keyframes landingReviewMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-review-track {
+    animation: none;
+    transform: none;
+  }
+  .landing-review-marquee::before,
+  .landing-review-marquee::after {
+    display: none;
+  }
+}

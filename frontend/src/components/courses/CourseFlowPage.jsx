@@ -786,24 +786,27 @@ function CourseFlowPage() {
     return list[index + 1]?.id ?? null;
   }, [courseIdNumber, pathCourses, pathIdNumber]);
 
-  const handleGoToCourse = async (nextCourseId, flowIndexOverride = null) => {
-    if (!nextCourseId) return;
-    try {
-      if (typeof flowIndexOverride === "number") {
-        await persistFlowIndex(flowIndexOverride);
-      } else {
-        await persistFlowIndex();
+  const handleGoToCourse = useCallback(
+    async (nextCourseId, flowIndexOverride = null) => {
+      if (!nextCourseId) return;
+      try {
+        if (typeof flowIndexOverride === "number") {
+          await persistFlowIndex(flowIndexOverride);
+        } else {
+          await persistFlowIndex();
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
 
-    const destination = Number.isFinite(pathIdNumber)
-      ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
-      : `/lessons/${nextCourseId}/flow`;
+      const destination = Number.isFinite(pathIdNumber)
+        ? `/courses/${pathIdNumber}/lessons/${nextCourseId}/flow`
+        : `/lessons/${nextCourseId}/flow`;
 
-    navigate(destination);
-  };
+      navigate(destination);
+    },
+    [navigate, pathIdNumber, persistFlowIndex]
+  );
 
   const handleAttempt = useCallback(
     ({ correct }) => {

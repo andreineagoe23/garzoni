@@ -1,0 +1,212 @@
+/* Scoped styles for the Welcome hero (Three.js + HUD)
+   Keep everything under .welcome-hero to avoid global bleed.
+*/
+
+/* Optional: bring in the fonts used by the hero (Inter already loaded globally). */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css");
+
+.welcome-hero {
+  position: relative;
+}
+
+.welcome-hero ::selection {
+  background: rgba(29, 83, 48, 0.85);
+  color: #fff;
+}
+
+/* Ambient glow layer */
+.welcome-ambient-glow {
+  position: absolute;
+  width: 640px;
+  height: 640px;
+  left: 50%;
+  top: 50%;
+  border-radius: 9999px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(29, 83, 48, 0.18) 0%,
+    rgba(11, 15, 20, 0) 70%
+  );
+  mix-blend-mode: screen;
+  z-index: 1;
+  opacity: 0.9;
+  filter: blur(0px);
+}
+
+@media (min-width: 768px) {
+  .welcome-ambient-glow {
+    /* The 3D group is shifted right on desktop */
+    left: 60%;
+  }
+}
+
+/* Glass panel style (dark) */
+.welcome-glass-panel {
+  background: rgba(11, 15, 20, 0.68);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Range slider styling (linear track) */
+.welcome-hero input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+.welcome-hero input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 9999px;
+  background: #e6c87a;
+  border: 2px solid #0b0f14;
+  box-shadow: 0 0 0 1px #e6c87a;
+  cursor: pointer;
+  margin-top: -5px;
+  transition: transform 0.2s ease;
+}
+
+.welcome-hero input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.welcome-hero input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: rgba(39, 39, 42, 1);
+  border-radius: 2px;
+}
+
+.welcome-hero input[type="range"]::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 9999px;
+  background: #e6c87a;
+  border: 2px solid #0b0f14;
+  box-shadow: 0 0 0 1px #e6c87a;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.welcome-hero input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: rgba(39, 39, 42, 1);
+  border-radius: 2px;
+}
+
+.welcome-hero input[type="range"]:focus {
+  outline: none;
+}
+
+/* HUD markers */
+.welcome-trackers {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.welcome-point-marker {
+  position: absolute;
+  width: 0;
+  height: 0;
+  /* Start off-screen until JS projects 3D points. */
+  transform: translate(-9999px, -9999px);
+  will-change: transform;
+}
+
+.welcome-point-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #e6c87a;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(230, 200, 122, 0.5);
+}
+
+.welcome-point-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 10px;
+  color: #e6c87a;
+  background: rgba(11, 15, 20, 0.82);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(230, 200, 122, 0.2);
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+}
+
+.welcome-point-corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  opacity: 0.5;
+  transform: translate(-50%, -50%);
+}
+
+.welcome-pc-tl {
+  border-width: 1px 0 0 1px;
+  top: -6px;
+  left: -6px;
+}
+
+.welcome-pc-br {
+  border-width: 0 1px 1px 0;
+  bottom: -6px;
+  right: -6px;
+}
+
+/* SVG connection lines */
+#tracker-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.welcome-svg-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.welcome-svg-line.active {
+  stroke: rgba(230, 200, 122, 0.32);
+  stroke-dasharray: 6 4;
+  animation: welcomeDash 30s linear infinite;
+}
+
+@keyframes welcomeDash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* Small helpers */
+.welcome-font-display {
+  font-family: "Geist Sans", Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+    Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+.welcome-font-mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+}
