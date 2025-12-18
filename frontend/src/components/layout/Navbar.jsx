@@ -61,7 +61,7 @@ function Navbar() {
     (extraClasses = "") =>
     ({ isActive }) =>
       [
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm",
+        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm",
         isActive
           ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
           : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--text-color,#111827)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40",
@@ -117,18 +117,17 @@ function Navbar() {
 
   return (
     <nav
-      className="fixed left-0 right-0 top-0 z-[1200] px-4 transition-colors lg:px-6"
+      className="fixed left-0 right-0 top-0 z-[1200] px-3 transition-colors sm:px-4 lg:px-6 [--top-nav-height:56px] sm:[--top-nav-height:72px]"
       style={{
-        "--top-nav-height": "72px",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         pointerEvents: "auto",
       }}
     >
-      <div className="w-full pt-3">
+      <div className="w-full pt-2 sm:pt-3">
         <GlassContainer
           variant="default"
-          className="relative z-[1201] flex items-center justify-center gap-10 px-4 py-3"
+          className="relative z-[1201] flex min-h-[56px] items-center justify-center gap-6 px-3 py-2 sm:min-h-[72px] sm:gap-10 sm:px-4 sm:py-3"
           style={{ pointerEvents: "auto" }}
         >
           <div className="flex min-w-[160px] flex-1 items-center justify-start gap-3 lg:min-w-[240px]">
@@ -136,7 +135,7 @@ function Navbar() {
               <NavLink
                 to="/all-topics"
                 onClick={closeMenu}
-                className="relative z-10 text-lg font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation"
+                className="relative z-10 text-base font-semibold uppercase tracking-[0.18em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline touch-manipulation sm:text-lg"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
                 Monevo
@@ -182,7 +181,7 @@ function Navbar() {
               type="button"
               onClick={handleDarkModeToggle}
               aria-label="Toggle dark mode"
-              className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation"
+              className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-10 sm:w-10"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
@@ -192,7 +191,7 @@ function Navbar() {
               type="button"
               onClick={handleLogoutClick}
               aria-label="Logout"
-              className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation"
+              className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-10 sm:w-10"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <BoxArrowRight size={18} />
@@ -202,7 +201,7 @@ function Navbar() {
               type="button"
               onClick={handleProfileClick}
               aria-label="Go to profile"
-              className="relative z-10 inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation"
+              className="relative z-10 inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/40 hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-10 sm:w-10"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <img
@@ -224,7 +223,7 @@ function Navbar() {
 
             <button
               type="button"
-              className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 lg:hidden touch-manipulation"
+              className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 lg:hidden touch-manipulation sm:h-10 sm:w-10"
               onClick={toggleMenu}
               aria-expanded={menuOpen}
               aria-label="Toggle navigation menu"
