@@ -119,7 +119,7 @@ function Pricing() {
     <div className="app-container min-h-screen flex flex-col bg-gradient-to-b from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--bg-color,#eef2ff)] text-[color:var(--text-color,#111827)]">
       <Header />
 
-      <main className="flex-1 pt-[90px]">
+      <main className="flex-1 pt-[76px] sm:pt-[90px]">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pb-20 sm:px-6 lg:px-8">
           <section className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] shadow-inner shadow-[color:var(--primary,#1d5330)]/10">

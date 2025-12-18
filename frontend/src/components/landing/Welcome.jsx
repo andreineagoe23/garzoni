@@ -629,18 +629,18 @@ function Welcome() {
 
       <Header />
 
-      <main className="relative z-[1] flex-1 pt-[96px]">
+      <main className="relative z-[1] flex-1 pt-[80px] sm:pt-[96px]">
         {/* Hero (Three.js knowledge constellation) */}
         <section
           ref={heroRef}
-          className="welcome-hero relative isolate bg-[#0B0F14] min-h-[calc(100vh-96px)]"
+          className="welcome-hero relative isolate bg-[#0B0F14] min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]"
           aria-label="Finance Knowledge Constellation hero"
         >
-          <div className="w-full pl-6 pr-3 sm:pl-10 sm:pr-5 lg:pl-14 lg:pr-8 min-h-[calc(100vh-96px)]">
-            <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 min-h-[calc(100vh-96px)] items-stretch">
+          <div className="w-full px-4 sm:pl-10 sm:pr-5 lg:pl-14 lg:pr-8 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]">
+            <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)] items-stretch">
               {/* Left: copy + CTAs */}
-              <div className="relative z-10 flex flex-col items-start justify-center py-6 sm:py-8 lg:py-0 pl-2 sm:pl-4">
-                <div className="inline-flex w-fit self-start items-center gap-1.5 whitespace-nowrap rounded-full border border-[#1D5330]/25 bg-[#1D5330]/10 px-2.5 py-0.5 backdrop-blur-sm">
+              <div className="relative z-10 flex flex-col items-center sm:items-start justify-center py-6 sm:py-8 lg:py-0 sm:pl-6">
+                <div className="inline-flex w-fit self-center sm:self-start items-center gap-1.5 whitespace-nowrap rounded-full border border-[#1D5330]/25 bg-[#1D5330]/10 px-2.5 py-0.5 backdrop-blur-sm">
                   <span className="relative inline-flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E6C87A] opacity-40" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E6C87A]" />
@@ -650,49 +650,59 @@ function Welcome() {
                   </span>
                 </div>
 
-                <h1 className="welcome-font-display mt-7 text-5xl font-semibold tracking-tight text-white leading-[0.95] sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl">
+                <h1 className="welcome-font-display mt-7 text-center sm:text-left text-5xl font-semibold tracking-tight text-white leading-[0.95] sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl">
                   Turn knowledge <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-500">
                     into net worth.
                   </span>
                 </h1>
 
-                <p className="mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 sm:text-base">
+                <p className="mt-6 max-w-xl text-center sm:text-left mx-auto sm:mx-0 text-sm leading-relaxed text-neutral-400 sm:text-base">
                   The gamified financial education platform. Connect the nodes
                   of your financial literacy, earn XP, and unlock real‑world
                   wealth strategies.
                 </p>
 
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center pointer-events-auto">
+                <div className="mt-8 flex flex-row flex-wrap items-center justify-center sm:justify-start gap-2 pointer-events-auto sm:gap-4">
                   <GlassButton
                     onClick={() => navigate("/register")}
                     variant="active"
-                    size="lg"
-                    className="group"
+                    size="md"
+                    className="group whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
                   >
-                    <span>Start Learning Path</span>
+                    <span className="sm:hidden">Start</span>
+                    <span className="hidden sm:inline">
+                      Start Learning Path
+                    </span>
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </GlassButton>
 
                   <GlassButton
                     onClick={() => setIsDemoOpen(true)}
                     variant="ghost"
-                    size="lg"
+                    size="md"
+                    className="whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
                   >
                     <PlayCircle className="h-4 w-4" />
-                    <span>Watch Demo</span>
+                    <span className="sm:hidden">Demo</span>
+                    <span className="hidden sm:inline">Watch Demo</span>
                   </GlassButton>
 
                   <button
                     type="button"
                     onClick={scrollToFeatures}
-                    className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white/85 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:ml-2"
+                    className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/85 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-3 sm:text-sm"
                     aria-label="Scroll to explore"
                   >
-                    <span>Scroll to explore</span>
+                    <span className="sm:hidden">Explore</span>
+                    <span className="hidden sm:inline">Scroll to explore</span>
+                    <ChevronDown
+                      size={16}
+                      className="transition-transform duration-200 group-hover:translate-y-0.5 sm:hidden"
+                    />
                     <ChevronDown
                       size={18}
-                      className="transition-transform duration-200 group-hover:translate-y-0.5"
+                      className="hidden transition-transform duration-200 group-hover:translate-y-0.5 sm:inline-block"
                     />
                   </button>
                 </div>
