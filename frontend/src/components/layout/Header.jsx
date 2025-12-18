@@ -1,21 +1,33 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import Cookies from "js-cookie";
 import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
+import { GlassButton, GlassContainer } from "components/ui";
 
-const VISIBLE_PATHS = new Set(["/", "/register", "/login", "/pricing"]);
+const VISIBLE_PATHS = new Set([
+  "/",
+  "/welcome",
+  "/register",
+  "/login",
+  "/pricing",
+]);
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
   const { isAuthenticated, isInitialized } = useAuth();
-  
+
   if (!VISIBLE_PATHS.has(location.pathname)) {
     return null;
   }
+
+  const isWelcome =
+    location.pathname === "/" || location.pathname === "/welcome";
+  const isLogin = location.pathname === "/login";
+  const isRegister = location.pathname === "/register";
 
   const handleDarkModeToggle = () => {
     const nextDarkMode = !darkMode;
@@ -27,15 +39,27 @@ function Header() {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-[1100] border-b border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-      <div className="mx-auto flex h-[70px] w-full max-w-5xl items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <a
-            href="/"
-            className="text-2xl font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]"
+    <header className="fixed left-0 right-0 top-0 z-[1100] px-4 pt-3">
+      <GlassContainer
+        variant={isWelcome ? "subtle" : "default"}
+        className={[
+          "mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between px-4 sm:px-6",
+          // Make it feel like glass immediately (especially on the Welcome page).
+          "bg-[color:var(--card-bg,#ffffff)]/55",
+          "border border-[color:var(--border-color,rgba(255,255,255,0.12))]",
+        ].join(" ")}
+        style={{
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <Link
+            to="/"
+            className="text-lg font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline"
           >
             monevo
-          </a>
+          </Link>
 
           {isInitialized && isAuthenticated && (
             <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30">
@@ -49,23 +73,47 @@ function Header() {
             type="button"
             onClick={handleDarkModeToggle}
             aria-label="Toggle dark mode"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-[color:var(--text-color,#111827)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/45"
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
           </button>
 
-          <button
-            type="button"
-            onClick={() => navigate("/register")}
-            className="inline-flex items-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-          >
-            Get Started
-          </button>
+          {isInitialized && isAuthenticated ? (
+            <GlassButton
+              type="button"
+              onClick={() => navigate("/all-topics")}
+              variant="active"
+              className="hidden sm:inline-flex"
+            >
+              Open Dashboard
+            </GlassButton>
+          ) : (
+            <>
+              {!isLogin && (
+                <GlassButton
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  variant="ghost"
+                  className="hidden sm:inline-flex"
+                >
+                  Log in
+                </GlassButton>
+              )}
+              {!isRegister && (
+                <GlassButton
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  variant="active"
+                >
+                  Get started
+                </GlassButton>
+              )}
+            </>
+          )}
         </div>
-      </div>
+      </GlassContainer>
     </header>
   );
 }
 
 export default Header;
-
