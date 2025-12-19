@@ -15,6 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 DEBUG = env_bool("DEBUG", False)
 
+# Optional: serve the built React SPA (frontend/build) from Django/WhiteNoise.
+# This keeps BrowserRouter URLs clean (e.g. /dashboard instead of fragment-based URLs)
+# when deploying frontend + backend together.
+FRONTEND_BUILD_DIR = Path(
+    os.getenv("FRONTEND_BUILD_DIR", str(BASE_DIR.parent / "frontend" / "build"))
+).resolve()
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
@@ -86,6 +93,13 @@ TEMPLATES = [
         },
     },
 ]
+
+# If a frontend build exists, make index.html discoverable via TemplateView and
+# let WhiteNoise serve the build output (including /static/*) directly.
+SERVE_FRONTEND = FRONTEND_BUILD_DIR.exists()
+if SERVE_FRONTEND:
+    TEMPLATES[0]["DIRS"].append(FRONTEND_BUILD_DIR)
+    WHITENOISE_ROOT = str(FRONTEND_BUILD_DIR)
 
 WSGI_APPLICATION = "settings.wsgi.application"
 

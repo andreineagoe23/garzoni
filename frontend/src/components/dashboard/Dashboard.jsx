@@ -212,11 +212,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     );
 
     // Check if we're returning from Stripe payment (has session_id in URL)
-    const hashParams = window.location.hash.split("?")[1] || "";
-    const hashQuery = new URLSearchParams(hashParams);
-    const searchQuery = new URLSearchParams(window.location.search || "");
-    const sessionId =
-      searchQuery.get("session_id") || hashQuery.get("session_id");
+    const searchQuery = new URLSearchParams(location.search || "");
+    const sessionId = searchQuery.get("session_id");
 
     // If we have a session_id, invalidate profile to refetch payment status
     if (sessionId) {
@@ -228,7 +225,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         "[dashboard] detected session_id in URL; refreshing profile/entitlements"
       );
     }
-  }, [location.pathname, queryClient, refreshProfile, reloadEntitlements]);
+  }, [
+    location.pathname,
+    location.search,
+    queryClient,
+    refreshProfile,
+    reloadEntitlements,
+  ]);
 
   // Removed mobile view tracking
 

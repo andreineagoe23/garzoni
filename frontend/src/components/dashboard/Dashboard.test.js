@@ -39,6 +39,10 @@ jest.mock("axios", () => ({
 jest.mock("@tanstack/react-query", () => ({
   __esModule: true,
   useQuery: (...args) => mockUseQuery(...args),
+  useQueryClient: () => ({
+    setQueryData: jest.fn(),
+    invalidateQueries: jest.fn(),
+  }),
 }));
 
 jest.mock("services/userService", () => ({
@@ -51,7 +55,7 @@ jest.mock("services/httpClient", () => ({
 
 jest.mock("./AllTopics", () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ navigationControls }) => <div>{navigationControls}</div>,
 }));
 
 jest.mock("./PersonalizedPath", () => ({
@@ -62,6 +66,22 @@ jest.mock("./PersonalizedPath", () => ({
 const Dashboard = require("./Dashboard").default;
 
 describe("Dashboard personalized path CTA", () => {
+  beforeAll(() => {
+    // JSDOM doesn't implement matchMedia by default.
+    if (!window.matchMedia) {
+      window.matchMedia = () => ({
+        matches: false,
+        media: "",
+        onchange: null,
+        addListener: jest.fn(), // deprecated
+        removeListener: jest.fn(), // deprecated
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      });
+    }
+  });
+
   beforeEach(() => {
     mockNavigate.mockClear();
     mockUseQuery.mockImplementation(({ queryKey }) => {
@@ -87,7 +107,8 @@ describe("Dashboard personalized path CTA", () => {
   });
 
   it("routes to personalized path when questionnaire is finished", () => {
-    mockProfileResponse = { is_questionnaire_completed: true };
+    // Personalized path access also requires Premium (has_paid)
+    mockProfileResponse = { is_questionnaire_completed: true, has_paid: true };
 
     render(<Dashboard />);
 
