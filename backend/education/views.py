@@ -993,10 +993,10 @@ class EnhancedQuestionnaireView(APIView):
                 }],
                 mode='payment',
                 success_url=(
-                    f"{settings.FRONTEND_URL}/#/personalized-path?"
+                    f"{settings.FRONTEND_URL}/personalized-path?"
                     "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
                 ),
-                cancel_url=f"{settings.FRONTEND_URL}/#/upgrade",
+                cancel_url=f"{settings.FRONTEND_URL}/upgrade",
                 metadata={'user_id': str(request.user.id)},
                 client_reference_id=str(request.user.id)
             )
