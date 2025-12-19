@@ -112,6 +112,78 @@ const AppContent = () => {
     }
   }, [location.pathname, location.search]);
 
+  useEffect(() => {
+    const shouldRecoverFromChunkError = (errOrMsg, urlHint) => {
+      const message = String(
+        errOrMsg?.message || errOrMsg?.reason?.message || errOrMsg || ""
+      );
+      const name = String(errOrMsg?.name || errOrMsg?.reason?.name || "");
+      const url = String(urlHint || "");
+
+      return (
+        name === "ChunkLoadError" ||
+        /ChunkLoadError/i.test(message) ||
+        /Loading (CSS )?chunk \d+ failed/i.test(message) ||
+        /Loading chunk \d+ failed/i.test(message) ||
+        /\.chunk\.(css|js)/i.test(url) ||
+        /\.chunk\.(css|js)/i.test(message)
+      );
+    };
+
+    const recover = () => {
+      try {
+        const key = "monevo_chunkload_recovered_v1";
+        if (sessionStorage.getItem(key) === "1") return;
+        sessionStorage.setItem(key, "1");
+
+        if (typeof window !== "undefined" && "caches" in window) {
+          caches
+            .keys()
+            .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+            .catch(() => {});
+        }
+
+        const href = window.location.href;
+        const [basePart, hashPart] = href.split("#");
+        const baseUrl = basePart.split("?")[0];
+        const nextUrl = `${baseUrl}?v=${Date.now()}${
+          hashPart ? `#${hashPart}` : ""
+        }`;
+        window.location.replace(nextUrl);
+      } catch (_) {
+        try {
+          window.location.reload();
+        } catch (__) {
+          // ignore
+        }
+      }
+    };
+
+    const onUnhandledRejection = (event) => {
+      if (shouldRecoverFromChunkError(event?.reason)) {
+        recover();
+      }
+    };
+
+    const onWindowError = (event) => {
+      // Resource load failures come through as ErrorEvent with a target element.
+      const target = event?.target;
+      const href = target?.href || target?.src;
+      if (shouldRecoverFromChunkError(event?.error || event?.message, href)) {
+        recover();
+      }
+    };
+
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    // Capture phase helps catch <link>/<script> resource errors.
+    window.addEventListener("error", onWindowError, true);
+
+    return () => {
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+      window.removeEventListener("error", onWindowError, true);
+    };
+  }, []);
+
   const hasNavbar =
     !noNavbarPaths.includes(location.pathname) && !isCourseFlowPath;
   const hasFooter =
