@@ -2,96 +2,101 @@ import React, { useEffect, useRef, useState } from "react";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
 
-const CKEDITOR_SRC =
-  "https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js";
-
-const loadEditor = () => {
-  if (window.ClassicEditor) {
-    return Promise.resolve(window.ClassicEditor);
-  }
-
-  if (window.__monevoCkeditorPromise) {
-    return window.__monevoCkeditorPromise;
-  }
-
-  window.__monevoCkeditorPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = CKEDITOR_SRC;
-    script.onload = () => resolve(window.ClassicEditor);
-    script.onerror = reject;
-    document.body.appendChild(script);
-  });
-
-  return window.__monevoCkeditorPromise;
-};
-
 const RichTextEditor = ({ value, onChange }) => {
+  const wrapperRef = useRef(null);
   const containerRef = useRef(null);
   const editorRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  const lastEmittedDataRef = useRef(null);
+  const valueRef = useRef(value || "");
   const { darkMode } = useTheme();
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
+    valueRef.current = value || "";
+  }, [value]);
 
-    loadEditor()
-      .then(() => {
-        if (!containerRef.current || !isMounted) return null;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
-        return window.ClassicEditor.create(containerRef.current)
-          .then((instance) => {
-            if (!isMounted) return null;
-            editorRef.current = instance;
-            instance.setData(value || "");
-            instance.model.document.on("change:data", () => {
-              onChange(instance.getData());
-            });
-            return null;
-          })
-          .catch((err) => {
-            // eslint-disable-next-line no-console
-            console.error("CKEditor failed to initialize", err);
-          });
-      })
-      .catch((err) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const ClassicEditor = (await import("@ckeditor/ckeditor5-build-classic"))
+          .default;
+
+        if (cancelled || !containerRef.current) return;
+
+        const editor = await ClassicEditor.create(containerRef.current);
+        if (cancelled) {
+          await editor.destroy();
+          return;
+        }
+
+        editorRef.current = editor;
+        editor.setData(valueRef.current);
+
+        editor.model.document.on("change:data", () => {
+          const data = editor.getData();
+          lastEmittedDataRef.current = data;
+          onChangeRef.current?.(data);
+        });
+      } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("CKEditor failed to load", err);
-      });
+        console.error("CKEditor failed to initialize", err);
+        if (cancelled) return;
+        setLoadError("Failed to load editor.");
+      }
+    })();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
       if (editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onChange]); // value is handled separately in the effect below to avoid editor re-initialization
+  }, []); // initialize editor once; callback updates via onChangeRef
 
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.getData()) {
-      editorRef.current.setData(value || "");
-    }
-  }, [value]);
-
-  // Update editor UI class when theme changes
-  useEffect(() => {
-    if (containerRef.current) {
-      const editorElement =
-        containerRef.current.closest(".ck-editor__editable") ||
-        containerRef.current.querySelector(".ck-editor__editable");
-      if (editorElement) {
-        if (darkMode) {
-          editorElement.setAttribute("data-theme", "dark");
-        } else {
-          editorElement.removeAttribute("data-theme");
-        }
-      }
+    if (!wrapperRef.current) return;
+    if (darkMode) {
+      wrapperRef.current.setAttribute("data-theme", "dark");
+    } else {
+      wrapperRef.current.removeAttribute("data-theme");
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const nextValue = value || "";
+    if (nextValue === lastEmittedDataRef.current) return;
+    if (nextValue === editor.getData()) return;
+
+    // Avoid blowing away the caret while the user is typing.
+    const isFocused = editor.ui?.focusTracker?.isFocused;
+    if (isFocused) return;
+
+    editor.setData(nextValue);
+  }, [value]);
+
   return (
-    <div className="ckeditor-wrapper overflow-hidden rounded-xl border shadow-sm">
-      <div ref={containerRef} className="ckeditor-container" />
+    <div
+      ref={wrapperRef}
+      className="ckeditor-wrapper overflow-hidden rounded-xl border shadow-sm"
+    >
+      {loadError ? (
+        <div className="p-3 text-sm text-[color:var(--error,#dc2626)]">
+          {loadError}
+        </div>
+      ) : (
+        <div ref={containerRef} className="ckeditor-container" />
+      )}
     </div>
   );
 };
