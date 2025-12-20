@@ -8,27 +8,45 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0006_faqfeedback'),
+        ("core", "0006_faqfeedback"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PortfolioEntry',
+            name="PortfolioEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('asset_type', models.CharField(choices=[('stock', 'Stock'), ('crypto', 'Crypto')], max_length=20)),
-                ('symbol', models.CharField(max_length=10)),
-                ('quantity', models.DecimalField(decimal_places=8, max_digits=20)),
-                ('purchase_price', models.DecimalField(decimal_places=8, max_digits=20)),
-                ('purchase_date', models.DateField()),
-                ('current_price', models.DecimalField(blank=True, decimal_places=8, max_digits=20, null=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "asset_type",
+                    models.CharField(
+                        choices=[("stock", "Stock"), ("crypto", "Crypto")], max_length=20
+                    ),
+                ),
+                ("symbol", models.CharField(max_length=10)),
+                ("quantity", models.DecimalField(decimal_places=8, max_digits=20)),
+                ("purchase_price", models.DecimalField(decimal_places=8, max_digits=20)),
+                ("purchase_date", models.DateField()),
+                (
+                    "current_price",
+                    models.DecimalField(blank=True, decimal_places=8, max_digits=20, null=True),
+                ),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Portfolio Entries',
-                'ordering': ['-purchase_date'],
+                "verbose_name_plural": "Portfolio Entries",
+                "ordering": ["-purchase_date"],
             },
         ),
     ]

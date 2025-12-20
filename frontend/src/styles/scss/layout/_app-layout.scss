@@ -31,17 +31,17 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  
+
   // Laptop screens
   @media (min-width: 993px) and (max-width: 1366px) {
     max-width: 95%;
     padding: map-get($spacers, 3);
   }
-  
+
   @include media-breakpoint-down(md) {
     padding: map-get($spacers, 3);
   }
-  
+
   @include media-breakpoint-down(sm) {
     padding: map-get($spacers, 3) map-get($spacers, 2);
   }
@@ -50,43 +50,43 @@
 // Section containers
 .section {
   margin-bottom: map-get($spacers, 5);
-  
+
   // Laptop screens
   @media (min-width: 993px) and (max-width: 1366px) {
     margin-bottom: map-get($spacers, 4);
   }
-  
+
   @include media-breakpoint-down(md) {
     margin-bottom: map-get($spacers, 4);
   }
-  
+
   @include media-breakpoint-down(sm) {
     margin-bottom: map-get($spacers, 3);
   }
-  
+
   &-title {
     margin-bottom: map-get($spacers, 4);
     font-weight: $font-weight-bold;
     color: var(--text-color);
-    
+
     @media (min-width: 993px) and (max-width: 1366px) {
       margin-bottom: map-get($spacers, 3);
       font-size: 1.5rem;
     }
-    
+
     @include media-breakpoint-down(md) {
       margin-bottom: map-get($spacers, 3);
       font-size: 1.25rem;
     }
   }
-  
+
   &-content {
     margin-bottom: map-get($spacers, 4);
-    
+
     @media (min-width: 993px) and (max-width: 1366px) {
       margin-bottom: map-get($spacers, 3);
     }
-    
+
     @include media-breakpoint-down(md) {
       margin-bottom: map-get($spacers, 3);
     }
@@ -97,20 +97,20 @@
 .card-grid {
   display: grid;
   gap: map-get($spacers, 4);
-  
+
   @media (min-width: 993px) and (max-width: 1366px) {
     grid-template-columns: repeat(2, 1fr);
     gap: map-get($spacers, 3);
   }
-  
+
   @include media-breakpoint-up(md) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @include media-breakpoint-up(lg) {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   @include media-breakpoint-up(xl) {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -119,37 +119,37 @@
 // Page header
 .page-header {
   margin-bottom: map-get($spacers, 4);
-  
+
   @media (min-width: 993px) and (max-width: 1366px) {
     margin-bottom: map-get($spacers, 3);
   }
-  
+
   @include media-breakpoint-down(md) {
     margin-bottom: map-get($spacers, 3);
   }
-  
+
   &-title {
     font-size: 1.75rem;
     font-weight: $font-weight-bold;
     margin-bottom: map-get($spacers, 2);
-    
+
     @media (min-width: 993px) and (max-width: 1366px) {
       font-size: 1.75rem;
     }
-    
+
     @include media-breakpoint-up(md) {
       font-size: 2rem;
     }
-    
+
     @include media-breakpoint-down(sm) {
       font-size: 1.5rem;
     }
   }
-  
+
   &-subtitle {
     color: rgba(var(--text-color), 0.7);
     font-size: 1.125rem;
-    
+
     @include media-breakpoint-down(md) {
       font-size: 1rem;
     }
@@ -161,27 +161,27 @@
   display: flex;
   flex-direction: column;
   gap: map-get($spacers, 4);
-  
+
   @media (min-width: 993px) and (max-width: 1366px) {
     flex-direction: row;
     gap: map-get($spacers, 3);
-    
+
     .column-main {
       flex: 3;
     }
-    
+
     .column-side {
       flex: 1.5;
     }
   }
-  
+
   @include media-breakpoint-up(lg) {
     flex-direction: row;
-    
+
     .column-main {
       flex: 2;
     }
-    
+
     .column-side {
       flex: 1;
     }
@@ -192,23 +192,23 @@
 .form-layout {
   max-width: 800px;
   margin: 0 auto;
-  
+
   @media (min-width: 993px) and (max-width: 1366px) {
     max-width: 700px;
   }
-  
+
   @include media-breakpoint-down(lg) {
     max-width: 100%;
   }
-  
+
   &-narrow {
     margin: 0 auto;
     max-width: 600px;
-    
+
     @media (min-width: 993px) and (max-width: 1366px) {
       max-width: 500px;
     }
-    
+
     @include media-breakpoint-down(lg) {
       max-width: 100%;
     }

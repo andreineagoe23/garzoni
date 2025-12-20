@@ -10,68 +10,174 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('finance', '__first__'),
+        ("finance", "__first__"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Badge',
+            name="Badge",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField()),
-                ('image', models.ImageField(upload_to='badges/')),
-                ('criteria_type', models.CharField(choices=[('lessons_completed', 'Lessons Completed'), ('courses_completed', 'Courses Completed'), ('streak_days', 'Streak Days'), ('points_earned', 'Points Earned'), ('missions_completed', 'Missions Completed'), ('savings_balance', 'Savings Balance')], max_length=50)),
-                ('threshold', models.IntegerField()),
-                ('badge_level', models.CharField(choices=[('bronze', 'Bronze'), ('silver', 'Silver'), ('gold', 'Gold')], default='bronze', max_length=10)),
-                ('is_active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField()),
+                ("image", models.ImageField(upload_to="badges/")),
+                (
+                    "criteria_type",
+                    models.CharField(
+                        choices=[
+                            ("lessons_completed", "Lessons Completed"),
+                            ("courses_completed", "Courses Completed"),
+                            ("streak_days", "Streak Days"),
+                            ("points_earned", "Points Earned"),
+                            ("missions_completed", "Missions Completed"),
+                            ("savings_balance", "Savings Balance"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("threshold", models.IntegerField()),
+                (
+                    "badge_level",
+                    models.CharField(
+                        choices=[("bronze", "Bronze"), ("silver", "Silver"), ("gold", "Gold")],
+                        default="bronze",
+                        max_length=10,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
             ],
             options={
-                'db_table': 'core_badge',
+                "db_table": "core_badge",
             },
         ),
         migrations.CreateModel(
-            name='Mission',
+            name="Mission",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField()),
-                ('points_reward', models.IntegerField()),
-                ('mission_type', models.CharField(choices=[('daily', 'Daily'), ('weekly', 'Weekly')], default='daily', max_length=10)),
-                ('goal_type', models.CharField(choices=[('complete_lesson', 'Complete Lesson'), ('add_savings', 'Add Savings'), ('read_fact', 'Read Finance Fact'), ('complete_path', 'Complete Path')], default='complete_lesson', max_length=50)),
-                ('goal_reference', models.JSONField(blank=True, null=True)),
-                ('fact', models.ForeignKey(blank=True, limit_choices_to={'is_active': True}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='missions', to='finance.financefact')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField()),
+                ("points_reward", models.IntegerField()),
+                (
+                    "mission_type",
+                    models.CharField(
+                        choices=[("daily", "Daily"), ("weekly", "Weekly")],
+                        default="daily",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "goal_type",
+                    models.CharField(
+                        choices=[
+                            ("complete_lesson", "Complete Lesson"),
+                            ("add_savings", "Add Savings"),
+                            ("read_fact", "Read Finance Fact"),
+                            ("complete_path", "Complete Path"),
+                        ],
+                        default="complete_lesson",
+                        max_length=50,
+                    ),
+                ),
+                ("goal_reference", models.JSONField(blank=True, null=True)),
+                (
+                    "fact",
+                    models.ForeignKey(
+                        blank=True,
+                        limit_choices_to={"is_active": True},
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="missions",
+                        to="finance.financefact",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_mission',
+                "db_table": "core_mission",
             },
         ),
         migrations.CreateModel(
-            name='MissionCompletion',
+            name="MissionCompletion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('progress', models.IntegerField(default=0)),
-                ('status', models.CharField(choices=[('not_started', 'Not Started'), ('in_progress', 'In Progress'), ('completed', 'Completed')], default='not_started', max_length=20)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='completions', to='gamification.mission')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mission_completions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("progress", models.IntegerField(default=0)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("not_started", "Not Started"),
+                            ("in_progress", "In Progress"),
+                            ("completed", "Completed"),
+                        ],
+                        default="not_started",
+                        max_length=20,
+                    ),
+                ),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="completions",
+                        to="gamification.mission",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mission_completions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_missioncompletion',
+                "db_table": "core_missioncompletion",
             },
         ),
         migrations.CreateModel(
-            name='UserBadge',
+            name="UserBadge",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('earned_at', models.DateTimeField(auto_now_add=True)),
-                ('badge', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='gamification.badge')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='earned_badges', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("earned_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "badge",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="gamification.badge"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="earned_badges",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_userbadge',
-                'unique_together': {('user', 'badge')},
+                "db_table": "core_userbadge",
+                "unique_together": {("user", "badge")},
             },
         ),
     ]

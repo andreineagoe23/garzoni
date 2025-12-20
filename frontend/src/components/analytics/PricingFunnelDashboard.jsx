@@ -4,6 +4,7 @@ import { useAdmin } from "contexts/AdminContext";
 import { GlassButton, GlassCard } from "components/ui";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import { fetchFunnelMetrics } from "services/analyticsService";
+import { queryKeys } from "lib/reactQuery";
 
 const MetricCard = ({ label, value, footer }) => (
   <GlassCard padding="lg" className="flex flex-col gap-2">
@@ -23,7 +24,7 @@ const PricingFunnelDashboard = () => {
   const { canAdminister } = useAdmin();
 
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["pricing-funnel-metrics"],
+    queryKey: queryKeys.pricingFunnelMetrics(),
     queryFn: async () => {
       const response = await fetchFunnelMetrics();
       return response.data;
@@ -162,4 +163,3 @@ const PricingFunnelDashboard = () => {
 };
 
 export default PricingFunnelDashboard;
-

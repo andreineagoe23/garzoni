@@ -64,7 +64,7 @@
     &-text {
       color: var(--text-color);
     }
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 16px var(--shadow-color);
@@ -145,12 +145,12 @@
       border-color: var(--accent);
       color: var(--accent);
     }
-    
+
     &-danger {
       border-color: var(--error);
       color: var(--error);
     }
-    
+
     &-success {
       border-color: var(--success);
       color: var(--success);
@@ -193,21 +193,21 @@
         background: var(--primary);
         color: var(--accent);
       }
-      
+
       &:hover {
         color: var(--accent);
       }
     }
   }
-  
+
   // Mobile navigation
   .mobile-nav {
     background: var(--card-bg);
     border-top-color: var(--border-color);
-    
+
     .nav-link {
       color: var(--text-color);
-      
+
       &.active {
         color: var(--accent);
       }
@@ -255,13 +255,13 @@
   .bg-dark {
     background-color: var(--card-bg) !important;
   }
-  
+
   // Form check styles
   .form-check {
     .form-check-input {
       background-color: var(--input-bg);
       border: 2px solid var(--primary);
-      
+
       &:checked {
         background-color: var(--accent);
         border-color: var(--accent);
@@ -299,7 +299,7 @@
       color: var(--text-color);
       font-weight: $font-weight-semibold;
     }
-    
+
     .status-text {
       color: var(--muted-text);
     }
@@ -345,7 +345,7 @@
     .form-check-input {
       background-color: var(--input-bg);
       border: 2px solid var(--primary);
-      
+
       &:checked {
         background-color: var(--accent);
         border-color: var(--accent);
@@ -375,7 +375,7 @@
           color: var(--accent);
           opacity: 0.9;
         }
-        
+
         .form-check-input {
           border-color: var(--accent);
         }
@@ -387,7 +387,7 @@
       &:checked {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%232A6041'/%3e%3c/svg%3e");
       }
-      
+
       &:focus {
         box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
       }
@@ -418,18 +418,18 @@
       .form-check-input {
         background-color: var(--input-bg);
         border: 2px solid var(--primary);
-        
+
         &:checked {
           background-color: var(--accent);
           border-color: var(--accent);
         }
       }
-  
+
       .form-check-label {
         color: var(--text-color);
         margin-left: map-get($spacers, 2);
       }
-  
+
       // Specific styles for your exercise options
       .option-check {
         .form-check-label {
@@ -437,36 +437,36 @@
           color: var(--muted-text);
           transition: all 0.2s ease;
         }
-  
+
         .form-check-input:checked ~ .form-check-label {
           color: var(--accent);
           font-weight: $font-weight-semibold;
         }
-  
+
         &:hover {
           .form-check-label {
             color: var(--accent);
             opacity: 0.9;
           }
-          
+
           .form-check-input {
             border-color: var(--accent);
           }
         }
       }
-  
+
       // Radio button specific styling
       input[type="radio"] {
         &:checked {
           background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%232A6041'/%3e%3c/svg%3e");
         }
-        
+
         &:focus {
           box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
         }
       }
     }
-  
+
     // Your specific option list styling
     .option-list {
       .option-item {
@@ -474,12 +474,12 @@
         border-radius: var(--border-radius);
         margin-bottom: map-get($spacers, 2);
         transition: all 0.3s ease;
-  
+
         &:hover {
           background: rgba(255, 215, 0, 0.1);
           transform: translateX(5px);
         }
-  
+
         &.active {
           background: var(--primary);
           border: 1px solid var(--accent);

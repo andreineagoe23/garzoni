@@ -4,8 +4,7 @@ import LearningPathList from "components/courses/LearningPathList";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
-import { useQuery } from "@tanstack/react-query";
-import { fetchProgressSummary } from "services/userService";
+import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useAnalytics } from "hooks/useAnalytics";
 
 const AllTopics = ({ onCourseClick, navigationControls = null }) => {
@@ -18,11 +17,11 @@ const AllTopics = ({ onCourseClick, navigationControls = null }) => {
   const { getAccessToken } = useAuth();
   const { trackEvent } = useAnalytics();
 
-  const { data: progressData } = useQuery({
-    queryKey: ["progress-summary"],
-    queryFn: fetchProgressSummary,
-    select: (response) => response?.data || { paths: [] },
-  });
+  const { data: progressResponse } = useProgressSummaryQuery();
+  const progressData = useMemo(
+    () => progressResponse?.data || { paths: [] },
+    [progressResponse]
+  );
 
   useEffect(() => {
     const fetchPaths = async () => {

@@ -91,4 +91,3 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
 };
 
 export default InteractiveSection;
-

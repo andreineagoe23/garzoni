@@ -10,19 +10,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
+import { useHearts } from "hooks/useHearts";
+import { useProgress } from "hooks/useProgress";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 import {
   completeLesson,
   completeSection,
   createLessonSection,
-  decrementHearts,
   deleteLessonSection,
   fetchCourseFlowState,
-  fetchHearts,
   fetchLearningPathCourses,
   fetchLessonsWithProgress,
   fetchExercises,
-  grantHearts,
-  refillHearts,
   reorderLessonSections,
   saveCourseFlowState,
   updateLessonSection,
@@ -36,8 +35,6 @@ import LessonSectionEditorPanel from "./LessonSectionEditorPanel";
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
-
-const DEFAULT_MAX_HEARTS = 5;
 
 function formatCountdown(ms) {
   if (!Number.isFinite(ms) || ms <= 0) return "00:00";
@@ -94,6 +91,7 @@ function CourseFlowPage() {
   const { getAccessToken } = useAuth();
   const { preferences } = usePreferences();
   const { adminMode } = useAdmin();
+  const { setCourseFlowProgress, resetCourseFlowProgress } = useProgress();
 
   const [lessons, setLessons] = useState([]);
   const lessonsRef = useRef([]);
@@ -109,10 +107,29 @@ function CourseFlowPage() {
   const [courseComplete, setCourseComplete] = useState(false);
 
   const heartsEnabled = preferences?.heartsEnabled !== false;
-  const [showOutOfHearts, setShowOutOfHearts] = useState(false);
-  const [heartsFetchedAtMs, setHeartsFetchedAtMs] = useState(() => Date.now());
-  const [heartTimerNowMs, setHeartTimerNowMs] = useState(() => Date.now());
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [didApplyInitialIndex, setDidApplyInitialIndex] = useState(false);
+  const {
+    refetchHearts,
+    hearts,
+    maxHearts,
+    nextHeartInSecondsRaw,
+    isOutOfHeartsModalOpen,
+    setOutOfHeartsModalOpen,
+    outOfHeartsUntilTs,
+    lastSeenServerHeartsTs,
+    decrementHeart,
+    grantHeartsSafe,
+    refillHeartsSafe,
+    decrementHeartsMutation,
+    grantHeartsMutation,
+    refillHeartsMutation,
+  } = useHearts({ enabled: heartsEnabled, refetchIntervalMs: 30_000 });
+
+  const isHeartsMutating =
+    decrementHeartsMutation.isPending ||
+    grantHeartsMutation.isPending ||
+    refillHeartsMutation.isPending;
 
   useEffect(() => {
     lessonsRef.current = lessons;
@@ -122,11 +139,12 @@ function CourseFlowPage() {
     setDidApplyInitialIndex(false);
     setCourseComplete(false);
     setCurrentIndex(0);
-    setShowOutOfHearts(false);
+    setOutOfHeartsModalOpen(false);
+    resetCourseFlowProgress();
     setEditingLessonId(null);
     setEditingSectionId(null);
     setDraftSection(null);
-  }, [courseIdNumber]);
+  }, [courseIdNumber, resetCourseFlowProgress, setOutOfHeartsModalOpen]);
 
   useEffect(() => {
     attachToken(getAccessToken());
@@ -149,15 +167,19 @@ function CourseFlowPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lessons", courseId, adminMode ? "admin" : "learner"],
+    queryKey: queryKeys.lessonsWithProgress(
+      courseIdNumber,
+      adminMode ? "admin" : "learner"
+    ),
     queryFn: () => fetchLessonsWithProgress(courseId, adminMode),
     select: (response) => response.data || [],
   });
 
   const { data: exercisesData, isLoading: loadingExercises } = useQuery({
-    queryKey: ["exercises"],
+    queryKey: queryKeys.exercises(),
     queryFn: () => fetchExercises().then((response) => response.data || []),
     enabled: adminMode,
+    staleTime: staleTimes.content,
   });
 
   const exercises = exercisesData || [];
@@ -202,27 +224,14 @@ function CourseFlowPage() {
     setCompletedSectionIds(completed);
   }, [lessonsData, normalizeLessons]);
 
-  const { data: heartsData, refetch: refetchHearts } = useQuery({
-    queryKey: ["hearts"],
-    queryFn: () => fetchHearts().then((response) => response.data),
-    enabled: heartsEnabled,
-    refetchInterval: heartsEnabled ? 30_000 : false,
-  });
-
-  useEffect(() => {
-    if (heartsData) {
-      setHeartsFetchedAtMs(Date.now());
-    }
-  }, [heartsData]);
-
   const { data: flowStateData, isFetched: isFlowStateFetched } = useQuery({
-    queryKey: ["flow-state", courseIdNumber],
+    queryKey: queryKeys.courseFlow(courseIdNumber),
     queryFn: () => fetchCourseFlowState(courseIdNumber).then((r) => r.data),
     enabled: Number.isFinite(courseIdNumber),
   });
 
   const { data: pathCourses, isLoading: isPathCoursesLoading } = useQuery({
-    queryKey: ["learning-path-courses", pathIdNumber],
+    queryKey: queryKeys.learningPathCourses(pathIdNumber),
     queryFn: () =>
       fetchLearningPathCourses(pathIdNumber).then(
         (response) => response.data?.data || response.data || []
@@ -230,23 +239,16 @@ function CourseFlowPage() {
     enabled: Number.isFinite(pathIdNumber),
     retry: false,
     refetchOnWindowFocus: false,
+    staleTime: staleTimes.content,
   });
 
-  const maxHearts = heartsEnabled
-    ? heartsData?.max_hearts ?? DEFAULT_MAX_HEARTS
-    : DEFAULT_MAX_HEARTS;
-  const hearts = heartsEnabled ? heartsData?.hearts ?? maxHearts : maxHearts;
-  const nextHeartInSecondsRaw = heartsEnabled
-    ? heartsData?.next_heart_in_seconds ?? null
-    : null;
-
-  // Tick the countdown so it updates smoothly in the UI.
+  // Tick the countdown so it updates smoothly in the UI (local-only).
   useEffect(() => {
     if (!heartsEnabled) return;
     if (!Number.isFinite(nextHeartInSecondsRaw)) return;
     if (hearts >= maxHearts) return;
     const id = window.setInterval(() => {
-      setHeartTimerNowMs(Date.now());
+      setNowMs(Date.now());
     }, 1000);
     return () => window.clearInterval(id);
   }, [hearts, heartsEnabled, maxHearts, nextHeartInSecondsRaw]);
@@ -262,16 +264,6 @@ function CourseFlowPage() {
     }, ms);
     return () => window.clearTimeout(id);
   }, [hearts, heartsEnabled, maxHearts, nextHeartInSecondsRaw, refetchHearts]);
-
-  useEffect(() => {
-    if (!heartsEnabled) {
-      setShowOutOfHearts(false);
-      return;
-    }
-    if (hearts <= 0) {
-      setShowOutOfHearts(true);
-    }
-  }, [hearts, heartsEnabled]);
 
   useEffect(() => {
     const items = [];
@@ -365,7 +357,7 @@ function CourseFlowPage() {
       setCompletedSectionIds((prev) =>
         prev.includes(sectionId) ? prev : [...prev, sectionId]
       );
-      queryClient.invalidateQueries({ queryKey: ["progress-summary"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
     onError: () => toast.error("Failed to save progress. Please try again."),
   });
@@ -373,37 +365,9 @@ function CourseFlowPage() {
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["progress-summary"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
     onError: () => toast.error("Failed to save progress. Please try again."),
-  });
-
-  const decrementHeartsMutation = useMutation({
-    mutationFn: () => decrementHearts(1).then((r) => r.data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["hearts"], data);
-      if (data?.hearts <= 0) {
-        setShowOutOfHearts(true);
-      }
-    },
-  });
-
-  const grantHeartsMutation = useMutation({
-    mutationFn: (amount) => grantHearts(amount).then((r) => r.data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["hearts"], data);
-      if (data?.hearts > 0) {
-        setShowOutOfHearts(false);
-      }
-    },
-  });
-
-  const refillHeartsMutation = useMutation({
-    mutationFn: () => refillHearts().then((r) => r.data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["hearts"], data);
-      setShowOutOfHearts(false);
-    },
   });
 
   const totalSteps = flowSections.length || 1;
@@ -411,6 +375,23 @@ function CourseFlowPage() {
     ? totalSteps
     : Math.min(currentIndex, totalSteps);
   const progressPercent = Math.round((completedSteps / totalSteps) * 100);
+
+  useEffect(() => {
+    setCourseFlowProgress({
+      courseId: courseIdNumber,
+      currentIndex,
+      totalSteps,
+      percent: progressPercent,
+      courseComplete,
+    });
+  }, [
+    courseComplete,
+    courseIdNumber,
+    currentIndex,
+    progressPercent,
+    setCourseFlowProgress,
+    totalSteps,
+  ]);
 
   const currentItem = flowSections[currentIndex] || null;
   const isLast = currentIndex >= flowSections.length - 1;
@@ -813,9 +794,9 @@ function CourseFlowPage() {
       if (adminMode) return;
       if (!heartsEnabled) return;
       if (correct) return;
-      decrementHeartsMutation.mutate();
+      decrementHeart();
     },
-    [adminMode, decrementHeartsMutation, heartsEnabled]
+    [adminMode, decrementHeart, heartsEnabled]
   );
 
   const handleNavigateForward = useCallback(() => {
@@ -865,19 +846,30 @@ function CourseFlowPage() {
   const heartCountdownMs = useMemo(() => {
     if (!heartsEnabled) return null;
     if (!Number.isFinite(nextHeartInSecondsRaw)) return null;
-    const elapsedSeconds = Math.floor(
-      (heartTimerNowMs - heartsFetchedAtMs) / 1000
-    );
-    const remainingSeconds = Math.max(
-      0,
-      nextHeartInSecondsRaw - elapsedSeconds
-    );
-    return remainingSeconds * 1000;
+    if (hearts >= maxHearts) return 0;
+
+    // If we're out of hearts, prefer the cross-tab synced "blocked until" timestamp.
+    if (hearts <= 0 && Number.isFinite(outOfHeartsUntilTs)) {
+      return Math.max(0, outOfHeartsUntilTs - nowMs);
+    }
+
+    // Otherwise compute based on when we last saw the server payload.
+    if (Number.isFinite(lastSeenServerHeartsTs)) {
+      const targetTs =
+        lastSeenServerHeartsTs + Math.ceil(nextHeartInSecondsRaw * 1000);
+      return Math.max(0, targetTs - nowMs);
+    }
+
+    // Fallback (no server timestamp yet): just render the raw value.
+    return Math.max(0, Math.ceil(nextHeartInSecondsRaw * 1000));
   }, [
-    heartTimerNowMs,
     heartsEnabled,
-    heartsFetchedAtMs,
+    hearts,
+    lastSeenServerHeartsTs,
+    maxHearts,
+    nowMs,
     nextHeartInSecondsRaw,
+    outOfHeartsUntilTs,
   ]);
 
   const currentLesson = useMemo(
@@ -959,7 +951,7 @@ function CourseFlowPage() {
                 isCompleted={isCompleted}
                 onAttempt={handleAttempt}
                 onComplete={handleCompleteCurrent}
-                disabled={isBlocked}
+                disabled={isBlocked || isHeartsMutating}
               />
             )}
             {section.exercise_type === "multiple-choice" && (
@@ -969,7 +961,7 @@ function CourseFlowPage() {
                 isCompleted={isCompleted}
                 onAttempt={handleAttempt}
                 onComplete={handleCompleteCurrent}
-                disabled={isBlocked}
+                disabled={isBlocked || isHeartsMutating}
               />
             )}
             {section.exercise_type === "budget-allocation" && (
@@ -979,7 +971,7 @@ function CourseFlowPage() {
                 isCompleted={isCompleted}
                 onAttempt={handleAttempt}
                 onComplete={handleCompleteCurrent}
-                disabled={isBlocked}
+                disabled={isBlocked || isHeartsMutating}
               />
             )}
             {section.text_content && (
@@ -1290,6 +1282,11 @@ function CourseFlowPage() {
                 <GlassButton
                   variant="active"
                   size="xl"
+                  disabled={
+                    isHeartsMutating ||
+                    completeLessonMutation.isPending ||
+                    completeSectionMutation.isPending
+                  }
                   onClick={() => {
                     // For exercises, just navigate forward without marking complete
                     const isExercise =
@@ -1439,7 +1436,7 @@ function CourseFlowPage() {
       )}
 
       {/* Out of hearts modal */}
-      {showOutOfHearts && !courseComplete && (
+      {isOutOfHeartsModalOpen && !courseComplete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
           role="dialog"
@@ -1459,7 +1456,7 @@ function CourseFlowPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setShowOutOfHearts(false)}
+                onClick={() => setOutOfHeartsModalOpen(false)}
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40"
                 aria-label="Close out of hearts dialog"
               >
@@ -1479,13 +1476,13 @@ function CourseFlowPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await grantHeartsMutation.mutateAsync(1);
+                    await grantHeartsSafe(1);
                     toast.success("Practice complete — +1 heart");
                   } finally {
-                    setShowOutOfHearts(false);
+                    setOutOfHeartsModalOpen(false);
                   }
                 }}
-                disabled={grantHeartsMutation.isPending}
+                disabled={isHeartsMutating}
                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)] bg-white px-5 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
               >
                 Practise (+1 heart)
@@ -1494,13 +1491,13 @@ function CourseFlowPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await refillHeartsMutation.mutateAsync();
+                    await refillHeartsSafe();
                     toast.success("Hearts refilled");
                   } finally {
-                    setShowOutOfHearts(false);
+                    setOutOfHeartsModalOpen(false);
                   }
                 }}
-                disabled={refillHeartsMutation.isPending}
+                disabled={isHeartsMutating}
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/25"
               >
                 Refill hearts

@@ -6,9 +6,11 @@ import Questionnaire from "./Questionnaire";
 jest.mock("contexts/AuthContext", () => ({
   useAuth: () => ({ getAccessToken: () => "test-access-token" }),
 }));
-jest.mock("components/common/Loader", () => () => (
-  <div>Loading questions...</div>
-));
+jest.mock("components/common/Loader", () => {
+  const LoaderMock = () => <div>Loading questions...</div>;
+  LoaderMock.displayName = "Loader";
+  return LoaderMock;
+});
 
 const originalLocation = window.location;
 
@@ -39,13 +41,9 @@ describe("Questionnaire happy path", () => {
   });
 
   it("loads questions, submits answers, and redirects to checkout", async () => {
-    render(
-      <Questionnaire />
-    );
+    render(<Questionnaire />);
 
-    expect(
-      screen.getByText(/Loading questions/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Loading questions/i)).toBeInTheDocument();
 
     await screen.findByText("Do you like investing?");
 

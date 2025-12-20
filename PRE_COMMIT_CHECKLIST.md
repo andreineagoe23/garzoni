@@ -9,6 +9,21 @@ Use this checklist before pushing to GitHub to ensure code quality and security.
 - [x] **Console.log statements reviewed** - Only necessary error logging remains
 - [x] **No hardcoded secrets** - All API keys/secrets use environment variables
 
+## 🪝 Automatic pre-commit hook (runs on every commit)
+
+Enable once per machine:
+
+```bash
+python -m pip install -r backend/requirements-dev.txt
+pre-commit install
+```
+
+Manual run (useful before pushing):
+
+```bash
+pre-commit run --all-files
+```
+
 ## 🔒 Security Checks
 
 - [x] **`.env` files ignored** - All `.env` files are in `.gitignore`
@@ -113,4 +128,3 @@ git push origin master
 ## ✨ Ready to Push
 
 All checks passed! The code is ready to be pushed to GitHub.
-

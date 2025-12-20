@@ -16,9 +16,19 @@ from django.conf import settings
 from finance.utils import record_funnel_event
 
 from education.models import (
-    Path, Course, Lesson, LessonSection, Quiz, UserProgress,
-    LessonCompletion, QuizCompletion, Exercise, UserExerciseProgress,
-    Question, UserResponse, Mastery
+    Path,
+    Course,
+    Lesson,
+    LessonSection,
+    Quiz,
+    UserProgress,
+    LessonCompletion,
+    QuizCompletion,
+    Exercise,
+    UserExerciseProgress,
+    Question,
+    UserResponse,
+    Mastery,
 )
 from education.serializers import (
     PathSerializer,
@@ -53,6 +63,7 @@ class PathViewSet(viewsets.ModelViewSet):
 
 class CourseViewSet(viewsets.ModelViewSet):
     """ViewSet to manage courses, including listing, retrieving, and updating course data."""
+
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
@@ -60,7 +71,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter courses by path if path_id is provided."""
         queryset = Course.objects.all()
-        path_id = self.request.query_params.get('path', None)
+        path_id = self.request.query_params.get("path", None)
         if path_id:
             queryset = queryset.filter(path_id=path_id)
         return queryset
@@ -68,6 +79,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonViewSet(viewsets.ModelViewSet):
     """ViewSet to manage lessons, including tracking progress and marking sections as complete."""
+
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
@@ -90,17 +102,14 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permissions]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def complete_section(self, request, pk=None):
         """Mark a specific section of a lesson as completed."""
         lesson = self.get_object()
-        section_id = request.data.get('section_id')
+        section_id = request.data.get("section_id")
 
         # Track progress
-        progress, _ = UserProgress.objects.get_or_create(
-            user=request.user,
-            course=lesson.course
-        )
+        progress, _ = UserProgress.objects.get_or_create(user=request.user, course=lesson.course)
         try:
             section = LessonSection.objects.get(id=section_id)
             if not section.is_published and not (
@@ -120,18 +129,16 @@ class LessonViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
 
-        include_unpublished = (
-            request.query_params.get("include_unpublished") == "true"
-            and (request.user.is_staff or request.user.is_superuser)
+        include_unpublished = request.query_params.get("include_unpublished") == "true" and (
+            request.user.is_staff or request.user.is_superuser
         )
 
         try:
-            user_progress = UserProgress.objects.get(
-                user=request.user,
-                course_id=course_id
+            user_progress = UserProgress.objects.get(user=request.user, course_id=course_id)
+            completed_lesson_ids = list(
+                user_progress.completed_lessons.values_list("id", flat=True)
             )
-            completed_lesson_ids = list(user_progress.completed_lessons.values_list('id', flat=True))
-            completed_sections = list(user_progress.completed_sections.values_list('id', flat=True))
+            completed_sections = list(user_progress.completed_sections.values_list("id", flat=True))
         except UserProgress.DoesNotExist:
             completed_lesson_ids = []
             completed_sections = []
@@ -143,23 +150,21 @@ class LessonViewSet(viewsets.ModelViewSet):
         lessons = (
             self.get_queryset()
             .filter(course_id=course_id)
-            .prefetch_related(
-                Prefetch("sections", queryset=section_queryset.order_by("order"))
-            )
+            .prefetch_related(Prefetch("sections", queryset=section_queryset.order_by("order")))
         )
         serializer = self.get_serializer(
             lessons,
             many=True,
-            context={'completed_lesson_ids': completed_lesson_ids, 'request': request}
+            context={"completed_lesson_ids": completed_lesson_ids, "request": request},
         )
         lesson_data = serializer.data
 
         for lesson in lesson_data:
-            total = len(lesson['sections'])
-            completed = sum(1 for s in lesson['sections'] if s['id'] in completed_sections)
-            lesson['total_sections'] = total
-            lesson['completed_sections'] = completed
-            lesson['progress'] = f"{(completed / total * 100) if total > 0 else 0}%"
+            total = len(lesson["sections"])
+            completed = sum(1 for s in lesson["sections"] if s["id"] in completed_sections)
+            lesson["total_sections"] = total
+            lesson["completed_sections"] = completed
+            lesson["progress"] = f"{(completed / total * 100) if total > 0 else 0}%"
 
         return Response(lesson_data)
 
@@ -260,18 +265,16 @@ class LessonViewSet(viewsets.ModelViewSet):
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        serializer = LessonSectionWriteSerializer(
-            section, data=request.data, partial=True
-        )
+        serializer = LessonSectionWriteSerializer(section, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
         desired_order = serializer.validated_data.get("order")
 
         with transaction.atomic():
             if desired_order is not None and desired_order != section.order:
-                LessonSection.objects.filter(
-                    lesson=lesson, order__gte=desired_order
-                ).exclude(id=section.id).update(order=F("order") + 1)
+                LessonSection.objects.filter(lesson=lesson, order__gte=desired_order).exclude(
+                    id=section.id
+                ).update(order=F("order") + 1)
 
             section = serializer.save(updated_by=request.user)
 
@@ -283,14 +286,12 @@ class LessonViewSet(viewsets.ModelViewSet):
             metadata={"lesson_id": lesson.id},
         )
 
-        return Response(
-            LessonSectionSerializer(section, context={"request": request}).data
-        )
+        return Response(LessonSectionSerializer(section, context={"request": request}).data)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
         """Mark a lesson as completed and update the user's progress and streak."""
-        lesson_id = request.data.get('lesson_id')
+        lesson_id = request.data.get("lesson_id")
         user = request.user
 
         try:
@@ -300,16 +301,13 @@ class LessonViewSet(viewsets.ModelViewSet):
             )
 
             # Mark lesson complete
-            LessonCompletion.objects.get_or_create(
-                user_progress=user_progress,
-                lesson=lesson
-            )
+            LessonCompletion.objects.get_or_create(user_progress=user_progress, lesson=lesson)
 
             # Update global streak inside UserProfile
             user_profile = user.profile
             user_profile.update_streak()
 
-            user_profile.add_money(Decimal('5.00'))
+            user_profile.add_money(Decimal("5.00"))
             user_profile.add_points(10)
 
             total_lessons = lesson.course.lessons.count()
@@ -350,20 +348,19 @@ class QuizViewSet(viewsets.ModelViewSet):
                 QuizCompletion.objects.get_or_create(user=request.user, quiz=quiz)
 
                 user_profile = request.user.profile
-                user_profile.add_money(Decimal('10.00'))
+                user_profile.add_money(Decimal("10.00"))
                 user_profile.add_points(20)
                 user_profile.save()
 
-                return Response({
-                    "message": "Quiz completed!",
-                    "correct": True,
-                    "earned_money": 10.00
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {"message": "Quiz completed!", "correct": True, "earned_money": 10.00},
+                    status=status.HTTP_200_OK,
+                )
             else:
-                return Response({
-                    "message": "Incorrect answer. Please try again.",
-                    "correct": False
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {"message": "Incorrect answer. Please try again.", "correct": False},
+                    status=status.HTTP_200_OK,
+                )
         except Quiz.DoesNotExist:
             return Response({"error": "Quiz not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -379,10 +376,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         """Filter progress by the authenticated user."""
         return UserProgress.objects.filter(user=self.request.user)
 
-    @action(detail=False, methods=['post'], url_path='complete')
+    @action(detail=False, methods=["post"], url_path="complete")
     def complete(self, request):
         """Mark a lesson as completed and update the user's progress and streak."""
-        lesson_id = request.data.get('lesson_id')
+        lesson_id = request.data.get("lesson_id")
         if not lesson_id:
             return Response({"error": "lesson_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -390,16 +387,18 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             lesson = Lesson.objects.get(id=lesson_id)
             course = lesson.course
             user_profile = request.user.profile
-            user_progress, created = UserProgress.objects.get_or_create(user=request.user, course=course)
+            user_progress, created = UserProgress.objects.get_or_create(
+                user=request.user, course=course
+            )
 
             user_progress.completed_lessons.add(lesson)
-            user_profile.add_money(Decimal('5.00'))
+            user_profile.add_money(Decimal("5.00"))
             user_profile.save()
 
             total_lessons = course.lessons.count()
             completed_lessons = user_progress.completed_lessons.count()
             if completed_lessons == total_lessons:
-                user_profile.add_money(Decimal('50.00'))
+                user_profile.add_money(Decimal("50.00"))
                 user_profile.add_points(50)
                 user_profile.save()
 
@@ -411,7 +410,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 path_missions = MissionCompletion.objects.filter(
                     user=request.user,
                     mission__goal_type="complete_path",
-                    status__in=["not_started", "in_progress"]
+                    status__in=["not_started", "in_progress"],
                 )
                 for mission_completion in path_missions:
                     mission_completion.update_progress()
@@ -421,13 +420,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if path:
                     courses_in_path = Course.objects.filter(path=path)
                     completed_courses = UserProgress.objects.filter(
-                        user=request.user,
-                        course__in=courses_in_path,
-                        is_course_complete=True
+                        user=request.user, course__in=courses_in_path, is_course_complete=True
                     ).count()
 
                     if completed_courses == courses_in_path.count():
-                        user_profile.add_money(Decimal('100.00'))
+                        user_profile.add_money(Decimal("100.00"))
                         user_profile.add_points(100)
                         user_profile.save()
 
@@ -437,14 +434,14 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             lesson_missions = MissionCompletion.objects.filter(
                 user=request.user,
                 mission__goal_type="complete_lesson",
-                status__in=["not_started", "in_progress"]
+                status__in=["not_started", "in_progress"],
             )
             for mission_completion in lesson_missions:
                 mission_completion.update_progress()
 
             return Response(
                 {"status": "Lesson completed", "streak": user_progress.user.profile.streak},
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
         except Lesson.DoesNotExist:
@@ -462,31 +459,36 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             completed_lessons = progress.completed_lessons.count()
             percent_complete = (completed_lessons / total_lessons) * 100 if total_lessons > 0 else 0
 
-            progress_data.append({
-                "path": progress.course.path.title if progress.course.path else None,
-                "course": progress.course.title,
-                "percent_complete": percent_complete,
-            })
+            progress_data.append(
+                {
+                    "path": progress.course.path.title if progress.course.path else None,
+                    "course": progress.course.title,
+                    "percent_complete": percent_complete,
+                }
+            )
 
-        return Response({
-            "overall_progress": sum(d["percent_complete"] for d in progress_data) / len(progress_data) if progress_data else 0,
-            "paths": progress_data
-        })
+        return Response(
+            {
+                "overall_progress": (
+                    sum(d["percent_complete"] for d in progress_data) / len(progress_data)
+                    if progress_data
+                    else 0
+                ),
+                "paths": progress_data,
+            }
+        )
 
-    @action(detail=False, methods=['post'], url_path='complete_section')
+    @action(detail=False, methods=["post"], url_path="complete_section")
     def complete_section(self, request):
         """Mark a specific section of a lesson as completed."""
-        section_id = request.data.get('section_id')
+        section_id = request.data.get("section_id")
         user = request.user
         try:
             section = LessonSection.objects.get(id=section_id)
-            if not section.is_published and not (
-                user.is_staff or user.is_superuser
-            ):
+            if not section.is_published and not (user.is_staff or user.is_superuser):
                 return Response({"error": "Section not available."}, status=403)
             progress, _ = UserProgress.objects.get_or_create(
-                user=user,
-                course=section.lesson.course
+                user=user, course=section.lesson.course
             )
             progress.completed_sections.add(section)
             progress.save()
@@ -502,14 +504,20 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         GET  /api/userprogress/flow_state/?course=<course_id>
         POST /api/userprogress/flow_state/ { course: <course_id>, current_index: <int> }
         """
-        course_id = request.query_params.get("course") if request.method == "GET" else request.data.get("course")
+        course_id = (
+            request.query_params.get("course")
+            if request.method == "GET"
+            else request.data.get("course")
+        )
         if not course_id:
             return Response({"error": "course is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             course_id = int(course_id)
         except (TypeError, ValueError):
-            return Response({"error": "course must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "course must be an integer"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         progress, _ = UserProgress.objects.get_or_create(user=request.user, course_id=course_id)
 
@@ -518,7 +526,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 {
                     "course": course_id,
                     "current_index": int(getattr(progress, "flow_current_index", 0) or 0),
-                    "updated_at": progress.flow_updated_at.isoformat() if getattr(progress, "flow_updated_at", None) else None,
+                    "updated_at": (
+                        progress.flow_updated_at.isoformat()
+                        if getattr(progress, "flow_updated_at", None)
+                        else None
+                    ),
                 }
             )
 
@@ -526,9 +538,13 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         try:
             current_index = int(current_index)
         except (TypeError, ValueError):
-            return Response({"error": "current_index must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "current_index must be an integer"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if current_index < 0:
-            return Response({"error": "current_index must be >= 0"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "current_index must be >= 0"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         progress.flow_current_index = current_index
         progress.save(update_fields=["flow_current_index", "flow_updated_at"])
@@ -537,7 +553,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             {
                 "course": course_id,
                 "current_index": int(progress.flow_current_index or 0),
-                "updated_at": progress.flow_updated_at.isoformat() if progress.flow_updated_at else None,
+                "updated_at": (
+                    progress.flow_updated_at.isoformat() if progress.flow_updated_at else None
+                ),
             }
         )
 
@@ -552,9 +570,9 @@ def _safe_decimal(value):
         string_value = str(value).strip()
         if not string_value:
             return None
-        if string_value.endswith('%'):
-            number = string_value.rstrip('%')
-            return Decimal(number) / Decimal('100')
+        if string_value.endswith("%"):
+            number = string_value.rstrip("%")
+            return Decimal(number) / Decimal("100")
         return Decimal(string_value)
     except (InvalidOperation, ValueError):
         return None
@@ -566,7 +584,7 @@ def _get_or_create_mastery(user, skill):
 
 
 def _select_skill(exercise):
-    return getattr(exercise, 'category', 'General') or 'General'
+    return getattr(exercise, "category", "General") or "General"
 
 
 def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
@@ -574,9 +592,9 @@ def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
     if is_correct and attempts == 1:
         base += 5
     base -= hints_used * 2
-    if confidence == 'low' and is_correct:
+    if confidence == "low" and is_correct:
         base += 2
-    elif confidence == 'high' and not is_correct:
+    elif confidence == "high" and not is_correct:
         base -= 2
     return base
 
@@ -584,17 +602,20 @@ def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
 def _evaluate_numeric(exercise, user_answer):
     """Evaluate numeric answers with tolerance and simple error diagnostics."""
     data = exercise.exercise_data or {}
-    tolerance = Decimal(str(data.get('tolerance', '0.01')))
-    expected_raw = exercise.correct_answer or data.get('expected_value')
+    tolerance = Decimal(str(data.get("tolerance", "0.01")))
+    expected_raw = exercise.correct_answer or data.get("expected_value")
     expected_value = _safe_decimal(expected_raw)
     user_value = _safe_decimal(user_answer)
 
     if expected_value is None or user_value is None:
-        return False, "We couldn't understand the number you entered. Try again with a plain number."
+        return (
+            False,
+            "We couldn't understand the number you entered. Try again with a plain number.",
+        )
 
     diff = abs(user_value - expected_value)
-    relative_band = (abs(expected_value) * tolerance)
-    absolute_band = tolerance if tolerance > 0 else Decimal('0')
+    relative_band = abs(expected_value) * tolerance
+    absolute_band = tolerance if tolerance > 0 else Decimal("0")
     threshold = max(relative_band, absolute_band)
 
     if diff <= threshold:
@@ -602,19 +623,27 @@ def _evaluate_numeric(exercise, user_answer):
 
     # Diagnostics
     diagnostics = []
-    period_hint = data.get('period_hint', 'annual')
-    if period_hint == 'annual':
-        if expected_value != 0 and abs(user_value - (expected_value / Decimal('12'))) <= threshold:
-            diagnostics.append("It looks like you divided an annual figure by 12 — watch the period.")
-        if abs(user_value - (expected_value * Decimal('12'))) <= threshold:
-            diagnostics.append("You treated an annual figure as monthly; align the period with the prompt.")
+    period_hint = data.get("period_hint", "annual")
+    if period_hint == "annual":
+        if expected_value != 0 and abs(user_value - (expected_value / Decimal("12"))) <= threshold:
+            diagnostics.append(
+                "It looks like you divided an annual figure by 12 — watch the period."
+            )
+        if abs(user_value - (expected_value * Decimal("12"))) <= threshold:
+            diagnostics.append(
+                "You treated an annual figure as monthly; align the period with the prompt."
+            )
 
     if expected_value != 0:
         ratio = user_value / expected_value
-        if Decimal('0.98') <= ratio <= Decimal('1.02'):
-            diagnostics.append("Close! You may have rounded too early. Keep more precision until the end.")
-        if ratio.quantize(Decimal('0.01')) == Decimal('100.00'):
-            diagnostics.append("Looks like you skipped converting % to a decimal. Try dividing the rate by 100.")
+        if Decimal("0.98") <= ratio <= Decimal("1.02"):
+            diagnostics.append(
+                "Close! You may have rounded too early. Keep more precision until the end."
+            )
+        if ratio.quantize(Decimal("0.01")) == Decimal("100.00"):
+            diagnostics.append(
+                "Looks like you skipped converting % to a decimal. Try dividing the rate by 100."
+            )
 
     if not diagnostics:
         diagnostics.append("Check your compounding and base values, then retry.")
@@ -624,7 +653,7 @@ def _evaluate_numeric(exercise, user_answer):
 
 def _evaluate_budget(exercise, user_answer):
     data = exercise.exercise_data or {}
-    target = data.get('target')
+    target = data.get("target")
     expected = exercise.correct_answer or {}
     if not isinstance(user_answer, dict):
         return False, "Please fill out each category with a number."
@@ -634,7 +663,7 @@ def _evaluate_budget(exercise, user_answer):
         return False, "All categories need a valid number."
 
     total = sum(allocations.values())
-    income = _safe_decimal(data.get('income'))
+    income = _safe_decimal(data.get("income"))
     messages = []
     is_correct = True
 
@@ -643,10 +672,10 @@ def _evaluate_budget(exercise, user_answer):
         messages.append("Your categories should add up to your income.")
 
     if target and isinstance(target, dict):
-        target_key = target.get('category')
-        target_min = _safe_decimal(target.get('min'))
+        target_key = target.get("category")
+        target_min = _safe_decimal(target.get("min"))
         if target_key and target_min is not None:
-            allocation = allocations.get(target_key, Decimal('0'))
+            allocation = allocations.get(target_key, Decimal("0"))
             if allocation < target_min:
                 is_correct = False
                 messages.append(f"Aim for at least {target_min} in {target_key} to hit the goal.")
@@ -670,9 +699,9 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Exercise.objects.all()
-        exercise_type = self.request.query_params.get('type', None)
-        category = self.request.query_params.get('category', None)
-        difficulty = self.request.query_params.get('difficulty', None)
+        exercise_type = self.request.query_params.get("type", None)
+        category = self.request.query_params.get("category", None)
+        difficulty = self.request.query_params.get("difficulty", None)
 
         if exercise_type:
             queryset = queryset.filter(type=exercise_type)
@@ -683,36 +712,38 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def categories(self, request):
         """Get all unique exercise categories."""
-        categories = Exercise.objects.values_list('category', flat=True).distinct()
+        categories = Exercise.objects.values_list("category", flat=True).distinct()
         return Response(list(categories))
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
         """Submit an answer for an exercise and update mastery/XP."""
         exercise = self.get_object()
-        user_answer = request.data.get('user_answer')
-        confidence = request.data.get('confidence')
-        hints_used = int(request.data.get('hints_used', 0))
+        user_answer = request.data.get("user_answer")
+        confidence = request.data.get("confidence")
+        hints_used = int(request.data.get("hints_used", 0))
 
         if user_answer is None:
             return Response(
-                {'error': 'User answer is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "User answer is required"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Get or create user progress and prevent duplicate rapid submissions
         progress, _ = UserExerciseProgress.objects.get_or_create(
-            user=request.user,
-            exercise=exercise
+            user=request.user, exercise=exercise
         )
         now = timezone.now()
-        if progress.attempts and progress.last_attempt and (now - progress.last_attempt).total_seconds() < 1.5:
+        if (
+            progress.attempts
+            and progress.last_attempt
+            and (now - progress.last_attempt).total_seconds() < 1.5
+        ):
             return Response(
-                {'error': 'Please wait before submitting again'},
-                status=status.HTTP_429_TOO_MANY_REQUESTS
+                {"error": "Please wait before submitting again"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
         already_completed = progress.completed
@@ -725,14 +756,20 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         is_correct = False
         feedback = None
 
-        if exercise.type == 'numeric':
+        if exercise.type == "numeric":
             is_correct, feedback = _evaluate_numeric(exercise, user_answer)
-        elif exercise.type == 'budget-allocation':
+        elif exercise.type == "budget-allocation":
             is_correct, feedback = _evaluate_budget(exercise, user_answer)
         else:
             try:
-                correct_json = json.dumps(correct_answer, sort_keys=True) if correct_answer is not None else None
-                user_json = json.dumps(user_answer, sort_keys=True) if user_answer is not None else None
+                correct_json = (
+                    json.dumps(correct_answer, sort_keys=True)
+                    if correct_answer is not None
+                    else None
+                )
+                user_json = (
+                    json.dumps(user_answer, sort_keys=True) if user_answer is not None else None
+                )
                 is_correct = correct_json == user_json
             except (TypeError, ValueError):
                 is_correct = correct_answer == user_answer
@@ -746,69 +783,75 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         mastery_before = mastery.proficiency
         mastery.bump(is_correct, confidence, hints_used=hints_used, attempts=progress.attempts)
 
-        xp_delta = 0 if already_completed and is_correct else _compute_xp_delta(
-            is_correct, progress.attempts, hints_used, confidence
+        xp_delta = (
+            0
+            if already_completed and is_correct
+            else _compute_xp_delta(is_correct, progress.attempts, hints_used, confidence)
         )
 
         logger.info(
             "attempt_submitted",
             extra={
-                'user_id': request.user.id,
-                'exercise_id': exercise.id,
-                'exercise_type': exercise.type,
-                'correct': is_correct,
-                'confidence': confidence,
-                'hints_used': hints_used,
-                'attempts': progress.attempts,
-                'mastery_before': mastery_before,
-                'mastery_after': mastery.proficiency,
-                'due_at': mastery.due_at,
+                "user_id": request.user.id,
+                "exercise_id": exercise.id,
+                "exercise_type": exercise.type,
+                "correct": is_correct,
+                "confidence": confidence,
+                "hints_used": hints_used,
+                "attempts": progress.attempts,
+                "mastery_before": mastery_before,
+                "mastery_after": mastery.proficiency,
+                "due_at": mastery.due_at,
+            },
+        )
+
+        return Response(
+            {
+                "correct": is_correct,
+                "attempts": progress.attempts,
+                "explanation": getattr(exercise, "explanation", None),
+                "feedback": feedback
+                or (
+                    "On point — keep going!"
+                    if is_correct
+                    else "Not quite. Re-read the prompt and try again."
+                ),
+                "xp_delta": xp_delta,
+                "due_at": mastery.due_at,
+                "proficiency": mastery.proficiency,
             }
         )
 
-        return Response({
-            'correct': is_correct,
-            'attempts': progress.attempts,
-            'explanation': getattr(exercise, 'explanation', None),
-            'feedback': feedback or (
-                "On point — keep going!" if is_correct else "Not quite. Re-read the prompt and try again."
-            ),
-            'xp_delta': xp_delta,
-            'due_at': mastery.due_at,
-            'proficiency': mastery.proficiency,
-        })
 
-
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_exercise_progress(request, exercise_id):
     """Retrieve the progress of a specific exercise for the authenticated user."""
     try:
         exercise = Exercise.objects.get(id=exercise_id)
-        progress = UserExerciseProgress.objects.filter(
-            user=request.user,
-            exercise=exercise
-        ).first()
+        progress = UserExerciseProgress.objects.filter(user=request.user, exercise=exercise).first()
 
         if progress:
-            return Response({
-                "completed": progress.completed,
-                "attempts": progress.attempts,
-                "user_answer": progress.user_answer
-            })
+            return Response(
+                {
+                    "completed": progress.completed,
+                    "attempts": progress.attempts,
+                    "user_answer": progress.user_answer,
+                }
+            )
         else:
             return Response({"completed": False, "attempts": 0, "user_answer": None})
     except Exercise.DoesNotExist:
         return Response({"error": "Exercise not found."}, status=404)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
     """Reset exercise progress for a user."""
     exercise_id = request.data.get("exercise_id")
     section_id = request.data.get("section_id")
-    
+
     if not exercise_id and not section_id:
         return Response({"error": "Either exercise_id or section_id is required"}, status=400)
 
@@ -821,9 +864,7 @@ def reset_exercise(request):
                 return Response({"error": "No exercise found for this section"}, status=404)
             exercise_id = exercise.id
 
-        progress = UserExerciseProgress.objects.get(
-            user=request.user, exercise_id=exercise_id
-        )
+        progress = UserExerciseProgress.objects.get(user=request.user, exercise_id=exercise_id)
         progress.attempts = 0
         progress.completed = False
         progress.user_answer = None
@@ -833,89 +874,92 @@ def reset_exercise(request):
         return Response({"error": "No progress found to reset."}, status=404)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def review_queue(request):
     """Return a lightweight review queue based on mastery due dates."""
     now = timezone.now()
-    due_mastery = Mastery.objects.filter(user=request.user, due_at__lte=now).order_by('due_at')
+    due_mastery = Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
     queue = []
     for mastery in due_mastery:
-        exercise = Exercise.objects.filter(category=mastery.skill).order_by('difficulty', 'id').first()
+        exercise = (
+            Exercise.objects.filter(category=mastery.skill).order_by("difficulty", "id").first()
+        )
         if not exercise:
             continue
-        queue.append({
-            'skill': mastery.skill,
-            'exercise_id': exercise.id,
-            'question': exercise.question,
-            'type': exercise.type,
-            'due_at': mastery.due_at,
-            'proficiency': mastery.proficiency,
-        })
+        queue.append(
+            {
+                "skill": mastery.skill,
+                "exercise_id": exercise.id,
+                "question": exercise.question,
+                "type": exercise.type,
+                "due_at": mastery.due_at,
+                "proficiency": mastery.proficiency,
+            }
+        )
     logger.info(
         "review_queue",
         extra={
-            'user_id': request.user.id,
-            'count': len(queue),
-        }
+            "user_id": request.user.id,
+            "count": len(queue),
+        },
     )
-    return Response({'due': queue, 'count': len(queue)})
+    return Response({"due": queue, "count": len(queue)})
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def mastery_summary(request):
     """Return mastery data for all skills, sorted by proficiency (lowest first)."""
-    masteries = Mastery.objects.filter(user=request.user).order_by('proficiency', 'skill')
+    masteries = Mastery.objects.filter(user=request.user).order_by("proficiency", "skill")
     mastery_data = [
         {
-            'skill': mastery.skill,
-            'proficiency': mastery.proficiency,
-            'due_at': mastery.due_at,
-            'last_reviewed': mastery.last_reviewed,
+            "skill": mastery.skill,
+            "proficiency": mastery.proficiency,
+            "due_at": mastery.due_at,
+            "last_reviewed": mastery.last_reviewed,
         }
         for mastery in masteries
     ]
-    return Response({'masteries': mastery_data})
+    return Response({"masteries": mastery_data})
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def next_exercise(request):
     """Return the next recommended exercise based on mastery gaps and recent attempt."""
-    last_exercise_id = request.data.get('last_exercise_id')
-    last_correct = request.data.get('last_correct')
+    last_exercise_id = request.data.get("last_exercise_id")
+    last_correct = request.data.get("last_correct")
 
     queue_response = review_queue(request)
-    if queue_response.data.get('due'):
-        return Response({
-            'exercise_id': queue_response.data['due'][0]['exercise_id'],
-            'reason': 'review_due'
-        })
+    if queue_response.data.get("due"):
+        return Response(
+            {"exercise_id": queue_response.data["due"][0]["exercise_id"], "reason": "review_due"}
+        )
 
     completed_ids = set(
-        UserExerciseProgress.objects.filter(user=request.user, completed=True)
-        .values_list('exercise_id', flat=True)
+        UserExerciseProgress.objects.filter(user=request.user, completed=True).values_list(
+            "exercise_id", flat=True
+        )
     )
 
     if last_exercise_id and not last_correct:
         retry = Exercise.objects.filter(id=last_exercise_id).first()
         if retry:
-            return Response({'exercise_id': retry.id, 'reason': 'remediate'})
+            return Response({"exercise_id": retry.id, "reason": "remediate"})
 
-    next_available = Exercise.objects.exclude(id__in=completed_ids).order_by('difficulty', 'id').first()
-    if next_available:
-        return Response({'exercise_id': next_available.id, 'reason': 'fresh'})
-
-    fallback = Exercise.objects.order_by('-created_at').first()
-    if fallback:
-        return Response({'exercise_id': fallback.id, 'reason': 'fallback'})
-
-    logger.info(
-        "next_exercise_not_found",
-        extra={'user_id': request.user.id}
+    next_available = (
+        Exercise.objects.exclude(id__in=completed_ids).order_by("difficulty", "id").first()
     )
-    return Response({'error': 'No exercises available'}, status=404)
+    if next_available:
+        return Response({"exercise_id": next_available.id, "reason": "fresh"})
+
+    fallback = Exercise.objects.order_by("-created_at").first()
+    if fallback:
+        return Response({"exercise_id": fallback.id, "reason": "fallback"})
+
+    logger.info("next_exercise_not_found", extra={"user_id": request.user.id})
+    return Response({"error": "No exercises available"}, status=404)
 
 
 class EnhancedQuestionnaireView(APIView):
@@ -925,7 +969,7 @@ class EnhancedQuestionnaireView(APIView):
 
     def get(self, request):
         """Handle GET requests to fetch questionnaire questions."""
-        questions = Question.objects.filter(is_active=True).order_by('order')
+        questions = Question.objects.filter(is_active=True).order_by("order")
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data)
 
@@ -934,7 +978,7 @@ class EnhancedQuestionnaireView(APIView):
         try:
             user = request.user
             user_profile = user.profile
-            answers = request.data.get('answers', {})
+            answers = request.data.get("answers", {})
 
             if not answers:
                 return Response({"error": "No answers provided"}, status=400)
@@ -944,18 +988,15 @@ class EnhancedQuestionnaireView(APIView):
                     try:
                         question = Question.objects.get(id=qid)
                         # Validate budget allocation sum
-                        if question.type == 'budget_allocation':
+                        if question.type == "budget_allocation":
                             total = sum(int(v) for v in answer.values())
                             if total != 100:
                                 return Response(
-                                    {"error": "Budget allocation must total 100%"},
-                                    status=400
+                                    {"error": "Budget allocation must total 100%"}, status=400
                                 )
 
                         UserResponse.objects.update_or_create(
-                            user=user,
-                            question=question,
-                            defaults={'answer': answer}
+                            user=user, question=question, defaults={"answer": answer}
                         )
                     except Question.DoesNotExist:
                         logger.error(f"Question {qid} not found")
@@ -965,17 +1006,18 @@ class EnhancedQuestionnaireView(APIView):
                 user_profile.save(update_fields=["recommended_courses"])
 
                 # Persist questionnaire completion for all of the user's progress records
-                UserProgress.objects.filter(user=user).update(
-                    is_questionnaire_completed=True
-                )
+                UserProgress.objects.filter(user=user).update(is_questionnaire_completed=True)
 
             # If user has already paid, allow them to update questionnaire and redirect to personalized path
             if user_profile.has_paid:
-                return Response({
-                    "success": True,
-                    "redirect": "/personalized-path",
-                    "message": "Questionnaire updated successfully"
-                }, status=200)
+                return Response(
+                    {
+                        "success": True,
+                        "redirect": "/personalized-path",
+                        "message": "Questionnaire updated successfully",
+                    },
+                    status=200,
+                )
 
             # Configure Stripe with your API key
             stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -986,35 +1028,34 @@ class EnhancedQuestionnaireView(APIView):
                 extra={"user_id": request.user.id},
             )
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price': 'price_1R9sQlBi8QnQXyou7cLlu0wF',
-                    'quantity': 1,
-                }],
-                mode='payment',
+                payment_method_types=["card"],
+                line_items=[
+                    {
+                        "price": "price_1R9sQlBi8QnQXyou7cLlu0wF",
+                        "quantity": 1,
+                    }
+                ],
+                mode="payment",
                 success_url=(
                     f"{settings.FRONTEND_URL}/personalized-path?"
                     "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
                 ),
                 cancel_url=f"{settings.FRONTEND_URL}/upgrade",
-                metadata={'user_id': str(request.user.id)},
-                client_reference_id=str(request.user.id)
+                metadata={"user_id": str(request.user.id)},
+                client_reference_id=str(request.user.id),
             )
 
             record_funnel_event(
                 "checkout_created",
                 user=request.user,
-                session_id=getattr(checkout_session, 'id', ''),
+                session_id=getattr(checkout_session, "id", ""),
                 metadata={
                     "mode": checkout_session.mode,
-                    "amount_total": getattr(checkout_session, 'amount_total', None),
-                }
+                    "amount_total": getattr(checkout_session, "amount_total", None),
+                },
             )
 
-            return Response({
-                "success": True,
-                "redirect_url": checkout_session.url
-            }, status=200)
+            return Response({"success": True, "redirect_url": checkout_session.url}, status=200)
 
         except Exception as e:
             logger.error(f"Stripe error: {str(e)}")
@@ -1047,10 +1088,10 @@ class PersonalizedPathView(APIView):
                 )
 
             if not user_profile.has_paid:
-                return Response({
-                    "error": "Payment required for personalized path",
-                    "redirect": "/upgrade"
-                }, status=403)
+                return Response(
+                    {"error": "Payment required for personalized path", "redirect": "/upgrade"},
+                    status=403,
+                )
 
             # Generate recommendations if not already present
             if not user_profile.recommended_courses:
@@ -1058,27 +1099,29 @@ class PersonalizedPathView(APIView):
 
             recommended_courses = Course.objects.filter(
                 id__in=user_profile.recommended_courses
-            ).order_by('order')
+            ).order_by("order")
 
             serializer = CourseSerializer(
-                recommended_courses,
-                many=True,
-                context={'request': request}
+                recommended_courses, many=True, context={"request": request}
             )
 
             # Cache control headers
-            response = Response({
-                "courses": serializer.data,
-                "message": "Recommended courses based on your financial goals:"
-            })
-            response['Cache-Control'] = 'no-store, max-age=0'
+            response = Response(
+                {
+                    "courses": serializer.data,
+                    "message": "Recommended courses based on your financial goals:",
+                }
+            )
+            response["Cache-Control"] = "no-store, max-age=0"
             return response
 
         except Exception as e:
             logger.critical(f"Critical error in personalized path: {str(e)}", exc_info=True)
             return Response(
-                {"error": "We're having trouble generating recommendations. Our team has been notified."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {
+                    "error": "We're having trouble generating recommendations. Our team has been notified."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def generate_recommendations(self, user_profile):
@@ -1098,7 +1141,7 @@ class PersonalizedPathView(APIView):
             for response in responses:
                 answer = response.answer
                 try:
-                    if response.question.type == 'budget_allocation' and isinstance(answer, str):
+                    if response.question.type == "budget_allocation" and isinstance(answer, str):
                         answer = json.loads(answer)
                 except json.JSONDecodeError:
                     logger.error(f"Invalid JSON answer for question {response.question.id}")
@@ -1110,7 +1153,7 @@ class PersonalizedPathView(APIView):
 
                 elif response.question.id == 3:
                     if isinstance(answer, str):
-                        answer = [a.strip().lower() for a in answer.split(',')]
+                        answer = [a.strip().lower() for a in answer.split(",")]
                     self.handle_investment_question(answer, path_weights)
 
                 elif response.question.id == 4:
@@ -1124,35 +1167,35 @@ class PersonalizedPathView(APIView):
     def handle_risk_question(self, answer, weights):
         """Adjust path weights based on the user's risk tolerance."""
         risk_map = {
-            'very uncomfortable': 0,
-            'uncomfortable': 1,
-            'neutral': 2,
-            'comfortable': 3,
-            'very comfortable': 4
+            "very uncomfortable": 0,
+            "uncomfortable": 1,
+            "neutral": 2,
+            "comfortable": 3,
+            "very comfortable": 4,
         }
         normalized_answer = answer.lower().strip()
         score = risk_map.get(normalized_answer, 0)
-        weights['Investing'] += score * 2
-        weights['Cryptocurrency'] += score * 1.5
+        weights["Investing"] += score * 2
+        weights["Cryptocurrency"] += score * 1.5
 
     def handle_investment_question(self, answer, weights):
         """Adjust path weights based on the user's investment preferences."""
         investment_map = {
-            'real estate': 'Real Estate',
-            'crypto': 'Cryptocurrency',
-            'cryptocurrency': 'Cryptocurrency',
-            'stocks': 'Investing',
-            'stock market': 'Investing'
+            "real estate": "Real Estate",
+            "crypto": "Cryptocurrency",
+            "cryptocurrency": "Cryptocurrency",
+            "stocks": "Investing",
+            "stock market": "Investing",
         }
 
         if isinstance(answer, str):
-            answer = [a.strip().lower() for a in answer.split(',')]
+            answer = [a.strip().lower() for a in answer.split(",")]
 
         for selection in answer:
             normalized = selection.strip().lower()
             path = investment_map.get(normalized)
             if path:
-                weights[path] += 3 if path == 'Real Estate' else 2
+                weights[path] += 3 if path == "Real Estate" else 2
 
     def handle_budget_question(self, answer, weights):
         """Adjust path weights based on the user's budget allocation."""
@@ -1164,16 +1207,16 @@ class PersonalizedPathView(APIView):
 
             allocation = {k.lower().strip(): v for k, v in allocation.items()}
 
-            stock_weight = float(allocation.get('stocks', 0)) * 0.8
-            real_estate_weight = float(allocation.get('real estate', 0)) * 0.8
-            crypto_weight = float(allocation.get('crypto', 0)) * 1.2
+            stock_weight = float(allocation.get("stocks", 0)) * 0.8
+            real_estate_weight = float(allocation.get("real estate", 0)) * 0.8
+            crypto_weight = float(allocation.get("crypto", 0)) * 1.2
 
             if stock_weight > 0:
-                weights['Investing'] += stock_weight
+                weights["Investing"] += stock_weight
             if real_estate_weight > 0:
-                weights['Real Estate'] += real_estate_weight
+                weights["Real Estate"] += real_estate_weight
             if crypto_weight > 0:
-                weights['Cryptocurrency'] += crypto_weight
+                weights["Cryptocurrency"] += crypto_weight
 
         except Exception as e:
             logger.error(f"Budget handling error: {str(e)}")
@@ -1184,23 +1227,23 @@ class PersonalizedPathView(APIView):
         try:
             for path_name, _ in sorted_paths[:3]:
                 courses = Course.objects.filter(
-                    path__title__iexact=path_name,
-                    is_active=True
-                ).order_by('order')[:2]
+                    path__title__iexact=path_name, is_active=True
+                ).order_by("order")[:2]
                 recommended_courses.extend(courses)
 
             if len(recommended_courses) < 10:
-                additional = Course.objects.filter(
-                    is_active=True
-                ).exclude(id__in=[c.id for c in recommended_courses]
-                ).order_by('-popularity')[:10-len(recommended_courses)]
+                additional = (
+                    Course.objects.filter(is_active=True)
+                    .exclude(id__in=[c.id for c in recommended_courses])
+                    .order_by("-popularity")[: 10 - len(recommended_courses)]
+                )
                 recommended_courses.extend(additional)
 
             return recommended_courses[:10]
 
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
-            return Course.objects.filter(is_active=True).order_by('?')[:10]
+            return Course.objects.filter(is_active=True).order_by("?")[:10]
 
     def _has_completed_questionnaire(self, user):
         """Check whether the user has answered all active questionnaire prompts."""

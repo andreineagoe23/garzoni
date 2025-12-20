@@ -187,4 +187,3 @@ const SavingsGoalCalculator = () => {
 };
 
 export default SavingsGoalCalculator;
-

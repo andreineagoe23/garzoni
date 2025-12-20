@@ -19,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
     const applyTheme = () => {
       const storedDarkMode = Cookies.get("darkMode");
       const shouldBeDark = storedDarkMode === undefined || storedDarkMode === null || storedDarkMode === "true";
-      
+
       if (shouldBeDark) {
         document.documentElement.setAttribute("data-theme", "dark");
       } else {

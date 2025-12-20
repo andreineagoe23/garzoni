@@ -7,18 +7,18 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0002_userprofile_is_premium_and_more'),
+        ("authentication", "0002_userprofile_is_premium_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='hearts',
+            model_name="userprofile",
+            name="hearts",
             field=models.PositiveSmallIntegerField(default=5),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='hearts_last_refill_at',
+            model_name="userprofile",
+            name="hearts_last_refill_at",
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
     ]

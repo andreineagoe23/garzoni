@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
+import { queryKeys } from "lib/reactQuery";
 
 function PersonalizedPath({ onCourseClick }) {
   const [personalizedCourses, setPersonalizedCourses] = useState([]);
@@ -111,7 +112,7 @@ function PersonalizedPath({ onCourseClick }) {
                   "/personalized-path"
                 );
                 await refreshProfile();
-                queryClient.invalidateQueries({ queryKey: ["profile"] });
+                queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
                 reloadEntitlements?.();
                 setPaymentVerified(true);
                 return fetchPersonalizedPath();

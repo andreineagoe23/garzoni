@@ -11,26 +11,43 @@ from gamification.models import MissionCompletion, UserBadge
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
     """Admin configuration for managing referrals."""
-    list_display = ('referrer', 'referred_user', 'created_at')
+
+    list_display = ("referrer", "referred_user", "created_at")
 
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     """Admin configuration for managing user profiles."""
+
     list_display = (
-        'user', 'earned_money', 'points', 'referral_code', 'has_paid',
-        'dark_mode', 'email_reminder_preference', 'streak', 'hearts',
-        'hearts_last_refill_at', 'next_heart_countdown', 'badges_earned',
-        'missions_completed'
+        "user",
+        "earned_money",
+        "points",
+        "referral_code",
+        "has_paid",
+        "dark_mode",
+        "email_reminder_preference",
+        "streak",
+        "hearts",
+        "hearts_last_refill_at",
+        "next_heart_countdown",
+        "badges_earned",
+        "missions_completed",
     )
-    list_filter = ('has_paid', 'dark_mode', 'email_reminder_preference')
-    search_fields = ('user__username', 'user__email', 'referral_code')
+    list_filter = ("has_paid", "dark_mode", "email_reminder_preference")
+    search_fields = ("user__username", "user__email", "referral_code")
     readonly_fields = (
-        'earned_money', 'points', 'referral_points', 'streak', 'hearts',
-        'hearts_last_refill_at', 'next_heart_countdown', 'badges_earned',
-        'missions_completed'
+        "earned_money",
+        "points",
+        "referral_points",
+        "streak",
+        "hearts",
+        "hearts_last_refill_at",
+        "next_heart_countdown",
+        "badges_earned",
+        "missions_completed",
     )
-    actions = ['refill_hearts', 'grant_bonus_heart']
+    actions = ["refill_hearts", "grant_bonus_heart"]
 
     @admin.action(description="Refill hearts to max for selected users")
     def refill_hearts(self, request, queryset):
@@ -68,7 +85,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     badges_earned.short_description = "Badges"
 
     def missions_completed(self, obj):
-        return MissionCompletion.objects.filter(user=obj.user, status='completed').count()
+        return MissionCompletion.objects.filter(user=obj.user, status="completed").count()
 
     missions_completed.short_description = "Missions"
 
@@ -95,7 +112,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 @admin.register(FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
     """Admin configuration for managing friend requests."""
-    list_display = ('sender', 'receiver', 'status', 'created_at')
-    list_filter = ('status', 'created_at')
-    search_fields = ('sender__username', 'receiver__username')
 
+    list_display = ("sender", "receiver", "status", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("sender__username", "receiver__username")

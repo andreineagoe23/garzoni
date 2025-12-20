@@ -9,110 +9,198 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('gamification', '0001_initial'),
+        ("gamification", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='mission',
-            name='is_template',
-            field=models.BooleanField(default=False, help_text='If True, this is a template for generating missions'),
+            model_name="mission",
+            name="is_template",
+            field=models.BooleanField(
+                default=False, help_text="If True, this is a template for generating missions"
+            ),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='max_difficulty',
-            field=models.IntegerField(blank=True, help_text='Maximum difficulty level', null=True),
+            model_name="mission",
+            name="max_difficulty",
+            field=models.IntegerField(blank=True, help_text="Maximum difficulty level", null=True),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='min_difficulty',
-            field=models.IntegerField(blank=True, help_text='Minimum difficulty level', null=True),
+            model_name="mission",
+            name="min_difficulty",
+            field=models.IntegerField(blank=True, help_text="Minimum difficulty level", null=True),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='purpose_statement',
-            field=models.TextField(blank=True, help_text='Why this mission matters to the user'),
+            model_name="mission",
+            name="purpose_statement",
+            field=models.TextField(blank=True, help_text="Why this mission matters to the user"),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='target_weakest_skills',
-            field=models.BooleanField(default=False, help_text="Target user's weakest skills for this mission"),
+            model_name="mission",
+            name="target_weakest_skills",
+            field=models.BooleanField(
+                default=False, help_text="Target user's weakest skills for this mission"
+            ),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='completion_idempotency_key',
-            field=models.CharField(blank=True, help_text='Prevents duplicate completions', max_length=64, null=True, unique=True),
+            model_name="missioncompletion",
+            name="completion_idempotency_key",
+            field=models.CharField(
+                blank=True,
+                help_text="Prevents duplicate completions",
+                max_length=64,
+                null=True,
+                unique=True,
+            ),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='completion_time_seconds',
-            field=models.IntegerField(blank=True, help_text='Time to complete in seconds', null=True),
+            model_name="missioncompletion",
+            name="completion_time_seconds",
+            field=models.IntegerField(
+                blank=True, help_text="Time to complete in seconds", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='first_try_bonus',
-            field=models.BooleanField(default=False, help_text='Completed without retries/hints'),
+            model_name="missioncompletion",
+            name="first_try_bonus",
+            field=models.BooleanField(default=False, help_text="Completed without retries/hints"),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='mastery_bonus',
-            field=models.BooleanField(default=False, help_text='Completed with high mastery'),
+            model_name="missioncompletion",
+            name="mastery_bonus",
+            field=models.BooleanField(default=False, help_text="Completed with high mastery"),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='swapped_at',
-            field=models.DateTimeField(blank=True, help_text='When this mission was swapped', null=True),
+            model_name="missioncompletion",
+            name="swapped_at",
+            field=models.DateTimeField(
+                blank=True, help_text="When this mission was swapped", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='swapped_from_mission',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='swapped_to', to='gamification.missioncompletion'),
+            model_name="missioncompletion",
+            name="swapped_from_mission",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="swapped_to",
+                to="gamification.missioncompletion",
+            ),
         ),
         migrations.AddField(
-            model_name='missioncompletion',
-            name='xp_awarded',
-            field=models.IntegerField(default=0, help_text='Actual XP awarded (server-calculated)'),
+            model_name="missioncompletion",
+            name="xp_awarded",
+            field=models.IntegerField(default=0, help_text="Actual XP awarded (server-calculated)"),
         ),
         migrations.AlterField(
-            model_name='mission',
-            name='goal_type',
-            field=models.CharField(choices=[('complete_lesson', 'Complete Lesson'), ('add_savings', 'Add Savings'), ('read_fact', 'Read Finance Fact'), ('complete_path', 'Complete Path'), ('clear_review_queue', 'Clear Review Queue')], default='complete_lesson', max_length=50),
+            model_name="mission",
+            name="goal_type",
+            field=models.CharField(
+                choices=[
+                    ("complete_lesson", "Complete Lesson"),
+                    ("add_savings", "Add Savings"),
+                    ("read_fact", "Read Finance Fact"),
+                    ("complete_path", "Complete Path"),
+                    ("clear_review_queue", "Clear Review Queue"),
+                ],
+                default="complete_lesson",
+                max_length=50,
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='missioncompletion',
-            unique_together={('user', 'mission', 'completion_idempotency_key')},
+            name="missioncompletion",
+            unique_together={("user", "mission", "completion_idempotency_key")},
         ),
         migrations.CreateModel(
-            name='MissionPerformance',
+            name="MissionPerformance",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time_to_completion_seconds', models.IntegerField(blank=True, null=True)),
-                ('drop_off_stage', models.CharField(blank=True, max_length=50, null=True)),
-                ('skill_improvements', models.JSONField(default=dict, help_text='Skill proficiency changes')),
-                ('mastery_before', models.JSONField(default=dict, help_text='Mastery levels before mission')),
-                ('mastery_after', models.JSONField(default=dict, help_text='Mastery levels after mission')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('completion', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='performance', to='gamification.missioncompletion')),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='performance', to='gamification.mission')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mission_performance', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("time_to_completion_seconds", models.IntegerField(blank=True, null=True)),
+                ("drop_off_stage", models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "skill_improvements",
+                    models.JSONField(default=dict, help_text="Skill proficiency changes"),
+                ),
+                (
+                    "mastery_before",
+                    models.JSONField(default=dict, help_text="Mastery levels before mission"),
+                ),
+                (
+                    "mastery_after",
+                    models.JSONField(default=dict, help_text="Mastery levels after mission"),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "completion",
+                    models.OneToOneField(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="performance",
+                        to="gamification.missioncompletion",
+                    ),
+                ),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="performance",
+                        to="gamification.mission",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mission_performance",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_missionperformance',
+                "db_table": "core_missionperformance",
             },
         ),
         migrations.CreateModel(
-            name='StreakItem',
+            name="StreakItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('item_type', models.CharField(choices=[('streak_freeze', 'Streak Freeze'), ('streak_boost', 'Streak Boost')], max_length=20)),
-                ('quantity', models.PositiveIntegerField(default=0)),
-                ('expires_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='streak_items', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "item_type",
+                    models.CharField(
+                        choices=[
+                            ("streak_freeze", "Streak Freeze"),
+                            ("streak_boost", "Streak Boost"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField(default=0)),
+                ("expires_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="streak_items",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_streakitem',
-                'unique_together': {('user', 'item_type')},
+                "db_table": "core_streakitem",
+                "unique_together": {("user", "item_type")},
             },
         ),
     ]

@@ -14,7 +14,7 @@ def assign_missions_to_new_user(sender, instance, created, **kwargs):
                     user=instance,
                     mission=mission,
                     defaults={"progress": 0, "status": "not_started"},
-            )
+                )
 
         # Assign weekly missions
         weekly_missions = Mission.objects.filter(mission_type="weekly")
@@ -25,4 +25,3 @@ def assign_missions_to_new_user(sender, instance, created, **kwargs):
                 defaults={"progress": 0, "status": "not_started"},
             )
         print(f"Weekly missions assigned to new user: {instance.username}")
-

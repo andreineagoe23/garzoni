@@ -12,8 +12,8 @@ Monevo delivers interactive personal finance education with gamified progression
 
 ## Tech Stack
 
-- Frontend: React, SCSS, Vite (dev), Vercel (typical deploy).
-- Backend: Django REST Framework, Celery, Redis, MySQL (prod) or SQLite (dev).
+- Frontend: React (CRA + CRACO), SCSS.
+- Backend: Django REST Framework, Celery, Redis, PostgreSQL (Docker) / SQLite (tests).
 - Auth: JWT via djangorestframework-simplejwt.
 - Background work: Celery beat/results for scheduled tasks.
 
@@ -23,6 +23,10 @@ Monevo delivers interactive personal finance education with gamified progression
 
 git clone https://github.com/andreineagoe23/monevo.git
 cd monevo
+
+### Docker (recommended)
+
+See `docs/setup-docker.md`.
 
 ### Backend (API)
 
@@ -41,13 +45,14 @@ python manage.py runserver
 
 cd frontend
 npm install
-npm run dev
+npm start
 
 - Set REACT_APP_BACKEND_URL to point to your API.
 - Build for production with npm run build.
 
 ## Deployment Notes
 
+- Docker deployment guide: `docs/deployment-docker.md`
 - Frontend: Vercel-friendly static build (npm run build).
 - Backend: WSGI-compatible (e.g., PythonAnywhere). Configure ALLOWED_HOSTS, CORS/CSRF origins, SECRET_KEY, DB credentials, Stripe keys, reCAPTCHA, and email settings via environment variables.
 - Static files served by WhiteNoise; media served from MEDIA_ROOT or external storage in production.
@@ -62,4 +67,3 @@ npm run dev
 ## Contributing
 
 Pull requests are welcome. Please open an issue for major changes first to discuss what you would like to modify. Ensure lint/tests pass before submitting.
-

@@ -24,7 +24,6 @@ coverage/
 frontend/.env
 .env
 .env.*
-!.env.example
 
 # Yarn / NPM lockfiles (if you prefer ignoring one of them)
 # yarn.lock

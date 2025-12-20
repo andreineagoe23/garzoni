@@ -7,6 +7,7 @@ from pathlib import Path
 import dj_database_url
 from corsheaders.defaults import default_headers
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 from core.utils import env_bool, env_csv
@@ -25,9 +26,13 @@ FRONTEND_BUILD_DIR = Path(
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = "django-insecure-change-me"
+        # Avoid committing any dev default that can be flagged as a "secret".
+        # In DEBUG we can safely generate an ephemeral key per process.
+        SECRET_KEY = get_random_secret_key()
     else:
-        raise ImproperlyConfigured("SECRET_KEY environment variable must be set when DEBUG is False.")
+        raise ImproperlyConfigured(
+            "SECRET_KEY environment variable must be set when DEBUG is False."
+        )
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
@@ -49,7 +54,9 @@ INSTALLED_APPS = [
     "django_extensions",
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     # Domain-specific apps
     "authentication",
     "education",
@@ -68,6 +75,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "core.middleware.RequestIdMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -128,7 +136,9 @@ if not default_db:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     else:
-        raise ImproperlyConfigured("DATABASE_URL environment variable must be set when DEBUG is False.")
+        raise ImproperlyConfigured(
+            "DATABASE_URL environment variable must be set when DEBUG is False."
+        )
 
 DATABASES = {"default": default_db}
 
@@ -155,13 +165,26 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "1000/day"},
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": os.getenv("API_TITLE", "Monevo API"),
+    "DESCRIPTION": os.getenv(
+        "API_DESCRIPTION",
+        "Monevo backend API (Django REST Framework). Use the Swagger UI for discovery and testing.",
+    ),
+    "VERSION": os.getenv("API_VERSION", "0.1.0"),
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {
@@ -174,7 +197,39 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
     "JTI_CLAIM": "jti",
     "UPDATE_LAST_LOGIN": True,
+    # Cookie defaults for any endpoints that opt into cookie-based auth.
+    "AUTH_COOKIE_SECURE": not DEBUG,
+    "AUTH_COOKIE_SAMESITE": "None" if not DEBUG else "Lax",
 }
+
+# External HTTP safety defaults
+EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15"))
+HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
+HTTP_POOL_MAXSIZE = int(os.getenv("HTTP_POOL_MAXSIZE", "20"))
+
+# Rate limits (DRF throttles) for sensitive endpoints
+LOGIN_THROTTLE_RATE = os.getenv("LOGIN_THROTTLE_RATE", "10/min")
+CONTACT_THROTTLE_RATE = os.getenv("CONTACT_THROTTLE_RATE", "5/min")
+OPENROUTER_THROTTLE_RATE_FREE = os.getenv("OPENROUTER_THROTTLE_RATE_FREE", "30/min")
+OPENROUTER_THROTTLE_RATE_PREMIUM = os.getenv("OPENROUTER_THROTTLE_RATE_PREMIUM", "120/min")
+FINANCE_EXTERNAL_THROTTLE_RATE = os.getenv("FINANCE_EXTERNAL_THROTTLE_RATE", "60/min")
+
+# Optional: cache OpenRouter responses (in seconds). Keep disabled by default.
+OPENROUTER_CACHE_TTL_SECONDS = int(os.getenv("OPENROUTER_CACHE_TTL_SECONDS", "0"))
+OPENROUTER_IDEMPOTENCY_TTL_SECONDS = int(os.getenv("OPENROUTER_IDEMPOTENCY_TTL_SECONDS", "120"))
+
+# OpenRouter payload validation / abuse prevention
+OPENROUTER_MAX_PROMPT_CHARS = int(os.getenv("OPENROUTER_MAX_PROMPT_CHARS", "4000"))
+OPENROUTER_MAX_MESSAGES = int(os.getenv("OPENROUTER_MAX_MESSAGES", "30"))
+OPENROUTER_MAX_MESSAGE_CHARS = int(os.getenv("OPENROUTER_MAX_MESSAGE_CHARS", "2000"))
+OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "250"))
+OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
+    "OPENROUTER_ALLOWED_MODELS_CSV",
+    default=["mistralai/mistral-7b-instruct"],
+)
+
+# Security headers (Django 4.2 SecurityMiddleware)
+SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
 
 cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS_CSV")
 if DEBUG and not cors_allowed_origins:
@@ -459,7 +514,8 @@ CKEDITOR_5_CONFIGS = {
                 "reversed": True,
             },
         },
-        "licenseKey": "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjYzNjE1OTksImp0aSI6Ijg0OWU3Y2M0LWY3OTktNDVmYy1iNGYwLTMzZDI4N2Y5ZjVlNiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjgzMTFjMmQ2In0.h_kaJ2F9B79VlBU9unjEpRqtg7oErZ3EJQlzSKWfmml6jY-MO3uws1lm2KZvzKojsQUmbpeO_Q5zToCnbNx5VQ",
+        # Never hardcode license keys in source control.
+        "licenseKey": os.getenv("CKEDITOR_5_LICENSE_KEY", ""),
     },
 }
 
@@ -477,7 +533,7 @@ CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 # Prevent Django from creating migrations for core app
 # since all models have been moved to other apps
 MIGRATION_MODULES = {
-    'core': None,  # Disable migrations for core app
+    "core": None,  # Disable migrations for core app
 }
 
 if "test" in sys.argv:
