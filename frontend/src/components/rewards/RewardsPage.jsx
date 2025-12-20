@@ -11,6 +11,7 @@ import {
   consumeEntitlement,
   fetchEntitlements,
 } from "services/entitlementsService";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function RewardsPage() {
   const [activeTab, setActiveTab] = useState("shop");
@@ -23,9 +24,9 @@ function RewardsPage() {
   const queryClient = useQueryClient();
 
   const { data: entitlementsData } = useQuery({
-    queryKey: ["entitlements"],
+    queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
-    staleTime: 5 * 60 * 1000,
+    staleTime: staleTimes.entitlements,
   });
 
   const downloadsFeature = entitlementsData?.data?.features?.downloads;
@@ -70,7 +71,7 @@ function RewardsPage() {
 
     try {
       await consumeEntitlement("downloads");
-      queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
       return true;
     } catch (error) {
       setLockedFeature("downloads");
