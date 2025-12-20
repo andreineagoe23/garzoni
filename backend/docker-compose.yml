@@ -1,3 +1,6 @@
+# NOTE: This file is legacy (MySQL-based dev stack).
+# Prefer the repo-root `docker-compose.yml` (PostgreSQL + Redis + Gunicorn + frontend build).
+
 services:
   db:
     image: mysql:8.0

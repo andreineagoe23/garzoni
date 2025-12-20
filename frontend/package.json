@@ -40,6 +40,8 @@
   },
   "scripts": {
     "start": "craco start",
+    "lint": "eslint \"src/**/*.{js,jsx}\"",
+    "format:check": "npx --yes prettier --check .",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",

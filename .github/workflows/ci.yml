@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend-python:
+    name: Backend (Python)
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-secret-key
+      DEBUG: "True"
+      CELERY_TASK_ALWAYS_EAGER: "True"
+      DJANGO_SETTINGS_MODULE: settings.settings
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+
+      - name: Lint (black)
+        run: |
+          black --check backend
+
+      - name: Lint (flake8)
+        run: |
+          flake8 backend
+
+      - name: Unit tests
+        run: |
+          python backend/manage.py test
+
+      - name: Security (pip-audit)
+        continue-on-error: true
+        run: |
+          pip-audit -r backend/requirements.txt
+
+  frontend-js:
+    name: Frontend (JS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (eslint)
+        run: npm run lint
+
+      - name: Format check (prettier)
+        continue-on-error: true
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test -- --watchAll=false
+
+      - name: Build
+        run: npm run build
+
+
