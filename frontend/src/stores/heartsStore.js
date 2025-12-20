@@ -75,5 +75,3 @@ export function initHeartsTabSync() {
     useHeartsStore.setState({ outOfHeartsUntilTs: next });
   });
 }
-
-

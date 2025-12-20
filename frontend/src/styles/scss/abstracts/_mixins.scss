@@ -11,7 +11,7 @@
       @content;
     }
   }
-  
+
   @mixin media-breakpoint-down($breakpoint) {
     $max: map-get($grid-breakpoints, $breakpoint);
     @if $max {
@@ -22,14 +22,14 @@
       @content;
     }
   }
-  
+
   // Flex center shorthand
   @mixin flex-center {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  
+
   // Absolute position shorthand
   @mixin absolute-fill {
     position: absolute;
@@ -38,7 +38,7 @@
     bottom: 0;
     left: 0;
   }
-  
+
   // Hide visually but keep accessible for screen readers
   @mixin visually-hidden {
     position: absolute;
@@ -51,14 +51,14 @@
     white-space: nowrap;
     border: 0;
   }
-  
+
   // Truncate text with ellipsis
   @mixin text-truncate {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
+
   // Typography size with responsive scaling
   @mixin font-size($size, $line-height: 1.5) {
     font-size: $size;

@@ -7,18 +7,18 @@ from authentication.views import CustomTokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # Add a direct route for token refresh to avoid cookie path issues
-    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token-refresh-direct'),
+    path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh-direct"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path('api/', include('authentication.urls')),
-    path('api/', include('education.urls')),
-    path('api/', include('gamification.urls')),
-    path('api/', include('finance.urls')),
-    path('api/', include('support.urls')),
-    path("ckeditor5/", include('django_ckeditor_5.urls')),
+    path("api/", include("authentication.urls")),
+    path("api/", include("education.urls")),
+    path("api/", include("gamification.urls")),
+    path("api/", include("finance.urls")),
+    path("api/", include("support.urls")),
+    path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 
 if settings.DEBUG:

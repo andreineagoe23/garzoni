@@ -24,5 +24,3 @@ flowchart LR
   CW -->|SQL results| DB
   CB[Celery Beat] -->|schedule| R
 ```
-
-

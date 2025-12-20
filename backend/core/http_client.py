@@ -149,5 +149,3 @@ def request_with_backoff(
 
     elapsed_ms = int((time.monotonic() - start) * 1000)
     return ExternalRequestResult(response=resp, elapsed_ms=elapsed_ms, attempts=attempts)
-
-

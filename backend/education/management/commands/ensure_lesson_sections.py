@@ -34,23 +34,25 @@ class Command(BaseCommand):
                 missing_text_needed = max(0, 2 - len(text_sections))
                 for idx in range(missing_text_needed):
                     missing_builders.append(
-                        lambda order, l=lesson, step=idx, existing=len(text_sections): self._build_text_section(
-                            l, order, existing + step
-                        )
+                        lambda order, l=lesson, step=idx, existing=len(
+                            text_sections
+                        ): self._build_text_section(l, order, existing + step)
                     )
 
                 # Video section
                 has_video = any(s.content_type == "video" for s in existing_sections)
                 if not has_video:
-                    missing_builders.append(lambda order, l=lesson: self._build_video_section(l, order))
+                    missing_builders.append(
+                        lambda order, l=lesson: self._build_video_section(l, order)
+                    )
 
                 # Exercise sections
                 exercise_sections = [s for s in existing_sections if s.content_type == "exercise"]
                 for _ in range(2 - len(exercise_sections)):
                     missing_builders.append(
-                        lambda order, l=lesson, existing=len(exercise_sections): self._build_exercise_section(
-                            l, order, existing + 1
-                        )
+                        lambda order, l=lesson, existing=len(
+                            exercise_sections
+                        ): self._build_exercise_section(l, order, existing + 1)
                     )
                     exercise_sections.append(None)
 
@@ -110,7 +112,9 @@ class Command(BaseCommand):
 
     def _build_video_section(self, lesson, order):
         fallback_video = "https://www.youtube.com/watch?v=ysz5S6PUM-U"
-        summary = self._lesson_summary(lesson, lesson.course.title if lesson.course else "this course")
+        summary = self._lesson_summary(
+            lesson, lesson.course.title if lesson.course else "this course"
+        )
         return {
             "lesson": lesson,
             "order": order,
@@ -144,9 +148,7 @@ class Command(BaseCommand):
                 "The other options don't align with the summary."
             )
         else:
-            question = (
-                f"What's the first practical step to apply '{lesson.title}' after this course section?"
-            )
+            question = f"What's the first practical step to apply '{lesson.title}' after this course section?"
             options = [
                 "Identify one scenario from your work or study where it fits",
                 "Skip to the next lesson without reflection",

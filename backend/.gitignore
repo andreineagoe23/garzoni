@@ -1,9 +1,6 @@
 .env
 .env.*
-!.env.example
-!.env.production.example
 .env.production
-.env.example
 backup.json
 *.dump.json
 cookies.txt
@@ -12,4 +9,3 @@ staticfiles/
 *.pyc
 __pycache__/
 *.sql
-!docker/mysql-init.sql

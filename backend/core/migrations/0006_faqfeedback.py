@@ -8,23 +8,47 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0005_contactmessage_faq'),
+        ("core", "0005_contactmessage_faq"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FAQFeedback',
+            name="FAQFeedback",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('vote', models.CharField(choices=[('helpful', 'Helpful'), ('not_helpful', 'Not Helpful')], max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('faq', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.faq')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "vote",
+                    models.CharField(
+                        choices=[("helpful", "Helpful"), ("not_helpful", "Not Helpful")],
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "faq",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.faq"),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'indexes': [models.Index(fields=['user', 'faq'], name='core_faqfee_user_id_4c6b63_idx')],
-                'unique_together': {('user', 'faq')},
+                "indexes": [
+                    models.Index(fields=["user", "faq"], name="core_faqfee_user_id_4c6b63_idx")
+                ],
+                "unique_together": {("user", "faq")},
             },
         ),
     ]

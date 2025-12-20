@@ -1,4 +1,5 @@
 """Shared utility functions for environment parsing and configuration."""
+
 from __future__ import annotations
 
 import os

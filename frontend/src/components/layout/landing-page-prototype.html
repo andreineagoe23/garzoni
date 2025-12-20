@@ -7,13 +7,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css" rel="stylesheet">
-    
+
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -54,7 +54,7 @@
 
     <style>
         body { margin: 0; overflow: hidden; background-color: #0B0F14; color: #ffffff; }
-        
+
         /* Custom Range Slider - Linear Style */
         input[type=range] {
             appearance: none;
@@ -86,7 +86,7 @@
             border-radius: 2px;
         }
         input[type=range]:focus { outline: none; }
-        
+
         /* Glass Panels - Dark Mode */
         .glass-panel {
             background: rgba(11, 15, 20, 0.65);
@@ -110,7 +110,7 @@
             font-family: 'JetBrains Mono', monospace; font-size: 10px;
             color: #E6C87A;
             background: rgba(11, 15, 20, 0.8);
-            padding: 4px 8px; border-radius: 4px; 
+            padding: 4px 8px; border-radius: 4px;
             border: 1px solid rgba(230, 200, 122, 0.2);
             white-space: nowrap; transform: translate(0, 0);
             letter-spacing: 0.05em;
@@ -131,8 +131,8 @@
             stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; vector-effect: non-scaling-stroke;
         }
         .svg-line.active {
-            stroke: rgba(230, 200, 122, 0.3); 
-            stroke-dasharray: 6 4; 
+            stroke: rgba(230, 200, 122, 0.3);
+            stroke-dasharray: 6 4;
             animation: dash 30s linear infinite;
         }
         @keyframes dash { to { stroke-dashoffset: -100; } }
@@ -145,7 +145,7 @@
             mix-blend-mode: screen; z-index: 0;
             transition: opacity 0.5s ease;
         }
-        
+
         ::selection { background: #1D5330; color: #fff; }
     </style>
 </head>
@@ -165,7 +165,7 @@
 
     <!-- Main Content Layer -->
     <main class="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-6 md:p-10">
-        
+
         <!-- Header -->
         <header class="flex items-center justify-between animate-fade-in opacity-0" style="animation-delay: 0.1s;">
             <div class="flex items-center gap-3">
@@ -177,7 +177,7 @@
                     <span class="font-mono text-[10px] text-neutral-500 uppercase tracking-wider">Learning OS v2.4</span>
                 </div>
             </div>
-            
+
             <div class="hidden md:flex items-center gap-6">
                 <nav class="flex gap-6 pointer-events-auto">
                     <a href="#" class="text-xs font-medium text-neutral-400 hover:text-white transition-colors">Curriculum</a>
@@ -196,12 +196,12 @@
                 <div class="w-1.5 h-1.5 rounded-full bg-[#E6C87A] animate-pulse"></div>
                 <span class="text-xs font-mono text-[#E6C87A] tracking-wide uppercase">New: AI Financial Tutor</span>
             </div>
-            
+
             <h1 class="font-display text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight text-white leading-[0.95] mb-6">
                 Turn knowledge <br>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-500">into net worth.</span>
             </h1>
-            
+
             <p class="font-sans text-neutral-400 text-sm md:text-base max-w-lg leading-relaxed mb-8">
                 The gamified financial education platform. Connect the nodes of your financial literacy, earn XP, and unlock real-world wealth strategies.
             </p>
@@ -225,7 +225,7 @@
 
         <!-- Controls / HUD -->
         <div class="flex flex-col md:flex-row items-end justify-between gap-6 animate-fade-in opacity-0" style="animation-delay: 0.5s;">
-            
+
             <!-- Left: Stats HUD -->
             <div class="hidden md:flex gap-8 pointer-events-auto">
                 <div class="flex flex-col gap-1">
@@ -247,7 +247,7 @@
 
             <!-- Right: Control Panel (Monevo Engine) -->
             <div class="w-full md:w-[320px] pointer-events-auto glass-panel rounded-xl flex flex-col">
-                
+
                 <!-- Panel Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b border-white/5">
                     <div class="flex items-center gap-2">
@@ -262,7 +262,7 @@
 
                 <!-- Scrollable Settings -->
                 <div class="p-5 space-y-5">
-                    
+
                     <!-- XP Flow (Speed) -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
@@ -389,7 +389,7 @@
             // Push particles based on noise + difficulty setting
             vec3 dir = normalize(pos);
             float expansion = smoothstep(0.0, 1.0, noise) * uDistortion;
-            
+
             // Focus Mode: If uSpread is low, particles are tighter. If high, they scatter.
             // We invert logic from original: Low Focus (high spread value) vs High Focus (low spread)
             // But let's map uSpread directly to scatter for now.
@@ -407,8 +407,8 @@
 
             // Size: Mastery (uSize) makes nodes bigger
             gl_PointSize = uSize * (35.0 / -mvPosition.z);
-            
-            vAlpha = 1.0; 
+
+            vAlpha = 1.0;
             vPos = finalPos;
             vDistToCenter = length(finalPos);
         }
@@ -429,14 +429,14 @@
             vec2 center = gl_PointCoord - vec2(0.5);
             float dist = length(center);
             if (dist > 0.5) discard;
-            
+
             float alpha = smoothstep(0.5, 0.2, dist) * uOpacity;
 
             // Color mixing based on depth/position
             // Core is Gold (Wealth), Edges are Green (Growth)
             float mixFactor = smoothstep(3.0, 6.0, vDistToCenter);
             vec3 finalColor = mix(uColorAccent, uColorPrimary, mixFactor);
-            
+
             // Make center brighter
             if(dist < 0.1) finalColor += 0.3;
 
@@ -477,17 +477,17 @@
 
         const constellationGroup = new THREE.Group();
         // Shift right on desktop to allow text on left
-        constellationGroup.position.x = 5.0; 
+        constellationGroup.position.x = 5.0;
         scene.add(constellationGroup);
 
         // --- Particle Sphere (Knowledge Constellation) ---
         const geometry = new THREE.SphereGeometry(4.5, 128, 128);
-        
+
         const uniforms = {
             uTime: { value: 0 },
             uDistortion: { value: 0.6 },
-            uSize: { value: 4.0 }, 
-            uSpread: { value: 0.1 }, 
+            uSize: { value: 4.0 },
+            uSpread: { value: 0.1 },
             uColorPrimary: { value: config.colors.primary },
             uColorAccent: { value: config.colors.accent },
             uOpacity: { value: 0.85 },
@@ -514,7 +514,7 @@
         function createLearningPath(radius, type, tiltX, tiltY, speed) {
             let geo, mat;
             let opacity = 0.3; // Subtle lines
-            
+
             if (type === 'solid') {
                 geo = new THREE.TorusGeometry(radius, 0.01, 8, 100);
                 mat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.1 });
@@ -539,7 +539,7 @@
             mesh.rotation.x = tiltX;
             mesh.rotation.y = tiltY;
             pathsGroup.add(mesh);
-            
+
             orbits.push({
                 mesh: mesh,
                 baseOpacity: opacity,
@@ -567,10 +567,10 @@
         lessonNodes.forEach(node => {
             const div = document.createElement('div');
             div.className = 'point-marker';
-            
+
             // Custom styling for AI node
             const labelColor = node.type === 'ai' ? 'text-white bg-[#1D5330]' : '';
-            
+
             div.innerHTML = `
                 <div class="point-dot" ${node.type === 'ai' ? 'style="background:#4ade80; box-shadow:0 0 20px #4ade80;"' : ''}></div>
                 <div class="point-corner pc-tl"></div>
@@ -605,9 +605,9 @@
             const x = (e.clientX / window.innerWidth) * 2 - 1;
             const y = -(e.clientY / window.innerHeight) * 2 + 1;
             uniforms.uMouse.value.set(x, y);
-            
+
             // Gentle parallax
-            targetRotY = x * 0.2; 
+            targetRotY = x * 0.2;
             targetRotX = y * 0.1;
         });
 
@@ -641,7 +641,7 @@
                 tempVec.applyEuler(particleSystem.rotation);
                 tempVec.applyMatrix4(particleSystem.matrix);
                 tempVec.applyMatrix4(constellationGroup.matrixWorld);
-                
+
                 tempVec.project(camera);
 
                 const x = (tempVec.x * 0.5 + 0.5) * window.innerWidth;
@@ -670,7 +670,7 @@
             // Ambient Glow follows average center of activity
             const avgX = screenPoints.reduce((sum, p) => sum + p.x, 0) / screenPoints.length;
             const avgY = screenPoints.reduce((sum, p) => sum + p.y, 0) / screenPoints.length;
-            
+
             // Lag the glow slightly
             const currentGlowX = parseFloat(ambientGlow.style.left || avgX);
             const currentGlowY = parseFloat(ambientGlow.style.top || avgY);
@@ -699,13 +699,13 @@
         getEl('input-mastery').addEventListener('input', e => {
             const val = parseFloat(e.target.value);
             // Higher mastery = bigger particles
-            uniforms.uSize.value = val * 3.0 + 2.0; 
+            uniforms.uSize.value = val * 3.0 + 2.0;
         });
 
         getEl('input-focus').addEventListener('input', e => {
             const val = parseFloat(e.target.value);
             // Focus input 0->1. Spread logic: 1.0 focus = 0.0 spread.
-            uniforms.uSpread.value = (1.0 - val) * 0.5; 
+            uniforms.uSpread.value = (1.0 - val) * 0.5;
         });
 
         getEl('input-hud-vis').addEventListener('input', e => {
@@ -719,7 +719,7 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
+
             if(window.innerWidth < 768) {
                 constellationGroup.position.x = 0;
             } else {

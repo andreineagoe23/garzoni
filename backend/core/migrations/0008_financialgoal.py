@@ -8,27 +8,37 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0007_portfolioentry'),
+        ("core", "0007_portfolioentry"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FinancialGoal',
+            name="FinancialGoal",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('goal_name', models.CharField(max_length=100)),
-                ('target_amount', models.DecimalField(decimal_places=2, max_digits=20)),
-                ('current_amount', models.DecimalField(decimal_places=2, default=0, max_digits=20)),
-                ('deadline', models.DateField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("goal_name", models.CharField(max_length=100)),
+                ("target_amount", models.DecimalField(decimal_places=2, max_digits=20)),
+                ("current_amount", models.DecimalField(decimal_places=2, default=0, max_digits=20)),
+                ("deadline", models.DateField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Financial Goal',
-                'verbose_name_plural': 'Financial Goals',
-                'ordering': ['-created_at'],
+                "verbose_name": "Financial Goal",
+                "verbose_name_plural": "Financial Goals",
+                "ordering": ["-created_at"],
             },
         ),
     ]

@@ -16,4 +16,3 @@ def create_user_profile(sender, instance, created, **kwargs):
         if created:
             profile.referral_code = uuid.uuid4().hex[:8].upper()
             profile.save()
-

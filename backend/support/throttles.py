@@ -38,5 +38,3 @@ class OpenRouterPlanRateThrottle(UserRateThrottle):
         # Make request visible to get_rate().
         self.request = request
         return super().allow_request(request, view)
-
-

@@ -66,4 +66,3 @@ EXPOSE 8000
 # Use exec form for better signal handling
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
-

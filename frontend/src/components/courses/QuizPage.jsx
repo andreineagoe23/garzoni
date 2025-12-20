@@ -74,7 +74,7 @@ function QuizPage() {
 
       setFeedback(response.data.message);
       setEarnedMoney(response.data.earned_money || 0);
-      
+
       // If answer is incorrect, don't treat it as an error
       if (!response.data.correct) {
         // User can try again
@@ -192,4 +192,3 @@ function QuizPage() {
 }
 
 export default QuizPage;
-

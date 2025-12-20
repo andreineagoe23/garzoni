@@ -35,7 +35,7 @@ class FAQListView(generics.ListAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['request'] = self.request
+        context["request"] = self.request
         return context
 
 
@@ -55,7 +55,9 @@ def vote_faq(request, faq_id):
             if vote == "helpful":
                 updated = FAQ.objects.filter(id=faq_id).update(helpful_count=F("helpful_count") + 1)
             else:
-                updated = FAQ.objects.filter(id=faq_id).update(not_helpful_count=F("not_helpful_count") + 1)
+                updated = FAQ.objects.filter(id=faq_id).update(
+                    not_helpful_count=F("not_helpful_count") + 1
+                )
 
             if updated == 0:
                 return Response({"error": "FAQ not found", "request_id": request_id}, status=404)
@@ -65,9 +67,7 @@ def vote_faq(request, faq_id):
             faq = FAQ.objects.select_for_update().get(id=faq_id)
 
             existing_feedback = (
-                FAQFeedback.objects.select_for_update()
-                .filter(faq=faq, user=user)
-                .first()
+                FAQFeedback.objects.select_for_update().filter(faq=faq, user=user).first()
             )
 
             if existing_feedback:
@@ -159,39 +159,50 @@ def contact_us(request):
 
 class OpenRouterProxyView(APIView):
     """Proxy view for OpenRouter AI chatbot integration."""
+
     permission_classes = [IsAuthenticated]
     throttle_classes = [OpenRouterPlanRateThrottle]
 
     def is_greeting(self, text):
         """Check if the message is a simple greeting."""
-        greetings = ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening']
+        greetings = [
+            "hello",
+            "hi",
+            "hey",
+            "greetings",
+            "good morning",
+            "good afternoon",
+            "good evening",
+        ]
         return text.lower().strip() in greetings
 
     def is_path_query(self, text):
         """Check if the message is asking about learning paths or courses."""
-        path_terms = ['path', 'course', 'learn', 'study', 'curriculum', 'track']
+        path_terms = ["path", "course", "learn", "study", "curriculum", "track"]
         return any(term in text.lower() for term in path_terms)
-        
+
     def is_recommendation_query(self, text):
         """Check if the message is asking for recommendations."""
-        recommend_terms = ['recommend', 'suggest', 'what should', 'which', 'best', 'next course']
+        recommend_terms = ["recommend", "suggest", "what should", "which", "best", "next course"]
         return any(term in text.lower() for term in recommend_terms)
-        
+
     def is_reset_query(self, text):
         """Check if the message is requesting to reset or clear the chat."""
-        reset_terms = ['start over', 'clear chat', 'reset', 'new chat', 'clear history']
+        reset_terms = ["start over", "clear chat", "reset", "new chat", "clear history"]
         return any(term in text.lower() for term in reset_terms)
-        
+
     def get_available_paths(self):
         """Get a list of all active learning paths."""
         try:
-            paths = Path.objects.all().values('title', 'id')
-            self.path_links = {p['title'].lower(): f"/all-topics#{p['id']}" for p in paths}
-            return [p['title'] for p in paths]
+            paths = Path.objects.all().values("title", "id")
+            self.path_links = {p["title"].lower(): f"/all-topics#{p['id']}" for p in paths}
+            return [p["title"] for p in paths]
         except Exception as e:
             logger.error(f"Error retrieving learning paths: {str(e)}")
             default_paths = ["Basic Finance", "Investing", "Real Estate", "Cryptocurrency"]
-            self.path_links = {p.lower(): f"/all-topics#{p.lower().replace(' ', '-')}" for p in default_paths}
+            self.path_links = {
+                p.lower(): f"/all-topics#{p.lower().replace(' ', '-')}" for p in default_paths
+            }
             return default_paths
 
     def format_paths_for_message(self):
@@ -200,31 +211,31 @@ class OpenRouterProxyView(APIView):
         if not paths:
             return "various financial topics"
         return ", ".join(paths)
-        
+
     def recommend_path(self, user):
         """Recommend a learning path based on user profile."""
         try:
             profile = UserProfile.objects.get(user=user)
-            
-            if hasattr(profile, 'experience_level'):
-                if profile.experience_level == 'beginner':
+
+            if hasattr(profile, "experience_level"):
+                if profile.experience_level == "beginner":
                     return "Based on your profile, I recommend starting with our Basic Finance path to build a solid foundation."
-                elif profile.experience_level == 'intermediate':
+                elif profile.experience_level == "intermediate":
                     return "With your intermediate knowledge, our Investing path would be a great next step to grow your wealth."
                 else:
                     return "Given your advanced experience, exploring our Real Estate or Cryptocurrency paths could provide valuable insights."
-            
+
             return f"I recommend starting with our Basic Finance path to build a strong foundation. We also offer paths in {self.format_paths_for_message()}."
-            
+
         except Exception as e:
             logger.error(f"Error generating recommendation: {str(e)}")
             return f"I recommend exploring our learning paths: {self.format_paths_for_message()}. Basic Finance is a great place to start!"
 
     def get_path_from_query(self, text):
         """Extract specific path name from a query, if mentioned."""
-        if not hasattr(self, 'path_links'):
+        if not hasattr(self, "path_links"):
             self.get_available_paths()
-            
+
         text_lower = text.lower()
         for path_name in self.path_links.keys():
             if path_name in text_lower:
@@ -253,7 +264,7 @@ class OpenRouterProxyView(APIView):
             return Response({"error": "Invalid chatHistory.", "request_id": request_id}, status=400)
         if isinstance(chat_history, list) and len(chat_history) > settings.OPENROUTER_MAX_MESSAGES:
             chat_history = chat_history[-settings.OPENROUTER_MAX_MESSAGES :]
-        
+
         if not prompt:
             return Response({"error": "Prompt is required."}, status=400)
 
@@ -299,66 +310,86 @@ class OpenRouterProxyView(APIView):
         try:
             allowed, entitlement_meta = check_and_consume_entitlement(request.user, "ai_tutor")
             if not allowed:
-                status_code = status.HTTP_402_PAYMENT_REQUIRED if entitlement_meta.get("reason") == "upgrade" else status.HTTP_429_TOO_MANY_REQUESTS
+                status_code = (
+                    status.HTTP_402_PAYMENT_REQUIRED
+                    if entitlement_meta.get("reason") == "upgrade"
+                    else status.HTTP_429_TOO_MANY_REQUESTS
+                )
                 return Response(
                     {
-                        "error": entitlement_meta.get("error", "AI tutor is not available for your plan."),
+                        "error": entitlement_meta.get(
+                            "error", "AI tutor is not available for your plan."
+                        ),
                         **entitlement_meta,
                     },
                     status=status_code,
                 )
 
-            if not hasattr(self, 'path_links'):
+            if not hasattr(self, "path_links"):
                 self.get_available_paths()
-                
+
             if self.is_greeting(prompt):
-                return Response({
-                    "response": "Hi! I'm your financial assistant. What would you like to learn about today?"
-                })
-                
+                return Response(
+                    {
+                        "response": "Hi! I'm your financial assistant. What would you like to learn about today?"
+                    }
+                )
+
             if self.is_reset_query(prompt):
-                return Response({
-                    "response": "I've reset our conversation. What financial topic would you like to discuss now?"
-                })
+                return Response(
+                    {
+                        "response": "I've reset our conversation. What financial topic would you like to discuss now?"
+                    }
+                )
 
             specific_path = self.get_path_from_query(prompt)
             if specific_path:
-                return Response({
-                    "response": f"Our {specific_path.title()} path covers essential topics to help you master this area of finance. Would you like to explore this learning path?",
-                    "link": {
-                        "text": f"View {specific_path.title()} Path",
-                        "path": self.path_links[specific_path],
-                        "icon": "📚"
+                return Response(
+                    {
+                        "response": f"Our {specific_path.title()} path covers essential topics to help you master this area of finance. Would you like to explore this learning path?",
+                        "link": {
+                            "text": f"View {specific_path.title()} Path",
+                            "path": self.path_links[specific_path],
+                            "icon": "📚",
+                        },
                     }
-                })
+                )
 
             if self.is_path_query(prompt):
                 paths = self.format_paths_for_message()
-                return Response({
-                    "response": f"I can help you explore our learning paths. We currently offer: {paths}. Which one interests you?",
-                    "links": [
-                        {
-                            "text": f"View {path.title()} Path",
-                            "path": self.path_links.get(path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"),
-                            "icon": "📚"
-                        }
-                        for path in self.get_available_paths()
-                    ]
-                })
-                
+                return Response(
+                    {
+                        "response": f"I can help you explore our learning paths. We currently offer: {paths}. Which one interests you?",
+                        "links": [
+                            {
+                                "text": f"View {path.title()} Path",
+                                "path": self.path_links.get(
+                                    path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                ),
+                                "icon": "📚",
+                            }
+                            for path in self.get_available_paths()
+                        ],
+                    }
+                )
+
             if self.is_recommendation_query(prompt):
                 recommendation = self.recommend_path(request.user)
-                return Response({
-                    "response": recommendation,
-                    "links": [
-                        {
-                            "text": f"View {path.title()} Path",
-                            "path": self.path_links.get(path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"),
-                            "icon": "📚"
-                        }
-                        for path in self.get_available_paths()[:2]
-                    ]
-                })
+                return Response(
+                    {
+                        "response": recommendation,
+                        "links": [
+                            {
+                                "text": f"View {path.title()} Path",
+                                "path": self.path_links.get(
+                                    path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                ),
+                                "icon": "📚",
+                            }
+                            for path in self.get_available_paths()[:2]
+                        ],
+                    }
+                )
 
             is_finance_query = self.is_finance_related(prompt.lower())
             if is_finance_query:
@@ -383,7 +414,7 @@ class OpenRouterProxyView(APIView):
             messages = []
             available_paths = self.format_paths_for_message()
             system_message = {
-                "role": "system", 
+                "role": "system",
                 "content": (
                     "You are a helpful financial assistant specialized in personal finance education. "
                     f"We currently offer these learning paths: {available_paths}. "
@@ -392,10 +423,10 @@ class OpenRouterProxyView(APIView):
                     "Avoid lists, bullet points, or lengthy explanations. "
                     "Never make up specific course content or paths that don't exist. "
                     "If unsure about specific details, suggest asking about our available learning paths."
-                )
+                ),
             }
             messages.append(system_message)
-            
+
             if chat_history and isinstance(chat_history, list) and len(chat_history) > 0:
                 # Sanitize incoming messages to avoid huge payloads and invalid structures.
                 sanitized = []
@@ -420,16 +451,16 @@ class OpenRouterProxyView(APIView):
             else:
                 if "User:" in prompt and "AI:" in prompt:
                     conversation_parts = []
-                    for part in re.split(r'(User:|AI:)', prompt):
+                    for part in re.split(r"(User:|AI:)", prompt):
                         if part and part not in ["User:", "AI:"]:
                             conversation_parts.append(part.strip())
-                    
+
                     for i, content in enumerate(conversation_parts):
                         role = "user" if i % 2 == 0 else "assistant"
                         messages.append({"role": role, "content": content})
                 else:
                     messages.append({"role": "user", "content": prompt})
-            
+
             # Clamp parameters to safe limits.
             requested_model = str(parameters.get("model") or "mistralai/mistral-7b-instruct")
             if requested_model not in settings.OPENROUTER_ALLOWED_MODELS_CSV:
@@ -469,7 +500,7 @@ class OpenRouterProxyView(APIView):
                 cached = cache.get(cache_key)
                 if cached:
                     return Response(cached)
-            
+
             try:
                 # Only retry POST if we have idempotency protection.
                 result = request_with_backoff(
@@ -492,33 +523,42 @@ class OpenRouterProxyView(APIView):
                     request_id,
                     str(exc),
                 )
-                return Response({"error": "AI service unavailable.", "request_id": request_id}, status=502)
-            
+                return Response(
+                    {"error": "AI service unavailable.", "request_id": request_id}, status=502
+                )
+
             if response.status_code == 200:
                 response_data = response.json()
                 if "choices" in response_data and len(response_data["choices"]) > 0:
                     ai_response = response_data["choices"][0]["message"]["content"]
                     cleaned_response = self.clean_response(ai_response, prompt)
-                    
+
                     result = {"response": cleaned_response}
-                    
+
                     for path_name in self.path_links.keys():
                         if path_name in cleaned_response.lower():
                             result["link"] = {
                                 "text": f"View {path_name.title()} Path",
                                 "path": self.path_links[path_name],
-                                "icon": "📚"
+                                "icon": "📚",
                             }
                             break
-                    
+
                     if cache_key and cache_ttl > 0:
                         cache.set(cache_key, result, timeout=cache_ttl)
                     if idem_cache_key:
-                        cache.set(idem_cache_key, result, timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS)
-                        
+                        cache.set(
+                            idem_cache_key,
+                            result,
+                            timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS,
+                        )
+
                     return Response(result)
                 else:
-                    return Response({"error": "No valid response from the model.", "request_id": request_id}, status=502)
+                    return Response(
+                        {"error": "No valid response from the model.", "request_id": request_id},
+                        status=502,
+                    )
             else:
                 logger.warning(
                     "OpenRouter non-200 request_id=%s status=%s body=%s",
@@ -526,8 +566,10 @@ class OpenRouterProxyView(APIView):
                     response.status_code,
                     response.text[:200],
                 )
-                return Response({"error": "AI service error.", "request_id": request_id}, status=502)
-                
+                return Response(
+                    {"error": "AI service error.", "request_id": request_id}, status=502
+                )
+
         except Exception as e:
             # Never log raw prompts/bodies; include request_id for correlation.
             logger.error(
@@ -546,19 +588,72 @@ class OpenRouterProxyView(APIView):
     def is_finance_related(self, text):
         """Check if the query is related to finance."""
         finance_terms = [
-            'money', 'finance', 'budget', 'invest', 'stock', 'market', 'fund',
-            'saving', 'retirement', 'income', 'expense', 'debt', 'credit', 'loan',
-            'mortgage', 'interest', 'dividend', 'portfolio', 'tax', 'inflation',
-            'economy', 'financial', 'bank', 'crypto', 'bitcoin', 'ethereum',
-            'compound interest', 'apr', 'apy', 'bond', 'etf', 'mutual fund',
-            'forex', 'hedge fund', 'ira', '401k', 'cash flow', 'asset', 'liability',
-            'net worth', 'bull market', 'bear market', 'capital gain', 'diversification',
-            'liquidity', 'amortization', 'annuity', 'depreciation', 'equity', 'leverage',
-            'yield', 'security', 'volatility', 'appreciation', 'depreciation', 'fiduciary',
-            'principal', 'premium', 'maturity', 'roi', 'roic', 'exchange rate', 'roth'
+            "money",
+            "finance",
+            "budget",
+            "invest",
+            "stock",
+            "market",
+            "fund",
+            "saving",
+            "retirement",
+            "income",
+            "expense",
+            "debt",
+            "credit",
+            "loan",
+            "mortgage",
+            "interest",
+            "dividend",
+            "portfolio",
+            "tax",
+            "inflation",
+            "economy",
+            "financial",
+            "bank",
+            "crypto",
+            "bitcoin",
+            "ethereum",
+            "compound interest",
+            "apr",
+            "apy",
+            "bond",
+            "etf",
+            "mutual fund",
+            "forex",
+            "hedge fund",
+            "ira",
+            "401k",
+            "cash flow",
+            "asset",
+            "liability",
+            "net worth",
+            "bull market",
+            "bear market",
+            "capital gain",
+            "diversification",
+            "liquidity",
+            "amortization",
+            "annuity",
+            "depreciation",
+            "equity",
+            "leverage",
+            "yield",
+            "security",
+            "volatility",
+            "appreciation",
+            "depreciation",
+            "fiduciary",
+            "principal",
+            "premium",
+            "maturity",
+            "roi",
+            "roic",
+            "exchange rate",
+            "roth",
         ]
         return any(term in text for term in finance_terms)
-    
+
     def add_financial_context(self, prompt):
         """Add financial context to improve responses."""
         financial_context = (
@@ -570,23 +665,23 @@ class OpenRouterProxyView(APIView):
             "self-references. Avoid saying 'I am a financial assistant' or similar "
             "phrases. Just provide the useful financial information directly.\n\n"
         )
-        
+
         if "User:" in prompt and "AI:" in prompt:
             parts = prompt.split("User:", 1)
             return financial_context + "User:" + parts[1]
         else:
             return financial_context + prompt
-    
+
     def get_user_context(self, user):
         """Get personalized context for the user."""
         try:
             context_parts = []
-            
+
             try:
                 profile = UserProfile.objects.get(user=user)
-                if hasattr(profile, 'points'):
+                if hasattr(profile, "points"):
                     context_parts.append(f"The user has {profile.points} points in their account.")
-                
+
                 user_progress = UserProgress.objects.filter(user=user)
                 if user_progress.exists():
                     paths = set()
@@ -594,39 +689,43 @@ class OpenRouterProxyView(APIView):
                         if progress.course and progress.course.path:
                             paths.add(progress.course.path.title)
                     if paths:
-                        context_parts.append(f"The user is currently following these learning paths: {', '.join(paths)}.")
-                
+                        context_parts.append(
+                            f"The user is currently following these learning paths: {', '.join(paths)}."
+                        )
+
                 completed_lessons = user_progress.filter(is_course_complete=True).count()
                 if completed_lessons > 0:
                     context_parts.append(f"The user has completed {completed_lessons} courses.")
-                    
-                if hasattr(profile, 'experience_level') and profile.experience_level:
-                    context_parts.append(f"The user's financial experience level is: {profile.experience_level}.")
+
+                if hasattr(profile, "experience_level") and profile.experience_level:
+                    context_parts.append(
+                        f"The user's financial experience level is: {profile.experience_level}."
+                    )
             except (UserProfile.DoesNotExist, Exception) as e:
                 pass
-                
+
             if context_parts:
                 return "User context: " + " ".join(context_parts)
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting user context: {str(e)}")
             return None
-    
+
     def clean_response(self, response_text, original_prompt):
         """Clean up the generated response text."""
         if "User:" in response_text:
             response_text = response_text.split("User:", 1)[0].strip()
         if "Human:" in response_text:
             response_text = response_text.split("Human:", 1)[0].strip()
-        
+
         response_text = response_text.replace("I am a financial assistant.", "")
         response_text = response_text.replace("I am an AI assistant.", "")
         response_text = response_text.replace("As a financial advisor,", "")
         response_text = response_text.replace("As an AI assistant,", "")
         response_text = response_text.replace("As an AI language model,", "")
-        
+
         intro_phrases = [
             "I'd be happy to explain",
             "I'd be glad to help",
@@ -644,15 +743,14 @@ class OpenRouterProxyView(APIView):
             "I'd like to help you",
             "I'd love to assist",
         ]
-        
+
         for phrase in intro_phrases:
             if response_text.lower().startswith(phrase.lower()):
-                response_text = response_text[len(phrase):].strip()
+                response_text = response_text[len(phrase) :].strip()
                 if response_text.startswith(","):
                     response_text = response_text[1:].strip()
-                    
+
         if len(response_text.strip()) < 10:
             return "I don't have enough information to answer that properly. Could you provide more details about your financial question?"
-            
-        return response_text.strip()
 
+        return response_text.strip()

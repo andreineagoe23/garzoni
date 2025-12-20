@@ -6,7 +6,7 @@ input,
 select,
 textarea,
 [role="button"] {
-  touch-action: manipulation; 
+  touch-action: manipulation;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
@@ -74,7 +74,7 @@ $theme-colors: (
 // Break points
 $grid-breakpoints: (
   xs: 0,
-  sm: 576px, 
+  sm: 576px,
   md: 768px,
   lg: 992px,
   xl: 1200px,
@@ -104,7 +104,7 @@ $container-max-widths: (
   --danger: #dc2626;
   --success: #{$success};
   --error: #dc2626;
-  
+
   // Theme colors - Light Mode
   --bg-color: #f8fafc; // Soft off-white for better contrast
   --text-color: #111827; // Dark gray for excellent readability
@@ -113,17 +113,17 @@ $container-max-widths: (
   --input-bg: #ffffff; // White inputs
   --muted-text: #6b7280; // Medium gray for secondary text
   --shadow-color: rgba(0, 0, 0, 0.1); // Light shadow for depth
-  
+
   // Structure
   --border-radius: #{$border-radius};
   --border-radius-lg: #{$border-radius-lg};
   --border-radius-sm: #{$border-radius-sm};
-  
+
   // Shadows
   --shadow-sm: #{$box-shadow-sm};
   --shadow-md: #{$box-shadow-md};
   --shadow-lg: #{$box-shadow-lg};
-  
+
   // Bootstrap compatibility
   --bs-body-bg: var(--bg-color);
   --bs-body-color: var(--text-color);
