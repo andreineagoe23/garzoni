@@ -1,9 +1,31 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 import "styles/scss/main.scss";
+
+// Backwards-compat for legacy fragment-based URLs where the client route lives
+// after the "#" fragment marker. This runs before React mounts so BrowserRouter
+// sees the correct initial URL.
+if (typeof window !== "undefined") {
+  const href = String(window.location.href || "");
+  const fragmentIndex = href.indexOf("#");
+  const hasLegacyFragmentPath =
+    fragmentIndex !== -1 &&
+    href.length > fragmentIndex + 1 &&
+    href[fragmentIndex + 1] === "/";
+
+  if (hasLegacyFragmentPath) {
+    const next = href.slice(fragmentIndex + 1); // "/path?query"
+    try {
+      window.history.replaceState(null, document.title, next);
+    } catch (_) {
+      // Fall back to a hard navigation if history APIs are blocked.
+      window.location.replace(next);
+    }
+  }
+}
 
 const CHUNK_ERROR_KEY = "monevo-chunk-reloaded";
 
@@ -15,7 +37,8 @@ const handleChunkError = (errorEvent) => {
 
   const isLinkTag = target?.tagName === "LINK";
   const source = target?.href || target?.src;
-  const chunkLikeSource = typeof source === "string" && /chunk\.(css|js)/.test(source);
+  const chunkLikeSource =
+    typeof source === "string" && /chunk\.(css|js)/.test(source);
 
   const isChunkError =
     error?.name === "ChunkLoadError" ||
@@ -56,7 +79,8 @@ window.addEventListener("unhandledrejection", (event) => {
   const reason = event?.reason;
   if (
     reason?.name === "ChunkLoadError" ||
-    (typeof reason?.message === "string" && reason.message.includes("ChunkLoadError"))
+    (typeof reason?.message === "string" &&
+      reason.message.includes("ChunkLoadError"))
   ) {
     handleChunkError({ error: reason, message: reason?.message });
   }
@@ -65,7 +89,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // Clear the reload marker once the newest bundle is loaded successfully.
 sessionStorage.removeItem(CHUNK_ERROR_KEY);
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />

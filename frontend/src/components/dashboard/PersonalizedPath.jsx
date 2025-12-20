@@ -25,17 +25,13 @@ function PersonalizedPath({ onCourseClick }) {
   } = useAuth();
 
   const { sessionId, redirectIntent } = useMemo(() => {
-    const hashParams = (location.hash || "").split("?")[1] || "";
-    const hashQuery = new URLSearchParams(hashParams);
     const searchQuery = new URLSearchParams(location.search || "");
 
-    const sessionId =
-      searchQuery.get("session_id") || hashQuery.get("session_id");
-    const redirectIntent =
-      searchQuery.get("redirect") || hashQuery.get("redirect");
+    const sessionId = searchQuery.get("session_id");
+    const redirectIntent = searchQuery.get("redirect");
 
     return { sessionId, redirectIntent };
-  }, [location.hash, location.search]);
+  }, [location.search]);
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
@@ -81,7 +77,7 @@ function PersonalizedPath({ onCourseClick }) {
 
       if (!isAuthenticated) {
         navigate(
-          `/#/login?returnUrl=${encodeURIComponent("/#/personalized-path")}`
+          `/login?returnUrl=${encodeURIComponent("/personalized-path")}`
         );
         return;
       }
@@ -112,7 +108,7 @@ function PersonalizedPath({ onCourseClick }) {
                 window.history.replaceState(
                   {},
                   document.title,
-                  "/#/personalized-path"
+                  "/personalized-path"
                 );
                 await refreshProfile();
                 queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -161,11 +157,7 @@ function PersonalizedPath({ onCourseClick }) {
           await fetchPersonalizedPath();
           setPaymentVerified(true);
           // Clean up URL to remove session/redirect params without navigating away
-          window.history.replaceState(
-            {},
-            document.title,
-            "/#/personalized-path"
-          );
+          window.history.replaceState({}, document.title, "/personalized-path");
           return;
         }
 

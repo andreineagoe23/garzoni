@@ -20,6 +20,20 @@ function Login() {
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reason = params.get("reason");
+    if (reason !== "session-expired") return;
+
+    setError("Session expired, please log in again.");
+
+    // Remove the query param so it doesn't persist across refreshes.
+    params.delete("reason");
+    const remaining = params.toString();
+    const nextUrl = remaining ? `/login?${remaining}` : "/login";
+    navigate(nextUrl, { replace: true, state: location.state });
+  }, [location.search, location.state, navigate]);
+
+  useEffect(() => {
     if (isAuthenticated) {
       // Avoid redirect loops into gated flows that immediately bounce to questionnaires/upgrade
       const from = location.state?.from?.pathname;

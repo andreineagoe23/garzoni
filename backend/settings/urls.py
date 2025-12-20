@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from authentication.views import CustomTokenRefreshView
 
 urlpatterns = [
@@ -18,3 +19,15 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# SPA fallback (React BrowserRouter). Only enabled when a build is present.
+# - /api/*, /admin/* etc remain server-handled
+# - everything else returns index.html so React can route client-side
+if getattr(settings, "SERVE_FRONTEND", False):
+    urlpatterns += [
+        re_path(
+            r"^(?!api/|admin/|token/|ckeditor5/|static/|media/).*",
+            TemplateView.as_view(template_name="index.html"),
+            name="spa-fallback",
+        ),
+    ]
