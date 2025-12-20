@@ -36,14 +36,17 @@ jest.mock("axios", () => ({
   post: jest.fn(),
 }));
 
-jest.mock("@tanstack/react-query", () => ({
-  __esModule: true,
-  useQuery: (...args) => mockUseQuery(...args),
-  useQueryClient: () => ({
-    setQueryData: jest.fn(),
-    invalidateQueries: jest.fn(),
-  }),
-}));
+jest.mock("@tanstack/react-query", () => {
+  const actual = jest.requireActual("@tanstack/react-query");
+  return {
+    ...actual,
+    useQuery: (...args) => mockUseQuery(...args),
+    useQueryClient: () => ({
+      setQueryData: jest.fn(),
+      invalidateQueries: jest.fn(),
+    }),
+  };
+});
 
 jest.mock("services/userService", () => ({
   fetchProgressSummary: jest.fn(),
