@@ -6,10 +6,10 @@ services:
     image: mysql:8.0
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: change-me
       MYSQL_DATABASE: monevo
       MYSQL_USER: monevo
-      MYSQL_PASSWORD: monevopassword
+      MYSQL_PASSWORD: change-me
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -17,7 +17,7 @@ services:
       - "3307:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=caching_sha2_password
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -prootpassword --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -pchange-me --silent"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -57,7 +57,7 @@ services:
     environment:
       DEBUG: "True"
       SECRET_KEY: change-me
-      DATABASE_URL: mysql://monevo:monevopassword@db:3306/monevo
+      DATABASE_URL: mysql://monevo:change-me@db:3306/monevo
       REDIS_URL: redis://redis:6379/0
       ALLOWED_HOSTS_CSV: localhost,127.0.0.1
       CORS_ALLOWED_ORIGINS_CSV: http://localhost:3000,http://127.0.0.1:3000

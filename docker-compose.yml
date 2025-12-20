@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-monevo}
       POSTGRES_USER: ${POSTGRES_USER:-monevo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monevo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -33,7 +33,7 @@ services:
       SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
       TIME_ZONE: "${TIME_ZONE:-UTC}"
       FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-monevo}"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
@@ -61,7 +61,7 @@ services:
       SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
       TIME_ZONE: "${TIME_ZONE:-UTC}"
       FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-monevo}"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
@@ -86,7 +86,7 @@ services:
       SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
       TIME_ZONE: "${TIME_ZONE:-UTC}"
       FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-monevo}"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
