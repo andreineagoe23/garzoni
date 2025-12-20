@@ -14,7 +14,6 @@ import PersonalizedPath from "./PersonalizedPath";
 import { GlassButton, GlassCard } from "components/ui";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import {
-  fetchProgressSummary,
   fetchReviewQueue,
   fetchMasterySummary,
   fetchMissions,
@@ -25,6 +24,8 @@ import { usePreferences } from "hooks/usePreferences";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { formatPercentage, formatNumber, getLocale } from "utils/format";
+import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
@@ -69,7 +70,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
       // Optimistically update points so "Daily Goal" reflects XP instantly
       if (xpGained > 0) {
-        queryClient.setQueryData(["profile"], (current) => {
+        queryClient.setQueryData(queryKeys.profile(), (current) => {
           if (!current) return current;
 
           // Profile payloads in this app sometimes come as { user_data: {...} } or as the user object directly.
@@ -92,8 +93,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         });
 
         // Background refresh to ensure server-truth (and update other widgets)
-        queryClient.invalidateQueries({ queryKey: ["profile"] });
-        queryClient.invalidateQueries({ queryKey: ["progress-summary"] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
         refreshProfile?.().catch(console.error);
       }
 
@@ -124,28 +125,27 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     isFetching: isProfileFetching,
     isInitialLoading: isProfileLoading,
   } = useQuery({
-    queryKey: ["profile"],
+    queryKey: queryKeys.profile(),
     queryFn: () => loadProfile(),
-    staleTime: 0, // Always consider stale to refetch when navigating
-    cacheTime: 30000, // Keep in cache for 30 seconds
+    staleTime: staleTimes.profile,
+    gcTime: 30_000,
     initialData: authProfile,
     keepPreviousData: true,
   });
 
-  const { data: progressResponse, isLoading: isProgressLoading } = useQuery({
-    queryKey: ["progress-summary"],
-    queryFn: fetchProgressSummary,
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 30000,
-  });
+  const { data: progressResponse, isLoading: isProgressLoading } =
+    useProgressSummaryQuery({
+      // Dashboard should feel responsive, but doesn't need constant refetching.
+      // Invalidation is triggered after lesson/exercise completion elsewhere.
+      retry: 2,
+    });
 
   const {
     data: reviewQueueData,
     error: reviewError,
     refetch: refetchReview,
   } = useQuery({
-    queryKey: ["review-queue"],
+    queryKey: queryKeys.reviewQueue(),
     queryFn: fetchReviewQueue,
     select: (response) => response?.data || { due: [], count: 0 },
     retry: 2,
@@ -158,7 +158,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     error: masteryError,
     refetch: refetchMastery,
   } = useQuery({
-    queryKey: ["mastery-summary"],
+    queryKey: queryKeys.masterySummary(),
     queryFn: fetchMasterySummary,
     select: (response) => response?.data || { masteries: [] },
     retry: 2,
@@ -171,7 +171,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     error: missionsError,
     refetch: refetchMissions,
   } = useQuery({
-    queryKey: ["missions"],
+    queryKey: queryKeys.missions(),
     queryFn: fetchMissions,
     select: (response) =>
       response?.data || { daily_missions: [], weekly_missions: [] },
@@ -217,7 +217,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
     // If we have a session_id, invalidate profile to refetch payment status
     if (sessionId) {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       refreshProfile().catch(console.error);
       reloadEntitlements?.();
       // eslint-disable-next-line no-console

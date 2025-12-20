@@ -7,6 +7,7 @@ import { GlassCard } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
 import { BACKEND_URL } from "services/backendUrl";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 const LANGUAGES = [
   { code: "en-US", name: "English (US)" },
@@ -43,9 +44,9 @@ const Chatbot = () => {
   const queryClient = useQueryClient();
 
   const { data: entitlementResponse } = useQuery({
-    queryKey: ["entitlements"],
+    queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
-    staleTime: 5 * 60 * 1000,
+    staleTime: staleTimes.entitlements,
     enabled: isAuthenticated,
   });
 
@@ -442,7 +443,7 @@ const Chatbot = () => {
     } finally {
       setIsLoading(false);
       if (isAuthenticated) {
-        queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
       }
     }
   };

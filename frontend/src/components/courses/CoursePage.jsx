@@ -9,6 +9,7 @@ import Skeleton from "components/common/Skeleton";
 import Breadcrumbs from "components/common/Breadcrumbs";
 import { fetchLearningPathCourses } from "services/userService";
 import { attachToken } from "services/httpClient";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function CoursePage() {
   const { pathId } = useParams();
@@ -19,8 +20,9 @@ function CoursePage() {
   }, [getAccessToken]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["courses", pathId],
+    queryKey: queryKeys.learningPathCourses(Number(pathId)),
     queryFn: () => fetchLearningPathCourses(pathId),
+    staleTime: staleTimes.content,
   });
 
   return (

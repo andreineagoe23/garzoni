@@ -35,7 +35,8 @@
     "sass": "^1.85.1",
     "three": "^0.182.0",
     "web-vitals": "^4.2.4",
-    "yahoo-finance2": "^2.13.3"
+    "yahoo-finance2": "^2.13.3",
+    "zustand": "^4.5.5"
   },
   "scripts": {
     "start": "craco start",
@@ -72,6 +73,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@craco/craco": "^7.1.0",
+    "@tanstack/react-query-devtools": "^5.59.15",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.44.0",
     "eslint-plugin-react": "^7.33.2",
