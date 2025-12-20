@@ -17,5 +17,3 @@ When you add/change endpoints:
 - Ensure serializers have clear field types/choices
 - Add/adjust view docstrings where helpful
 - Run the app and check `/api/docs/` to verify the schema reflects your changes
-
-

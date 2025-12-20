@@ -11,7 +11,7 @@ const GlassCard = React.forwardRef(({
   const borderStyle = "border-[color:var(--border-color,rgba(0,0,0,0.1))]";
   const baseStyles =
     `relative overflow-hidden rounded-3xl ${borderStyle} bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all`;
-  
+
   const paddingStyles = {
     none: "",
     sm: "p-4",
@@ -44,4 +44,3 @@ const GlassCard = React.forwardRef(({
 GlassCard.displayName = "GlassCard";
 
 export default GlassCard;
-

@@ -7,6 +7,7 @@ from pathlib import Path
 import dj_database_url
 from corsheaders.defaults import default_headers
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 from core.utils import env_bool, env_csv
@@ -25,9 +26,13 @@ FRONTEND_BUILD_DIR = Path(
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = "django-insecure-change-me"
+        # Avoid committing any dev default that can be flagged as a "secret".
+        # In DEBUG we can safely generate an ephemeral key per process.
+        SECRET_KEY = get_random_secret_key()
     else:
-        raise ImproperlyConfigured("SECRET_KEY environment variable must be set when DEBUG is False.")
+        raise ImproperlyConfigured(
+            "SECRET_KEY environment variable must be set when DEBUG is False."
+        )
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
@@ -131,7 +136,9 @@ if not default_db:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     else:
-        raise ImproperlyConfigured("DATABASE_URL environment variable must be set when DEBUG is False.")
+        raise ImproperlyConfigured(
+            "DATABASE_URL environment variable must be set when DEBUG is False."
+        )
 
 DATABASES = {"default": default_db}
 
@@ -158,7 +165,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
@@ -220,9 +229,7 @@ OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
 )
 
 # Security headers (Django 4.2 SecurityMiddleware)
-SECURE_REFERRER_POLICY = os.getenv(
-    "SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin"
-)
+SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
 
 cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS_CSV")
 if DEBUG and not cors_allowed_origins:
@@ -507,7 +514,8 @@ CKEDITOR_5_CONFIGS = {
                 "reversed": True,
             },
         },
-        "licenseKey": "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjYzNjE1OTksImp0aSI6Ijg0OWU3Y2M0LWY3OTktNDVmYy1iNGYwLTMzZDI4N2Y5ZjVlNiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjgzMTFjMmQ2In0.h_kaJ2F9B79VlBU9unjEpRqtg7oErZ3EJQlzSKWfmml6jY-MO3uws1lm2KZvzKojsQUmbpeO_Q5zToCnbNx5VQ",
+        # Never hardcode license keys in source control.
+        "licenseKey": os.getenv("CKEDITOR_5_LICENSE_KEY", ""),
     },
 }
 
@@ -525,7 +533,7 @@ CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 # Prevent Django from creating migrations for core app
 # since all models have been moved to other apps
 MIGRATION_MODULES = {
-    'core': None,  # Disable migrations for core app
+    "core": None,  # Disable migrations for core app
 }
 
 if "test" in sys.argv:

@@ -15,8 +15,8 @@ This repo ships with a production-like Docker Compose stack:
 ### Quick start
 
 - **Create a local env file**:
-  - Copy `env.example` → `.env` (same directory as `docker-compose.yml`)
-  - Set a real `DJANGO_SECRET_KEY` (and update allowed hosts/origins if needed)
+  - Create a `.env` (same directory as `docker-compose.yml`) with your existing local values
+  - At minimum set `POSTGRES_PASSWORD` (required), and set `DJANGO_SECRET_KEY` when running with `DJANGO_DEBUG=False`
 
 - **Boot the stack**:
 
@@ -58,5 +58,3 @@ docker compose exec backend python manage.py migrate --noinput
 docker compose exec backend python manage.py seed_exercises
 docker compose exec backend python manage.py ensure_lesson_sections
 ```
-
-

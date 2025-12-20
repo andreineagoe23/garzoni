@@ -11,5 +11,3 @@ class FinanceExternalRateThrottle(UserRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "FINANCE_EXTERNAL_THROTTLE_RATE", "60/min")
-
-

@@ -30,5 +30,3 @@ export const useProgressStore = create((set) => ({
       },
     }),
 }));
-
-

@@ -19,7 +19,7 @@ This repo’s `docker-compose.yml` is meant to be usable both locally and as a b
 
 ### Example: running on a VM
 
-- Copy `env.example` → `.env` and edit values
+- Create a `.env` file (repo root) with your deployment values
 - Run:
 
 ```bash
@@ -33,5 +33,3 @@ Docker volumes are created for:
 - `postgres_data` (database)
 - `backend_media` (uploaded media)
 - `backend_static` (collectstatic output)
-
-

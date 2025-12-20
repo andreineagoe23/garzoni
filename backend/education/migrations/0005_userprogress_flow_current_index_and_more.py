@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('education', '0004_alter_exercise_type_and_more'),
+        ("education", "0004_alter_exercise_type_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprogress',
-            name='flow_current_index',
+            model_name="userprogress",
+            name="flow_current_index",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='userprogress',
-            name='flow_updated_at',
+            model_name="userprogress",
+            name="flow_updated_at",
             field=models.DateTimeField(auto_now=True),
         ),
     ]

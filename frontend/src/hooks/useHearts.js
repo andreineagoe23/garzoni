@@ -201,5 +201,3 @@ export function useHearts({ enabled, refetchIntervalMs = 30_000 } = {}) {
     refillHeartsMutation: refillMutation,
   };
 }
-
-

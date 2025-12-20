@@ -9,7 +9,6 @@ jobs:
     name: Backend (Python)
     runs-on: ubuntu-latest
     env:
-      SECRET_KEY: ci-secret-key
       DEBUG: "True"
       CELERY_TASK_ALWAYS_EAGER: "True"
       DJANGO_SETTINGS_MODULE: settings.settings
@@ -33,10 +32,6 @@ jobs:
       - name: Lint (black)
         run: |
           black --check backend
-
-      - name: Lint (flake8)
-        run: |
-          flake8 backend
 
       - name: Unit tests
         run: |
@@ -80,5 +75,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-

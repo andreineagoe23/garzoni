@@ -67,4 +67,3 @@ npm start
 ## Contributing
 
 Pull requests are welcome. Please open an issue for major changes first to discuss what you would like to modify. Ensure lint/tests pass before submitting.
-

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0003_remove_userprofile_email_frequency_and_more'),
+        ("core", "0003_remove_userprofile_email_frequency_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprogress',
-            name='last_completed_date',
+            model_name="userprogress",
+            name="last_completed_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='userprogress',
-            name='streak',
+            model_name="userprogress",
+            name="streak",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

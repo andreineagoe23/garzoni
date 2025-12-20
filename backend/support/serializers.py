@@ -8,12 +8,19 @@ class FAQSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FAQ
-        fields = ["id", "category", "question", "answer", "helpful_count", "not_helpful_count", "user_vote"]
+        fields = [
+            "id",
+            "category",
+            "question",
+            "answer",
+            "helpful_count",
+            "not_helpful_count",
+            "user_vote",
+        ]
 
     def get_user_vote(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if request and request.user.is_authenticated:
             feedback = FAQFeedback.objects.filter(faq=obj, user=request.user).first()
             return feedback.vote if feedback else None
         return None
-

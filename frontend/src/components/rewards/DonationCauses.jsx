@@ -126,4 +126,3 @@ function DonationCauses({ onDonate }) {
 }
 
 export default DonationCauses;
-

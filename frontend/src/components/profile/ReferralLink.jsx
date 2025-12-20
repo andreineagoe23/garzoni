@@ -64,4 +64,3 @@ const ReferralLink = ({ referralCode }) => {
 };
 
 export default ReferralLink;
-

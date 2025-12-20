@@ -12,7 +12,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 - **Configure env**:
-  - Copy `backend/env.example` → `backend/.env` and edit values
+  - Use your existing `backend/.env` (or set env vars in your shell)
   - At minimum, set `SECRET_KEY` (required when `DEBUG=False`)
 
 - **Migrate + run**:
@@ -45,5 +45,3 @@ python manage.py seed_exercises
 cd backend
 python manage.py ensure_lesson_sections
 ```
-
-

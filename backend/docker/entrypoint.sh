@@ -22,5 +22,3 @@ if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
 fi
 
 exec "$@"
-
-

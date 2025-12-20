@@ -37,4 +37,3 @@ def record_funnel_event(
         )
     except Exception as exc:  # pragma: no cover - defensive logging only
         logger.warning("Unable to record funnel event %s: %s", event_type, exc)
-

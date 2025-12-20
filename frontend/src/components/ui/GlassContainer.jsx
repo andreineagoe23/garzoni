@@ -9,7 +9,7 @@ const GlassContainer = ({
   // Theme-aware border: darker in light mode, lighter in dark mode
   const borderStyle = "border-[color:var(--border-color,rgba(0,0,0,0.1))]";
   const baseStyles = `rounded-3xl ${borderStyle} backdrop-blur-lg`;
-  
+
   const variantStyles = {
     default:
       "bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]",
@@ -36,4 +36,3 @@ const GlassContainer = ({
 };
 
 export default GlassContainer;
-

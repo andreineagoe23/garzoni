@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='referral',
-            name='referral_code',
+            model_name="referral",
+            name="referral_code",
             field=models.CharField(blank=True, max_length=20, unique=True),
         ),
         migrations.AddField(
-            model_name='referral',
-            name='referral_points',
+            model_name="referral",
+            name="referral_points",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

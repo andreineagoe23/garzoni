@@ -9,5 +9,3 @@ export function useProgress() {
 
   return { courseFlow, setCourseFlowProgress, resetCourseFlowProgress };
 }
-
-

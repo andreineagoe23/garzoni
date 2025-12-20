@@ -163,4 +163,3 @@ const PricingFunnelDashboard = () => {
 };
 
 export default PricingFunnelDashboard;
-

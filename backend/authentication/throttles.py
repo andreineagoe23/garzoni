@@ -14,5 +14,3 @@ class LoginRateThrottle(AnonRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "LOGIN_THROTTLE_RATE", "10/min")
-
-

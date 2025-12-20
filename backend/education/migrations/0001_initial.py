@@ -16,269 +16,577 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('description', models.TextField()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='course_images/')),
-                ('is_active', models.BooleanField(default=True)),
-                ('order', models.PositiveIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("description", models.TextField()),
+                ("image", models.ImageField(blank=True, null=True, upload_to="course_images/")),
+                ("is_active", models.BooleanField(default=True)),
+                ("order", models.PositiveIntegerField(default=0)),
             ],
             options={
-                'db_table': 'core_course',
-                'ordering': ['order'],
+                "db_table": "core_course",
+                "ordering": ["order"],
             },
         ),
         migrations.CreateModel(
-            name='Exercise',
+            name="Exercise",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('drag-and-drop', 'Drag and Drop'), ('multiple-choice', 'Multiple Choice'), ('budget-allocation', 'Budget Allocation')], max_length=50)),
-                ('question', models.TextField()),
-                ('exercise_data', models.JSONField(help_text='Structured data based on exercise type')),
-                ('correct_answer', models.JSONField(help_text='Correct answer structure')),
-                ('category', models.CharField(default='General', max_length=100)),
-                ('difficulty', models.CharField(choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')], default='beginner', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("drag-and-drop", "Drag and Drop"),
+                            ("multiple-choice", "Multiple Choice"),
+                            ("budget-allocation", "Budget Allocation"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("question", models.TextField()),
+                (
+                    "exercise_data",
+                    models.JSONField(help_text="Structured data based on exercise type"),
+                ),
+                ("correct_answer", models.JSONField(help_text="Correct answer structure")),
+                ("category", models.CharField(default="General", max_length=100)),
+                (
+                    "difficulty",
+                    models.CharField(
+                        choices=[
+                            ("beginner", "Beginner"),
+                            ("intermediate", "Intermediate"),
+                            ("advanced", "Advanced"),
+                        ],
+                        default="beginner",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'core_exercise',
+                "db_table": "core_exercise",
             },
         ),
         migrations.CreateModel(
-            name='Lesson',
+            name="Lesson",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('short_description', models.TextField(blank=True)),
-                ('detailed_content', django_ckeditor_5.fields.CKEditor5Field()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='lesson_images/')),
-                ('video_url', models.URLField(blank=True, null=True)),
-                ('exercise_type', models.CharField(blank=True, choices=[('drag-and-drop', 'Drag and Drop'), ('multiple-choice', 'Multiple Choice'), ('quiz', 'Quiz')], max_length=50, null=True)),
-                ('exercise_data', models.JSONField(blank=True, null=True)),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lessons', to='education.course')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("short_description", models.TextField(blank=True)),
+                ("detailed_content", django_ckeditor_5.fields.CKEditor5Field()),
+                ("image", models.ImageField(blank=True, null=True, upload_to="lesson_images/")),
+                ("video_url", models.URLField(blank=True, null=True)),
+                (
+                    "exercise_type",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("drag-and-drop", "Drag and Drop"),
+                            ("multiple-choice", "Multiple Choice"),
+                            ("quiz", "Quiz"),
+                        ],
+                        max_length=50,
+                        null=True,
+                    ),
+                ),
+                ("exercise_data", models.JSONField(blank=True, null=True)),
+                (
+                    "course",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lessons",
+                        to="education.course",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Lesson',
-                'verbose_name_plural': 'Lessons',
-                'db_table': 'core_lesson',
+                "verbose_name": "Lesson",
+                "verbose_name_plural": "Lessons",
+                "db_table": "core_lesson",
             },
         ),
         migrations.CreateModel(
-            name='LessonCompletion',
+            name="LessonCompletion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('completed_at', models.DateTimeField(auto_now_add=True)),
-                ('lesson', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.lesson')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("completed_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "lesson",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.lesson"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_lessoncompletion',
+                "db_table": "core_lessoncompletion",
             },
         ),
         migrations.CreateModel(
-            name='LessonSection',
+            name="LessonSection",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.PositiveIntegerField()),
-                ('title', models.CharField(max_length=200)),
-                ('content_type', models.CharField(choices=[('text', 'Text Content'), ('video', 'Video'), ('exercise', 'Interactive Exercise')], default='text', max_length=20)),
-                ('text_content', django_ckeditor_5.fields.CKEditor5Field(blank=True, null=True)),
-                ('video_url', models.URLField(blank=True, null=True)),
-                ('exercise_type', models.CharField(blank=True, choices=[('drag-and-drop', 'Drag and Drop'), ('multiple-choice', 'Multiple Choice'), ('budget-allocation', 'Budget Allocation')], max_length=50, null=True)),
-                ('exercise_data', models.JSONField(blank=True, null=True)),
-                ('lesson', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='education.lesson')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("order", models.PositiveIntegerField()),
+                ("title", models.CharField(max_length=200)),
+                (
+                    "content_type",
+                    models.CharField(
+                        choices=[
+                            ("text", "Text Content"),
+                            ("video", "Video"),
+                            ("exercise", "Interactive Exercise"),
+                        ],
+                        default="text",
+                        max_length=20,
+                    ),
+                ),
+                ("text_content", django_ckeditor_5.fields.CKEditor5Field(blank=True, null=True)),
+                ("video_url", models.URLField(blank=True, null=True)),
+                (
+                    "exercise_type",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("drag-and-drop", "Drag and Drop"),
+                            ("multiple-choice", "Multiple Choice"),
+                            ("budget-allocation", "Budget Allocation"),
+                        ],
+                        max_length=50,
+                        null=True,
+                    ),
+                ),
+                ("exercise_data", models.JSONField(blank=True, null=True)),
+                (
+                    "lesson",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sections",
+                        to="education.lesson",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_lessonsection',
-                'ordering': ['order'],
-                'unique_together': {('lesson', 'order')},
+                "db_table": "core_lessonsection",
+                "ordering": ["order"],
+                "unique_together": {("lesson", "order")},
             },
         ),
         migrations.CreateModel(
-            name='Path',
+            name="Path",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=100)),
-                ('description', models.TextField()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='path_images/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("title", models.CharField(max_length=100)),
+                ("description", models.TextField()),
+                ("image", models.ImageField(blank=True, null=True, upload_to="path_images/")),
             ],
             options={
-                'verbose_name': 'Path',
-                'verbose_name_plural': 'Paths',
-                'db_table': 'core_path',
+                "verbose_name": "Path",
+                "verbose_name_plural": "Paths",
+                "db_table": "core_path",
             },
         ),
         migrations.CreateModel(
-            name='PathRecommendation',
+            name="PathRecommendation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField()),
-                ('criteria', models.JSONField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField()),
+                ("criteria", models.JSONField()),
             ],
             options={
-                'db_table': 'core_pathrecommendation',
+                "db_table": "core_pathrecommendation",
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('type', models.CharField(choices=[('knowledge_check', 'Knowledge Check'), ('preference_scale', 'Preference Scale'), ('budget_allocation', 'Budget Allocation')], max_length=20)),
-                ('options', models.JSONField()),
-                ('explanation', models.TextField(blank=True, null=True)),
-                ('order', models.PositiveIntegerField(default=0)),
-                ('is_active', models.BooleanField(default=True)),
-                ('category', models.CharField(default='General', max_length=50)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("knowledge_check", "Knowledge Check"),
+                            ("preference_scale", "Preference Scale"),
+                            ("budget_allocation", "Budget Allocation"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("options", models.JSONField()),
+                ("explanation", models.TextField(blank=True, null=True)),
+                ("order", models.PositiveIntegerField(default=0)),
+                ("is_active", models.BooleanField(default=True)),
+                ("category", models.CharField(default="General", max_length=50)),
             ],
             options={
-                'db_table': 'core_question',
+                "db_table": "core_question",
             },
         ),
         migrations.CreateModel(
-            name='Quiz',
+            name="Quiz",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('question', models.TextField()),
-                ('choices', models.JSONField()),
-                ('correct_answer', models.CharField(max_length=200)),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quizzes', to='education.course')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("question", models.TextField()),
+                ("choices", models.JSONField()),
+                ("correct_answer", models.CharField(max_length=200)),
+                (
+                    "course",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quizzes",
+                        to="education.course",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Quiz',
-                'verbose_name_plural': 'Quizzes',
-                'db_table': 'core_quiz',
+                "verbose_name": "Quiz",
+                "verbose_name_plural": "Quizzes",
+                "db_table": "core_quiz",
             },
         ),
         migrations.CreateModel(
-            name='SectionCompletion',
+            name="SectionCompletion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('completed_at', models.DateTimeField(auto_now_add=True)),
-                ('section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.lessonsection')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("completed_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "section",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.lessonsection"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_sectioncompletion',
+                "db_table": "core_sectioncompletion",
             },
         ),
         migrations.CreateModel(
-            name='UserResponse',
+            name="UserResponse",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.TextField()),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.question')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='user_responses', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("answer", models.TextField()),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.question"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_responses",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_userresponse',
+                "db_table": "core_userresponse",
             },
         ),
         migrations.CreateModel(
-            name='UserProgress',
+            name="UserProgress",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_course_complete', models.BooleanField(default=False)),
-                ('is_questionnaire_completed', models.BooleanField(default=False)),
-                ('course_completed_at', models.DateTimeField(blank=True, null=True)),
-                ('last_completed_date', models.DateField(blank=True, null=True)),
-                ('streak', models.PositiveIntegerField(default=0)),
-                ('completed_lessons', models.ManyToManyField(blank=True, through='education.LessonCompletion', to='education.lesson')),
-                ('completed_sections', models.ManyToManyField(blank=True, through='education.SectionCompletion', to='education.lessonsection')),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='progress_courses', to='education.course')),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='user_progress', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("is_course_complete", models.BooleanField(default=False)),
+                ("is_questionnaire_completed", models.BooleanField(default=False)),
+                ("course_completed_at", models.DateTimeField(blank=True, null=True)),
+                ("last_completed_date", models.DateField(blank=True, null=True)),
+                ("streak", models.PositiveIntegerField(default=0)),
+                (
+                    "completed_lessons",
+                    models.ManyToManyField(
+                        blank=True, through="education.LessonCompletion", to="education.lesson"
+                    ),
+                ),
+                (
+                    "completed_sections",
+                    models.ManyToManyField(
+                        blank=True,
+                        through="education.SectionCompletion",
+                        to="education.lessonsection",
+                    ),
+                ),
+                (
+                    "course",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="progress_courses",
+                        to="education.course",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="user_progress",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User Progress',
-                'verbose_name_plural': 'User Progress',
-                'db_table': 'core_userprogress',
+                "verbose_name": "User Progress",
+                "verbose_name_plural": "User Progress",
+                "db_table": "core_userprogress",
             },
         ),
         migrations.AddField(
-            model_name='sectioncompletion',
-            name='user_progress',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.userprogress'),
+            model_name="sectioncompletion",
+            name="user_progress",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="education.userprogress"
+            ),
         ),
         migrations.CreateModel(
-            name='Questionnaire',
+            name="Questionnaire",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('goal', models.CharField(blank=True, max_length=255, null=True)),
-                ('experience', models.CharField(blank=True, choices=[('Beginner', 'Beginner'), ('Intermediate', 'Intermediate'), ('Advanced', 'Advanced')], max_length=50, null=True)),
-                ('preferred_style', models.CharField(blank=True, choices=[('Visual', 'Visual'), ('Auditory', 'Auditory'), ('Kinesthetic', 'Kinesthetic')], max_length=50, null=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='questionnaire', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("goal", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "experience",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("Beginner", "Beginner"),
+                            ("Intermediate", "Intermediate"),
+                            ("Advanced", "Advanced"),
+                        ],
+                        max_length=50,
+                        null=True,
+                    ),
+                ),
+                (
+                    "preferred_style",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("Visual", "Visual"),
+                            ("Auditory", "Auditory"),
+                            ("Kinesthetic", "Kinesthetic"),
+                        ],
+                        max_length=50,
+                        null=True,
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="questionnaire",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_questionnaire',
+                "db_table": "core_questionnaire",
             },
         ),
         migrations.CreateModel(
-            name='PollResponse',
+            name="PollResponse",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.CharField(max_length=200)),
-                ('responded_at', models.DateTimeField(auto_now_add=True)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.question')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("answer", models.CharField(max_length=200)),
+                ("responded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.question"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_pollresponse',
+                "db_table": "core_pollresponse",
             },
         ),
         migrations.AddField(
-            model_name='lessoncompletion',
-            name='user_progress',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.userprogress'),
+            model_name="lessoncompletion",
+            name="user_progress",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="education.userprogress"
+            ),
         ),
         migrations.AddField(
-            model_name='course',
-            name='path',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='education.path'),
+            model_name="course",
+            name="path",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="courses",
+                to="education.path",
+            ),
         ),
         migrations.CreateModel(
-            name='UserExerciseProgress',
+            name="UserExerciseProgress",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('completed', models.BooleanField(default=False)),
-                ('attempts', models.PositiveIntegerField(default=0)),
-                ('last_attempt', models.DateTimeField(auto_now=True)),
-                ('user_answer', models.JSONField(blank=True, null=True)),
-                ('exercise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.exercise')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("completed", models.BooleanField(default=False)),
+                ("attempts", models.PositiveIntegerField(default=0)),
+                ("last_attempt", models.DateTimeField(auto_now=True)),
+                ("user_answer", models.JSONField(blank=True, null=True)),
+                (
+                    "exercise",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.exercise"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_userexerciseprogress',
-                'unique_together': {('user', 'exercise')},
+                "db_table": "core_userexerciseprogress",
+                "unique_together": {("user", "exercise")},
             },
         ),
         migrations.CreateModel(
-            name='QuizCompletion',
+            name="QuizCompletion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('completed_at', models.DateTimeField(auto_now_add=True)),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.quiz')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("completed_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "quiz",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.quiz"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_quizcompletion',
-                'unique_together': {('user', 'quiz')},
+                "db_table": "core_quizcompletion",
+                "unique_together": {("user", "quiz")},
             },
         ),
         migrations.CreateModel(
-            name='ExerciseCompletion',
+            name="ExerciseCompletion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('completed_at', models.DateTimeField(auto_now_add=True)),
-                ('attempts', models.PositiveIntegerField(default=0)),
-                ('user_answer', models.JSONField(blank=True, null=True)),
-                ('exercise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='education.exercise')),
-                ('section', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='education.lessonsection')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("completed_at", models.DateTimeField(auto_now_add=True)),
+                ("attempts", models.PositiveIntegerField(default=0)),
+                ("user_answer", models.JSONField(blank=True, null=True)),
+                (
+                    "exercise",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="education.exercise"
+                    ),
+                ),
+                (
+                    "section",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.lessonsection",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_exercisecompletion',
-                'unique_together': {('user', 'exercise', 'section')},
+                "db_table": "core_exercisecompletion",
+                "unique_together": {("user", "exercise", "section")},
             },
         ),
     ]
