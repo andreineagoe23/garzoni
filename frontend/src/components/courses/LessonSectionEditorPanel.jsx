@@ -116,17 +116,55 @@ const LessonSectionEditorPanel = ({
 }) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [exerciseJson, setExerciseJson] = useState("{}");
+  const [lastValidExerciseJson, setLastValidExerciseJson] = useState("{}");
   const [jsonError, setJsonError] = useState("");
+  const activeSectionIdRef = useRef(null);
+  const sectionExerciseDataRef = useRef(null);
+
+  const getJsonErrorDetails = (value, error) => {
+    const message = String(error?.message || "Invalid JSON.");
+    const match = message.match(/position\s+(\d+)/i);
+    const position = match ? Number(match[1]) : null;
+    if (position == null || Number.isNaN(position)) {
+      return { message: "Exercise configuration must be valid JSON." };
+    }
+
+    const before = value.slice(0, position);
+    const line = before.split("\n").length;
+    const lastNewline = before.lastIndexOf("\n");
+    const column = position - (lastNewline === -1 ? 0 : lastNewline + 1) + 1;
+
+    return {
+      message: `Invalid JSON at line ${line}, column ${column}.`,
+    };
+  };
+
+  useEffect(() => {
+    sectionExerciseDataRef.current = section?.exercise_data ?? null;
+  }, [section?.exercise_data]);
 
   useEffect(() => {
     setPreviewMode(false);
     setJsonError("");
-    setExerciseJson(
-      section?.exercise_data
-        ? JSON.stringify(section.exercise_data, null, 2)
-        : "{}"
-    );
-  }, [section?.id, section?.exercise_data]);
+    activeSectionIdRef.current = section?.id ?? null;
+    const exerciseData = sectionExerciseDataRef.current;
+    const nextJson = exerciseData ? JSON.stringify(exerciseData, null, 2) : "{}";
+    setExerciseJson(nextJson);
+    setLastValidExerciseJson(nextJson);
+  }, [section?.id]);
+
+  useEffect(() => {
+    // Only auto-sync when the user hasn't diverged from the last known valid JSON.
+    if (!section) return;
+    if (activeSectionIdRef.current !== (section?.id ?? null)) return;
+    if (exerciseJson !== lastValidExerciseJson) return;
+
+    const nextJson = section?.exercise_data
+      ? JSON.stringify(section.exercise_data, null, 2)
+      : "{}";
+    setExerciseJson(nextJson);
+    setLastValidExerciseJson(nextJson);
+  }, [section?.exercise_data, section?.id, exerciseJson, lastValidExerciseJson, section]);
 
   const handleJsonChange = (value) => {
     setExerciseJson(value);
@@ -134,8 +172,10 @@ const LessonSectionEditorPanel = ({
       const parsed = value ? JSON.parse(value) : {};
       onChange({ exercise_data: parsed });
       setJsonError("");
+      setLastValidExerciseJson(value);
     } catch (err) {
-      setJsonError("Exercise configuration must be valid JSON.");
+      const details = getJsonErrorDetails(value, err);
+      setJsonError(details.message);
     }
   };
 
