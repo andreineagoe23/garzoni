@@ -2,96 +2,101 @@ import React, { useEffect, useRef, useState } from "react";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
 
-const CKEDITOR_SRC =
-  "https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js";
-
-const loadEditor = () => {
-  if (window.ClassicEditor) {
-    return Promise.resolve(window.ClassicEditor);
-  }
-
-  if (window.__monevoCkeditorPromise) {
-    return window.__monevoCkeditorPromise;
-  }
-
-  window.__monevoCkeditorPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = CKEDITOR_SRC;
-    script.onload = () => resolve(window.ClassicEditor);
-    script.onerror = reject;
-    document.body.appendChild(script);
-  });
-
-  return window.__monevoCkeditorPromise;
-};
-
 const RichTextEditor = ({ value, onChange }) => {
+  const wrapperRef = useRef(null);
   const containerRef = useRef(null);
   const editorRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  const lastEmittedDataRef = useRef(null);
+  const valueRef = useRef(value || "");
   const { darkMode } = useTheme();
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
+    valueRef.current = value || "";
+  }, [value]);
 
-    loadEditor()
-      .then(() => {
-        if (!containerRef.current || !isMounted) return null;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
-        return window.ClassicEditor.create(containerRef.current)
-          .then((instance) => {
-            if (!isMounted) return null;
-            editorRef.current = instance;
-            instance.setData(value || "");
-            instance.model.document.on("change:data", () => {
-              onChange(instance.getData());
-            });
-            return null;
-          })
-          .catch((err) => {
-            // eslint-disable-next-line no-console
-            console.error("CKEditor failed to initialize", err);
-          });
-      })
-      .catch((err) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const ClassicEditor = (await import("@ckeditor/ckeditor5-build-classic"))
+          .default;
+
+        if (cancelled || !containerRef.current) return;
+
+        const editor = await ClassicEditor.create(containerRef.current);
+        if (cancelled) {
+          await editor.destroy();
+          return;
+        }
+
+        editorRef.current = editor;
+        editor.setData(valueRef.current);
+
+        editor.model.document.on("change:data", () => {
+          const data = editor.getData();
+          lastEmittedDataRef.current = data;
+          onChangeRef.current?.(data);
+        });
+      } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("CKEditor failed to load", err);
-      });
+        console.error("CKEditor failed to initialize", err);
+        if (cancelled) return;
+        setLoadError("Failed to load editor.");
+      }
+    })();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
       if (editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onChange]); // value is handled separately in the effect below to avoid editor re-initialization
+  }, []); // initialize editor once; callback updates via onChangeRef
 
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.getData()) {
-      editorRef.current.setData(value || "");
-    }
-  }, [value]);
-
-  // Update editor UI class when theme changes
-  useEffect(() => {
-    if (containerRef.current) {
-      const editorElement =
-        containerRef.current.closest(".ck-editor__editable") ||
-        containerRef.current.querySelector(".ck-editor__editable");
-      if (editorElement) {
-        if (darkMode) {
-          editorElement.setAttribute("data-theme", "dark");
-        } else {
-          editorElement.removeAttribute("data-theme");
-        }
-      }
+    if (!wrapperRef.current) return;
+    if (darkMode) {
+      wrapperRef.current.setAttribute("data-theme", "dark");
+    } else {
+      wrapperRef.current.removeAttribute("data-theme");
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const nextValue = value || "";
+    if (nextValue === lastEmittedDataRef.current) return;
+    if (nextValue === editor.getData()) return;
+
+    // Avoid blowing away the caret while the user is typing.
+    const isFocused = editor.ui?.focusTracker?.isFocused;
+    if (isFocused) return;
+
+    editor.setData(nextValue);
+  }, [value]);
+
   return (
-    <div className="ckeditor-wrapper overflow-hidden rounded-xl border shadow-sm">
-      <div ref={containerRef} className="ckeditor-container" />
+    <div
+      ref={wrapperRef}
+      className="ckeditor-wrapper overflow-hidden rounded-xl border shadow-sm"
+    >
+      {loadError ? (
+        <div className="p-3 text-sm text-[color:var(--error,#dc2626)]">
+          {loadError}
+        </div>
+      ) : (
+        <div ref={containerRef} className="ckeditor-container" />
+      )}
     </div>
   );
 };
@@ -111,17 +116,55 @@ const LessonSectionEditorPanel = ({
 }) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [exerciseJson, setExerciseJson] = useState("{}");
+  const [lastValidExerciseJson, setLastValidExerciseJson] = useState("{}");
   const [jsonError, setJsonError] = useState("");
+  const activeSectionIdRef = useRef(null);
+  const sectionExerciseDataRef = useRef(null);
+
+  const getJsonErrorDetails = (value, error) => {
+    const message = String(error?.message || "Invalid JSON.");
+    const match = message.match(/position\s+(\d+)/i);
+    const position = match ? Number(match[1]) : null;
+    if (position == null || Number.isNaN(position)) {
+      return { message: "Exercise configuration must be valid JSON." };
+    }
+
+    const before = value.slice(0, position);
+    const line = before.split("\n").length;
+    const lastNewline = before.lastIndexOf("\n");
+    const column = position - (lastNewline === -1 ? 0 : lastNewline + 1) + 1;
+
+    return {
+      message: `Invalid JSON at line ${line}, column ${column}.`,
+    };
+  };
+
+  useEffect(() => {
+    sectionExerciseDataRef.current = section?.exercise_data ?? null;
+  }, [section?.exercise_data]);
 
   useEffect(() => {
     setPreviewMode(false);
     setJsonError("");
-    setExerciseJson(
-      section?.exercise_data
-        ? JSON.stringify(section.exercise_data, null, 2)
-        : "{}"
-    );
-  }, [section?.id, section?.exercise_data]);
+    activeSectionIdRef.current = section?.id ?? null;
+    const exerciseData = sectionExerciseDataRef.current;
+    const nextJson = exerciseData ? JSON.stringify(exerciseData, null, 2) : "{}";
+    setExerciseJson(nextJson);
+    setLastValidExerciseJson(nextJson);
+  }, [section?.id]);
+
+  useEffect(() => {
+    // Only auto-sync when the user hasn't diverged from the last known valid JSON.
+    if (!section) return;
+    if (activeSectionIdRef.current !== (section?.id ?? null)) return;
+    if (exerciseJson !== lastValidExerciseJson) return;
+
+    const nextJson = section?.exercise_data
+      ? JSON.stringify(section.exercise_data, null, 2)
+      : "{}";
+    setExerciseJson(nextJson);
+    setLastValidExerciseJson(nextJson);
+  }, [section?.exercise_data, section?.id, exerciseJson, lastValidExerciseJson, section]);
 
   const handleJsonChange = (value) => {
     setExerciseJson(value);
@@ -129,8 +172,10 @@ const LessonSectionEditorPanel = ({
       const parsed = value ? JSON.parse(value) : {};
       onChange({ exercise_data: parsed });
       setJsonError("");
+      setLastValidExerciseJson(value);
     } catch (err) {
-      setJsonError("Exercise configuration must be valid JSON.");
+      const details = getJsonErrorDetails(value, err);
+      setJsonError(details.message);
     }
   };
 
