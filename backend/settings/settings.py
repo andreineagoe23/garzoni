@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     # Domain-specific apps
     "authentication",
     "education",
@@ -68,6 +69,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "core.middleware.RequestIdMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -174,7 +176,41 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
     "JTI_CLAIM": "jti",
     "UPDATE_LAST_LOGIN": True,
+    # Cookie defaults for any endpoints that opt into cookie-based auth.
+    "AUTH_COOKIE_SECURE": not DEBUG,
+    "AUTH_COOKIE_SAMESITE": "None" if not DEBUG else "Lax",
 }
+
+# External HTTP safety defaults
+EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15"))
+HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
+HTTP_POOL_MAXSIZE = int(os.getenv("HTTP_POOL_MAXSIZE", "20"))
+
+# Rate limits (DRF throttles) for sensitive endpoints
+LOGIN_THROTTLE_RATE = os.getenv("LOGIN_THROTTLE_RATE", "10/min")
+CONTACT_THROTTLE_RATE = os.getenv("CONTACT_THROTTLE_RATE", "5/min")
+OPENROUTER_THROTTLE_RATE_FREE = os.getenv("OPENROUTER_THROTTLE_RATE_FREE", "30/min")
+OPENROUTER_THROTTLE_RATE_PREMIUM = os.getenv("OPENROUTER_THROTTLE_RATE_PREMIUM", "120/min")
+FINANCE_EXTERNAL_THROTTLE_RATE = os.getenv("FINANCE_EXTERNAL_THROTTLE_RATE", "60/min")
+
+# Optional: cache OpenRouter responses (in seconds). Keep disabled by default.
+OPENROUTER_CACHE_TTL_SECONDS = int(os.getenv("OPENROUTER_CACHE_TTL_SECONDS", "0"))
+OPENROUTER_IDEMPOTENCY_TTL_SECONDS = int(os.getenv("OPENROUTER_IDEMPOTENCY_TTL_SECONDS", "120"))
+
+# OpenRouter payload validation / abuse prevention
+OPENROUTER_MAX_PROMPT_CHARS = int(os.getenv("OPENROUTER_MAX_PROMPT_CHARS", "4000"))
+OPENROUTER_MAX_MESSAGES = int(os.getenv("OPENROUTER_MAX_MESSAGES", "30"))
+OPENROUTER_MAX_MESSAGE_CHARS = int(os.getenv("OPENROUTER_MAX_MESSAGE_CHARS", "2000"))
+OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "250"))
+OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
+    "OPENROUTER_ALLOWED_MODELS_CSV",
+    default=["mistralai/mistral-7b-instruct"],
+)
+
+# Security headers (Django 4.2 SecurityMiddleware)
+SECURE_REFERRER_POLICY = os.getenv(
+    "SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin"
+)
 
 cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS_CSV")
 if DEBUG and not cors_allowed_origins:

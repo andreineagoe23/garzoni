@@ -15,6 +15,16 @@ class FAQ(models.Model):
         
     class Meta:
         db_table = 'core_faq'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(helpful_count__gte=0),
+                name="faq_helpful_count_gte_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(not_helpful_count__gte=0),
+                name="faq_not_helpful_count_gte_0",
+            ),
+        ]
 
 class FAQFeedback(models.Model):
     """

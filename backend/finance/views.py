@@ -18,6 +18,8 @@ import logging
 import requests
 import stripe
 from django.conf import settings
+from finance.throttles import FinanceExternalRateThrottle
+from core.http_client import request_with_backoff
 
 from finance.models import (
     FinanceFact,
@@ -126,16 +128,20 @@ class StockPriceView(APIView):
     """Proxy Alpha Vantage price lookups through the backend."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         symbol = request.query_params.get("symbol")
         if not symbol:
-            return Response({"error": "Stock symbol is required."}, status=400)
+            return Response({"error": "Stock symbol is required.", "request_id": request_id}, status=400)
+        if len(symbol) > 12:
+            return Response({"error": "Stock symbol is too long.", "request_id": request_id}, status=400)
 
         api_key = settings.ALPHA_VANTAGE_API_KEY
         if not api_key:
             logger.error("ALPHA_VANTAGE_API_KEY is not configured.")
-            return Response({"error": "Price feed unavailable."}, status=503)
+            return Response({"error": "Price feed unavailable.", "request_id": request_id}, status=503)
 
         cache_key = f"alpha_quote_{symbol.upper()}"
         cached = cache.get(cache_key)
@@ -143,19 +149,22 @@ class StockPriceView(APIView):
             return Response(cached)
 
         try:
-            response = requests.get(
-                "https://www.alphavantage.co/query",
+            result = request_with_backoff(
+                method="GET",
+                url="https://www.alphavantage.co/query",
                 params={
                     "function": "GLOBAL_QUOTE",
                     "symbol": symbol,
                     "apikey": api_key,
                 },
-                timeout=10,
+                allow_retry=True,
+                max_attempts=3,
             )
+            response = result.response
             response.raise_for_status()
         except requests.RequestException as exc:
             logger.error("Alpha Vantage request failed: %s", exc)
-            return Response({"error": "Unable to fetch price data."}, status=502)
+            return Response({"error": "Unable to fetch price data.", "request_id": request_id}, status=502)
 
         payload = response.json()
         quote = payload.get("Global Quote", {})
@@ -174,7 +183,7 @@ class StockPriceView(APIView):
 
         if price is None:
             logger.warning("Alpha Vantage returned no price for symbol %s", symbol)
-            return Response({"error": "No price data available."}, status=502)
+            return Response({"error": "No price data available.", "request_id": request_id}, status=502)
 
         result = {
             "price": price,
@@ -189,19 +198,21 @@ class ForexRateView(APIView):
     """Proxy forex rate lookups to keep API keys server-side."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         base_currency = request.query_params.get("from")
         quote_currency = request.query_params.get("to")
 
         if not base_currency or not quote_currency:
-            return Response({"error": "Both 'from' and 'to' currencies are required."}, status=400)
+            return Response({"error": "Both 'from' and 'to' currencies are required.", "request_id": request_id}, status=400)
 
         base_currency = base_currency.upper().replace("LEI", "RON")
         quote_currency = quote_currency.upper().replace("LEI", "RON")
 
         if len(base_currency) != 3 or len(quote_currency) != 3:
-            return Response({"error": "Currencies must be 3-letter ISO codes."}, status=400)
+            return Response({"error": "Currencies must be 3-letter ISO codes.", "request_id": request_id}, status=400)
 
         cache_key = f"forex_{base_currency}_{quote_currency}"
         cached = cache.get(cache_key)
@@ -215,15 +226,18 @@ class ForexRateView(APIView):
 
         if free_currency_key:
             try:
-                free_response = requests.get(
-                    "https://api.freecurrencyapi.com/v1/latest",
+                free_result = request_with_backoff(
+                    method="GET",
+                    url="https://api.freecurrencyapi.com/v1/latest",
                     params={
                         "apikey": free_currency_key,
                         "base_currency": base_currency,
                         "currencies": quote_currency,
                     },
-                    timeout=10,
+                    allow_retry=True,
+                    max_attempts=3,
                 )
+                free_response = free_result.response
                 free_response.raise_for_status()
                 data = free_response.json().get("data", {})
                 rate = data.get(quote_currency)
@@ -234,10 +248,13 @@ class ForexRateView(APIView):
 
         if result is None and exchange_rate_key:
             try:
-                fx_response = requests.get(
-                    f"https://v6.exchangerate-api.com/v6/{exchange_rate_key}/pair/{base_currency}/{quote_currency}",
-                    timeout=10,
+                fx_result = request_with_backoff(
+                    method="GET",
+                    url=f"https://v6.exchangerate-api.com/v6/{exchange_rate_key}/pair/{base_currency}/{quote_currency}",
+                    allow_retry=True,
+                    max_attempts=3,
                 )
+                fx_response = fx_result.response
                 fx_response.raise_for_status()
                 data = fx_response.json()
                 conversion_rate = data.get("conversion_rate")
@@ -247,7 +264,7 @@ class ForexRateView(APIView):
                 logger.warning("ExchangeRate-API lookup failed: %s", exc)
 
         if result is None:
-            return Response({"error": "Unable to fetch forex rate."}, status=502)
+            return Response({"error": "Unable to fetch forex rate.", "request_id": request_id}, status=502)
 
         cache.set(cache_key, result, timeout=120)
         return Response(result)
@@ -257,11 +274,15 @@ class CryptoPriceView(APIView):
     """Proxy CoinGecko lookups to shield rate limits and API usage."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         crypto_id = request.query_params.get("id")
         if not crypto_id:
-            return Response({"error": "Crypto id is required."}, status=400)
+            return Response({"error": "Crypto id is required.", "request_id": request_id}, status=400)
+        if len(crypto_id) > 64:
+            return Response({"error": "Crypto id is too long.", "request_id": request_id}, status=400)
 
         crypto_id = crypto_id.strip().lower()
         cache_key = f"crypto_{crypto_id}"
@@ -270,24 +291,27 @@ class CryptoPriceView(APIView):
             return Response(cached)
 
         try:
-            response = requests.get(
-                "https://api.coingecko.com/api/v3/simple/price",
+            result = request_with_backoff(
+                method="GET",
+                url="https://api.coingecko.com/api/v3/simple/price",
                 params={
                     "ids": crypto_id,
                     "vs_currencies": "usd",
                     "include_24hr_change": "true",
                     "include_market_cap": "true",
                 },
-                timeout=10,
+                allow_retry=True,
+                max_attempts=3,
             )
+            response = result.response
             response.raise_for_status()
         except requests.RequestException as exc:
             logger.error("CoinGecko request failed: %s", exc)
-            return Response({"error": "Unable to fetch crypto price."}, status=502)
+            return Response({"error": "Unable to fetch crypto price.", "request_id": request_id}, status=502)
 
         payload = response.json().get(crypto_id)
         if not payload:
-            return Response({"error": "Crypto not found."}, status=404)
+            return Response({"error": "Crypto not found.", "request_id": request_id}, status=404)
 
         result = {
             "price": float(payload.get("usd", 0) or 0),

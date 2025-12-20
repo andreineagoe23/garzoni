@@ -35,6 +35,8 @@ from authentication.entitlements import (
 )
 from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
+from authentication.throttles import LoginRateThrottle
+from core.http_client import request_with_backoff
 
 logger = logging.getLogger(__name__)
 
@@ -104,9 +106,19 @@ def verify_recaptcha(token):
             "secret": settings.RECAPTCHA_PRIVATE_KEY,
             "response": token
         }
-        response = requests.post(url, data=data)
+        result = request_with_backoff(
+            method="POST",
+            url=url,
+            data=data,
+            allow_retry=False,
+            max_attempts=1,
+        )
+        response = result.response
         result = response.json()
         return result.get("success", False) and result.get("score", 0) >= settings.RECAPTCHA_REQUIRED_SCORE
+    except requests.Timeout:
+        logger.warning("reCAPTCHA verification timed out")
+        return False
     except Exception as e:
         logger.error(f"reCAPTCHA verification error: {str(e)}")
         return False
@@ -405,10 +417,25 @@ class UserHeartsRefillView(APIView):
 class LogoutView(APIView):
     """Handles user logout by clearing JWT cookies."""
 
-    permission_classes = [IsAuthenticated]
+    # AllowAny so an expired access token can still clear cookies. We still attempt to revoke refresh if provided.
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
+        refresh_token = (
+            request.COOKIES.get(REFRESH_COOKIE_NAME)
+            or request.data.get("refresh")
+            or request.headers.get("X-Refresh-Token")
+        )
+
+        # Best-effort refresh token revocation (blacklist).
+        if refresh_token:
+            try:
+                token_obj = RefreshToken(refresh_token)
+                token_obj.blacklist()
+            except Exception as exc:
+                logger.info("Logout refresh blacklist failed (best-effort): %s", exc)
+
         response = JsonResponse({"message": "Logout successful."})
         response = delete_jwt_cookies(response)
         clear_refresh_cookie(response)
@@ -419,6 +446,7 @@ class LoginSecureView(APIView):
     """Enhanced login view that uses HttpOnly cookies for refresh tokens and returns access tokens."""
     
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
     
     def post(self, request):
         """Handle POST requests to authenticate users and issue tokens."""
