@@ -6,23 +6,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('education', '0003_exercise_versioning'),
+        ("education", "0003_exercise_versioning"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='exercise',
-            name='type',
-            field=models.CharField(choices=[('drag-and-drop', 'Drag and Drop'), ('multiple-choice', 'Multiple Choice'), ('numeric', 'Numeric'), ('budget-allocation', 'Budget Allocation')], max_length=50),
+            model_name="exercise",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("drag-and-drop", "Drag and Drop"),
+                    ("multiple-choice", "Multiple Choice"),
+                    ("numeric", "Numeric"),
+                    ("budget-allocation", "Budget Allocation"),
+                ],
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='lessonsection',
-            name='exercise_type',
-            field=models.CharField(blank=True, choices=[('drag-and-drop', 'Drag and Drop'), ('multiple-choice', 'Multiple Choice'), ('numeric', 'Numeric'), ('budget-allocation', 'Budget Allocation')], max_length=50, null=True),
+            model_name="lessonsection",
+            name="exercise_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("drag-and-drop", "Drag and Drop"),
+                    ("multiple-choice", "Multiple Choice"),
+                    ("numeric", "Numeric"),
+                    ("budget-allocation", "Budget Allocation"),
+                ],
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='mastery',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="mastery",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
     ]

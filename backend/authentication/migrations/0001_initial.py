@@ -15,57 +15,132 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('earned_money', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('points', models.IntegerField(default=0)),
-                ('profile_avatar', models.URLField(blank=True, null=True)),
-                ('recommended_courses', models.JSONField(blank=True, default=list)),
-                ('referral_code', models.CharField(max_length=20, null=True, unique=True)),
-                ('referral_points', models.PositiveIntegerField(default=0)),
-                ('dark_mode', models.BooleanField(default=False)),
-                ('has_paid', models.BooleanField(default=False)),
-                ('stripe_payment_id', models.CharField(blank=True, db_index=True, max_length=255, null=True)),
-                ('email_reminder_preference', models.CharField(choices=[('none', 'No Reminders'), ('daily', 'Daily'), ('weekly', 'Weekly')], default='none', max_length=10)),
-                ('streak', models.IntegerField(default=0)),
-                ('last_completed_date', models.DateField(blank=True, null=True)),
-                ('last_login_date', models.DateField(blank=True, null=True)),
-                ('last_reminder_sent', models.DateTimeField(blank=True, null=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("earned_money", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                ("points", models.IntegerField(default=0)),
+                ("profile_avatar", models.URLField(blank=True, null=True)),
+                ("recommended_courses", models.JSONField(blank=True, default=list)),
+                ("referral_code", models.CharField(max_length=20, null=True, unique=True)),
+                ("referral_points", models.PositiveIntegerField(default=0)),
+                ("dark_mode", models.BooleanField(default=False)),
+                ("has_paid", models.BooleanField(default=False)),
+                (
+                    "stripe_payment_id",
+                    models.CharField(blank=True, db_index=True, max_length=255, null=True),
+                ),
+                (
+                    "email_reminder_preference",
+                    models.CharField(
+                        choices=[
+                            ("none", "No Reminders"),
+                            ("daily", "Daily"),
+                            ("weekly", "Weekly"),
+                        ],
+                        default="none",
+                        max_length=10,
+                    ),
+                ),
+                ("streak", models.IntegerField(default=0)),
+                ("last_completed_date", models.DateField(blank=True, null=True)),
+                ("last_login_date", models.DateField(blank=True, null=True)),
+                ("last_reminder_sent", models.DateTimeField(blank=True, null=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User Profile',
-                'verbose_name_plural': 'User Profiles',
-                'db_table': 'core_userprofile',
+                "verbose_name": "User Profile",
+                "verbose_name_plural": "User Profiles",
+                "db_table": "core_userprofile",
             },
         ),
         migrations.CreateModel(
-            name='Referral',
+            name="Referral",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('referral_code', models.CharField(blank=True, max_length=20, unique=True)),
-                ('referral_points', models.PositiveIntegerField(default=0)),
-                ('referred_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='referral_received', to=settings.AUTH_USER_MODEL)),
-                ('referrer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals_made', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("referral_code", models.CharField(blank=True, max_length=20, unique=True)),
+                ("referral_points", models.PositiveIntegerField(default=0)),
+                (
+                    "referred_user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="referral_received",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "referrer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="referrals_made",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_referral',
+                "db_table": "core_referral",
             },
         ),
         migrations.CreateModel(
-            name='FriendRequest',
+            name="FriendRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')], default='pending', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('receiver', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_requests', to=settings.AUTH_USER_MODEL)),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_requests', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("accepted", "Accepted"),
+                            ("rejected", "Rejected"),
+                        ],
+                        default="pending",
+                        max_length=10,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "receiver",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="received_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "sender",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sent_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'core_friendrequest',
-                'unique_together': {('sender', 'receiver')},
+                "db_table": "core_friendrequest",
+                "unique_together": {("sender", "receiver")},
             },
         ),
     ]

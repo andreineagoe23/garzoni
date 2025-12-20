@@ -88,4 +88,3 @@ const ForexTools = () => {
 };
 
 export default ForexTools;
-

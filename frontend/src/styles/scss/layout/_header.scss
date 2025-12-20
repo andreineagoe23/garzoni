@@ -48,7 +48,7 @@
   // Mobile adjustments
   @include media-breakpoint-down(md) {
     padding: 0 1rem;
-    
+
     &__brand img {
       height: 35px !important;
     }

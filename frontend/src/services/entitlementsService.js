@@ -13,4 +13,3 @@ export const FEATURE_COPY = {
   analytics: "Analytics & insights",
   ai_tutor: "AI tutor",
 };
-

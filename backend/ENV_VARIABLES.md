@@ -59,6 +59,7 @@ Quick reference for all environment variables used in the Monevo backend.
 | `TIME_ZONE` | Timezone | `UTC` |
 | `ALLOWED_HOSTS_CSV` | Comma-separated list of allowed hosts | - |
 | `FRONTEND_URL` | Frontend application URL | - |
+| `CKEDITOR_5_LICENSE_KEY` | CKEditor 5 license key (if used) | - |
 
 ## CORS & CSRF
 
@@ -111,4 +112,3 @@ REFRESH_COOKIE_SECURE=True
 - `DATABASE_URL` and `REDIS_URL` are automatically set by Render when linking services
 - Never commit actual values to version control
 - Use Render's Environment Groups to manage variables across services
-

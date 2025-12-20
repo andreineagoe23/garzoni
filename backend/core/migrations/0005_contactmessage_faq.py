@@ -6,31 +6,41 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0004_userprogress_last_completed_date_userprogress_streak'),
+        ("core", "0004_userprogress_last_completed_date_userprogress_streak"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ContactMessage',
+            name="ContactMessage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email', models.EmailField(max_length=254)),
-                ('topic', models.CharField(max_length=100)),
-                ('message', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254)),
+                ("topic", models.CharField(max_length=100)),
+                ("message", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='FAQ',
+            name="FAQ",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(max_length=100)),
-                ('question', models.TextField()),
-                ('answer', models.TextField()),
-                ('is_active', models.BooleanField(default=True)),
-                ('helpful_count', models.PositiveIntegerField(default=0)),
-                ('not_helpful_count', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("category", models.CharField(max_length=100)),
+                ("question", models.TextField()),
+                ("answer", models.TextField()),
+                ("is_active", models.BooleanField(default=True)),
+                ("helpful_count", models.PositiveIntegerField(default=0)),
+                ("not_helpful_count", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]

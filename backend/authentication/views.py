@@ -24,8 +24,11 @@ import os
 
 from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import (
-    RegisterSerializer, UserProfileSerializer, FriendRequestSerializer,
-    UserSearchSerializer, UserProfileSettingsSerializer
+    RegisterSerializer,
+    UserProfileSerializer,
+    FriendRequestSerializer,
+    UserSearchSerializer,
+    UserProfileSettingsSerializer,
 )
 from authentication.tokens import delete_jwt_cookies
 from authentication.entitlements import (
@@ -35,11 +38,14 @@ from authentication.entitlements import (
 )
 from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
+from authentication.throttles import LoginRateThrottle
+from core.http_client import request_with_backoff
 
 logger = logging.getLogger(__name__)
 
 REFRESH_COOKIE_NAME = "refresh_token"
 DEFAULT_REFRESH_MAX_AGE = 0
+
 
 def _get_refresh_cookie_kwargs():
     """Build keyword arguments for setting the refresh token cookie."""
@@ -88,11 +94,7 @@ def set_refresh_cookie(response, token: str):
 def clear_refresh_cookie(response):
     """Remove the refresh token cookie from the response."""
     base_kwargs = _get_refresh_cookie_kwargs()
-    delete_kwargs = {
-        k: v
-        for k, v in base_kwargs.items()
-        if k in {"path", "domain", "samesite"}
-    }
+    delete_kwargs = {k: v for k, v in base_kwargs.items() if k in {"path", "domain", "samesite"}}
     response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
 
 
@@ -100,13 +102,23 @@ def verify_recaptcha(token):
     """Verify the reCAPTCHA token with Google's API"""
     try:
         url = "https://www.google.com/recaptcha/api/siteverify"
-        data = {
-            "secret": settings.RECAPTCHA_PRIVATE_KEY,
-            "response": token
-        }
-        response = requests.post(url, data=data)
+        data = {"secret": settings.RECAPTCHA_PRIVATE_KEY, "response": token}
+        result = request_with_backoff(
+            method="POST",
+            url=url,
+            data=data,
+            allow_retry=False,
+            max_attempts=1,
+        )
+        response = result.response
         result = response.json()
-        return result.get("success", False) and result.get("score", 0) >= settings.RECAPTCHA_REQUIRED_SCORE
+        return (
+            result.get("success", False)
+            and result.get("score", 0) >= settings.RECAPTCHA_REQUIRED_SCORE
+        )
+    except requests.Timeout:
+        logger.warning("reCAPTCHA verification timed out")
+        return False
     except Exception as e:
         logger.error(f"reCAPTCHA verification error: {str(e)}")
         return False
@@ -131,22 +143,32 @@ class UserProfileView(APIView):
         # Get the current month's activity data
         today = timezone.now().date()
         first_day = today.replace(day=1)
-        last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
-        
+        last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(
+            days=1
+        )
+
         # Get all lesson completions for the current month
-        lesson_completions = LessonCompletion.objects.filter(
-            user_progress__user=request.user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day
-        ).values('completed_at__date').annotate(count=models.Count('id'))
+        lesson_completions = (
+            LessonCompletion.objects.filter(
+                user_progress__user=request.user,
+                completed_at__date__gte=first_day,
+                completed_at__date__lte=last_day,
+            )
+            .values("completed_at__date")
+            .annotate(count=models.Count("id"))
+        )
 
         # Create a dictionary of dates with completion counts
         activity_calendar = {
-            str(date): 0 for date in [first_day + timezone.timedelta(days=x) for x in range((last_day - first_day).days + 1)]
+            str(date): 0
+            for date in [
+                first_day + timezone.timedelta(days=x)
+                for x in range((last_day - first_day).days + 1)
+            ]
         }
-        
+
         for completion in lesson_completions:
-            activity_calendar[str(completion['completed_at__date'])] = completion['count']
+            activity_calendar[str(completion["completed_at__date"])] = completion["count"]
 
         active_questions = Question.objects.filter(is_active=True).count()
         answered_questions = UserResponse.objects.filter(
@@ -156,36 +178,38 @@ class UserProfileView(APIView):
 
         # Add current month information
         current_month = {
-            'first_day': first_day.isoformat(),
-            'last_day': last_day.isoformat(),
-            'month_name': first_day.strftime('%B'),
-            'year': first_day.year
+            "first_day": first_day.isoformat(),
+            "last_day": last_day.isoformat(),
+            "month_name": first_day.strftime("%B"),
+            "year": first_day.year,
         }
 
-        return Response({
-            "user_data": {
-                "first_name": request.user.first_name,
-                "last_name": request.user.last_name,
-                "email": request.user.email,
-                "earned_money": user_profile.earned_money,
-                "points": user_profile.points,
-                "streak": user_profile.streak,
-                "profile_avatar": user_profile.profile_avatar,
-                "dark_mode": user_profile.dark_mode,
-                "email_reminder_preference": user_profile.email_reminder_preference,
-                "has_paid": user_profile.has_paid,
-                "is_premium": user_profile.is_premium,
-                "subscription_status": user_profile.subscription_status,
-                "is_questionnaire_completed": questionnaire_completed
-            },
-            "activity_calendar": activity_calendar,
-            "current_month": current_month
-        })
+        return Response(
+            {
+                "user_data": {
+                    "first_name": request.user.first_name,
+                    "last_name": request.user.last_name,
+                    "email": request.user.email,
+                    "earned_money": user_profile.earned_money,
+                    "points": user_profile.points,
+                    "streak": user_profile.streak,
+                    "profile_avatar": user_profile.profile_avatar,
+                    "dark_mode": user_profile.dark_mode,
+                    "email_reminder_preference": user_profile.email_reminder_preference,
+                    "has_paid": user_profile.has_paid,
+                    "is_premium": user_profile.is_premium,
+                    "subscription_status": user_profile.subscription_status,
+                    "is_questionnaire_completed": questionnaire_completed,
+                },
+                "activity_calendar": activity_calendar,
+                "current_month": current_month,
+            }
+        )
 
     def patch(self, request):
         """Update specific fields in the user's profile."""
         user_profile = request.user.profile
-        email_reminder_preference = request.data.get('email_reminder_preference')
+        email_reminder_preference = request.data.get("email_reminder_preference")
         if email_reminder_preference is not None:
             user_profile.email_reminder_preference = email_reminder_preference
             user_profile.save()
@@ -251,9 +275,7 @@ def _hearts_constants(profile=None):
     """
     max_hearts = getattr(settings, "HEARTS_MAX", 5)
     standard_regen_seconds = getattr(settings, "HEARTS_REGEN_SECONDS", 30 * 60)
-    premium_regen_seconds = getattr(
-        settings, "HEARTS_REGEN_SECONDS_PREMIUM", 15 * 60
-    )
+    premium_regen_seconds = getattr(settings, "HEARTS_REGEN_SECONDS_PREMIUM", 15 * 60)
 
     is_premium = False
     if profile is not None:
@@ -405,10 +427,25 @@ class UserHeartsRefillView(APIView):
 class LogoutView(APIView):
     """Handles user logout by clearing JWT cookies."""
 
-    permission_classes = [IsAuthenticated]
+    # AllowAny so an expired access token can still clear cookies. We still attempt to revoke refresh if provided.
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
+        refresh_token = (
+            request.COOKIES.get(REFRESH_COOKIE_NAME)
+            or request.data.get("refresh")
+            or request.headers.get("X-Refresh-Token")
+        )
+
+        # Best-effort refresh token revocation (blacklist).
+        if refresh_token:
+            try:
+                token_obj = RefreshToken(refresh_token)
+                token_obj.blacklist()
+            except Exception as exc:
+                logger.info("Logout refresh blacklist failed (best-effort): %s", exc)
+
         response = JsonResponse({"message": "Logout successful."})
         response = delete_jwt_cookies(response)
         clear_refresh_cookie(response)
@@ -417,58 +454,62 @@ class LogoutView(APIView):
 
 class LoginSecureView(APIView):
     """Enhanced login view that uses HttpOnly cookies for refresh tokens and returns access tokens."""
-    
+
     permission_classes = [AllowAny]
-    
+    throttle_classes = [LoginRateThrottle]
+
     def post(self, request):
         """Handle POST requests to authenticate users and issue tokens."""
-        username = request.data.get('username')
-        password = request.data.get('password')
-        
+        username = request.data.get("username")
+        password = request.data.get("password")
+
         logger.info(f"Login attempt for username: {username}")
-        
+
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
             return Response({"detail": "Username and password are required."}, status=400)
-        
+
         try:
             user = User.objects.get(username=username)
             if not user.check_password(password):
                 logger.warning(f"Invalid password for {username}")
                 return Response({"detail": "Invalid username or password."}, status=401)
-                
+
             # Create tokens
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            
+
             logger.info(f"Successful login for {username}")
-            
+
             # Create response with access token in body
-            response = Response({
-                "access": access_token,
-                "refresh": refresh_token,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "is_staff": user.is_staff,
-                    "is_superuser": user.is_superuser
+            response = Response(
+                {
+                    "access": access_token,
+                    "refresh": refresh_token,
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "is_staff": user.is_staff,
+                        "is_superuser": user.is_superuser,
+                    },
                 }
-            })
-            
+            )
+
             # Set refresh token as HttpOnly cookie
             set_refresh_cookie(response, refresh_token)
-            
+
             # Update last login
             from django.utils.timezone import now
+
             user.last_login = now()
-            user.save(update_fields=['last_login'])
-            
+            user.save(update_fields=["last_login"])
+
             return response
-            
+
         except User.DoesNotExist:
             logger.warning(f"Login attempt for non-existent user: {username}")
             return Response({"detail": "Invalid username or password."}, status=401)
@@ -479,7 +520,7 @@ class LoginSecureView(APIView):
 
 class RegisterSecureView(generics.CreateAPIView):
     """Enhanced registration view that uses HttpOnly cookies for refresh tokens."""
-    
+
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
@@ -493,20 +534,23 @@ class RegisterSecureView(generics.CreateAPIView):
         access_token = str(refresh.access_token)
 
         # Create response with access token
-        response = Response({
-            "access": access_token,
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "is_staff": user.is_staff,
-                "is_superuser": user.is_superuser
+        response = Response(
+            {
+                "access": access_token,
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "is_staff": user.is_staff,
+                    "is_superuser": user.is_superuser,
+                },
+                "next": "/all-topics",  # Redirect to all topics after registration
             },
-            "next": "/all-topics"  # Redirect to all topics after registration
-        }, status=status.HTTP_201_CREATED)
+            status=status.HTTP_201_CREATED,
+        )
 
         # Set refresh token in HttpOnly cookie
         set_refresh_cookie(response, str(refresh))
@@ -537,8 +581,9 @@ class VerifyAuthView(APIView):
 
 class CustomTokenRefreshView(TokenRefreshView):
     """Custom token refresh view that extracts the refresh token from cookies."""
+
     permission_classes = [AllowAny]
-    
+
     def post(self, request, *args, **kwargs):
         refresh_token = (
             request.COOKIES.get(REFRESH_COOKIE_NAME)
@@ -585,9 +630,7 @@ class CustomTokenRefreshView(TokenRefreshView):
                 exc,
                 exc_info=True,
             )
-            response = Response(
-                {"detail": "User validation failed."}, status=401
-            )
+            response = Response({"detail": "User validation failed."}, status=401)
             clear_refresh_cookie(response)
             return response
 
@@ -599,10 +642,13 @@ class CustomTokenRefreshView(TokenRefreshView):
             logger.error("Token refresh failed to provide an access token")
             return Response({"detail": "Token refresh failed."}, status=401)
 
-        response = Response({
-            "access": access_token,
-            "refresh": response_refresh,
-        }, status=status.HTTP_200_OK)
+        response = Response(
+            {
+                "access": access_token,
+                "refresh": response_refresh,
+            },
+            status=status.HTTP_200_OK,
+        )
 
         if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
             new_refresh_token = response_data.get("refresh")
@@ -623,17 +669,19 @@ class UserSettingsView(APIView):
     def get(self, request):
         """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
-        return Response({
-            "email_reminder_preference": user_profile.email_reminder_preference,
-            "dark_mode": user_profile.dark_mode,
-            "profile": {
-                "username": request.user.username,
-                "email": request.user.email,
-                "first_name": request.user.first_name,
-                "last_name": request.user.last_name,
+        return Response(
+            {
+                "email_reminder_preference": user_profile.email_reminder_preference,
                 "dark_mode": user_profile.dark_mode,
-            },
-        })
+                "profile": {
+                    "username": request.user.username,
+                    "email": request.user.email,
+                    "first_name": request.user.first_name,
+                    "last_name": request.user.last_name,
+                    "dark_mode": user_profile.dark_mode,
+                },
+            }
+        )
 
     def patch(self, request):
         """Handle PATCH requests to update the user's settings."""
@@ -641,46 +689,48 @@ class UserSettingsView(APIView):
         user_profile = user.profile
 
         # Update profile data
-        profile_data = request.data.get('profile', {})
+        profile_data = request.data.get("profile", {})
         if profile_data:
-            user.username = profile_data.get('username', user.username)
-            user.email = profile_data.get('email', user.email)
-            user.first_name = profile_data.get('first_name', user.first_name)
-            user.last_name = profile_data.get('last_name', user.last_name)
+            user.username = profile_data.get("username", user.username)
+            user.email = profile_data.get("email", user.email)
+            user.first_name = profile_data.get("first_name", user.first_name)
+            user.last_name = profile_data.get("last_name", user.last_name)
             user.save()
 
         # Update other settings
-        dark_mode = request.data.get('dark_mode')
+        dark_mode = request.data.get("dark_mode")
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
 
-        email_reminder_preference = request.data.get('email_reminder_preference')
+        email_reminder_preference = request.data.get("email_reminder_preference")
         if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
             user_profile.email_reminder_preference = email_reminder_preference
 
         user_profile.save()
-        
+
         # Return updated settings
-        return Response({
-            "message": "Settings updated successfully.",
-            "dark_mode": user_profile.dark_mode,
-            "email_reminder_preference": user_profile.email_reminder_preference
-        })
+        return Response(
+            {
+                "message": "Settings updated successfully.",
+                "dark_mode": user_profile.dark_mode,
+                "email_reminder_preference": user_profile.email_reminder_preference,
+            }
+        )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def update_avatar(request):
     """Update the user's avatar with a valid DiceBear URL."""
-    avatar_url = request.data.get('profile_avatar')
+    avatar_url = request.data.get("profile_avatar")
 
     if not avatar_url or not (
-        avatar_url.startswith('https://avatars.dicebear.com/') or
-        avatar_url.startswith('https://api.dicebear.com/')
+        avatar_url.startswith("https://avatars.dicebear.com/")
+        or avatar_url.startswith("https://api.dicebear.com/")
     ):
         return Response(
             {"error": "Invalid avatar URL. Only DiceBear avatars are allowed."},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     user_profile = request.user.profile
@@ -690,14 +740,14 @@ def update_avatar(request):
     return Response({"status": "success", "avatar_url": avatar_url})
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_password(request):
     """Allow logged-in users to change their password."""
     user = request.user
-    current_password = request.data.get('current_password')
-    new_password = request.data.get('new_password')
-    confirm_password = request.data.get('confirm_password')
+    current_password = request.data.get("current_password")
+    new_password = request.data.get("new_password")
+    confirm_password = request.data.get("confirm_password")
 
     if not user.check_password(current_password):
         return Response({"error": "Current password is incorrect."}, status=400)
@@ -743,7 +793,7 @@ class PasswordResetRequestView(APIView):
 
     def post(self, request):
         """Process password reset requests by validating the email and sending a reset link."""
-        email = request.data.get('email')
+        email = request.data.get("email")
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -755,21 +805,25 @@ class PasswordResetRequestView(APIView):
 
             # Render the email content
             context = {
-                'user': user,
-                'reset_link': reset_link,
+                "user": user,
+                "reset_link": reset_link,
             }
             subject = "Password Reset Request"
             html_content = render_to_string("emails/password_reset.html", context)
             text_content = strip_tags(html_content)
 
             # Send the email
-            email_message = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
+            email_message = EmailMultiAlternatives(
+                subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email]
+            )
             email_message.attach_alternative(html_content, "text/html")
             email_message.send()
 
             return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class PasswordResetConfirmView(APIView):
@@ -783,10 +837,15 @@ class PasswordResetConfirmView(APIView):
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if PasswordResetTokenGenerator().check_token(user, token):
-            return Response({"message": "Token is valid, proceed with password reset."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Token is valid, proceed with password reset."},
+                status=status.HTTP_200_OK,
+            )
         else:
             return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -796,16 +855,22 @@ class PasswordResetConfirmView(APIView):
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if not PasswordResetTokenGenerator().check_token(user, token):
-            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         new_password = request.data.get("new_password")
         confirm_password = request.data.get("confirm_password")
 
         if not new_password or new_password != confirm_password:
-            return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         user.set_password(new_password)
         user.save()
@@ -820,33 +885,40 @@ class FriendRequestView(viewsets.ViewSet):
 
     def list(self, request):
         """Retrieve all pending friend requests for the authenticated user."""
-        requests = FriendRequest.objects.filter(
-            receiver=request.user,
-            status='pending'
-        )
+        requests = FriendRequest.objects.filter(receiver=request.user, status="pending")
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
-
 
     def create(self, request):
         """Send a friend request to another user."""
         receiver_id = request.data.get("receiver")
 
         if not receiver_id:
-            return Response({"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             receiver = User.objects.get(id=receiver_id)
 
             if request.user == receiver:
-                return Response({"error": "You cannot send a request to yourself"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "You cannot send a request to yourself"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-            existing_request = FriendRequest.objects.filter(sender=request.user, receiver=receiver, status="pending")
+            existing_request = FriendRequest.objects.filter(
+                sender=request.user, receiver=receiver, status="pending"
+            )
             if existing_request.exists():
-                return Response({"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             FriendRequest.objects.create(sender=request.user, receiver=receiver)
-            return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED
+            )
 
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -872,25 +944,25 @@ class FriendRequestView(viewsets.ViewSet):
                 return Response({"message": "Friend request rejected."}, status=status.HTTP_200_OK)
 
         except FriendRequest.DoesNotExist:
-            return Response({"error": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def get_sent_requests(self, request):
         """Retrieve all friend requests sent by the authenticated user."""
         requests = FriendRequest.objects.filter(sender=request.user)
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
-        
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=["get"])
     def get_friends(self, request):
         """Retrieve all accepted friends of the authenticated user."""
         friends_ids = FriendRequest.objects.filter(
-            models.Q(sender=request.user, status="accepted") |
-            models.Q(receiver=request.user, status="accepted")
-        ).values_list(
-            'receiver', 'sender'
-        )
-        
+            models.Q(sender=request.user, status="accepted")
+            | models.Q(receiver=request.user, status="accepted")
+        ).values_list("receiver", "sender")
+
         # Flatten and remove duplicates
         user_ids = []
         for receiver_id, sender_id in friends_ids:
@@ -949,22 +1021,27 @@ class FriendsLeaderboardView(APIView):
 
     def get(self, request):
         """Fetch the top friends of the authenticated user sorted by points."""
-        friends = User.objects.filter(
-            id__in=FriendRequest.objects.filter(
-                sender=request.user, status="accepted"
-            ).values_list('receiver', flat=True)
-        ).select_related('profile').order_by('-profile__points')[:10]
+        friends = (
+            User.objects.filter(
+                id__in=FriendRequest.objects.filter(
+                    sender=request.user, status="accepted"
+                ).values_list("receiver", flat=True)
+            )
+            .select_related("profile")
+            .order_by("-profile__points")[:10]
+        )
 
         leaderboard_data = []
         for friend in friends:
-            leaderboard_data.append({
-                "user": {
-                    "id": friend.id,
-                    "username": friend.username,
-                    "profile_avatar": friend.profile.profile_avatar
-                },
-                "points": friend.profile.points
-            })
+            leaderboard_data.append(
+                {
+                    "user": {
+                        "id": friend.id,
+                        "username": friend.username,
+                        "profile_avatar": friend.profile.profile_avatar,
+                    },
+                    "points": friend.profile.points,
+                }
+            )
 
         return Response(leaderboard_data)
-

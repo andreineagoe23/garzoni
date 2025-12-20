@@ -8,47 +8,55 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0002_referral_referral_code_referral_referral_points'),
+        ("core", "0002_referral_referral_code_referral_referral_points"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='userprofile',
-            name='email_frequency',
+            model_name="userprofile",
+            name="email_frequency",
         ),
         migrations.RemoveField(
-            model_name='userprofile',
-            name='email_reminders',
+            model_name="userprofile",
+            name="email_reminders",
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='email_reminder_preference',
-            field=models.CharField(choices=[('none', 'No Reminders'), ('daily', 'Daily'), ('weekly', 'Weekly')], default='none', max_length=10),
+            model_name="userprofile",
+            name="email_reminder_preference",
+            field=models.CharField(
+                choices=[("none", "No Reminders"), ("daily", "Daily"), ("weekly", "Weekly")],
+                default="none",
+                max_length=10,
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='last_login_date',
+            model_name="userprofile",
+            name="last_login_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='last_reminder_sent',
+            model_name="userprofile",
+            name="last_reminder_sent",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='points',
+            model_name="userprofile",
+            name="points",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='streak',
+            model_name="userprofile",
+            name="streak",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL),
+            model_name="userprofile",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

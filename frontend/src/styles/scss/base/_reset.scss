@@ -34,7 +34,7 @@ body {
 // 4. Global transitions for theme switching
 @media (prefers-reduced-motion: no-preference) {
   * {
-    transition: 
+    transition:
       background-color 0.3s ease,
       color 0.3s ease,
       border-color 0.3s ease,
@@ -53,7 +53,7 @@ a {
   color: var(--primary);
   text-decoration: none;
   background-color: transparent;
-  
+
   &:hover {
     color: var(--primary-dark);
     text-decoration: underline;

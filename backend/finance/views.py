@@ -18,6 +18,8 @@ import logging
 import requests
 import stripe
 from django.conf import settings
+from finance.throttles import FinanceExternalRateThrottle
+from core.http_client import request_with_backoff
 
 from finance.models import (
     FinanceFact,
@@ -30,8 +32,11 @@ from finance.models import (
 )
 from django.contrib.auth import get_user_model
 from finance.serializers import (
-    SimulatedSavingsAccountSerializer, RewardSerializer, UserPurchaseSerializer,
-    PortfolioEntrySerializer, FinancialGoalSerializer
+    SimulatedSavingsAccountSerializer,
+    RewardSerializer,
+    UserPurchaseSerializer,
+    PortfolioEntrySerializer,
+    FinancialGoalSerializer,
 )
 from authentication.models import UserProfile
 from gamification.models import MissionCompletion
@@ -67,28 +72,33 @@ class SavingsAccountView(APIView):
 
             with transaction.atomic():
                 # Update savings account
-                account, created = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
-                    user=user,
-                    defaults={'balance': amount}
+                (
+                    account,
+                    created,
+                ) = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
+                    user=user, defaults={"balance": amount}
                 )
                 if not created:
                     account.balance += amount
                     account.save()
 
                 # Fetch all savings-related missions
-                missions = MissionCompletion.objects.select_related('mission').filter(
+                missions = MissionCompletion.objects.select_related("mission").filter(
                     user=user,
                     mission__goal_type="add_savings",
-                    status__in=["not_started", "in_progress"]
+                    status__in=["not_started", "in_progress"],
                 )
 
                 for completion in missions:
                     mission_type = completion.mission.mission_type
-                    target = Decimal(str(completion.mission.goal_reference.get('target', 100)))
+                    target = Decimal(str(completion.mission.goal_reference.get("target", 100)))
 
                     # Daily savings: only update once per day
                     if mission_type == "daily":
-                        if completion.completed_at is not None and completion.completed_at.date() == today:
+                        if (
+                            completion.completed_at is not None
+                            and completion.completed_at.date() == today
+                        ):
                             continue  # Already completed today
 
                         increment = (amount / target) * 100
@@ -109,10 +119,9 @@ class SavingsAccountView(APIView):
 
                     completion.save()
 
-                return Response({
-                    "message": "Savings updated!",
-                    "balance": float(account.balance)
-                }, status=200)
+                return Response(
+                    {"message": "Savings updated!", "balance": float(account.balance)}, status=200
+                )
 
         except (ValueError, InvalidOperation) as e:
             logger.error(f"Invalid amount: {str(e)}")
@@ -126,16 +135,26 @@ class StockPriceView(APIView):
     """Proxy Alpha Vantage price lookups through the backend."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         symbol = request.query_params.get("symbol")
         if not symbol:
-            return Response({"error": "Stock symbol is required."}, status=400)
+            return Response(
+                {"error": "Stock symbol is required.", "request_id": request_id}, status=400
+            )
+        if len(symbol) > 12:
+            return Response(
+                {"error": "Stock symbol is too long.", "request_id": request_id}, status=400
+            )
 
         api_key = settings.ALPHA_VANTAGE_API_KEY
         if not api_key:
             logger.error("ALPHA_VANTAGE_API_KEY is not configured.")
-            return Response({"error": "Price feed unavailable."}, status=503)
+            return Response(
+                {"error": "Price feed unavailable.", "request_id": request_id}, status=503
+            )
 
         cache_key = f"alpha_quote_{symbol.upper()}"
         cached = cache.get(cache_key)
@@ -143,19 +162,24 @@ class StockPriceView(APIView):
             return Response(cached)
 
         try:
-            response = requests.get(
-                "https://www.alphavantage.co/query",
+            result = request_with_backoff(
+                method="GET",
+                url="https://www.alphavantage.co/query",
                 params={
                     "function": "GLOBAL_QUOTE",
                     "symbol": symbol,
                     "apikey": api_key,
                 },
-                timeout=10,
+                allow_retry=True,
+                max_attempts=3,
             )
+            response = result.response
             response.raise_for_status()
         except requests.RequestException as exc:
             logger.error("Alpha Vantage request failed: %s", exc)
-            return Response({"error": "Unable to fetch price data."}, status=502)
+            return Response(
+                {"error": "Unable to fetch price data.", "request_id": request_id}, status=502
+            )
 
         payload = response.json()
         quote = payload.get("Global Quote", {})
@@ -174,7 +198,9 @@ class StockPriceView(APIView):
 
         if price is None:
             logger.warning("Alpha Vantage returned no price for symbol %s", symbol)
-            return Response({"error": "No price data available."}, status=502)
+            return Response(
+                {"error": "No price data available.", "request_id": request_id}, status=502
+            )
 
         result = {
             "price": price,
@@ -189,19 +215,30 @@ class ForexRateView(APIView):
     """Proxy forex rate lookups to keep API keys server-side."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         base_currency = request.query_params.get("from")
         quote_currency = request.query_params.get("to")
 
         if not base_currency or not quote_currency:
-            return Response({"error": "Both 'from' and 'to' currencies are required."}, status=400)
+            return Response(
+                {
+                    "error": "Both 'from' and 'to' currencies are required.",
+                    "request_id": request_id,
+                },
+                status=400,
+            )
 
         base_currency = base_currency.upper().replace("LEI", "RON")
         quote_currency = quote_currency.upper().replace("LEI", "RON")
 
         if len(base_currency) != 3 or len(quote_currency) != 3:
-            return Response({"error": "Currencies must be 3-letter ISO codes."}, status=400)
+            return Response(
+                {"error": "Currencies must be 3-letter ISO codes.", "request_id": request_id},
+                status=400,
+            )
 
         cache_key = f"forex_{base_currency}_{quote_currency}"
         cached = cache.get(cache_key)
@@ -215,15 +252,18 @@ class ForexRateView(APIView):
 
         if free_currency_key:
             try:
-                free_response = requests.get(
-                    "https://api.freecurrencyapi.com/v1/latest",
+                free_result = request_with_backoff(
+                    method="GET",
+                    url="https://api.freecurrencyapi.com/v1/latest",
                     params={
                         "apikey": free_currency_key,
                         "base_currency": base_currency,
                         "currencies": quote_currency,
                     },
-                    timeout=10,
+                    allow_retry=True,
+                    max_attempts=3,
                 )
+                free_response = free_result.response
                 free_response.raise_for_status()
                 data = free_response.json().get("data", {})
                 rate = data.get(quote_currency)
@@ -234,10 +274,13 @@ class ForexRateView(APIView):
 
         if result is None and exchange_rate_key:
             try:
-                fx_response = requests.get(
-                    f"https://v6.exchangerate-api.com/v6/{exchange_rate_key}/pair/{base_currency}/{quote_currency}",
-                    timeout=10,
+                fx_result = request_with_backoff(
+                    method="GET",
+                    url=f"https://v6.exchangerate-api.com/v6/{exchange_rate_key}/pair/{base_currency}/{quote_currency}",
+                    allow_retry=True,
+                    max_attempts=3,
                 )
+                fx_response = fx_result.response
                 fx_response.raise_for_status()
                 data = fx_response.json()
                 conversion_rate = data.get("conversion_rate")
@@ -247,7 +290,9 @@ class ForexRateView(APIView):
                 logger.warning("ExchangeRate-API lookup failed: %s", exc)
 
         if result is None:
-            return Response({"error": "Unable to fetch forex rate."}, status=502)
+            return Response(
+                {"error": "Unable to fetch forex rate.", "request_id": request_id}, status=502
+            )
 
         cache.set(cache_key, result, timeout=120)
         return Response(result)
@@ -257,11 +302,19 @@ class CryptoPriceView(APIView):
     """Proxy CoinGecko lookups to shield rate limits and API usage."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def get(self, request):
+        request_id = getattr(request, "request_id", None)
         crypto_id = request.query_params.get("id")
         if not crypto_id:
-            return Response({"error": "Crypto id is required."}, status=400)
+            return Response(
+                {"error": "Crypto id is required.", "request_id": request_id}, status=400
+            )
+        if len(crypto_id) > 64:
+            return Response(
+                {"error": "Crypto id is too long.", "request_id": request_id}, status=400
+            )
 
         crypto_id = crypto_id.strip().lower()
         cache_key = f"crypto_{crypto_id}"
@@ -270,24 +323,29 @@ class CryptoPriceView(APIView):
             return Response(cached)
 
         try:
-            response = requests.get(
-                "https://api.coingecko.com/api/v3/simple/price",
+            result = request_with_backoff(
+                method="GET",
+                url="https://api.coingecko.com/api/v3/simple/price",
                 params={
                     "ids": crypto_id,
                     "vs_currencies": "usd",
                     "include_24hr_change": "true",
                     "include_market_cap": "true",
                 },
-                timeout=10,
+                allow_retry=True,
+                max_attempts=3,
             )
+            response = result.response
             response.raise_for_status()
         except requests.RequestException as exc:
             logger.error("CoinGecko request failed: %s", exc)
-            return Response({"error": "Unable to fetch crypto price."}, status=502)
+            return Response(
+                {"error": "Unable to fetch crypto price.", "request_id": request_id}, status=502
+            )
 
         payload = response.json().get(crypto_id)
         if not payload:
-            return Response({"error": "Crypto not found."}, status=404)
+            return Response({"error": "Crypto not found.", "request_id": request_id}, status=404)
 
         result = {
             "price": float(payload.get("usd", 0) or 0),
@@ -308,22 +366,23 @@ class FinanceFactView(APIView):
         """Retrieve a random unread finance fact for the user."""
         try:
             # Get unread facts
-            read_facts = UserFactProgress.objects.filter(
-                user=request.user
-            ).values_list('fact_id', flat=True)
+            read_facts = UserFactProgress.objects.filter(user=request.user).values_list(
+                "fact_id", flat=True
+            )
 
-            fact = FinanceFact.objects.filter(
-                is_active=True
-            ).exclude(id__in=read_facts).order_by('?').first()
+            fact = (
+                FinanceFact.objects.filter(is_active=True)
+                .exclude(id__in=read_facts)
+                .order_by("?")
+                .first()
+            )
 
             if not fact:
                 return Response(status=204)
 
-            return Response({
-                "id": fact.id,
-                "text": fact.text,
-                "category": fact.category
-            }, status=200)
+            return Response(
+                {"id": fact.id, "text": fact.text, "category": fact.category}, status=200
+            )
 
         except Exception as e:
             logger.error(f"Fact fetch error: {str(e)}")
@@ -332,7 +391,7 @@ class FinanceFactView(APIView):
     def post(self, request):
         """Mark a finance fact as read and update related missions."""
         try:
-            fact_id = request.data.get('fact_id')
+            fact_id = request.data.get("fact_id")
             if not fact_id:
                 return Response({"error": "Missing fact ID"}, status=400)
 
@@ -341,12 +400,13 @@ class FinanceFactView(APIView):
 
             # Prevent duplicate daily fact completion
             already_read_today = UserFactProgress.objects.filter(
-                user=request.user,
-                read_at__date=today
+                user=request.user, read_at__date=today
             ).exists()
 
             if already_read_today:
-                return Response({"message": "You already completed today's finance fact."}, status=200)
+                return Response(
+                    {"message": "You already completed today's finance fact."}, status=200
+                )
 
             # Log the fact as read
             UserFactProgress.objects.create(user=request.user, fact=fact)
@@ -355,7 +415,7 @@ class FinanceFactView(APIView):
             completions = MissionCompletion.objects.filter(
                 user=request.user,
                 mission__goal_type="read_fact",
-                status__in=["not_started", "in_progress"]
+                status__in=["not_started", "in_progress"],
             )
 
             for completion in completions:
@@ -386,12 +446,11 @@ class SavingsGoalCalculatorView(APIView):
             account.add_to_balance(amount)
 
             mission_completions = MissionCompletion.objects.filter(
-                user=request.user,
-                mission__goal_type="add_savings"
-            ).select_related('mission')
+                user=request.user, mission__goal_type="add_savings"
+            ).select_related("mission")
 
             for completion in mission_completions:
-                target = completion.mission.goal_reference.get('target', 100)
+                target = completion.mission.goal_reference.get("target", 100)
                 progress_increment = (amount / target) * 100
                 completion.update_progress(increment=progress_increment, total=100)
 
@@ -411,24 +470,24 @@ class RewardViewSet(viewsets.ModelViewSet):
         """Retrieve rewards filtered by type (shop or donate) if specified."""
         # Get type from query parameters, URL path, or request path
         reward_type = (
-            self.request.query_params.get('type') or 
-            self.kwargs.get('type', None) or
-            self._get_type_from_path()
+            self.request.query_params.get("type")
+            or self.kwargs.get("type", None)
+            or self._get_type_from_path()
         )
         queryset = Reward.objects.filter(is_active=True)
 
-        if reward_type in ['shop', 'donate']:
+        if reward_type in ["shop", "donate"]:
             queryset = queryset.filter(type=reward_type)
 
         return queryset
-    
+
     def _get_type_from_path(self):
         """Extract reward type from request path."""
         path = self.request.path
-        if '/rewards/shop/' in path:
-            return 'shop'
-        elif '/rewards/donate/' in path:
-            return 'donate'
+        if "/rewards/shop/" in path:
+            return "shop"
+        elif "/rewards/donate/" in path:
+            return "donate"
         return None
 
 
@@ -445,7 +504,7 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
     def create(self, request):
         """Handle POST requests to process a reward purchase for the user."""
         try:
-            reward_id = request.data.get('reward_id')
+            reward_id = request.data.get("reward_id")
             if not reward_id:
                 return Response({"error": "Missing reward_id"}, status=400)
 
@@ -460,16 +519,16 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
             user_profile.earned_money -= reward.cost
             user_profile.save()
 
-            purchase = UserPurchase.objects.create(
-                user=request.user,
-                reward=reward
-            )
+            purchase = UserPurchase.objects.create(user=request.user, reward=reward)
 
-            return Response({
-                "message": "Transaction successful!",
-                "remaining_balance": float(user_profile.earned_money),
-                "purchase": UserPurchaseSerializer(purchase, context={'request': request}).data
-            }, status=201)
+            return Response(
+                {
+                    "message": "Transaction successful!",
+                    "remaining_balance": float(user_profile.earned_money),
+                    "purchase": UserPurchaseSerializer(purchase, context={"request": request}).data,
+                },
+                status=201,
+            )
 
         except Reward.DoesNotExist:
             return Response({"error": "Reward not found or inactive"}, status=404)
@@ -486,7 +545,7 @@ class StripeWebhookView(APIView):
     def post(self, request):
         """Process Stripe webhook payloads and update user payment status."""
         payload = request.body
-        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
 
         webhook_secret = settings.STRIPE_WEBHOOK_SECRET
         if not webhook_secret:
@@ -496,10 +555,8 @@ class StripeWebhookView(APIView):
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret
-            )
-            logger.info("Stripe webhook received", extra={"event_type": event.get('type')})
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+            logger.info("Stripe webhook received", extra={"event_type": event.get("type")})
 
             record_funnel_event(
                 "webhook_received",
@@ -507,12 +564,16 @@ class StripeWebhookView(APIView):
                 metadata={"event_type": event.get("type")},
             )
 
-            if event['type'] == 'checkout.session.completed':
-                session = event['data']['object']
-                user_id = session['client_reference_id']
-                payment_status = session.get('payment_status', '')
-                session_status = session.get('status', '')
-                subscription_status = 'active' if payment_status == 'paid' else (payment_status or session_status or 'completed')
+            if event["type"] == "checkout.session.completed":
+                session = event["data"]["object"]
+                user_id = session["client_reference_id"]
+                payment_status = session.get("payment_status", "")
+                session_status = session.get("status", "")
+                subscription_status = (
+                    "active"
+                    if payment_status == "paid"
+                    else (payment_status or session_status or "completed")
+                )
 
                 with transaction.atomic():
                     user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
@@ -520,46 +581,47 @@ class StripeWebhookView(APIView):
                         user_profile.has_paid = True
                     user_profile.is_premium = True
                     user_profile.subscription_status = subscription_status
-                    user_profile.stripe_payment_id = session.get('payment_intent', '')
-                    user_profile.save(update_fields=[
-                        'has_paid',
-                        'is_premium',
-                        'subscription_status',
-                        'stripe_payment_id'
-                    ])
+                    user_profile.stripe_payment_id = session.get("payment_intent", "")
+                    user_profile.save(
+                        update_fields=[
+                            "has_paid",
+                            "is_premium",
+                            "subscription_status",
+                            "stripe_payment_id",
+                        ]
+                    )
 
-                    cache.delete_many([
-                        f'user_payment_status_{user_id}',
-                        f'user_profile_{user_id}'
-                    ])
+                    cache.delete_many([f"user_payment_status_{user_id}", f"user_profile_{user_id}"])
 
-            elif event['type'] in {'checkout.session.expired', 'checkout.session.async_payment_failed'}:
-                session = event['data']['object']
-                user_id = session.get('client_reference_id')
+            elif event["type"] in {
+                "checkout.session.expired",
+                "checkout.session.async_payment_failed",
+            }:
+                session = event["data"]["object"]
+                user_id = session.get("client_reference_id")
                 if user_id:
-                    session_status = session.get('status', 'expired')
+                    session_status = session.get("status", "expired")
                     with transaction.atomic():
                         user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
                         user_profile.subscription_status = session_status
-                        user_profile.save(update_fields=['subscription_status'])
+                        user_profile.save(update_fields=["subscription_status"])
 
-                        user_profile.stripe_payment_id = session.get('payment_intent', '')
-                        user_profile.save(update_fields=['has_paid', 'stripe_payment_id'])
+                        user_profile.stripe_payment_id = session.get("payment_intent", "")
+                        user_profile.save(update_fields=["has_paid", "stripe_payment_id"])
 
-                        cache.delete_many([
-                            f'user_payment_status_{user_id}',
-                            f'user_profile_{user_id}'
-                        ])
+                        cache.delete_many(
+                            [f"user_payment_status_{user_id}", f"user_profile_{user_id}"]
+                        )
 
                         record_funnel_event(
                             "checkout_completed",
                             user=user_profile.user,
-                            session_id=session.get('id', ''),
+                            session_id=session.get("id", ""),
                             metadata={
-                                "payment_intent": session.get('payment_intent', ''),
-                                "amount_total": session.get('amount_total'),
-                                "currency": session.get('currency')
-                            }
+                                "payment_intent": session.get("payment_intent", ""),
+                                "amount_total": session.get("amount_total"),
+                                "currency": session.get("currency"),
+                            },
                         )
 
         except stripe.error.SignatureVerificationError as exc:
@@ -585,21 +647,18 @@ class VerifySessionView(APIView):
     def post(self, request):
         """Check the payment status of a session and update the user's profile if paid."""
         try:
-            session_id = request.data.get('session_id')
-            if not session_id or not session_id.startswith('cs_'):
+            session_id = request.data.get("session_id")
+            if not session_id or not session_id.startswith("cs_"):
                 return Response({"error": "Invalid session ID format"}, status=400)
 
             stripe.api_key = settings.STRIPE_SECRET_KEY
-            session = stripe.checkout.Session.retrieve(
-                session_id,
-                expand=['payment_intent']
-            )
+            session = stripe.checkout.Session.retrieve(session_id, expand=["payment_intent"])
 
-            if session.payment_status != 'paid':
+            if session.payment_status != "paid":
                 return Response({"status": "pending"}, status=202)
 
             metadata = getattr(session, "metadata", {}) or {}
-            target_user_id = session.client_reference_id or metadata.get('user_id')
+            target_user_id = session.client_reference_id or metadata.get("user_id")
 
             if request.user and request.user.is_authenticated:
                 user_id_int = request.user.id
@@ -613,32 +672,32 @@ class VerifySessionView(APIView):
 
             User = get_user_model()
             try:
-                stripe_payment_id = (
-                    getattr(getattr(session, "payment_intent", None), "id", "")
-                )
+                stripe_payment_id = getattr(getattr(session, "payment_intent", None), "id", "")
                 with transaction.atomic():
                     profile, _ = UserProfile.objects.select_for_update().get_or_create(
                         user_id=user_id_int,
                         defaults={
-                            'has_paid': True,
-                            'is_premium': True,
-                            'subscription_status': 'active',
-                            'stripe_payment_id': stripe_payment_id,
-                        }
+                            "has_paid": True,
+                            "is_premium": True,
+                            "subscription_status": "active",
+                            "stripe_payment_id": stripe_payment_id,
+                        },
                     )
 
                     profile.has_paid = True
                     profile.is_premium = True
-                    profile.subscription_status = 'active'
+                    profile.subscription_status = "active"
                     profile.stripe_payment_id = stripe_payment_id
-                    profile.save(update_fields=[
-                        'has_paid',
-                        'is_premium',
-                        'subscription_status',
-                        'stripe_payment_id'
-                    ])
+                    profile.save(
+                        update_fields=[
+                            "has_paid",
+                            "is_premium",
+                            "subscription_status",
+                            "stripe_payment_id",
+                        ]
+                    )
 
-                    cache.set(f'user_payment_status_{user_id_int}', 'paid', 300)
+                    cache.set(f"user_payment_status_{user_id_int}", "paid", 300)
 
                 try:
                     user_for_event = User.objects.get(id=user_id_int)
@@ -646,9 +705,9 @@ class VerifySessionView(APIView):
                     user_for_event = None
 
                 event_metadata = {
-                    "payment_intent": str(getattr(session, 'payment_intent', '') or ''),
-                    "amount_total": getattr(session, 'amount_total', None),
-                    "currency": getattr(session, 'currency', None),
+                    "payment_intent": str(getattr(session, "payment_intent", "") or ""),
+                    "amount_total": getattr(session, "amount_total", None),
+                    "currency": getattr(session, "currency", None),
                 }
                 try:
                     json.dumps(event_metadata)
@@ -658,7 +717,7 @@ class VerifySessionView(APIView):
                 record_funnel_event(
                     "checkout_verified",
                     user=user_for_event,
-                    session_id=str(getattr(session, 'id', '') or ''),
+                    session_id=str(getattr(session, "id", "") or ""),
                     metadata=event_metadata,
                 )
             except UserProfile.DoesNotExist:
@@ -709,9 +768,7 @@ class EntitlementStatusView(APIView):
                 status="error",
                 metadata={"error": str(exc)},
             )
-            return Response(
-                {"error": "Unable to verify entitlements right now."}, status=503
-            )
+            return Response({"error": "Unable to verify entitlements right now."}, status=503)
 
 
 class FunnelEventIngestView(APIView):
@@ -737,7 +794,10 @@ class FunnelEventIngestView(APIView):
     def post(self, request):
         FunnelEvent = apps.get_model("finance", "FunnelEvent")
         if FunnelEvent is None:
-            return Response({"error": "FunnelEvent model unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response(
+                {"error": "FunnelEvent model unavailable"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         event_type = request.data.get("event_type")
         status = request.data.get("status", "success")
@@ -774,7 +834,10 @@ class FunnelMetricsView(APIView):
 
         FunnelEvent = apps.get_model("finance", "FunnelEvent")
         if FunnelEvent is None:
-            return Response({"error": "FunnelEvent model unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response(
+                {"error": "FunnelEvent model unavailable"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         days = int(request.query_params.get("days", 30))
         since = timezone.now() - timedelta(days=days)
@@ -811,12 +874,8 @@ class FunnelMetricsView(APIView):
                     "checkouts_completed": checkouts_completed,
                     "entitlement_success": entitlement_success,
                     "entitlement_failures": entitlement_failures,
-                    "pricing_to_checkout_rate": rate(
-                        checkouts_created, pricing_views
-                    ),
-                    "checkout_to_paid_rate": rate(
-                        checkouts_completed, checkouts_created
-                    ),
+                    "pricing_to_checkout_rate": rate(checkouts_created, pricing_views),
+                    "checkout_to_paid_rate": rate(checkouts_completed, checkouts_created),
                     "entitlement_success_rate": rate(
                         entitlement_success, entitlement_success + entitlement_failures
                     ),
@@ -836,12 +895,12 @@ class PortfolioViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def summary(self, request):
         portfolio = self.get_queryset()
         total_value = sum(entry.calculate_value() for entry in portfolio)
         total_gain_loss = sum(entry.calculate_gain_loss() for entry in portfolio)
-        
+
         # Calculate allocation by asset type
         allocation = {}
         for entry in portfolio:
@@ -850,11 +909,13 @@ class PortfolioViewSet(viewsets.ModelViewSet):
                 allocation[entry.asset_type] = 0
             allocation[entry.asset_type] += value
 
-        return Response({
-            'total_value': total_value,
-            'total_gain_loss': total_gain_loss,
-            'allocation': allocation
-        })
+        return Response(
+            {
+                "total_value": total_value,
+                "total_gain_loss": total_gain_loss,
+                "allocation": allocation,
+            }
+        )
 
 
 class FinancialGoalViewSet(viewsets.ModelViewSet):
@@ -867,15 +928,14 @@ class FinancialGoalViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_funds(self, request, pk=None):
         goal = self.get_object()
-        amount = Decimal(request.data.get('amount', 0))
-        
+        amount = Decimal(request.data.get("amount", 0))
+
         if amount <= 0:
             return Response(
-                {'error': 'Amount must be greater than 0'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Amount must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         goal.current_amount += amount
@@ -889,4 +949,3 @@ class FinancialGoalViewSet(viewsets.ModelViewSet):
             user_profile.save()
 
         return Response(self.get_serializer(goal).data)
-

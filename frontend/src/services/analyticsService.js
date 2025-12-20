@@ -10,4 +10,3 @@ export const fetchFunnelMetrics = (params = {}) =>
   apiClient.get("/funnel/metrics/", { params });
 
 export const fetchEntitlements = () => apiClient.get("/finance/entitlements/");
-

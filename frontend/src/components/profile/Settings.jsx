@@ -8,6 +8,7 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import EntitlementMatrix from "components/billing/EntitlementMatrix";
 import { fetchEntitlements } from "services/entitlementsService";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Settings() {
   const { getAccessToken, logoutUser, loadSettings } = useAuth();
@@ -31,9 +32,9 @@ function Settings() {
   const [loading, setLoading] = useState(true);
 
   const { data: entitlementsData } = useQuery({
-    queryKey: ["entitlements"],
+    queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
-    staleTime: 5 * 60 * 1000,
+    staleTime: staleTimes.entitlements,
   });
 
   useEffect(() => {
@@ -445,4 +446,3 @@ function Settings() {
 }
 
 export default Settings;
-

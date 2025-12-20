@@ -1,0 +1,119 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-monevo}
+      POSTGRES_USER: ${POSTGRES_USER:-monevo}
+      # Required: set POSTGRES_PASSWORD in your local `.env` (do not commit it)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DEBUG: "${DJANGO_DEBUG:-True}"
+      # Optional in DEBUG=True (Django will use a local-only placeholder if SECRET_KEY is unset).
+      SECRET_KEY: "${DJANGO_SECRET_KEY:-}"
+      TIME_ZONE: "${TIME_ZONE:-UTC}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
+      CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+    volumes:
+      - backend_media:/app/media
+      - backend_static:/app/staticfiles
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A settings worker -l info
+    environment:
+      DEBUG: "${DJANGO_DEBUG:-True}"
+      SECRET_KEY: "${DJANGO_SECRET_KEY:-}"
+      TIME_ZONE: "${TIME_ZONE:-UTC}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
+      CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      SKIP_COLLECTSTATIC: "1"
+      SKIP_MIGRATIONS: "1"
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A settings beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DEBUG: "${DJANGO_DEBUG:-True}"
+      SECRET_KEY: "${DJANGO_SECRET_KEY:-}"
+      TIME_ZONE: "${TIME_ZONE:-UTC}"
+      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
+      CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      SKIP_COLLECTSTATIC: "1"
+      SKIP_MIGRATIONS: "1"
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  backend_media:
+  backend_static:
