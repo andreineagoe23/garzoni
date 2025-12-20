@@ -41,8 +41,6 @@ WORKDIR /app
 # Install only runtime dependencies (no build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
-    default-mysql-client \
-    libmariadb-dev \
     libjpeg62-turbo \
     zlib1g \
     libfreetype6 \
@@ -60,11 +58,12 @@ RUN pip install --upgrade pip setuptools wheel \
 # Copy application code
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
+# Entrypoint runs migrations + collectstatic (unless disabled), then starts gunicorn.
+RUN chmod +x /app/docker/entrypoint.sh
 
 EXPOSE 8000
 
 # Use exec form for better signal handling
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
 

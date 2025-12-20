@@ -4,11 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from authentication.views import CustomTokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Add a direct route for token refresh to avoid cookie path issues
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token-refresh-direct'),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path('api/', include('authentication.urls')),
     path('api/', include('education.urls')),
     path('api/', include('gamification.urls')),

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     # Domain-specific apps
@@ -159,11 +160,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "1000/day"},
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": os.getenv("API_TITLE", "Monevo API"),
+    "DESCRIPTION": os.getenv(
+        "API_DESCRIPTION",
+        "Monevo backend API (Django REST Framework). Use the Swagger UI for discovery and testing.",
+    ),
+    "VERSION": os.getenv("API_VERSION", "0.1.0"),
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {

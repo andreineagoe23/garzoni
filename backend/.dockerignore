@@ -1,3 +1,23 @@
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.env
+db.sqlite3
+media/
+staticfiles/
+node_modules/
+.git/
+.github/
+*.log
+
 # Python
 __pycache__/
 *.py[cod]
