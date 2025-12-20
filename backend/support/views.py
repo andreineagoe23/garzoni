@@ -2,21 +2,28 @@
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
-from django.core.mail import send_mail
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
+from django.db.models import F, Case, When, Value, IntegerField
 import logging
 import os
 import re
 import requests
+import hashlib
+import json
+import time
 
 from support.models import FAQ, FAQFeedback, ContactMessage
 from support.serializers import FAQSerializer
 from authentication.models import UserProfile
 from authentication.entitlements import check_and_consume_entitlement
 from education.models import Path, UserProgress
+from support.tasks import send_contact_email
+from support.throttles import ContactRateThrottle, OpenRouterPlanRateThrottle
+from core.http_client import request_with_backoff
 
 logger = logging.getLogger(__name__)
 
@@ -36,44 +43,76 @@ class FAQListView(generics.ListAPIView):
 @permission_classes([AllowAny])
 def vote_faq(request, faq_id):
     """Handle voting on FAQ helpfulness."""
+    request_id = getattr(request, "request_id", None)
     vote = request.data.get("vote")
+    if vote not in {"helpful", "not_helpful"}:
+        return Response({"error": "Invalid vote", "request_id": request_id}, status=400)
     try:
-        faq = FAQ.objects.get(id=faq_id)
         user = request.user if request.user.is_authenticated else None
-        
-        # Check if user has already voted
-        existing_feedback = FAQFeedback.objects.filter(faq=faq, user=user).first()
-        if existing_feedback:
-            # If user is changing their vote
-            if existing_feedback.vote != vote:
-                if existing_feedback.vote == 'helpful':
-                    faq.helpful_count -= 1
-                    faq.not_helpful_count += 1
-                else:
-                    faq.not_helpful_count -= 1
-                    faq.helpful_count += 1
-                existing_feedback.vote = vote
-                existing_feedback.save()
+
+        # Anonymous votes: update counters atomically, but do not store per-user feedback.
+        if user is None:
+            if vote == "helpful":
+                updated = FAQ.objects.filter(id=faq_id).update(helpful_count=F("helpful_count") + 1)
             else:
-                return Response({"message": "You have already voted this way"}, status=400)
-        else:
-            # New vote
+                updated = FAQ.objects.filter(id=faq_id).update(not_helpful_count=F("not_helpful_count") + 1)
+
+            if updated == 0:
+                return Response({"error": "FAQ not found", "request_id": request_id}, status=404)
+            return Response({"message": "Thanks for your feedback!"})
+
+        with transaction.atomic():
+            faq = FAQ.objects.select_for_update().get(id=faq_id)
+
+            existing_feedback = (
+                FAQFeedback.objects.select_for_update()
+                .filter(faq=faq, user=user)
+                .first()
+            )
+
+            if existing_feedback:
+                if existing_feedback.vote == vote:
+                    return Response({"message": "You have already voted this way"}, status=400)
+
+                # Switching vote: decrement previous bucket (clamped at 0), increment new bucket.
+                if existing_feedback.vote == "helpful" and vote == "not_helpful":
+                    FAQ.objects.filter(id=faq_id).update(
+                        helpful_count=Case(
+                            When(helpful_count__gt=0, then=F("helpful_count") - 1),
+                            default=Value(0),
+                            output_field=IntegerField(),
+                        ),
+                        not_helpful_count=F("not_helpful_count") + 1,
+                    )
+                elif existing_feedback.vote == "not_helpful" and vote == "helpful":
+                    FAQ.objects.filter(id=faq_id).update(
+                        not_helpful_count=Case(
+                            When(not_helpful_count__gt=0, then=F("not_helpful_count") - 1),
+                            default=Value(0),
+                            output_field=IntegerField(),
+                        ),
+                        helpful_count=F("helpful_count") + 1,
+                    )
+
+                existing_feedback.vote = vote
+                existing_feedback.save(update_fields=["vote"])
+                return Response({"message": "Thanks for your feedback!"})
+
+            # New vote: create feedback + increment the correct counter atomically.
             FAQFeedback.objects.create(faq=faq, user=user, vote=vote)
             if vote == "helpful":
-                faq.helpful_count += 1
-            elif vote == "not_helpful":
-                faq.not_helpful_count += 1
+                FAQ.objects.filter(id=faq_id).update(helpful_count=F("helpful_count") + 1)
             else:
-                return Response({"error": "Invalid vote"}, status=400)
-        
-        faq.save()
-        return Response({"message": "Thanks for your feedback!"})
+                FAQ.objects.filter(id=faq_id).update(not_helpful_count=F("not_helpful_count") + 1)
+
+            return Response({"message": "Thanks for your feedback!"})
     except FAQ.DoesNotExist:
-        return Response({"error": "FAQ not found"}, status=404)
+        return Response({"error": "FAQ not found", "request_id": request_id}, status=404)
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([ContactRateThrottle])
 def contact_us(request):
     """Handle contact form submissions from users"""
     email = request.data.get("email")
@@ -83,27 +122,45 @@ def contact_us(request):
     if not email or not message:
         return Response({"error": "Email and message are required."}, status=400)
 
-    # Save to database
+    # Dedupe bursts: (email + topic + message hash + minute bucket)
+    minute_bucket = int(time.time() // 60)
+    dedupe_hash = hashlib.sha256(
+        f"{email}|{topic}|{hashlib.sha256(message.encode('utf-8')).hexdigest()}|{minute_bucket}".encode(
+            "utf-8"
+        )
+    ).hexdigest()
+    dedupe_key = f"contact:dedupe:{dedupe_hash}"
+    if not cache.add(dedupe_key, 1, timeout=120):
+        return Response({"message": "Your message has been received!"}, status=202)
+
+    # Save to database (only once per dedupe window)
     ContactMessage.objects.create(email=email, topic=topic, message=message)
 
-    # Send email notification
+    # Send email notification asynchronously (never silently drop)
     try:
-        send_mail(
-            f"[Contact Form] {topic}",
-            f"From: {email}\n\n{message}",
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.CONTACT_EMAIL] if hasattr(settings, 'CONTACT_EMAIL') else [settings.DEFAULT_FROM_EMAIL],
-        )
+        send_contact_email.delay(email=email, topic=topic, message=message)
     except Exception as e:
-        # Log the error but don't fail the request
-        logger.error(f"Error sending email: {str(e)}")
+        request_id = getattr(request, "request_id", None)
+        logger.error(
+            "contact_email_queue_failed request_id=%s err=%s",
+            request_id,
+            str(e),
+        )
+        return Response(
+            {
+                "error": "We couldn't queue your message right now. Please try again.",
+                "request_id": request_id,
+            },
+            status=503,
+        )
 
-    return Response({"message": "Your message has been received!"})
+    return Response({"message": "Your message has been received!"}, status=202)
 
 
 class OpenRouterProxyView(APIView):
     """Proxy view for OpenRouter AI chatbot integration."""
     permission_classes = [IsAuthenticated]
+    throttle_classes = [OpenRouterPlanRateThrottle]
 
     def is_greeting(self, text):
         """Check if the message is a simple greeting."""
@@ -178,16 +235,66 @@ class OpenRouterProxyView(APIView):
         prompt = request.data.get("inputs", "").strip()
         parameters = request.data.get("parameters", {})
         chat_history = request.data.get("chatHistory", [])
+        request_id = getattr(request, "request_id", None)
+
+        # Prevent abuse via huge payloads.
+        if len(prompt) > settings.OPENROUTER_MAX_PROMPT_CHARS:
+            return Response(
+                {
+                    "error": "Prompt is too long.",
+                    "max_chars": settings.OPENROUTER_MAX_PROMPT_CHARS,
+                    "request_id": request_id,
+                },
+                status=413,
+            )
+
+        # Validate chat history structure.
+        if chat_history and not isinstance(chat_history, list):
+            return Response({"error": "Invalid chatHistory.", "request_id": request_id}, status=400)
+        if isinstance(chat_history, list) and len(chat_history) > settings.OPENROUTER_MAX_MESSAGES:
+            chat_history = chat_history[-settings.OPENROUTER_MAX_MESSAGES :]
         
         if not prompt:
             return Response({"error": "Prompt is required."}, status=400)
 
+        # Idempotency: if the client supplies a key, we ensure repeat submissions don't double-spend.
+        idempotency_key = (
+            request.headers.get("Idempotency-Key")
+            or request.headers.get("X-Idempotency-Key")
+            or request.data.get("idempotency_key")
+        )
+        if idempotency_key is not None:
+            idempotency_key = str(idempotency_key).strip()
+            if not idempotency_key or len(idempotency_key) > 128:
+                return Response(
+                    {"error": "Invalid Idempotency-Key.", "request_id": request_id},
+                    status=400,
+                )
+
+        idem_cache_key = None
+        idem_lock_key = None
+        if idempotency_key:
+            idem_cache_key = f"openrouter:idem:{request.user.id}:{idempotency_key}"
+            cached_idem = cache.get(idem_cache_key)
+            if cached_idem:
+                return Response(cached_idem)
+
+            # Lock early to prevent duplicate spend (including entitlement consumption).
+            idem_lock_key = f"{idem_cache_key}:lock"
+            if not cache.add(idem_lock_key, 1, timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS):
+                cached_idem = cache.get(idem_cache_key)
+                if cached_idem:
+                    return Response(cached_idem)
+                return Response(
+                    {"error": "Request already in progress.", "request_id": request_id},
+                    status=409,
+                )
+
+        # Optional caching (disabled by default). Cache is per-user because prompt includes user context.
+        cache_ttl = int(getattr(settings, "OPENROUTER_CACHE_TTL_SECONDS", 0) or 0)
+        if settings.DEBUG and cache_ttl <= 0:
+            cache_ttl = 300
         cache_key = None
-        if settings.DEBUG:
-            cache_key = f"openrouter_response_{request.user.id}_{hash(prompt)}"
-            cached_response = cache.get(cache_key)
-            if cached_response:
-                return Response(cached_response)
 
         try:
             allowed, entitlement_meta = check_and_consume_entitlement(request.user, "ai_tutor")
@@ -269,6 +376,10 @@ class OpenRouterProxyView(APIView):
                 "Content-Type": "application/json",
             }
 
+            if not headers.get("Authorization") or headers["Authorization"].endswith(" "):
+                logger.error("OPENROUTER_API_KEY is not configured.")
+                return Response({"error": "AI service unavailable."}, status=503)
+
             messages = []
             available_paths = self.format_paths_for_message()
             system_message = {
@@ -286,7 +397,26 @@ class OpenRouterProxyView(APIView):
             messages.append(system_message)
             
             if chat_history and isinstance(chat_history, list) and len(chat_history) > 0:
-                messages.extend(chat_history)
+                # Sanitize incoming messages to avoid huge payloads and invalid structures.
+                sanitized = []
+                for item in chat_history:
+                    if not isinstance(item, dict):
+                        continue
+                    role = item.get("role")
+                    content = item.get("content")
+                    if role not in {"user", "assistant", "system"}:
+                        continue
+                    if not isinstance(content, str):
+                        continue
+                    content = content.strip()
+                    if not content:
+                        continue
+                    if len(content) > settings.OPENROUTER_MAX_MESSAGE_CHARS:
+                        content = content[: settings.OPENROUTER_MAX_MESSAGE_CHARS]
+                    sanitized.append({"role": role, "content": content})
+                    if len(sanitized) >= settings.OPENROUTER_MAX_MESSAGES:
+                        break
+                messages.extend(sanitized)
             else:
                 if "User:" in prompt and "AI:" in prompt:
                     conversation_parts = []
@@ -300,18 +430,69 @@ class OpenRouterProxyView(APIView):
                 else:
                     messages.append({"role": "user", "content": prompt})
             
+            # Clamp parameters to safe limits.
+            requested_model = str(parameters.get("model") or "mistralai/mistral-7b-instruct")
+            if requested_model not in settings.OPENROUTER_ALLOWED_MODELS_CSV:
+                return Response(
+                    {
+                        "error": "Model not allowed.",
+                        "request_id": request_id,
+                    },
+                    status=400,
+                )
+
+            try:
+                max_tokens = int(parameters.get("max_new_tokens", 150))
+            except Exception:
+                max_tokens = 150
+            max_tokens = max(1, min(max_tokens, settings.OPENROUTER_MAX_TOKENS))
+
+            temperature = parameters.get("temperature", 0.7)
+            try:
+                temperature = float(temperature)
+            except Exception:
+                temperature = 0.7
+            temperature = max(0.0, min(temperature, 1.5))
+
             api_params = {
-                "model": "mistralai/mistral-7b-instruct",
+                "model": requested_model,
                 "messages": messages,
-                "temperature": parameters.get("temperature", 0.7),
-                "max_tokens": parameters.get("max_new_tokens", 150),
+                "temperature": temperature,
+                "max_tokens": max_tokens,
             }
+
+            if cache_ttl > 0:
+                payload_hash = hashlib.sha256(
+                    json.dumps(api_params, sort_keys=True, default=str).encode("utf-8")
+                ).hexdigest()
+                cache_key = f"openrouter:v2:{request.user.id}:{payload_hash}"
+                cached = cache.get(cache_key)
+                if cached:
+                    return Response(cached)
             
-            response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=api_params
-            )
+            try:
+                # Only retry POST if we have idempotency protection.
+                result = request_with_backoff(
+                    method="POST",
+                    url="https://openrouter.ai/api/v1/chat/completions",
+                    headers=headers,
+                    json=api_params,
+                    allow_retry=bool(idem_cache_key),
+                    max_attempts=3,
+                )
+                response = result.response
+            except requests.Timeout:
+                return Response(
+                    {"error": "AI service timed out. Please try again.", "request_id": request_id},
+                    status=504,
+                )
+            except requests.RequestException as exc:
+                logger.warning(
+                    "openrouter_request_failed request_id=%s err=%s",
+                    request_id,
+                    str(exc),
+                )
+                return Response({"error": "AI service unavailable.", "request_id": request_id}, status=502)
             
             if response.status_code == 200:
                 response_data = response.json()
@@ -330,18 +511,37 @@ class OpenRouterProxyView(APIView):
                             }
                             break
                     
-                    if settings.DEBUG and cache_key:
-                        cache.set(cache_key, result, timeout=300)
+                    if cache_key and cache_ttl > 0:
+                        cache.set(cache_key, result, timeout=cache_ttl)
+                    if idem_cache_key:
+                        cache.set(idem_cache_key, result, timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS)
                         
                     return Response(result)
                 else:
-                    return Response({"error": "No valid response from the model."}, status=500)
+                    return Response({"error": "No valid response from the model.", "request_id": request_id}, status=502)
             else:
-                return Response({"error": f"Error from OpenRouter API: {response.text}"}, status=response.status_code)
+                logger.warning(
+                    "OpenRouter non-200 request_id=%s status=%s body=%s",
+                    request_id,
+                    response.status_code,
+                    response.text[:200],
+                )
+                return Response({"error": "AI service error.", "request_id": request_id}, status=502)
                 
         except Exception as e:
-            logger.error(f"OpenRouter Error: {str(e)}")
-            return Response({"error": str(e)}, status=500)
+            # Never log raw prompts/bodies; include request_id for correlation.
+            logger.error(
+                "openrouter_unexpected_error request_id=%s",
+                request_id,
+                exc_info=True,
+            )
+            return Response(
+                {"error": "Unexpected server error.", "request_id": request_id},
+                status=500,
+            )
+        finally:
+            if idem_lock_key:
+                cache.delete(idem_lock_key)
 
     def is_finance_related(self, text):
         """Check if the query is related to finance."""
