@@ -8,10 +8,10 @@ import { GlassContainer } from "components/ui";
 
 const NAV_ITEMS = [
   { path: "/all-topics", label: "Dashboard", icon: "🏠" },
-  { path: "/leaderboards", label: "Leaderboards", icon: "🏆" },
   { path: "/exercises", label: "Exercises", icon: "💪" },
-  { path: "/missions", label: "Missions", icon: "🎯" },
   { path: "/tools", label: "Tools", icon: "🛠️" },
+  { path: "/missions", label: "Missions", icon: "🎯" },
+  { path: "/leaderboards", label: "Leaderboards", icon: "🏆" },
   { path: "/rewards", label: "Rewards", icon: "🎁" },
   { path: "/faq", label: "FAQ", icon: "❓" },
   { path: "/profile", label: "Profile", icon: "👤" },
@@ -117,7 +117,7 @@ function Navbar() {
 
   return (
     <nav
-      className="fixed left-0 right-0 top-0 z-[1200] px-3 transition-colors sm:px-4 lg:px-6 [--top-nav-height:56px] sm:[--top-nav-height:72px]"
+      className="fixed left-0 right-0 top-0 z-[1200] px-3 transition-colors sm:px-4 md:px-6 lg:px-8 [--top-nav-height:56px] sm:[--top-nav-height:72px]"
       style={{
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
@@ -127,7 +127,7 @@ function Navbar() {
       <div className="w-full pt-2 sm:pt-3">
         <GlassContainer
           variant="default"
-          className="relative z-[1201] flex min-h-[56px] items-center justify-center gap-6 px-3 py-2 sm:min-h-[72px] sm:gap-10 sm:px-4 sm:py-3"
+          className="relative z-[1201] mx-auto flex w-full max-w-6xl min-h-[56px] items-center justify-center gap-5 px-3 py-2 sm:min-h-[72px] sm:gap-8 sm:px-5 sm:py-3 lg:gap-10 lg:px-6"
           style={{ pointerEvents: "auto" }}
         >
           <div className="flex min-w-[160px] flex-1 items-center justify-start gap-3 lg:min-w-[240px]">

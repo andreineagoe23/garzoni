@@ -86,6 +86,18 @@ const AppContent = () => {
     location.pathname.includes("/lessons/") &&
     location.pathname.endsWith("/flow");
 
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    )?.matches;
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, [location.pathname, location.search]);
+
   const publicPaths = [
     "/",
     "/login",

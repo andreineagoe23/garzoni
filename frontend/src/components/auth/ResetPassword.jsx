@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import { confirmPasswordReset } from "services/authService";
 import { useParams, useNavigate } from "react-router-dom";
 
 function ResetPassword() {
@@ -26,10 +25,10 @@ function ResetPassword() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/password-reset-confirm/${uidb64}/${token}/`,
-        { new_password: password, confirm_password: confirmPassword }
-      );
+      const response = await confirmPasswordReset(uidb64, token, {
+        new_password: password,
+        confirm_password: confirmPassword,
+      });
 
       setMessage(response.data.message || "Password reset successful.");
       setTimeout(() => navigate("/login"), 2500);
@@ -62,6 +61,7 @@ function ResetPassword() {
         {message && (
           <div
             role="status"
+            aria-live="polite"
             className="mb-6 rounded-lg border border-emerald-400/60 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
           >
             {message}
@@ -71,6 +71,7 @@ function ResetPassword() {
         {error && (
           <div
             role="alert"
+            aria-live="assertive"
             className="mb-6 rounded-lg border border-[color:var(--error,#ef4444)]/40 bg-[color:var(--error,#ef4444)]/10 px-4 py-3 text-sm text-[color:var(--error,#ef4444)]"
           >
             {error}
