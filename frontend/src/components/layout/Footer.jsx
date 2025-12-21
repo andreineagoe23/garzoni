@@ -64,18 +64,19 @@ function Footer() {
       */}
       <GlassContainer
         variant="subtle"
-        className="w-full px-6 py-8 sm:px-8 sm:py-10"
+        className="w-full px-5 py-8 sm:px-8 sm:py-10 lg:px-10"
       >
-        <div className="mx-auto w-full grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="mx-auto w-full max-w-6xl space-y-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand & tagline */}
-          <div className="space-y-4 md:col-span-1">
+          <div className="space-y-4 sm:col-span-2 lg:col-span-2">
             <span className="text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]">
               monevo
             </span>
             <p className="max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
               Learn money skills with lessons, missions, and practice.
             </p>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
               <a
                 href="https://www.tiktok.com/@monevo"
                 target="_blank"
@@ -157,12 +158,13 @@ function Footer() {
               </ul>
             </nav>
           ))}
-        </div>
-        {/* Bottom bar with copyright */}
-        <div className="mt-8 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            © {year} Monevo. All rights reserved.
-          </p>
+          </div>
+          {/* Bottom bar with copyright */}
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-4 sm:flex-row">
+            <p className="text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-left">
+              © {year} Monevo. All rights reserved.
+            </p>
+          </div>
         </div>
       </GlassContainer>
     </footer>
