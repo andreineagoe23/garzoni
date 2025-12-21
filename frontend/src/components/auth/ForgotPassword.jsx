@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/monevo-logo-png.png";
 
@@ -18,9 +17,7 @@ function ForgotPassword() {
     setError("");
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/password-reset/`, {
-        email,
-      });
+      const response = await requestPasswordReset(email);
       setMessage(
         response.data.message || "Reset link sent. Please check your inbox."
       );
@@ -63,6 +60,7 @@ function ForgotPassword() {
           {message && (
             <div
               role="status"
+              aria-live="polite"
               className="mt-6 w-full rounded-lg border border-emerald-400/60 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
             >
               {message}
@@ -72,6 +70,7 @@ function ForgotPassword() {
           {error && (
             <div
               role="alert"
+              aria-live="assertive"
               className="mt-6 w-full rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
             >
               {error}
