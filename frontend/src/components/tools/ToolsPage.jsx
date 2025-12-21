@@ -74,7 +74,12 @@ const ToolsPage = () => {
   }
 
   return (
-    <PageContainer maxWidth="6xl" layout="none" innerClassName="space-y-8">
+    <PageContainer
+      maxWidth="7xl"
+      layout="none"
+      className="px-3 sm:px-6 lg:px-8"
+      innerClassName="space-y-8 w-full"
+    >
         <header className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
             Productivity Suite
@@ -88,7 +93,7 @@ const ToolsPage = () => {
           </p>
         </header>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex w-full flex-col gap-6 sm:mx-auto sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
           {categories.map((category, index) => {
             const isActive = activeCategory === index;
             return (

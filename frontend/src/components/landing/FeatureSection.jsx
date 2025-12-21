@@ -1,8 +1,47 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GlassCard } from "components/ui";
 import { features } from "./landingData";
 
 export default function FeatureSection({ featureRef }) {
+  const itemRefs = useRef([]);
+  const [visibleItems, setVisibleItems] = useState([]);
+
+  useEffect(() => {
+    const nodes = itemRefs.current.filter(Boolean);
+    if (!nodes.length) return undefined;
+
+    const prefersReducedMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    )?.matches;
+
+    if (prefersReducedMotion) {
+      setVisibleItems(features.map((_, index) => index));
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const entryIndex = Number(entry.target.dataset.index);
+            setVisibleItems((prev) =>
+              prev.includes(entryIndex) ? prev : [...prev, entryIndex]
+            );
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.35,
+        rootMargin: "0px 0px -10% 0px",
+      }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section ref={featureRef} className="relative scroll-mt-[110px]">
       <div className="mx-auto max-w-4xl text-center">
@@ -21,14 +60,33 @@ export default function FeatureSection({ featureRef }) {
         <div className="space-y-8 lg:space-y-10">
           {features.map((feature, index) => {
             const isLeft = index % 2 === 0;
-            const sideColStart = isLeft ? "lg:col-start-1" : "lg:col-start-8";
+            const isVisible = visibleItems.includes(index);
 
             return (
               <div
                 key={feature.title}
-                className="relative grid grid-cols-1 items-center gap-4 lg:grid-cols-12 lg:gap-6"
+                ref={(node) => {
+                  itemRefs.current[index] = node;
+                }}
+                data-index={index}
+                className={[
+                  "relative grid grid-cols-1 items-center gap-5 lg:grid-cols-[1fr_auto_1fr] lg:gap-8",
+                  "transition-all duration-700 ease-out",
+                  "motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:scale-100",
+                  isVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8 lg:translate-y-10",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               >
-                <div className={`lg:col-span-5 ${sideColStart}`}>
+                <div
+                  className={`lg:col-start-1 ${
+                    isLeft
+                      ? "lg:order-1 lg:justify-self-end"
+                      : "lg:order-3 lg:col-start-3 lg:justify-self-start"
+                  }`}
+                >
                   <GlassCard
                     padding="lg"
                     className="p-6 lg:p-8 bg-[color:var(--card-bg,#15191E)]/70 border-white/10"
@@ -63,16 +121,14 @@ export default function FeatureSection({ featureRef }) {
                 </div>
 
                 {/* Middle node */}
-                <div className="relative hidden lg:col-span-2 lg:flex lg:items-center lg:justify-center">
+                <div className="relative hidden lg:order-2 lg:flex lg:items-center lg:justify-center">
                   <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--primary,#1d5330)]/70 blur-[0.5px]" />
                   <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[color:var(--card-bg,#15191E)]/70 text-sm font-bold text-white/85 shadow-lg shadow-black/40 backdrop-blur">
                     {index + 1}
                   </div>
                   <div
                     className={`pointer-events-none absolute top-1/2 h-px w-10 -translate-y-1/2 bg-white/10 ${
-                      isLeft
-                        ? "left-[calc(50%+24px)]"
-                        : "right-[calc(50%+24px)]"
+                      isLeft ? "left-[calc(50%+24px)]" : "right-[calc(50%+24px)]"
                     }`}
                   />
                 </div>
