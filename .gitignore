@@ -181,6 +181,7 @@ node_modules
 amplify_outputs*
 amplifyconfiguration*
 backend/monevocredentials.json
+backend/db.sqlite3
 frontend/.env
 frontend/.env
 frontend/.env
