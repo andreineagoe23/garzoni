@@ -71,6 +71,9 @@ cover/
 
 # Django stuff:
 *.log
+db.sqlite3
+db.sqlite3-*
+backend/db.sqlite3
 
 # Flask stuff:
 instance/
