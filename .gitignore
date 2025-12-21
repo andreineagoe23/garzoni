@@ -75,6 +75,12 @@ db.sqlite3
 db.sqlite3-*
 backend/db.sqlite3
 
+# Database backups
+*.sql
+monevo_mysql_backup.sql
+*_backup.sql
+*_mysql_backup.sql
+
 # Flask stuff:
 instance/
 .webassets-cache
