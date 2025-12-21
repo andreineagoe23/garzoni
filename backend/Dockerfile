@@ -41,6 +41,8 @@ WORKDIR /app
 # Install only runtime dependencies (no build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    default-mysql-client \
+    libmariadb3 \
     libjpeg62-turbo \
     zlib1g \
     libfreetype6 \
