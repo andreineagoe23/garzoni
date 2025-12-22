@@ -32,8 +32,8 @@ export default function FeatureSection({ featureRef }) {
         });
       },
       {
-        threshold: 0.35,
-        rootMargin: "0px 0px -10% 0px",
+        threshold: 0.1,
+        rootMargin: "0px 0px -5% 0px",
       }
     );
 
@@ -64,13 +64,13 @@ export default function FeatureSection({ featureRef }) {
 
             return (
               <div
-                key={feature.title}
+                key={`feature-${index}-${feature.title}`}
                 ref={(node) => {
                   itemRefs.current[index] = node;
                 }}
                 data-index={index}
                 className={[
-                  "relative grid grid-cols-1 items-center gap-5 lg:grid-cols-[1fr_auto_1fr] lg:gap-8",
+                  "relative grid grid-cols-1 items-center gap-5 lg:grid-cols-[1fr_48px_1fr] lg:gap-8",
                   "transition-all duration-700 ease-out",
                   "motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:scale-100",
                   isVisible
@@ -89,7 +89,7 @@ export default function FeatureSection({ featureRef }) {
                 >
                   <GlassCard
                     padding="lg"
-                    className="p-6 lg:p-8 bg-[color:var(--card-bg,#15191E)]/70 border-white/10"
+                    className="p-6 lg:p-8 bg-[#0B0F14] border-white/10"
                   >
                     <div className="flex items-start gap-4">
                       <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/90">
@@ -120,15 +120,18 @@ export default function FeatureSection({ featureRef }) {
                   </GlassCard>
                 </div>
 
-                {/* Middle node */}
-                <div className="relative hidden lg:order-2 lg:flex lg:items-center lg:justify-center">
+                {/* Middle node - always centered on the vertical line */}
+                <div className="relative hidden lg:order-2 lg:col-start-2 lg:flex lg:items-center lg:justify-center">
                   <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--primary,#1d5330)]/70 blur-[0.5px]" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[color:var(--card-bg,#15191E)]/70 text-sm font-bold text-white/85 shadow-lg shadow-black/40 backdrop-blur">
+                  <div
+                    key={`feature-number-${index}`}
+                    className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#0B0F14] text-sm font-bold text-white/85 shadow-lg shadow-black/40 backdrop-blur"
+                  >
                     {index + 1}
                   </div>
                   <div
                     className={`pointer-events-none absolute top-1/2 h-px w-10 -translate-y-1/2 bg-white/10 ${
-                      isLeft ? "left-[calc(50%+24px)]" : "right-[calc(50%+24px)]"
+                      isLeft ? "right-[calc(50%+24px)]" : "left-[calc(50%+24px)]"
                     }`}
                   />
                 </div>
