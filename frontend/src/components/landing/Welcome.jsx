@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import "@fontsource/geist-sans/400.css";
 import "@fontsource/geist-sans/500.css";
 import "@fontsource/jetbrains-mono/400.css";
@@ -18,58 +18,6 @@ function Welcome() {
     featureRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Make the landing background parallax match the hero particles (subtle + smoothed).
-  useEffect(() => {
-    const shell = landingShellRef.current;
-    if (!shell) return undefined;
-
-    const prefersReducedMotion = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)"
-    )?.matches;
-    if (prefersReducedMotion) return undefined;
-
-    let rafId = 0;
-    const target = { x: 0, y: 0 };
-    const current = { x: 0, y: 0 };
-
-    const tick = () => {
-      rafId = requestAnimationFrame(tick);
-      // Smooth follow (similar vibe to the particle group's mouse easing)
-      current.x += (target.x - current.x) * 0.08;
-      current.y += (target.y - current.y) * 0.08;
-      shell.style.setProperty(
-        "--landing-parallax-x",
-        `${current.x.toFixed(2)}px`
-      );
-      shell.style.setProperty(
-        "--landing-parallax-y",
-        `${current.y.toFixed(2)}px`
-      );
-    };
-
-    const onPointerMove = (e) => {
-      const w = window.innerWidth || 1;
-      const h = window.innerHeight || 1;
-      const nx = (e.clientX / w) * 2 - 1; // -1..1
-      const ny = (e.clientY / h) * 2 - 1; // -1..1
-
-      // Invert slightly so it feels like depth (background lags behind pointer).
-      const maxX = 10;
-      const maxY = 7;
-      target.x = -nx * maxX;
-      target.y = -ny * maxY;
-    };
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    rafId = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("pointermove", onPointerMove);
-      shell.style.removeProperty("--landing-parallax-x");
-      shell.style.removeProperty("--landing-parallax-y");
-    };
-  }, []);
 
   return (
     <div
