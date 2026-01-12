@@ -9,3 +9,5 @@ staticfiles/
 *.pyc
 __pycache__/
 *.sql
+/backups/
+backups/

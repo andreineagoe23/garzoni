@@ -39,7 +39,7 @@ python manage.py runserver
 
 - By default uses SQLite in DEBUG. Set DATABASE_URL for MySQL/Postgres in production.
 - Celery/Redis are optional in local dev; enable when running scheduled tasks.
-- Environment variables are documented in backend/ENV_VARIABLES.md.
+- Environment variables are documented in `docs/env-variables.md`.
 
 ### Frontend (Web)
 

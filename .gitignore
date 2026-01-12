@@ -80,6 +80,7 @@ backend/db.sqlite3
 monevo_mysql_backup.sql
 *_backup.sql
 *_mysql_backup.sql
+backend/backups/
 
 # Flask stuff:
 instance/
