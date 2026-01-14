@@ -8,6 +8,7 @@ import React, {
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import DOMPurify from "dompurify";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import { useHearts } from "hooks/useHearts";
@@ -903,7 +904,9 @@ function CourseFlowPage() {
         return (
           <div
             className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: section.text_content }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(section.text_content),
+            }}
           />
         );
       }
@@ -977,7 +980,9 @@ function CourseFlowPage() {
             {section.text_content && (
               <div
                 className="prose max-w-none text-[color:var(--muted-text,#6b7280)] dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: section.text_content }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(section.text_content),
+                }}
               />
             )}
           </div>
@@ -1013,8 +1018,9 @@ function CourseFlowPage() {
       <div
         className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
         dangerouslySetInnerHTML={{
-          __html:
-            currentItem.lessonDetailedContent || "No lesson content available.",
+          __html: DOMPurify.sanitize(
+            currentItem.lessonDetailedContent || "No lesson content available."
+          ),
         }}
       />
     );

@@ -73,5 +73,9 @@ jobs:
       - name: Unit tests
         run: npm test -- --watchAll=false
 
+      - name: Security (npm audit)
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
       - name: Build
         run: npm run build

@@ -38,7 +38,7 @@ from authentication.entitlements import (
 )
 from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
-from authentication.throttles import LoginRateThrottle
+from authentication.throttles import LoginRateThrottle, RefreshRateThrottle
 from core.http_client import request_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -432,11 +432,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
-        refresh_token = (
-            request.COOKIES.get(REFRESH_COOKIE_NAME)
-            or request.data.get("refresh")
-            or request.headers.get("X-Refresh-Token")
-        )
+        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
 
         # Best-effort refresh token revocation (blacklist).
         if refresh_token:
@@ -486,7 +482,6 @@ class LoginSecureView(APIView):
             response = Response(
                 {
                     "access": access_token,
-                    "refresh": refresh_token,
                     "user": {
                         "id": user.id,
                         "username": user.username,
@@ -537,7 +532,6 @@ class RegisterSecureView(generics.CreateAPIView):
         response = Response(
             {
                 "access": access_token,
-                "refresh": str(refresh),
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -583,16 +577,13 @@ class CustomTokenRefreshView(TokenRefreshView):
     """Custom token refresh view that extracts the refresh token from cookies."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [RefreshRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        refresh_token = (
-            request.COOKIES.get(REFRESH_COOKIE_NAME)
-            or request.data.get("refresh")
-            or request.headers.get("X-Refresh-Token")
-        )
+        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
 
         if not refresh_token:
-            logger.error("No refresh token provided for refresh endpoint")
+            logger.error("No refresh token cookie provided for refresh endpoint")
             return Response({"detail": "No refresh token provided."}, status=400)
 
         serializer = self.get_serializer(data={"refresh": refresh_token})
@@ -662,7 +653,6 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         response_data = serializer.validated_data
         access_token = response_data.get("access")
-        response_refresh = response_data.get("refresh") or refresh_token
 
         if not access_token:
             logger.error("Token refresh failed to provide an access token")
@@ -671,7 +661,6 @@ class CustomTokenRefreshView(TokenRefreshView):
         response = Response(
             {
                 "access": access_token,
-                "refresh": response_refresh,
             },
             status=status.HTTP_200_OK,
         )

@@ -9,11 +9,31 @@ module.exports = {
   webpack: {
     configure: (webpackConfig) => {
       const ckeditorRegex = /[\\/]node_modules[\\/]@ckeditor[\\/]/;
+      const resolve = webpackConfig.resolve || {};
+
+      // Avoid webpack 5 Node core polyfill errors from axios/follow-redirects.
+      resolve.fallback = {
+        ...(resolve.fallback || {}),
+        http: false,
+        https: false,
+        stream: false,
+        url: false,
+        assert: false,
+        zlib: false,
+        buffer: false,
+        crypto: false,
+        util: false,
+      };
+      webpackConfig.resolve = resolve;
 
       const isSourceMapLoader = (useEntry) => {
         if (!useEntry) return false;
-        if (typeof useEntry === "string") return useEntry.includes("source-map-loader");
-        return typeof useEntry.loader === "string" && useEntry.loader.includes("source-map-loader");
+        if (typeof useEntry === "string")
+          return useEntry.includes("source-map-loader");
+        return (
+          typeof useEntry.loader === "string" &&
+          useEntry.loader.includes("source-map-loader")
+        );
       };
 
       const maybeExcludeCkeditor = (rule) => {
@@ -25,8 +45,8 @@ module.exports = {
             ? rule.use
             : [rule.use]
           : rule.loader
-            ? [{ loader: rule.loader }]
-            : [];
+          ? [{ loader: rule.loader }]
+          : [];
 
         if (!uses.some(isSourceMapLoader)) return;
 

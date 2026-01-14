@@ -17,65 +17,8 @@ const AuthContext = createContext(null);
 
 // Access token is kept in memory only for better security
 let inMemoryToken = null;
-const LOGOUT_FLAG_KEY = "monevo:manual-logout";
-const REFRESH_STORAGE_KEY = "monevo:refresh-token";
-const ACCESS_STORAGE_KEY = "monevo:access-token";
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:support@monevo.com?subject=Billing%20support";
-
-const getLogoutFlag = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-  return sessionStorage.getItem(LOGOUT_FLAG_KEY) === "true";
-};
-
-const setLogoutFlag = (value) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  if (value) {
-    sessionStorage.setItem(LOGOUT_FLAG_KEY, "true");
-  } else {
-    sessionStorage.removeItem(LOGOUT_FLAG_KEY);
-  }
-};
-
-const getStoredRefreshToken = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  return sessionStorage.getItem(REFRESH_STORAGE_KEY);
-};
-
-const setStoredRefreshToken = (token) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  if (token) {
-    sessionStorage.setItem(REFRESH_STORAGE_KEY, token);
-  } else {
-    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
-  }
-};
-
-const getStoredAccessToken = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  return sessionStorage.getItem(ACCESS_STORAGE_KEY);
-};
-
-const setStoredAccessToken = (token) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  if (token) {
-    sessionStorage.setItem(ACCESS_STORAGE_KEY, token);
-  } else {
-    sessionStorage.removeItem(ACCESS_STORAGE_KEY);
-  }
-};
 
 // Rate limiting for token refresh
 const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refresh attempts
@@ -97,7 +40,6 @@ export const AuthProvider = ({ children }) => {
 
   const isVerifying = useRef(false);
   const lastRefreshAttempt = useRef(0);
-  const logoutFlagRef = useRef(getLogoutFlag());
   const inFlightRequestsRef = useRef(new Map());
   const profileRef = useRef(null);
   const settingsRef = useRef(null);
@@ -118,8 +60,6 @@ export const AuthProvider = ({ children }) => {
     refreshAttempts = 0;
     delete axios.defaults.headers.common["Authorization"];
     inFlightRequestsRef.current.clear();
-    setStoredRefreshToken(null);
-    setStoredAccessToken(null);
   }, []);
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
@@ -167,10 +107,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const refreshToken = useCallback(async () => {
-    if (logoutFlagRef.current) {
-      return { ok: false, reason: "logout-flag" };
-    }
-
     const now = Date.now();
     if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
       return { ok: false, reason: "cooldown" };
@@ -184,10 +120,9 @@ export const AuthProvider = ({ children }) => {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
-      const storedRefreshToken = getStoredRefreshToken();
       const response = await axios.post(
         `${BACKEND_URL}/token/refresh/`,
-        storedRefreshToken ? { refresh: storedRefreshToken } : {},
+        {},
         { withCredentials: true }
       );
 
@@ -201,16 +136,10 @@ export const AuthProvider = ({ children }) => {
         inMemoryToken.slice(0, 12),
         "..."
       );
-      setStoredAccessToken(inMemoryToken);
-      if (response.data.refresh) {
-        setStoredRefreshToken(response.data.refresh);
-      }
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
-      logoutFlagRef.current = false;
-      setLogoutFlag(false);
       console.info("[auth] refresh success");
 
       return { ok: true, token: inMemoryToken };
@@ -221,8 +150,6 @@ export const AuthProvider = ({ children }) => {
       if (code === "user_not_found") {
         console.warn("[auth] refresh failed: user_not_found; clearing state");
         clearAuthState();
-        setLogoutFlag(true);
-        logoutFlagRef.current = true;
         return { ok: false, reason: "user-not-found" };
       }
 
@@ -241,32 +168,6 @@ export const AuthProvider = ({ children }) => {
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
-
-    const storedAccessToken = getStoredAccessToken();
-    const storedRefreshToken = getStoredRefreshToken();
-    const hasStoredTokens = !!storedRefreshToken || !!storedAccessToken;
-
-    if (storedAccessToken && !inMemoryToken) {
-      inMemoryToken = storedAccessToken;
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${storedAccessToken}`;
-      attachToken(storedAccessToken);
-    }
-
-    // If we have neither a refresh token in storage nor an in-memory/access token, treat as logged out
-    if (!hasStoredTokens && !inMemoryToken) {
-      console.info("[auth] verifyAuth skipped: no tokens");
-      clearAuthState();
-      setIsInitialized(true);
-      return;
-    }
-
-    if (logoutFlagRef.current && !hasStoredTokens) {
-      clearAuthState();
-      setIsInitialized(true);
-      return;
-    }
 
     try {
       isVerifying.current = true;
@@ -327,10 +228,6 @@ export const AuthProvider = ({ children }) => {
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
-      setStoredRefreshToken(response.data.refresh);
-      setStoredAccessToken(inMemoryToken);
-      logoutFlagRef.current = false;
-      setLogoutFlag(false);
 
       // Set the authorization header
       axios.defaults.headers.common[
@@ -367,10 +264,6 @@ export const AuthProvider = ({ children }) => {
       inMemoryToken = response.data.access;
       setIsAuthenticated(true);
       setUser(response.data.user);
-      setStoredRefreshToken(response.data.refresh);
-      setStoredAccessToken(inMemoryToken);
-      logoutFlagRef.current = false;
-      setLogoutFlag(false);
 
       // Set the authorization header
       axios.defaults.headers.common[
@@ -407,8 +300,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error.message);
     } finally {
-      logoutFlagRef.current = true;
-      setLogoutFlag(true);
       clearAuthState();
       attachToken(null);
     }
@@ -592,12 +483,6 @@ export const AuthProvider = ({ children }) => {
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
 
-          const storedRefreshToken = getStoredRefreshToken();
-          if (!storedRefreshToken) {
-            clearAuthState();
-            return Promise.reject(error);
-          }
-
           try {
             const refreshed = await refreshToken();
             if (refreshed?.ok) {
@@ -630,12 +515,6 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     didRequestInitialVerifyRef.current = true;
-    const storedAccess = getStoredAccessToken();
-    if (storedAccess) {
-      inMemoryToken = storedAccess;
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedAccess}`;
-      attachToken(storedAccess);
-    }
     verifyAuth();
   }, [verifyAuth]);
 

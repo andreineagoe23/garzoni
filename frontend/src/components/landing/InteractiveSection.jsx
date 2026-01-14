@@ -1,4 +1,5 @@
 import React from "react";
+import DOMPurify from "dompurify";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 
 const InteractiveSection = ({ section, onComplete, isCompleted }) => {
@@ -27,7 +28,9 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
         <article
           id={`section-${section.id}-title`}
           className="prose max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: section.content }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(section.content),
+          }}
           aria-label="Text content section"
         />
       )}

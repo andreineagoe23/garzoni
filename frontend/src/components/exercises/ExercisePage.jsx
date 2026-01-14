@@ -407,18 +407,137 @@ const ExercisePage = () => {
   const evaluateCalculator = () => {
     if (!calculatorValue.trim()) return;
     const sanitized = calculatorValue.replace(/[^0-9+\-*/().%\s]/g, "");
-    try {
-      // eslint-disable-next-line no-new-func
-      const compute = new Function(
-        `"use strict"; return (${sanitized.replace(/%/g, "*0.01")});`
-      );
-      const result = compute();
-      if (Number.isFinite(result)) {
-        setCalculatorValue(String(result));
+    const normalized = sanitized.replace(/%/g, "*0.01");
+
+    const tokens = [];
+    let current = "";
+    const flushNumber = () => {
+      if (!current) return;
+      if (!Number.isFinite(Number(current))) {
+        throw new Error("Invalid number");
       }
-    } catch (err) {
-      setCalculatorValue("Check expression");
+      tokens.push({ type: "number", value: Number(current) });
+      current = "";
+    };
+
+    for (let i = 0; i < normalized.length; i += 1) {
+      const ch = normalized[i];
+      if (ch >= "0" && ch <= "9" || ch === ".") {
+        current += ch;
+        continue;
+      }
+      if (ch === " " || ch === "\t" || ch === "\n") {
+        continue;
+      }
+      flushNumber();
+      if ("+-*/()".includes(ch)) {
+        tokens.push({ type: "op", value: ch });
+        continue;
+      }
+      throw new Error("Invalid token");
     }
+    flushNumber();
+
+    const output = [];
+    const ops = [];
+    const precedence = { "u-": 3, "*": 2, "/": 2, "+": 1, "-": 1 };
+    const rightAssoc = { "u-": true };
+
+    let prevToken = null;
+    tokens.forEach((token) => {
+      if (token.type === "number") {
+        output.push(token);
+        prevToken = token;
+        return;
+      }
+
+      if (token.value === "(") {
+        ops.push(token);
+        prevToken = token;
+        return;
+      }
+
+      if (token.value === ")") {
+        while (ops.length && ops[ops.length - 1].value !== "(") {
+          output.push(ops.pop());
+        }
+        if (!ops.length) throw new Error("Mismatched parentheses");
+        ops.pop();
+        prevToken = token;
+        return;
+      }
+
+      let opToken = token;
+      const isUnary =
+        opToken.value === "-" &&
+        (!prevToken || (prevToken.type === "op" && prevToken.value !== ")"));
+      if (isUnary) {
+        opToken = { type: "op", value: "u-" };
+      }
+
+      while (ops.length) {
+        const top = ops[ops.length - 1];
+        if (top.type !== "op" || top.value === "(") break;
+        const precTop = precedence[top.value];
+        const precCurr = precedence[opToken.value];
+        if (
+          (rightAssoc[opToken.value] && precCurr < precTop) ||
+          (!rightAssoc[opToken.value] && precCurr <= precTop)
+        ) {
+          output.push(ops.pop());
+          continue;
+        }
+        break;
+      }
+      ops.push(opToken);
+      prevToken = opToken;
+    });
+
+    while (ops.length) {
+      const op = ops.pop();
+      if (op.value === "(") throw new Error("Mismatched parentheses");
+      output.push(op);
+    }
+
+    const stack = [];
+    output.forEach((token) => {
+      if (token.type === "number") {
+        stack.push(token.value);
+        return;
+      }
+      if (token.value === "u-") {
+        const value = stack.pop();
+        if (value === undefined) throw new Error("Invalid expression");
+        stack.push(-value);
+        return;
+      }
+      const b = stack.pop();
+      const a = stack.pop();
+      if (a === undefined || b === undefined) throw new Error("Invalid expression");
+      switch (token.value) {
+        case "+":
+          stack.push(a + b);
+          break;
+        case "-":
+          stack.push(a - b);
+          break;
+        case "*":
+          stack.push(a * b);
+          break;
+        case "/":
+          stack.push(a / b);
+          break;
+        default:
+          throw new Error("Invalid operator");
+      }
+    });
+
+    const result = stack.pop();
+    if (stack.length || !Number.isFinite(result)) {
+      setCalculatorValue("Check expression");
+      return;
+    }
+    setCalculatorValue(String(result));
   };
 
   const handleNext = () => {

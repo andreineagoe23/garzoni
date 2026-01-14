@@ -8,27 +8,12 @@ const apiClient = axios.create({
 });
 
 const AUTH_EXPIRED_REASON = "session-expired";
-const REFRESH_STORAGE_KEY = "monevo:refresh-token";
-const ACCESS_STORAGE_KEY = "monevo:access-token";
-const LOGOUT_FLAG_KEY = "monevo:manual-logout";
 
 let didTriggerAuthRedirect = false;
 
 const isAuthError = (error) => {
   const status = error.response?.status;
   return status === 401 || status === 403;
-};
-
-const clearStoredAuth = () => {
-  if (typeof window === "undefined") return;
-
-  try {
-    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
-    sessionStorage.removeItem(ACCESS_STORAGE_KEY);
-    sessionStorage.removeItem(LOGOUT_FLAG_KEY);
-  } catch (_) {
-    // ignore storage failures (private mode, blocked, etc.)
-  }
 };
 
 const clearAuthHeaders = () => {
@@ -52,7 +37,6 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (isAuthError(error)) {
-      clearStoredAuth();
       clearAuthHeaders();
       // Let the login page show the message; avoid toasts that may never be seen before redirect.
       redirectToLoginWithReason(AUTH_EXPIRED_REASON);

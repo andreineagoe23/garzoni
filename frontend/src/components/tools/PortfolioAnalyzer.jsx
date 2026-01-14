@@ -210,7 +210,8 @@ function PortfolioAnalyzer() {
           Portfolio Analyzer
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Track your investments, monitor performance, and analyze your asset allocation.
+          Track your investments, monitor performance, and analyze your asset
+          allocation.
         </p>
       </header>
 
@@ -228,8 +229,9 @@ function PortfolioAnalyzer() {
               Start Tracking Your Portfolio
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Add your first investment to begin tracking performance, gains/losses, and asset allocation.
-              You can track stocks and cryptocurrencies.
+              Add your first investment to begin tracking performance,
+              gains/losses, and asset allocation. You can track stocks and
+              cryptocurrencies.
             </p>
             <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-2">
@@ -248,142 +250,201 @@ function PortfolioAnalyzer() {
 
       {summary && hasEntries && (
         <>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-              Total Portfolio Value
-            </h4>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                ${summary.total_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                Current market value
-              </p>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+                Total Portfolio Value
+              </h4>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+                  $
+                  {summary.total_value.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  Current market value
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+                Total Gain/Loss
+              </h4>
+              <div className="space-y-1">
+                <p
+                  className={`text-3xl font-bold ${
+                    summary.total_gain_loss >= 0
+                      ? "text-emerald-500"
+                      : "text-[color:var(--error,#dc2626)]"
+                  }`}
+                >
+                  {summary.total_gain_loss >= 0 ? "+" : ""}$
+                  {summary.total_gain_loss.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+                <p
+                  className={`text-xs ${
+                    summary.total_gain_loss >= 0
+                      ? "text-emerald-600"
+                      : "text-[color:var(--error,#dc2626)]"
+                  }`}
+                >
+                  {totalGainLossPercentage >= 0 ? "+" : ""}
+                  {totalGainLossPercentage}%
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+                Total Holdings
+              </h4>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+                  {entries.length}
+                </p>
+                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  {entries.length === 1 ? "investment" : "investments"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-              Total Gain/Loss
-            </h4>
-            <div className="space-y-1">
-              <p
-                className={`text-3xl font-bold ${
-                  summary.total_gain_loss >= 0
-                    ? "text-emerald-500"
-                    : "text-[color:var(--error,#dc2626)]"
-                }`}
-              >
-                {summary.total_gain_loss >= 0 ? "+" : ""}
-                ${summary.total_gain_loss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className={`text-xs ${
-                summary.total_gain_loss >= 0
-                  ? "text-emerald-600"
-                  : "text-[color:var(--error,#dc2626)]"
-              }`}>
-                {totalGainLossPercentage >= 0 ? "+" : ""}{totalGainLossPercentage}%
-              </p>
+          {chartData.length > 0 && (
+            <div
+              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
+                Asset Allocation
+              </h4>
+              <div className="h-64 w-full">
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(1)}%`
+                      }
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) =>
+                        `$${value.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                      }
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-              Total Holdings
-            </h4>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                {entries.length}
-              </p>
-              <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {entries.length === 1 ? "investment" : "investments"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {chartData.length > 0 && (
-          <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-            <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-              Asset Allocation
-            </h4>
-            <div className="h-64 w-full">
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-            <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-              Portfolio Breakdown
-            </h4>
-            <div className="space-y-3">
-              {Object.entries(summary.allocation).map(([type, value]) => {
-                const percentage = ((value / summary.total_value) * 100).toFixed(1);
-                return (
-                  <div key={type} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-[color:var(--text-color,#111827)] capitalize">
-                        {type}
-                      </span>
-                      <span className="text-[color:var(--muted-text,#6b7280)]">
-                        {percentage}%
-                      </span>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div
+              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
+                Portfolio Breakdown
+              </h4>
+              <div className="space-y-3">
+                {Object.entries(summary.allocation).map(([type, value]) => {
+                  const percentage = (
+                    (value / summary.total_value) *
+                    100
+                  ).toFixed(1);
+                  return (
+                    <div key={type} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-[color:var(--text-color,#111827)] capitalize">
+                          {type}
+                        </span>
+                        <span className="text-[color:var(--muted-text,#6b7280)]">
+                          {percentage}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                        <div
+                          className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                        $
+                        {value.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </p>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                      <div
-                        className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                      ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-
-        </div>
         </>
       )}
 
-      <div className={`grid gap-6 ${hasEntries ? 'lg:grid-cols-[320px_minmax(0,1fr)]' : 'lg:grid-cols-1'}`}>
-        <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      <div
+        className={`grid gap-6 ${
+          hasEntries ? "lg:grid-cols-[320px_minmax(0,1fr)]" : "lg:grid-cols-1"
+        }`}
+      >
+        <div
+          className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+          style={{
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
+        >
           <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
             Add New Entry
           </h4>
-          <form
-            onSubmit={handleSubmit}
-            className="mt-4 space-y-4"
-            noValidate
-          >
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4" noValidate>
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
               Asset Type
               <select
@@ -458,14 +519,20 @@ function PortfolioAnalyzer() {
           </form>
         </div>
 
-        <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+        <div
+          className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+          style={{
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
+        >
           <div className="mb-4 flex items-center justify-between">
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
               Portfolio Entries
             </h4>
             {hasEntries && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {entries.length} {entries.length === 1 ? 'holding' : 'holdings'}
+                {entries.length} {entries.length === 1 ? "holding" : "holdings"}
               </span>
             )}
           </div>
@@ -476,9 +543,15 @@ function PortfolioAnalyzer() {
                 <table className="min-w-full border-collapse text-sm">
                   <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Symbol</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Quantity</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
+                        Type
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
+                        Symbol
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
+                        Quantity
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
                         Purchase Price
                       </th>
@@ -488,65 +561,90 @@ function PortfolioAnalyzer() {
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
                         Gain/Loss
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]">
-                    {entries.map((entry) => {
-                      const totalCost = entry.purchase_price * entry.quantity;
-                      return (
-                        <tr key={entry.id} className="text-[color:var(--text-color,#111827)] hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors">
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium capitalize text-[color:var(--text-color,#111827)]">
-                              {entry.asset_type}
+                    {entries.map((entry) => (
+                      <tr
+                        key={entry.id}
+                        className="text-[color:var(--text-color,#111827)] hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium capitalize text-[color:var(--text-color,#111827)]">
+                            {entry.asset_type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-semibold">
+                          {entry.symbol.toUpperCase()}
+                        </td>
+                        <td className="px-4 py-3">{entry.quantity}</td>
+                        <td className="px-4 py-3">
+                          $
+                          {Number(entry.purchase_price).toLocaleString(
+                            "en-US",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}
+                        </td>
+                        <td className="px-4 py-3 font-medium">
+                          $
+                          {entry.current_value?.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }) || "0.00"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col">
+                            <span
+                              className={`font-semibold ${
+                                entry.gain_loss >= 0
+                                  ? "text-emerald-500"
+                                  : "text-[color:var(--error,#dc2626)]"
+                              }`}
+                            >
+                              {entry.gain_loss >= 0 ? "+" : ""}$
+                              {entry.gain_loss?.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }) || "0.00"}
                             </span>
-                          </td>
-                          <td className="px-4 py-3 font-semibold">{entry.symbol.toUpperCase()}</td>
-                          <td className="px-4 py-3">{entry.quantity}</td>
-                          <td className="px-4 py-3">
-                            ${Number(entry.purchase_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-4 py-3 font-medium">
-                            ${entry.current_value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-col">
-                              <span
-                                className={`font-semibold ${
-                                  entry.gain_loss >= 0
-                                    ? "text-emerald-500"
-                                    : "text-[color:var(--error,#dc2626)]"
-                                }`}
-                              >
-                                {entry.gain_loss >= 0 ? "+" : ""}
-                                ${entry.gain_loss?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
-                              </span>
-                              <span className={`text-xs ${
+                            <span
+                              className={`text-xs ${
                                 entry.gain_loss >= 0
                                   ? "text-emerald-600"
                                   : "text-[color:var(--error,#dc2626)]"
-                              }`}>
-                                {entry.gain_loss_percentage >= 0 ? "+" : ""}
-                                {entry.gain_loss_percentage?.toFixed(2) || "0.00"}%
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (window.confirm(`Are you sure you want to delete ${entry.symbol}?`)) {
-                                  handleDelete(entry.id);
-                                }
-                              }}
-                              className="rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                              }`}
                             >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                              {entry.gain_loss_percentage >= 0 ? "+" : ""}
+                              {entry.gain_loss_percentage?.toFixed(2) || "0.00"}
+                              %
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `Are you sure you want to delete ${entry.symbol}?`
+                                )
+                              ) {
+                                handleDelete(entry.id);
+                              }
+                            }}
+                            className="rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -554,7 +652,8 @@ function PortfolioAnalyzer() {
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-8 text-center">
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                No portfolio entries yet. Add your first investment using the form on the left.
+                No portfolio entries yet. Add your first investment using the
+                form on the left.
               </p>
             </div>
           )}

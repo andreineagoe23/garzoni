@@ -33,7 +33,7 @@ class UserRegistrationTest(BaseTestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("access", response.data)
-        self.assertIn("refresh", response.data)
+        self.assertNotIn("refresh", response.data)
         self.assertTrue(User.objects.filter(username="newuser").exists())
         self.assertTrue(UserProfile.objects.filter(user__username="newuser").exists())
 
@@ -86,7 +86,7 @@ class UserLoginTest(BaseTestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
-        self.assertIn("refresh", response.data)
+        self.assertNotIn("refresh", response.data)
 
     def test_login_invalid_credentials(self):
         """Test login with invalid credentials."""
@@ -111,19 +111,12 @@ class UserLoginTest(BaseTestCase):
             "password": "testpass123!",  # pragma: allowlist secret
         }
         login_response = self.client.post(login_url, login_data, format="json")
-        refresh_token = login_response.data.get("refresh")
-
-        if not refresh_token:
-            # Token might be in cookie, skip this test
-            self.skipTest("Refresh token not in response, may be in cookie")
-
-        # Refresh token - use it immediately before it gets blacklisted
+        # Refresh token is stored in HttpOnly cookie; request refresh with no body.
         refresh_url = reverse("token-refresh")
-        response = self.client.post(refresh_url, {"refresh": refresh_token}, format="json")
-        # May fail if token was blacklisted, that's expected behavior
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
-        if response.status_code == status.HTTP_200_OK:
-            self.assertIn("access", response.data)
+        response = self.client.post(refresh_url, {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+        self.assertNotIn("refresh", response.data)
 
 
 class UserProfileTest(AuthenticatedTestCase):

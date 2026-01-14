@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
 
@@ -385,7 +386,9 @@ const LessonSectionEditorPanel = ({
             </p>
             <div
               className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: section.text_content }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(section.text_content),
+              }}
             />
           </div>
         )}
