@@ -19,7 +19,7 @@ cron-descriptor==1.4.5
 cycler==0.12.1
 dj-database-url==2.1.0
 Django==4.2
-django-celery-beat==2.7.0
+django-celery-beat==2.8.1
 django-celery-results==2.6.0
 django-ckeditor-5==0.2.12
 django-cors-headers==4.6.0
