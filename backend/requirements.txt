@@ -48,7 +48,7 @@ MarkupSafe==3.0.2
 matplotlib==3.9.3
 numpy==2.2.0
 packaging==24.2
-pandas==2.2.3
+pandas==2.3.3
 pillow==11.0.0
 prompt_toolkit==3.0.48
 proto-plus==1.25.0
