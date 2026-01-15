@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import DOMPurify from "dompurify";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 
@@ -11,17 +11,28 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
         return <DragAndDropExercise data={section.exercise_data} />;
       default:
         return (
-          <p className="rounded-xl border border-amber-300/60 bg-amber-100/20 px-4 py-3 text-sm text-amber-600" role="alert">
+          <p
+            className="rounded-xl border border-amber-300/60 bg-amber-100/20 px-4 py-3 text-sm text-amber-600"
+            role="alert"
+          >
             Unsupported exercise type
           </p>
         );
     }
   };
 
+  const sanitizedContent = useMemo(() => {
+    if (!section.content) return "";
+    return DOMPurify.sanitize(section.content);
+  }, [section.content]);
+
   return (
     <section
       className="space-y-6 rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-6 py-8 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-colors sm:px-8"
-      style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+      style={{
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
       aria-labelledby={`section-${section.id}-title`}
     >
       {section.content_type === "text" && (
@@ -29,7 +40,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
           id={`section-${section.id}-title`}
           className="prose max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
           dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(section.content),
+            __html: sanitizedContent,
           }}
           aria-label="Text content section"
         />
@@ -56,12 +67,12 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
       {section.content_type === "exercise" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
-                  <h4
-                id={`section-${section.id}-title`}
-                className="text-lg font-semibold text-[color:var(--text-color,#111827)]"
-              >
-                {section.title}
-              </h4>
+            <h4
+              id={`section-${section.id}-title`}
+              className="text-lg font-semibold text-[color:var(--text-color,#111827)]"
+            >
+              {section.title}
+            </h4>
             {isCompleted && (
               <span
                 role="status"

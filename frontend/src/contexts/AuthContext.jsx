@@ -19,6 +19,20 @@ const AuthContext = createContext(null);
 let inMemoryToken = null;
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:support@monevo.com?subject=Billing%20support";
+const isDevelopment = process.env.NODE_ENV === "development";
+const authLog = (...args) => {
+  if (isDevelopment) {
+    console.info(...args);
+  }
+};
+const authWarn = (...args) => {
+  if (isDevelopment) {
+    console.warn(...args);
+  }
+};
+const authError = (...args) => {
+  console.error(...args);
+};
 
 // Rate limiting for token refresh
 const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refresh attempts
@@ -66,15 +80,11 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserWithToken = useCallback(async (token) => {
     if (!token) {
-      console.info("[auth] fetchUserWithToken skipped: no token");
+      authLog("[auth] fetchUserWithToken skipped: no token");
       return false;
     }
 
-    console.info(
-      "[auth] fetchUserWithToken using token",
-      token.slice(0, 12),
-      "..."
-    );
+    authLog("[auth] fetchUserWithToken using token");
 
     try {
       const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
@@ -88,17 +98,17 @@ export const AuthProvider = ({ children }) => {
         setUser(userResponse.data.user);
         setIsAuthenticated(true);
         refreshAttempts = 0;
-        console.info("[auth] verify-auth success");
+        authLog("[auth] verify-auth success");
         return true;
       }
-      console.warn("[auth] verify-auth returned unauthenticated payload");
+      authWarn("[auth] verify-auth returned unauthenticated payload");
       return false;
     } catch (userError) {
       if (userError.response?.status === 401) {
-        console.warn("[auth] verify-auth 401");
+        authWarn("[auth] verify-auth 401");
         return { unauthorized: true };
       }
-      console.error(
+      authError(
         "Failed to get user data after token refresh:",
         userError.response?.data || userError.message
       );
@@ -131,16 +141,12 @@ export const AuthProvider = ({ children }) => {
       }
 
       inMemoryToken = response.data.access;
-      console.info(
-        "[auth] new access token",
-        inMemoryToken.slice(0, 12),
-        "..."
-      );
+      authLog("[auth] new access token received");
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
-      console.info("[auth] refresh success");
+      authLog("[auth] refresh success");
 
       return { ok: true, token: inMemoryToken };
     } catch (error) {
@@ -148,7 +154,7 @@ export const AuthProvider = ({ children }) => {
       const code = error.response?.data?.code;
 
       if (code === "user_not_found") {
-        console.warn("[auth] refresh failed: user_not_found; clearing state");
+        authWarn("[auth] refresh failed: user_not_found; clearing state");
         clearAuthState();
         return { ok: false, reason: "user-not-found" };
       }
@@ -156,12 +162,12 @@ export const AuthProvider = ({ children }) => {
       // Don't log 400 errors as they're expected when refresh token is invalid/expired
       // Only log unexpected errors
       if (status !== 400) {
-        console.error(
+        authError(
           "Token refresh failed:",
           error.response?.data || error.message
         );
       }
-      console.warn("[auth] refresh failed", status);
+      authWarn("[auth] refresh failed", status);
       return { ok: false, reason: "refresh-failed" };
     }
   }, [clearAuthState]);
@@ -171,7 +177,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       isVerifying.current = true;
-      console.info("[auth] verifyAuth start");
+      authLog("[auth] verifyAuth start");
       const refreshed = await refreshToken();
       if (refreshed?.reason === "user-not-found") {
         clearAuthState();
@@ -188,7 +194,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (validated?.unauthorized) {
-          console.warn(
+          authWarn(
             "[auth] verify-auth 401 after refresh; keeping session and will rely on next call/flow"
           );
           return;
@@ -198,10 +204,10 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      console.warn("[auth] refresh did not succeed in verifyAuth", refreshed);
+      authWarn("[auth] refresh did not succeed in verifyAuth", refreshed);
       clearAuthState();
     } catch (error) {
-      console.error(
+      authError(
         "Auth verification failed:",
         error.response?.data || error.message
       );
@@ -221,7 +227,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (!response.data.access) {
-        console.error("No access token in login response");
+        authError("No access token in login response");
         throw new Error("No access token received");
       }
 
@@ -237,7 +243,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      console.error("Login failed:", error.response?.data || error.message);
+      authError("Login failed:", error.response?.data || error.message);
       return {
         success: false,
         error:
@@ -257,7 +263,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (!response.data.access) {
-        console.error("No access token in registration response");
+        authError("No access token in registration response");
         throw new Error("No access token received");
       }
 
@@ -273,10 +279,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, next: response.data.next };
     } catch (error) {
-      console.error(
-        "Registration failed:",
-        error.response?.data || error.message
-      );
+      authError("Registration failed:", error.response?.data || error.message);
       return {
         success: false,
         error:
@@ -298,7 +301,7 @@ export const AuthProvider = ({ children }) => {
         );
       }
     } catch (error) {
-      console.error("Logout failed:", error.response?.data || error.message);
+      authError("Logout failed:", error.response?.data || error.message);
     } finally {
       clearAuthState();
       attachToken(null);
@@ -490,7 +493,7 @@ export const AuthProvider = ({ children }) => {
               return axios(originalRequest);
             }
           } catch (refreshError) {
-            console.error(
+            authError(
               "Token refresh failed in interceptor:",
               refreshError.response?.data || refreshError.message
             );
@@ -527,8 +530,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     loadEntitlements().catch((error) => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to prefetch entitlements:", error);
+      authError("Failed to prefetch entitlements:", error);
     });
   }, [isAuthenticated, loadEntitlements]);
 

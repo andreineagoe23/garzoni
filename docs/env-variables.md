@@ -71,13 +71,14 @@ Quick reference for all environment variables used in the Monevo backend.
 
 ## Cookie Settings
 
-| Variable                  | Description                      | Default              |
-| ------------------------- | -------------------------------- | -------------------- |
-| `REFRESH_COOKIE_DOMAIN`   | Refresh token cookie domain      | Empty for localhost  |
-| `REFRESH_COOKIE_SECURE`   | Use secure cookies (HTTPS only)  | `True` in production |
-| `REFRESH_COOKIE_SAMESITE` | SameSite cookie attribute        | `None`               |
-| `REFRESH_TOKEN_MAX_AGE`   | Refresh token max age in seconds | `86400` (24 hours)   |
-| `REFRESH_THROTTLE_RATE`   | Token refresh rate limit         | `30/min`             |
+| Variable                       | Description                      | Default              |
+| ------------------------------ | -------------------------------- | -------------------- |
+| `REFRESH_COOKIE_DOMAIN`        | Refresh token cookie domain      | Empty for localhost  |
+| `REFRESH_COOKIE_SECURE`        | Use secure cookies (HTTPS only)  | `True` in production |
+| `REFRESH_COOKIE_SAMESITE`      | SameSite cookie attribute        | `None`               |
+| `REFRESH_TOKEN_MAX_AGE`        | Refresh token max age in seconds | `86400` (24 hours)   |
+| `REFRESH_THROTTLE_RATE`        | Token refresh rate limit         | `30/min`             |
+| `PASSWORD_RESET_THROTTLE_RATE` | Password reset rate limit        | `5/hour`             |
 
 ## Environment-Specific Examples
 

@@ -885,6 +885,19 @@ function CourseFlowPage() {
   const currentSection =
     currentItem?.kind === "section" ? currentItem.section : null;
 
+  const sanitizedSectionHtml = useMemo(() => {
+    if (!currentItem || currentItem.kind !== "section") return null;
+    const content = currentItem.section?.text_content;
+    return content ? DOMPurify.sanitize(content) : null;
+  }, [currentItem]);
+
+  const sanitizedLessonDetailHtml = useMemo(() => {
+    if (!currentItem || currentItem.kind === "section") return null;
+    return DOMPurify.sanitize(
+      currentItem.lessonDetailedContent || "No lesson content available."
+    );
+  }, [currentItem]);
+
   const headerText = useMemo(() => {
     if (!currentItem) return null;
     return {
@@ -905,7 +918,7 @@ function CourseFlowPage() {
           <div
             className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(section.text_content),
+              __html: sanitizedSectionHtml || "",
             }}
           />
         );
@@ -981,7 +994,7 @@ function CourseFlowPage() {
               <div
                 className="prose max-w-none text-[color:var(--muted-text,#6b7280)] dark:prose-invert"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(section.text_content),
+                  __html: sanitizedSectionHtml || "",
                 }}
               />
             )}
@@ -1018,9 +1031,7 @@ function CourseFlowPage() {
       <div
         className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(
-            currentItem.lessonDetailedContent || "No lesson content available."
-          ),
+          __html: sanitizedLessonDetailHtml || "",
         }}
       />
     );

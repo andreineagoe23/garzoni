@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from datetime import timedelta
 
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from django.core.cache import cache
@@ -408,8 +408,15 @@ class FinanceFactView(APIView):
                     {"message": "You already completed today's finance fact."}, status=200
                 )
 
-            # Log the fact as read
-            UserFactProgress.objects.create(user=request.user, fact=fact)
+            # Log the fact as read (avoid duplicate key errors)
+            try:
+                progress, created = UserFactProgress.objects.get_or_create(
+                    user=request.user, fact=fact
+                )
+            except IntegrityError:
+                return Response({"message": "Fact already marked as read."}, status=200)
+            if not created:
+                return Response({"message": "Fact already marked as read."}, status=200)
 
             # Progress both daily and weekly missions
             completions = MissionCompletion.objects.filter(

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -53,6 +59,20 @@ const ExercisePage = () => {
   const [skillProficiency, setSkillProficiency] = useState({});
   const [firstTryCorrect, setFirstTryCorrect] = useState(0);
   const [streakMultiplier, setStreakMultiplier] = useState(1);
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const logError = useCallback(
+    (...args) => {
+      if (isDevelopment) {
+        console.error(...args);
+      }
+    },
+    [isDevelopment]
+  );
+
+  const currentExercise = useMemo(
+    () => exercises[currentExerciseIndex] || null,
+    [exercises, currentExerciseIndex]
+  );
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -103,9 +123,9 @@ const ExercisePage = () => {
       });
       setCategories(response.data);
     } catch (err) {
-      console.error("Failed to load categories:", err);
+      logError("Failed to load categories:", err);
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, logError]);
 
   const fetchReviewQueue = useCallback(async () => {
     try {
@@ -116,9 +136,9 @@ const ExercisePage = () => {
       });
       setReviewQueue(response.data);
     } catch (err) {
-      console.error("Failed to load review queue", err);
+      logError("Failed to load review queue", err);
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, logError]);
 
   const startReviewMode = useCallback(async () => {
     if (!reviewQueue?.due?.length) {
@@ -144,9 +164,9 @@ const ExercisePage = () => {
       setSubmissionFeedback("");
       setExplanation("");
     } catch (err) {
-      console.error("Failed to load review exercises", err);
+      logError("Failed to load review exercises", err);
     }
-  }, [getAccessToken, lessonExercises, reviewQueue]);
+  }, [getAccessToken, lessonExercises, logError, reviewQueue]);
 
   const exitReviewMode = useCallback(() => {
     setMode("lesson");
@@ -187,12 +207,13 @@ const ExercisePage = () => {
         setExplanation("");
       }
     } catch (err) {
-      console.error("Failed to fetch next recommended exercise", err);
+      logError("Failed to fetch next recommended exercise", err);
     }
   }, [
     currentExerciseIndex,
     exercises,
     getAccessToken,
+    logError,
     lessonExercises.length,
     progress,
   ]);
@@ -235,14 +256,14 @@ const ExercisePage = () => {
   };
 
   useEffect(() => {
-    if (exercises.length > 0) {
-      setUserAnswer(initializeAnswer(exercises[currentExerciseIndex]));
+    if (currentExercise) {
+      setUserAnswer(initializeAnswer(currentExercise));
       setHintIndex(0);
       setSubmissionFeedback("");
       setScratchpad("");
       setConfidence("medium");
     }
-  }, [exercises, currentExerciseIndex]);
+  }, [currentExercise]);
 
   useEffect(() => {
     if (isTimedMode) {
@@ -279,10 +300,11 @@ const ExercisePage = () => {
   }, [sessionCompleted]);
 
   const handleRetry = () => {
+    if (!currentExercise) return;
     setIsRetrying(true);
     const updatedProgress = [...progress];
     updatedProgress[currentExerciseIndex] = {
-      exerciseId: exercises[currentExerciseIndex].id,
+      exerciseId: currentExercise.id,
       correct: false,
       attempts: 0,
       status: "not_started",
@@ -290,8 +312,7 @@ const ExercisePage = () => {
     setProgress(updatedProgress);
 
     setUserAnswer(
-      savedAnswers[exercises[currentExerciseIndex].id] ||
-        initializeAnswer(exercises[currentExerciseIndex])
+      savedAnswers[currentExercise.id] || initializeAnswer(currentExercise)
     );
 
     setShowCorrection(false);
@@ -302,7 +323,7 @@ const ExercisePage = () => {
 
   const handleSubmit = async () => {
     try {
-      const currentExercise = exercises[currentExerciseIndex];
+      if (!currentExercise) return;
 
       const previousProgress = progress[currentExerciseIndex] || {};
       const wasFreshAttempt = !previousProgress.attempts;
@@ -422,7 +443,7 @@ const ExercisePage = () => {
 
     for (let i = 0; i < normalized.length; i += 1) {
       const ch = normalized[i];
-      if (ch >= "0" && ch <= "9" || ch === ".") {
+      if ((ch >= "0" && ch <= "9") || ch === ".") {
         current += ch;
         continue;
       }
@@ -513,7 +534,8 @@ const ExercisePage = () => {
       }
       const b = stack.pop();
       const a = stack.pop();
-      if (a === undefined || b === undefined) throw new Error("Invalid expression");
+      if (a === undefined || b === undefined)
+        throw new Error("Invalid expression");
       switch (token.value) {
         case "+":
           stack.push(a + b);
@@ -556,7 +578,7 @@ const ExercisePage = () => {
   };
 
   const renderExercise = () => {
-    const exercise = exercises[currentExerciseIndex];
+    const exercise = currentExercise;
     if (!exercise || !exercise.exercise_data) {
       return (
         <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">

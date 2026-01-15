@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "dompurify";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
@@ -26,8 +26,9 @@ const RichTextEditor = ({ value, onChange }) => {
 
     (async () => {
       try {
-        const ClassicEditor = (await import("@ckeditor/ckeditor5-build-classic"))
-          .default;
+        const ClassicEditor = (
+          await import("@ckeditor/ckeditor5-build-classic")
+        ).default;
 
         if (cancelled || !containerRef.current) return;
 
@@ -121,6 +122,10 @@ const LessonSectionEditorPanel = ({
   const [jsonError, setJsonError] = useState("");
   const activeSectionIdRef = useRef(null);
   const sectionExerciseDataRef = useRef(null);
+  const sanitizedPreviewHtml = useMemo(() => {
+    if (!section?.text_content) return "";
+    return DOMPurify.sanitize(section.text_content);
+  }, [section?.text_content]);
 
   const getJsonErrorDetails = (value, error) => {
     const message = String(error?.message || "Invalid JSON.");
@@ -149,7 +154,9 @@ const LessonSectionEditorPanel = ({
     setJsonError("");
     activeSectionIdRef.current = section?.id ?? null;
     const exerciseData = sectionExerciseDataRef.current;
-    const nextJson = exerciseData ? JSON.stringify(exerciseData, null, 2) : "{}";
+    const nextJson = exerciseData
+      ? JSON.stringify(exerciseData, null, 2)
+      : "{}";
     setExerciseJson(nextJson);
     setLastValidExerciseJson(nextJson);
   }, [section?.id]);
@@ -165,7 +172,13 @@ const LessonSectionEditorPanel = ({
       : "{}";
     setExerciseJson(nextJson);
     setLastValidExerciseJson(nextJson);
-  }, [section?.exercise_data, section?.id, exerciseJson, lastValidExerciseJson, section]);
+  }, [
+    section?.exercise_data,
+    section?.id,
+    exerciseJson,
+    lastValidExerciseJson,
+    section,
+  ]);
 
   const handleJsonChange = (value) => {
     setExerciseJson(value);
@@ -249,7 +262,9 @@ const LessonSectionEditorPanel = ({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-          {savingState?.status === "saving" && <span>Autosaving changes…</span>}
+          {savingState?.status === "saving" && (
+            <span>Autosaving changes...</span>
+          )}
           {savingState?.status === "saved" && <span>Changes saved</span>}
           {savingState?.status === "error" && (
             <span className="text-[color:var(--error,#dc2626)]">
@@ -387,7 +402,7 @@ const LessonSectionEditorPanel = ({
             <div
               className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(section.text_content),
+                __html: sanitizedPreviewHtml,
               }}
             />
           </div>

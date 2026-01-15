@@ -38,7 +38,11 @@ from authentication.entitlements import (
 )
 from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
-from authentication.throttles import LoginRateThrottle, RefreshRateThrottle
+from authentication.throttles import (
+    LoginRateThrottle,
+    RefreshRateThrottle,
+    PasswordResetRateThrottle,
+)
 from core.http_client import request_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -805,6 +809,7 @@ class PasswordResetRequestView(APIView):
     """Handle password reset requests by generating a reset token and sending an email with the reset link."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         """Process password reset requests by validating the email and sending a reset link."""
@@ -814,31 +819,31 @@ class PasswordResetRequestView(APIView):
 
         try:
             user = User.objects.get(email=email)
-            token = PasswordResetTokenGenerator().make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
-
-            # Render the email content
-            context = {
-                "user": user,
-                "reset_link": reset_link,
-            }
-            subject = "Password Reset Request"
-            html_content = render_to_string("emails/password_reset.html", context)
-            text_content = strip_tags(html_content)
-
-            # Send the email
-            email_message = EmailMultiAlternatives(
-                subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email]
-            )
-            email_message.attach_alternative(html_content, "text/html")
-            email_message.send()
-
-            return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response(
-                {"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND
-            )
+            # Avoid user enumeration: always return success for reset requests.
+            return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
+
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
+
+        # Render the email content
+        context = {
+            "user": user,
+            "reset_link": reset_link,
+        }
+        subject = "Password Reset Request"
+        html_content = render_to_string("emails/password_reset.html", context)
+        text_content = strip_tags(html_content)
+
+        # Send the email
+        email_message = EmailMultiAlternatives(
+            subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email]
+        )
+        email_message.attach_alternative(html_content, "text/html")
+        email_message.send()
+
+        return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmView(APIView):

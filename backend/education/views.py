@@ -52,7 +52,15 @@ logger = logging.getLogger(__name__)
 class PathViewSet(viewsets.ModelViewSet):
     """ViewSet to manage paths, including listing and retrieving paths."""
 
-    queryset = Path.objects.all()
+    queryset = Path.objects.prefetch_related(
+        Prefetch(
+            "courses",
+            queryset=Course.objects.select_related("path").prefetch_related(
+                "lessons",
+                "quizzes",
+            ),
+        )
+    )
     serializer_class = PathSerializer
     permission_classes = [IsAuthenticated]
 
@@ -70,7 +78,10 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter courses by path if path_id is provided."""
-        queryset = Course.objects.all()
+        queryset = Course.objects.select_related("path").prefetch_related(
+            "lessons",
+            "quizzes",
+        )
         path_id = self.request.query_params.get("path", None)
         if path_id:
             queryset = queryset.filter(path_id=path_id)
@@ -107,11 +118,13 @@ class LessonViewSet(viewsets.ModelViewSet):
         """Mark a specific section of a lesson as completed."""
         lesson = self.get_object()
         section_id = request.data.get("section_id")
+        if not section_id:
+            return Response({"error": "Section ID is required."}, status=400)
 
         # Track progress
         progress, _ = UserProgress.objects.get_or_create(user=request.user, course=lesson.course)
         try:
-            section = LessonSection.objects.get(id=section_id)
+            section = LessonSection.objects.get(id=section_id, lesson=lesson)
             if not section.is_published and not (
                 request.user.is_staff or request.user.is_superuser
             ):
@@ -143,7 +156,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             completed_lesson_ids = []
             completed_sections = []
 
-        section_queryset = LessonSection.objects.all()
+        section_queryset = LessonSection.objects.select_related("updated_by")
         if not include_unpublished:
             section_queryset = section_queryset.filter(is_published=True)
 
@@ -333,8 +346,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Quiz.objects.none()
 
-        quizzes = Quiz.objects.filter(course_id=course_id)
-        return quizzes
+        return Quiz.objects.filter(course_id=course_id).select_related("course")
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
@@ -698,7 +710,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Exercise.objects.all()
+        queryset = Exercise.objects.select_related("lesson", "section")
         exercise_type = self.request.query_params.get("type", None)
         category = self.request.query_params.get("category", None)
         difficulty = self.request.query_params.get("difficulty", None)
@@ -715,7 +727,9 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def categories(self, request):
         """Get all unique exercise categories."""
-        categories = Exercise.objects.values_list("category", flat=True).distinct()
+        categories = (
+            Exercise.objects.order_by("category").values_list("category", flat=True).distinct()
+        )
         return Response(list(categories))
 
     @action(detail=True, methods=["post"])
@@ -879,12 +893,26 @@ def reset_exercise(request):
 def review_queue(request):
     """Return a lightweight review queue based on mastery due dates."""
     now = timezone.now()
-    due_mastery = Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
+    due_mastery = list(
+        Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
+    )
+    if not due_mastery:
+        return Response({"due": [], "count": 0})
+
+    skills = [mastery.skill for mastery in due_mastery]
+    exercises = (
+        Exercise.objects.filter(category__in=skills)
+        .only("id", "question", "type", "category")
+        .order_by("category", "difficulty", "id")
+    )
+    first_by_skill = {}
+    for exercise in exercises:
+        if exercise.category not in first_by_skill:
+            first_by_skill[exercise.category] = exercise
+
     queue = []
     for mastery in due_mastery:
-        exercise = (
-            Exercise.objects.filter(category=mastery.skill).order_by("difficulty", "id").first()
-        )
+        exercise = first_by_skill.get(mastery.skill)
         if not exercise:
             continue
         queue.append(
@@ -983,24 +1011,38 @@ class EnhancedQuestionnaireView(APIView):
             if not answers:
                 return Response({"error": "No answers provided"}, status=400)
 
+            try:
+                answer_ids = [int(qid) for qid in answers.keys()]
+            except (TypeError, ValueError):
+                return Response({"error": "Invalid question IDs."}, status=400)
+
+            questions = Question.objects.filter(id__in=answer_ids)
+            questions_by_id = {question.id: question for question in questions}
+
             with transaction.atomic():
                 for qid, answer in answers.items():
-                    try:
-                        question = Question.objects.get(id=qid)
-                        # Validate budget allocation sum
-                        if question.type == "budget_allocation":
-                            total = sum(int(v) for v in answer.values())
-                            if total != 100:
-                                return Response(
-                                    {"error": "Budget allocation must total 100%"}, status=400
-                                )
-
-                        UserResponse.objects.update_or_create(
-                            user=user, question=question, defaults={"answer": answer}
-                        )
-                    except Question.DoesNotExist:
-                        logger.error(f"Question {qid} not found")
+                    question = questions_by_id.get(int(qid))
+                    if not question:
+                        logger.error("Question %s not found", qid)
                         continue
+
+                    # Validate budget allocation sum
+                    if question.type == "budget_allocation":
+                        if not isinstance(answer, dict):
+                            return Response(
+                                {"error": "Budget allocation must be a JSON object"},
+                                status=400,
+                            )
+                        total = sum(int(v) for v in answer.values())
+                        if total != 100:
+                            return Response(
+                                {"error": "Budget allocation must total 100%"},
+                                status=400,
+                            )
+
+                    UserResponse.objects.update_or_create(
+                        user=user, question=question, defaults={"answer": answer}
+                    )
 
                 user_profile.recommended_courses = []
                 user_profile.save(update_fields=["recommended_courses"])
