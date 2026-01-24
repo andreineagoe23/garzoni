@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,34 +8,61 @@
 
     <!-- Primary Meta Tags -->
     <title>Monevo - Personal Finance</title>
-    <meta name="title" content="Monevo - Personal Finance Education">
-    <meta name="description" content="Master financial literacy with interactive courses, quizzes, and tools. Learn budgeting, investing, and wealth management.">
+    <meta name="title" content="Monevo - Personal Finance Education" />
+    <meta
+      name="description"
+      content="Master financial literacy with interactive courses, quizzes, and tools. Learn budgeting, investing, and wealth management."
+    />
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://monevo.tech/">
-    <meta property="og:title" content="Monevo - Personal Finance Education">
-    <meta property="og:description" content="Master financial literacy with interactive courses, quizzes, and tools.">
-    <meta property="og:image" content="%PUBLIC_URL%/og-image.jpg">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://monevo.tech/" />
+    <meta property="og:title" content="Monevo - Personal Finance Education" />
+    <meta
+      property="og:description"
+      content="Master financial literacy with interactive courses, quizzes, and tools."
+    />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.jpg" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://monevo.tech/">
-    <meta property="twitter:title" content="Monevo - Personal Finance Education">
-    <meta property="twitter:description" content="Master financial literacy with interactive courses, quizzes, and tools.">
-    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.jpg">
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://monevo.tech/" />
+    <meta
+      property="twitter:title"
+      content="Monevo - Personal Finance Education"
+    />
+    <meta
+      property="twitter:description"
+      content="Master financial literacy with interactive courses, quizzes, and tools."
+    />
+    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.jpg" />
 
     <!-- Favicon Setup -->
-    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png">
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="%PUBLIC_URL%/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="%PUBLIC_URL%/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="%PUBLIC_URL%/favicon-16x16.png"
+    />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- Conditionally Load Cookiebot/Usercentrics (frontend only) -->
     <script>
       if (window.location.hostname.includes("monevo.tech")) {
         const autoblocker = document.createElement("script");
-        autoblocker.src = "https://web.cmp.usercentrics.eu/modules/autoblocker.js";
+        autoblocker.src =
+          "https://web.cmp.usercentrics.eu/modules/autoblocker.js";
         autoblocker.async = true;
         document.head.appendChild(autoblocker);
 
@@ -52,7 +78,9 @@
     <!-- Google Consent Mode (Always runs) -->
     <script data-cookieconsent="ignore">
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag() {
+        dataLayer.push(arguments);
+      }
       gtag("consent", "default", {
         ad_personalization: "denied",
         ad_storage: "denied",
@@ -61,7 +89,7 @@
         functionality_storage: "denied",
         personalization_storage: "denied",
         security_storage: "granted",
-        wait_for_update: 500
+        wait_for_update: 500,
       });
       gtag("set", "ads_data_redaction", true);
       gtag("set", "url_passthrough", false);
@@ -72,25 +100,35 @@
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
     <!-- Font Preloading -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      as="style"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    />
 
     <!-- Dynamic Google Analytics Loader (only if consented) -->
     <script data-cookieconsent="ignore">
-      window.addEventListener('CookiebotOnAccept', function() {
+      window.addEventListener("CookiebotOnAccept", function () {
         if (window.Cookiebot?.consent?.statistics) {
-          const gaScript = document.createElement('script');
+          const gaScript = document.createElement("script");
           gaScript.async = true;
-          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8';
+          gaScript.src =
+            "https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8";
           document.head.appendChild(gaScript);
 
           window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-0H3QCDXCE8', {
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag("js", new Date());
+          gtag("config", "G-0H3QCDXCE8", {
             anonymize_ip: true,
             allow_google_signals: false,
-            debug_mode: false
+            debug_mode: false,
           });
         }
       });
@@ -98,24 +136,27 @@
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but Monevo doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong
+        >We're sorry but Monevo doesn't work properly without JavaScript
+        enabled. Please enable it to continue.</strong
+      >
     </noscript>
     <div id="root"></div>
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "Monevo",
-      "url": "https://monevo.tech",
-      "logo": "%PUBLIC_URL%/logo-512x512.png",
-      "description": "Interactive personal finance education platform",
-      "sameAs": [
-        "https://twitter.com/monevo",
-        "https://linkedin.com/company/monevo"
-      ]
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Monevo",
+        "url": "https://monevo.tech",
+        "logo": "%PUBLIC_URL%/logo-512x512.png",
+        "description": "Interactive personal finance education platform",
+        "sameAs": [
+          "https://twitter.com/monevo",
+          "https://linkedin.com/company/monevo"
+        ]
+      }
     </script>
   </body>
 </html>

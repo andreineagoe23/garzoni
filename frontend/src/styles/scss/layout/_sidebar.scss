@@ -67,7 +67,9 @@
       height: 2px;
       background: var(--text-color);
       border-radius: 999px;
-      transition: transform 0.25s ease, opacity 0.25s ease;
+      transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
     }
 
     &.is-open span:nth-child(1) {
@@ -108,7 +110,9 @@
       transform: translateY(-10px);
       opacity: 0;
       pointer-events: none;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
       gap: map-get($spacers, 2);
 
       &.is-open {
@@ -149,7 +153,9 @@
     color: var(--text-color);
     font-weight: $font-weight-medium;
     text-decoration: none;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
 
     &:hover,
     &:focus {

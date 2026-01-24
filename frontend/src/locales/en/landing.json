@@ -42,7 +42,11 @@
     {
       "title": "Bite-sized lessons",
       "text": "Learn in 3–7 minutes with clear takeaways you can apply immediately.",
-      "bullets": ["Short, focused topics", "Interactive checks", "Repeat anytime"]
+      "bullets": [
+        "Short, focused topics",
+        "Interactive checks",
+        "Repeat anytime"
+      ]
     },
     {
       "title": "Gamification & missions",
@@ -61,7 +65,11 @@
     {
       "title": "Smart tools & practice",
       "text": "Simulate decisions with calculators and exercises that build confidence.",
-      "bullets": ["Hands-on exercises", "Scenario practice", "Actionable insights"]
+      "bullets": [
+        "Hands-on exercises",
+        "Scenario practice",
+        "Actionable insights"
+      ]
     },
     {
       "title": "Track progress",

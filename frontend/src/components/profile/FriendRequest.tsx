@@ -13,14 +13,11 @@ const FriendRequests = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${BACKEND_URL}/friend-requests/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/friend-requests/`, {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);

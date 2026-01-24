@@ -78,8 +78,8 @@ const PricingFunnelDashboard = () => {
               Pricing & Checkout Funnel
             </h1>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Monitor how users move from the pricing page to successful checkout
-              and entitlement activation.
+              Monitor how users move from the pricing page to successful
+              checkout and entitlement activation.
             </p>
           </div>
           <GlassButton

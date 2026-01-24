@@ -17,7 +17,9 @@ describe("AuthContext refresh flow", () => {
   beforeEach(() => {
     const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
     sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
-    axiosMock.post.mockResolvedValue({ data: { access: "access-token" } } as any);
+    axiosMock.post.mockResolvedValue({
+      data: { access: "access-token" },
+    } as any);
     axiosMock.get.mockResolvedValue({
       data: { isAuthenticated: true, user: { username: "tester" } },
     } as any);

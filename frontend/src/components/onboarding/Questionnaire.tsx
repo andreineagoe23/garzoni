@@ -87,11 +87,15 @@ const Questionnaire = () => {
     }
   };
 
-  const handleBudgetChange = (questionId: string | number, category: string, value: unknown) => {
+  const handleBudgetChange = (
+    questionId: string | number,
+    category: string,
+    value: unknown
+  ) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
-        ...(prev[questionId] as Record<string, unknown> || {}),
+        ...((prev[questionId] as Record<string, unknown>) || {}),
         [category]: value,
       },
     }));
@@ -129,7 +133,9 @@ const Questionnaire = () => {
         window.location.assign(response.data.redirect_url);
       } else {
         setSubmitStatus("success");
-        setSubmitFeedback("Questionnaire submitted! Loading your personalized path.");
+        setSubmitFeedback(
+          "Questionnaire submitted! Loading your personalized path."
+        );
         navigate("/personalized-path");
       }
     } catch (submitError) {
@@ -142,7 +148,9 @@ const Questionnaire = () => {
         navigate("/subscriptions");
         return;
       }
-      setSubmitFeedback(submitError.response?.data?.error || "Payment setup failed");
+      setSubmitFeedback(
+        submitError.response?.data?.error || "Payment setup failed"
+      );
     }
   };
 
@@ -195,7 +203,9 @@ const Questionnaire = () => {
                       name={`scale-${question.id}`}
                       value={value}
                       checked={isChecked}
-                      onChange={() => handleAnswer(question.id, value.toString())}
+                      onChange={() =>
+                        handleAnswer(question.id, value.toString())
+                      }
                       className="sr-only"
                     />
                     {value}
@@ -212,8 +222,10 @@ const Questionnaire = () => {
       }
 
       case "budget_allocation": {
-        const allocation = (answers[question.id] ||
-          {}) as Record<string, string>;
+        const allocation = (answers[question.id] || {}) as Record<
+          string,
+          string
+        >;
         const total = Object.values(allocation).reduce(
           (sum, value) => sum + (parseInt(value, 10) || 0),
           0
@@ -275,7 +287,10 @@ const Questionnaire = () => {
   if (error) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <GlassCard padding="lg" className="max-w-md border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20">
+        <GlassCard
+          padding="lg"
+          className="max-w-md border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20"
+        >
           {error}
         </GlassCard>
       </div>
@@ -285,7 +300,10 @@ const Questionnaire = () => {
   if (!questions.length) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <GlassCard padding="lg" className="max-w-md text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+        <GlassCard
+          padding="lg"
+          className="max-w-md text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+        >
           No questionnaire data available.
         </GlassCard>
       </div>

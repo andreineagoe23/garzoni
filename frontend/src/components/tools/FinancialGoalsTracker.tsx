@@ -3,11 +3,18 @@ import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
 import { useTranslation } from "react-i18next";
-import { formatCurrency, formatDate, formatNumber, getLocale } from "utils/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatNumber,
+  getLocale,
+} from "utils/format";
 
 const STATUS_COLORS = {
-  not_started: "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
-  in_progress: "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]",
+  not_started:
+    "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
+  in_progress:
+    "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]",
   completed: "bg-emerald-500/10 text-emerald-400",
 };
 
@@ -27,12 +34,9 @@ const FinancialGoalsTracker = () => {
 
   const fetchGoals = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/financial-goals/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
+      const response = await axios.get(`${BACKEND_URL}/financial-goals/`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+      });
       setGoals(response.data);
       setError(null);
     } catch (err) {
@@ -76,10 +80,9 @@ const FinancialGoalsTracker = () => {
 
   const handleDeleteGoal = async (goalId) => {
     try {
-      await axios.delete(
-        `${BACKEND_URL}/financial-goals/${goalId}/`,
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await axios.delete(`${BACKEND_URL}/financial-goals/${goalId}/`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+      });
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
     } catch (err) {
       console.error("Error deleting goal:", err);
@@ -98,7 +101,13 @@ const FinancialGoalsTracker = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      <div
+        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        style={{
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
+      >
         <form
           onSubmit={handleAddGoal}
           className="grid gap-4 md:grid-cols-2"

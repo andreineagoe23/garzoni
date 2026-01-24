@@ -18,9 +18,7 @@
       "jsx": true
     }
   },
-  "plugins": [
-    "react"
-  ],
+  "plugins": ["react"],
   "settings": {
     "react": {
       "version": "detect"

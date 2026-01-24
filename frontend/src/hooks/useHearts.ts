@@ -17,7 +17,10 @@ type UseHeartsOptions = {
   refetchIntervalMs?: number;
 };
 
-export function useHearts({ enabled = true, refetchIntervalMs = 30_000 }: UseHeartsOptions = {}) {
+export function useHearts({
+  enabled = true,
+  refetchIntervalMs = 30_000,
+}: UseHeartsOptions = {}) {
   const queryClient = useQueryClient();
 
   // One-time: keep cross-tab timestamps in sync.
@@ -25,13 +28,17 @@ export function useHearts({ enabled = true, refetchIntervalMs = 30_000 }: UseHea
     initHeartsTabSync();
   }, []);
 
-  const isOutOfHeartsModalOpen = useHeartsStore((s) => s.isOutOfHeartsModalOpen);
+  const isOutOfHeartsModalOpen = useHeartsStore(
+    (s) => s.isOutOfHeartsModalOpen
+  );
   const setOutOfHeartsModalOpen = useHeartsStore(
     (s) => s.setOutOfHeartsModalOpen
   );
   const outOfHeartsUntilTs = useHeartsStore((s) => s.outOfHeartsUntilTs);
   const setOutOfHeartsUntilTs = useHeartsStore((s) => s.setOutOfHeartsUntilTs);
-  const lastSeenServerHeartsTs = useHeartsStore((s) => s.lastSeenServerHeartsTs);
+  const lastSeenServerHeartsTs = useHeartsStore(
+    (s) => s.lastSeenServerHeartsTs
+  );
   const setLastSeenServerHeartsTs = useHeartsStore(
     (s) => s.setLastSeenServerHeartsTs
   );
@@ -70,7 +77,10 @@ export function useHearts({ enabled = true, refetchIntervalMs = 30_000 }: UseHea
       ) {
         // Avoid stale cross-tab timestamps if the backend doesn't provide a countdown.
         setOutOfHeartsUntilTs(null);
-      } else if (!enabled || (typeof serverHearts === "number" && serverHearts > 0)) {
+      } else if (
+        !enabled ||
+        (typeof serverHearts === "number" && serverHearts > 0)
+      ) {
         // Clear the "blocked until" timestamp once the user has hearts again.
         setOutOfHeartsUntilTs(null);
         setOutOfHeartsModalOpen(false);
@@ -119,7 +129,8 @@ export function useHearts({ enabled = true, refetchIntervalMs = 30_000 }: UseHea
   const grantMutation = useMutation(
     createMutationOptions({
       queryClient,
-      mutationFn: (amount: unknown) => grantHearts(Number(amount)).then((r) => r.data),
+      mutationFn: (amount: unknown) =>
+        grantHearts(Number(amount)).then((r) => r.data),
       invalidate: [queryKeys.hearts()],
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
@@ -177,11 +188,11 @@ export function useHearts({ enabled = true, refetchIntervalMs = 30_000 }: UseHea
   }, [refillMutation]);
 
   const maxHearts = enabled
-    ? heartsQuery.data?.max_hearts ?? DEFAULT_MAX_HEARTS
+    ? (heartsQuery.data?.max_hearts ?? DEFAULT_MAX_HEARTS)
     : DEFAULT_MAX_HEARTS;
-  const hearts = enabled ? heartsQuery.data?.hearts ?? maxHearts : maxHearts;
+  const hearts = enabled ? (heartsQuery.data?.hearts ?? maxHearts) : maxHearts;
   const nextHeartInSecondsRaw = enabled
-    ? heartsQuery.data?.next_heart_in_seconds ?? null
+    ? (heartsQuery.data?.next_heart_in_seconds ?? null)
     : null;
 
   return {

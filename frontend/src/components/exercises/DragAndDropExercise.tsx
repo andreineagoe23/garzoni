@@ -36,16 +36,27 @@ const DragAndDropExercise = ({
   isCompleted: isCompletedProp = false,
   disabled = false,
 }: DragAndDropExerciseProps) => {
-  const { items = [], targets = [] } = (data || {}) as { items?: DragItem[]; targets?: DragTarget[] };
-  const targetsArray = useMemo(() => (targets || []) as DragTarget[], [targets]);
+  const { items = [], targets = [] } = (data || {}) as {
+    items?: DragItem[];
+    targets?: DragTarget[];
+  };
+  const targetsArray = useMemo(
+    () => (targets || []) as DragTarget[],
+    [targets]
+  );
   const itemsArray = useMemo(() => (items || []) as DragItem[], [items]);
   const { getAccessToken } = useAuth();
 
-  const [userAnswers, setUserAnswers] = useState<Record<string | number, string | number>>({});
+  const [userAnswers, setUserAnswers] = useState<
+    Record<string | number, string | number>
+  >({});
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<string | null>(null);
   const [targetStates, setTargetStates] = useState(() =>
-    targetsArray.map((target) => ({ ...target, status: null as "correct" | "incorrect" | null }))
+    targetsArray.map((target) => ({
+      ...target,
+      status: null as "correct" | "incorrect" | null,
+    }))
   );
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -56,14 +67,22 @@ const DragAndDropExercise = ({
   }, [isCompletedProp]);
 
   const itemsById = useMemo(() => {
-    return itemsArray.reduce((acc, item) => {
-      acc[item.id] = item;
-      return acc;
-    }, {} as Record<string | number, DragItem>);
+    return itemsArray.reduce(
+      (acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      },
+      {} as Record<string | number, DragItem>
+    );
   }, [itemsArray]);
 
   useEffect(() => {
-    setTargetStates(targetsArray.map((target) => ({ ...target, status: null as "correct" | "incorrect" | null })));
+    setTargetStates(
+      targetsArray.map((target) => ({
+        ...target,
+        status: null as "correct" | "incorrect" | null,
+      }))
+    );
     setUserAnswers({});
     setFeedback("");
     setFeedbackType(null);
@@ -146,7 +165,13 @@ const DragAndDropExercise = ({
       setFeedbackType("error");
     }
 
-    setTargetStates(results as Array<{ id: string | number; label?: string; status: "correct" | "incorrect" }>);
+    setTargetStates(
+      results as Array<{
+        id: string | number;
+        label?: string;
+        status: "correct" | "incorrect";
+      }>
+    );
   };
 
   const handleRetry = async () => {
@@ -162,7 +187,12 @@ const DragAndDropExercise = ({
         }
       );
       setUserAnswers({});
-      setTargetStates(targetsArray.map((target) => ({ ...target, status: null as "correct" | "incorrect" | null })));
+      setTargetStates(
+        targetsArray.map((target) => ({
+          ...target,
+          status: null as "correct" | "incorrect" | null,
+        }))
+      );
       setFeedback("");
       setFeedbackType(null);
       setIsCompleted(false);
@@ -313,8 +343,8 @@ const DroppableTarget = ({
     status === "correct"
       ? "border-emerald-500/60 bg-emerald-500/10"
       : status === "incorrect"
-      ? "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
-      : "border-dashed";
+        ? "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+        : "border-dashed";
 
   return (
     <div

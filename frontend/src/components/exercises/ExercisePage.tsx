@@ -1030,7 +1030,8 @@ const ExercisePage = () => {
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Remaining today: {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
+                  Remaining today:{" "}
+                  {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
                 </div>
                 {hintError && (
                   <div className="mt-2 text-xs text-[color:var(--error,#dc2626)]">

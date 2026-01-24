@@ -17,8 +17,12 @@ module.exports = {
 
       const isSourceMapLoader = (useEntry) => {
         if (!useEntry) return false;
-        if (typeof useEntry === "string") return useEntry.includes("source-map-loader");
-        return typeof useEntry.loader === "string" && useEntry.loader.includes("source-map-loader");
+        if (typeof useEntry === "string")
+          return useEntry.includes("source-map-loader");
+        return (
+          typeof useEntry.loader === "string" &&
+          useEntry.loader.includes("source-map-loader")
+        );
       };
 
       const maybeExcludeCkeditor = (rule) => {

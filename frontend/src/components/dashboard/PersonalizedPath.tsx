@@ -26,7 +26,9 @@ function PersonalizedPath({
 }: {
   onCourseClick?: (courseId: number, pathId?: number) => void;
 }) {
-  const [personalizedCourses, setPersonalizedCourses] = useState<PersonalizedCourse[]>([]);
+  const [personalizedCourses, setPersonalizedCourses] = useState<
+    PersonalizedCourse[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paymentVerified, setPaymentVerified] = useState(false);
@@ -55,12 +57,13 @@ function PersonalizedPath({
       const response = await axios.get<{ courses: PersonalizedCourse[] }>(
         `${BACKEND_URL}/personalized-path/`,
         {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-          "X-CSRFToken": document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
-        },
-        withCredentials: true,
-      }
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+            "X-CSRFToken":
+              document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
+          },
+          withCredentials: true,
+        }
       );
 
       setPersonalizedCourses(
@@ -106,10 +109,12 @@ function PersonalizedPath({
       try {
         // Always force-refresh to avoid stale has_paid/questionnaire flags after checkout
         let profilePayload = await loadProfile({ force: true });
-        const questionnaireCompleted =
-          Boolean((profilePayload as UserProfile)?.user_data?.is_questionnaire_completed ??
+        const questionnaireCompleted = Boolean(
+          (profilePayload as UserProfile)?.user_data
+            ?.is_questionnaire_completed ??
           (profilePayload as UserProfile)?.is_questionnaire_completed ??
-          false);
+          false
+        );
 
         if (!(profilePayload as UserProfile)?.has_paid && sessionId) {
           profilePayload = await loadProfile({ force: true });
@@ -157,11 +162,12 @@ function PersonalizedPath({
           return;
         }
 
-        const hasPaidFlag =
-          Boolean((profilePayload as UserProfile)?.has_paid ||
+        const hasPaidFlag = Boolean(
+          (profilePayload as UserProfile)?.has_paid ||
           (profilePayload as UserProfile)?.user_data?.has_paid ||
           entitlements?.entitled ||
-          false);
+          false
+        );
 
         if (!questionnaireCompleted) {
           navigate("/questionnaire");
@@ -286,11 +292,19 @@ function PersonalizedPath({
                 <GlassCard
                   padding="lg"
                   className="group flex-1 cursor-pointer transition"
-                  onClick={() => handleCourseClick(Number((course as PersonalizedCourse).id), Number((course as PersonalizedCourse).path))}
+                  onClick={() =>
+                    handleCourseClick(
+                      Number((course as PersonalizedCourse).id),
+                      Number((course as PersonalizedCourse).path)
+                    )
+                  }
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      handleCourseClick(Number((course as PersonalizedCourse).id), Number((course as PersonalizedCourse).path));
+                      handleCourseClick(
+                        Number((course as PersonalizedCourse).id),
+                        Number((course as PersonalizedCourse).path)
+                      );
                     }
                   }}
                   role="button"
@@ -301,7 +315,9 @@ function PersonalizedPath({
                   <div className="relative">
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                        {String((course as PersonalizedCourse).path_title || "Path")}
+                        {String(
+                          (course as PersonalizedCourse).path_title || "Path"
+                        )}
                       </span>
                       <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                         {`${(course as PersonalizedCourse).estimated_duration || 4} hrs · ${(course as PersonalizedCourse).exercises || 3} exercises`}
