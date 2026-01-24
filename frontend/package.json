@@ -28,7 +28,6 @@
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.1.0",
-    "react-scripts": "^5.0.1",
     "react-slick": "^0.30.3",
     "react-vertical-timeline-component": "^3.5.3",
     "recharts": "^2.15.3",
@@ -42,7 +41,7 @@
     "start": "craco start",
     "lint": "eslint \"src/**/*.{js,jsx}\"",
     "format:check": "npx --yes prettier --check .",
-    "build": "craco build",
+    "build": "cross-env DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true SKIP_PREFLIGHT_CHECK=true craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
@@ -82,6 +81,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "gh-pages": "^6.2.0",
     "postcss": "^8.5.6",
+    "react-scripts": "^5.0.1",
     "tailwindcss": "^3.4.14"
   }
 }

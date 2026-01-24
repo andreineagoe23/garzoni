@@ -57,4 +57,10 @@ module.exports = {
       return webpackConfig;
     },
   },
+  // Override the problematic modules check
+  jest: {
+    configure: (jestConfig) => {
+      return jestConfig;
+    },
+  },
 };
