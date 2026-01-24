@@ -1,0 +1,10 @@
+{
+  "badgeEarned": "Obtenido",
+  "badgeLocked": "Bloqueado",
+  "noBadges": "No se encontraron insignias",
+  "recentActivity": "Actividad reciente",
+  "goals": {
+    "daily": "Completar 1 lección",
+    "weekly": "Ganar 500 puntos"
+  }
+}
