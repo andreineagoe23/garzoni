@@ -9,6 +9,7 @@ import React, {
 import axios from "axios";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
+import type { UserProfile } from "types/api";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
 import toast from "react-hot-toast";
@@ -116,7 +117,7 @@ function Missions() {
   const [savingsAmount, setSavingsAmount] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentFact, setCurrentFact] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [celebrationMessage, setCelebrationMessage] = useState("");
   const completedMissionsRef = useRef(new Set());
   const previousMissionsRef = useRef(new Map()); // Track previous mission states
@@ -124,7 +125,11 @@ function Missions() {
   const [streakItems, setStreakItems] = useState([]);
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [adaptiveSuggestions, setAdaptiveSuggestions] = useState(null);
+  const [adaptiveSuggestions, setAdaptiveSuggestions] = useState<{
+    level: string;
+    suggestedSavingsTarget: number;
+    learningStyle: string;
+  } | null>(null);
 
   const checkLessonMissionProgress = useCallback(async () => {
     try {
@@ -329,8 +334,13 @@ function Missions() {
         setProfile(profilePayload);
 
         // Generate adaptive suggestions based on profile
-        const points =
+        const rawPoints =
           profilePayload?.user_data?.points ?? profilePayload?.points ?? 0;
+        const points = Number(rawPoints) || 0;
+        const learningStyle =
+          typeof profilePayload?.user_data?.learning_style === "string"
+            ? profilePayload.user_data.learning_style
+            : "balanced";
         const level =
           points >= 2500
             ? "advanced"
@@ -342,8 +352,7 @@ function Missions() {
           level,
           suggestedSavingsTarget:
             level === "advanced" ? 50 : level === "intermediate" ? 25 : 10,
-          learningStyle:
-            profilePayload?.user_data?.learning_style || "balanced",
+          learningStyle,
         });
       } catch (error) {
         setErrorMessage("Failed to load profile insights.");
@@ -437,7 +446,8 @@ function Missions() {
   };
 
   const userLevel = useMemo(() => {
-    const points = profile?.user_data?.points ?? profile?.points ?? 0;
+    const rawPoints = profile?.user_data?.points ?? profile?.points ?? 0;
+    const points = Number(rawPoints) || 0;
     if (points >= 2500) return "advanced";
     if (points >= 750) return "intermediate";
     return "beginner";
@@ -497,7 +507,8 @@ function Missions() {
   const allDailyCompleted =
     state.dailyMissions.length > 0 && missionsRemaining === 0;
 
-  const streakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
+  const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
+  const streakCount = Number(rawStreakCount) || 0;
   const reviewDue = profile?.reviews_due ?? 0;
 
   const renderMissionCard = (mission, isDaily = true) => {
