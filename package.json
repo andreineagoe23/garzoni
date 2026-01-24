@@ -23,6 +23,7 @@
   "dependencies": {
     "@amplitude/analytics-client-common": "^2.4.22",
     "@sentry/utils": "^8.55.0",
-    "@testing-library/dom": "^10.4.1"
+    "@testing-library/dom": "^10.4.1",
+    "sass": "^1.97.3"
   }
 }
