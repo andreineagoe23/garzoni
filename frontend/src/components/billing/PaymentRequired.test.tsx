@@ -11,7 +11,7 @@ jest.mock("services/analyticsService", () => ({
 
 jest.mock("axios");
 const mockNavigate = jest.fn();
-const axiosMock = axios as jest.Mocked<typeof axios>;
+const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
 
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
