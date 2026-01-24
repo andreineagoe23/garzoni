@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { setLanguage, supportedLanguages } from "i18n";
+import { setLanguage, supportedLanguages } from "../../i18n";
 
 const LABELS: Record<string, string> = {
   en: "EN",

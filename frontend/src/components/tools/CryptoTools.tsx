@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useTheme } from "contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
 import i18n from "i18n";
 
