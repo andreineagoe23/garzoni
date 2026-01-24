@@ -7,13 +7,15 @@ export const initSentry = () => {
   if (!dsn) return;
   Sentry.init({
     dsn,
-    integrations: [new BrowserTracing()],
+    integrations: [new BrowserTracing() as any],
     tracesSampleRate: 0.1,
     environment: process.env.NODE_ENV,
   });
 };
 
-export const captureException = (error, info) => {
+export const captureException = (error: unknown, info?: unknown) => {
   if (!dsn) return;
-  Sentry.captureException(error, { extra: info });
+  Sentry.captureException(error, {
+    extra: (info as Record<string, unknown> | undefined) ?? undefined,
+  });
 };
