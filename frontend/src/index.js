@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import "styles/scss/main.scss";
+import "./styles/scss/main.scss";
 
 // Backwards-compat for legacy fragment-based URLs where the client route lives
 // after the "#" fragment marker. This runs before React mounts so BrowserRouter
