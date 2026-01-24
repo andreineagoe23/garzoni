@@ -7,22 +7,22 @@ const fallbackLang = "en";
 // Temporary empty resources - will be replaced with new language approach
 const resources = {
   en: {
-    common: {},
-    dashboard: {},
-    landing: {},
-    auth: {},
-    billing: {},
-    tools: {},
-    profile: {},
+    common: {} as Record<string, string>,
+    dashboard: {} as Record<string, string>,
+    landing: {} as Record<string, string>,
+    auth: {} as Record<string, string>,
+    billing: {} as Record<string, string>,
+    tools: {} as Record<string, string>,
+    profile: {} as Record<string, string>,
   },
   es: {
-    common: {},
-    dashboard: {},
-    landing: {},
-    auth: {},
-    billing: {},
-    tools: {},
-    profile: {},
+    common: {} as Record<string, string>,
+    dashboard: {} as Record<string, string>,
+    landing: {} as Record<string, string>,
+    auth: {} as Record<string, string>,
+    billing: {} as Record<string, string>,
+    tools: {} as Record<string, string>,
+    profile: {} as Record<string, string>,
   },
 };
 
@@ -45,6 +45,7 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+  compatibilityJSON: "v4",
 });
 
 if (typeof window !== "undefined") {
