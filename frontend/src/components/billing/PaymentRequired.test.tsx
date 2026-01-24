@@ -111,10 +111,14 @@ describe("PaymentRequired", () => {
       </MemoryRouter>
     );
 
-    const plusLabel = i18n.t("plans.plus", { ns: "billing" });
+    const plusLabel = i18n.t("plans.plus", {
+      ns: "billing",
+      defaultValue: "Plus",
+    });
     const choosePlus = i18n.t("paymentRequired.choosePlan", {
       ns: "billing",
       plan: plusLabel,
+      defaultValue: `Choose ${plusLabel}`,
     });
     const priceLabel = formatCurrency(12, "USD", getLocale(), {
       minimumFractionDigits: 0,
@@ -141,10 +145,14 @@ describe("PaymentRequired", () => {
       </MemoryRouter>
     );
 
-    const plusLabel = i18n.t("plans.plus", { ns: "billing" });
+    const plusLabel = i18n.t("plans.plus", {
+      ns: "billing",
+      defaultValue: "Plus",
+    });
     const choosePlus = i18n.t("paymentRequired.choosePlan", {
       ns: "billing",
       plan: plusLabel,
+      defaultValue: `Choose ${plusLabel}`,
     });
     const button = await screen.findByRole("button", { name: choosePlus });
     fireEvent.click(button);

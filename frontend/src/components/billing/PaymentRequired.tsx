@@ -316,6 +316,7 @@ const PaymentRequired = () => {
                         })
                       : t("paymentRequired.choosePlan", {
                           plan: translatedName,
+                          defaultValue: "Choose {{plan}}",
                         })}
                   </GlassButton>
                 </div>
