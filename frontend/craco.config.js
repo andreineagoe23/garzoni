@@ -8,6 +8,11 @@
 module.exports = {
   webpack: {
     configure: (webpackConfig) => {
+      // Remove ESLint plugin from webpack plugins to prevent build errors
+      webpackConfig.plugins = webpackConfig.plugins.filter(
+        (plugin) => plugin.constructor.name !== "ESLintWebpackPlugin"
+      );
+
       const ckeditorRegex = /[\\/]node_modules[\\/]@ckeditor[\\/]/;
 
       const isSourceMapLoader = (useEntry) => {
@@ -55,12 +60,6 @@ module.exports = {
 
       visitRules(webpackConfig.module?.rules);
       return webpackConfig;
-    },
-  },
-  // Override the problematic modules check
-  jest: {
-    configure: (jestConfig) => {
-      return jestConfig;
     },
   },
 };
