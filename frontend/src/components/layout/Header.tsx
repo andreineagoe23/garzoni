@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
-import { useTheme } from "contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
 import { useTranslation } from "react-i18next";

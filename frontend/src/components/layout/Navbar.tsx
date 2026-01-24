@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { MoonStarsFill, SunFill, BoxArrowRight } from "components/ui/icons";
-import { useTheme } from "contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import { GlassContainer } from "components/ui";
