@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import TextInput from "./TextInput";
 
-export default {
+const config = {
   title: "UI/TextInput",
   component: TextInput,
   parameters: {
@@ -13,6 +13,8 @@ export default {
     },
   },
 };
+
+export default config;
 
 export const Default = () => {
   const [value, setValue] = useState("");

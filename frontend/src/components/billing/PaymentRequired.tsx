@@ -41,8 +41,8 @@ const formatFeatureValue = (
   if (typeof feature.daily_quota === "number") {
     return String(
       t("entitlements.dailyQuota", {
-      defaultValue: "{{count}} / day",
-      count: feature.daily_quota,
+        defaultValue: "{{count}} / day",
+        count: feature.daily_quota,
       })
     );
   }
@@ -94,7 +94,10 @@ const PaymentRequired = () => {
   }, [fetchSubscriptionInfo]);
 
   useEffect(() => {
-    if (entitlements?.status === "active" || entitlements?.status === "trialing") {
+    if (
+      entitlements?.status === "active" ||
+      entitlements?.status === "trialing"
+    ) {
       navigate("/billing", { replace: true });
     }
   }, [entitlements?.status, navigate]);
@@ -173,7 +176,9 @@ const PaymentRequired = () => {
 
   const comparisonRows = useMemo(() => {
     if (!plans.length) return [];
-    const monthlyPlans = plans.filter((plan) => plan.billing_interval === "monthly");
+    const monthlyPlans = plans.filter(
+      (plan) => plan.billing_interval === "monthly"
+    );
     const planById = monthlyPlans.reduce<Record<string, Plan>>((acc, plan) => {
       acc[plan.plan_id] = plan;
       return acc;
@@ -245,7 +250,8 @@ const PaymentRequired = () => {
                 .map((feature) => feature?.description || feature?.name)
                 .filter(Boolean);
               const isStarter =
-                plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
+                plan.plan_id === "starter" ||
+                Number(plan.price_amount || 0) === 0;
               const isHighlight = plan.plan_id === "plus";
               const trialLabel = plan.trial_days
                 ? t("paymentRequired.trialLabel", { days: plan.trial_days })
@@ -290,12 +296,14 @@ const PaymentRequired = () => {
                   <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
                     {(features.length
                       ? features
-                      : [t("paymentRequired.fallbackFeature", { defaultValue: "Premium learning access" })]
-                    ).map(
-                      (feature) => (
-                        <li key={feature}>• {feature}</li>
-                      )
-                    )}
+                      : [
+                          t("paymentRequired.fallbackFeature", {
+                            defaultValue: "Premium learning access",
+                          }),
+                        ]
+                    ).map((feature) => (
+                      <li key={feature}>• {feature}</li>
+                    ))}
                   </ul>
                   <GlassButton
                     variant={isHighlight ? "primary" : "ghost"}
@@ -303,8 +311,12 @@ const PaymentRequired = () => {
                     onClick={() => handlePlanSelect(plan)}
                   >
                     {isStarter
-                      ? t("paymentRequired.startStarter", { defaultValue: "Start with Starter" })
-                      : t("paymentRequired.choosePlan", { plan: translatedName })}
+                      ? t("paymentRequired.startStarter", {
+                          defaultValue: "Start with Starter",
+                        })
+                      : t("paymentRequired.choosePlan", {
+                          plan: translatedName,
+                        })}
                   </GlassButton>
                 </div>
               );
@@ -323,14 +335,18 @@ const PaymentRequired = () => {
             className="text-sm"
             icon="🔄"
           >
-            {t("paymentRequired.retryEntitlements", { defaultValue: "Retry entitlement check" })}
+            {t("paymentRequired.retryEntitlements", {
+              defaultValue: "Retry entitlement check",
+            })}
           </GlassButton>
           {entitlementSupportLink && (
             <a
               href={entitlementSupportLink}
               className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
             >
-              {t("paymentRequired.contactSupport", { defaultValue: "Contact support" })}
+              {t("paymentRequired.contactSupport", {
+                defaultValue: "Contact support",
+              })}
             </a>
           )}
         </div>

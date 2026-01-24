@@ -64,11 +64,16 @@ export function calculatePercent(
   return clampPercent(round ? Math.round(percent) : percent);
 }
 
-export function indexProgressSummary(summary?: ProgressSummary | null): ProgressIndex {
+export function indexProgressSummary(
+  summary?: ProgressSummary | null
+): ProgressIndex {
   const items = summary?.paths || [];
   const courseById = new Map<string | number, number>();
   const courseByTitle = new Map<string, number>();
-  const pathAggById = new Map<string | number, { sum: number; count: number }>();
+  const pathAggById = new Map<
+    string | number,
+    { sum: number; count: number }
+  >();
   const pathAggByTitle = new Map<string, { sum: number; count: number }>();
   const courseIdSet = new Set<string | number>();
   const courseTitleSet = new Set<string>();
@@ -114,7 +119,10 @@ export function indexProgressSummary(summary?: ProgressSummary | null): Progress
   };
 }
 
-export function hasCourseInIndex(index: ProgressIndex | null | undefined, course?: CourseLike | null) {
+export function hasCourseInIndex(
+  index: ProgressIndex | null | undefined,
+  course?: CourseLike | null
+) {
   const courseId = course?.id ?? null;
   if (courseId !== null && courseId !== undefined && index?.courseIdSet) {
     return index.courseIdSet.has(courseId);
@@ -125,7 +133,10 @@ export function hasCourseInIndex(index: ProgressIndex | null | undefined, course
   return false;
 }
 
-export function hasPathInIndex(index: ProgressIndex | null | undefined, path?: PathLike | null) {
+export function hasPathInIndex(
+  index: ProgressIndex | null | undefined,
+  path?: PathLike | null
+) {
   const pathId = path?.id ?? null;
   if (pathId !== null && pathId !== undefined && index?.pathIdSet) {
     return index.pathIdSet.has(pathId);

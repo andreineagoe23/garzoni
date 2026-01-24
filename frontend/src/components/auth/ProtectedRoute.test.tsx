@@ -27,11 +27,11 @@ describe("ProtectedRoute", () => {
   });
 
   it("redirects to login when unauthenticated", () => {
-    const { container } = renderWithAuth({
+    renderWithAuth({
       isAuthenticated: false,
       isInitialized: true,
     });
-    expect(container.querySelector('[data-mock-navigate="/login"]')).not.toBeNull();
+    expect(screen.getByTestId("mock-navigate-/login")).toBeInTheDocument();
   });
 
   it("renders children when authenticated", () => {

@@ -14,15 +14,14 @@ const reactRouterDomMock = {
     <div>{children}</div>
   ),
   Route: ({ element }: { element: React.ReactNode }) => element,
-  Link: ({
-    to,
-    children,
-  }: {
-    to: string;
-    children: React.ReactNode;
-  }) => <a href={typeof to === "string" ? to : "#"}>{children}</a>,
+  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <a href={typeof to === "string" ? to : "#"}>{children}</a>
+  ),
   Navigate: ({ to }: { to: string }) => (
-    <div data-mock-navigate={typeof to === "string" ? to : ""} />
+    <div
+      data-mock-navigate={typeof to === "string" ? to : ""}
+      data-testid={`mock-navigate-${to}`}
+    />
   ),
   useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: "/", search: getSearch() }),

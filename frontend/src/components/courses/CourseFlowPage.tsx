@@ -33,7 +33,9 @@ import { BACKEND_URL } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
-import LessonSectionEditorPanel, { type LessonSection } from "./LessonSectionEditorPanel";
+import LessonSectionEditorPanel, {
+  type LessonSection,
+} from "./LessonSectionEditorPanel";
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
@@ -135,9 +137,12 @@ function HeartIcon({ filled }: { filled: boolean }) {
 function fixImagePaths(content: string) {
   if (!content) return "";
   const mediaUrl = `${BACKEND_URL}/media/`;
-  return content.replace(/src="\/media\/([^"]+)"/g, (_: string, filename: string) => {
-    return `src="${mediaUrl}${filename}"`;
-  });
+  return content.replace(
+    /src="\/media\/([^"]+)"/g,
+    (_: string, filename: string) => {
+      return `src="${mediaUrl}${filename}"`;
+    }
+  );
 }
 
 function CourseFlowPage() {
@@ -160,7 +165,9 @@ function CourseFlowPage() {
   const [lessons, setLessons] = useState<CourseFlowLesson[]>([]);
   const lessonsRef = useRef<CourseFlowLesson[]>([]);
   const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
-  const [editingSectionId, setEditingSectionId] = useState<number | string | null>(null);
+  const [editingSectionId, setEditingSectionId] = useState<
+    number | string | null
+  >(null);
   const [draftSection, setDraftSection] = useState<CourseFlowSection | null>(
     null
   );
@@ -172,7 +179,9 @@ function CourseFlowPage() {
 
   const [flowSections, setFlowSections] = useState<FlowItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [completedSectionIds, setCompletedSectionIds] = useState<(number | string)[]>([]);
+  const [completedSectionIds, setCompletedSectionIds] = useState<
+    (number | string)[]
+  >([]);
   const [courseComplete, setCourseComplete] = useState(false);
 
   const heartsEnabled = preferences?.heartsEnabled !== false;
@@ -241,15 +250,25 @@ function CourseFlowPage() {
       adminMode ? "admin" : "learner"
     ),
     queryFn: async () => {
-      const response = await fetchLessonsWithProgress(courseIdNumber, adminMode);
+      const response = await fetchLessonsWithProgress(
+        courseIdNumber,
+        adminMode
+      );
       return response.data || [];
     },
     enabled: Number.isFinite(courseIdNumber) && courseIdNumber > 0,
   });
 
-  const { data: exercisesData, isLoading: loadingExercises } = useQuery<{
-    data?: Array<{ id?: number; type?: string; exercise_data?: Record<string, unknown> }>;
-  }, Error>({
+  const { data: exercisesData, isLoading: loadingExercises } = useQuery<
+    {
+      data?: Array<{
+        id?: number;
+        type?: string;
+        exercise_data?: Record<string, unknown>;
+      }>;
+    },
+    Error
+  >({
     queryKey: queryKeys.exercises(),
     queryFn: () => fetchExercises().then((response) => response.data || []),
     enabled: adminMode,
@@ -497,13 +516,13 @@ function CourseFlowPage() {
       lessonId: number,
       updater: (sections: CourseFlowSection[]) => CourseFlowSection[]
     ) => {
-    setLessons((prev) =>
-      prev.map((lesson) =>
-        lesson.id === lessonId
-          ? { ...lesson, sections: updater(lesson.sections || []) }
-          : lesson
-      )
-    );
+      setLessons((prev) =>
+        prev.map((lesson) =>
+          lesson.id === lessonId
+            ? { ...lesson, sections: updater(lesson.sections || []) }
+            : lesson
+        )
+      );
     },
     []
   );
@@ -514,7 +533,9 @@ function CourseFlowPage() {
   ) => {
     setEditingLessonId(lessonId);
     setEditingSectionId(section?.id ?? null);
-    setDraftSection(section ? { ...section, lessonId: lessonId ?? undefined } : null);
+    setDraftSection(
+      section ? { ...section, lessonId: lessonId ?? undefined } : null
+    );
     setPendingAutosave(false);
     setSaveState({ status: "idle", message: "" });
   };
@@ -753,8 +774,8 @@ function CourseFlowPage() {
         typeof indexOverride === "number"
           ? indexOverride
           : courseComplete
-          ? flowSections.length
-          : currentIndex;
+            ? flowSections.length
+            : currentIndex;
       await saveCourseFlowState(courseIdNumber, indexToSave);
       lastSavedFlowKeyRef.current = `${courseIdNumber}:${indexToSave}`;
     },
@@ -953,12 +974,19 @@ function CourseFlowPage() {
     if (hearts >= maxHearts) return 0;
 
     // If we're out of hearts, prefer the cross-tab synced "blocked until" timestamp.
-    if (hearts <= 0 && outOfHeartsUntilTs !== null && Number.isFinite(outOfHeartsUntilTs)) {
+    if (
+      hearts <= 0 &&
+      outOfHeartsUntilTs !== null &&
+      Number.isFinite(outOfHeartsUntilTs)
+    ) {
       return Math.max(0, outOfHeartsUntilTs - nowMs);
     }
 
     // Otherwise compute based on when we last saw the server payload.
-    if (lastSeenServerHeartsTs !== null && Number.isFinite(lastSeenServerHeartsTs)) {
+    if (
+      lastSeenServerHeartsTs !== null &&
+      Number.isFinite(lastSeenServerHeartsTs)
+    ) {
       const targetTs =
         lastSeenServerHeartsTs + Math.ceil(nextHeartInSecondsRaw * 1000);
       return Math.max(0, targetTs - nowMs);
@@ -983,7 +1011,9 @@ function CourseFlowPage() {
 
   const currentLessonSections = currentLesson?.sections || [];
   const currentSectionIndex = currentLessonSections.findIndex(
-    (section) => section.id === (currentItem?.kind === "section" ? currentItem.section?.id : undefined)
+    (section) =>
+      section.id ===
+      (currentItem?.kind === "section" ? currentItem.section?.id : undefined)
   );
   const currentSection =
     currentItem?.kind === "section" ? currentItem.section : null;
@@ -1527,15 +1557,22 @@ function CourseFlowPage() {
             <div className="h-full w-full overflow-hidden p-4 sm:p-6">
               <LessonSectionEditorPanel
                 section={draftSection as LessonSection | null}
-                onChange={updateDraftSection as (updates: Partial<LessonSection>) => void}
+                onChange={
+                  updateDraftSection as (
+                    updates: Partial<LessonSection>
+                  ) => void
+                }
                 onDelete={() => {
-                  if (!draftSection || draftSection.lessonId === undefined) return;
+                  if (!draftSection || draftSection.lessonId === undefined)
+                    return;
                   handleDeleteSection(draftSection.lessonId, draftSection.id);
                 }}
                 onPublishToggle={handlePublishToggle}
                 onSave={handleManualSave}
                 savingState={saveState}
-                exercises={Array.isArray(exercises) ? exercises : exercises?.data || []}
+                exercises={
+                  Array.isArray(exercises) ? exercises : exercises?.data || []
+                }
                 loadingExercises={loadingExercises}
                 onExerciseAttach={(exercise) => {
                   if (!exercise) return;

@@ -87,7 +87,9 @@ export default function HeroSection({
                 aria-label={t("hero.scrollAria")}
               >
                 <span className="sm:hidden">{t("hero.exploreShort")}</span>
-                <span className="hidden sm:inline">{t("hero.exploreLong")}</span>
+                <span className="hidden sm:inline">
+                  {t("hero.exploreLong")}
+                </span>
                 <ChevronDown
                   size={16}
                   className="transition-transform duration-200 group-hover:translate-y-0.5 sm:hidden"
@@ -285,9 +287,7 @@ export default function HeroSection({
                 {t("demo.close")}
               </button>
             </div>
-            <p className="mt-3 text-sm text-white/70">
-              {t("demo.body")}
-            </p>
+            <p className="mt-3 text-sm text-white/70">{t("demo.body")}</p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"

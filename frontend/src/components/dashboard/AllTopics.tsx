@@ -37,7 +37,9 @@ const AllTopics = ({
   navigationControls?: React.ReactNode;
 }) => {
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
-  const [activePathId, setActivePathId] = useState<string | number | null>(null);
+  const [activePathId, setActivePathId] = useState<string | number | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("default");
@@ -56,10 +58,10 @@ const AllTopics = ({
         const response = await axios.get<LearningPath[]>(
           `${BACKEND_URL}/paths/`,
           {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
+          }
         );
 
         setLearningPaths(
@@ -70,21 +72,33 @@ const AllTopics = ({
               title: String(p.title || ""),
               description: p.description ? String(p.description) : undefined,
               image: p.image ? String(p.image) : undefined,
-              courses: Array.isArray(p.courses) ? p.courses.map((course: unknown): LearningPathCourse => {
-                const c = course as Partial<LearningPathCourse>;
-                return {
-                  id: Number(c.id) || 0,
-                  title: String(c.title || ""),
-                  description: c.description ? String(c.description) : undefined,
-                  image: c.image ? String(c.image) : undefined,
-                  lesson_count: c.lesson_count ? Number(c.lesson_count) : undefined,
-                  total_lessons: c.total_lessons ? Number(c.total_lessons) : undefined,
-                  totalLessons: c.totalLessons ? Number(c.totalLessons) : undefined,
-                  lessons: Array.isArray(c.lessons) ? c.lessons : undefined,
-                };
-              }) : undefined,
+              courses: Array.isArray(p.courses)
+                ? p.courses.map((course: unknown): LearningPathCourse => {
+                    const c = course as Partial<LearningPathCourse>;
+                    return {
+                      id: Number(c.id) || 0,
+                      title: String(c.title || ""),
+                      description: c.description
+                        ? String(c.description)
+                        : undefined,
+                      image: c.image ? String(c.image) : undefined,
+                      lesson_count: c.lesson_count
+                        ? Number(c.lesson_count)
+                        : undefined,
+                      total_lessons: c.total_lessons
+                        ? Number(c.total_lessons)
+                        : undefined,
+                      totalLessons: c.totalLessons
+                        ? Number(c.totalLessons)
+                        : undefined,
+                      lessons: Array.isArray(c.lessons) ? c.lessons : undefined,
+                    };
+                  })
+                : undefined,
               progress: p.progress ? Number(p.progress) : undefined,
-              courseProgresses: Array.isArray(p.courseProgresses) ? p.courseProgresses.map(Number) : undefined,
+              courseProgresses: Array.isArray(p.courseProgresses)
+                ? p.courseProgresses.map(Number)
+                : undefined,
             };
           })
         );
@@ -161,9 +175,7 @@ const AllTopics = ({
       // Sort by lowest progress (hardest = least progress)
       paths.sort((a, b) => a.progress - b.progress);
     } else if (sortBy === "name") {
-      paths.sort((a, b) =>
-        (a.title || "").localeCompare(b.title || "")
-      );
+      paths.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
     }
 
     return paths;
@@ -253,7 +265,12 @@ const AllTopics = ({
       </GlassCard>
 
       {enhancedPaths.map((path) => (
-        <GlassCard key={String(path.id)} id={String(path.id)} className="group" padding="lg">
+        <GlassCard
+          key={String(path.id)}
+          id={String(path.id)}
+          className="group"
+          padding="lg"
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
           <div className="relative">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -302,10 +319,14 @@ const AllTopics = ({
                           aria-valuenow={path.progress}
                           aria-valuemin={0}
                           aria-valuemax={100}
-                          aria-label={`${formatNumber(path.progress ?? 0, locale, {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}% complete`}
+                          aria-label={`${formatNumber(
+                            path.progress ?? 0,
+                            locale,
+                            {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            }
+                          )}% complete`}
                         />
                       </div>
                     </div>

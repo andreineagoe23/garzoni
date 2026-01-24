@@ -56,7 +56,11 @@ const UpsellModal = ({
           >
             {t("upsell.primary")}
           </GlassButton>
-          <GlassButton variant="ghost" className="flex-1 justify-center" onClick={onClose}>
+          <GlassButton
+            variant="ghost"
+            className="flex-1 justify-center"
+            onClick={onClose}
+          >
             {t("upsell.secondary")}
           </GlassButton>
         </div>

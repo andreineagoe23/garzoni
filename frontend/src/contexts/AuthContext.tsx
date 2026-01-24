@@ -9,6 +9,9 @@ import React, {
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { EntitlementFeature } from "types/api";
+import { attachToken } from "services/httpClient";
+import { queryClient, queryKeys } from "lib/reactQuery";
+import type { Entitlements, UserProfile } from "types/api";
 
 type ApiErrorResponse = {
   response?: {
@@ -21,9 +24,6 @@ type ApiErrorResponse = {
   };
   message?: string;
 };
-import { attachToken } from "services/httpClient";
-import { queryClient, queryKeys } from "lib/reactQuery";
-import type { Entitlements, UserProfile } from "types/api";
 
 // Always send cookies (refresh token) on cross-site requests
 axios.defaults.withCredentials = true;
@@ -33,14 +33,23 @@ type AuthContextValue = {
   user: UserProfile | null;
   profile: UserProfile | null;
   settings: Record<string, unknown> | null;
-  loginUser: (credentials: Record<string, unknown>) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
-  registerUser: (userData: Record<string, unknown>) => Promise<{ success: boolean; error?: string; user?: UserProfile; next?: string }>;
+  loginUser: (
+    credentials: Record<string, unknown>
+  ) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
+  registerUser: (userData: Record<string, unknown>) => Promise<{
+    success: boolean;
+    error?: string;
+    user?: UserProfile;
+    next?: string;
+  }>;
   logoutUser: () => Promise<void>;
   getAccessToken: () => string | null;
   isInitialized: boolean;
   loadProfile: (options?: { force?: boolean }) => Promise<UserProfile | null>;
   refreshProfile: () => Promise<void>;
-  loadSettings: (options?: { force?: boolean }) => Promise<Record<string, unknown> | null>;
+  loadSettings: (options?: {
+    force?: boolean;
+  }) => Promise<Record<string, unknown> | null>;
   loadEntitlements: (options?: { force?: boolean }) => Promise<Entitlements>;
   reloadEntitlements: () => Promise<Entitlements>;
   entitlements: Entitlements;
@@ -85,7 +94,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [settings, setSettings] = useState<Record<string, unknown> | null>(null);
+  const [settings, setSettings] = useState<Record<string, unknown> | null>(
+    null
+  );
   const [entitlements, setEntitlements] = useState<Entitlements>({
     plan: "free",
     label: null,
@@ -162,42 +173,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserWithToken = useCallback(
     async (token: string | null): Promise<FetchUserResult> => {
-    if (!token) {
-      authLog("[auth] fetchUserWithToken skipped: no token");
-      return false;
-    }
-
-    authLog("[auth] fetchUserWithToken using token");
-
-    try {
-      const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (userResponse.data.isAuthenticated) {
-        setUser(userResponse.data.user);
-        setIsAuthenticated(true);
-        refreshAttempts = 0;
-        authLog("[auth] verify-auth success");
-        return true;
+      if (!token) {
+        authLog("[auth] fetchUserWithToken skipped: no token");
+        return false;
       }
-      authWarn("[auth] verify-auth returned unauthenticated payload");
-      return false;
-    } catch (userError) {
-      if (userError.response?.status === 401) {
-        authWarn("[auth] verify-auth 401");
-        return { unauthorized: true };
+
+      authLog("[auth] fetchUserWithToken using token");
+
+      try {
+        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (userResponse.data.isAuthenticated) {
+          setUser(userResponse.data.user);
+          setIsAuthenticated(true);
+          refreshAttempts = 0;
+          authLog("[auth] verify-auth success");
+          return true;
+        }
+        authWarn("[auth] verify-auth returned unauthenticated payload");
+        return false;
+      } catch (userError) {
+        if (userError.response?.status === 401) {
+          authWarn("[auth] verify-auth 401");
+          return { unauthorized: true };
+        }
+        authError(
+          "Failed to get user data after token refresh:",
+          userError.response?.data || userError.message
+        );
+        return false;
       }
-      authError(
-        "Failed to get user data after token refresh:",
-        userError.response?.data || userError.message
-      );
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
   const refreshToken = useCallback(async (): Promise<RefreshResult> => {
     const now = Date.now();
@@ -226,9 +239,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       inMemoryToken = response.data.access;
       persistAccessToken(inMemoryToken);
       authLog("[auth] new access token received");
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${inMemoryToken}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
       authLog("[auth] refresh success");
 
@@ -277,7 +289,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       const refreshed = await refreshToken();
-      if (!refreshed.ok && "reason" in refreshed && refreshed.reason === "user-not-found") {
+      if (
+        !refreshed.ok &&
+        "reason" in refreshed &&
+        refreshed.reason === "user-not-found"
+      ) {
         clearAuthState();
         setIsInitialized(true);
         return;
@@ -291,7 +307,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        if (validated && typeof validated === "object" && "unauthorized" in validated) {
+        if (
+          validated &&
+          typeof validated === "object" &&
+          "unauthorized" in validated
+        ) {
           authWarn(
             "[auth] verify-auth 401 after refresh; keeping session and will rely on next call/flow"
           );
@@ -314,7 +334,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsInitialized(true);
       isVerifying.current = false;
     }
-  }, [clearAuthState, fetchUserWithToken, refreshToken, restoreAccessToken, hasRefreshSession]);
+  }, [
+    clearAuthState,
+    fetchUserWithToken,
+    refreshToken,
+    restoreAccessToken,
+    hasRefreshSession,
+  ]);
 
   const loginUser = async (credentials: Record<string, unknown>) => {
     try {
@@ -335,9 +361,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(response.data.user);
 
       // Set the authorization header
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${inMemoryToken}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
 
       return { success: true, user: response.data.user as UserProfile };
@@ -346,7 +371,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authError("Login failed:", errorObj.response?.data || errorObj.message);
       return {
         success: false,
-        error: errorObj.response?.data?.detail || errorObj.response?.data?.error || errorObj.message || "Login failed. Please try again.",
+        error:
+          errorObj.response?.data?.detail ||
+          errorObj.response?.data?.error ||
+          errorObj.message ||
+          "Login failed. Please try again.",
       };
     }
   };
@@ -370,18 +399,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(response.data.user);
 
       // Set the authorization header
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${inMemoryToken}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
 
-      return { success: true, user: response.data.user as UserProfile, next: response.data.next };
+      return {
+        success: true,
+        user: response.data.user as UserProfile,
+        next: response.data.next,
+      };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
-      authError("Registration failed:", errorObj.response?.data || errorObj.message);
+      authError(
+        "Registration failed:",
+        errorObj.response?.data || errorObj.message
+      );
       return {
         success: false,
-        error: errorObj.response?.data?.error || errorObj.response?.data?.detail || errorObj.message || "Registration failed",
+        error:
+          errorObj.response?.data?.error ||
+          errorObj.response?.data?.detail ||
+          errorObj.message ||
+          "Registration failed",
       };
     }
   };
@@ -412,34 +451,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       fetcher: () => Promise<unknown>,
       { force = false }: { force?: boolean } = {}
     ) => {
-    const runFetch = () => {
-      const requestPromise = (async () => {
-        try {
-          return await fetcher();
-        } finally {
-          inFlightRequestsRef.current.delete(key);
+      const runFetch = () => {
+        const requestPromise = (async () => {
+          try {
+            return await fetcher();
+          } finally {
+            inFlightRequestsRef.current.delete(key);
+          }
+        })();
+
+        inFlightRequestsRef.current.set(key, requestPromise);
+        return requestPromise;
+      };
+
+      if (force) {
+        const existing = inFlightRequestsRef.current.get(key);
+        if (existing) {
+          return existing.then(() => runFetch());
         }
-      })();
+        return runFetch();
+      }
 
-      inFlightRequestsRef.current.set(key, requestPromise);
-      return requestPromise;
-    };
-
-    if (force) {
       const existing = inFlightRequestsRef.current.get(key);
       if (existing) {
-        return existing.then(() => runFetch());
+        return existing;
       }
+
       return runFetch();
-    }
-
-    const existing = inFlightRequestsRef.current.get(key);
-    if (existing) {
-      return existing;
-    }
-
-    return runFetch();
-  }, []);
+    },
+    []
+  );
 
   const loadProfile = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
@@ -539,15 +580,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           { force }
         );
 
-        const dataObj = data as Partial<Entitlements> & { subscription?: { status?: string; trial_end?: string } };
+        const dataObj = data as Partial<Entitlements> & {
+          subscription?: { status?: string; trial_end?: string };
+        };
         const normalized: Entitlements = {
           plan: dataObj?.plan || "free",
           label: dataObj?.label || null,
           entitled: Boolean(dataObj?.entitled),
-          status: dataObj?.subscription?.status || (dataObj?.status as string | null) || null,
-          trialEnd: dataObj?.subscription?.trial_end || dataObj?.trial_end || null,
-          features: (dataObj?.features as Record<string, EntitlementFeature>) || {},
-          subscription: (dataObj?.subscription as Record<string, unknown>) || null,
+          status:
+            dataObj?.subscription?.status ||
+            (dataObj?.status as string | null) ||
+            null,
+          trialEnd:
+            dataObj?.subscription?.trial_end || dataObj?.trial_end || null,
+          features:
+            (dataObj?.features as Record<string, EntitlementFeature>) || {},
+          subscription:
+            (dataObj?.subscription as Record<string, unknown>) || null,
           fallback: false,
           checked_at: dataObj?.checked_at,
         };
@@ -555,7 +604,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         entitlementsRef.current = normalized;
         setEntitlements(normalized);
         setEntitlementError(null);
-        queryClient.setQueryData(queryKeys.entitlements(), { data: normalized });
+        queryClient.setQueryData(queryKeys.entitlements(), {
+          data: normalized,
+        });
         return normalized;
       } catch (error) {
         const fallbackEntitlements: Entitlements = {

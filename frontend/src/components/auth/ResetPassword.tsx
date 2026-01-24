@@ -23,7 +23,9 @@ function ResetPassword() {
     setMessage("");
 
     if (password !== confirmPassword) {
-      setError(t("resetPassword.mismatch", { defaultValue: "Passwords do not match." }));
+      setError(
+        t("resetPassword.mismatch", { defaultValue: "Passwords do not match." })
+      );
       return;
     }
 
@@ -35,7 +37,12 @@ function ResetPassword() {
         confirm_password: confirmPassword,
       });
 
-      setMessage(response.data.message || t("resetPassword.success", { defaultValue: "Password reset successful." }));
+      setMessage(
+        response.data.message ||
+          t("resetPassword.success", {
+            defaultValue: "Password reset successful.",
+          })
+      );
       setTimeout(() => navigate("/login"), 2500);
     } catch (resetError) {
       if (axios.isAxiosError(resetError)) {
@@ -57,7 +64,13 @@ function ResetPassword() {
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/25 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.25),_transparent_55%)] pointer-events-none" />
 
-      <div className="relative w-full max-w-lg rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#111827)] px-6 py-10 shadow-2xl shadow-black/40 backdrop-blur transition-colors" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+      <div
+        className="relative w-full max-w-lg rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#111827)] px-6 py-10 shadow-2xl shadow-black/40 backdrop-blur transition-colors"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+      >
         <div className="mb-8 space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#ffffff)]">
             {t("resetPassword.title")}
@@ -129,7 +142,9 @@ function ResetPassword() {
             disabled={isSubmitting}
             className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? t("resetPassword.saving") : t("resetPassword.submit")}
+            {isSubmitting
+              ? t("resetPassword.saving")
+              : t("resetPassword.submit")}
           </button>
         </form>
       </div>

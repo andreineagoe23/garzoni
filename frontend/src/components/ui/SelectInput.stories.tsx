@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SelectInput from "./SelectInput";
 
-export default {
+const config = {
   title: "UI/SelectInput",
   component: SelectInput,
   parameters: {
@@ -13,6 +13,8 @@ export default {
     },
   },
 };
+
+export default config;
 
 export const Default = () => {
   const [value, setValue] = useState("starter");
