@@ -15,7 +15,7 @@ import ProtectedRoute from "components/auth/ProtectedRoute";
 import Chatbot from "components/widgets/Chatbot";
 import ErrorBoundary from "components/common/ErrorBoundary";
 import { useOnlineSync } from "hooks/useOnlineSync";
-import "styles/scss/main.scss";
+import "./styles/scss/main.scss";
 import "./i18n";
 
 const Login = React.lazy(() => import("components/auth/Login"));
