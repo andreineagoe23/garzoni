@@ -48,9 +48,15 @@
   }
 
   // Spacer rows
-  &.spacer-sm { margin-bottom: map-get($spacers, 2); }
-  &.spacer-md { margin-bottom: map-get($spacers, 3); }
-  &.spacer-lg { margin-bottom: map-get($spacers, 4); }
+  &.spacer-sm {
+    margin-bottom: map-get($spacers, 2);
+  }
+  &.spacer-md {
+    margin-bottom: map-get($spacers, 3);
+  }
+  &.spacer-lg {
+    margin-bottom: map-get($spacers, 4);
+  }
 }
 
 // Grid layout utilities
@@ -64,11 +70,21 @@
 // Content styling is now maintained in _app-layout.scss to avoid duplication
 
 // Grid gap utilities
-.gap-1 { gap: map-get($spacers, 1); }
-.gap-2 { gap: map-get($spacers, 2); }
-.gap-3 { gap: map-get($spacers, 3); }
-.gap-4 { gap: map-get($spacers, 4); }
-.gap-5 { gap: map-get($spacers, 5); }
+.gap-1 {
+  gap: map-get($spacers, 1);
+}
+.gap-2 {
+  gap: map-get($spacers, 2);
+}
+.gap-3 {
+  gap: map-get($spacers, 3);
+}
+.gap-4 {
+  gap: map-get($spacers, 4);
+}
+.gap-5 {
+  gap: map-get($spacers, 5);
+}
 
 // Responsive spacing helpers
 @each $breakpoint in map-keys($grid-breakpoints) {
@@ -115,12 +131,24 @@
 }
 
 // Gutter utilities
-.g-0 { --bs-gutter-x: 0; }
-.g-1 { --bs-gutter-x: #{map-get($spacers, 1)}; }
-.g-2 { --bs-gutter-x: #{map-get($spacers, 2)}; }
-.g-3 { --bs-gutter-x: #{map-get($spacers, 3)}; }
-.g-4 { --bs-gutter-x: #{map-get($spacers, 4)}; }
-.g-5 { --bs-gutter-x: #{map-get($spacers, 5)}; }
+.g-0 {
+  --bs-gutter-x: 0;
+}
+.g-1 {
+  --bs-gutter-x: #{map-get($spacers, 1)};
+}
+.g-2 {
+  --bs-gutter-x: #{map-get($spacers, 2)};
+}
+.g-3 {
+  --bs-gutter-x: #{map-get($spacers, 3)};
+}
+.g-4 {
+  --bs-gutter-x: #{map-get($spacers, 4)};
+}
+.g-5 {
+  --bs-gutter-x: #{map-get($spacers, 5)};
+}
 
 // Custom breakpoint for laptops specifically
 @media (min-width: 993px) and (max-width: 1366px) {
@@ -132,15 +160,29 @@
   }
 
   // Laptop-specific utilities
-  .d-laptop-none { display: none !important; }
-  .d-laptop-block { display: block !important; }
-  .d-laptop-flex { display: flex !important; }
-  .d-laptop-grid { display: grid !important; }
+  .d-laptop-none {
+    display: none !important;
+  }
+  .d-laptop-block {
+    display: block !important;
+  }
+  .d-laptop-flex {
+    display: flex !important;
+  }
+  .d-laptop-grid {
+    display: grid !important;
+  }
 
   // Laptop-specific text alignment
-  .text-laptop-start { text-align: left !important; }
-  .text-laptop-center { text-align: center !important; }
-  .text-laptop-end { text-align: right !important; }
+  .text-laptop-start {
+    text-align: left !important;
+  }
+  .text-laptop-center {
+    text-align: center !important;
+  }
+  .text-laptop-end {
+    text-align: right !important;
+  }
 }
 
 // Grid card layout system

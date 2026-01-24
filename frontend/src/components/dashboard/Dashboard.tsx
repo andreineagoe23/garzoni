@@ -33,6 +33,10 @@ import EntitlementUsage from "./EntitlementUsage";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
 import { selectPrimaryCTA } from "./primaryCtaSelector";
+import { getLocale } from "utils/format";
+import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
+import { useDashboardSummary } from "hooks/useDashboardSummary";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 type WeakSkill = {
   skill: string;
@@ -46,10 +50,6 @@ type PrimaryCtaData = {
   priority?: "high" | "medium" | "low";
   reason?: string;
 };
-import { getLocale } from "utils/format";
-import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
-import { useDashboardSummary } from "hooks/useDashboardSummary";
-import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const [activePage, setActivePage] = useState(initialActivePage);
@@ -95,31 +95,36 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
       // Optimistically update points so "Daily Goal" reflects XP instantly
       if (xpGained > 0) {
-        queryClient.setQueryData<UserProfile | null>(queryKeys.profile(), (current) => {
-          if (!current) return current;
+        queryClient.setQueryData<UserProfile | null>(
+          queryKeys.profile(),
+          (current) => {
+            if (!current) return current;
 
-          // Profile payloads in this app sometimes come as { user_data: {...} } or as the user object directly.
-          if (current?.user_data) {
-            const currentPoints = Number(current.user_data.points || 0);
+            // Profile payloads in this app sometimes come as { user_data: {...} } or as the user object directly.
+            if (current?.user_data) {
+              const currentPoints = Number(current.user_data.points || 0);
+              return {
+                ...current,
+                user_data: {
+                  ...current.user_data,
+                  points: currentPoints + xpGained,
+                },
+              };
+            }
+
+            const currentPoints = Number(current.points || 0);
             return {
               ...current,
-              user_data: {
-                ...current.user_data,
-                points: currentPoints + xpGained,
-              },
+              points: currentPoints + xpGained,
             };
           }
-
-          const currentPoints = Number(current.points || 0);
-          return {
-            ...current,
-            points: currentPoints + xpGained,
-          };
-        });
+        );
 
         // Background refresh to ensure server-truth (and update other widgets)
         queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.progressSummary(),
+        });
       }
 
       if (xpGained > 0 || skillsImproved.length > 0) {
@@ -218,16 +223,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const hasPaidProfile = Boolean(
     (profile as UserProfile)?.has_paid ||
-      (profile as UserProfile)?.user_data?.has_paid ||
-      (profilePayload as UserProfile)?.has_paid ||
-      (profilePayload as UserProfile)?.user_data?.has_paid
+    (profile as UserProfile)?.user_data?.has_paid ||
+    (profilePayload as UserProfile)?.has_paid ||
+    (profilePayload as UserProfile)?.user_data?.has_paid
   );
   const hasPaid = hasPaidProfile || Boolean(entitlements?.entitled);
 
   const isQuestionnaireCompleted = Boolean(
     (profile as UserProfile)?.is_questionnaire_completed ||
-      (profile as UserProfile)?.user_data?.is_questionnaire_completed ||
-      (profilePayload as UserProfile)?.is_questionnaire_completed
+    (profile as UserProfile)?.user_data?.is_questionnaire_completed ||
+    (profilePayload as UserProfile)?.is_questionnaire_completed
   );
 
   useEffect(() => {
@@ -246,12 +251,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       reloadEntitlements?.();
     }
-  }, [
-    location.pathname,
-    location.search,
-    queryClient,
-    reloadEntitlements,
-  ]);
+  }, [location.pathname, location.search, queryClient, reloadEntitlements]);
 
   // Removed mobile view tracking
 
@@ -308,7 +308,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const weakSkillItems = useMemo(
     () =>
       weakestSkills
-        .filter((skill): skill is WeakSkill => Boolean((skill as WeakSkill).skill))
+        .filter((skill): skill is WeakSkill =>
+          Boolean((skill as WeakSkill).skill)
+        )
         .map((skill) => ({
           skill: skill.skill,
           proficiency: skill.proficiency ?? 0,

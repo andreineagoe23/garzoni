@@ -33,9 +33,7 @@ export function getOfflineQueue(): OfflineMission[] {
 /**
  * Add a mission completion to the offline queue
  */
-export function queueMissionCompletion(
-  missionData: OfflineMission
-): boolean {
+export function queueMissionCompletion(missionData: OfflineMission): boolean {
   try {
     const queue = getOfflineQueue();
 

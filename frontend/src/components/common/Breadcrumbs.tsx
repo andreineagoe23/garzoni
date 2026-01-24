@@ -28,7 +28,11 @@ const Breadcrumbs = ({
         const isLast = index === items.length - 1;
         return (
           <React.Fragment key={item.label + index}>
-            {index > 0 && <span className="text-[color:var(--border-color,#d1d5db)]">/</span>}
+            {index > 0 && (
+              <span className="text-[color:var(--border-color,#d1d5db)]">
+                /
+              </span>
+            )}
             {isLast || !item.to ? (
               <span className="font-medium text-[color:var(--text-color,#111827)]">
                 {item.label}

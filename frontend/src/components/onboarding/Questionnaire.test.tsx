@@ -19,8 +19,7 @@ const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
 
 describe("Questionnaire happy path", () => {
   beforeEach(() => {
-    global.__TEST_LOCATION_SEARCH__ =
-      "?plan_id=plus&billing_interval=monthly";
+    global.__TEST_LOCATION_SEARCH__ = "?plan_id=plus&billing_interval=monthly";
     axiosMock.get.mockResolvedValue({
       data: [
         {
@@ -54,7 +53,9 @@ describe("Questionnaire happy path", () => {
   it("loads questions, submits answers, and redirects to checkout", async () => {
     render(
       <MemoryRouter
-        initialEntries={["/questionnaire?plan_id=plus&billing_interval=monthly"]}
+        initialEntries={[
+          "/questionnaire?plan_id=plus&billing_interval=monthly",
+        ]}
       >
         <Questionnaire />
       </MemoryRouter>

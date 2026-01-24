@@ -361,10 +361,14 @@ const Chatbot = () => {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             });
-            const changeLabel = formatNumber(Math.abs(cryptoData.change), locale, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
+            const changeLabel = formatNumber(
+              Math.abs(cryptoData.change),
+              locale,
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }
+            );
             botResponse = `The current price of ${displayName} is ${priceLabel}. It's ${
               cryptoData.change >= 0 ? "up" : "down"
             } ${changeLabel}% in the last 24 hours.`;
@@ -502,8 +506,11 @@ const Chatbot = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const { price = 0, change = 0, changePercent = "0.00%" } =
-        response.data || {};
+      const {
+        price = 0,
+        change = 0,
+        changePercent = "0.00%",
+      } = response.data || {};
 
       return {
         price,
@@ -686,8 +693,8 @@ const Chatbot = () => {
                   msg.sender === "user"
                     ? "justify-end"
                     : msg.sender === "system"
-                    ? "justify-center"
-                    : "justify-start",
+                      ? "justify-center"
+                      : "justify-start",
                 ].join(" ")}
               >
                 {msg.sender === "user" ? (

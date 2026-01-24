@@ -1,7 +1,8 @@
 import apiClient from "./httpClient";
 import type { Entitlements } from "types/api";
 
-export const fetchEntitlements = () => apiClient.get<Entitlements>("/entitlements/");
+export const fetchEntitlements = () =>
+  apiClient.get<Entitlements>("/entitlements/");
 
 export const consumeEntitlement = (feature: string) =>
   apiClient.post("/entitlements/consume/", { feature });

@@ -1,10 +1,12 @@
 import React from "react";
 import GlassButton from "./GlassButton";
 
-export default {
+const config = {
   title: "UI/GlassButton",
   component: GlassButton,
 };
+
+export default config;
 
 export const Variants = () => (
   <div className="flex flex-wrap gap-3 p-6">

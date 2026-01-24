@@ -51,7 +51,9 @@ const StatusSummary = ({
       </div>
       {reviewError ? (
         <ErrorState
-          title={t("reviewsErrorTitle", { defaultValue: "Failed to load reviews" })}
+          title={t("reviewsErrorTitle", {
+            defaultValue: "Failed to load reviews",
+          })}
           message={t("reviewsErrorMessage", {
             defaultValue: "We couldn't fetch your review queue.",
           })}
@@ -72,7 +74,9 @@ const StatusSummary = ({
       )}
       {missionsError ? (
         <ErrorState
-          title={t("missionsErrorTitle", { defaultValue: "Failed to load missions" })}
+          title={t("missionsErrorTitle", {
+            defaultValue: "Failed to load missions",
+          })}
           message={t("missionsErrorMessage", {
             defaultValue: "We couldn't fetch your missions.",
           })}

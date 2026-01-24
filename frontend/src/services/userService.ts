@@ -34,27 +34,23 @@ export const completeLesson = (lessonId: string | number) =>
 export const reorderLessonSections = (
   lessonId: string | number,
   order: Array<string | number>
-) =>
-  apiClient.post(`/lessons/${lessonId}/sections/reorder/`, { order });
+) => apiClient.post(`/lessons/${lessonId}/sections/reorder/`, { order });
 
 export const createLessonSection = (
   lessonId: string | number,
   payload: Record<string, unknown>
-) =>
-  apiClient.post(`/lessons/${lessonId}/sections/`, payload);
+) => apiClient.post(`/lessons/${lessonId}/sections/`, payload);
 
 export const updateLessonSection = (
   lessonId: string | number,
   sectionId: string | number,
   payload: Record<string, unknown>
-) =>
-  apiClient.patch(`/lessons/${lessonId}/sections/${sectionId}/`, payload);
+) => apiClient.patch(`/lessons/${lessonId}/sections/${sectionId}/`, payload);
 
 export const deleteLessonSection = (
   lessonId: string | number,
   sectionId: string | number
-) =>
-  apiClient.delete(`/lessons/${lessonId}/sections/${sectionId}/`);
+) => apiClient.delete(`/lessons/${lessonId}/sections/${sectionId}/`);
 
 export const fetchReviewQueue = () => apiClient.get("/review-queue/");
 

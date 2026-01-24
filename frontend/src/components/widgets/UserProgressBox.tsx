@@ -61,7 +61,10 @@ function UserProgressBox({ progressData }) {
   const paths = progressData?.paths || [];
 
   return (
-    <GlassContainer className="relative flex w-full flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%', minHeight: 0 }}>
+    <GlassContainer
+      className="relative flex w-full flex-col overflow-hidden"
+      style={{ height: "100%", maxHeight: "100%", minHeight: 0 }}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent pointer-events-none" />
       <div className="relative shrink-0 space-y-4 px-5 py-4">
         <div className="flex items-center justify-between">
@@ -106,7 +109,13 @@ function UserProgressBox({ progressData }) {
         )}
       </div>
 
-      <div className="relative shrink-0 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-4 backdrop-blur-sm" style={{ backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
+      <div
+        className="relative shrink-0 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-4 backdrop-blur-sm"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+      >
         <h3 className="flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
           <span>Learning Progress</span>
         </h3>
@@ -117,74 +126,74 @@ function UserProgressBox({ progressData }) {
         style={{
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          maxHeight: '100%',
+          maxHeight: "100%",
         }}
       >
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 font-medium text-[color:var(--muted-text,#6b7280)]">
-                  <span>Overall Completion</span>
-                </span>
-                <span className="font-bold text-[color:var(--accent,#111827)]">
-                  {formatNumber(overallProgress, locale, {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                  })}
-                  %
-                </span>
-              </div>
-              <div className="relative h-3 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition-[width] duration-500"
-                  style={{ width: `${overallProgress}%` }}
-                />
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 font-medium text-[color:var(--muted-text,#6b7280)]">
+                <span>Overall Completion</span>
+              </span>
+              <span className="font-bold text-[color:var(--accent,#111827)]">
+                {formatNumber(overallProgress, locale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })}
+                %
+              </span>
+            </div>
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition-[width] duration-500"
+                style={{ width: `${overallProgress}%` }}
+              />
+            </div>
+          </div>
+
+          {paths.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--accent,#111827)]">
+                <span>Path Progress</span>
+              </h4>
+              <div className="space-y-4">
+                {paths.map((path) => (
+                  <div
+                    key={path.course}
+                    className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-md"
+                    style={{
+                      backdropFilter: "blur(8px)",
+                      WebkitBackdropFilter: "blur(8px)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
+                        {path.path}
+                      </span>
+                      <span className="font-bold text-[color:var(--text-color,#111827)]">
+                        {formatNumber(path.percent_complete, locale, {
+                          minimumFractionDigits: 1,
+                          maximumFractionDigits: 1,
+                        })}
+                        %
+                      </span>
+                    </div>
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-md shadow-[color:var(--primary,#1d5330)]/20 transition-[width] duration-500"
+                        style={{ width: `${path.percent_complete}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      {path.course}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {paths.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--accent,#111827)]">
-                  <span>Path Progress</span>
-                </h4>
-                <div className="space-y-4">
-                  {paths.map((path) => (
-                    <div
-                      key={path.course}
-                      className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-md"
-                      style={{
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
-                          {path.path}
-                        </span>
-                        <span className="font-bold text-[color:var(--text-color,#111827)]">
-                          {formatNumber(path.percent_complete, locale, {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1,
-                          })}
-                          %
-                        </span>
-                      </div>
-                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-md shadow-[color:var(--primary,#1d5330)]/20 transition-[width] duration-500"
-                          style={{ width: `${path.percent_complete}%` }}
-                        />
-                      </div>
-                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                        {path.course}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
+      </div>
     </GlassContainer>
   );
 }

@@ -28,7 +28,9 @@ describe("format utilities", () => {
     });
 
     it("handles custom options", () => {
-      expect(formatNumber(1234.56, "en-US", { maximumFractionDigits: 0 })).toBe("1,235");
+      expect(formatNumber(1234.56, "en-US", { maximumFractionDigits: 0 })).toBe(
+        "1,235"
+      );
     });
 
     it("handles invalid values gracefully", () => {
@@ -38,7 +40,9 @@ describe("format utilities", () => {
 
   describe("formatCurrency", () => {
     it("formats USD in en-US locale", () => {
-      expect(formatCurrency(1234.56, "USD", "en-US")).toMatch(/\$1,234\.56|1,234\.56\s*USD/);
+      expect(formatCurrency(1234.56, "USD", "en-US")).toMatch(
+        /\$1,234\.56|1,234\.56\s*USD/
+      );
     });
 
     it("formats EUR in es-ES locale", () => {
@@ -98,7 +102,10 @@ describe("format utilities", () => {
 
     it("handles custom options", () => {
       const date = new Date("2024-01-15");
-      const result = formatDate(date, "en-US", { year: "numeric", month: "long" });
+      const result = formatDate(date, "en-US", {
+        year: "numeric",
+        month: "long",
+      });
       expect(result).toMatch(/January|2024/);
     });
   });

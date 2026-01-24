@@ -34,16 +34,16 @@ const SubscriptionManager = () => {
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-  const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string | null>(null);
+  const [stripeSubscriptionId, setStripeSubscriptionId] = useState<
+    string | null
+  >(null);
   const { t } = useTranslation("billing");
   const locale = getLocale();
 
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (axios.isAxiosError(error)) {
       return (
-        error.response?.data?.error ||
-        error.response?.data?.detail ||
-        fallback
+        error.response?.data?.error || error.response?.data?.detail || fallback
       );
     }
     return fallback;
@@ -120,10 +120,7 @@ const SubscriptionManager = () => {
     }
   };
 
-  const handleChangePlan = async (
-    planId: string,
-    billingInterval: string
-  ) => {
+  const handleChangePlan = async (planId: string, billingInterval: string) => {
     if (!isAuthenticated) return;
     setActionError("");
     setIsBusy(true);
@@ -235,8 +232,8 @@ const SubscriptionManager = () => {
               const buttonLabel = isCurrent
                 ? t("subscription.currentLabel")
                 : canChange
-                ? t("subscription.switchLabel")
-                : t("subscription.startLabel");
+                  ? t("subscription.switchLabel")
+                  : t("subscription.startLabel");
               const translatedName = t(`plans.${plan.plan_id}`, {
                 defaultValue: plan.name || plan.plan_id,
               });
@@ -267,7 +264,9 @@ const SubscriptionManager = () => {
                       locale,
                       { minimumFractionDigits: 0 }
                     )}{" "}
-                    {t(`labels.${billingLabel}`, { defaultValue: billingLabel })}
+                    {t(`labels.${billingLabel}`, {
+                      defaultValue: billingLabel,
+                    })}
                   </div>
                   {featureList.length > 0 && (
                     <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -292,13 +291,17 @@ const SubscriptionManager = () => {
                     {buttonLabel}
                   </GlassButton>
                 </GlassCard>
-            );
+              );
             })}
           </div>
         )}
         {portalEligible && (
           <div className="flex flex-col gap-3 sm:flex-row">
-            <GlassButton variant="ghost" onClick={handleCancel} disabled={isBusy}>
+            <GlassButton
+              variant="ghost"
+              onClick={handleCancel}
+              disabled={isBusy}
+            >
               {t("subscription.cancel")}
             </GlassButton>
             <GlassButton
@@ -319,7 +322,9 @@ const SubscriptionManager = () => {
           </GlassButton>
         )}
         {actionError && (
-          <p className="text-sm text-[color:var(--error,#dc2626)]">{actionError}</p>
+          <p className="text-sm text-[color:var(--error,#dc2626)]">
+            {actionError}
+          </p>
         )}
       </GlassCard>
     </section>

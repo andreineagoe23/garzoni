@@ -23,7 +23,11 @@ export default function ReviewsSection() {
 
       <div
         className="landing-review-marquee mt-10"
-        style={{ "--landing-review-duration": marqueeDuration } as React.CSSProperties}
+        style={
+          {
+            "--landing-review-duration": marqueeDuration,
+          } as React.CSSProperties
+        }
         aria-label={t("reviewsAria")}
       >
         <div className="landing-review-track" aria-hidden="true">

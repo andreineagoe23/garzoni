@@ -57,7 +57,8 @@ const SavingsGoalCalculator = () => {
       setResult(response.data);
     } catch (err) {
       console.error("Calculation error:", err);
-      const apiMessage = err.response?.data?.message || err.response?.data?.error;
+      const apiMessage =
+        err.response?.data?.message || err.response?.data?.error;
       setError(
         apiMessage
           ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
@@ -77,7 +78,13 @@ const SavingsGoalCalculator = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      <div
+        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        style={{
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
+      >
         <form
           onSubmit={handleSubmit}
           className="grid gap-4 md:grid-cols-2"

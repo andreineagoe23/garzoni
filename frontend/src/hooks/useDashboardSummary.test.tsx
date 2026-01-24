@@ -19,7 +19,9 @@ describe("useDashboardSummary", () => {
     render(
       <SummaryView
         progressResponse={{
-          data: { paths: [{ percent_complete: 100 }, { percent_complete: 50 }] },
+          data: {
+            paths: [{ percent_complete: 100 }, { percent_complete: 50 }],
+          },
         }}
         reviewQueueData={{ count: 3 }}
         missionsData={{

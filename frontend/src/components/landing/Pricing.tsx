@@ -209,7 +209,8 @@ function Pricing() {
       const features = Object.values(plan.features || {})
         .map((feature) => feature?.description || feature?.name)
         .filter(Boolean);
-      const isStarter = plan.plan_id === "starter" || Number(plan.price_amount) === 0;
+      const isStarter =
+        plan.plan_id === "starter" || Number(plan.price_amount) === 0;
       return {
         plan_id: plan.plan_id,
         billing_interval: plan.billing_interval,
@@ -227,7 +228,11 @@ function Pricing() {
             ? `${plan.trial_days}-day free trial included.`
             : "Unlock premium learning features and coaching.",
         highlight: plan.plan_id === "plus",
-        badge: isStarter ? "Free" : plan.plan_id === "plus" ? "Most popular" : "Premium",
+        badge: isStarter
+          ? "Free"
+          : plan.plan_id === "plus"
+            ? "Most popular"
+            : "Premium",
         features: features.length
           ? (features as string[])
           : ["Premium learning access"],
@@ -270,7 +275,8 @@ function Pricing() {
       }
     } catch (error) {
       setCheckoutError(
-        error.response?.data?.error || "Could not start checkout. Please try again."
+        error.response?.data?.error ||
+          "Could not start checkout. Please try again."
       );
     } finally {
       setCheckoutPlanId(null);
@@ -285,10 +291,13 @@ function Pricing() {
     const monthlyPlans = planLookup.filter(
       (plan) => plan.billing_interval === "monthly"
     );
-    const planById = monthlyPlans.reduce<Record<string, ApiPlan>>((acc, plan) => {
-      acc[plan.plan_id] = plan;
-      return acc;
-    }, {});
+    const planById = monthlyPlans.reduce<Record<string, ApiPlan>>(
+      (acc, plan) => {
+        acc[plan.plan_id] = plan;
+        return acc;
+      },
+      {}
+    );
     const featureKeys = new Set<string>();
     Object.values(planById).forEach((plan) => {
       Object.keys(plan?.features || {}).forEach((key) => featureKeys.add(key));
@@ -396,7 +405,10 @@ function Pricing() {
                   className="mt-8 w-full"
                   variant={plan.highlight ? "primary" : "ghost"}
                   onClick={() => handlePlanSelect(plan)}
-                  disabled={checkoutPlanId === `${plan.plan_id}-${plan.billing_interval}`}
+                  disabled={
+                    checkoutPlanId ===
+                    `${plan.plan_id}-${plan.billing_interval}`
+                  }
                 >
                   {plan.cta}
                 </GlassButton>

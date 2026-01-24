@@ -1,8 +1,13 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 
+import Dashboard from "./Dashboard";
+
 const mockNavigate = jest.fn();
-let mockProfileResponse: { is_questionnaire_completed: boolean; has_paid?: boolean } = {
+let mockProfileResponse: {
+  is_questionnaire_completed: boolean;
+  has_paid?: boolean;
+} = {
   is_questionnaire_completed: true,
 };
 const mockUseQuery = jest.fn();
@@ -58,7 +63,7 @@ jest.mock("@tanstack/react-query", () => {
   const actual = jest.requireActual("@tanstack/react-query");
   return {
     ...actual,
-  useQuery: (...args: unknown[]) => mockUseQuery(...args),
+    useQuery: (...args: unknown[]) => mockUseQuery(...args),
     useQueryClient: () => ({
       setQueryData: jest.fn(),
       invalidateQueries: jest.fn(),
@@ -87,8 +92,6 @@ jest.mock("./PersonalizedPath", () => ({
   __esModule: true,
   default: () => null,
 }));
-
-import Dashboard from "./Dashboard";
 
 describe("Dashboard personalized path CTA", () => {
   beforeAll(() => {
