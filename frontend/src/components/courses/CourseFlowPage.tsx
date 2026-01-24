@@ -872,7 +872,7 @@ function CourseFlowPage() {
   }, [courseIdNumber, pathCourses, pathIdNumber]);
 
   const handleGoToCourse = useCallback(
-    async (nextCourseId, flowIndexOverride = null) => {
+    async (nextCourseId: number, flowIndexOverride: number | null = null) => {
       if (!nextCourseId) return;
       try {
         if (typeof flowIndexOverride === "number") {
