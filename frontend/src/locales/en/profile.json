@@ -1,0 +1,10 @@
+{
+  "badgeEarned": "Earned",
+  "badgeLocked": "Locked",
+  "noBadges": "No badges found",
+  "recentActivity": "Recent Activity",
+  "goals": {
+    "daily": "Complete 1 lesson",
+    "weekly": "Earn 500 points"
+  }
+}
