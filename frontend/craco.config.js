@@ -63,6 +63,15 @@ module.exports = {
       };
 
       visitRules(webpackConfig.module?.rules);
+
+      // Disable ForkTsCheckerWebpackPlugin when TSC_COMPILE_ON_ERROR is set to prevent TypeScript warnings from failing the build
+      if (process.env.TSC_COMPILE_ON_ERROR) {
+        webpackConfig.plugins = webpackConfig.plugins.filter(
+          (plugin) =>
+            plugin.constructor.name !== "ForkTsCheckerWebpackPlugin"
+        );
+      }
+
       return webpackConfig;
     },
   },
