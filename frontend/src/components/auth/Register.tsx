@@ -194,7 +194,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="new-password"
-                  placeholder={t("register.passwordPlaceholder")}
+                    placeholder={t("register.passwordPlaceholder")}
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                   <button
@@ -246,7 +246,11 @@ function Register() {
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              <span>{t("register.haveAccount", { defaultValue: "Already have an account?" })} </span>
+              <span>
+                {t("register.haveAccount", {
+                  defaultValue: "Already have an account?",
+                })}{" "}
+              </span>
               <button
                 type="button"
                 onClick={() => navigate("/login")}

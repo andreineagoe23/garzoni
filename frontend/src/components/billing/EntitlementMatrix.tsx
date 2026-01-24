@@ -56,7 +56,9 @@ const FeatureRow = ({
       <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--border-color,#e5e7eb)] ${
-            userFeature?.enabled ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
+            userFeature?.enabled
+              ? "bg-emerald-50 text-emerald-600"
+              : "bg-amber-50 text-amber-600"
           }`}
         >
           {userFeature?.enabled ? "✓" : "🔒"}
@@ -118,8 +120,12 @@ const EntitlementMatrix = ({
 
       <div className="grid grid-cols-3 gap-4 rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
         <span>{t("entitlementMatrix.headers.capability")}</span>
-        <span className="text-center">{t("entitlementMatrix.headers.free")}</span>
-        <span className="text-center">{t("entitlementMatrix.headers.premium")}</span>
+        <span className="text-center">
+          {t("entitlementMatrix.headers.free")}
+        </span>
+        <span className="text-center">
+          {t("entitlementMatrix.headers.premium")}
+        </span>
       </div>
 
       <div className="space-y-2">

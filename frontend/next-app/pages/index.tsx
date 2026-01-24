@@ -13,9 +13,7 @@ export default function Home() {
       </Head>
       <main style={{ fontFamily: "system-ui", padding: "48px" }}>
         <h1>Monevo</h1>
-        <p>
-          A fast, SEO-friendly marketing shell using Next.js (SSR/SSG).
-        </p>
+        <p>A fast, SEO-friendly marketing shell using Next.js (SSR/SSG).</p>
         <div style={{ marginTop: "24px" }}>
           <Link href="/pricing">View pricing</Link>
         </div>

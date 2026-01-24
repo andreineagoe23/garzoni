@@ -37,7 +37,9 @@ const WeakSkills = ({
     return (
       <div className="mt-6">
         <ErrorState
-          title={t("weakSkills.errorTitle", { defaultValue: "Failed to load skills" })}
+          title={t("weakSkills.errorTitle", {
+            defaultValue: "Failed to load skills",
+          })}
           message={t("weakSkills.errorMessage", {
             defaultValue: "We couldn't fetch your skill mastery data.",
           })}

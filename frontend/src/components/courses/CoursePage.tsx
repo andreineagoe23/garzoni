@@ -27,7 +27,10 @@ function CoursePage() {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const { data, isLoading, error } = useQuery<LearningPathCoursesResponse, Error>({
+  const { data, isLoading, error } = useQuery<
+    LearningPathCoursesResponse,
+    Error
+  >({
     queryKey: queryKeys.learningPathCourses(Number(pathId)),
     queryFn: () => fetchLearningPathCourses(pathId ?? ""),
     staleTime: staleTimes.content,
@@ -67,7 +70,10 @@ function CoursePage() {
           <Skeleton className="h-4 w-48" />
         </GlassCard>
       ) : error ? (
-        <GlassCard padding="md" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
+        <GlassCard
+          padding="md"
+          className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+        >
           {errorMessage}
         </GlassCard>
       ) : (

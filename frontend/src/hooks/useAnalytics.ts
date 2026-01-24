@@ -15,27 +15,29 @@ const ALLOWED_EVENT_TYPES = new Set(ANALYTICS_EVENTS);
 export const useAnalytics = () => {
   const trackEvent = useCallback(
     (eventType: AnalyticsEvent, metadata: Record<string, unknown> = {}) => {
-    // Skip tracking if event type is not allowed (fail silently)
-    if (!ALLOWED_EVENT_TYPES.has(eventType)) {
-      return;
-    }
+      // Skip tracking if event type is not allowed (fail silently)
+      if (!ALLOWED_EVENT_TYPES.has(eventType)) {
+        return;
+      }
 
-    try {
-      trackAnalyticsEvent(eventType, {
-        ...metadata,
-        path: window.location.pathname,
-      });
-      recordFunnelEvent(eventType, {
-        metadata: {
+      try {
+        trackAnalyticsEvent(eventType, {
           ...metadata,
-          timestamp: new Date().toISOString(),
           path: window.location.pathname,
-        },
-      }).catch(() => undefined);
-    } catch (error: unknown) {
-      // Silently fail analytics
-    }
-  }, []);
+        });
+        recordFunnelEvent(eventType, {
+          metadata: {
+            ...metadata,
+            timestamp: new Date().toISOString(),
+            path: window.location.pathname,
+          },
+        }).catch(() => undefined);
+      } catch (error: unknown) {
+        // Silently fail analytics
+      }
+    },
+    []
+  );
 
   return { trackEvent };
 };

@@ -18,17 +18,18 @@ function Welcome() {
     featureRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-
   return (
     <div
       ref={landingShellRef}
       className="landing-shell landing-theme app-container min-h-screen flex flex-col bg-[color:var(--bg-color,#0B0F14)] text-[color:var(--text-color,#e5e7eb)]"
-      style={{
-        // Make the sections below the hero match the hero's neutral dark palette
-        // (instead of the default slightly blue-tinted surface).
-        "--card-bg": "#15191E",
-        "--input-bg": "#15191E",
-      } as React.CSSProperties}
+      style={
+        {
+          // Make the sections below the hero match the hero's neutral dark palette
+          // (instead of the default slightly blue-tinted surface).
+          "--card-bg": "#15191E",
+          "--input-bg": "#15191E",
+        } as React.CSSProperties
+      }
     >
       <div className="landing-animated-bg" aria-hidden="true" />
 

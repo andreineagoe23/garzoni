@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Modal from "./Modal";
 import GlassButton from "./GlassButton";
 
-export default {
+const config = {
   title: "UI/Modal",
   component: Modal,
   parameters: {
@@ -15,12 +15,18 @@ export default {
   },
 };
 
+export default config;
+
 export const Default = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="p-6">
       <GlassButton onClick={() => setIsOpen(true)}>Open modal</GlassButton>
-      <Modal isOpen={isOpen} title="Example modal" onClose={() => setIsOpen(false)}>
+      <Modal
+        isOpen={isOpen}
+        title="Example modal"
+        onClose={() => setIsOpen(false)}
+      >
         <p className="text-sm text-white/70">
           Use this modal for confirmations or focused tasks.
         </p>

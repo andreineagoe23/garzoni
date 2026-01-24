@@ -63,9 +63,27 @@ const CryptoTools = () => {
         </p>
       </header>
 
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-        <div className="tradingview-widget-container" ref={container} style={{ width: '100%', border: 0, overflow: 'hidden', height: '500px' }}>
-          <div className="tradingview-widget-container__widget" style={{ width: '100%', height: '100%' }} />
+      <div
+        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        style={{
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          className="tradingview-widget-container"
+          ref={container}
+          style={{
+            width: "100%",
+            border: 0,
+            overflow: "hidden",
+            height: "500px",
+          }}
+        >
+          <div
+            className="tradingview-widget-container__widget"
+            style={{ width: "100%", height: "100%" }}
+          />
           <div className="tradingview-widget-copyright text-center text-xs">
             <a
               href="https://www.tradingview.com/"

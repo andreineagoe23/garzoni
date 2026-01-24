@@ -36,9 +36,8 @@ const BudgetAllocationExercise = ({
     }, {});
   }, [categories]);
 
-  const [allocations, setAllocations] = useState<Record<string, string>>(
-    initialAllocations
-  );
+  const [allocations, setAllocations] =
+    useState<Record<string, string>>(initialAllocations);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState(null);
 

@@ -19,7 +19,11 @@ type MutationOptionsArgs = {
     context: unknown
   ) => void;
   onMutate?: (variables: unknown) => Promise<unknown> | unknown;
-  onError?: (error: unknown, variables: unknown, context: unknown) => Promise<void> | void;
+  onError?: (
+    error: unknown,
+    variables: unknown,
+    context: unknown
+  ) => Promise<void> | void;
   onSuccess?: (
     data: unknown,
     variables: unknown,

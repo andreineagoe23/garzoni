@@ -8,8 +8,15 @@ type ErrorBoundaryState = {
   isChunkLoadError: boolean;
 };
 
-class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false, error: null, isChunkLoadError: false };
+class ErrorBoundary extends React.Component<
+  React.PropsWithChildren,
+  ErrorBoundaryState
+> {
+  state: ErrorBoundaryState = {
+    hasError: false,
+    error: null,
+    isChunkLoadError: false,
+  };
 
   static getDerivedStateFromError(error: Error) {
     const message = String(error?.message || "");

@@ -28,7 +28,9 @@ export const formatNumber = (
   options: Intl.NumberFormatOptions = {}
 ) => {
   try {
-    return new Intl.NumberFormat(normalizeLocale(locale), options).format(value);
+    return new Intl.NumberFormat(normalizeLocale(locale), options).format(
+      value
+    );
   } catch {
     return String(value);
   }

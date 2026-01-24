@@ -138,7 +138,9 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                   </div>
                   <div
                     className={`pointer-events-none absolute top-1/2 h-px w-10 -translate-y-1/2 bg-white/10 ${
-                      isLeft ? "right-[calc(50%+24px)]" : "left-[calc(50%+24px)]"
+                      isLeft
+                        ? "right-[calc(50%+24px)]"
+                        : "left-[calc(50%+24px)]"
                     }`}
                   />
                 </div>

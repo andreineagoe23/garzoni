@@ -48,7 +48,10 @@ function Settings() {
 
         const profile = (data as { profile?: UserProfile }).profile || {};
         setEmailReminderPreference(
-          String((data as { email_reminder_preference?: unknown }).email_reminder_preference || "none")
+          String(
+            (data as { email_reminder_preference?: unknown })
+              .email_reminder_preference || "none"
+          )
         );
         setProfileData({
           username: String((profile as UserProfile).username || ""),
@@ -167,14 +170,11 @@ function Settings() {
     }
 
     try {
-      await axios.delete(
-        `${BACKEND_URL}/delete-account/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-          withCredentials: true,
-          data: { password: deletePassword },
-        }
-      );
+      await axios.delete(`${BACKEND_URL}/delete-account/`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        withCredentials: true,
+        data: { password: deletePassword },
+      });
 
       logoutUser();
       navigate("/");
@@ -192,13 +192,19 @@ function Settings() {
   return (
     <PageContainer maxWidth="4xl" innerClassName="space-y-8">
       {successMessage && (
-        <GlassCard padding="md" className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-400 shadow-emerald-500/10">
+        <GlassCard
+          padding="md"
+          className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-400 shadow-emerald-500/10"
+        >
           {successMessage}
         </GlassCard>
       )}
 
       {errorMessage && (
-        <GlassCard padding="md" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
+        <GlassCard
+          padding="md"
+          className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+        >
           {errorMessage}
         </GlassCard>
       )}
@@ -211,235 +217,238 @@ function Settings() {
         ) : (
           <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-12">
             <section className="space-y-6">
-                <header>
-                  <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                    Profile Information
-                  </h4>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    Update your personal details and email address.
-                  </p>
-                </header>
+              <header>
+                <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                  Profile Information
+                </h4>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Update your personal details and email address.
+                </p>
+              </header>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      name="first_name"
-                      value={profileData.first_name}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      name="last_name"
-                      value={profileData.last_name}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={profileData.first_name}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
                 </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={profileData.username}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={profileData.email}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={profileData.last_name}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
                 </div>
-              </section>
-
-              <section className="space-y-6">
-                <header>
-                  <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                    Preferences
-                  </h4>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    Control reminders and personalization options.
-                  </p>
-                </header>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Email Reminders
-                    </label>
-                    <select
-                      value={emailReminderPreference}
-                      onChange={(event) => setEmailReminderPreference(event.target.value)}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    >
-                      <option value="none">No Reminders</option>
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                    </select>
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-6">
-                <header>
-                  <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                    Change Password
-                  </h4>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    Create a strong password to keep your account secure.
-                  </p>
-                </header>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(event) => setCurrentPassword(event.target.value)}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(event) => setNewPassword(event.target.value)}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleChangePassword}
-                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] shadow-sm transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                >
-                  Update Password
-                </button>
-
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  <button
-                    type="button"
-                    className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
-                    onClick={() => window.UC_UI?.showSecondLayer?.()}
-                  >
-                    Privacy Settings
-                  </button>
-                  <span>•</span>
-                  <Link
-                    to="/cookie-policy"
-                    className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
-                  >
-                    Cookie Policy
-                  </Link>
-                </div>
-              </section>
-
-              <section className="space-y-6">
-                <header>
-                  <h4 className="text-lg font-semibold text-[color:var(--error,#dc2626)]">
-                    Danger Zone
-                  </h4>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    Permanently remove your account and all associated data.
-                  </p>
-                </header>
-
-                {!isConfirmingDelete ? (
-                  <button
-                    type="button"
-                    onClick={handleDeleteAccount}
-                    className="inline-flex items-center justify-center rounded-lg border border-[color:var(--error,#dc2626)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--error,#dc2626)] shadow-sm transition hover:bg-[color:var(--error,#dc2626)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
-                  >
-                    Delete My Account
-                  </button>
-                ) : (
-                  <div className="space-y-4 rounded-xl border border-[color:var(--error,#dc2626)]/30 bg-[color:var(--error,#dc2626)]/5 p-4 shadow-inner shadow-[color:var(--error,#dc2626)]/10">
-                    <p className="text-sm text-[color:var(--error,#dc2626)]">
-                      This action cannot be undone. Please enter your password to confirm.
-                    </p>
-                    <input
-                      type="password"
-                      value={deletePassword}
-                      onChange={(event) => setDeletePassword(event.target.value)}
-                      placeholder="Enter your password"
-                      className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
-                    />
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={handleDeleteAccount}
-                        className="inline-flex flex-1 items-center justify-center rounded-lg bg-[color:var(--error,#dc2626)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--error,#dc2626)]/30 transition hover:shadow-lg hover:shadow-[color:var(--error,#dc2626)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
-                      >
-                        Confirm Deletion
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsConfirmingDelete(false);
-                          setDeletePassword("");
-                          setErrorMessage("");
-                        }}
-                        className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              <div className="flex justify-end border-t border-[color:var(--border-color,#d1d5db)] pt-6">
-                <button
-                  type="button"
-                  onClick={handleSaveSettings}
-                  className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                >
-                  Save Changes
-                </button>
               </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={profileData.username}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={profileData.email}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-6">
+              <header>
+                <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                  Preferences
+                </h4>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Control reminders and personalization options.
+                </p>
+              </header>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Email Reminders
+                  </label>
+                  <select
+                    value={emailReminderPreference}
+                    onChange={(event) =>
+                      setEmailReminderPreference(event.target.value)
+                    }
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  >
+                    <option value="none">No Reminders</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-6">
+              <header>
+                <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                  Change Password
+                </h4>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Create a strong password to keep your account secure.
+                </p>
+              </header>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] shadow-sm transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              >
+                Update Password
+              </button>
+
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <button
+                  type="button"
+                  className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                  onClick={() => window.UC_UI?.showSecondLayer?.()}
+                >
+                  Privacy Settings
+                </button>
+                <span>•</span>
+                <Link
+                  to="/cookie-policy"
+                  className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                >
+                  Cookie Policy
+                </Link>
+              </div>
+            </section>
+
+            <section className="space-y-6">
+              <header>
+                <h4 className="text-lg font-semibold text-[color:var(--error,#dc2626)]">
+                  Danger Zone
+                </h4>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  Permanently remove your account and all associated data.
+                </p>
+              </header>
+
+              {!isConfirmingDelete ? (
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--error,#dc2626)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--error,#dc2626)] shadow-sm transition hover:bg-[color:var(--error,#dc2626)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
+                >
+                  Delete My Account
+                </button>
+              ) : (
+                <div className="space-y-4 rounded-xl border border-[color:var(--error,#dc2626)]/30 bg-[color:var(--error,#dc2626)]/5 p-4 shadow-inner shadow-[color:var(--error,#dc2626)]/10">
+                  <p className="text-sm text-[color:var(--error,#dc2626)]">
+                    This action cannot be undone. Please enter your password to
+                    confirm.
+                  </p>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(event) => setDeletePassword(event.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDeleteAccount}
+                      className="inline-flex flex-1 items-center justify-center rounded-lg bg-[color:var(--error,#dc2626)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--error,#dc2626)]/30 transition hover:shadow-lg hover:shadow-[color:var(--error,#dc2626)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                    >
+                      Confirm Deletion
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsConfirmingDelete(false);
+                        setDeletePassword("");
+                        setErrorMessage("");
+                      }}
+                      className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <div className="flex justify-end border-t border-[color:var(--border-color,#d1d5db)] pt-6">
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              >
+                Save Changes
+              </button>
             </div>
-          )}
+          </div>
+        )}
       </GlassCard>
       <EntitlementMatrix entitlements={entitlementsData?.data} />
     </PageContainer>

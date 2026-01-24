@@ -22,8 +22,8 @@ const Login = React.lazy(() => import("components/auth/Login"));
 const Register = React.lazy(() => import("components/auth/Register"));
 const Welcome = React.lazy(() => import("components/landing/Welcome"));
 const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
-const CourseFlowPage = React.lazy(() =>
-  import("components/courses/CourseFlowPage")
+const CourseFlowPage = React.lazy(
+  () => import("components/courses/CourseFlowPage")
 );
 const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
 const Navbar = React.lazy(() => import("components/layout/Navbar"));
@@ -31,37 +31,37 @@ const Footer = React.lazy(() => import("components/layout/Footer"));
 const Profile = React.lazy(() => import("components/profile/Profile"));
 const Settings = React.lazy(() => import("components/profile/Settings"));
 const QuizPage = React.lazy(() => import("components/courses/QuizPage"));
-const Leaderboards = React.lazy(() =>
-  import("components/engagement/Leaderboard")
+const Leaderboards = React.lazy(
+  () => import("components/engagement/Leaderboard")
 );
 const Missions = React.lazy(() => import("components/engagement/Missions"));
-const Questionnaire = React.lazy(() =>
-  import("components/onboarding/Questionnaire")
+const Questionnaire = React.lazy(
+  () => import("components/onboarding/Questionnaire")
 );
 const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
-const ForgotPassword = React.lazy(() =>
-  import("components/auth/ForgotPassword")
+const ForgotPassword = React.lazy(
+  () => import("components/auth/ForgotPassword")
 );
 const ResetPassword = React.lazy(() => import("components/auth/ResetPassword"));
 const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
 const FAQPage = React.lazy(() => import("components/support/FAQPage"));
-const ExercisePage = React.lazy(() =>
-  import("components/exercises/ExercisePage")
+const ExercisePage = React.lazy(
+  () => import("components/exercises/ExercisePage")
 );
 const UpgradePage = React.lazy(() => import("components/billing/Upgrade"));
-const SubscriptionPlans = React.lazy(() =>
-  import("components/billing/PaymentRequired")
+const SubscriptionPlans = React.lazy(
+  () => import("components/billing/PaymentRequired")
 );
-const SubscriptionManager = React.lazy(() =>
-  import("components/billing/SubscriptionManager")
+const SubscriptionManager = React.lazy(
+  () => import("components/billing/SubscriptionManager")
 );
-const PrivacyPolicy = React.lazy(() =>
-  import("components/legal/PrivacyPolicy")
+const PrivacyPolicy = React.lazy(
+  () => import("components/legal/PrivacyPolicy")
 );
 const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
 const PricingPage = React.lazy(() => import("components/landing/Pricing"));
-const PricingFunnelDashboard = React.lazy(() =>
-  import("components/analytics/PricingFunnelDashboard")
+const PricingFunnelDashboard = React.lazy(
+  () => import("components/analytics/PricingFunnelDashboard")
 );
 
 const preloaders = [
@@ -75,7 +75,8 @@ const preloaders = [
 
 const canPrefetchChunks = () => {
   if (typeof navigator === "undefined") return false;
-  const connection = (navigator as Navigator).connection ||
+  const connection =
+    (navigator as Navigator).connection ||
     (navigator as Navigator).mozConnection ||
     (navigator as Navigator).webkitConnection;
   if (!connection) return true;
@@ -186,8 +187,15 @@ const AppContent = () => {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const shouldRecoverFromChunkError = (errOrMsg: unknown, urlHint?: string) => {
-      const errorish = errOrMsg as { message?: string; reason?: { message?: string; name?: string }; name?: string };
+    const shouldRecoverFromChunkError = (
+      errOrMsg: unknown,
+      urlHint?: string
+    ) => {
+      const errorish = errOrMsg as {
+        message?: string;
+        reason?: { message?: string; name?: string };
+        name?: string;
+      };
       const message = String(
         errorish?.message || errorish?.reason?.message || errorish || ""
       );
@@ -247,8 +255,8 @@ const AppContent = () => {
         target instanceof HTMLLinkElement
           ? target.href
           : target instanceof HTMLScriptElement
-          ? target.src
-          : undefined;
+            ? target.src
+            : undefined;
       if (
         shouldRecoverFromChunkError(
           errorEvent?.error || errorEvent?.message,
