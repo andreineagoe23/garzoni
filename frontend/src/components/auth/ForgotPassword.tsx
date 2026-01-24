@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/monevo-logo-png.png";
@@ -26,11 +27,15 @@ function ForgotPassword() {
         response.data.message || t("forgotPassword.success")
       );
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.error ||
-          requestError.response?.data?.detail ||
-          t("forgotPassword.error")
-      );
+      if (axios.isAxiosError(requestError)) {
+        setError(
+          requestError.response?.data?.error ||
+            requestError.response?.data?.detail ||
+            t("forgotPassword.error")
+        );
+      } else {
+        setError(t("forgotPassword.error"));
+      }
     } finally {
       setIsLoading(false);
     }
