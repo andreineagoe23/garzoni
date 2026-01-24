@@ -214,7 +214,11 @@ function Login() {
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              <span>{t("login.noAccountPrompt", { defaultValue: "Don’t have an account?" })} </span>
+              <span>
+                {t("login.noAccountPrompt", {
+                  defaultValue: "Don’t have an account?",
+                })}{" "}
+              </span>
               <button
                 type="button"
                 onClick={() => navigate("/register")}

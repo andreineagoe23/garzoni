@@ -345,8 +345,8 @@ function Missions() {
           points >= 2500
             ? "advanced"
             : points >= 750
-            ? "intermediate"
-            : "beginner";
+              ? "intermediate"
+              : "beginner";
 
         setAdaptiveSuggestions({
           level,
@@ -524,12 +524,12 @@ function Missions() {
       mission.goal_type === "read_fact" && isDaily
         ? "Read one fact to complete"
         : mission.goal_type === "read_fact"
-        ? `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`
-        : mission.goal_type === "complete_lesson"
-        ? `${progressPercent}% of your ${getLessonRequirement(
-            mission
-          )}-lesson target`
-        : `${progressPercent}% complete`;
+          ? `${5 - Math.floor(mission.progress / 20)} of 5 facts remaining`
+          : mission.goal_type === "complete_lesson"
+            ? `${progressPercent}% of your ${getLessonRequirement(
+                mission
+              )}-lesson target`
+            : `${progressPercent}% complete`;
 
     const completedLessons =
       mission.goal_type === "complete_lesson"

@@ -98,7 +98,8 @@ function QuizPage() {
       console.error("Error submitting answer:", err);
       if (axios.isAxiosError(err)) {
         setFeedback(
-          err.response?.data?.message || "Something went wrong. Please try again."
+          err.response?.data?.message ||
+            "Something went wrong. Please try again."
         );
       } else {
         setFeedback("Something went wrong. Please try again.");
@@ -120,7 +121,10 @@ function QuizPage() {
   if (error) {
     return (
       <PageContainer maxWidth="4xl">
-        <GlassCard padding="md" className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10">
+        <GlassCard
+          padding="md"
+          className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+        >
           {error}
         </GlassCard>
       </PageContainer>
@@ -192,8 +196,8 @@ function QuizPage() {
               earnedMoney > 0
                 ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-300"
                 : feedback.includes("Incorrect")
-                ? "border-amber-400/60 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                  ? "border-amber-400/60 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                  : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
             }`}
           >
             <p>{feedback}</p>

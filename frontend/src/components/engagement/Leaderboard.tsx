@@ -43,8 +43,12 @@ const highlightClasses = [
 
 const Leaderboards = () => {
   const locale = getLocale();
-  const [globalLeaderboard, setGlobalLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [friendsLeaderboard, setFriendsLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [globalLeaderboard, setGlobalLeaderboard] = useState<
+    LeaderboardEntry[]
+  >([]);
+  const [friendsLeaderboard, setFriendsLeaderboard] = useState<
+    LeaderboardEntry[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -174,134 +178,139 @@ const Leaderboards = () => {
       layout="none"
       innerClassName="flex flex-col gap-10"
     >
-        <header className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <GlassCard padding="md">
-            <ReferralLink referralCode={referralCode} />
-          </GlassCard>
-          <GlassCard padding="md">
-            <FriendRequests />
-          </GlassCard>
-        </header>
+      <header className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <GlassCard padding="md">
+          <ReferralLink referralCode={referralCode} />
+        </GlassCard>
+        <GlassCard padding="md">
+          <FriendRequests />
+        </GlassCard>
+      </header>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-              {activeTab === "global" ? "Global Leaderboard" : "Friends Leaderboard"}
-            </h1>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Track progress, celebrate wins, and connect with the community.
-            </p>
-          </div>
-          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-            <div className="flex overflow-hidden rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-1 text-sm shadow-sm">
-              {["global", "friends"].map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab as "global" | "friends")}
-                  className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm focus:ring-[color:var(--accent,#2563eb)]/40 ${
-                    activeTab === tab
-                      ? "bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--primary,#2563eb)]/90 text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
-                      : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/60 hover:bg-[color:var(--accent,#2563eb)]/10 hover:text-[color:var(--accent,#2563eb)]"
-                  }`}
-                >
-                  {tab === "global" ? "Global" : "Friends"}
-                </button>
-              ))}
-            </div>
-            {activeTab === "global" && (
-              <select
-                value={timeFilter}
-                onChange={(event) => setTimeFilter(event.target.value)}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              >
-                {timeFilterOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+            {activeTab === "global"
+              ? "Global Leaderboard"
+              : "Friends Leaderboard"}
+          </h1>
+          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            Track progress, celebrate wins, and connect with the community.
+          </p>
         </div>
-
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full max-w-xl">
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search users..."
-              className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-              type="text"
-            />
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[color:var(--muted-text,#6b7280)]">
-              🔍
-            </span>
+        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex overflow-hidden rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-1 text-sm shadow-sm">
+            {["global", "friends"].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab as "global" | "friends")}
+                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                  activeTab === tab
+                    ? "bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--primary,#2563eb)]/90 text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
+                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/60 hover:bg-[color:var(--accent,#2563eb)]/10 hover:text-[color:var(--accent,#2563eb)]"
+                }`}
+              >
+                {tab === "global" ? "Global" : "Friends"}
+              </button>
+            ))}
           </div>
-          {error && (
-            <div className="rounded-3xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
-              {error}
-            </div>
+          {activeTab === "global" && (
+            <select
+              value={timeFilter}
+              onChange={(event) => setTimeFilter(event.target.value)}
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+            >
+              {timeFilterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           )}
         </div>
+      </div>
 
-        {userRank &&
-          !filteredLeaderboard.some(
-            (entry) => entry.user.id === userRank.user.id
-          ) && (
-            <GlassCard padding="md" className="border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 shadow-[color:var(--accent,#2563eb)]/20">
-              <div className="flex flex-wrap items-center gap-4">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#2563eb)] text-lg font-bold text-white shadow-md">
-                  #{userRank.rank}
-                </span>
-                <div className="flex items-center gap-3">
-                  {userRank.user.profile_avatar ? (
-                    <img
-                      src={userRank.user.profile_avatar}
-                      alt={`${userRank.user.username}'s avatar`}
-                      className="h-10 w-10 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
-                    />
-                  ) : (
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--card-bg,#ffffff)] text-sm font-semibold text-[color:var(--accent,#2563eb)] shadow-inner">
-                      {userRank.user.username.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <div className="text-sm">
-                    <p className="font-semibold text-[color:var(--accent,#111827)]">
-                      You ({userRank.user.username})
-                    </p>
-                    <p className="text-[color:var(--accent,#2563eb)]">
-                      {userRank.points} points
-                    </p>
-                  </div>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-xl">
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search users..."
+            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+            type="text"
+          />
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[color:var(--muted-text,#6b7280)]">
+            🔍
+          </span>
+        </div>
+        {error && (
+          <div className="rounded-3xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {userRank &&
+        !filteredLeaderboard.some(
+          (entry) => entry.user.id === userRank.user.id
+        ) && (
+          <GlassCard
+            padding="md"
+            className="border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 shadow-[color:var(--accent,#2563eb)]/20"
+          >
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#2563eb)] text-lg font-bold text-white shadow-md">
+                #{userRank.rank}
+              </span>
+              <div className="flex items-center gap-3">
+                {userRank.user.profile_avatar ? (
+                  <img
+                    src={userRank.user.profile_avatar}
+                    alt={`${userRank.user.username}'s avatar`}
+                    className="h-10 w-10 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                  />
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--card-bg,#ffffff)] text-sm font-semibold text-[color:var(--accent,#2563eb)] shadow-inner">
+                    {userRank.user.username.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="text-sm">
+                  <p className="font-semibold text-[color:var(--accent,#111827)]">
+                    You ({userRank.user.username})
+                  </p>
+                  <p className="text-[color:var(--accent,#2563eb)]">
+                    {userRank.points} points
+                  </p>
                 </div>
               </div>
-            </GlassCard>
-          )}
+            </div>
+          </GlassCard>
+        )}
 
-        <div className="space-y-4">
-          {filteredLeaderboard.length === 0 ? (
-            <GlassCard padding="lg" className="text-center">
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                No users found for the current selection.
-              </p>
-            </GlassCard>
-          ) : (
-            filteredLeaderboard.map((entry, index) => {
-              const position = index + 1;
-              const isFriend = isAlreadyFriend(entry.user.id);
-              const pending = hasPendingRequest(entry.user.id);
-              const highlight =
-                index < highlightClasses.length ? highlightClasses[index] : "";
+      <div className="space-y-4">
+        {filteredLeaderboard.length === 0 ? (
+          <GlassCard padding="lg" className="text-center">
+            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              No users found for the current selection.
+            </p>
+          </GlassCard>
+        ) : (
+          filteredLeaderboard.map((entry, index) => {
+            const position = index + 1;
+            const isFriend = isAlreadyFriend(entry.user.id);
+            const pending = hasPendingRequest(entry.user.id);
+            const highlight =
+              index < highlightClasses.length ? highlightClasses[index] : "";
 
-              return (
-                <GlassCard
-                  key={entry.user.id}
-                  padding="md"
-                  className={`group flex flex-col gap-4 transition hover:-translate-y-1 ${highlight}`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
-                  <div className="relative">
+            return (
+              <GlassCard
+                key={entry.user.id}
+                padding="md"
+                className={`group flex flex-col gap-4 transition hover:-translate-y-1 ${highlight}`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+                <div className="relative">
                   <div className="flex flex-wrap items-center gap-4">
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] text-sm font-semibold text-[color:var(--accent,#111827)]">
                       #{position}
@@ -334,8 +343,8 @@ const Leaderboards = () => {
                           isFriend
                             ? "Already friends"
                             : pending
-                            ? "Request pending"
-                            : "Add as friend"
+                              ? "Request pending"
+                              : "Add as friend"
                         }
                         onClick={() => sendFriendRequest(entry.user.id)}
                         disabled={isFriend || pending}
@@ -343,20 +352,24 @@ const Leaderboards = () => {
                           isFriend
                             ? "cursor-not-allowed bg-emerald-500/10 text-emerald-500"
                             : pending
-                            ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
-                            : "bg-[color:var(--primary,#2563eb)] text-white shadow hover:shadow-lg"
+                              ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
+                              : "bg-[color:var(--primary,#2563eb)] text-white shadow hover:shadow-lg"
                         }`}
                       >
-                        {isFriend ? "Friends" : pending ? "Pending" : "Add Friend"}
+                        {isFriend
+                          ? "Friends"
+                          : pending
+                            ? "Pending"
+                            : "Add Friend"}
                       </button>
                     )}
                   </div>
-                  </div>
-                </GlassCard>
-              );
-            })
-          )}
-        </div>
+                </div>
+              </GlassCard>
+            );
+          })
+        )}
+      </div>
     </PageContainer>
   );
 };

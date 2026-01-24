@@ -54,9 +54,9 @@ function Profile() {
       completed: false,
     },
   });
-  const [activityCalendar, setActivityCalendar] = useState<Record<string, unknown>>(
-    {}
-  );
+  const [activityCalendar, setActivityCalendar] = useState<
+    Record<string, unknown>
+  >({});
   const [currentMonth, setCurrentMonth] = useState<{
     first_day?: string | number | Date | null;
     last_day?: string | number | Date | null;
@@ -114,12 +114,23 @@ function Profile() {
           email: String(resolvedEmail || ""),
           first_name: String(profileUserData.first_name || ""),
           last_name: String(profileUserData.last_name || ""),
-          earned_money: parseFloat(String(profileUserData.earned_money || 0)) || 0,
-          points: typeof profileUserData.points === "number" ? profileUserData.points : 0,
-          streak: typeof profilePayload.streak === "number" ? profilePayload.streak : (typeof profileUserData.streak === "number" ? profileUserData.streak : 0),
+          earned_money:
+            parseFloat(String(profileUserData.earned_money || 0)) || 0,
+          points:
+            typeof profileUserData.points === "number"
+              ? profileUserData.points
+              : 0,
+          streak:
+            typeof profilePayload.streak === "number"
+              ? profilePayload.streak
+              : typeof profileUserData.streak === "number"
+                ? profileUserData.streak
+                : 0,
         });
 
-        setImageUrl(String(profileUserData.profile_avatar || "/default-avatar.png"));
+        setImageUrl(
+          String(profileUserData.profile_avatar || "/default-avatar.png")
+        );
         setActivityCalendar(profilePayload.activity_calendar || {});
         setCurrentMonth(profilePayload.current_month || {});
 
@@ -148,8 +159,14 @@ function Profile() {
           },
           weekly: {
             ...prevGoals.weekly,
-            current: typeof profileUserData.points === "number" ? profileUserData.points : 0,
-            completed: (typeof profileUserData.points === "number" ? profileUserData.points : 0) >= prevGoals.weekly.target,
+            current:
+              typeof profileUserData.points === "number"
+                ? profileUserData.points
+                : 0,
+            completed:
+              (typeof profileUserData.points === "number"
+                ? profileUserData.points
+                : 0) >= prevGoals.weekly.target,
           },
         }));
 
@@ -263,7 +280,9 @@ function Profile() {
           {days.map((day) => {
             const date = new Date(
               Number(currentMonth.year || 0),
-              new Date(currentMonth.first_day as string | number | Date).getMonth(),
+              new Date(
+                currentMonth.first_day as string | number | Date
+              ).getMonth(),
               day
             );
             const dateStr = date.toISOString().split("T")[0];

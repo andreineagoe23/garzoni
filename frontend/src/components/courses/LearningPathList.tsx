@@ -83,7 +83,9 @@ function LearningPathList({
                       key={course.id}
                       padding="none"
                       className="group flex cursor-pointer flex-col overflow-hidden transition hover:-translate-y-1"
-                      onClick={() => onCourseClick?.(Number(course.id), Number(path.id))}
+                      onClick={() =>
+                        onCourseClick?.(Number(course.id), Number(path.id))
+                      }
                       onKeyDown={(event) => {
                         if (event.key === "Enter")
                           onCourseClick?.(Number(course.id), Number(path.id));
