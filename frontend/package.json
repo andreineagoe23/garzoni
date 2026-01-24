@@ -47,7 +47,7 @@
     "start": "cross-env TSC_COMPILE_ON_ERROR=true NODE_OPTIONS=--max-old-space-size=4096 craco start",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format:check": "npx --yes prettier --check .",
-    "build": "cross-env TSC_COMPILE_ON_ERROR=true craco build",
+    "build": "craco build",
     "type-check": "tsc --noEmit --skipLibCheck",
     "test": "craco test",
     "eject": "react-scripts eject",

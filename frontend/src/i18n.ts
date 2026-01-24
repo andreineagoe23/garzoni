@@ -1,28 +1,44 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+// Ensure type declarations are loaded
+import "./types/i18next";
 
 const STORAGE_KEY = "monevo:lang";
 const fallbackLang = "en";
 
+// Define the resource structure type
+type ResourceStructure = {
+  common: Record<string, any>;
+  dashboard: Record<string, any>;
+  landing: Record<string, any>;
+  auth: Record<string, any>;
+  billing: Record<string, any>;
+  tools: Record<string, any>;
+  profile: Record<string, any>;
+};
+
 // Temporary empty resources - will be replaced with new language approach
-const resources = {
+export const resources: {
+  en: ResourceStructure;
+  es: ResourceStructure;
+} = {
   en: {
-    common: {} as Record<string, string>,
-    dashboard: {} as Record<string, string>,
-    landing: {} as Record<string, string>,
-    auth: {} as Record<string, string>,
-    billing: {} as Record<string, string>,
-    tools: {} as Record<string, string>,
-    profile: {} as Record<string, string>,
+    common: {},
+    dashboard: {},
+    landing: {},
+    auth: {},
+    billing: {},
+    tools: {},
+    profile: {},
   },
   es: {
-    common: {} as Record<string, string>,
-    dashboard: {} as Record<string, string>,
-    landing: {} as Record<string, string>,
-    auth: {} as Record<string, string>,
-    billing: {} as Record<string, string>,
-    tools: {} as Record<string, string>,
-    profile: {} as Record<string, string>,
+    common: {},
+    dashboard: {},
+    landing: {},
+    auth: {},
+    billing: {},
+    tools: {},
+    profile: {},
   },
 };
 
@@ -36,12 +52,14 @@ const getInitialLang = () => {
   return fallbackLang;
 };
 
+export const defaultNS = "common" as const;
+
 i18n.use(initReactI18next).init({
-  resources,
+  resources: resources as typeof resources,
   lng: getInitialLang(),
   fallbackLng: fallbackLang,
   ns: ["common", "dashboard", "landing", "auth", "billing", "tools", "profile"],
-  defaultNS: "common",
+  defaultNS,
   interpolation: {
     escapeValue: false,
   },
