@@ -1,10 +1,12 @@
 import React from "react";
 import GlassCard from "./GlassCard";
 
-export default {
+const config = {
   title: "UI/GlassCard",
   component: GlassCard,
 };
+
+export default config;
 
 export const Default = () => (
   <div className="p-6">

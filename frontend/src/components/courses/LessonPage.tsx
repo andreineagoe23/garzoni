@@ -8,7 +8,9 @@ function LessonPageRedirect() {
   useEffect(() => {
     if (!courseId) return;
     if (pathId) {
-      navigate(`/courses/${pathId}/lessons/${courseId}/flow`, { replace: true });
+      navigate(`/courses/${pathId}/lessons/${courseId}/flow`, {
+        replace: true,
+      });
       return;
     }
     navigate(`/lessons/${courseId}/flow`, { replace: true });

@@ -134,10 +134,12 @@ function PortfolioAnalyzer() {
 
       const allocation = entriesWithPrices.reduce<Record<string, number>>(
         (acc, entry) => {
-        const type = entry.asset_type;
-        acc[type] = (acc[type] || 0) + (entry.current_value || 0);
-        return acc;
-      }, {});
+          const type = entry.asset_type;
+          acc[type] = (acc[type] || 0) + (entry.current_value || 0);
+          return acc;
+        },
+        {}
+      );
 
       setSummary({
         total_value: totalValue,
@@ -183,11 +185,14 @@ function PortfolioAnalyzer() {
       });
       fetchPortfolio();
     } catch (err) {
-      const apiMessage = err.response?.data?.message || err.response?.data?.error;
+      const apiMessage =
+        err.response?.data?.message || err.response?.data?.error;
       setError(
         apiMessage
           ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
-          : t("portfolio.addError", { defaultValue: "Failed to add portfolio entry" })
+          : t("portfolio.addError", {
+              defaultValue: "Failed to add portfolio entry",
+            })
       );
       console.error(err);
     }
@@ -200,7 +205,8 @@ function PortfolioAnalyzer() {
       });
       fetchPortfolio();
     } catch (err) {
-      const apiMessage = err.response?.data?.message || err.response?.data?.error;
+      const apiMessage =
+        err.response?.data?.message || err.response?.data?.error;
       setError(
         apiMessage
           ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
@@ -635,7 +641,10 @@ function PortfolioAnalyzer() {
                             Number(entry.purchase_price || 0),
                             "USD",
                             locale,
-                            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
                           )}
                         </td>
                         <td className="px-4 py-3 font-medium">
@@ -643,7 +652,10 @@ function PortfolioAnalyzer() {
                             Number(entry.current_value || 0),
                             "USD",
                             locale,
-                            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -660,7 +672,10 @@ function PortfolioAnalyzer() {
                                 Math.abs(Number(entry.gain_loss || 0)),
                                 "USD",
                                 locale,
-                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
                               )}
                             </span>
                             <span
@@ -674,7 +689,10 @@ function PortfolioAnalyzer() {
                               {formatNumber(
                                 entry.gain_loss_percentage || 0,
                                 locale,
-                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
                               )}
                               %
                             </span>

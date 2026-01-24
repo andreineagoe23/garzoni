@@ -19,8 +19,8 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
         primaryCTA.priority === "high"
           ? "border-[color:var(--error,#dc2626)]/40 bg-gradient-to-r from-[color:var(--error,#dc2626)]/10 to-[color:var(--error,#dc2626)]/5"
           : primaryCTA.priority === "medium"
-          ? "border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5"
-          : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60"
+            ? "border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5"
+            : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60"
       }`}
     >
       <div className="flex items-center justify-between">

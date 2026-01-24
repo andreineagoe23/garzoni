@@ -40,7 +40,10 @@ function RewardsPage() {
         const profilePayload = await loadProfile(
           force ? { force: true } : undefined
         );
-        const userData = (profilePayload as UserProfile)?.user_data || (profilePayload as UserProfile) || {};
+        const userData =
+          (profilePayload as UserProfile)?.user_data ||
+          (profilePayload as UserProfile) ||
+          {};
         const earned = (userData as Record<string, unknown>)?.earned_money ?? 0;
         const normalized = Number.parseFloat(String(earned)) || 0;
         setBalance(normalized);

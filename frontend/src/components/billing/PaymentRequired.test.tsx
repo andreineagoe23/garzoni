@@ -5,6 +5,8 @@ import axios from "axios";
 import i18n from "i18n";
 import { formatCurrency, getLocale } from "utils/format";
 
+import PaymentRequired from "./PaymentRequired";
+
 jest.mock("services/analyticsService", () => ({
   recordFunnelEvent: jest.fn(),
 }));
@@ -34,8 +36,6 @@ jest.mock("contexts/AuthContext", () => ({
     isAuthenticated: true,
   }),
 }));
-
-import PaymentRequired from "./PaymentRequired";
 
 const plansResponse = {
   plans: [
@@ -129,7 +129,9 @@ describe("PaymentRequired", () => {
     expect(
       screen.getByText((content) => content.includes(aiDescription))
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: choosePlus })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: choosePlus })
+    ).toBeInTheDocument();
   });
 
   it("navigates to questionnaire with selected plan", async () => {

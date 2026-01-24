@@ -40,13 +40,21 @@ export const useDashboardSummary = ({
   const entitlementUsage = useMemo(() => {
     const features = entitlements?.features || {};
     return Object.values(features)
-      .map((feature: { flag?: string; name?: string; enabled?: boolean; used_today?: number; remaining_today?: number }) => ({
-        key: feature.flag || feature.name,
-        name: feature.name,
-        enabled: feature.enabled,
-        used: feature.used_today,
-        remaining: feature.remaining_today,
-      }))
+      .map(
+        (feature: {
+          flag?: string;
+          name?: string;
+          enabled?: boolean;
+          used_today?: number;
+          remaining_today?: number;
+        }) => ({
+          key: feature.flag || feature.name,
+          name: feature.name,
+          enabled: feature.enabled,
+          used: feature.used_today,
+          remaining: feature.remaining_today,
+        })
+      )
       .filter((feature) => feature.name);
   }, [entitlements?.features]);
 

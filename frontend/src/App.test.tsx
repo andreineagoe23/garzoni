@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "@testing-library/react";
-import { act } from "react";
 import App from "./App";
 
 jest.mock("services/analyticsService", () => ({
@@ -15,15 +14,12 @@ afterAll(() => {
   consoleError.mockRestore();
 });
 
-test("renders without crashing", async () => {
-  let view!: ReturnType<typeof render>;
-  await act(async () => {
-    view = render(<App />);
-  });
+test("renders without crashing", () => {
+  const view = render(<App />);
 
   expect(view.container).toBeTruthy();
 });
 
-test("test harness runs", () => {
+test("harness runs", () => {
   expect(true).toBe(true);
 });

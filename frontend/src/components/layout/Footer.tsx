@@ -75,96 +75,96 @@ function Footer() {
       >
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Brand & tagline */}
-          <div className="space-y-4 sm:col-span-2 lg:col-span-2">
-            <span className="text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]">
-              monevo
-            </span>
-            <p className="max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
-              Learn money skills with lessons, missions, and practice.
-            </p>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              <a
-                href="https://www.tiktok.com/@monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on TikTok"
-              >
-                <FaTiktokIcon size={18} />
-              </a>
-              <a
-                href="https://x.com/monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on X"
-              >
-                <FaXTwitterIcon size={18} />
-              </a>
-              <a
-                href="https://www.instagram.com/monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on Instagram"
-              >
-                <FaInstagramIcon size={18} />
-              </a>
-              <a
-                href="https://www.facebook.com/monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on Facebook"
-              >
-                <FaFacebookFIcon size={18} />
-              </a>
-              <a
-                href="https://www.youtube.com/@monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on YouTube"
-              >
-                <FaYoutubeIcon size={18} />
-              </a>
-              <a
-                href="https://www.linkedin.com/company/monevo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                aria-label="Monevo on LinkedIn"
-              >
-                <FaLinkedinInIcon size={18} />
-              </a>
-            </div>
-          </div>
-
-          {/* Dynamic link sections */}
-          {sections.map((section) => (
-            <nav
-              key={section.heading}
-              aria-label={`${section.heading} navigation`}
-              className="space-y-4"
-            >
-              <p className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {section.heading}
+            {/* Brand & tagline */}
+            <div className="space-y-4 sm:col-span-2 lg:col-span-2">
+              <span className="text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]">
+                monevo
+              </span>
+              <p className="max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                Learn money skills with lessons, missions, and practice.
               </p>
-              <ul className="space-y-2 text-sm">
-                {section.links.map((link) => (
-                  <li key={link.to}>
-                    <Link
-                      to={link.to}
-                      className="text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+                <a
+                  href="https://www.tiktok.com/@monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on TikTok"
+                >
+                  <FaTiktokIcon size={18} />
+                </a>
+                <a
+                  href="https://x.com/monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on X"
+                >
+                  <FaXTwitterIcon size={18} />
+                </a>
+                <a
+                  href="https://www.instagram.com/monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on Instagram"
+                >
+                  <FaInstagramIcon size={18} />
+                </a>
+                <a
+                  href="https://www.facebook.com/monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on Facebook"
+                >
+                  <FaFacebookFIcon size={18} />
+                </a>
+                <a
+                  href="https://www.youtube.com/@monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on YouTube"
+                >
+                  <FaYoutubeIcon size={18} />
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  aria-label="Monevo on LinkedIn"
+                >
+                  <FaLinkedinInIcon size={18} />
+                </a>
+              </div>
+            </div>
+
+            {/* Dynamic link sections */}
+            {sections.map((section) => (
+              <nav
+                key={section.heading}
+                aria-label={`${section.heading} navigation`}
+                className="space-y-4"
+              >
+                <p className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  {section.heading}
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {section.links.map((link) => (
+                    <li key={link.to}>
+                      <Link
+                        to={link.to}
+                        className="text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
           {/* Bottom bar with copyright */}
           <div className="flex flex-col items-center justify-between gap-4 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-4 sm:flex-row">
