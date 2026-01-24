@@ -8,7 +8,7 @@ const LABELS: Record<string, string> = {
 };
 
 const LanguageSelector = () => {
-  const { i18n } = useTranslation();
+  const { i18n } = useTranslation("common");
   const current = i18n.language || "en";
 
   return (
