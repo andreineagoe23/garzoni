@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "dompurify";
 import { GlassButton, GlassCard } from "components/ui";
-import { useTheme } from "contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export type LessonSection = {
   id?: number;
