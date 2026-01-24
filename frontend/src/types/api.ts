@@ -17,6 +17,8 @@ export type UserProfile = {
   referral_code?: string;
   streak?: number;
   earned_money?: number | string;
+  stripe_subscription_id?: string | null;
+  reviews_due?: number;
   activity_calendar?: Record<string, unknown>;
   current_month?: {
     first_day?: string | number | Date;

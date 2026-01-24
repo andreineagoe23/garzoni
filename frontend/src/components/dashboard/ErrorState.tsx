@@ -36,7 +36,7 @@ export const ErrorState = ({
           <p className="text-sm text-[color:var(--muted-text,#6b7280)] mb-3">
             {message}
           </p>
-          {cachedData && (
+          {Boolean(cachedData) && (
             <p className="text-xs text-[color:var(--muted-text,#6b7280)] mb-3 italic">
               Showing cached data from your last visit.
             </p>
