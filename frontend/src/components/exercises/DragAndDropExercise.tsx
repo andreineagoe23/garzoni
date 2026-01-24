@@ -10,7 +10,7 @@ type DragAndDropExerciseProps = {
   data: Record<string, unknown>;
   exerciseId?: string | number;
   onComplete?: (payload?: unknown) => void;
-  onAttempt?: (payload?: unknown) => void;
+  onAttempt?: (payload: { correct: boolean }) => void;
   isCompleted?: boolean;
   disabled?: boolean;
 };

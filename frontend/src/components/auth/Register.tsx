@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import registerBg from "assets/register-bg.jpg";
@@ -42,11 +43,15 @@ function Register() {
         setErrorMessage(result.error || t("register.failed"));
       }
     } catch (registerError) {
-      setErrorMessage(
-        registerError.response?.data?.error ||
-          registerError.message ||
-          t("register.failed")
-      );
+      if (axios.isAxiosError(registerError)) {
+        setErrorMessage(
+          registerError.response?.data?.error ||
+            registerError.message ||
+            t("register.failed")
+        );
+      } else {
+        setErrorMessage(t("register.failed"));
+      }
     } finally {
       setIsLoading(false);
     }

@@ -33,5 +33,4 @@ frontend/.env
 *.swp
 *.swo
 
-# TypeScript config (we use jsconfig.json for JavaScript projects)
-tsconfig.json
+# TypeScript config (tracked for TypeScript builds)

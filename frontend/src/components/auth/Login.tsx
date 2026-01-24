@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import loginBg from "assets/login-bg.jpg";
@@ -82,11 +83,15 @@ function Login() {
         setError(result.error || t("login.loginFailed"));
       }
     } catch (loginError) {
-      setError(
-        loginError.response?.data?.detail ||
-          loginError.response?.data?.error ||
-          t("login.unexpectedError")
-      );
+      if (axios.isAxiosError(loginError)) {
+        setError(
+          loginError.response?.data?.detail ||
+            loginError.response?.data?.error ||
+            t("login.unexpectedError")
+        );
+      } else {
+        setError(t("login.unexpectedError"));
+      }
     } finally {
       setIsLoading(false);
     }
