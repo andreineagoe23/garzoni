@@ -1,50 +1,38 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import commonEn from "./locales/en/common.json";
-import dashboardEn from "./locales/en/dashboard.json";
-import landingEn from "./locales/en/landing.json";
-import authEn from "./locales/en/auth.json";
-import billingEn from "./locales/en/billing.json";
-import toolsEn from "./locales/en/tools.json";
-import commonEs from "./locales/es/common.json";
-import dashboardEs from "./locales/es/dashboard.json";
-import landingEs from "./locales/es/landing.json";
-import authEs from "./locales/es/auth.json";
-import billingEs from "./locales/es/billing.json";
-import toolsEs from "./locales/es/tools.json";
-import profileEn from "./locales/en/profile.json";
-import profileEs from "./locales/es/profile.json";
 
 const STORAGE_KEY = "monevo:lang";
 const fallbackLang = "en";
 
+// Temporary empty resources - will be replaced with new language approach
 const resources = {
   en: {
-    common: commonEn,
-    dashboard: dashboardEn,
-    landing: landingEn,
-    auth: authEn,
-    billing: billingEn,
-    tools: toolsEn,
-    profile: profileEn,
+    common: {},
+    dashboard: {},
+    landing: {},
+    auth: {},
+    billing: {},
+    tools: {},
+    profile: {},
   },
   es: {
-    common: commonEs,
-    dashboard: dashboardEs,
-    landing: landingEs,
-    auth: authEs,
-    billing: billingEs,
-    tools: toolsEs,
-    profile: profileEs,
+    common: {},
+    dashboard: {},
+    landing: {},
+    auth: {},
+    billing: {},
+    tools: {},
+    profile: {},
   },
 };
 
 const getInitialLang = () => {
   if (typeof window === "undefined") return fallbackLang;
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored && resources[stored]) return stored;
+  if (stored && resources[stored as keyof typeof resources]) return stored;
   const browserLang = window.navigator.language?.split("-")[0];
-  if (browserLang && resources[browserLang]) return browserLang;
+  if (browserLang && resources[browserLang as keyof typeof resources])
+    return browserLang;
   return fallbackLang;
 };
 
@@ -64,7 +52,7 @@ if (typeof window !== "undefined") {
 }
 
 export const setLanguage = (lang: string) => {
-  if (!resources[lang]) return;
+  if (!resources[lang as keyof typeof resources]) return;
   i18n.changeLanguage(lang);
   if (typeof window !== "undefined") {
     window.localStorage.setItem(STORAGE_KEY, lang);
