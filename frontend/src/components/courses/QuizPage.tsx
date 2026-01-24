@@ -96,9 +96,13 @@ function QuizPage() {
       }
     } catch (err) {
       console.error("Error submitting answer:", err);
-      setFeedback(
-        err.response?.data?.message || "Something went wrong. Please try again."
-      );
+      if (axios.isAxiosError(err)) {
+        setFeedback(
+          err.response?.data?.message || "Something went wrong. Please try again."
+        );
+      } else {
+        setFeedback("Something went wrong. Please try again.");
+      }
     }
   };
 

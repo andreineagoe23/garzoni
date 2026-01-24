@@ -34,9 +34,20 @@ const SubscriptionManager = () => {
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-  const [stripeSubscriptionId, setStripeSubscriptionId] = useState(null);
+  const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string | null>(null);
   const { t } = useTranslation("billing");
   const locale = getLocale();
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      return (
+        error.response?.data?.error ||
+        error.response?.data?.detail ||
+        fallback
+      );
+    }
+    return fallback;
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -58,7 +69,13 @@ const SubscriptionManager = () => {
       try {
         const profilePayload = await loadProfile?.({ force: true });
         const userData = profilePayload?.user_data || profilePayload || {};
-        setStripeSubscriptionId(userData?.stripe_subscription_id || null);
+        setStripeSubscriptionId(
+          (profilePayload as { stripe_subscription_id?: string | null })
+            ?.stripe_subscription_id ??
+            (userData as { stripe_subscription_id?: string | null })
+              ?.stripe_subscription_id ??
+            null
+        );
       } catch (error) {
         console.warn("Failed to load profile for billing page:", error);
       }
@@ -97,9 +114,7 @@ const SubscriptionManager = () => {
       }
       setActionError(t("subscription.errorCheckout"));
     } catch (error) {
-      setActionError(
-        error.response?.data?.error || t("subscription.errorCheckout")
-      );
+      setActionError(getErrorMessage(error, t("subscription.errorCheckout")));
     } finally {
       setIsBusy(false);
     }
@@ -120,9 +135,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(
-        error.response?.data?.error || t("subscription.errorChange")
-      );
+      setActionError(getErrorMessage(error, t("subscription.errorChange")));
     } finally {
       setIsBusy(false);
     }
@@ -140,9 +153,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(
-        error.response?.data?.error || t("subscription.errorCancel")
-      );
+      setActionError(getErrorMessage(error, t("subscription.errorCancel")));
     } finally {
       setIsBusy(false);
     }
@@ -165,9 +176,7 @@ const SubscriptionManager = () => {
       }
       setActionError(t("subscription.errorPortal"));
     } catch (error) {
-      setActionError(
-        error.response?.data?.error || t("subscription.errorPortal")
-      );
+      setActionError(getErrorMessage(error, t("subscription.errorPortal")));
     } finally {
       setIsBusy(false);
     }

@@ -15,7 +15,7 @@ jest.mock("components/common/Loader", () => {
 });
 
 const originalLocation = window.location;
-const axiosMock = axios as jest.Mocked<typeof axios>;
+const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
 
 describe("Questionnaire happy path", () => {
   beforeEach(() => {
@@ -43,7 +43,10 @@ describe("Questionnaire happy path", () => {
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    Object.defineProperty(window, "location", {
+      value: originalLocation as unknown as Location,
+      writable: true,
+    });
     delete global.__TEST_LOCATION_SEARCH__;
     jest.clearAllMocks();
   });

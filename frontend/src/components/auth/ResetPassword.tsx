@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { confirmPasswordReset } from "services/authService";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -37,11 +38,15 @@ function ResetPassword() {
       setMessage(response.data.message || t("resetPassword.success", { defaultValue: "Password reset successful." }));
       setTimeout(() => navigate("/login"), 2500);
     } catch (resetError) {
-      setError(
-        resetError.response?.data?.message ||
-          resetError.response?.data?.error ||
-          t("resetPassword.error")
-      );
+      if (axios.isAxiosError(resetError)) {
+        setError(
+          resetError.response?.data?.message ||
+            resetError.response?.data?.error ||
+            t("resetPassword.error")
+        );
+      } else {
+        setError(t("resetPassword.error"));
+      }
     } finally {
       setIsSubmitting(false);
     }
