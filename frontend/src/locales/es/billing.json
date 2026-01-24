@@ -1,0 +1,124 @@
+{
+  "paymentRequired": {
+    "title": "Elige un plan que se ajuste a tus metas",
+    "subtitle": "Selecciona un plan, responde un breve cuestionario y te enviaremos a Stripe Checkout para activar tu suscripción.",
+    "loading": "Cargando planes...",
+    "paymentConfirmed": "¡Pago confirmado! Haz clic abajo para continuar a tu ruta personalizada.",
+    "fallback": "No pudimos confirmar tu suscripción. Estás temporalmente en modo gratuito mientras reintentamos.",
+    "errorPrefix": "Error de facturación:",
+    "choosePlan": "Elegir {{plan}}",
+    "ctaContinue": "Continuar a la ruta personalizada",
+    "ctaQuestionnaire": "Continuar cuestionario",
+    "ctaUpgrade": "Mejorar ahora",
+    "trialLabel": "{{days}} días de prueba",
+    "choosePlanError": "Elige un plan para continuar.",
+    "fallbackFeature": "Acceso premium al aprendizaje",
+    "startStarter": "Comenzar con Starter",
+    "retryEntitlements": "Reintentar verificación de beneficios",
+    "contactSupport": "Contactar soporte"
+  },
+  "subscription": {
+    "title": "Suscripción",
+    "subtitle": "Consulta tu plan actual, estado de prueba y administra mejoras.",
+    "currentPlan": "Plan actual: {{plan}}",
+    "status": "Estado: {{status}}",
+    "trialEnds": "La prueba termina el {{date}}",
+    "availablePlans": "Planes disponibles",
+    "availableSubtitle": "Cambia de plan o inicia una suscripción en cualquier momento.",
+    "loading": "Cargando planes...",
+    "currentLabel": "Plan actual",
+    "switchLabel": "Cambiar a este plan",
+    "startLabel": "Iniciar suscripción",
+    "active": "Activo",
+    "portal": "Abrir portal de facturación",
+    "cancel": "Cancelar suscripción",
+    "explorePlans": "Explorar planes",
+    "errorCheckout": "No se pudo iniciar el pago. Inténtalo de nuevo.",
+    "errorChange": "No se pudo cambiar el plan en este momento.",
+    "errorCancel": "No se pudo cancelar en este momento.",
+    "errorPortal": "No se pudo abrir el portal de facturación."
+  },
+  "upsell": {
+    "title": "Se requiere Premium",
+    "subtitle": "Desbloquea acceso premium para continuar.",
+    "fallbackFeature": "función premium",
+    "unlockTitle": "Mejora para desbloquear",
+    "closeLabel": "Cerrar diálogo de mejora",
+    "description": "Esta opción es parte del plan Premium. Mejora para eliminar límites, desbloquear reparaciones de racha, analíticas avanzadas y más acceso al tutor IA.",
+    "primary": "Mejorar a Premium",
+    "secondary": "Tal vez después"
+  },
+  "upsellPanel": {
+    "kicker": "Ofertas rápidas",
+    "title": "Prueba corta y referidos",
+    "subtitle": "Lanza una prueba de 7 días o comparte una invitación. Las conversiones se registran en analítica.",
+    "startTrial": "Iniciar prueba de 7 días",
+    "referralCopied": "Enlace de referido copiado",
+    "shareReferral": "Compartir invitación",
+    "checkoutHint": "Los enlaces de pago incluyen contexto automáticamente:",
+    "checkoutSuffix": "recibirá",
+    "checkoutPlus": "+",
+    "checkoutAttribution": "para atribución.",
+    "referralPreview": "Vista previa del enlace:",
+    "defaultReferralCode": "MONEVO-FRIEND"
+  },
+  "entitlementMatrix": {
+    "kicker": "Planes",
+    "title": "Capacidades Free vs Premium",
+    "currentPlan": "Plan actual: {{plan}}",
+    "headers": {
+      "capability": "Capacidad",
+      "free": "Free",
+      "premium": "Premium"
+    },
+    "values": {
+      "free": {
+        "daily_limits": "3 por día",
+        "hints": "2 por día",
+        "streak_repair": "Bloqueado",
+        "downloads": "1 por día",
+        "analytics": "Bloqueado",
+        "ai_tutor": "5 prompts/día"
+      },
+      "premium": {
+        "daily_limits": "Ilimitado",
+        "hints": "Ilimitado",
+        "streak_repair": "1 por día",
+        "downloads": "Ilimitado",
+        "analytics": "Desbloqueado",
+        "ai_tutor": "50 prompts/día"
+      }
+    }
+  },
+  "entitlements": {
+    "title": "Planes",
+    "compare": "Comparar planes",
+    "feature": "Característica",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "notIncluded": "No incluido",
+    "unlimited": "Ilimitado",
+    "included": "Incluido",
+    "dailyQuota": "{{count}} / día",
+    "features": {
+      "daily_limits": "Límites diarios",
+      "hints": "Pistas",
+      "streak_repair": "Reparación de racha",
+      "downloads": "Descargas",
+      "analytics": "Analíticas",
+      "ai_tutor": "Tutor IA"
+    }
+  },
+  "plans": {
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro"
+  },
+  "labels": {
+    "monthly": "mensual",
+    "annual": "anual",
+    "perMonth": "/ mes",
+    "perYear": "/ año"
+  }
+}

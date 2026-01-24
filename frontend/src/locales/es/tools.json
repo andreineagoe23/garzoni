@@ -1,0 +1,184 @@
+{
+  "toolsPage": {
+    "kicker": "Suite de productividad",
+    "title": "Herramientas financieras",
+    "subtitle": "Explora calculadoras y simuladores para mejorar tus decisiones.",
+    "loginRequiredTitle": "Inicia sesión para acceder a las herramientas",
+    "loginRequiredBody": "Crea una cuenta o inicia sesión para usar todas las herramientas.",
+    "loginCta": "Iniciar sesión",
+    "registerCta": "Crear cuenta"
+  },
+  "portfolio": {
+    "title": "Analizador de portafolio",
+    "subtitle": "Sigue tus inversiones, monitorea el rendimiento y analiza tu asignación.",
+    "loading": "Cargando datos del portafolio...",
+    "emptyTitle": "Empieza a seguir tu portafolio",
+    "emptyBody": "Agrega tu primera inversión para seguir el rendimiento, ganancias/pérdidas y asignación. Puedes seguir acciones y criptomonedas.",
+    "tipsTitle": "Consejos rápidos:",
+    "tipStocks": "Usa símbolos como AAPL, MSFT, GOOGL",
+    "tipCrypto": "Usa símbolos como BTC, ETH, SOL",
+    "tipPrice": "Ingresa el precio y la cantidad exactos",
+    "tipRealTime": "Sigue tus ganancias/pérdidas en tiempo real",
+    "error": "No se pudo cargar el portafolio. Inténtalo más tarde.",
+    "addError": "No se pudo agregar la entrada del portafolio",
+    "deleteError": "No se pudo eliminar la entrada del portafolio",
+    "metrics": {
+      "totalValue": "Valor total del portafolio",
+      "currentValue": "Valor de mercado actual",
+      "totalGainLoss": "Ganancia/pérdida total",
+      "allocation": "Asignación de activos",
+      "breakdown": "Desglose del portafolio",
+      "investmentCount": "{{count}} inversión",
+      "investmentCount_plural": "{{count}} inversiones"
+    },
+    "form": {
+      "title": "Agregar nueva entrada",
+      "assetType": "Tipo de activo",
+      "stock": "Acción",
+      "crypto": "Cripto",
+      "symbol": "Símbolo",
+      "symbolPlaceholder": "p. ej., AAPL, BTC",
+      "quantity": "Cantidad",
+      "quantityPlaceholder": "10",
+      "purchasePrice": "Precio de compra",
+      "purchasePricePlaceholder": "150",
+      "purchaseDate": "Fecha de compra",
+      "submit": "Agregar entrada"
+    },
+    "entries": {
+      "title": "Entradas del portafolio",
+      "count": "{{count}} posición",
+      "count_plural": "{{count}} posiciones",
+      "empty": "Aún no hay entradas. Agrega tu primera inversión con el formulario de la izquierda.",
+      "headers": {
+        "type": "Tipo",
+        "symbol": "Símbolo",
+        "quantity": "Cantidad",
+        "purchasePrice": "Precio de compra",
+        "currentValue": "Valor actual",
+        "gainLoss": "Ganancia/pérdida",
+        "actions": "Acciones"
+      },
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Seguro que deseas eliminar {{symbol}}?"
+    },
+    "assetTypes": {
+      "stock": "acción",
+      "crypto": "cripto"
+    }
+  },
+  "savingsGoal": {
+    "title": "Calculadora de metas de ahorro",
+    "subtitle": "Estima cuánto tardarás en alcanzar tu meta.",
+    "form": {
+      "goal": "Meta de ahorro ($)",
+      "goalPlaceholder": "Ahorro final deseado",
+      "initial": "Inversión inicial ($)",
+      "initialPlaceholder": "Monto disponible",
+      "years": "Años para crecer",
+      "yearsPlaceholder": "Tiempo en años",
+      "rate": "Tasa de interés anual (%)",
+      "ratePlaceholder": "Ingresa el porcentaje",
+      "frequency": "Frecuencia de capitalización",
+      "annually": "Anual",
+      "quarterly": "Trimestral",
+      "monthly": "Mensual",
+      "daily": "Diaria",
+      "submit": "Calcular"
+    },
+    "resultLabel": "Valor proyectado:",
+    "errors": {
+      "required": "Completa todos los campos requeridos.",
+      "rateLimit": "La tasa de interés no puede exceder 30%.",
+      "calculate": "No se pudo calcular. Revisa tus datos."
+    }
+  },
+  "forex": {
+    "title": "Herramientas Forex",
+    "subtitle": "Calculadoras en vivo e información de mercado."
+  },
+  "news": {
+    "title": "Calendario económico",
+    "subtitle": "Sigue los próximos eventos del mercado."
+  },
+  "sandbox": {
+    "title": "Sandbox: simulador de inversión recurrente",
+    "subtitle": "Experimenta con aportes, horizontes de tiempo y rendimientos esperados sin afectar tus datos.",
+    "monthlyContribution": "Aporte mensual",
+    "years": "Años",
+    "avgReturn": "Retorno anual prom. (%)",
+    "projected": "Saldo proyectado después de {{years}} años",
+    "start": "Iniciar simulación"
+  },
+  "basicTools": {
+    "title": "Herramientas financieras básicas",
+    "subtitle": "Comienza con calculadoras simples para mantener tus metas de ahorro."
+  },
+  "crypto": {
+    "title": "Gráfico cripto",
+    "subtitle": "Gráfico interactivo de TradingView con los pares cripto más seguidos.",
+    "tradingViewLink": "Sigue todos los mercados en TradingView"
+  },
+  "goals": {
+    "title": "Seguimiento de metas financieras",
+    "subtitle": "Monitorea tus metas, sigue el progreso y celebra hitos.",
+    "loading": "Cargando metas...",
+    "empty": "Aún no hay metas. ¡Agrega la primera arriba!",
+    "targetSummary": "Meta: {{target}} · Actual: {{current}}",
+    "targetDateLabel": "Fecha objetivo:",
+    "noDate": "—",
+    "progress": "Progreso",
+    "remaining": "Restan {{amount}}",
+    "delete": "Eliminar meta",
+    "status": {
+      "not_started": "No iniciada",
+      "in_progress": "En progreso",
+      "completed": "Completada"
+    },
+    "form": {
+      "name": "Nombre de la meta",
+      "namePlaceholder": "p. ej., Fondo de emergencia",
+      "targetAmount": "Monto objetivo ($)",
+      "targetPlaceholder": "5000",
+      "currentAmount": "Monto actual ($)",
+      "currentPlaceholder": "1000",
+      "targetDate": "Fecha objetivo",
+      "submit": "Agregar meta"
+    },
+    "errors": {
+      "load": "No se pudieron cargar las metas.",
+      "add": "No se pudo agregar la meta. Revisa los datos.",
+      "delete": "No se pudo eliminar la meta."
+    }
+  },
+  "categories": {
+    "portfolio": {
+      "title": "Analizador de portafolio",
+      "description": "Sigue y analiza tus inversiones en acciones y criptomonedas"
+    },
+    "goals": {
+      "title": "Seguimiento de metas financieras",
+      "description": "Define y sigue tus metas con indicadores de progreso"
+    },
+    "savings": {
+      "title": "Calculadora de metas de ahorro",
+      "description": "Calcula cuánto tardarás en alcanzar tu meta"
+    },
+    "crypto": {
+      "title": "Herramientas cripto",
+      "description": "Sigue precios y tendencias de criptomonedas"
+    },
+    "forex": {
+      "title": "Herramientas Forex",
+      "description": "Monitorea tasas de cambio y pares de divisas"
+    },
+    "news": {
+      "title": "Noticias y calendario económico",
+      "description": "Mantente al día con noticias y eventos económicos"
+    },
+    "sandbox": {
+      "title": "Sandbox financiero",
+      "description": "Simula inversiones recurrentes sin afectar tus datos"
+    }
+  }
+}

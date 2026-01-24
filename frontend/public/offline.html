@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Monevo is offline</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        margin: 0;
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 560px;
+        background: rgba(30, 41, 59, 0.85);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 24px;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #cbd5f5;
+        line-height: 1.5;
+      }
+      button {
+        background: #16a34a;
+        border: none;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>You’re offline</h1>
+      <p>
+        Monevo can’t reach the network right now. Check your connection and try
+        again.
+      </p>
+      <button type="button" onclick="window.location.reload()">
+        Retry
+      </button>
+    </div>
+  </body>
+</html>

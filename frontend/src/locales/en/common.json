@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "tools": "Tools",
+    "missions": "Missions",
+    "leaderboards": "Leaderboards",
+    "rewards": "Rewards",
+    "faq": "FAQ",
+    "profile": "Profile",
+    "settings": "Settings",
+    "conversions": "Conversions"
+  },
+  "actions": {
+    "install": "Install"
+  },
+  "header": {
+    "premiumReady": "Premium Ready",
+    "openDashboard": "Open Dashboard",
+    "login": "Log in",
+    "getStarted": "Get started"
+  }
+}
