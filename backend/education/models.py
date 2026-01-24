@@ -341,6 +341,9 @@ class Mastery(models.Model):
     class Meta:
         unique_together = ("user", "skill")
         db_table = "core_mastery"
+        indexes = [
+            models.Index(fields=["user", "due_at"], name="core_master_user_id_45d145_idx"),
+        ]
 
     def bump(
         self, correct: bool, confidence: str | None = None, hints_used: int = 0, attempts: int = 1

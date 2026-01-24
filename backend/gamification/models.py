@@ -205,6 +205,11 @@ class MissionCompletion(models.Model):
     class Meta:
         db_table = "core_missioncompletion"
         unique_together = [("user", "mission", "completion_idempotency_key")]
+        indexes = [
+            models.Index(fields=["user", "status"], name="core_missio_user_id_cac5aa_idx"),
+            models.Index(fields=["user", "mission", "status"], name="core_missio_user_id_9ff738_idx"),
+            models.Index(fields=["completed_at"], name="core_missio_complet_7f2238_idx"),
+        ]
 
     def update_progress(self, increment=0):
         if self.status == "completed":
@@ -348,3 +353,6 @@ class MissionPerformance(models.Model):
 
     class Meta:
         db_table = "core_missionperformance"
+        indexes = [
+            models.Index(fields=["user", "created_at"], name="core_missio_user_id_d17a21_idx"),
+        ]

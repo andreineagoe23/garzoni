@@ -115,6 +115,9 @@ class UserPurchase(models.Model):
 
     class Meta:
         db_table = "core_userpurchase"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "reward"], name="uniq_user_reward_purchase"),
+        ]
 
 
 class StripePayment(models.Model):
@@ -182,6 +185,9 @@ class FinancialGoal(models.Model):
         verbose_name = "Financial Goal"
         verbose_name_plural = "Financial Goals"
         db_table = "core_financialgoal"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "goal_name"], name="uniq_user_goal_name"),
+        ]
 
     def __str__(self):
         return f"{self.user.username}'s {self.goal_name}"
@@ -200,8 +206,9 @@ class FunnelEvent(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["event_type", "created_at"]),
-            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["event_type", "created_at"], name="finance_fun_event_t_70cf52_idx"),
+            models.Index(fields=["status", "created_at"], name="finance_fun_status_381e2d_idx"),
+            models.Index(fields=["created_at"], name="finance_fun_created_14f85e_idx"),
         ]
 
     def __str__(self):

@@ -6,13 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("authentication", "0005_dailyusage"),
+        ("authentication", "0003_userprofile_hearts_userprofile_hearts_last_refill_at"),
     ]
 
-    operations = [
-        migrations.RenameIndex(
-            model_name="dailyusage",
-            new_name="core_dailyu_user_id_71a49e_idx",
-            old_name="core_dailyusage_user_feature_date_idx",
-        ),
-    ]
+    operations = []

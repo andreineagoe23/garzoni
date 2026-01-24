@@ -1,7 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-// Ensure type declarations are loaded
-import "./types/i18next";
 
 const STORAGE_KEY = "monevo:lang";
 const fallbackLang = "en";
