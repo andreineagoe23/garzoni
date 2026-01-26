@@ -2,7 +2,6 @@ import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import axios from "axios";
-import i18n from "i18n";
 import { formatCurrency, getLocale } from "utils/format";
 
 import PaymentRequired from "./PaymentRequired";
@@ -96,7 +95,6 @@ const plansResponse = {
 describe("PaymentRequired", () => {
   beforeEach(async () => {
     axiosMock.get.mockResolvedValue({ data: plansResponse });
-    await i18n.changeLanguage("en");
     Object.defineProperty(window, "location", {
       value: { assign: jest.fn() },
       writable: true,
@@ -111,11 +109,8 @@ describe("PaymentRequired", () => {
       </MemoryRouter>
     );
 
-    const plusLabel = i18n.t("plans.plus", { ns: "billing" });
-    const choosePlus = i18n.t("paymentRequired.choosePlan", {
-      ns: "billing",
-      plan: plusLabel,
-    });
+    const plusLabel = "Plus";
+    const choosePlus = `Choose ${plusLabel}`;
     const priceLabel = formatCurrency(12, "USD", getLocale(), {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
@@ -141,11 +136,8 @@ describe("PaymentRequired", () => {
       </MemoryRouter>
     );
 
-    const plusLabel = i18n.t("plans.plus", { ns: "billing" });
-    const choosePlus = i18n.t("paymentRequired.choosePlan", {
-      ns: "billing",
-      plan: plusLabel,
-    });
+    const plusLabel = "Plus";
+    const choosePlus = `Choose ${plusLabel}`;
     const button = await screen.findByRole("button", { name: choosePlus });
     fireEvent.click(button);
 

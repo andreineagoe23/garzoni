@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import i18n from "i18n";
 
 const NewsCalendars = () => {
-  const { t } = useTranslation("tools");
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -18,7 +15,7 @@ const NewsCalendars = () => {
           IsDisplayTitle: false,
           IsShowChartLinks: false,
           IsShowEmbedButton: false,
-          Lang: i18n.language?.startsWith("es") ? "es" : "en",
+          Lang: navigator.language?.startsWith("es") ? "es" : "en",
           CompactType: "full",
           Calculator: "economic-calendar",
           ContainerId: "economic-calendar-widget",
@@ -40,10 +37,10 @@ const NewsCalendars = () => {
     <section className="space-y-4">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          {t("news.title")}
+          Economic Calendar
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("news.subtitle")}
+          Stay updated with important economic events and news
         </p>
       </header>
 

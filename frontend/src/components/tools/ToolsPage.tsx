@@ -10,47 +10,44 @@ import NewsCalendars from "./NewsCalendars";
 import FinancialGoalsTracker from "./FinancialGoalsTracker";
 import { GlassCard } from "components/ui";
 import FinancialSandbox from "./FinancialSandbox";
-import { useTranslation } from "react-i18next";
-
 const ToolsPage = () => {
   const { isAuthenticated } = useAuth();
   const [activeCategory, setActiveCategory] = useState(null);
-  const { t } = useTranslation("tools");
 
   const categories = [
     {
-      title: t("categories.portfolio.title"),
-      description: t("categories.portfolio.description"),
+      title: "Portfolio Analyzer",
+      description: "Analyze and optimize your investment portfolio",
       component: <PortfolioAnalyzer />,
     },
     {
-      title: t("categories.goals.title"),
-      description: t("categories.goals.description"),
+      title: "Financial Goals Tracker",
+      description: "Track and manage your financial goals",
       component: <FinancialGoalsTracker />,
     },
     {
-      title: t("categories.savings.title"),
-      description: t("categories.savings.description"),
+      title: "Savings Goal Calculator",
+      description: "Calculate how much you need to save to reach your goals",
       component: <SavingsGoalCalculator />,
     },
     {
-      title: t("categories.crypto.title"),
-      description: t("categories.crypto.description"),
+      title: "Cryptocurrency Tools",
+      description: "Track and analyze cryptocurrency markets",
       component: <CryptoTools />,
     },
     {
-      title: t("categories.forex.title"),
-      description: t("categories.forex.description"),
+      title: "Forex Tools",
+      description: "Forex position size calculator and trading tools",
       component: <ForexTools />,
     },
     {
-      title: t("categories.news.title"),
-      description: t("categories.news.description"),
+      title: "Economic Calendar",
+      description: "Stay updated with important economic events",
       component: <NewsCalendars />,
     },
     {
-      title: t("categories.sandbox.title"),
-      description: t("categories.sandbox.description"),
+      title: "Financial Sandbox",
+      description: "Experiment with financial scenarios and calculations",
       component: <FinancialSandbox />,
     },
   ];
@@ -63,10 +60,10 @@ const ToolsPage = () => {
           className="flex flex-col items-center gap-4 text-center"
         >
           <h2 className="text-2xl font-semibold text-[color:var(--accent,#111827)]">
-            {t("toolsPage.loginRequiredTitle")}
+            Login Required
           </h2>
           <p className="max-w-xl text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("toolsPage.loginRequiredBody")}
+            Please log in to access our financial tools and calculators.
           </p>
         </GlassCard>
       </PageContainer>
@@ -82,13 +79,13 @@ const ToolsPage = () => {
     >
       <header className="space-y-2 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {t("toolsPage.kicker", { defaultValue: "Productivity Suite" })}
+          Productivity Suite
         </p>
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-          {t("toolsPage.title")}
+          Financial Tools
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("toolsPage.subtitle")}
+          Powerful calculators and analysis tools to help you make better financial decisions
         </p>
       </header>
 
