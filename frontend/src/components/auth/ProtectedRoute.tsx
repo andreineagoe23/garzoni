@@ -1,8 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "contexts/AuthContext";
-import { useTranslation } from "react-i18next";
-
 const ProtectedRoute = ({
   children,
 }: {
@@ -10,7 +8,6 @@ const ProtectedRoute = ({
 }): JSX.Element | null => {
   const { isAuthenticated, isInitialized } = useAuth();
   const location = useLocation();
-  const { t } = useTranslation("auth");
 
   if (!isInitialized) {
     return (
@@ -25,13 +22,10 @@ const ProtectedRoute = ({
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary,#2563eb)] border-t-transparent" />
           <div>
             <p className="text-base font-semibold text-white">
-              {t("protectedRoute.verifying")}
+              Verifying...
             </p>
             <p className="mt-1 text-sm text-slate-300">
-              {t("protectedRoute.subtitle", {
-                defaultValue:
-                  "Please hold on while we prepare your experience.",
-              })}
+              Please hold on while we prepare your experience.
             </p>
           </div>
         </div>

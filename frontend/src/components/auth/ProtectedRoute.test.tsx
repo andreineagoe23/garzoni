@@ -2,7 +2,6 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "contexts/AuthContext";
-import i18n from "i18n";
 
 jest.mock("contexts/AuthContext", () => ({
   useAuth: jest.fn(),
@@ -22,7 +21,7 @@ describe("ProtectedRoute", () => {
   it("shows loading state while auth initializes", () => {
     renderWithAuth({ isAuthenticated: false, isInitialized: false });
     expect(
-      screen.getByText(i18n.t("protectedRoute.verifying", { ns: "auth" }))
+      screen.getByText("Verifying...")
     ).toBeInTheDocument();
   });
 

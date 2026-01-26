@@ -1,24 +1,23 @@
 import React from "react";
 import { GlassCard } from "components/ui";
 import { FEATURE_COPY } from "services/entitlementsService";
-import { useTranslation } from "react-i18next";
 
 const PLAN_DETAILS = {
   free: {
-    daily_limits: "entitlementMatrix.values.free.daily_limits",
-    hints: "entitlementMatrix.values.free.hints",
-    streak_repair: "entitlementMatrix.values.free.streak_repair",
-    downloads: "entitlementMatrix.values.free.downloads",
-    analytics: "entitlementMatrix.values.free.analytics",
-    ai_tutor: "entitlementMatrix.values.free.ai_tutor",
+    daily_limits: "Limited",
+    hints: "Limited",
+    streak_repair: "Not available",
+    downloads: "Not available",
+    analytics: "Not available",
+    ai_tutor: "Limited",
   },
   premium: {
-    daily_limits: "entitlementMatrix.values.premium.daily_limits",
-    hints: "entitlementMatrix.values.premium.hints",
-    streak_repair: "entitlementMatrix.values.premium.streak_repair",
-    downloads: "entitlementMatrix.values.premium.downloads",
-    analytics: "entitlementMatrix.values.premium.analytics",
-    ai_tutor: "entitlementMatrix.values.premium.ai_tutor",
+    daily_limits: "Unlimited",
+    hints: "Unlimited",
+    streak_repair: "Available",
+    downloads: "Available",
+    analytics: "Available",
+    ai_tutor: "Unlimited",
   },
 };
 
@@ -37,19 +36,12 @@ const FeatureRow = ({
   featureKey: FeatureKey;
   entitlements?: EntitlementsPayload;
 }) => {
-  const { t } = useTranslation("billing");
   const feature = FEATURE_COPY[featureKey];
-  const freeValue = t(
-    PLAN_DETAILS.free[featureKey as keyof typeof PLAN_DETAILS.free]
-  );
-  const premiumValue = t(
-    PLAN_DETAILS.premium[featureKey as keyof typeof PLAN_DETAILS.premium]
-  );
+  const freeValue = PLAN_DETAILS.free[featureKey as keyof typeof PLAN_DETAILS.free];
+  const premiumValue = PLAN_DETAILS.premium[featureKey as keyof typeof PLAN_DETAILS.premium];
   const isActivePlan = entitlements?.plan;
   const userFeature = entitlements?.features?.[featureKey];
-  const featureLabel = t(`entitlements.features.${featureKey}`, {
-    defaultValue: feature,
-  });
+  const featureLabel = feature;
 
   return (
     <div className="grid grid-cols-3 items-center gap-4 rounded-2xl px-4 py-3 hover:bg-[color:var(--bg-color,#f8fafc)]/60">
@@ -97,34 +89,29 @@ const EntitlementMatrix = ({
 }: {
   entitlements?: EntitlementsPayload;
 }) => {
-  const { t } = useTranslation("billing");
   return (
     <GlassCard padding="xl" className="space-y-4">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {t("entitlementMatrix.kicker")}
+          Feature Comparison
         </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
-            {t("entitlementMatrix.title")}
+            Plan Comparison
           </h3>
           <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
-            {t("entitlementMatrix.currentPlan", {
-              plan: t(`plans.${entitlements?.plan || "starter"}`, {
-                defaultValue: entitlements?.label || t("plans.starter"),
-              }),
-            })}
+            Current: {entitlements?.label || (entitlements?.plan || "starter").charAt(0).toUpperCase() + (entitlements?.plan || "starter").slice(1)}
           </span>
         </div>
       </header>
 
       <div className="grid grid-cols-3 gap-4 rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-        <span>{t("entitlementMatrix.headers.capability")}</span>
+        <span>Capability</span>
         <span className="text-center">
-          {t("entitlementMatrix.headers.free")}
+          Free
         </span>
         <span className="text-center">
-          {t("entitlementMatrix.headers.premium")}
+          Premium
         </span>
       </div>
 

@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("authentication", "0005_dailyusage"),
+        ("authentication", "0003_userprofile_hearts_userprofile_hearts_last_refill_at"),
     ]
 
     operations = [
