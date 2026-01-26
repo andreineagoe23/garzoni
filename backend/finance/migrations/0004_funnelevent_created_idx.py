@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("finance", "0003_subscriptionplan"),
+        ("finance", "0002_funnelevent_and_more"),
     ]
 
     operations = [
