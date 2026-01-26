@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 
 type DashboardHeaderProps = {
   displayName?: string;
@@ -14,7 +13,6 @@ const DashboardHeader = ({
   adminMode,
   toggleAdminMode,
 }: DashboardHeaderProps) => {
-  const { t } = useTranslation("dashboard");
   const nameSuffix = displayName ? `, ${displayName}` : "";
   return (
     <div className="flex items-center justify-between gap-3">
@@ -24,10 +22,10 @@ const DashboardHeader = ({
         </div>
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
-            {t("welcomeBack", { name: nameSuffix })}
+            Welcome back{nameSuffix}!
           </h2>
           <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("coachHelp")}
+            Your AI coach is here to help you learn
           </p>
         </div>
       </div>

@@ -13,8 +13,6 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
-import { useTranslation } from "react-i18next";
-
 const activityIcons = {
   lesson: "📘",
   quiz: "🧠",
@@ -74,7 +72,6 @@ function Profile() {
 
   const { getAccessToken, loadProfile, isAuthenticated, isInitialized } =
     useAuth();
-  const { t } = useTranslation("profile");
   const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
 
@@ -581,19 +578,18 @@ function Profile() {
                     className="h-14 w-14 rounded-full object-cover"
                   />
                   <p className="mt-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
-                    {userBadge.earned ? userBadge.badge.name : t("badgeLocked")}
+                    {userBadge.earned ? userBadge.badge.name : "Locked"}
                   </p>
                   {userBadge.earned && userBadge.earned_at && (
                     <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                      {t("profile.badgeEarned", { defaultValue: "Earned" })}{" "}
-                      {formatDate(userBadge.earned_at)}
+                      Earned {formatDate(userBadge.earned_at)}
                     </p>
                   )}
                 </GlassCard>
               ))
             ) : (
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("noBadges")}
+                No badges earned yet
               </p>
             )}
           </div>
@@ -602,7 +598,7 @@ function Profile() {
         <section className="space-y-6">
           <header>
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {t("recentActivity")}
+              Recent Activity
             </h3>
           </header>
 

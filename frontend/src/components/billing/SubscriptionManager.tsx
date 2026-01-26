@@ -3,7 +3,6 @@ import axios from "axios";
 import { GlassButton, GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
-import { useTranslation } from "react-i18next";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 
 type PlanFeature = {
@@ -37,7 +36,6 @@ const SubscriptionManager = () => {
   const [stripeSubscriptionId, setStripeSubscriptionId] = useState<
     string | null
   >(null);
-  const { t } = useTranslation("billing");
   const locale = getLocale();
 
   const getErrorMessage = (error: unknown, fallback: string) => {
@@ -112,9 +110,9 @@ const SubscriptionManager = () => {
         window.location.assign(redirectUrl);
         return;
       }
-      setActionError(t("subscription.errorCheckout"));
+      setActionError("Failed to start checkout. Please try again.");
     } catch (error) {
-      setActionError(getErrorMessage(error, t("subscription.errorCheckout")));
+      setActionError(getErrorMessage(error, "Failed to start checkout. Please try again."));
     } finally {
       setIsBusy(false);
     }
@@ -132,7 +130,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(getErrorMessage(error, t("subscription.errorChange")));
+      setActionError(getErrorMessage(error, "Failed to change plan. Please try again."));
     } finally {
       setIsBusy(false);
     }
@@ -150,7 +148,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(getErrorMessage(error, t("subscription.errorCancel")));
+      setActionError(getErrorMessage(error, "Failed to cancel subscription. Please try again."));
     } finally {
       setIsBusy(false);
     }
@@ -171,9 +169,9 @@ const SubscriptionManager = () => {
         window.location.assign(portalUrl);
         return;
       }
-      setActionError(t("subscription.errorPortal"));
+      setActionError("Failed to open customer portal. Please try again.");
     } catch (error) {
-      setActionError(getErrorMessage(error, t("subscription.errorPortal")));
+      setActionError(getErrorMessage(error, "Failed to open customer portal. Please try again."));
     } finally {
       setIsBusy(false);
     }
@@ -184,27 +182,21 @@ const SubscriptionManager = () => {
       <GlassCard padding="lg" className="space-y-3">
         <div>
           <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
-            {t("subscription.title")}
+            Subscription Management
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("subscription.subtitle")}
+            Manage your subscription and billing
           </p>
         </div>
         <div className="rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-sm text-[color:var(--text-color,#111827)]">
           <div className="font-semibold">
-            {t("subscription.currentPlan", {
-              plan: t(`plans.${currentPlanId}`, {
-                defaultValue: entitlements?.label || currentPlanId,
-              }),
-            })}
+            Current Plan: {entitlements?.label || currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
           </div>
           <div>
-            {t("subscription.status", {
-              status: entitlements?.status || "inactive",
-            })}
+            Status: {entitlements?.status || "inactive"}
           </div>
           {entitlements?.status === "trialing" && trialEndLabel && (
-            <div>{t("subscription.trialEnds", { date: trialEndLabel })}</div>
+            <div>Trial ends on {trialEndLabel}</div>
           )}
         </div>
       </GlassCard>
@@ -212,15 +204,15 @@ const SubscriptionManager = () => {
       <GlassCard padding="lg" className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-            {t("subscription.availablePlans")}
+            Available Plans
           </h2>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("subscription.availableSubtitle")}
+            Choose a plan that fits your learning needs
           </p>
         </div>
         {loading && (
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("subscription.loading")}
+            Loading plans...
           </p>
         )}
         {!loading && (
@@ -230,13 +222,11 @@ const SubscriptionManager = () => {
               const canChange = Boolean(stripeSubscriptionId);
               const billingLabel = plan.billing_interval || "monthly";
               const buttonLabel = isCurrent
-                ? t("subscription.currentLabel")
+                ? "Current Plan"
                 : canChange
-                  ? t("subscription.switchLabel")
-                  : t("subscription.startLabel");
-              const translatedName = t(`plans.${plan.plan_id}`, {
-                defaultValue: plan.name || plan.plan_id,
-              });
+                  ? "Switch Plan"
+                  : "Start Plan";
+              const translatedName = plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               const featureList = Object.values(plan.features || {})
                 .filter((feature) => feature?.enabled !== false)
                 .map((feature) => feature?.description || feature?.name)
@@ -253,7 +243,7 @@ const SubscriptionManager = () => {
                     </div>
                     {isCurrent && (
                       <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
-                        {t("subscription.active")}
+                        Active
                       </span>
                     )}
                   </div>
@@ -264,9 +254,7 @@ const SubscriptionManager = () => {
                       locale,
                       { minimumFractionDigits: 0 }
                     )}{" "}
-                    {t(`labels.${billingLabel}`, {
-                      defaultValue: billingLabel,
-                    })}
+                    / {billingLabel === 'monthly' ? 'month' : billingLabel === 'yearly' ? 'year' : billingLabel}
                   </div>
                   {featureList.length > 0 && (
                     <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -302,14 +290,14 @@ const SubscriptionManager = () => {
               onClick={handleCancel}
               disabled={isBusy}
             >
-              {t("subscription.cancel")}
+              Cancel Subscription
             </GlassButton>
             <GlassButton
               variant="primary"
               onClick={handleOpenPortal}
               disabled={isBusy}
             >
-              {t("subscription.portal")}
+              Manage Subscription
             </GlassButton>
           </div>
         )}
@@ -318,7 +306,7 @@ const SubscriptionManager = () => {
             variant="primary"
             onClick={() => window.location.assign("/subscriptions")}
           >
-            {t("subscription.explorePlans", { defaultValue: "Explore plans" })}
+            Explore Plans
           </GlassButton>
         )}
         {actionError && (

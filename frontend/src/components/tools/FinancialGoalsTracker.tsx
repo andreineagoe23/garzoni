@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
-import { useTranslation } from "react-i18next";
 import {
   formatCurrency,
   formatDate,
@@ -29,7 +28,6 @@ const FinancialGoalsTracker = () => {
     target_date: "",
   });
   const { getAccessToken } = useAuth();
-  const { t } = useTranslation("tools");
   const locale = getLocale();
 
   const fetchGoals = useCallback(async () => {
@@ -41,11 +39,11 @@ const FinancialGoalsTracker = () => {
       setError(null);
     } catch (err) {
       console.error("Error fetching financial goals:", err);
-      setError(t("goals.errors.load"));
+      setError("Failed to load financial goals. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [getAccessToken, t]);
+  }, [getAccessToken]);
 
   useEffect(() => {
     fetchGoals();
@@ -74,7 +72,7 @@ const FinancialGoalsTracker = () => {
       setError(null);
     } catch (err) {
       console.error("Error adding new goal:", err);
-      setError(t("goals.errors.add"));
+      setError("Failed to add goal. Please try again.");
     }
   };
 
@@ -86,7 +84,7 @@ const FinancialGoalsTracker = () => {
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
     } catch (err) {
       console.error("Error deleting goal:", err);
-      setError(t("goals.errors.delete"));
+      setError("Failed to delete goal. Please try again.");
     }
   };
 
@@ -94,10 +92,10 @@ const FinancialGoalsTracker = () => {
     <section className="space-y-6">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          {t("goals.title")}
+          Financial Goals Tracker
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("goals.subtitle")}
+          Set and track your financial goals
         </p>
       </header>
 
@@ -114,26 +112,26 @@ const FinancialGoalsTracker = () => {
           noValidate
         >
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("goals.form.name")}
+            Goal Name
             <input
               type="text"
               name="name"
               value={newGoal.name}
               onChange={handleInputChange}
-              placeholder={t("goals.form.namePlaceholder")}
+              placeholder="e.g., Emergency Fund"
               required
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("goals.form.targetAmount")}
+            Target Amount
             <input
               type="number"
               name="target_amount"
               value={newGoal.target_amount}
               onChange={handleInputChange}
-              placeholder={t("goals.form.targetPlaceholder")}
+              placeholder="Enter target amount"
               required
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -141,13 +139,13 @@ const FinancialGoalsTracker = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("goals.form.currentAmount")}
+            Current Amount
             <input
               type="number"
               name="current_amount"
               value={newGoal.current_amount}
               onChange={handleInputChange}
-              placeholder={t("goals.form.currentPlaceholder")}
+              placeholder="Enter current amount"
               required
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -155,7 +153,7 @@ const FinancialGoalsTracker = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("goals.form.targetDate")}
+            Target Date
             <input
               type="date"
               name="target_date"
@@ -171,7 +169,7 @@ const FinancialGoalsTracker = () => {
               type="submit"
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              {t("goals.form.submit")}
+              Add Goal
             </button>
           </div>
         </form>
@@ -180,7 +178,7 @@ const FinancialGoalsTracker = () => {
       <div className="space-y-4">
         {loading ? (
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-            {t("goals.loading")}
+            Loading goals...
           </div>
         ) : error ? (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
@@ -188,7 +186,7 @@ const FinancialGoalsTracker = () => {
           </div>
         ) : goals.length === 0 ? (
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-            {t("goals.empty")}
+            No financial goals yet. Add your first goal above.
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
@@ -220,38 +218,32 @@ const FinancialGoalsTracker = () => {
                           STATUS_COLORS["not_started"],
                       ].join(" ")}
                     >
-                      {t(`goals.status.${goal.status}`, {
-                        defaultValue: goal.status.replace("_", " "),
-                      })}
+                      {goal.status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
                     </span>
                   </div>
 
                   <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                    {t("goals.targetSummary", {
-                      target: formatCurrency(
+                    Target: {formatCurrency(
                         Number(goal.target_amount || 0),
                         "USD",
                         locale,
                         { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                      ),
-                      current: formatCurrency(
+                      )} | Current: {formatCurrency(
                         Number(goal.current_amount || 0),
                         "USD",
                         locale,
                         { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                      ),
-                    })}
+                      )}
                   </p>
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    {t("goals.targetDateLabel")}{" "}
-                    {goal.target_date
+                    Target Date: {goal.target_date
                       ? formatDate(goal.target_date, locale)
-                      : t("goals.noDate")}
+                      : "Not set"}
                   </p>
 
                   <div className="mt-4">
                     <div className="flex items-center justify-between text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-                      <span>{t("goals.progress")}</span>
+                      <span>Progress</span>
                       <span className="text-[color:var(--accent,#111827)]">
                         {formatNumber(progress, locale, {
                           minimumFractionDigits: 1,
@@ -270,21 +262,19 @@ const FinancialGoalsTracker = () => {
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
                     <span>
-                      {t("goals.remaining", {
-                        amount: formatCurrency(
+                      Remaining: {formatCurrency(
                           Number(remainingAmount || 0),
                           "USD",
                           locale,
                           { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                        ),
-                      })}
+                        )}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleDeleteGoal(goal.id)}
                       className="rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
                     >
-                      {t("goals.delete")}
+                      Delete
                     </button>
                   </div>
                 </article>

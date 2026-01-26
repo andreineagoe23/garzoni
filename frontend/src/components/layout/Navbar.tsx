@@ -5,21 +5,20 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import { GlassContainer } from "components/ui";
-import { useTranslation } from "react-i18next";
 import { useInstallPrompt } from "hooks/useInstallPrompt";
 import LanguageSelector from "components/common/LanguageSelector";
 import { UserProfile } from "types/api";
 
 const NAV_ITEMS = [
-  { path: "/all-topics", key: "nav.dashboard", icon: "🏠" },
-  { path: "/exercises", key: "nav.exercises", icon: "💪" },
-  { path: "/tools", key: "nav.tools", icon: "🛠️" },
-  { path: "/missions", key: "nav.missions", icon: "🎯" },
-  { path: "/leaderboards", key: "nav.leaderboards", icon: "🏆" },
-  { path: "/rewards", key: "nav.rewards", icon: "🎁" },
-  { path: "/faq", key: "nav.faq", icon: "❓" },
-  { path: "/profile", key: "nav.profile", icon: "👤" },
-  { path: "/settings", key: "nav.settings", icon: "⚙️" },
+  { path: "/all-topics", key: "nav.dashboard", icon: "🏠", label: "Dashboard" },
+  { path: "/exercises", key: "nav.exercises", icon: "💪", label: "Exercises" },
+  { path: "/tools", key: "nav.tools", icon: "🛠️", label: "Tools" },
+  { path: "/missions", key: "nav.missions", icon: "🎯", label: "Missions" },
+  { path: "/leaderboards", key: "nav.leaderboards", icon: "🏆", label: "Leaderboards" },
+  { path: "/rewards", key: "nav.rewards", icon: "🎁", label: "Rewards" },
+  { path: "/faq", key: "nav.faq", icon: "❓", label: "FAQ" },
+  { path: "/profile", key: "nav.profile", icon: "👤", label: "Profile" },
+  { path: "/settings", key: "nav.settings", icon: "⚙️", label: "Settings" },
 ];
 
 function Navbar() {
@@ -35,7 +34,6 @@ function Navbar() {
   } = useAuth();
   const { adminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
-  const { t } = useTranslation("common");
   const { canInstall, promptInstall } = useInstallPrompt();
 
   const navItems = useMemo(
@@ -47,6 +45,7 @@ function Navbar() {
               path: "/pricing-dashboard",
               key: "nav.conversions",
               icon: "📈",
+              label: "Analytics",
             },
           ]
         : NAV_ITEMS,
@@ -167,7 +166,7 @@ function Navbar() {
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <span aria-hidden="true">{item.icon}</span>
-                  <span className="hidden lg:inline">{t(item.key)}</span>
+                  <span className="hidden lg:inline">{item.label}</span>
                 </NavLink>
               ))}
             </div>
@@ -182,7 +181,7 @@ function Navbar() {
                 className="relative z-10 inline-flex h-7 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] md:h-[36px] lg:h-[38px] xl:h-10"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
-                {t("actions.install")}
+                Install
               </button>
             )}
             <LanguageSelector />
@@ -279,7 +278,7 @@ function Navbar() {
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <span aria-hidden="true">{item.icon}</span>
-              <span>{t(item.key)}</span>
+              <span>{item.label}</span>
             </NavLink>
           ))}
           {canInstall && (
@@ -289,7 +288,7 @@ function Navbar() {
               className="relative z-10 inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation"
             >
               <span aria-hidden="true">⬇️</span>
-              {t("actions.install")}
+              Install
             </button>
           )}
         </GlassContainer>

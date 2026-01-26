@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
@@ -30,19 +29,14 @@ const WeakSkills = ({
   onSkillClick,
   onPracticeClick,
 }: WeakSkillsProps) => {
-  const { t } = useTranslation("dashboard");
   if (!show) return null;
 
   if (masteryError) {
     return (
       <div className="mt-6">
         <ErrorState
-          title={t("weakSkills.errorTitle", {
-            defaultValue: "Failed to load skills",
-          })}
-          message={t("weakSkills.errorMessage", {
-            defaultValue: "We couldn't fetch your skill mastery data.",
-          })}
+          title="Failed to load skills"
+          message="We couldn't fetch your skill mastery data."
           onRetry={refetchMastery}
         />
       </div>
@@ -54,8 +48,8 @@ const WeakSkills = ({
       <div className="mt-6">
         <EmptyState
           icon="🎯"
-          title={t("weakSkills.emptyTitle")}
-          description={t("weakSkills.emptyDescription")}
+          title="No Weak Skills"
+          description="Great job! You're doing well across all skills."
         />
       </div>
     );
@@ -69,11 +63,11 @@ const WeakSkills = ({
             🎯
           </span>
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
-            {t("weakSkills.title")}
+            Areas to Improve
           </span>
         </div>
         <p className="mb-4 text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("weakSkills.description")}
+          Focus on these skills to boost your overall mastery
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {weakestSkills.map((skill) => (
@@ -108,9 +102,7 @@ const WeakSkills = ({
                   />
                 </div>
                 <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)] transition group-hover:text-[color:var(--error,#dc2626)]">
-                  {t("weakSkills.lowMastery", {
-                    skill: skill.skill,
-                  })}
+                  Low mastery in {skill.skill}
                 </p>
               </button>
               <div className="mt-2 flex items-center justify-end">
@@ -123,7 +115,7 @@ const WeakSkills = ({
                   className="rounded bg-transparent p-0 text-[10px] text-[color:var(--muted-text,#6b7280)] underline hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                   aria-label={`Practice ${skill.skill} to improve this recommendation`}
                 >
-                  {t("weakSkills.practice")}
+                  Practice
                 </button>
               </div>
             </div>

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { GlassCard, GlassButton } from "components/ui";
 import Skeleton from "components/common/Skeleton";
-import { useTranslation } from "react-i18next";
 import { formatCurrency, getLocale } from "utils/format";
 
 const FinancialSandbox = () => {
@@ -9,7 +8,6 @@ const FinancialSandbox = () => {
   const [years, setYears] = useState(5);
   const [averageReturn, setAverageReturn] = useState(7);
   const [running, setRunning] = useState(false);
-  const { t } = useTranslation("tools");
   const locale = getLocale();
 
   const projection = useMemo(() => {
@@ -26,19 +24,16 @@ const FinancialSandbox = () => {
     <GlassCard padding="lg" className="space-y-4">
       <div className="flex flex-col gap-2">
         <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          {t("sandbox.title")}
+          Financial Sandbox
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("sandbox.subtitle", {
-            defaultValue:
-              "Experiment with contribution amounts, time horizons, and expected annual returns without touching your tracked data.",
-          })}
+          Experiment with contribution amounts, time horizons, and expected annual returns without touching your tracked data.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("sandbox.monthlyContribution")}
+          Monthly Contribution
           <input
             type="number"
             min="0"
@@ -48,7 +43,7 @@ const FinancialSandbox = () => {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("sandbox.years")}
+          Years
           <input
             type="number"
             min="1"
@@ -58,7 +53,7 @@ const FinancialSandbox = () => {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("sandbox.avgReturn")}
+          Average Return (%)
           <input
             type="number"
             min="0"
@@ -75,12 +70,12 @@ const FinancialSandbox = () => {
         variant="primary"
         className="w-full sm:w-auto"
       >
-        {t("sandbox.start")}
+        Start Projection
       </GlassButton>
 
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]/70 px-4 py-3 shadow-inner">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {t("sandbox.projected", { years })}
+          Projected Value in {years} {years === 1 ? 'year' : 'years'}
         </p>
         {running ? (
           <Skeleton className="mt-2 h-8 w-40 rounded-lg" />

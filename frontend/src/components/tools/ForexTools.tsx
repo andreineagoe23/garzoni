@@ -1,10 +1,7 @@
 import React, { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import i18n from "i18n";
 
 /* pragma: allowlist secret */
 const ForexTools = () => {
-  const { t } = useTranslation("tools");
   useEffect(() => {
     const containerId = "position-size-calculator-524750";
 
@@ -28,7 +25,7 @@ const ForexTools = () => {
             IsDisplayTitle: false,
             IsShowChartLinks: true,
             IsShowEmbedButton: true,
-            Lang: i18n.language?.startsWith("es") ? "es" : "en",
+            Lang: navigator.language?.startsWith("es") ? "es" : "en",
             CompactType: "large",
             Calculator: "position-size-calculator",
             ContainerId: containerId,
@@ -73,10 +70,10 @@ const ForexTools = () => {
     <section className="space-y-4">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          {t("forex.title")}
+          Forex Position Size Calculator
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("forex.subtitle")}
+          Calculate optimal position sizes for your forex trades
         </p>
       </header>
 

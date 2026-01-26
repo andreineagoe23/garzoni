@@ -3,7 +3,6 @@ import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/monevo-logo-png.png";
-import { useTranslation } from "react-i18next";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -11,7 +10,6 @@ function ForgotPassword() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation("auth");
 
   const handleForgotPassword = async (
     event: React.FormEvent<HTMLFormElement>
@@ -23,16 +21,16 @@ function ForgotPassword() {
 
     try {
       const response = await requestPasswordReset(email);
-      setMessage(response.data.message || t("forgotPassword.success"));
+      setMessage(response.data.message || "Password reset email sent successfully");
     } catch (requestError) {
       if (axios.isAxiosError(requestError)) {
         setError(
           requestError.response?.data?.error ||
             requestError.response?.data?.detail ||
-            t("forgotPassword.error")
+            "An error occurred. Please try again."
         );
       } else {
-        setError(t("forgotPassword.error"));
+        setError("An error occurred. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -52,15 +50,15 @@ function ForgotPassword() {
         >
           <img
             src={logo}
-            alt={t("common:logoAlt", { defaultValue: "Monevo logo" })}
+            alt="Monevo logo"
             className="mb-6 h-12 w-auto"
             loading="lazy"
           />
           <h2 className="text-2xl font-bold text-[color:var(--accent,#2563eb)]">
-            {t("forgotPassword.title")}
+            Forgot Password
           </h2>
           <p className="mt-2 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("forgotPassword.subtitle")}
+            Enter your email address and we'll send you a link to reset your password.
           </p>
 
           {message && (
@@ -92,14 +90,14 @@ function ForgotPassword() {
                 htmlFor="email"
                 className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
               >
-                {t("forgotPassword.emailLabel")}
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder={t("forgotPassword.emailPlaceholder")}
+                placeholder="Enter your email"
                 required
                 className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
               />
@@ -110,9 +108,7 @@ function ForgotPassword() {
               disabled={isLoading}
               className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading
-                ? t("forgotPassword.sending")
-                : t("forgotPassword.submit")}
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
 
@@ -121,7 +117,7 @@ function ForgotPassword() {
             onClick={() => navigate("/login")}
             className="mt-8 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
           >
-            {t("login.submit")}
+            Back to Login
           </button>
         </div>
       </div>

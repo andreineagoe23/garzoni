@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import { formatNumber, formatPercentage } from "utils/format";
 import { ErrorState } from "./ErrorState";
 
@@ -28,13 +27,12 @@ const StatusSummary = ({
   reviewQueueData,
   locale,
 }: StatusSummaryProps) => {
-  const { t } = useTranslation("dashboard");
   return (
     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
           <span aria-hidden="true">📚</span>
-          <span>{t("coursesCompleted")}</span>
+          <span>Courses Completed</span>
         </div>
         <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
           {formatNumber(coursesCompleted, locale)}
@@ -43,7 +41,7 @@ const StatusSummary = ({
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
           <span aria-hidden="true">📈</span>
-          <span>{t("overallProgress")}</span>
+          <span>Overall Progress</span>
         </div>
         <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
           {formatPercentage(overallProgress, locale, 0)}
@@ -51,12 +49,8 @@ const StatusSummary = ({
       </div>
       {reviewError ? (
         <ErrorState
-          title={t("reviewsErrorTitle", {
-            defaultValue: "Failed to load reviews",
-          })}
-          message={t("reviewsErrorMessage", {
-            defaultValue: "We couldn't fetch your review queue.",
-          })}
+          title="Failed to load reviews"
+          message="We couldn't fetch your review queue."
           onRetry={refetchReview}
           cachedData={reviewQueueData}
           className="sm:col-span-2 lg:col-span-1"
@@ -65,7 +59,7 @@ const StatusSummary = ({
         <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
             <span aria-hidden="true">🔄</span>
-            <span>{t("reviewsDue")}</span>
+            <span>Reviews Due</span>
           </div>
           <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatNumber(reviewsDue, locale)}
@@ -74,12 +68,8 @@ const StatusSummary = ({
       )}
       {missionsError ? (
         <ErrorState
-          title={t("missionsErrorTitle", {
-            defaultValue: "Failed to load missions",
-          })}
-          message={t("missionsErrorMessage", {
-            defaultValue: "We couldn't fetch your missions.",
-          })}
+          title="Failed to load missions"
+          message="We couldn't fetch your missions."
           onRetry={refetchMissions}
           className="sm:col-span-2 lg:col-span-1"
         />
@@ -87,7 +77,7 @@ const StatusSummary = ({
         <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
             <span aria-hidden="true">🎯</span>
-            <span>{t("activeMissions")}</span>
+            <span>Active Missions</span>
           </div>
           <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatNumber(activeMissionsCount, locale)}

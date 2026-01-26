@@ -6,8 +6,6 @@ import loginBg from "assets/login-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
-import { useTranslation } from "react-i18next";
-
 function Login() {
   const [formData, setFormData] = useState({
     username: "",
@@ -20,21 +18,20 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
-  const { t } = useTranslation("auth");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const reason = params.get("reason");
     if (reason !== "session-expired") return;
 
-    setError(t("login.sessionExpired"));
+    setError("Your session has expired. Please log in again.");
 
     // Remove the query param so it doesn't persist across refreshes.
     params.delete("reason");
     const remaining = params.toString();
     const nextUrl = remaining ? `/login?${remaining}` : "/login";
     navigate(nextUrl, { replace: true, state: location.state });
-  }, [location.search, location.state, navigate, t]);
+  }, [location.search, location.state, navigate]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,17 +77,17 @@ function Login() {
     try {
       const result = await loginUser(formData);
       if (!result.success) {
-        setError(result.error || t("login.loginFailed"));
+        setError(result.error || "Login failed. Please try again.");
       }
     } catch (loginError) {
       if (axios.isAxiosError(loginError)) {
         setError(
           loginError.response?.data?.detail ||
             loginError.response?.data?.error ||
-            t("login.unexpectedError")
+            "An unexpected error occurred. Please try again."
         );
       } else {
-        setError(t("login.unexpectedError"));
+        setError("An unexpected error occurred. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -110,10 +107,10 @@ function Login() {
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
               <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                {t("login.title")}
+                Welcome Back
               </h2>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("login.subtitle")}
+                Sign in to your account to continue
               </p>
             </div>
 
@@ -132,7 +129,7 @@ function Login() {
                   htmlFor="username"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("login.usernameLabel")}
+                  Username
                 </label>
                 <input
                   id="username"
@@ -143,7 +140,7 @@ function Login() {
                   required
                   autoComplete="username"
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
-                  placeholder={t("login.usernamePlaceholder")}
+                  placeholder="Enter your username"
                 />
               </div>
 
@@ -152,7 +149,7 @@ function Login() {
                   htmlFor="password"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("login.passwordLabel")}
+                  Password
                 </label>
                 <div className="relative">
                   <input
@@ -164,7 +161,7 @@ function Login() {
                     required
                     autoComplete="current-password"
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    placeholder={t("login.passwordPlaceholder")}
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
@@ -172,8 +169,8 @@ function Login() {
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
                     aria-label={
                       showPassword
-                        ? t("login.hidePassword")
-                        : t("login.showPassword")
+                        ? "Hide password"
+                        : "Show password"
                     }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
@@ -190,14 +187,14 @@ function Login() {
                     onChange={handleChange}
                     className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]"
                   />
-                  {t("login.rememberMe")}
+                  Remember me
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                   className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
                 >
-                  {t("login.forgotPassword")}
+                  Forgot password?
                 </button>
               </div>
 
@@ -208,23 +205,21 @@ function Login() {
                   variant="primary"
                   className="w-full"
                 >
-                  {isLoading ? t("login.loading") : t("login.submit")}
+                  {isLoading ? "Logging in..." : "Sign In"}
                 </GlassButton>
               </div>
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
               <span>
-                {t("login.noAccountPrompt", {
-                  defaultValue: "Don’t have an account?",
-                })}{" "}
+                Don't have an account?{" "}
               </span>
               <button
                 type="button"
                 onClick={() => navigate("/register")}
                 className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
               >
-                {t("login.signUp", { defaultValue: "Sign up now" })}
+                Sign up now
               </button>
             </div>
           </GlassCard>
