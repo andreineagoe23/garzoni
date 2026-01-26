@@ -124,7 +124,7 @@ describe("format utilities", () => {
   });
 
   describe("getLocale", () => {
-    it("returns normalized locale from i18n", () => {
+    it("returns normalized locale from navigator.language", () => {
       const locale = getLocale();
       expect(locale).toMatch(/^(en-US|es-ES)$/);
     });

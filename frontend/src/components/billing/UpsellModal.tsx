@@ -1,8 +1,6 @@
 import React from "react";
 import { GlassButton, GlassCard } from "components/ui";
 import { FEATURE_COPY } from "services/entitlementsService";
-import { useTranslation } from "react-i18next";
-
 type FeatureKey = keyof typeof FEATURE_COPY;
 
 const UpsellModal = ({
@@ -14,14 +12,11 @@ const UpsellModal = ({
   onClose: () => void;
   feature?: FeatureKey;
 }) => {
-  const { t } = useTranslation("billing");
   if (!open) return null;
 
   const featureName = feature
-    ? t(`entitlements.features.${feature}`, {
-        defaultValue: FEATURE_COPY[feature],
-      })
-    : t("upsell.fallbackFeature");
+    ? FEATURE_COPY[feature]
+    : "Premium Feature";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
@@ -29,7 +24,7 @@ const UpsellModal = ({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("upsell.unlockTitle")}
+              Unlock Premium
             </p>
             <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
               {featureName}
@@ -39,14 +34,14 @@ const UpsellModal = ({
             type="button"
             onClick={onClose}
             className="text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--text-color,#111827)]"
-            aria-label={t("upsell.closeLabel")}
+            aria-label="Close modal"
           >
             ✕
           </button>
         </div>
 
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("upsell.description")}
+          Upgrade to unlock this feature and more premium benefits.
         </p>
 
         <div className="flex flex-wrap gap-3">
@@ -54,14 +49,14 @@ const UpsellModal = ({
             className="flex-1 justify-center"
             onClick={() => (window.location.href = "/subscriptions")}
           >
-            {t("upsell.primary")}
+            Upgrade Now
           </GlassButton>
           <GlassButton
             variant="ghost"
             className="flex-1 justify-center"
             onClick={onClose}
           >
-            {t("upsell.secondary")}
+            Maybe Later
           </GlassButton>
         </div>
       </GlassCard>

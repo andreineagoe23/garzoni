@@ -6,8 +6,6 @@ import registerBg from "assets/register-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
-import { useTranslation } from "react-i18next";
-
 function Register() {
   const [formData, setFormData] = useState({
     username: "",
@@ -23,7 +21,6 @@ function Register() {
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();
-  const { t } = useTranslation("auth");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -40,17 +37,17 @@ function Register() {
       if (result.success) {
         navigate("/all-topics");
       } else {
-        setErrorMessage(result.error || t("register.failed"));
+        setErrorMessage(result.error || "Registration failed. Please try again.");
       }
     } catch (registerError) {
       if (axios.isAxiosError(registerError)) {
         setErrorMessage(
           registerError.response?.data?.error ||
             registerError.message ||
-            t("register.failed")
+            "Registration failed. Please try again."
         );
       } else {
-        setErrorMessage(t("register.failed"));
+        setErrorMessage("Registration failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -79,10 +76,10 @@ function Register() {
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
               <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                {t("register.title")}
+                Create Account
               </h2>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("register.subtitle")}
+                Sign up to get started
               </p>
             </div>
 
@@ -102,7 +99,7 @@ function Register() {
                     htmlFor="first_name"
                     className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
-                    {t("register.firstName")}
+                    First Name
                   </label>
                   <input
                     id="first_name"
@@ -112,7 +109,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="given-name"
-                    placeholder={t("register.firstNamePlaceholder")}
+                    placeholder="Enter your first name"
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
@@ -122,7 +119,7 @@ function Register() {
                     htmlFor="last_name"
                     className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
-                    {t("register.lastName")}
+                    Last Name
                   </label>
                   <input
                     id="last_name"
@@ -132,7 +129,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="family-name"
-                    placeholder={t("register.lastNamePlaceholder")}
+                    placeholder="Enter your last name"
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
@@ -143,7 +140,7 @@ function Register() {
                   htmlFor="username"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("register.username")}
+                  Username
                 </label>
                 <input
                   id="username"
@@ -153,7 +150,7 @@ function Register() {
                   onChange={handleChange}
                   required
                   autoComplete="username"
-                  placeholder={t("register.usernamePlaceholder")}
+                  placeholder="Choose a username"
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -163,7 +160,7 @@ function Register() {
                   htmlFor="email"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("register.email")}
+                  Email
                 </label>
                 <input
                   id="email"
@@ -173,7 +170,7 @@ function Register() {
                   onChange={handleChange}
                   required
                   autoComplete="email"
-                  placeholder={t("register.emailPlaceholder")}
+                  placeholder="Enter your email"
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -183,7 +180,7 @@ function Register() {
                   htmlFor="password"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("register.password")}
+                  Password
                 </label>
                 <div className="relative">
                   <input
@@ -194,7 +191,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="new-password"
-                    placeholder={t("register.passwordPlaceholder")}
+                    placeholder="Create a password"
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                   <button
@@ -203,8 +200,8 @@ function Register() {
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
                     aria-label={
                       showPassword
-                        ? t("register.hidePassword")
-                        : t("register.showPassword")
+                        ? "Hide password"
+                        : "Show password"
                     }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
@@ -217,9 +214,9 @@ function Register() {
                   htmlFor="referral_code"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  {t("register.referralCode")}{" "}
+                  Referral Code{" "}
                   <span className="text-gray-400">
-                    {t("register.optional", { defaultValue: "(optional)" })}
+                    (optional)
                   </span>
                 </label>
                 <input
@@ -228,7 +225,7 @@ function Register() {
                   type="text"
                   value={formData.referral_code}
                   onChange={handleChange}
-                  placeholder={t("register.referralCodePlaceholder")}
+                  placeholder="Enter referral code if you have one"
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -240,23 +237,21 @@ function Register() {
                   variant="primary"
                   className="w-full"
                 >
-                  {isLoading ? t("register.loading") : t("register.submit")}
+                  {isLoading ? "Creating account..." : "Sign Up"}
                 </GlassButton>
               </div>
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
               <span>
-                {t("register.haveAccount", {
-                  defaultValue: "Already have an account?",
-                })}{" "}
+                Already have an account?{" "}
               </span>
               <button
                 type="button"
                 onClick={() => navigate("/login")}
                 className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
               >
-                {t("register.loginHere", { defaultValue: "Login here" })}
+                Login here
               </button>
             </div>
           </GlassCard>
