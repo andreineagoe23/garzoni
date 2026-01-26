@@ -10,7 +10,6 @@ import {
 } from "recharts";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
-import { useTranslation } from "react-i18next";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
 
 const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
@@ -35,7 +34,6 @@ type PortfolioSummary = {
 };
 
 function PortfolioAnalyzer() {
-  const { t } = useTranslation("tools");
   const locale = getLocale();
   const [entries, setEntries] = useState<PortfolioEntry[]>([]);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
@@ -149,12 +147,12 @@ function PortfolioAnalyzer() {
 
       setError(null);
     } catch (err) {
-      setError(t("portfolio.error"));
+      setError("Failed to load portfolio. Please try again.");
       console.error("Error fetching portfolio:", err);
     } finally {
       setLoading(false);
     }
-  }, [fetchCryptoPrice, fetchStockPrice, getAccessToken, t]);
+  }, [fetchCryptoPrice, fetchStockPrice, getAccessToken]);
 
   useEffect(() => {
     fetchPortfolio();
@@ -188,11 +186,7 @@ function PortfolioAnalyzer() {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(
-        apiMessage
-          ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
-          : t("portfolio.addError", {
-              defaultValue: "Failed to add portfolio entry",
-            })
+        apiMessage || "Failed to add portfolio entry. Please try again."
       );
       console.error(err);
     }
@@ -208,11 +202,7 @@ function PortfolioAnalyzer() {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(
-        apiMessage
-          ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
-          : t("portfolio.deleteError", {
-              defaultValue: "Failed to delete portfolio entry",
-            })
+        apiMessage || "Failed to delete portfolio entry. Please try again."
       );
       console.error(err);
     }
@@ -239,7 +229,7 @@ function PortfolioAnalyzer() {
   if (loading) {
     return (
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-        {t("portfolio.loading")}
+        Loading portfolio...
       </div>
     );
   }
@@ -250,10 +240,10 @@ function PortfolioAnalyzer() {
     <section className="space-y-6">
       <header className="space-y-2 text-center">
         <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
-          {t("portfolio.title")}
+          Portfolio Analyzer
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("portfolio.subtitle")}
+          Track and analyze your investment portfolio
         </p>
       </header>
 
@@ -268,20 +258,20 @@ function PortfolioAnalyzer() {
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
             <h4 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-              {t("portfolio.emptyTitle")}
+              No Portfolio Entries
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.emptyBody")}
+              Add your first investment to start tracking your portfolio
             </p>
             <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-2">
-                {t("portfolio.tipsTitle")}
+                Tips
               </p>
               <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <li>• {t("portfolio.tipStocks")}</li>
-                <li>• {t("portfolio.tipCrypto")}</li>
-                <li>• {t("portfolio.tipPrice")}</li>
-                <li>• {t("portfolio.tipRealTime")}</li>
+                <li>• Add stocks, crypto, or other assets</li>
+                <li>• Current prices are fetched automatically</li>
+                <li>• Track your portfolio performance over time</li>
+                <li>• Real-time price updates</li>
               </ul>
             </div>
           </div>
@@ -299,7 +289,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-                {t("portfolio.metrics.totalValue")}
+                Total Portfolio Value
               </h4>
               <div className="space-y-1">
                 <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
@@ -309,7 +299,7 @@ function PortfolioAnalyzer() {
                   })}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {t("portfolio.metrics.currentValue")}
+                  Current value
                 </p>
               </div>
             </div>
@@ -322,7 +312,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-                {t("portfolio.metrics.totalGainLoss")}
+                Total Gain/Loss
               </h4>
               <div className="space-y-1">
                 <p
@@ -372,9 +362,7 @@ function PortfolioAnalyzer() {
                   {entries.length}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {t("portfolio.metrics.investmentCount", {
-                    count: entries.length,
-                  })}
+                  {entries.length} {entries.length === 1 ? 'investment' : 'investments'}
                 </p>
               </div>
             </div>
@@ -389,7 +377,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-                {t("portfolio.metrics.allocation")}
+                Asset Allocation
               </h4>
               <div className="h-64 w-full">
                 <ResponsiveContainer>
@@ -438,7 +426,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-                {t("portfolio.metrics.breakdown")}
+                Portfolio Breakdown
               </h4>
               <div className="space-y-3">
                 {Object.entries(summary.allocation).map(([type, value]) => {
@@ -453,9 +441,7 @@ function PortfolioAnalyzer() {
                     <div key={type} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-[color:var(--text-color,#111827)] capitalize">
-                          {t(`portfolio.assetTypes.${type}`, {
-                            defaultValue: type,
-                          })}
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
                         </span>
                         <span className="text-[color:var(--muted-text,#6b7280)]">
                           {percentageLabel}%
@@ -495,37 +481,37 @@ function PortfolioAnalyzer() {
           }}
         >
           <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-            {t("portfolio.form.title")}
+            Add New Entry
           </h4>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4" noValidate>
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.form.assetType")}
+              Asset Type
               <select
                 name="asset_type"
                 value={newEntry.asset_type}
                 onChange={handleInputChange}
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                <option value="stock">{t("portfolio.form.stock")}</option>
-                <option value="crypto">{t("portfolio.form.crypto")}</option>
+                <option value="stock">Stock</option>
+                <option value="crypto">Crypto</option>
               </select>
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.form.symbol")}
+              Symbol
               <input
                 type="text"
                 name="symbol"
                 value={newEntry.symbol}
                 onChange={handleInputChange}
-                placeholder={t("portfolio.form.symbolPlaceholder")}
+                placeholder="e.g., AAPL, BTC"
                 required
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               />
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.form.quantity")}
+              Quantity
               <input
                 type="number"
                 name="quantity"
@@ -539,7 +525,7 @@ function PortfolioAnalyzer() {
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.form.purchasePrice")}
+              Purchase Price
               <input
                 type="number"
                 name="purchase_price"
@@ -553,7 +539,7 @@ function PortfolioAnalyzer() {
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("portfolio.form.purchaseDate")}
+              Purchase Date
               <input
                 type="date"
                 name="purchase_date"
@@ -567,7 +553,7 @@ function PortfolioAnalyzer() {
               type="submit"
               className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              {t("portfolio.form.submit")}
+              Add Entry
             </button>
           </form>
         </div>
@@ -581,11 +567,11 @@ function PortfolioAnalyzer() {
         >
           <div className="mb-4 flex items-center justify-between">
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-              {t("portfolio.entries.title")}
+              Portfolio Entries
             </h4>
             {hasEntries && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {t("portfolio.entries.count", { count: entries.length })}
+                {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
               </span>
             )}
           </div>
@@ -597,25 +583,25 @@ function PortfolioAnalyzer() {
                   <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.type")}
+                        Type
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.symbol")}
+                        Symbol
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.quantity")}
+                        Quantity
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.purchasePrice")}
+                        Purchase Price
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.currentValue")}
+                        Current Value
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.gainLoss")}
+                        Gain/Loss
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
-                        {t("portfolio.entries.headers.actions")}
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -627,9 +613,7 @@ function PortfolioAnalyzer() {
                       >
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium capitalize text-[color:var(--text-color,#111827)]">
-                            {t(`portfolio.assetTypes.${entry.asset_type}`, {
-                              defaultValue: entry.asset_type,
-                            })}
+                            {entry.asset_type.charAt(0).toUpperCase() + entry.asset_type.slice(1)}
                           </span>
                         </td>
                         <td className="px-4 py-3 font-semibold">
@@ -704,9 +688,7 @@ function PortfolioAnalyzer() {
                             onClick={() => {
                               if (
                                 window.confirm(
-                                  t("portfolio.entries.deleteConfirm", {
-                                    symbol: entry.symbol,
-                                  })
+                                  `Are you sure you want to delete ${entry.symbol.toUpperCase()}?`
                                 )
                               ) {
                                 handleDelete(entry.id);
@@ -714,7 +696,7 @@ function PortfolioAnalyzer() {
                             }}
                             className="rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
                           >
-                            {t("portfolio.entries.delete")}
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -726,7 +708,7 @@ function PortfolioAnalyzer() {
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-8 text-center">
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("portfolio.entries.empty")}
+                No portfolio entries yet. Add your first entry above.
               </p>
             </div>
           )}

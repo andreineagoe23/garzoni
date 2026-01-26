@@ -6,8 +6,6 @@ import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 import { BACKEND_URL } from "services/backendUrl";
-import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 
 type PlanFeature = {
@@ -28,25 +26,17 @@ type Plan = {
   features?: Record<string, PlanFeature>;
 };
 
-const formatFeatureValue = (
-  feature: PlanFeature | undefined,
-  t: TFunction<"billing">
-) => {
+const formatFeatureValue = (feature: PlanFeature | undefined) => {
   if (!feature || feature.enabled === false) {
-    return String(t("entitlements.notIncluded"));
+    return "Not Included";
   }
   if (feature.daily_quota === null || feature.daily_quota === undefined) {
-    return String(t("entitlements.unlimited"));
+    return "Unlimited";
   }
   if (typeof feature.daily_quota === "number") {
-    return String(
-      t("entitlements.dailyQuota", {
-        defaultValue: "{{count}} / day",
-        count: feature.daily_quota,
-      })
-    );
+    return `${feature.daily_quota} / day`;
   }
-  return String(t("entitlements.included", { defaultValue: "Included" }));
+  return "Included";
 };
 
 const PaymentRequired = () => {
@@ -67,7 +57,6 @@ const PaymentRequired = () => {
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
-  const { t } = useTranslation("billing");
   const locale = getLocale();
   const trialEndLabel = useMemo(() => {
     if (!entitlements?.trialEnd) {
@@ -141,11 +130,7 @@ const PaymentRequired = () => {
 
   const handlePlanSelect = (plan: Plan | null) => {
     if (!plan) {
-      setSelectionError(
-        t("paymentRequired.choosePlanError", {
-          defaultValue: "Please choose a plan to continue.",
-        })
-      );
+      setSelectionError("Please choose a plan to continue.");
       return;
     }
     if (!isAuthenticated) {
@@ -199,12 +184,12 @@ const PaymentRequired = () => {
         key.replace(/_/g, " ");
       return {
         feature: label,
-        starter: formatFeatureValue(starterFeature, t),
-        plus: formatFeatureValue(plusFeature, t),
-        pro: formatFeatureValue(proFeature, t),
+        starter: formatFeatureValue(starterFeature),
+        plus: formatFeatureValue(plusFeature),
+        pro: formatFeatureValue(proFeature),
       };
     });
-  }, [plans, t]);
+  }, [plans]);
 
   return (
     <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
@@ -215,19 +200,19 @@ const PaymentRequired = () => {
           </div>
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-[color:var(--accent,#111827)]">
-              {t("paymentRequired.title")}
+              Choose Your Plan
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("paymentRequired.subtitle")}
+              Select a subscription plan to unlock premium features
             </p>
             {upgradeComplete && (
               <p className="rounded-lg bg-[color:var(--success,#16a34a)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--success,#16a34a)]">
-                {t("paymentRequired.paymentConfirmed")}
+                Payment confirmed! Your subscription is now active.
               </p>
             )}
             {entitlements?.fallback && (
               <p className="rounded-lg bg-[color:var(--warning,#facc15)]/20 px-3 py-2 text-xs text-[color:var(--accent,#92400e)]">
-                {t("paymentRequired.fallback")}
+                Using fallback entitlements. Please contact support if this persists.
               </p>
             )}
             {entitlementError && (
@@ -241,7 +226,7 @@ const PaymentRequired = () => {
         <div className="grid gap-4 md:grid-cols-3">
           {loadingPlans && (
             <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("paymentRequired.loading")}
+              Loading plans...
             </div>
           )}
           {!loadingPlans &&
@@ -254,11 +239,9 @@ const PaymentRequired = () => {
                 Number(plan.price_amount || 0) === 0;
               const isHighlight = plan.plan_id === "plus";
               const trialLabel = plan.trial_days
-                ? t("paymentRequired.trialLabel", { days: plan.trial_days })
+                ? `${plan.trial_days} day${plan.trial_days > 1 ? 's' : ''} trial`
                 : null;
-              const translatedName = t(`plans.${plan.plan_id}`, {
-                defaultValue: plan.name || plan.plan_id,
-              });
+              const translatedName = plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               return (
                 <div
                   key={`${plan.plan_id}-${plan.billing_interval}`}
@@ -287,9 +270,7 @@ const PaymentRequired = () => {
                         { minimumFractionDigits: 0 }
                       )}
                       <span className="ml-1 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-                        {` ${t(`labels.${plan.billing_interval}`, {
-                          defaultValue: plan.billing_interval,
-                        })}`}
+                        {` / ${plan.billing_interval === 'monthly' ? 'month' : plan.billing_interval === 'yearly' ? 'year' : plan.billing_interval}`}
                       </span>
                     </div>
                   </div>
@@ -297,9 +278,7 @@ const PaymentRequired = () => {
                     {(features.length
                       ? features
                       : [
-                          t("paymentRequired.fallbackFeature", {
-                            defaultValue: "Premium learning access",
-                          }),
+                          "Premium learning access",
                         ]
                     ).map((feature) => (
                       <li key={feature}>• {feature}</li>
@@ -311,12 +290,8 @@ const PaymentRequired = () => {
                     onClick={() => handlePlanSelect(plan)}
                   >
                     {isStarter
-                      ? t("paymentRequired.startStarter", {
-                          defaultValue: "Start with Starter",
-                        })
-                      : t("paymentRequired.choosePlan", {
-                          plan: translatedName,
-                        })}
+                      ? "Start with Starter"
+                      : `Choose ${translatedName}`}
                   </GlassButton>
                 </div>
               );
@@ -335,18 +310,14 @@ const PaymentRequired = () => {
             className="text-sm"
             icon="🔄"
           >
-            {t("paymentRequired.retryEntitlements", {
-              defaultValue: "Retry entitlement check",
-            })}
+            Retry entitlement check
           </GlassButton>
           {entitlementSupportLink && (
             <a
               href={entitlementSupportLink}
               className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
             >
-              {t("paymentRequired.contactSupport", {
-                defaultValue: "Contact support",
-              })}
+              Contact support
             </a>
           )}
         </div>

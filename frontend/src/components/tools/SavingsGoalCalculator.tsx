@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
-import { useTranslation } from "react-i18next";
 import { formatCurrency, getLocale } from "utils/format";
 
 const SavingsGoalCalculator = () => {
@@ -16,7 +15,6 @@ const SavingsGoalCalculator = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const { getAccessToken } = useAuth();
-  const { t } = useTranslation("tools");
   const locale = getLocale();
 
   const handleChange = (event) => {
@@ -27,11 +25,11 @@ const SavingsGoalCalculator = () => {
   const validateForm = () => {
     const values = Object.values(formData);
     if (values.some((value) => value === "")) {
-      setError(t("savingsGoal.errors.required"));
+      setError("All fields are required");
       return false;
     }
     if (Number(formData.annual_interest_rate) > 30) {
-      setError(t("savingsGoal.errors.rateLimit"));
+      setError("Annual interest rate cannot exceed 30%");
       return false;
     }
     return true;
@@ -60,9 +58,7 @@ const SavingsGoalCalculator = () => {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(
-        apiMessage
-          ? t(`apiMessages.${apiMessage}`, { defaultValue: apiMessage })
-          : t("savingsGoal.errors.calculate")
+        apiMessage || "Failed to calculate savings goal. Please try again."
       );
     }
   };
@@ -71,10 +67,10 @@ const SavingsGoalCalculator = () => {
     <section className="space-y-6">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          {t("savingsGoal.title")}
+          Savings Goal Calculator
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("savingsGoal.subtitle")}
+          Calculate how much you need to save to reach your financial goals
         </p>
       </header>
 
@@ -91,11 +87,11 @@ const SavingsGoalCalculator = () => {
           noValidate
         >
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("savingsGoal.form.goal")}
+            Savings Goal
             <input
               type="number"
               name="savings_goal"
-              placeholder={t("savingsGoal.form.goalPlaceholder")}
+              placeholder="Enter your savings goal amount"
               value={formData.savings_goal}
               onChange={handleChange}
               required
@@ -106,11 +102,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("savingsGoal.form.initial")}
+            Initial Investment
             <input
               type="number"
               name="initial_investment"
-              placeholder={t("savingsGoal.form.initialPlaceholder")}
+              placeholder="Enter your initial investment"
               value={formData.initial_investment}
               onChange={handleChange}
               required
@@ -121,11 +117,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("savingsGoal.form.years")}
+            Years to Grow
             <input
               type="number"
               name="years_to_grow"
-              placeholder={t("savingsGoal.form.yearsPlaceholder")}
+              placeholder="Enter number of years"
               value={formData.years_to_grow}
               onChange={handleChange}
               required
@@ -136,11 +132,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            {t("savingsGoal.form.rate")}
+            Annual Interest Rate (%)
             <input
               type="number"
               name="annual_interest_rate"
-              placeholder={t("savingsGoal.form.ratePlaceholder")}
+              placeholder="Enter annual interest rate"
               value={formData.annual_interest_rate}
               onChange={handleChange}
               required
@@ -152,17 +148,17 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)] md:col-span-2">
-            {t("savingsGoal.form.frequency")}
+            Compound Frequency
             <select
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              <option value="1">{t("savingsGoal.form.annually")}</option>
-              <option value="4">{t("savingsGoal.form.quarterly")}</option>
-              <option value="12">{t("savingsGoal.form.monthly")}</option>
-              <option value="365">{t("savingsGoal.form.daily")}</option>
+              <option value="1">Annually</option>
+              <option value="4">Quarterly</option>
+              <option value="12">Monthly</option>
+              <option value="365">Daily</option>
             </select>
           </label>
 
@@ -171,7 +167,7 @@ const SavingsGoalCalculator = () => {
               type="submit"
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              {t("savingsGoal.form.submit")}
+              Calculate
             </button>
           </div>
         </form>
@@ -179,7 +175,7 @@ const SavingsGoalCalculator = () => {
         {result && (
           <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow-inner shadow-emerald-500/20">
             <p>
-              {t("savingsGoal.resultLabel")}{" "}
+              Final Savings:{" "}
               <span className="font-semibold">
                 {formatCurrency(
                   Number(result.final_savings || 0),

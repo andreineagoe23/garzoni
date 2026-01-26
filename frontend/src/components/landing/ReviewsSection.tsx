@@ -2,11 +2,9 @@ import React from "react";
 import { StarFill } from "react-bootstrap-icons";
 import { GlassCard } from "components/ui";
 import { useLandingData } from "./landingData";
-import { useTranslation } from "react-i18next";
 
 export default function ReviewsSection() {
   const { reviews } = useLandingData();
-  const { t } = useTranslation("landing");
   const marqueeReviews = [...reviews, ...reviews];
   const marqueeDuration = `${Math.max(36, reviews.length * 7)}s`;
 
@@ -14,10 +12,10 @@ export default function ReviewsSection() {
     <section className="relative">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {t("reviewsHeadline")}
+          Loved by Learners Worldwide
         </h2>
         <p className="mt-4 text-sm text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
-          {t("reviewsSubhead")}
+          See what our community has to say about their learning experience
         </p>
       </div>
 
@@ -28,7 +26,7 @@ export default function ReviewsSection() {
             "--landing-review-duration": marqueeDuration,
           } as React.CSSProperties
         }
-        aria-label={t("reviewsAria")}
+        aria-label="Customer reviews"
       >
         <div className="landing-review-track" aria-hidden="true">
           {marqueeReviews.map((review, idx) => (
@@ -37,7 +35,7 @@ export default function ReviewsSection() {
               padding="lg"
               tabIndex={0}
               role="article"
-              aria-label={t("reviewAria", { name: review.name })}
+              aria-label={`Review by ${review.name}`}
               className="landing-review-card h-full p-6 bg-[color:var(--card-bg,#15191E)]/65 border-white/10"
             >
               <div className="flex items-center gap-1 text-[color:var(--gold,#E6C87A)]">

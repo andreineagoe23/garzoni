@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
-import { useTranslation } from "react-i18next";
-
 const CHECKOUT_URL =
   process.env.REACT_APP_CHECKOUT_URL || "https://pay.monevo.app/checkout";
 
@@ -26,7 +24,6 @@ const trackPremiumEvent = (
 const PremiumUpsellPanel = () => {
   const { user } = useAuth();
   const [referralCopied, setReferralCopied] = useState(false);
-  const { t } = useTranslation("billing");
 
   const appOrigin =
     typeof window !== "undefined"
@@ -36,10 +33,8 @@ const PremiumUpsellPanel = () => {
   const referralCode = useMemo(() => {
     if (user?.username) return `${user.username}-invite`;
     if (user?.email) return `${user.email.split("@")[0]}-invite`;
-    return t("upsellPanel.defaultReferralCode", {
-      defaultValue: "MONEVO-FRIEND",
-    });
-  }, [user?.email, user?.username, t]);
+    return "MONEVO-FRIEND";
+  }, [user?.email, user?.username]);
 
   const referralLink = `${appOrigin}/register?ref=${encodeURIComponent(
     referralCode
@@ -85,19 +80,19 @@ const PremiumUpsellPanel = () => {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("upsellPanel.kicker")}
+              Upgrade to Premium
             </p>
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-              {t("upsellPanel.title")}
+              Unlock Premium Features
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("upsellPanel.subtitle")}
+              Get unlimited access to all learning features
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <GlassButton variant="active" size="sm" onClick={handleTrialClick}>
-            {t("upsellPanel.startTrial")}
+            Start Free Trial
           </GlassButton>
           <GlassButton
             variant="ghost"
@@ -108,27 +103,27 @@ const PremiumUpsellPanel = () => {
             }
           >
             {referralCopied
-              ? t("upsellPanel.referralCopied")
-              : t("upsellPanel.shareReferral")}
+              ? "Copied!"
+              : "Share Referral"}
           </GlassButton>
         </div>
         <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-          {t("upsellPanel.checkoutHint")}{" "}
+          Checkout URL:{" "}
           <span className="font-semibold text-[color:var(--accent,#111827)]">
             {CHECKOUT_URL.replace(/^https?:\/\//, "")}
           </span>{" "}
-          {t("upsellPanel.checkoutSuffix")}{" "}
+          with params{" "}
           <code className="font-mono text-[color:var(--accent,#111827)]">
             ?context=...
           </code>{" "}
-          {t("upsellPanel.checkoutPlus")}{" "}
+          and{" "}
           <code className="font-mono text-[color:var(--accent,#111827)]">
             source=dashboard-upsell
           </code>{" "}
-          {t("upsellPanel.checkoutAttribution")}
+          for attribution tracking
         </div>
         <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-[color:var(--muted-text,#4b5563)] break-words">
-          {t("upsellPanel.referralPreview")}{" "}
+          Referral link:{" "}
           <span className="font-semibold text-[color:var(--accent,#111827)]">
             {referralLink}
           </span>
