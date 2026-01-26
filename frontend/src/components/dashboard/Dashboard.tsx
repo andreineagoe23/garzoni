@@ -12,7 +12,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import { GlassButton, GlassCard } from "components/ui";
@@ -60,7 +59,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const { preferences } = usePreferences();
   const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
   const locale = getLocale();
-  const { t } = useTranslation("dashboard");
   const prefersReducedMotion = useRef(
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
@@ -330,7 +328,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     switch (primaryCTASignal.type) {
       case "reviews_due":
         return {
-          text: t("cta.doReviews"),
+          text: "Do Reviews",
           action: () => {
             trackEvent("cta_click", {
               reason: "reviews_due",
@@ -340,14 +338,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "high",
-          reason: t(primaryCTASignal.reasonKey, {
-            count: primaryCTASignal.reasonCount,
-          }),
+          reason: `${primaryCTASignal.reasonCount || 0} review${(primaryCTASignal.reasonCount || 0) > 1 ? 's' : ''} due`,
         };
       case "continue_lesson": {
         const lessonMission = primaryCTASignal.mission;
         return {
-          text: t("cta.continueLesson"),
+          text: "Continue Lesson",
           action: () => {
             trackEvent("cta_click", {
               reason: "continue_lesson",
@@ -363,12 +359,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: t(primaryCTASignal.reasonKey),
+          reason: "Continue where you left off",
         };
       }
       case "start_mission":
         return {
-          text: t("cta.startMission"),
+          text: "Start Mission",
           action: () => {
             trackEvent("cta_click", {
               reason: "start_mission",
@@ -378,20 +374,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: t(primaryCTASignal.reasonKey, {
-            count: primaryCTASignal.reasonCount,
-          }),
+          reason: `${primaryCTASignal.reasonCount || 0} mission${(primaryCTASignal.reasonCount || 0) > 1 ? 's' : ''} available`,
         };
       default:
         return {
-          text: t("cta.continueLearning"),
+          text: "Continue Learning",
           action: () => {
             trackEvent("cta_click", { reason: "continue_learning" });
             navigate("/all-topics");
           },
           icon: primaryCTASignal.icon,
           priority: "low",
-          reason: t(primaryCTASignal.reasonKey),
+          reason: "Continue your learning journey",
         };
     }
   }, [
@@ -400,7 +394,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     activeMissions.length,
     navigate,
     trackEvent,
-    t,
   ]);
 
   // Skip to content handler - must be before early return
@@ -479,7 +472,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         icon="📚"
         className="w-full sm:w-auto"
       >
-        {t("allTopics")}
+        All Topics
       </GlassButton>
 
       <button
@@ -499,10 +492,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }}
       >
         <span>🎯</span>
-        {t("personalizedPath")}
+        Personalized Path
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-            {t("completeQuestionnaire")}
+            Complete Questionnaire
           </span>
         )}
       </button>
@@ -520,7 +513,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }}
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[color:var(--primary,#1d5330)] focus:text-white focus:rounded-lg focus:shadow-lg"
       >
-        {t("skipToContent")}
+        Skip to content
       </a>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
         <GlassCard

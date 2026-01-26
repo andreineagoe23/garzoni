@@ -38,16 +38,7 @@ jest.mock("contexts/AdminContext", () => ({
   }),
 }));
 
-jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: { name?: string }) => {
-      if (key === "welcomeBack") {
-        return `Welcome back${options?.name || ""}!`;
-      }
-      return key;
-    },
-  }),
-}));
+// Translation removed - no mock needed
 
 jest.mock("axios", () => ({
   __esModule: true,

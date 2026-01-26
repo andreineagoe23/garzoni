@@ -4,9 +4,6 @@ import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
-import { useTranslation } from "react-i18next";
-import LanguageSelector from "components/common/LanguageSelector";
-
 const VISIBLE_PATHS = new Set([
   "/",
   "/welcome",
@@ -20,7 +17,6 @@ function Header() {
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
   const { isAuthenticated, isInitialized } = useAuth();
-  const { t } = useTranslation("common");
 
   if (!VISIBLE_PATHS.has(location.pathname)) {
     return null;
@@ -61,13 +57,12 @@ function Header() {
 
           {isInitialized && isAuthenticated && (
             <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30 sm:px-3 sm:py-1 sm:text-[11px]">
-              {t("header.premiumReady")}
+              Premium Ready
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <LanguageSelector />
           <button
             type="button"
             onClick={handleDarkModeToggle}
@@ -85,7 +80,7 @@ function Header() {
               size="sm"
               className="hidden sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
             >
-              {t("header.openDashboard")}
+              Open Dashboard
             </GlassButton>
           ) : (
             <>
@@ -97,7 +92,7 @@ function Header() {
                   size="sm"
                   className="hidden sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
                 >
-                  {t("header.login")}
+                  Login
                 </GlassButton>
               )}
               {!isRegister && (
@@ -108,7 +103,7 @@ function Header() {
                   size="sm"
                   className="sm:px-4 sm:py-2 sm:text-sm"
                 >
-                  {t("header.getStarted")}
+                  Get Started
                 </GlassButton>
               )}
             </>

@@ -1,12 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useTranslation } from "react-i18next";
-import i18n from "i18n";
 
 const CryptoTools = () => {
   const container = useRef(null);
   const { darkMode } = useTheme();
-  const { t } = useTranslation("tools");
 
   useEffect(() => {
     const currentContainer = container.current;
@@ -23,7 +20,7 @@ const CryptoTools = () => {
       timezone: "Europe/London",
       theme: darkMode ? "dark" : "light",
       style: "1",
-      locale: i18n.language?.startsWith("es") ? "es" : "en",
+      locale: navigator.language?.startsWith("es") ? "es" : "en",
       withdateranges: true,
       allow_symbol_change: true,
       watchlist: [
@@ -56,10 +53,10 @@ const CryptoTools = () => {
     <section className="space-y-4">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          {t("crypto.title")}
+          Cryptocurrency Trading
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("crypto.subtitle")}
+          Track and analyze cryptocurrency prices
         </p>
       </header>
 
@@ -91,7 +88,7 @@ const CryptoTools = () => {
               target="_blank"
               className="font-semibold text-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)]/80"
             >
-              {t("crypto.tradingViewLink")}
+              TradingView Chart
             </a>
           </div>
         </div>

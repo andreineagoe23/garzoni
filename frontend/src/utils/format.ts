@@ -1,7 +1,6 @@
 /**
  * Format utilities for locale-aware number, date, and percentage formatting
  */
-import i18n from "i18n";
 
 type LocaleLike = string | undefined;
 
@@ -13,8 +12,6 @@ const normalizeLocale = (locale: LocaleLike) => {
 };
 
 export const getLocale = () => {
-  const i18nLocale = i18n.language;
-  if (i18nLocale) return normalizeLocale(i18nLocale);
   try {
     return normalizeLocale(navigator.language);
   } catch {
