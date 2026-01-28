@@ -5,6 +5,9 @@
  * source maps reference non-existent sources (e.g. `webpack://...`, `../src/...`)
  * which can hard-fail the build on Windows with ENOENT.
  */
+const path = require("path");
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+
 module.exports = {
   webpack: {
     configure: (webpackConfig) => {
@@ -12,6 +15,23 @@ module.exports = {
       webpackConfig.plugins = webpackConfig.plugins.filter(
         (plugin) => plugin.constructor.name !== "ESLintWebpackPlugin"
       );
+
+      // Ensure webpack resolves modules from frontend/node_modules first
+      // This prevents CRA from trying to import from root node_modules
+      webpackConfig.resolve = webpackConfig.resolve || {};
+      webpackConfig.resolve.modules = [
+        path.resolve(__dirname, "node_modules"),
+        "node_modules",
+      ];
+
+      // Add tsconfig-paths-webpack-plugin to resolve paths from tsconfig.json
+      // This enables absolute imports like "contexts/AuthContext" to work
+      webpackConfig.resolve.plugins = [
+        ...(webpackConfig.resolve.plugins || []),
+        new TsconfigPathsPlugin({
+          configFile: path.resolve(__dirname, "tsconfig.json"),
+        }),
+      ];
 
       const ckeditorRegex = /[\\/]node_modules[\\/]@ckeditor[\\/]/;
 
