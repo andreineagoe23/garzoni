@@ -54,7 +54,7 @@ prompt_toolkit==3.0.48
 proto-plus==1.25.0
 protobuf==3.20.3
 psycopg2-binary==2.9.10
-mysqlclient==2.2.0
+mysqlclient==2.2.0  # Required for Docker/MySQL. For local dev without MySQL, comment this out and use SQLite
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
 PyJWT==2.10.0
