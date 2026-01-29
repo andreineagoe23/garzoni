@@ -30,6 +30,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: monevo-backend:latest
     restart: unless-stopped
     environment:
       DEBUG: "${DJANGO_DEBUG:-True}"
@@ -47,7 +48,7 @@ services:
       CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
       CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
     volumes:
-      - backend_media:/app/media
+      - ./backend/media:/app/media
       - backend_static:/app/staticfiles
     ports:
       - "${BACKEND_PORT:-8000}:8000"

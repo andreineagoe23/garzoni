@@ -38,6 +38,38 @@ if (!enableLogs) {
   });
 }
 
+// Suppress browser extension and PWA warnings
+if (typeof window !== "undefined") {
+  // Suppress Chrome extension runtime.lastError warnings and PWA install prompt warnings
+  const originalError = console.error;
+  const originalWarn = console.warn;
+
+  console.error = function (...args) {
+    const message = args[0]?.toString() || "";
+    if (
+      message.includes("runtime.lastError") ||
+      message.includes("message port closed") ||
+      message.includes("beforeinstallprompt")
+    ) {
+      return; // Suppress these specific warnings
+    }
+    originalError.apply(console, args);
+  };
+
+  console.warn = function (...args) {
+    const message = args[0]?.toString() || "";
+    if (
+      message.includes("runtime.lastError") ||
+      message.includes("message port closed") ||
+      message.includes("Banner not shown") ||
+      message.includes("beforeinstallprompt")
+    ) {
+      return; // Suppress these specific warnings
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 initSentry();
 initAnalytics();
 
