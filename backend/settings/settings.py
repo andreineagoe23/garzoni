@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "gamification",
     "finance",
     "support",
+    "onboarding",
     # Legacy core app (to be removed after full migration)
     "core",
     "django_rest_passwordreset",

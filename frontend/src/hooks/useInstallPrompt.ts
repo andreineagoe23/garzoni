@@ -6,7 +6,8 @@ export const useInstallPrompt = () => {
 
   useEffect(() => {
     const onBeforeInstallPrompt = (event) => {
-      event.preventDefault();
+      // Don't prevent default - let browser handle install prompt naturally
+      // This avoids the console warning
       setPromptEvent(event);
     };
 
@@ -26,10 +27,15 @@ export const useInstallPrompt = () => {
 
   const promptInstall = useCallback(async () => {
     if (!promptEvent) return null;
-    promptEvent.prompt();
-    const choice = await promptEvent.userChoice;
-    setPromptEvent(null);
-    return choice;
+    // If event was prevented, we need to call prompt()
+    // Otherwise browser handles it automatically
+    if (promptEvent.prompt) {
+      promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      setPromptEvent(null);
+      return choice;
+    }
+    return null;
   }, [promptEvent]);
 
   return {

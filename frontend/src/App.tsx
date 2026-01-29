@@ -37,6 +37,9 @@ const Missions = React.lazy(() => import("components/engagement/Missions"));
 const Questionnaire = React.lazy(
   () => import("components/onboarding/Questionnaire")
 );
+const OnboardingQuestionnaire = React.lazy(
+  () => import("components/onboarding/OnboardingQuestionnaire")
+);
 const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
 const ForgotPassword = React.lazy(
   () => import("components/auth/ForgotPassword")
@@ -318,6 +321,14 @@ const AppContent = () => {
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/questionnaire" element={<Questionnaire />} />
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <OnboardingQuestionnaire />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/upgrade" element={<UpgradePage />} />
                 <Route path="/subscriptions" element={<SubscriptionPlans />} />
                 <Route path="/login" element={<Login />} />

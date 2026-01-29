@@ -31,6 +31,7 @@ import StatusSummary from "./StatusSummary";
 import EntitlementUsage from "./EntitlementUsage";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
+import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
 import { selectPrimaryCTA } from "./primaryCtaSelector";
 import { getLocale } from "utils/format";
 import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
@@ -528,6 +529,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               adminMode={adminMode}
               toggleAdminMode={toggleAdminMode}
             />
+
+            <QuestionnaireReminderBanner />
 
             <DailyGoalCard
               dailyGoalProgress={dailyGoalProgress}

@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/", include("gamification.urls")),
     path("api/", include("finance.urls")),
     path("api/", include("support.urls")),
+    path("api/", include("onboarding.urls")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 
