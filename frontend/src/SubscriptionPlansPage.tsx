@@ -1,4 +1,7 @@
-// PaymentRequired.js
+/**
+ * Subscriptions / plans page. Rendered at /subscriptions.
+ * Imported statically in App so it stays in the main bundle (avoids chunk resolution issues).
+ */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -27,19 +30,13 @@ type Plan = {
 };
 
 const formatFeatureValue = (feature: PlanFeature | undefined) => {
-  if (!feature || feature.enabled === false) {
-    return "Not Included";
-  }
-  if (feature.daily_quota === null || feature.daily_quota === undefined) {
-    return "Unlimited";
-  }
-  if (typeof feature.daily_quota === "number") {
-    return `${feature.daily_quota} / day`;
-  }
+  if (!feature || feature.enabled === false) return "Not Included";
+  if (feature.daily_quota === null || feature.daily_quota === undefined) return "Unlimited";
+  if (typeof feature.daily_quota === "number") return `${feature.daily_quota} / day`;
   return "Included";
 };
 
-const PaymentRequired = () => {
+const SubscriptionPlansPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -49,6 +46,7 @@ const PaymentRequired = () => {
     reloadEntitlements,
     loadProfile,
     isAuthenticated,
+    getAccessToken,
   } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState({
     hasPaid: false,
@@ -58,23 +56,28 @@ const PaymentRequired = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const locale = getLocale();
-  const trialEndLabel = useMemo(() => {
-    if (!entitlements?.trialEnd) {
-      return null;
-    }
-    return formatDate(entitlements.trialEnd, locale);
-  }, [entitlements?.trialEnd, locale]);
+  const trialEndLabel = useMemo(
+    () => (entitlements?.trialEnd ? formatDate(entitlements.trialEnd, locale) : null),
+    [entitlements?.trialEnd, locale]
+  );
 
   const fetchSubscriptionInfo = useCallback(async () => {
     try {
-      const profilePayload = await loadProfile();
+      const profilePayload = await loadProfile?.({ force: true });
       const userData = profilePayload?.user_data || profilePayload || {};
       setSubscriptionInfo({
-        hasPaid: Boolean(entitlements?.entitled || userData?.has_paid),
-        questionnaireComplete: Boolean(userData?.is_questionnaire_completed),
+        hasPaid: Boolean(
+          entitlements?.entitled ||
+            userData?.has_paid ||
+            (profilePayload as { has_paid?: boolean })?.has_paid
+        ),
+        questionnaireComplete: Boolean(
+          userData?.is_questionnaire_completed ??
+            (profilePayload as { is_questionnaire_completed?: boolean })?.is_questionnaire_completed
+        ),
       });
-    } catch (error) {
-      console.error("Error fetching subscription info:", error);
+    } catch (e) {
+      console.error("Error fetching subscription info:", e);
     }
   }, [entitlements?.entitled, loadProfile]);
 
@@ -83,110 +86,108 @@ const PaymentRequired = () => {
   }, [fetchSubscriptionInfo]);
 
   useEffect(() => {
-    if (
-      entitlements?.status === "active" ||
-      entitlements?.status === "trialing"
-    ) {
+    if (entitlements?.status === "active" || entitlements?.status === "trialing") {
       navigate("/billing", { replace: true });
     }
   }, [entitlements?.status, navigate]);
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const response = await axios.get(`${BACKEND_URL}/plans/`);
-        setPlans(response.data?.plans || []);
-      } catch (error) {
-        console.warn("Failed to load subscription plans:", error);
-      } finally {
-        setLoadingPlans(false);
-      }
-    };
-    fetchPlans();
+    axios
+      .get(`${BACKEND_URL}/plans/`)
+      .then((r) => setPlans(r.data?.plans || []))
+      .catch(() => {})
+      .finally(() => setLoadingPlans(false));
   }, []);
 
   const handleSubscriptionNavigate = useCallback(() => {
+    if (subscriptionInfo.hasPaid) {
+      navigate("/personalized-path");
+      return;
+    }
     if (!subscriptionInfo.questionnaireComplete) {
-      navigate("/questionnaire");
+      navigate("/onboarding");
       return;
     }
-    if (!subscriptionInfo.hasPaid) {
-      navigate("/subscriptions", { state: { from: "/subscriptions" } });
-      return;
-    }
-    navigate("/personalized-path");
-  }, [
-    navigate,
-    subscriptionInfo.hasPaid,
-    subscriptionInfo.questionnaireComplete,
-  ]);
+    navigate("/subscriptions", { state: { from: "/subscriptions" } });
+  }, [navigate, subscriptionInfo.hasPaid, subscriptionInfo.questionnaireComplete]);
 
-  const searchParams = useMemo(
-    () => new URLSearchParams(location.search),
+  const upgradeComplete = useMemo(
+    () => new URLSearchParams(location.search).get("redirect") === "upgradeComplete",
     [location.search]
   );
 
-  const upgradeComplete = searchParams.get("redirect") === "upgradeComplete";
-
-  const handlePlanSelect = (plan: Plan | null) => {
-    if (!plan) {
-      setSelectionError("Please choose a plan to continue.");
-      return;
-    }
-    if (!isAuthenticated) {
-      navigate("/register");
-      return;
-    }
-    setSelectionError("");
-    const params = new URLSearchParams({
-      plan_id: plan.plan_id,
-      billing_interval: plan.billing_interval,
-    });
-    navigate(`/questionnaire?${params.toString()}`);
-  };
+  const handlePlanSelect = useCallback(
+    async (plan: Plan | null) => {
+      if (!plan) {
+        setSelectionError("Please choose a plan to continue.");
+        return;
+      }
+      if (!isAuthenticated) {
+        navigate("/register");
+        return;
+      }
+      setSelectionError("");
+      if (!subscriptionInfo.questionnaireComplete) {
+        setSelectionError("Please complete onboarding before choosing a plan.");
+        navigate("/onboarding");
+        return;
+      }
+      const isStarter = plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
+      if (isStarter) {
+        reloadEntitlements?.();
+        navigate("/all-topics");
+        return;
+      }
+      try {
+        const r = await axios.post(
+          `${BACKEND_URL}/subscriptions/create/`,
+          { plan_id: plan.plan_id, billing_interval: plan.billing_interval },
+          { headers: { Authorization: `Bearer ${getAccessToken?.() ?? ""}` } }
+        );
+        if (r.data?.redirect_url) {
+          window.location.assign(r.data.redirect_url);
+          return;
+        }
+      } catch (err) {
+        setSelectionError(
+          (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+            "Could not start checkout. Please try again."
+        );
+      }
+    },
+    [isAuthenticated, navigate, subscriptionInfo.questionnaireComplete, reloadEntitlements, getAccessToken]
+  );
 
   useEffect(() => {
     if (typeof recordFunnelEvent === "function") {
-      Promise.resolve(recordFunnelEvent("pricing_view")).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error("Failed to log pricing view:", error);
-      });
+      Promise.resolve(recordFunnelEvent("pricing_view")).catch(() => {});
     }
   }, []);
 
-  const planCards = useMemo(() => {
-    if (!plans.length) return [];
-    return [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  }, [plans]);
+  const planCards = useMemo(
+    () => [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    [plans]
+  );
 
   const comparisonRows = useMemo(() => {
     if (!plans.length) return [];
-    const monthlyPlans = plans.filter(
-      (plan) => plan.billing_interval === "monthly"
-    );
-    const planById = monthlyPlans.reduce<Record<string, Plan>>((acc, plan) => {
-      acc[plan.plan_id] = plan;
+    const monthly = plans.filter((p) => p.billing_interval === "monthly");
+    const byId = monthly.reduce<Record<string, Plan>>((acc, p) => {
+      acc[p.plan_id] = p;
       return acc;
     }, {});
-    const featureKeys = new Set<string>();
-    Object.values(planById).forEach((plan) => {
-      Object.keys(plan?.features || {}).forEach((key) => featureKeys.add(key));
-    });
-    if (!featureKeys.size) return [];
-    return Array.from(featureKeys).map((key) => {
-      const starterFeature = planById.starter?.features?.[key];
-      const plusFeature = planById.plus?.features?.[key];
-      const proFeature = planById.pro?.features?.[key];
-      const label =
-        starterFeature?.name ||
-        plusFeature?.name ||
-        proFeature?.name ||
-        key.replace(/_/g, " ");
+    const keys = new Set<string>();
+    Object.values(byId).forEach((p) => Object.keys(p?.features || {}).forEach((k) => keys.add(k)));
+    return Array.from(keys).map((key) => {
+      const s = byId.starter?.features?.[key];
+      const pl = byId.plus?.features?.[key];
+      const pr = byId.pro?.features?.[key];
+      const label = s?.name || pl?.name || pr?.name || key.replace(/_/g, " ");
       return {
         feature: label,
-        starter: formatFeatureValue(starterFeature),
-        plus: formatFeatureValue(plusFeature),
-        pro: formatFeatureValue(proFeature),
+        starter: formatFeatureValue(s),
+        plus: formatFeatureValue(pl),
+        pro: formatFeatureValue(pr),
       };
     });
   }, [plans]);
@@ -216,32 +217,28 @@ const PaymentRequired = () => {
               </p>
             )}
             {entitlementError && (
-              <p className="text-sm text-[color:var(--error,#dc2626)]">
-                {entitlementError}
-              </p>
+              <p className="text-sm text-[color:var(--error,#dc2626)]">{entitlementError}</p>
             )}
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           {loadingPlans && (
-            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Loading plans...
-            </div>
+            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">Loading plans...</div>
           )}
           {!loadingPlans &&
             planCards.map((plan) => {
               const features = Object.values(plan.features || {})
-                .map((feature) => feature?.description || feature?.name)
+                .map((f) => f?.description || f?.name)
                 .filter(Boolean);
               const isStarter =
-                plan.plan_id === "starter" ||
-                Number(plan.price_amount || 0) === 0;
+                plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
               const isHighlight = plan.plan_id === "plus";
               const trialLabel = plan.trial_days
-                ? `${plan.trial_days} day${plan.trial_days > 1 ? 's' : ''} trial`
+                ? `${plan.trial_days} day${plan.trial_days > 1 ? "s" : ""} trial`
                 : null;
-              const translatedName = plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+              const name =
+                plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               return (
                 <div
                   key={`${plan.plan_id}-${plan.billing_interval}`}
@@ -254,7 +251,7 @@ const PaymentRequired = () => {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                        {translatedName}
+                        {name}
                       </div>
                       {trialLabel && (
                         <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
@@ -270,18 +267,13 @@ const PaymentRequired = () => {
                         { minimumFractionDigits: 0 }
                       )}
                       <span className="ml-1 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-                        {` / ${plan.billing_interval === 'monthly' ? 'month' : plan.billing_interval === 'yearly' ? 'year' : plan.billing_interval}`}
+                        {` / ${plan.billing_interval === "monthly" ? "month" : plan.billing_interval === "yearly" ? "year" : plan.billing_interval}`}
                       </span>
                     </div>
                   </div>
                   <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
-                    {(features.length
-                      ? features
-                      : [
-                          "Premium learning access",
-                        ]
-                    ).map((feature) => (
-                      <li key={feature}>• {feature}</li>
+                    {(features.length ? features : ["Premium learning access"]).map((fe) => (
+                      <li key={fe}>• {fe}</li>
                     ))}
                   </ul>
                   <GlassButton
@@ -289,18 +281,15 @@ const PaymentRequired = () => {
                     className="w-full"
                     onClick={() => handlePlanSelect(plan)}
                   >
-                    {isStarter
-                      ? "Start with Starter"
-                      : `Choose ${translatedName}`}
+                    {isStarter ? "Start with Starter" : `Choose ${name}`}
                   </GlassButton>
                 </div>
               );
             })}
         </div>
+
         {selectionError && (
-          <p className="text-sm text-[color:var(--error,#dc2626)]">
-            {selectionError}
-          </p>
+          <p className="text-sm text-[color:var(--error,#dc2626)]">{selectionError}</p>
         )}
 
         <div className="flex flex-wrap items-center justify-center gap-3 text-center">
@@ -322,13 +311,9 @@ const PaymentRequired = () => {
           )}
         </div>
 
-        {/* Subscription Status Card */}
         <div
-          className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all p-6 hover:shadow-xl hover:shadow-[color:var(--shadow-color,rgba(0,0,0,0.12))] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-          style={{
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }}
+          className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+          style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
         >
           <div className="space-y-1">
             <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -402,4 +387,4 @@ const PaymentRequired = () => {
   );
 };
 
-export default PaymentRequired;
+export default SubscriptionPlansPage;

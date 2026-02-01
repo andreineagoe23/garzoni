@@ -113,7 +113,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
         </h2>
 
         <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-          You've completed the onboarding questionnaire. Here are your rewards:
+          You've completed onboarding. Here are your rewards:
         </p>
 
         {/* Rewards */}
@@ -135,7 +135,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
         {/* Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <GlassButton variant="primary" size="lg" onClick={onStartLearning}>
-            Start Learning →
+            Choose a Plan →
           </GlassButton>
           <GlassButton variant="ghost" size="lg" onClick={onClose}>
             Close
@@ -147,4 +147,3 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
 };
 
 export default QuestionnaireCompletionModal;
-

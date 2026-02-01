@@ -5,17 +5,22 @@ from onboarding.models import QuestionnaireVersion, QuestionnaireProgress
 from authentication.models import UserProfile
 from decimal import Decimal
 
+# Test fixture (not a real secret)
+TEST_USER_PASSWORD = "testpass123"  # pragma: allowlist secret
+
 
 class QuestionnaireProgressTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
+            username="testuser",
+            email="test@example.com",
+            password=TEST_USER_PASSWORD,
         )
         self.user_profile = UserProfile.objects.get(user=self.user)
 
         # Create questionnaire version
         self.version = QuestionnaireVersion.objects.create(
-            version=1,
+            version=2,
             is_active=True,
             questionnaire_structure={
                 "sections": [
@@ -167,11 +172,13 @@ class QuestionnaireProgressTestCase(TestCase):
 class QuestionnaireSkipLogicTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
+            username="testuser",
+            email="test@example.com",
+            password=TEST_USER_PASSWORD,
         )
 
         self.version = QuestionnaireVersion.objects.create(
-            version=1,
+            version=2,
             is_active=True,
             questionnaire_structure={
                 "sections": [
@@ -234,4 +241,3 @@ class QuestionnaireSkipLogicTestCase(TestCase):
             "value": "advanced",
         }
         self.assertTrue(_evaluate_skip_condition(condition, answers))
-

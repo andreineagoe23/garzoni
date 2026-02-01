@@ -1,4 +1,7 @@
 // _header.scss
+@use "../abstracts/variables" as *;
+@use "../abstracts/mixins" as *;
+
 .app-header {
   position: fixed;
   top: 0;

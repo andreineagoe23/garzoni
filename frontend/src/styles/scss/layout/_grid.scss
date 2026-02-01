@@ -1,4 +1,8 @@
 // _grid.scss - Custom grid and responsive layout settings
+@use "sass:math";
+@use "sass:map";
+@use "../abstracts/variables" as *;
+@use "../abstracts/mixins" as *;
 
 // Custom container classes
 .container-fluid {
@@ -49,13 +53,13 @@
 
   // Spacer rows
   &.spacer-sm {
-    margin-bottom: map-get($spacers, 2);
+    margin-bottom: map.get($spacers, 2);
   }
   &.spacer-md {
-    margin-bottom: map-get($spacers, 3);
+    margin-bottom: map.get($spacers, 3);
   }
   &.spacer-lg {
-    margin-bottom: map-get($spacers, 4);
+    margin-bottom: map.get($spacers, 4);
   }
 }
 
@@ -71,23 +75,23 @@
 
 // Grid gap utilities
 .gap-1 {
-  gap: map-get($spacers, 1);
+  gap: map.get($spacers, 1);
 }
 .gap-2 {
-  gap: map-get($spacers, 2);
+  gap: map.get($spacers, 2);
 }
 .gap-3 {
-  gap: map-get($spacers, 3);
+  gap: map.get($spacers, 3);
 }
 .gap-4 {
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 }
 .gap-5 {
-  gap: map-get($spacers, 5);
+  gap: map.get($spacers, 5);
 }
 
 // Responsive spacing helpers
-@each $breakpoint in map-keys($grid-breakpoints) {
+@each $breakpoint in map.keys($grid-breakpoints) {
   @include media-breakpoint-up($breakpoint) {
     .min-vh-#{$breakpoint} {
       min-height: 100vh;
@@ -115,16 +119,16 @@
 @for $i from 1 through 12 {
   .col-#{$i} {
     flex: 0 0 auto;
-    width: percentage($i / 12);
+    width: math.percentage(math.div($i, 12));
   }
 }
 
-@each $breakpoint in map-keys($grid-breakpoints) {
+@each $breakpoint in map.keys($grid-breakpoints) {
   @include media-breakpoint-up($breakpoint) {
     @for $i from 1 through 12 {
       .col-#{$breakpoint}-#{$i} {
         flex: 0 0 auto;
-        width: percentage($i / 12);
+        width: math.percentage(math.div($i, 12));
       }
     }
   }
@@ -135,19 +139,19 @@
   --bs-gutter-x: 0;
 }
 .g-1 {
-  --bs-gutter-x: #{map-get($spacers, 1)};
+  --bs-gutter-x: #{map.get($spacers, 1)};
 }
 .g-2 {
-  --bs-gutter-x: #{map-get($spacers, 2)};
+  --bs-gutter-x: #{map.get($spacers, 2)};
 }
 .g-3 {
-  --bs-gutter-x: #{map-get($spacers, 3)};
+  --bs-gutter-x: #{map.get($spacers, 3)};
 }
 .g-4 {
-  --bs-gutter-x: #{map-get($spacers, 4)};
+  --bs-gutter-x: #{map.get($spacers, 4)};
 }
 .g-5 {
-  --bs-gutter-x: #{map-get($spacers, 5)};
+  --bs-gutter-x: #{map.get($spacers, 5)};
 }
 
 // Custom breakpoint for laptops specifically
@@ -155,7 +159,7 @@
   @for $i from 1 through 12 {
     .col-laptop-#{$i} {
       flex: 0 0 auto;
-      width: percentage($i / 12);
+      width: math.percentage(math.div($i, 12));
     }
   }
 
@@ -188,7 +192,7 @@
 // Grid card layout system
 .grid-cards {
   display: grid;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   &.grid-1 {
     grid-template-columns: 1fr;
@@ -199,7 +203,7 @@
 
     @media (min-width: 993px) and (max-width: 1366px) {
       grid-template-columns: repeat(2, 1fr);
-      gap: map-get($spacers, 3);
+      gap: map.get($spacers, 3);
     }
 
     @include media-breakpoint-up(md) {
@@ -212,7 +216,7 @@
 
     @media (min-width: 993px) and (max-width: 1366px) {
       grid-template-columns: repeat(2, 1fr);
-      gap: map-get($spacers, 3);
+      gap: map.get($spacers, 3);
     }
 
     @include media-breakpoint-up(md) {
@@ -229,7 +233,7 @@
 
     @media (min-width: 993px) and (max-width: 1366px) {
       grid-template-columns: repeat(3, 1fr);
-      gap: map-get($spacers, 3);
+      gap: map.get($spacers, 3);
     }
 
     @include media-breakpoint-up(md) {
@@ -245,26 +249,26 @@
 // Auto-fit grid for dynamic content
 .grid-auto-fit {
   display: grid;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   // Base size for all screens
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 
   // Laptop size adjustments
   @media (min-width: 993px) and (max-width: 1366px) {
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 
   // Tablet size adjustments
   @include media-breakpoint-down(lg) {
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
   // Mobile size adjustments
   @include media-breakpoint-down(md) {
-    gap: map-get($spacers, 2);
+    gap: map.get($spacers, 2);
     grid-template-columns: 1fr;
   }
 }
@@ -272,7 +276,7 @@
 // Grid with sidebar layout
 .grid-with-sidebar {
   display: grid;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   @include media-breakpoint-up(lg) {
     grid-template-columns: 3fr 1fr;
@@ -280,7 +284,7 @@
 
   @media (min-width: 993px) and (max-width: 1366px) {
     grid-template-columns: 2fr 1fr;
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
   }
 
   @include media-breakpoint-down(lg) {
@@ -291,14 +295,14 @@
 // Equal height cards in a grid
 .card-grid {
   display: grid;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   @media (min-width: 993px) and (max-width: 1366px) {
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
   }
 
   @include media-breakpoint-down(md) {
-    gap: map-get($spacers, 2);
+    gap: map.get($spacers, 2);
   }
 
   .card {
