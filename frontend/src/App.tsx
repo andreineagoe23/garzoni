@@ -1,3 +1,7 @@
+/**
+ * App root: router, providers, and route definitions.
+ * Page components are lazy-loaded except SubscriptionPlans (static import so it stays in main bundle).
+ */
 import React, { Suspense, useEffect, useRef } from "react";
 import {
   BrowserRouter as Router,
@@ -15,64 +19,56 @@ import ProtectedRoute from "components/auth/ProtectedRoute";
 import Chatbot from "components/widgets/Chatbot";
 import ErrorBoundary from "components/common/ErrorBoundary";
 import { useOnlineSync } from "hooks/useOnlineSync";
+import Login from "components/auth/Login";
+import Register from "components/auth/Register";
+import ForgotPassword from "components/auth/ForgotPassword";
+import ResetPassword from "components/auth/ResetPassword";
+import SubscriptionPlans from "./SubscriptionPlansPage";
 import "./styles/scss/main.scss";
-
-const Login = React.lazy(() => import("components/auth/Login"));
-const Register = React.lazy(() => import("components/auth/Register"));
-const Welcome = React.lazy(() => import("components/landing/Welcome"));
-const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
+const Welcome = React.lazy(() => import("./components/landing/Welcome"));
+const CoursePage = React.lazy(() => import("./components/courses/CoursePage"));
 const CourseFlowPage = React.lazy(
-  () => import("components/courses/CourseFlowPage")
+  () => import("./components/courses/CourseFlowPage")
 );
-const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
-const Navbar = React.lazy(() => import("components/layout/Navbar"));
-const Footer = React.lazy(() => import("components/layout/Footer"));
-const Profile = React.lazy(() => import("components/profile/Profile"));
-const Settings = React.lazy(() => import("components/profile/Settings"));
-const QuizPage = React.lazy(() => import("components/courses/QuizPage"));
+const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard"));
+const Navbar = React.lazy(() => import("./components/layout/Navbar"));
+const Footer = React.lazy(() => import("./components/layout/Footer"));
+const Profile = React.lazy(() => import("./components/profile/Profile"));
+const Settings = React.lazy(() => import("./components/profile/Settings"));
+const QuizPage = React.lazy(() => import("./components/courses/QuizPage"));
 const Leaderboards = React.lazy(
-  () => import("components/engagement/Leaderboard")
+  () => import("./components/engagement/Leaderboard")
 );
-const Missions = React.lazy(() => import("components/engagement/Missions"));
-const Questionnaire = React.lazy(
-  () => import("components/onboarding/Questionnaire")
-);
+const Missions = React.lazy(() => import("./components/engagement/Missions"));
 const OnboardingQuestionnaire = React.lazy(
-  () => import("components/onboarding/OnboardingQuestionnaire")
+  () => import("./components/onboarding/OnboardingQuestionnaire")
 );
-const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
-const ForgotPassword = React.lazy(
-  () => import("components/auth/ForgotPassword")
-);
-const ResetPassword = React.lazy(() => import("components/auth/ResetPassword"));
-const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
-const FAQPage = React.lazy(() => import("components/support/FAQPage"));
+const ToolsPage = React.lazy(() => import("./components/tools/ToolsPage"));
+const RewardsPage = React.lazy(() => import("./components/rewards/RewardsPage"));
+const FAQPage = React.lazy(() => import("./components/support/FAQPage"));
 const ExercisePage = React.lazy(
-  () => import("components/exercises/ExercisePage")
+  () => import("./components/exercises/ExercisePage")
 );
-const UpgradePage = React.lazy(() => import("components/billing/Upgrade"));
-const SubscriptionPlans = React.lazy(
-  () => import("components/billing/PaymentRequired")
-);
+const UpgradePage = React.lazy(() => import("./components/billing/Upgrade"));
 const SubscriptionManager = React.lazy(
-  () => import("components/billing/SubscriptionManager")
+  () => import("./components/billing/SubscriptionManager")
 );
 const PrivacyPolicy = React.lazy(
-  () => import("components/legal/PrivacyPolicy")
+  () => import("./components/legal/PrivacyPolicy")
 );
-const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
-const PricingPage = React.lazy(() => import("components/landing/Pricing"));
+const CookiePolicy = React.lazy(() => import("./components/legal/CookiePolicy"));
+const PricingPage = React.lazy(() => import("./components/landing/Pricing"));
 const PricingFunnelDashboard = React.lazy(
-  () => import("components/analytics/PricingFunnelDashboard")
+  () => import("./components/analytics/PricingFunnelDashboard")
 );
 
 const preloaders = [
-  () => import("components/dashboard/Dashboard"),
-  () => import("components/courses/CoursePage"),
-  () => import("components/courses/CourseFlowPage"),
-  () => import("components/billing/SubscriptionManager"),
-  () => import("components/engagement/Missions"),
-  () => import("components/profile/Profile"),
+  () => import("./components/dashboard/Dashboard"),
+  () => import("./components/courses/CoursePage"),
+  () => import("./components/courses/CourseFlowPage"),
+  () => import("./components/billing/SubscriptionManager"),
+  () => import("./components/engagement/Missions"),
+  () => import("./components/profile/Profile"),
 ];
 
 const canPrefetchChunks = () => {
@@ -156,7 +152,6 @@ const AppContent = () => {
     "/welcome",
     "/forgot-password",
     "/password-reset",
-    "/questionnaire",
     "/payment-required",
     "/privacy-policy",
     "/cookie-policy",
@@ -164,7 +159,7 @@ const AppContent = () => {
   ];
 
   const noNavbarPaths = publicPaths;
-  const noChatbotPaths = publicPaths;
+  const noChatbotPaths = [...publicPaths, "/onboarding"];
   // Pages that render a standalone marketing/auth layout (they render their own Footer)
   const noFooterPaths = [
     "/",
@@ -320,7 +315,6 @@ const AppContent = () => {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route
                   path="/onboarding"
                   element={

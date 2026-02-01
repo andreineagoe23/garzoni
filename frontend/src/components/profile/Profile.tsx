@@ -12,6 +12,7 @@ import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
+import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 const activityIcons = {
   lesson: "📘",
@@ -34,7 +35,7 @@ function Profile() {
     points: 0,
     streak: 0,
   });
-  const [imageUrl, setImageUrl] = useState("/default-avatar.png");
+  const [imageUrl, setImageUrl] = useState(DEFAULT_AVATAR_URL);
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,7 +127,7 @@ function Profile() {
         });
 
         setImageUrl(
-          String(profileUserData.profile_avatar || "/default-avatar.png")
+          String(profileUserData.profile_avatar || DEFAULT_AVATAR_URL)
         );
         setActivityCalendar(profilePayload.activity_calendar || {});
         setCurrentMonth(profilePayload.current_month || {});
@@ -346,7 +347,7 @@ function Profile() {
         <section className="flex flex-col items-center gap-6 text-center">
           <div className="relative">
             <img
-              src={imageUrl || "/default-avatar.png"}
+              src={imageUrl || DEFAULT_AVATAR_URL}
               alt="Avatar"
               className="h-36 w-36 rounded-full border-4 border-[color:var(--accent,#2563eb)] object-cover shadow-xl shadow-[color:var(--accent,#2563eb)]/20"
             />

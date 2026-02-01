@@ -1,4 +1,5 @@
 // _variables.scss - Primary source of design tokens
+@use "sass:color";
 
 button,
 a,
@@ -20,9 +21,9 @@ $dark: #1a1a1a;
 $light: #f8f9fa;
 
 // Derived color values
-$primary-dark: darken($primary, 10%);
-$primary-light: lighten($primary, 10%);
-$accent-dark: darken($accent, 10%);
+$primary-dark: color.adjust($primary, $lightness: -10%);
+$primary-light: color.adjust($primary, $lightness: 10%);
+$accent-dark: color.adjust($accent, $lightness: -10%);
 
 // Spacing
 $spacer: 1rem;

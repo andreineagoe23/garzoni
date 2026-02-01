@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import axios from "axios";
 import { formatCurrency, getLocale } from "utils/format";
 
-import PaymentRequired from "./PaymentRequired";
+import SubscriptionPlansPage from "./SubscriptionPlansPage";
 
 jest.mock("services/analyticsService", () => ({
   recordFunnelEvent: jest.fn(),
@@ -92,7 +92,7 @@ const plansResponse = {
   ],
 };
 
-describe("PaymentRequired", () => {
+describe("SubscriptionPlansPage", () => {
   beforeEach(async () => {
     axiosMock.get.mockResolvedValue({ data: plansResponse });
     Object.defineProperty(window, "location", {
@@ -105,7 +105,7 @@ describe("PaymentRequired", () => {
   it("renders plan details from /plans", async () => {
     render(
       <MemoryRouter initialEntries={["/subscriptions"]}>
-        <PaymentRequired />
+        <SubscriptionPlansPage />
       </MemoryRouter>
     );
 
@@ -129,10 +129,10 @@ describe("PaymentRequired", () => {
     ).toBeInTheDocument();
   });
 
-  it("navigates to questionnaire with selected plan", async () => {
+  it("navigates to onboarding before selecting a plan", async () => {
     render(
       <MemoryRouter initialEntries={["/subscriptions"]}>
-        <PaymentRequired />
+        <SubscriptionPlansPage />
       </MemoryRouter>
     );
 
@@ -142,9 +142,7 @@ describe("PaymentRequired", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        "/questionnaire?plan_id=plus&billing_interval=monthly"
-      );
+      expect(mockNavigate).toHaveBeenCalledWith("/onboarding");
     });
   });
 });

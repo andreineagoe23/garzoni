@@ -35,7 +35,8 @@ function Register() {
     try {
       const result = await registerUser(formData);
       if (result.success) {
-        navigate("/all-topics");
+        // Always send new users to onboarding first; replace so back doesn't return to register
+        navigate("/onboarding", { replace: true });
       } else {
         setErrorMessage(result.error || "Registration failed. Please try again.");
       }

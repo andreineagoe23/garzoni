@@ -115,17 +115,17 @@ describe("Dashboard personalized path CTA", () => {
     });
   });
 
-  it("routes to questionnaire when personalization is incomplete", () => {
+  it("routes to onboarding when personalization is incomplete", () => {
     mockProfileResponse = { is_questionnaire_completed: false };
 
     render(<Dashboard />);
 
     fireEvent.click(screen.getByRole("button", { name: /personalizedPath/i }));
 
-    expect(mockNavigate).toHaveBeenCalledWith("/questionnaire");
+    expect(mockNavigate).toHaveBeenCalledWith("/onboarding");
   });
 
-  it("routes to personalized path when questionnaire is finished", () => {
+  it("routes to personalized path when onboarding is finished", () => {
     // Personalized path access also requires Premium (has_paid)
     mockProfileResponse = { is_questionnaire_completed: true, has_paid: true };
 

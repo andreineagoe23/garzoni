@@ -83,8 +83,11 @@ function PersonalizedPath({
       if (status === 400 || status === 403) {
         if (redirectPath) {
           navigate(redirectPath);
-        } else if (errorMessage.toLowerCase().includes("questionnaire")) {
-          navigate("/questionnaire");
+        } else if (
+          errorMessage.toLowerCase().includes("onboarding") ||
+          errorMessage.toLowerCase().includes("questionnaire")
+        ) {
+          navigate("/onboarding");
         } else if (errorMessage.toLowerCase().includes("payment")) {
           navigate("/subscriptions");
         } else {
@@ -170,7 +173,7 @@ function PersonalizedPath({
         );
 
         if (!questionnaireCompleted) {
-          navigate("/questionnaire");
+          navigate("/onboarding");
           return;
         }
 
@@ -367,10 +370,10 @@ function PersonalizedPath({
 
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          🔁 Based on your latest questionnaire responses —{" "}
+          🔁 Based on your latest onboarding answers —{" "}
           <button
             type="button"
-            onClick={() => navigate("/questionnaire")}
+            onClick={() => navigate("/onboarding")}
             className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
           >
             Update Preferences

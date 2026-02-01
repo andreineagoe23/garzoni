@@ -13,12 +13,13 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    # Onboarding first so /api/questionnaire/* is matched before other app catch-alls
+    path("api/", include("onboarding.urls")),
     path("api/", include("authentication.urls")),
     path("api/", include("education.urls")),
     path("api/", include("gamification.urls")),
     path("api/", include("finance.urls")),
     path("api/", include("support.urls")),
-    path("api/", include("onboarding.urls")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 

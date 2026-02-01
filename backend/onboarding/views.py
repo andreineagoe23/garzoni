@@ -19,6 +19,7 @@ from onboarding.serializers import (
     QuestionnaireCompletionSerializer,
 )
 from authentication.models import UserProfile
+from authentication.services.profile import invalidate_profile_cache
 from finance.utils import record_funnel_event
 
 logger = logging.getLogger(__name__)
@@ -26,10 +27,124 @@ logger = logging.getLogger(__name__)
 # Stale progress cleanup threshold (30 days)
 STALE_PROGRESS_THRESHOLD_DAYS = 30
 
+# Short questionnaire (~1–2 min): 2 sections, 6 questions, all single-tap.
+# Ensures /api/questionnaire/progress/ never returns 503 for "no active version".
+DEFAULT_QUESTIONNAIRE_STRUCTURE = {
+    "sections": [
+        {
+            "id": "goals",
+            "title": "Goals",
+            "questions": [
+                {
+                    "id": "primary_goal",
+                    "type": "multiple_choice",
+                    "text": "What's your top money goal right now?",
+                    "options": [
+                        {"value": "budget", "label": "Build a budget"},
+                        {"value": "debt", "label": "Pay down debt"},
+                        {"value": "savings", "label": "Grow savings"},
+                        {"value": "invest", "label": "Start investing"},
+                    ],
+                    "required": True,
+                },
+                {
+                    "id": "biggest_challenge",
+                    "type": "multiple_choice",
+                    "text": "What's your biggest challenge?",
+                    "options": [
+                        {"value": "overspending", "label": "Overspending"},
+                        {"value": "no_plan", "label": "No clear plan"},
+                        {"value": "debt", "label": "Debt"},
+                        {"value": "confidence", "label": "Low confidence"},
+                    ],
+                    "required": True,
+                },
+                {
+                    "id": "time_horizon",
+                    "type": "multiple_choice",
+                    "text": "When do you want to see progress?",
+                    "options": [
+                        {"value": "30_days", "label": "30 days"},
+                        {"value": "3_months", "label": "3 months"},
+                        {"value": "6_months", "label": "6 months"},
+                        {"value": "year", "label": "A year"},
+                    ],
+                    "required": True,
+                },
+            ],
+        },
+        {
+            "id": "snapshot",
+            "title": "Quick snapshot",
+            "questions": [
+                {
+                    "id": "income_type",
+                    "type": "multiple_choice",
+                    "text": "How do you get paid?",
+                    "options": [
+                        {"value": "salaried", "label": "Steady paycheck"},
+                        {"value": "variable", "label": "Variable / freelance"},
+                        {"value": "student", "label": "Student"},
+                        {"value": "other", "label": "Other"},
+                    ],
+                    "required": True,
+                },
+                {
+                    "id": "budgeting_style",
+                    "type": "multiple_choice",
+                    "text": "How do you manage money today?",
+                    "options": [
+                        {"value": "no_track", "label": "I don't track it"},
+                        {"value": "basic", "label": "Basic tracking"},
+                        {"value": "app", "label": "App or spreadsheet"},
+                    ],
+                    "required": True,
+                },
+                {
+                    "id": "learning_style",
+                    "type": "multiple_choice",
+                    "text": "How do you prefer to learn?",
+                    "options": [
+                        {"value": "quick", "label": "Quick lessons"},
+                        {"value": "deep", "label": "Deep dives"},
+                        {"value": "interactive", "label": "Interactive"},
+                    ],
+                    "required": True,
+                },
+            ],
+        },
+    ],
+}
+
 
 def _get_active_questionnaire_version():
     """Get the currently active questionnaire version."""
     return QuestionnaireVersion.objects.filter(is_active=True).order_by("-version").first()
+
+
+def _ensure_active_questionnaire_version():
+    """
+    Ensure an active questionnaire version exists (for progress creation).
+    Creates or reactivates version 1 with the default structure so the progress
+    endpoint never returns 503 for "no active version".
+    """
+    version = _get_active_questionnaire_version()
+    if version:
+        if version.questionnaire_structure != DEFAULT_QUESTIONNAIRE_STRUCTURE:
+            version.questionnaire_structure = DEFAULT_QUESTIONNAIRE_STRUCTURE
+            version.save(update_fields=["questionnaire_structure"])
+        return version
+    existing = QuestionnaireVersion.objects.filter(version=1).first()
+    if existing:
+        existing.is_active = True
+        existing.questionnaire_structure = DEFAULT_QUESTIONNAIRE_STRUCTURE
+        existing.save(update_fields=["is_active", "questionnaire_structure"])
+        return existing
+    return QuestionnaireVersion.objects.create(
+        version=1,
+        is_active=True,
+        questionnaire_structure=DEFAULT_QUESTIONNAIRE_STRUCTURE,
+    )
 
 
 def _evaluate_skip_condition(condition, answers):
@@ -64,6 +179,21 @@ def _evaluate_skip_condition(condition, answers):
         return answer_value not in value if isinstance(value, list) else False
 
     return False
+
+
+def _get_next_indices(sections, section_index, question_index):
+    """
+    Return (next_section_index, next_question_index) after (section_index, question_index),
+    or None if there is no next question.
+    """
+    if not sections or section_index >= len(sections):
+        return None
+    questions = sections[section_index].get("questions", [])
+    if question_index + 1 < len(questions):
+        return (section_index, question_index + 1)
+    if section_index + 1 < len(sections):
+        return (section_index + 1, 0)
+    return None
 
 
 def _get_next_question(progress, section_index, question_index):
@@ -111,7 +241,9 @@ def _get_next_question(progress, section_index, question_index):
                 return None, section_index + 1, 0, True
             return _get_next_question(progress, section_index + 1, 0)
 
-    return current_question, section_index, question_index, False
+    # Is this the last question in the whole questionnaire?
+    is_last = (section_index == len(sections) - 1) and (question_index == len(questions) - 1)
+    return current_question, section_index, question_index, is_last
 
 
 def _generate_section_summary(progress, section_index):
@@ -158,16 +290,17 @@ class QuestionnaireProgressView(APIView):
         """Get current progress or create new progress if none exists."""
         try:
             progress = QuestionnaireProgress.objects.get(user=request.user)
+            if (
+                progress.version.is_active
+                and progress.version.questionnaire_structure != DEFAULT_QUESTIONNAIRE_STRUCTURE
+            ):
+                progress.version.questionnaire_structure = DEFAULT_QUESTIONNAIRE_STRUCTURE
+                progress.version.save(update_fields=["questionnaire_structure"])
             serializer = QuestionnaireProgressSerializer(progress)
             return Response(serializer.data)
         except QuestionnaireProgress.DoesNotExist:
-            # Create new progress
-            version = _get_active_questionnaire_version()
-            if not version:
-                return Response(
-                    {"error": "No active questionnaire version found"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
+            # Create new progress; ensure an active version exists so we never 503
+            version = _ensure_active_questionnaire_version()
 
             progress = QuestionnaireProgress.objects.create(
                 user=request.user,
@@ -218,7 +351,9 @@ class QuestionnaireNextQuestionView(APIView):
         structure = progress.version.questionnaire_structure
         sections = structure.get("sections", [])
         current_section = sections[section_idx] if section_idx < len(sections) else None
-        total_questions_in_section = len(current_section.get("questions", [])) if current_section else 0
+        total_questions_in_section = (
+            len(current_section.get("questions", [])) if current_section else 0
+        )
 
         response_data = {
             "question": question,
@@ -226,6 +361,8 @@ class QuestionnaireNextQuestionView(APIView):
             "question_index": question_idx,
             "total_sections": len(sections),
             "total_questions_in_section": total_questions_in_section,
+            "total_questions": progress.get_total_questions(),
+            "current_question_number": progress.get_current_question_number(),
             "progress_percentage": progress.get_progress_percentage(),
             "is_last_question": is_last,
         }
@@ -273,8 +410,6 @@ class QuestionnaireSaveAnswerView(APIView):
             existing_answer = progress.answers.get(question_id)
             if existing_answer != answer:
                 progress.answers[question_id] = answer
-                progress.current_section_index = section_index
-                progress.current_question_index = question_index
                 progress.updated_at = timezone.now()
 
                 # Update section_answers for summary
@@ -285,6 +420,19 @@ class QuestionnaireSaveAnswerView(APIView):
 
                 if time_spent is not None:
                     progress.time_spent_per_question[question_id] = time_spent
+
+                # Advance to next question so GET next-question returns the next one
+                structure = progress.version.questionnaire_structure
+                sections = structure.get("sections", [])
+                next_pos = _get_next_indices(sections, section_index, question_index)
+                if next_pos is not None:
+                    next_section, next_question = next_pos
+                    progress.current_section_index = next_section
+                    progress.current_question_index = next_question
+                else:
+                    # Last question answered; leave indices so complete() can run
+                    progress.current_section_index = section_index
+                    progress.current_question_index = question_index
 
                 progress.save()
 
@@ -319,28 +467,25 @@ class QuestionnaireCompleteView(APIView):
         if not idempotency_key:
             idempotency_key = f"{request.user.id}_{uuid.uuid4().hex[:16]}"
 
-        try:
-            progress = QuestionnaireProgress.objects.select_for_update().get(user=request.user)
-        except QuestionnaireProgress.DoesNotExist:
-            return Response(
-                {"error": "No questionnaire progress found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        with transaction.atomic():
+            try:
+                progress = QuestionnaireProgress.objects.get(user=request.user)
+            except QuestionnaireProgress.DoesNotExist:
+                return Response(
+                    {"error": "No questionnaire progress found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        if progress.status == "completed":
-            # Check if rewards were already granted
-            if progress.rewards_granted:
+            if progress.status == "completed" and progress.rewards_granted:
                 return Response(
                     {
                         "message": "Questionnaire already completed",
                         "rewards_granted": True,
-                        "xp_awarded": 0,  # Could store this in progress if needed
+                        "xp_awarded": 0,
                     },
                     status=status.HTTP_200_OK,
                 )
 
-        with transaction.atomic():
-            # Check idempotency
             if progress.completion_idempotency_key == idempotency_key and progress.rewards_granted:
                 return Response(
                     {
@@ -350,33 +495,22 @@ class QuestionnaireCompleteView(APIView):
                     status=status.HTTP_200_OK,
                 )
 
-            # Mark as completed
             progress.status = "completed"
             progress.completed_at = timezone.now()
             progress.completion_idempotency_key = idempotency_key
 
-            # Grant rewards (idempotent)
             if not progress.rewards_granted:
                 user_profile = request.user.profile
-                xp_reward = 100  # Base XP for completing questionnaire
-                coins_reward = 10  # Base coins
-
+                xp_reward = 100
+                coins_reward = 10
                 user_profile.add_points(xp_reward)
                 user_profile.add_money(coins_reward)
                 progress.rewards_granted = True
 
-                logger.info(
-                    "questionnaire_completed",
-                    extra={
-                        "user_id": request.user.id,
-                        "xp_awarded": xp_reward,
-                        "coins_awarded": float(coins_reward),
-                    },
-                )
-
             progress.save()
 
-            # Track analytics
+            invalidate_profile_cache(request.user)
+
             total_time = sum(progress.time_spent_per_question.values())
             record_funnel_event(
                 "questionnaire_completed",
@@ -393,10 +527,7 @@ class QuestionnaireCompleteView(APIView):
             {
                 "message": "Questionnaire completed successfully",
                 "progress": serializer.data,
-                "rewards": {
-                    "xp": 100,
-                    "coins": 10,
-                },
+                "rewards": {"xp": 100, "coins": 10},
             },
             status=status.HTTP_200_OK,
         )
@@ -466,4 +597,3 @@ class QuestionnaireCleanupView(APIView):
             {"message": f"Cleaned up {count} stale progress entries"},
             status=status.HTTP_200_OK,
         )
-

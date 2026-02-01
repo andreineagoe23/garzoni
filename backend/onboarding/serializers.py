@@ -14,6 +14,8 @@ class QuestionnaireProgressSerializer(serializers.ModelSerializer):
     progress_percentage = serializers.SerializerMethodField()
     completed_sections_count = serializers.SerializerMethodField()
     total_sections = serializers.SerializerMethodField()
+    total_questions = serializers.SerializerMethodField()
+    current_question_number = serializers.SerializerMethodField()
 
     class Meta:
         model = QuestionnaireProgress
@@ -32,6 +34,8 @@ class QuestionnaireProgressSerializer(serializers.ModelSerializer):
             "progress_percentage",
             "completed_sections_count",
             "total_sections",
+            "total_questions",
+            "current_question_number",
         ]
         read_only_fields = [
             "id",
@@ -53,6 +57,12 @@ class QuestionnaireProgressSerializer(serializers.ModelSerializer):
         sections = obj.version.questionnaire_structure.get("sections", [])
         return len(sections)
 
+    def get_total_questions(self, obj):
+        return obj.get_total_questions()
+
+    def get_current_question_number(self, obj):
+        return obj.get_current_question_number()
+
 
 class QuestionnaireAnswerSerializer(serializers.Serializer):
     """Serializer for saving individual answers."""
@@ -72,6 +82,8 @@ class QuestionnaireNextQuestionResponseSerializer(serializers.Serializer):
     question_index = serializers.IntegerField()
     total_sections = serializers.IntegerField()
     total_questions_in_section = serializers.IntegerField()
+    total_questions = serializers.IntegerField(required=False)
+    current_question_number = serializers.IntegerField(required=False)
     progress_percentage = serializers.IntegerField()
     is_last_question = serializers.BooleanField()
     section_summary = serializers.JSONField(required=False, allow_null=True)
@@ -81,4 +93,3 @@ class QuestionnaireCompletionSerializer(serializers.Serializer):
     """Serializer for completing the questionnaire."""
 
     idempotency_key = serializers.CharField(required=False, allow_blank=True)
-

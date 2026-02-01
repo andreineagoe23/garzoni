@@ -39,11 +39,11 @@ from education.serializers import (
     QuizSerializer,
     UserProgressSerializer,
     ExerciseSerializer,
-    QuestionSerializer,
 )
 from education.permissions import IsStaffOrSuperuser
 from education.utils import log_admin_action
 from authentication.models import UserProfile
+from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
 
 logger = logging.getLogger(__name__)
@@ -962,112 +962,6 @@ def next_exercise(request):
     return Response({"error": "No exercises available"}, status=404)
 
 
-class EnhancedQuestionnaireView(APIView):
-    """API view to handle the enhanced questionnaire functionality, including fetching questions, submitting answers, and generating personalized paths."""
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Handle GET requests to fetch questionnaire questions."""
-        questions = Question.objects.filter(is_active=True).order_by("order")
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        """Handle POST requests to submit questionnaire answers and initiate payment for personalized paths."""
-        try:
-            user = request.user
-            user_profile = user.profile
-            answers = request.data.get("answers", {})
-
-            if not answers:
-                return Response({"error": "No answers provided"}, status=400)
-
-            with transaction.atomic():
-                for qid, answer in answers.items():
-                    try:
-                        question = Question.objects.get(id=qid)
-                        # Validate budget allocation sum
-                        if question.type == "budget_allocation":
-                            total = sum(int(v) for v in answer.values())
-                            if total != 100:
-                                return Response(
-                                    {"error": "Budget allocation must total 100%"}, status=400
-                                )
-
-                        UserResponse.objects.update_or_create(
-                            user=user, question=question, defaults={"answer": answer}
-                        )
-                    except Question.DoesNotExist:
-                        logger.error(f"Question {qid} not found")
-                        continue
-
-                user_profile.recommended_courses = []
-                user_profile.save(update_fields=["recommended_courses"])
-
-                # Persist questionnaire completion for all of the user's progress records
-                UserProgress.objects.filter(user=user).update(is_questionnaire_completed=True)
-
-            # If user has already paid, allow them to update questionnaire and redirect to personalized path
-            if user_profile.has_paid:
-                return Response(
-                    {
-                        "success": True,
-                        "redirect": "/personalized-path",
-                        "message": "Questionnaire updated successfully",
-                    },
-                    status=200,
-                )
-
-            # Configure Stripe with your API key
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-
-            # Create Stripe Checkout Session
-            logger.info(
-                "Creating Stripe checkout session",
-                extra={"user_id": request.user.id},
-            )
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                line_items=[
-                    {
-                        "price": "price_1R9sQlBi8QnQXyou7cLlu0wF",
-                        "quantity": 1,
-                    }
-                ],
-                mode="payment",
-                success_url=(
-                    f"{settings.FRONTEND_URL}/personalized-path?"
-                    "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
-                ),
-                cancel_url=f"{settings.FRONTEND_URL}/upgrade",
-                metadata={"user_id": str(request.user.id)},
-                client_reference_id=str(request.user.id),
-            )
-
-            record_funnel_event(
-                "checkout_created",
-                user=request.user,
-                session_id=getattr(checkout_session, "id", ""),
-                metadata={
-                    "mode": checkout_session.mode,
-                    "amount_total": getattr(checkout_session, "amount_total", None),
-                },
-            )
-
-            return Response({"success": True, "redirect_url": checkout_session.url}, status=200)
-
-        except Exception as e:
-            logger.error(f"Stripe error: {str(e)}")
-            record_funnel_event(
-                "checkout_created",
-                status="error",
-                user=request.user,
-                metadata={"error": str(e)},
-            )
-            return Response({"error": "Payment processing failed"}, status=500)
-
-
 class PersonalizedPathView(APIView):
     """API view to provide personalized learning paths for users based on their responses and preferences."""
 
@@ -1081,8 +975,8 @@ class PersonalizedPathView(APIView):
             if not self._has_completed_questionnaire(request.user):
                 return Response(
                     {
-                        "error": "Please complete the questionnaire to unlock your personalized path.",
-                        "redirect": "/questionnaire",
+                        "error": "Please complete onboarding to unlock your personalized path.",
+                        "redirect": "/onboarding",
                     },
                     status=400,
                 )
@@ -1125,14 +1019,91 @@ class PersonalizedPathView(APIView):
             )
 
     def generate_recommendations(self, user_profile):
-        """Generate personalized course recommendations based on user responses."""
-        responses = UserResponse.objects.filter(user=user_profile.user)
-        path_weights = self.calculate_path_weights(responses)
-        sorted_paths = sorted(path_weights.items(), key=lambda x: x[1], reverse=True)[:3]
+        """Generate personalized course recommendations based on onboarding answers."""
+        answers = self._get_onboarding_answers(user_profile.user)
+        if answers:
+            path_weights = self.calculate_onboarding_path_weights(answers)
+            sorted_paths = self.get_sorted_paths(path_weights)
+            recommended_courses = self.get_recommended_courses(sorted_paths)
+        else:
+            responses = UserResponse.objects.filter(user=user_profile.user)
+            path_weights = self.calculate_path_weights(responses)
+            sorted_paths = [
+                name for name, _ in sorted(path_weights.items(), key=lambda x: x[1], reverse=True)
+            ]
+            recommended_courses = self.get_recommended_courses_by_name(sorted_paths)
 
-        recommended_courses = self.get_recommended_courses(sorted_paths)
         user_profile.recommended_courses = [c.id for c in recommended_courses]
         user_profile.save()
+
+    def _get_onboarding_answers(self, user):
+        progress = QuestionnaireProgress.objects.filter(user=user).first()
+        if not progress or not progress.answers:
+            return {}
+        return progress.answers
+
+    def calculate_onboarding_path_weights(self, answers):
+        """Weight paths based on onboarding questionnaire answers."""
+        weights = defaultdict(int)
+
+        primary_goal = answers.get("primary_goal")
+        if primary_goal == "budget":
+            weights["budget"] += 4
+        elif primary_goal == "debt":
+            weights["debt"] += 4
+        elif primary_goal == "savings":
+            weights["savings"] += 4
+        elif primary_goal == "invest":
+            weights["invest"] += 4
+
+        biggest_challenge = answers.get("biggest_challenge")
+        if biggest_challenge == "overspending":
+            weights["budget"] += 3
+            weights["savings"] += 1
+        elif biggest_challenge == "no_plan":
+            weights["budget"] += 2
+        elif biggest_challenge == "debt":
+            weights["debt"] += 3
+        elif biggest_challenge == "confidence":
+            weights["invest"] += 2
+
+        income_type = answers.get("income_type")
+        if income_type in {"variable", "student"}:
+            weights["budget"] += 2
+        elif income_type == "salaried":
+            weights["savings"] += 1
+
+        budgeting_style = answers.get("budgeting_style")
+        if budgeting_style == "no_track":
+            weights["budget"] += 3
+        elif budgeting_style == "basic":
+            weights["budget"] += 2
+        elif budgeting_style == "app":
+            weights["budget"] += 1
+
+        return weights
+
+    def get_sorted_paths(self, weights):
+        """Sort Path objects by keyword weights (falls back to title)."""
+        keyword_map = {
+            "budget": ["budget", "budgeting", "spending", "cash"],
+            "debt": ["debt", "credit"],
+            "savings": ["savings", "saving", "emergency"],
+            "invest": ["invest", "investing", "stocks", "portfolio"],
+        }
+
+        paths = list(Path.objects.all())
+        scored = []
+        for path in paths:
+            title = (path.title or "").lower()
+            score = 0
+            for key, keywords in keyword_map.items():
+                if any(k in title for k in keywords):
+                    score += weights.get(key, 0)
+            scored.append((path, score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return [p for p, _ in scored]
 
     def calculate_path_weights(self, responses):
         """Calculate weights for different learning paths based on user responses."""
@@ -1222,10 +1193,32 @@ class PersonalizedPathView(APIView):
             logger.error(f"Budget handling error: {str(e)}")
 
     def get_recommended_courses(self, sorted_paths):
-        """Retrieve recommended courses based on the top weighted paths."""
+        """Retrieve recommended courses based on ordered Path objects."""
         recommended_courses = []
         try:
-            for path_name, _ in sorted_paths[:3]:
+            for path in sorted_paths[:3]:
+                courses = Course.objects.filter(path=path, is_active=True).order_by("order")[:2]
+                recommended_courses.extend(courses)
+
+            if len(recommended_courses) < 10:
+                additional = (
+                    Course.objects.filter(is_active=True)
+                    .exclude(id__in=[c.id for c in recommended_courses])
+                    .order_by("-popularity")[: 10 - len(recommended_courses)]
+                )
+                recommended_courses.extend(additional)
+
+            return recommended_courses[:10]
+
+        except Exception as e:
+            logger.error(f"Course fetch error: {str(e)}")
+            return Course.objects.filter(is_active=True).order_by("?")[:10]
+
+    def get_recommended_courses_by_name(self, sorted_paths):
+        """Legacy fallback: path titles to courses."""
+        recommended_courses = []
+        try:
+            for path_name in sorted_paths[:3]:
                 courses = Course.objects.filter(
                     path__title__iexact=path_name, is_active=True
                 ).order_by("order")[:2]
@@ -1246,12 +1239,8 @@ class PersonalizedPathView(APIView):
             return Course.objects.filter(is_active=True).order_by("?")[:10]
 
     def _has_completed_questionnaire(self, user):
-        """Check whether the user has answered all active questionnaire prompts."""
-        total_questions = Question.objects.filter(is_active=True).count()
-        if total_questions == 0:
-            return True
-
-        answered_questions = UserResponse.objects.filter(
-            user=user, question__is_active=True
-        ).count()
-        return answered_questions >= total_questions
+        """Check whether the user has completed onboarding."""
+        progress = QuestionnaireProgress.objects.filter(user=user).first()
+        if progress:
+            return progress.status == "completed"
+        return False

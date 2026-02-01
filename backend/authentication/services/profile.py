@@ -4,7 +4,8 @@ from django.utils import timezone
 from django.conf import settings
 
 from authentication.models import UserProfile
-from education.models import LessonCompletion, Question, UserProgress, UserResponse
+from education.models import LessonCompletion
+from onboarding.models import QuestionnaireProgress
 
 
 def build_activity_calendar(user, first_day, last_day):
@@ -44,13 +45,10 @@ def build_profile_payload(user, profile: UserProfile):
 
     activity_calendar = build_activity_calendar(user, first_day, last_day)
 
-    active_questions = Question.objects.filter(is_active=True).count()
-    answered_questions = UserResponse.objects.filter(user=user, question__is_active=True).count()
-    questionnaire_completed = (
-        active_questions == 0
-        or answered_questions >= active_questions
-        or UserProgress.objects.filter(user=user, is_questionnaire_completed=True).exists()
-    )
+    # Use new onboarding (QuestionnaireProgress) only — so new users get is_questionnaire_completed=False
+    questionnaire_completed = QuestionnaireProgress.objects.filter(
+        user=user, status="completed"
+    ).exists()
 
     payload = {
         "user_data": {

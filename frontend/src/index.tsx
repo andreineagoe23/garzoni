@@ -28,6 +28,11 @@ if (typeof window !== "undefined") {
       window.location.replace(next);
     }
   }
+
+  // Suppress the browser's PWA "Install app" button / banner (we don't offer install).
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+  });
 }
 
 const enableLogs = process.env.REACT_APP_ENABLE_LOGS === "true";
@@ -38,34 +43,46 @@ if (!enableLogs) {
   });
 }
 
-// Suppress browser extension and PWA warnings
+// Suppress browser extension and PWA install banner warnings
 if (typeof window !== "undefined") {
-  // Suppress Chrome extension runtime.lastError warnings and PWA install prompt warnings
+  const originalLog = console.log;
   const originalError = console.error;
   const originalWarn = console.warn;
 
+  const suppressedPhrases = [
+    "runtime.lastError",
+    "message port closed",
+    "Banner not shown",
+    "beforeinstallprompt",
+    "Content Script Bridge",
+  ];
+
+  const shouldSuppress = (...args: unknown[]) => {
+    const full = args
+      .map((a) => {
+        if (typeof a === "string") return a;
+        try {
+          return JSON.stringify(a);
+        } catch {
+          return String(a);
+        }
+      })
+      .join(" ");
+    return suppressedPhrases.some((phrase) => full.includes(phrase));
+  };
+
+  console.log = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalLog.apply(console, args);
+  };
+
   console.error = function (...args) {
-    const message = args[0]?.toString() || "";
-    if (
-      message.includes("runtime.lastError") ||
-      message.includes("message port closed") ||
-      message.includes("beforeinstallprompt")
-    ) {
-      return; // Suppress these specific warnings
-    }
+    if (shouldSuppress(...args)) return;
     originalError.apply(console, args);
   };
 
   console.warn = function (...args) {
-    const message = args[0]?.toString() || "";
-    if (
-      message.includes("runtime.lastError") ||
-      message.includes("message port closed") ||
-      message.includes("Banner not shown") ||
-      message.includes("beforeinstallprompt")
-    ) {
-      return; // Suppress these specific warnings
-    }
+    if (shouldSuppress(...args)) return;
     originalWarn.apply(console, args);
   };
 }

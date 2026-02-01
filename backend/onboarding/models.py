@@ -12,7 +12,9 @@ class QuestionnaireVersion(models.Model):
     """
 
     version = models.PositiveIntegerField(unique=True, help_text="Version number")
-    is_active = models.BooleanField(default=True, help_text="Whether this version is currently active")
+    is_active = models.BooleanField(
+        default=True, help_text="Whether this version is currently active"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     questionnaire_structure = models.JSONField(
         help_text="Complete questionnaire structure with questions, sections, and skip logic"
@@ -79,23 +81,39 @@ class QuestionnaireProgress(models.Model):
     def __str__(self):
         return f"{self.user.username} - Questionnaire Progress (v{self.version.version})"
 
-    def get_progress_percentage(self):
-        """Calculate completion percentage based on sections."""
+    def get_total_questions(self):
+        """Total number of questions across all sections."""
         if not self.version.questionnaire_structure:
             return 0
         sections = self.version.questionnaire_structure.get("sections", [])
-        if not sections:
+        return sum(len(s.get("questions", [])) for s in sections)
+
+    def get_current_question_number(self):
+        """1-based index of current question (questions answered so far + 1)."""
+        total = self.get_total_questions()
+        if total == 0:
             return 0
-        total_sections = len(sections)
-        completed_sections = len(
-            [
-                idx
-                for idx in range(total_sections)
-                if idx < self.current_section_index
-                or (idx == self.current_section_index and self.status == "completed")
-            ]
-        )
-        return int((completed_sections / total_sections) * 100) if total_sections > 0 else 0
+        sections = self.version.questionnaire_structure.get("sections", [])
+        n = 0
+        for i, sec in enumerate(sections):
+            qs = sec.get("questions", [])
+            for j in range(len(qs)):
+                if i == self.current_section_index and j == self.current_question_index:
+                    return n + 1
+                n += 1
+        return min(n + 1, total)
+
+    def get_progress_percentage(self):
+        """Completion percentage based on questions answered (not sections)."""
+        total = self.get_total_questions()
+        if total == 0:
+            return 0
+        if self.status == "completed":
+            return 100
+        # We're on current_question_number (1-based); questions answered = that - 1
+        current = self.get_current_question_number()
+        answered = max(0, current - 1)
+        return int((answered / total) * 100)
 
     def get_completed_sections_count(self):
         """Get the number of completed sections."""
@@ -104,7 +122,9 @@ class QuestionnaireProgress(models.Model):
         sections = self.version.questionnaire_structure.get("sections", [])
         if not sections:
             return 0
-        return min(self.current_section_index + (1 if self.status == "completed" else 0), len(sections))
+        return min(
+            self.current_section_index + (1 if self.status == "completed" else 0), len(sections)
+        )
 
     class Meta:
         db_table = "onboarding_questionnaireprogress"
@@ -112,4 +132,3 @@ class QuestionnaireProgress(models.Model):
             models.Index(fields=["user", "status"]),
             models.Index(fields=["updated_at"]),
         ]
-
