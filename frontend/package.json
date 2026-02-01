@@ -43,7 +43,9 @@
     "zustand": "^4.5.5"
   },
   "scripts": {
-    "start": "cross-env TSC_COMPILE_ON_ERROR=true NODE_OPTIONS=--max-old-space-size=4096 craco start",
+    "start": "cross-env NODE_OPTIONS=--max-old-space-size=4096 craco start",
+    "clean:cache": "node -e \"try{require('fs').rmSync('node_modules/.cache',{recursive:true,force:true});console.log('Cache cleared. Run npm start.');}catch(e){console.log('Stop the dev server first, then run: npm run clean:cache');process.exit(1);}\"",
+    "clean": "node -e \"const fs=require('fs');const p=require('path');['.cache','build'].forEach(d=>{const dir=p.join('node_modules',d);try{fs.rmSync(dir,{recursive:true,force:true});console.log('Removed',dir);}catch(e){}});try{fs.rmSync('build',{recursive:true,force:true});console.log('Removed build');}catch(e){};console.log('Clean done. Restart dev server and hard-refresh the browser (Ctrl+Shift+R).');\"",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format:check": "npx --yes prettier --check .",
     "build": "craco build",

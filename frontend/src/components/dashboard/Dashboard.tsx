@@ -72,6 +72,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: authProfile,
     reloadEntitlements,
     entitlements,
+    isInitialized: authInitialized,
   } = useAuth();
 
   useEffect(() => {
@@ -252,6 +253,23 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
   }, [location.pathname, location.search, queryClient, reloadEntitlements]);
 
+  // Refetch questionnaire progress and profile when dashboard mounts so we have fresh onboarding status
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["questionnaire-progress"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+  }, [queryClient]);
+
+  // Redirect new users (incomplete onboarding) to onboarding when they land on dashboard
+  // Only redirect once we have loaded profile (not loading) and it says not completed
+  useEffect(() => {
+    if (!authInitialized || isProfileLoading) return;
+    if (hasPaid) return;
+    if (isQuestionnaireCompleted) return;
+    // No profile yet (e.g. first load): don't redirect until we have data
+    if (profilePayload === undefined && !authProfile) return;
+    navigate("/onboarding", { replace: true });
+  }, [authInitialized, isProfileLoading, hasPaid, isQuestionnaireCompleted, profilePayload, authProfile, navigate]);
+
   // Removed mobile view tracking
 
   const handleCourseClick = (courseId: number, pathId?: number) => {
@@ -271,7 +289,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
 
     if (!isQuestionnaireCompleted) {
-      navigate("/questionnaire");
+      navigate("/onboarding");
       return;
     }
 
@@ -496,7 +514,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         Personalized Path
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-            Complete Questionnaire
+            Complete Onboarding
           </span>
         )}
       </button>
@@ -530,7 +548,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               toggleAdminMode={toggleAdminMode}
             />
 
-            <QuestionnaireReminderBanner />
+            <QuestionnaireReminderBanner
+              hasPaid={hasPaid}
+              authReady={authInitialized}
+            />
 
             <DailyGoalCard
               dailyGoalProgress={dailyGoalProgress}

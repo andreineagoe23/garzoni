@@ -8,7 +8,6 @@ from .views import (
     QuizViewSet,
     UserProgressViewSet,
     ExerciseViewSet,
-    EnhancedQuestionnaireView,
     PersonalizedPathView,
     get_exercise_progress,
     reset_exercise,
@@ -27,11 +26,6 @@ router.register(r"exercises", ExerciseViewSet, basename="exercise")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path(
-        "enhanced-questionnaire/",
-        EnhancedQuestionnaireView.as_view(),
-        name="enhanced-questionnaire",
-    ),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
     path("exercises/progress/<int:exercise_id>/", get_exercise_progress, name="exercise-progress"),
     path("exercises/reset/", reset_exercise, name="reset-exercise"),

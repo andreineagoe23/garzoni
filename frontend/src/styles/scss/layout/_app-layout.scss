@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "../abstracts/variables" as *;
+@use "../abstracts/mixins" as *;
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -26,7 +30,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: map-get($spacers, 4);
+  padding: map.get($spacers, 4);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -35,60 +39,60 @@
   // Laptop screens
   @media (min-width: 993px) and (max-width: 1366px) {
     max-width: 95%;
-    padding: map-get($spacers, 3);
+    padding: map.get($spacers, 3);
   }
 
   @include media-breakpoint-down(md) {
-    padding: map-get($spacers, 3);
+    padding: map.get($spacers, 3);
   }
 
   @include media-breakpoint-down(sm) {
-    padding: map-get($spacers, 3) map-get($spacers, 2);
+    padding: map.get($spacers, 3) map.get($spacers, 2);
   }
 }
 
 // Section containers
 .section {
-  margin-bottom: map-get($spacers, 5);
+  margin-bottom: map.get($spacers, 5);
 
   // Laptop screens
   @media (min-width: 993px) and (max-width: 1366px) {
-    margin-bottom: map-get($spacers, 4);
+    margin-bottom: map.get($spacers, 4);
   }
 
   @include media-breakpoint-down(md) {
-    margin-bottom: map-get($spacers, 4);
+    margin-bottom: map.get($spacers, 4);
   }
 
   @include media-breakpoint-down(sm) {
-    margin-bottom: map-get($spacers, 3);
+    margin-bottom: map.get($spacers, 3);
   }
 
   &-title {
-    margin-bottom: map-get($spacers, 4);
+    margin-bottom: map.get($spacers, 4);
     font-weight: $font-weight-bold;
     color: var(--text-color);
 
     @media (min-width: 993px) and (max-width: 1366px) {
-      margin-bottom: map-get($spacers, 3);
+      margin-bottom: map.get($spacers, 3);
       font-size: 1.5rem;
     }
 
     @include media-breakpoint-down(md) {
-      margin-bottom: map-get($spacers, 3);
+      margin-bottom: map.get($spacers, 3);
       font-size: 1.25rem;
     }
   }
 
   &-content {
-    margin-bottom: map-get($spacers, 4);
+    margin-bottom: map.get($spacers, 4);
 
     @media (min-width: 993px) and (max-width: 1366px) {
-      margin-bottom: map-get($spacers, 3);
+      margin-bottom: map.get($spacers, 3);
     }
 
     @include media-breakpoint-down(md) {
-      margin-bottom: map-get($spacers, 3);
+      margin-bottom: map.get($spacers, 3);
     }
   }
 }
@@ -96,11 +100,11 @@
 // Card layouts
 .card-grid {
   display: grid;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   @media (min-width: 993px) and (max-width: 1366px) {
     grid-template-columns: repeat(2, 1fr);
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
   }
 
   @include media-breakpoint-up(md) {
@@ -118,20 +122,20 @@
 
 // Page header
 .page-header {
-  margin-bottom: map-get($spacers, 4);
+  margin-bottom: map.get($spacers, 4);
 
   @media (min-width: 993px) and (max-width: 1366px) {
-    margin-bottom: map-get($spacers, 3);
+    margin-bottom: map.get($spacers, 3);
   }
 
   @include media-breakpoint-down(md) {
-    margin-bottom: map-get($spacers, 3);
+    margin-bottom: map.get($spacers, 3);
   }
 
   &-title {
     font-size: 1.75rem;
     font-weight: $font-weight-bold;
-    margin-bottom: map-get($spacers, 2);
+    margin-bottom: map.get($spacers, 2);
 
     @media (min-width: 993px) and (max-width: 1366px) {
       font-size: 1.75rem;
@@ -160,11 +164,11 @@
 .two-column-layout {
   display: flex;
   flex-direction: column;
-  gap: map-get($spacers, 4);
+  gap: map.get($spacers, 4);
 
   @media (min-width: 993px) and (max-width: 1366px) {
     flex-direction: row;
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
 
     .column-main {
       flex: 3;

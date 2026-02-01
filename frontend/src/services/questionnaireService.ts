@@ -1,5 +1,10 @@
 import apiClient from "./httpClient";
 
+/**
+ * Questionnaire progress and answers are persisted only on the backend.
+ * No localStorage or sessionStorage is used for questionnaire data.
+ */
+
 export interface QuestionnaireProgress {
   id: number;
   version: number;
@@ -15,6 +20,8 @@ export interface QuestionnaireProgress {
   progress_percentage: number;
   completed_sections_count: number;
   total_sections: number;
+  total_questions?: number;
+  current_question_number?: number;
 }
 
 export interface QuestionnaireQuestion {
@@ -37,6 +44,8 @@ export interface NextQuestionResponse {
   question_index: number;
   total_sections: number;
   total_questions_in_section: number;
+  total_questions?: number;
+  current_question_number?: number;
   progress_percentage: number;
   is_last_question: boolean;
   section_summary?: {
@@ -62,20 +71,21 @@ export interface CompletionResponse {
   };
 }
 
-export const fetchQuestionnaireProgress = () =>
-  apiClient.get<QuestionnaireProgress>("/questionnaire/progress/");
+export const fetchQuestionnaireProgress = (): Promise<QuestionnaireProgress> =>
+  apiClient.get<QuestionnaireProgress>("/questionnaire/progress/").then((r) => r.data);
 
-export const fetchNextQuestion = () =>
-  apiClient.get<NextQuestionResponse>("/questionnaire/next-question/");
+export const fetchNextQuestion = (): Promise<NextQuestionResponse> =>
+  apiClient.get<NextQuestionResponse>("/questionnaire/next-question/").then((r) => r.data);
 
-export const saveAnswer = (data: SaveAnswerRequest) =>
-  apiClient.post<QuestionnaireProgress>("/questionnaire/save-answer/", data);
+export const saveAnswer = (data: SaveAnswerRequest): Promise<QuestionnaireProgress> =>
+  apiClient.post<QuestionnaireProgress>("/questionnaire/save-answer/", data).then((r) => r.data);
 
-export const completeQuestionnaire = (idempotencyKey?: string) =>
-  apiClient.post<CompletionResponse>("/questionnaire/complete/", {
-    idempotency_key: idempotencyKey,
-  });
+export const completeQuestionnaire = (idempotencyKey?: string): Promise<CompletionResponse> =>
+  apiClient
+    .post<CompletionResponse>("/questionnaire/complete/", {
+      idempotency_key: idempotencyKey,
+    })
+    .then((r) => r.data);
 
-export const abandonQuestionnaire = () =>
-  apiClient.post<QuestionnaireProgress>("/questionnaire/abandon/");
-
+export const abandonQuestionnaire = (): Promise<QuestionnaireProgress> =>
+  apiClient.post<QuestionnaireProgress>("/questionnaire/abandon/").then((r) => r.data);
