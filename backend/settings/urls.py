@@ -9,8 +9,11 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from core.views import root_view, robots_txt_view
 
 urlpatterns = [
+    path("", root_view),
+    path("robots.txt", robots_txt_view),
     path("admin/", admin.site.urls),
     # Add a direct route for token refresh to avoid cookie path issues
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh-direct"),

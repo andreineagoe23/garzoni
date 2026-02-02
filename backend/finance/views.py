@@ -581,66 +581,118 @@ class StripeWebhookView(APIView):
 
             if event["type"] == "checkout.session.completed":
                 session = event["data"]["object"]
-                user_id = session["client_reference_id"]
-                payment_status = session.get("payment_status", "")
-                session_status = session.get("status", "")
-                subscription_status = (
-                    "active"
-                    if payment_status == "paid"
-                    else (payment_status or session_status or "completed")
-                )
-
-                with transaction.atomic():
-                    user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
-                    if not user_profile.has_paid:
-                        user_profile.has_paid = True
-                    user_profile.is_premium = True
-                    user_profile.subscription_status = subscription_status
-                    user_profile.stripe_payment_id = session.get("payment_intent", "")
-                    user_profile.save(
-                        update_fields=[
-                            "has_paid",
-                            "is_premium",
-                            "subscription_status",
-                            "stripe_payment_id",
-                        ]
+                user_id_raw = session.get("client_reference_id")
+                if not user_id_raw:
+                    logger.warning(
+                        "Stripe webhook: checkout.session.completed missing client_reference_id"
                     )
-
-                    cache.delete_many([f"user_payment_status_{user_id}", f"user_profile_{user_id}"])
+                else:
+                    try:
+                        user_id = int(user_id_raw)
+                    except (TypeError, ValueError):
+                        logger.warning(
+                            "Stripe webhook: invalid client_reference_id %s",
+                            user_id_raw,
+                        )
+                        user_id = None
+                    if user_id is not None:
+                        User = get_user_model()
+                        try:
+                            user = User.objects.get(id=user_id)
+                        except User.DoesNotExist:
+                            logger.warning(
+                                "Stripe webhook: User id=%s does not exist, skipping",
+                                user_id,
+                            )
+                        else:
+                            payment_status = session.get("payment_status", "")
+                            session_status = session.get("status", "")
+                            subscription_status = (
+                                "active"
+                                if payment_status == "paid"
+                                else (payment_status or session_status or "completed")
+                            )
+                            with transaction.atomic():
+                                (
+                                    user_profile,
+                                    _,
+                                ) = UserProfile.objects.select_for_update().get_or_create(
+                                    user_id=user_id,
+                                    defaults={
+                                        "has_paid": False,
+                                        "is_premium": False,
+                                        "subscription_status": "inactive",
+                                        "stripe_payment_id": "",
+                                    },
+                                )
+                                if not user_profile.has_paid:
+                                    user_profile.has_paid = True
+                                user_profile.is_premium = True
+                                user_profile.subscription_status = subscription_status
+                                user_profile.stripe_payment_id = (
+                                    session.get("payment_intent", "") or ""
+                                )
+                                user_profile.save(
+                                    update_fields=[
+                                        "has_paid",
+                                        "is_premium",
+                                        "subscription_status",
+                                        "stripe_payment_id",
+                                    ]
+                                )
+                                cache.delete_many(
+                                    [
+                                        f"user_payment_status_{user_id}",
+                                        f"user_profile_{user_id}",
+                                    ]
+                                )
 
             elif event["type"] in {
                 "checkout.session.expired",
                 "checkout.session.async_payment_failed",
             }:
                 session = event["data"]["object"]
-                user_id = session.get("client_reference_id")
-                if user_id:
-                    session_status = session.get("status", "expired")
-                    with transaction.atomic():
-                        user_profile = UserProfile.objects.select_for_update().get(user__id=user_id)
-                        user_profile.subscription_status = session_status
-                        user_profile.save(update_fields=["subscription_status"])
-
-                        user_profile.stripe_payment_id = session.get("payment_intent", "")
-                        user_profile.save(update_fields=["has_paid", "stripe_payment_id"])
-
-                        cache.delete_many(
-                            [
-                                f"user_payment_status_{user_id}",
-                                f"user_profile_{user_id}",
-                            ]
-                        )
-
-                        record_funnel_event(
-                            "checkout_completed",
-                            user=user_profile.user,
-                            session_id=session.get("id", ""),
-                            metadata={
-                                "payment_intent": session.get("payment_intent", ""),
-                                "amount_total": session.get("amount_total"),
-                                "currency": session.get("currency"),
-                            },
-                        )
+                user_id_raw = session.get("client_reference_id")
+                if user_id_raw:
+                    try:
+                        user_id = int(user_id_raw)
+                    except (TypeError, ValueError):
+                        user_id = None
+                    else:
+                        session_status = session.get("status", "expired")
+                        with transaction.atomic():
+                            user_profile = (
+                                UserProfile.objects.select_for_update()
+                                .filter(user_id=user_id)
+                                .first()
+                            )
+                            if user_profile:
+                                user_profile.subscription_status = session_status
+                                user_profile.stripe_payment_id = (
+                                    session.get("payment_intent", "") or ""
+                                )
+                                user_profile.save(
+                                    update_fields=[
+                                        "subscription_status",
+                                        "stripe_payment_id",
+                                    ]
+                                )
+                                cache.delete_many(
+                                    [
+                                        f"user_payment_status_{user_id}",
+                                        f"user_profile_{user_id}",
+                                    ]
+                                )
+                                record_funnel_event(
+                                    "checkout_completed",
+                                    user=user_profile.user,
+                                    session_id=session.get("id", ""),
+                                    metadata={
+                                        "payment_intent": session.get("payment_intent", ""),
+                                        "amount_total": session.get("amount_total"),
+                                        "currency": session.get("currency"),
+                                    },
+                                )
 
         except stripe.error.SignatureVerificationError as exc:
             logger.warning("Stripe signature verification failed: %s", exc)
