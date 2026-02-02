@@ -90,6 +90,8 @@ class LessonSection(models.Model):
         ("multiple-choice", "Multiple Choice"),
         ("numeric", "Numeric"),
         ("budget-allocation", "Budget Allocation"),
+        ("fill-in-table", "Fill In Table"),
+        ("scenario-simulation", "Scenario Simulation"),
     ]
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="sections")
@@ -268,6 +270,26 @@ class QuizCompletion(models.Model):
         db_table = "core_quizcompletion"
 
 
+class ExerciseManager(models.Manager):
+    """Manager that omits columns that may be missing (e.g. version, is_published) so older DBs still work."""
+
+    SAFE_FIELDS = (
+        "id",
+        "type",
+        "question",
+        "exercise_data",
+        "correct_answer",
+        "category",
+        "difficulty",
+        "misconception_tags",
+        "error_patterns",
+        "created_at",
+    )
+
+    def get_queryset(self):
+        return super().get_queryset().only(*self.SAFE_FIELDS)
+
+
 class Exercise(models.Model):
     """
     Represents an interactive exercise for users to complete. Includes the exercise type,
@@ -302,6 +324,8 @@ class Exercise(models.Model):
     misconception_tags = models.JSONField(default=list, blank=True)
     error_patterns = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ExerciseManager()
 
     def __str__(self):
         return f"{self.type} Exercise - {self.category}"

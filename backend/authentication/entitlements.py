@@ -21,6 +21,7 @@ FEATURE_FLAGS = {
     "downloads": "feature.resources.downloads",
     "analytics": "feature.analytics.access",
     "ai_tutor": "feature.ai.tutor",
+    "personalized_path": "feature.learning.personalized_path",
 }
 
 
@@ -57,6 +58,11 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 5,
                 "description": "Five AI tutor prompts per day",
             },
+            "personalized_path": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Personalized path (Plus/Pro only)",
+            },
         },
     },
     "premium": {
@@ -92,9 +98,55 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 50,
                 "description": "50 AI tutor prompts per day",
             },
+            "personalized_path": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Personalized learning path based on your goals",
+            },
         },
     },
 }
+
+PLAN_CATALOG = [
+    {
+        "plan_id": "starter",
+        "name": "Starter",
+        "billing_interval": "monthly",
+        "price_amount": 0,
+        "currency": "USD",
+        "trial_days": 0,
+        "sort_order": 1,
+        "entitlements_plan": "free",
+        "stripe_price_setting": "STRIPE_PRICE_STARTER_MONTHLY",
+        "feature_overrides": {},
+    },
+    {
+        "plan_id": "plus",
+        "name": "Plus",
+        "billing_interval": "monthly",
+        "price_amount": 12,
+        "currency": "USD",
+        "trial_days": 7,
+        "sort_order": 2,
+        "entitlements_plan": "premium",
+        "stripe_price_setting": "STRIPE_PRICE_PLUS_MONTHLY",
+        "feature_overrides": {},
+    },
+    {
+        "plan_id": "pro",
+        "name": "Pro",
+        "billing_interval": "monthly",
+        "price_amount": 24,
+        "currency": "USD",
+        "trial_days": 7,
+        "sort_order": 3,
+        "entitlements_plan": "premium",
+        "stripe_price_setting": "STRIPE_PRICE_PRO_MONTHLY",
+        "feature_overrides": {
+            "ai_tutor": {"daily_quota": 200},
+        },
+    },
+]
 
 
 def _usage_cache_key(user_id: int, feature: str) -> str:
@@ -166,6 +218,42 @@ def get_entitlements_for_user(user) -> Dict:
         "label": plan_config.get("label", plan.title()),
         "features": features,
     }
+
+
+def get_plan_catalog(settings) -> Dict[str, list]:
+    plans = []
+    for plan in PLAN_CATALOG:
+        plan_key = plan["entitlements_plan"]
+        plan_config = PLAN_MATRIX.get(plan_key, PLAN_MATRIX["free"])
+        features = {}
+        for feature_key, config in plan_config.get("features", {}).items():
+            overrides = plan.get("feature_overrides", {}).get(feature_key, {})
+            merged = {**config, **overrides}
+            state = _build_feature_state(plan_key, feature_key, merged)
+            features[feature_key] = {
+                "name": state.name,
+                "description": state.description,
+                "enabled": state.enabled,
+                "daily_quota": state.daily_quota,
+            }
+
+        stripe_price_id = getattr(settings, plan.get("stripe_price_setting", ""), "") or None
+
+        plans.append(
+            {
+                "plan_id": plan["plan_id"],
+                "name": plan["name"],
+                "billing_interval": plan["billing_interval"],
+                "price_amount": plan["price_amount"],
+                "currency": plan["currency"],
+                "trial_days": plan["trial_days"],
+                "sort_order": plan["sort_order"],
+                "stripe_price_id": stripe_price_id,
+                "features": features,
+            }
+        )
+
+    return {"plans": plans}
 
 
 def check_and_consume_entitlement(user, feature: str) -> Tuple[bool, Dict]:

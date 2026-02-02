@@ -5,6 +5,7 @@ import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { playFeedbackChime } from "utils/sound";
 
 type DragAndDropExerciseProps = {
   data: Record<string, unknown>;
@@ -36,16 +37,19 @@ const DragAndDropExercise = ({
   isCompleted: isCompletedProp = false,
   disabled = false,
 }: DragAndDropExerciseProps) => {
-  const { items = [], targets = [] } = (data || {}) as {
+  const { items = [], targets = [], learn_more_url, explanation } = (data || {}) as {
     items?: DragItem[];
     targets?: DragTarget[];
+    learn_more_url?: string;
+    explanation?: string;
   };
   const targetsArray = useMemo(
     () => (targets || []) as DragTarget[],
     [targets]
   );
   const itemsArray = useMemo(() => (items || []) as DragItem[], [items]);
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, settings } = useAuth();
+  const soundEnabled = settings?.sound_enabled ?? true;
 
   const [userAnswers, setUserAnswers] = useState<
     Record<string | number, string | number>
@@ -59,6 +63,9 @@ const DragAndDropExercise = ({
     }))
   );
   const [isCompleted, setIsCompleted] = useState(false);
+  const [keyboardSelectedId, setKeyboardSelectedId] = useState<
+    string | number | null
+  >(null);
 
   useEffect(() => {
     if (isCompletedProp) {
@@ -87,6 +94,7 @@ const DragAndDropExercise = ({
     setFeedback("");
     setFeedbackType(null);
     setIsCompleted(false);
+    setKeyboardSelectedId(null);
   }, [targetsArray]);
 
   useEffect(() => {
@@ -144,6 +152,7 @@ const DragAndDropExercise = ({
     ).length;
     const allCorrect = correctCount === targetsArray.length;
     onAttempt?.({ correct: allCorrect });
+    playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: allCorrect });
 
     if (allCorrect) {
       setFeedback("Great job! You completed the exercise!");
@@ -196,6 +205,7 @@ const DragAndDropExercise = ({
       setFeedback("");
       setFeedbackType(null);
       setIsCompleted(false);
+      setKeyboardSelectedId(null);
     } catch (error) {
       console.error("Error resetting exercise:", error);
     }
@@ -224,6 +234,8 @@ const DragAndDropExercise = ({
                 <DraggableItem
                   key={item.id}
                   item={item}
+                  isSelected={keyboardSelectedId === item.id}
+                  onKeyboardSelect={setKeyboardSelectedId}
                   isDisabled={isCompleted || disabled}
                 />
               ))}
@@ -244,6 +256,12 @@ const DragAndDropExercise = ({
                   userAnswer={userAnswers[target.id]}
                   itemsById={itemsById}
                   isDisabled={isCompleted || disabled}
+                  keyboardSelectedId={keyboardSelectedId}
+                  onKeyboardDrop={(itemId) => {
+                    if (itemId === null || itemId === undefined) return;
+                    handleDrop(target, { id: itemId });
+                    setKeyboardSelectedId(null);
+                  }}
                 />
               ))}
             </div>
@@ -278,8 +296,26 @@ const DragAndDropExercise = ({
                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
                 : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
             }`}
+            aria-live="polite"
           >
             {feedback}
+            {feedbackType === "error" && explanation && (
+              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                {explanation}
+              </p>
+            )}
+            {feedbackType === "error" && learn_more_url && (
+              <div className="mt-2">
+                <a
+                  href={learn_more_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                >
+                  Learn more
+                </a>
+              </div>
+            )}
           </div>
         )}
       </GlassCard>
@@ -287,7 +323,12 @@ const DragAndDropExercise = ({
   );
 };
 
-const DraggableItem = ({ item, isDisabled }) => {
+const DraggableItem = ({
+  item,
+  isDisabled,
+  isSelected,
+  onKeyboardSelect,
+}) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "EXERCISE_ITEM",
@@ -303,12 +344,26 @@ const DraggableItem = ({ item, isDisabled }) => {
   return (
     <div
       ref={drag}
-      className={`min-w-[140px] rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-3 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition ${
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (!isDisabled) {
+            onKeyboardSelect?.(item.id);
+          }
+        }
+      }}
+      className={`min-w-[140px] rounded-2xl border px-4 py-3 text-sm font-semibold shadow-sm transition ${
         isDragging ? "opacity-60" : "opacity-100"
       } ${
         isDisabled
           ? "cursor-not-allowed opacity-60"
           : "cursor-move hover:border-[color:var(--accent,#2563eb)]/40"
+      } ${
+        isSelected
+          ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
+          : "border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)]"
       }`}
       style={{
         backgroundColor: item.color || "var(--card-bg,#ffffff)",
@@ -326,6 +381,8 @@ const DroppableTarget = ({
   userAnswer,
   itemsById,
   isDisabled,
+  keyboardSelectedId,
+  onKeyboardDrop,
 }) => {
   const [{ isOver }, drop] = useDrop(
     () => ({
@@ -349,6 +406,16 @@ const DroppableTarget = ({
   return (
     <div
       ref={drop}
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (!isDisabled && keyboardSelectedId) {
+            onKeyboardDrop?.(keyboardSelectedId);
+          }
+        }
+      }}
       className={`rounded-2xl border px-4 py-4 text-center shadow-inner transition ${
         isOver
           ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10"

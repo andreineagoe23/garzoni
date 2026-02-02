@@ -5,9 +5,9 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import { GlassContainer } from "components/ui";
-import { useInstallPrompt } from "hooks/useInstallPrompt";
 import LanguageSelector from "components/common/LanguageSelector";
 import { UserProfile } from "types/api";
+import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 
 const NAV_ITEMS = [
   { path: "/all-topics", key: "nav.dashboard", icon: "🏠", label: "Dashboard" },
@@ -34,7 +34,6 @@ function Navbar() {
   } = useAuth();
   const { adminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
-  const { canInstall, promptInstall } = useInstallPrompt();
 
   const navItems = useMemo(
     () =>
@@ -102,7 +101,7 @@ function Navbar() {
       (user as UserProfile)?.avatar ||
       (user as UserProfile)?.avatar_url;
 
-    return String(candidate || "/default-avatar.png");
+    return String(candidate || DEFAULT_AVATAR_URL);
   }, [profile, user]);
 
   const handleDarkModeToggle = () => toggleDarkMode(!darkMode);
@@ -119,11 +118,6 @@ function Navbar() {
     } finally {
       navigate("/login", { replace: true });
     }
-  };
-
-  const handleInstallClick = async () => {
-    await promptInstall();
-    closeMenu();
   };
 
   return (
@@ -173,17 +167,6 @@ function Navbar() {
           </div>
 
           <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
-            {canInstall && (
-              <button
-                type="button"
-                onClick={handleInstallClick}
-                aria-label="Install app"
-                className="relative z-10 inline-flex h-7 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] md:h-[36px] lg:h-[38px] xl:h-10"
-                style={{ WebkitTapHighlightColor: "transparent" }}
-              >
-                Install
-              </button>
-            )}
             <LanguageSelector />
             <button
               type="button"
@@ -223,11 +206,11 @@ function Navbar() {
                 }
                 className="h-full w-full object-cover"
                 onError={(event) => {
-                  if (event.currentTarget.src.includes("/default-avatar.png")) {
+                  if (event.currentTarget.src === DEFAULT_AVATAR_URL) {
                     return;
                   }
                   event.currentTarget.onerror = null;
-                  event.currentTarget.src = "/default-avatar.png";
+                  event.currentTarget.src = DEFAULT_AVATAR_URL;
                 }}
                 referrerPolicy="no-referrer"
               />
@@ -281,16 +264,6 @@ function Navbar() {
               <span>{item.label}</span>
             </NavLink>
           ))}
-          {canInstall && (
-            <button
-              type="button"
-              onClick={handleInstallClick}
-              className="relative z-10 inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation"
-            >
-              <span aria-hidden="true">⬇️</span>
-              Install
-            </button>
-          )}
         </GlassContainer>
       </div>
     </nav>

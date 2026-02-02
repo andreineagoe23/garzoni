@@ -28,6 +28,11 @@ if (typeof window !== "undefined") {
       window.location.replace(next);
     }
   }
+
+  // Suppress the browser's PWA "Install app" button / banner (we don't offer install).
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+  });
 }
 
 const enableLogs = process.env.REACT_APP_ENABLE_LOGS === "true";
@@ -36,6 +41,58 @@ if (!enableLogs) {
     // eslint-disable-next-line no-console
     console[method] = () => undefined;
   });
+}
+
+// Suppress browser extension and PWA install banner warnings
+if (typeof window !== "undefined") {
+  const originalLog = console.log;
+  const originalError = console.error;
+  const originalWarn = console.warn;
+
+  const suppressedPhrases = [
+    "runtime.lastError",
+    "message port closed",
+    "Banner not shown",
+    "beforeinstallprompt",
+    "Content Script Bridge",
+    "Sending response back to page context",
+    "React DevTools",
+    "Download the React DevTools",
+    "react refresh",
+    "unsupported",
+    "uses an unsupported",
+    "preload",
+    "rel=preload",
+  ];
+
+  const shouldSuppress = (...args: unknown[]) => {
+    const full = args
+      .map((a) => {
+        if (typeof a === "string") return a;
+        try {
+          return JSON.stringify(a);
+        } catch {
+          return String(a);
+        }
+      })
+      .join(" ");
+    return suppressedPhrases.some((phrase) => full.includes(phrase));
+  };
+
+  console.log = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalLog.apply(console, args);
+  };
+
+  console.error = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalError.apply(console, args);
+  };
+
+  console.warn = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalWarn.apply(console, args);
+  };
 }
 
 initSentry();

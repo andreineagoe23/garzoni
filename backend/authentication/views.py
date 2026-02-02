@@ -35,6 +35,7 @@ from authentication.entitlements import (
     check_and_consume_entitlement,
     entitlement_usage_snapshot,
     get_entitlements_for_user,
+    get_plan_catalog,
 )
 from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
@@ -225,6 +226,15 @@ class EntitlementsView(APIView):
         entitlements = get_entitlements_for_user(request.user)
         entitlements["usage"] = entitlement_usage_snapshot(request.user)
         return Response(entitlements)
+
+
+class PlansView(APIView):
+    """Expose subscription plan catalog for pricing pages."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(get_plan_catalog(settings))
 
 
 class ConsumeEntitlementView(APIView):
@@ -547,7 +557,7 @@ class RegisterSecureView(generics.CreateAPIView):
                     "is_staff": user.is_staff,
                     "is_superuser": user.is_superuser,
                 },
-                "next": "/all-topics",  # Redirect to all topics after registration
+                "next": "/onboarding",  # New users complete onboarding first
             },
             status=status.HTTP_201_CREATED,
         )
@@ -616,6 +626,15 @@ class CustomTokenRefreshView(TokenRefreshView):
             token_obj = RefreshToken(refresh_token)
             user_id = token_obj.get("user_id")
             User.objects.get(id=user_id)
+        except TokenError as exc:
+            # Blacklisted, expired, or invalid refresh token — clear cookie and return 401
+            logger.warning("Refresh token rejected (blacklisted or invalid): %s", exc)
+            response = Response(
+                {"detail": "Session expired. Please sign in again.", "code": "token_invalid"},
+                status=401,
+            )
+            clear_refresh_cookie(response)
+            return response
         except User.DoesNotExist:
             logger.error("Token refresh attempted for missing user id=%s", user_id)
             response = Response(
@@ -673,6 +692,8 @@ class UserSettingsView(APIView):
             {
                 "email_reminder_preference": user_profile.email_reminder_preference,
                 "dark_mode": user_profile.dark_mode,
+                "sound_enabled": user_profile.sound_enabled,
+                "animations_enabled": user_profile.animations_enabled,
                 "profile": {
                     "username": request.user.username,
                     "email": request.user.email,
@@ -702,6 +723,14 @@ class UserSettingsView(APIView):
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
 
+        sound_enabled = request.data.get("sound_enabled")
+        if sound_enabled is not None:
+            user_profile.sound_enabled = sound_enabled
+
+        animations_enabled = request.data.get("animations_enabled")
+        if animations_enabled is not None:
+            user_profile.animations_enabled = animations_enabled
+
         email_reminder_preference = request.data.get("email_reminder_preference")
         if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
             user_profile.email_reminder_preference = email_reminder_preference
@@ -714,6 +743,8 @@ class UserSettingsView(APIView):
                 "message": "Settings updated successfully.",
                 "dark_mode": user_profile.dark_mode,
                 "email_reminder_preference": user_profile.email_reminder_preference,
+                "sound_enabled": user_profile.sound_enabled,
+                "animations_enabled": user_profile.animations_enabled,
             }
         )
 
