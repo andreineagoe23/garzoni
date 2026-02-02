@@ -27,7 +27,11 @@ router.register(r"exercises", ExerciseViewSet, basename="exercise")
 urlpatterns = [
     path("", include(router.urls)),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
-    path("exercises/progress/<int:exercise_id>/", get_exercise_progress, name="exercise-progress"),
+    path(
+        "exercises/progress/<int:exercise_id>/",
+        get_exercise_progress,
+        name="exercise-progress",
+    ),
     path("exercises/reset/", reset_exercise, name="reset-exercise"),
     path("review-queue/", review_queue, name="review-queue"),
     path("mastery-summary/", mastery_summary, name="mastery-summary"),

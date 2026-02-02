@@ -177,11 +177,13 @@ class SubscriptionCreateTest(AuthenticatedTestCase):
 
     @patch("finance.views.stripe.checkout.Session.create")
     @override_settings(
-        STRIPE_SECRET_KEY="sk_test_fake",
+        STRIPE_SECRET_KEY="sk_test_fake",  # pragma: allowlist secret
         STRIPE_PRICE_PLUS_MONTHLY="price_plus_123",
     )
     def test_subscription_create_plus_returns_redirect_url(self, mock_stripe_create):
-        mock_stripe_create.return_value = Mock(id="cs_test_123", url="https://checkout.stripe.com/xxx")
+        mock_stripe_create.return_value = Mock(
+            id="cs_test_123", url="https://checkout.stripe.com/xxx"
+        )
         response = self.client.post(
             "/api/subscriptions/create/",
             {"plan_id": "plus", "billing_interval": "monthly"},

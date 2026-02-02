@@ -17,7 +17,8 @@ class Migration(migrations.Migration):
             model_name="mission",
             name="is_template",
             field=models.BooleanField(
-                default=False, help_text="If True, this is a template for generating missions"
+                default=False,
+                help_text="If True, this is a template for generating missions",
             ),
         ),
         migrations.AddField(
@@ -118,11 +119,20 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
-                ("time_to_completion_seconds", models.IntegerField(blank=True, null=True)),
-                ("drop_off_stage", models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "time_to_completion_seconds",
+                    models.IntegerField(blank=True, null=True),
+                ),
+                (
+                    "drop_off_stage",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
                 (
                     "skill_improvements",
                     models.JSONField(default=dict, help_text="Skill proficiency changes"),
@@ -173,7 +183,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (

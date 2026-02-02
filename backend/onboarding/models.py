@@ -123,7 +123,8 @@ class QuestionnaireProgress(models.Model):
         if not sections:
             return 0
         return min(
-            self.current_section_index + (1 if self.status == "completed" else 0), len(sections)
+            self.current_section_index + (1 if self.status == "completed" else 0),
+            len(sections),
         )
 
     class Meta:

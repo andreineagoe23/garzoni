@@ -6,7 +6,10 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("finance", "0006_rename_funnelevent_created_idx_finance_fun_created_14f85e_idx"),
+        (
+            "finance",
+            "0006_rename_funnelevent_created_idx_finance_fun_created_14f85e_idx",
+        ),
     ]
 
     operations = [

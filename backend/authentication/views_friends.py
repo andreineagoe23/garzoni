@@ -51,12 +51,14 @@ class FriendRequestView(
             )
             if existing_request.exists():
                 return Response(
-                    {"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Friend request already sent"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             FriendRequest.objects.create(sender=request.user, receiver=receiver)
             return Response(
-                {"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED
+                {"message": "Friend request sent successfully"},
+                status=status.HTTP_201_CREATED,
             )
 
         except User.DoesNotExist:

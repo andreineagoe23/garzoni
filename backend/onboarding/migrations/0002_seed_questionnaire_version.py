@@ -19,12 +19,21 @@ def seed_questionnaire_version(apps, schema_editor):
                         "type": "multiple_select",
                         "text": "What are your top money goals right now?",
                         "options": [
-                            {"value": "build_budget", "label": "Build a realistic budget"},
+                            {
+                                "value": "build_budget",
+                                "label": "Build a realistic budget",
+                            },
                             {"value": "pay_down_debt", "label": "Pay down debt faster"},
-                            {"value": "grow_savings", "label": "Grow savings / emergency fund"},
+                            {
+                                "value": "grow_savings",
+                                "label": "Grow savings / emergency fund",
+                            },
                             {"value": "start_investing", "label": "Start investing"},
                             {"value": "retirement", "label": "Plan for retirement"},
-                            {"value": "improve_credit", "label": "Improve my credit score"},
+                            {
+                                "value": "improve_credit",
+                                "label": "Improve my credit score",
+                            },
                         ],
                         "required": True,
                     },
@@ -33,11 +42,20 @@ def seed_questionnaire_version(apps, schema_editor):
                         "type": "multiple_choice",
                         "text": "What's your biggest challenge today?",
                         "options": [
-                            {"value": "overspending", "label": "Overspending / impulse buys"},
-                            {"value": "inconsistent_income", "label": "Inconsistent income"},
+                            {
+                                "value": "overspending",
+                                "label": "Overspending / impulse buys",
+                            },
+                            {
+                                "value": "inconsistent_income",
+                                "label": "Inconsistent income",
+                            },
                             {"value": "debt_payments", "label": "High debt payments"},
                             {"value": "no_plan", "label": "I don't have a clear plan"},
-                            {"value": "investing_confidence", "label": "Low investing confidence"},
+                            {
+                                "value": "investing_confidence",
+                                "label": "Low investing confidence",
+                            },
                         ],
                         "required": True,
                     },
@@ -64,9 +82,15 @@ def seed_questionnaire_version(apps, schema_editor):
                         "type": "multiple_choice",
                         "text": "Which best describes your income?",
                         "options": [
-                            {"value": "salaried", "label": "Salaried / steady paycheck"},
+                            {
+                                "value": "salaried",
+                                "label": "Salaried / steady paycheck",
+                            },
                             {"value": "hourly", "label": "Hourly / variable"},
-                            {"value": "self_employed", "label": "Self-employed / freelance"},
+                            {
+                                "value": "self_employed",
+                                "label": "Self-employed / freelance",
+                            },
                             {"value": "student", "label": "Student"},
                             {"value": "retired", "label": "Retired"},
                             {"value": "other", "label": "Other"},
@@ -84,7 +108,10 @@ def seed_questionnaire_version(apps, schema_editor):
                                 "label": "Basic tracking (notes or mental)",
                             },
                             {"value": "app_budget", "label": "App-based budget"},
-                            {"value": "detailed_budget", "label": "Detailed spreadsheet budget"},
+                            {
+                                "value": "detailed_budget",
+                                "label": "Detailed spreadsheet budget",
+                            },
                             {"value": "envelope", "label": "Envelope / cash system"},
                         ],
                         "required": True,
@@ -127,7 +154,10 @@ def seed_questionnaire_version(apps, schema_editor):
                         "options": [
                             {"value": "low", "label": "Low risk, steady growth"},
                             {"value": "balanced", "label": "Balanced risk and growth"},
-                            {"value": "growth", "label": "Higher growth, some volatility"},
+                            {
+                                "value": "growth",
+                                "label": "Higher growth, some volatility",
+                            },
                             {"value": "aggressive", "label": "Aggressive growth"},
                         ],
                         "required": True,

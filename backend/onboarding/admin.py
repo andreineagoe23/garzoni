@@ -27,4 +27,3 @@ class QuestionnaireProgressAdmin(admin.ModelAdmin):
     search_fields = ["user__username", "user__email"]
     readonly_fields = ["started_at", "updated_at", "completed_at"]
     raw_id_fields = ["user", "version"]
-

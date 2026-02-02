@@ -79,10 +79,10 @@ module.exports = {
         modules: [path.resolve(__dirname, "node_modules"), "node_modules"],
       };
 
-      // Ensure webpack resolves modules from frontend/node_modules first
-      // This prevents CRA from trying to import from root node_modules
+      // Ensure webpack resolves modules: src first (for bare specifiers), then node_modules
       webpackConfig.resolve = webpackConfig.resolve || {};
       webpackConfig.resolve.modules = [
+        path.resolve(__dirname, "src"),
         path.resolve(__dirname, "node_modules"),
         "node_modules",
       ];

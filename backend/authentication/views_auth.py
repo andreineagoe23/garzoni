@@ -19,7 +19,11 @@ import requests
 
 from authentication.serializers import RegisterSerializer
 from authentication.tokens import delete_jwt_cookies
-from authentication.throttles import LoginRateThrottle, RefreshRateThrottle, RegisterRateThrottle
+from authentication.throttles import (
+    LoginRateThrottle,
+    RefreshRateThrottle,
+    RegisterRateThrottle,
+)
 
 logger = logging.getLogger(__name__)
 

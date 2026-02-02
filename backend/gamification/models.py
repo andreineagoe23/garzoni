@@ -182,7 +182,11 @@ class MissionCompletion(models.Model):
         null=True, blank=True, help_text="When this mission was swapped"
     )
     swapped_from_mission = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="swapped_to"
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="swapped_to",
     )
     # Completion tracking for analytics
     first_try_bonus = models.BooleanField(

@@ -5,7 +5,10 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("education", "0002_mastery"),
-        ("education", "0002_lessonsection_is_published_lessonsection_updated_at_and_more"),
+        (
+            "education",
+            "0002_lessonsection_is_published_lessonsection_updated_at_and_more",
+        ),
     ]
 
     operations = [

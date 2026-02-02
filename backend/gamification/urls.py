@@ -22,7 +22,11 @@ router.register(r"user-badges", UserBadgeViewSet, basename="userbadge")
 urlpatterns = [
     path("", include(router.urls)),
     path("missions/", MissionView.as_view(), name="missions"),
-    path("missions/<int:mission_id>/update/", MissionView.as_view(), name="mission-update"),
+    path(
+        "missions/<int:mission_id>/update/",
+        MissionView.as_view(),
+        name="mission-update",
+    ),
     path("missions/complete/", MissionCompleteView.as_view(), name="mission-complete"),
     path("missions/swap/", MissionSwapView.as_view(), name="mission-swap"),
     path("missions/generate/", MissionGenerationView.as_view(), name="mission-generate"),
