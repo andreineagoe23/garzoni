@@ -1,6 +1,20 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Suppress console noise as early as possible (before extensions and app bundle). -->
+    <script>
+      (function () {
+        var p = ["TSS:","CONTENT_SHELL","Content Script Bridge","Sending response back","React DevTools","Download the React DevTools","SCHJK","DFP","Breach notification","feature flag is enabled","Unknown message type","MSG_CHECK_DOMAIN_ALLOW_LIST","injection-tss","hosted page injected","MBTSS","excluded result","Risky TLD","aggressive protection","MBTSS_NOTIFICATION","Banner not shown","beforeinstallprompt","Violation","non-passive","Forced reflow","handler took","ERR_BLOCKED_BY_CLIENT","Caught create URL","Caught history","Checking if repeated","Shell protection","Search Hijacking","rel=preload","uses an unsupported","webpackOk","runtime.lastError","message port closed"];
+        function suppress(args) {
+          var s = args.map(function(a) { return typeof a === "string" ? a : String(a); }).join(" ");
+          return p.some(function(phrase) { return s.indexOf(phrase) !== -1; });
+        }
+        ["log","info","warn","error","debug"].forEach(function(m) {
+          var orig = console[m];
+          if (orig) console[m] = function() { if (!suppress(arguments)) orig.apply(console, arguments); };
+        });
+      })();
+    </script>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
