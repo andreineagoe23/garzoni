@@ -231,7 +231,7 @@ describe("SubscriptionPlansPage", () => {
       expect(axiosMock.post).toHaveBeenCalledWith(
         expect.stringContaining("/subscriptions/create/"),
         { plan_id: "plus", billing_interval: "monthly" },
-        expect.any(Object)
+        expect.objectContaining({})
       );
     });
     await waitFor(() => {

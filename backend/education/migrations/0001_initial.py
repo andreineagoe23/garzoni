@@ -21,12 +21,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("title", models.CharField(max_length=200)),
                 ("description", models.TextField()),
-                ("image", models.ImageField(blank=True, null=True, upload_to="course_images/")),
+                (
+                    "image",
+                    models.ImageField(blank=True, null=True, upload_to="course_images/"),
+                ),
                 ("is_active", models.BooleanField(default=True)),
                 ("order", models.PositiveIntegerField(default=0)),
             ],
@@ -41,7 +47,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (
@@ -60,7 +69,10 @@ class Migration(migrations.Migration):
                     "exercise_data",
                     models.JSONField(help_text="Structured data based on exercise type"),
                 ),
-                ("correct_answer", models.JSONField(help_text="Correct answer structure")),
+                (
+                    "correct_answer",
+                    models.JSONField(help_text="Correct answer structure"),
+                ),
                 ("category", models.CharField(default="General", max_length=100)),
                 (
                     "difficulty",
@@ -86,13 +98,19 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("title", models.CharField(max_length=200)),
                 ("short_description", models.TextField(blank=True)),
                 ("detailed_content", django_ckeditor_5.fields.CKEditor5Field()),
-                ("image", models.ImageField(blank=True, null=True, upload_to="lesson_images/")),
+                (
+                    "image",
+                    models.ImageField(blank=True, null=True, upload_to="lesson_images/"),
+                ),
                 ("video_url", models.URLField(blank=True, null=True)),
                 (
                     "exercise_type",
@@ -129,14 +147,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("completed_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "lesson",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.lesson"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.lesson",
                     ),
                 ),
             ],
@@ -150,7 +172,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("order", models.PositiveIntegerField()),
@@ -167,7 +192,10 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
-                ("text_content", django_ckeditor_5.fields.CKEditor5Field(blank=True, null=True)),
+                (
+                    "text_content",
+                    django_ckeditor_5.fields.CKEditor5Field(blank=True, null=True),
+                ),
                 ("video_url", models.URLField(blank=True, null=True)),
                 (
                     "exercise_type",
@@ -204,12 +232,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("title", models.CharField(max_length=100)),
                 ("description", models.TextField()),
-                ("image", models.ImageField(blank=True, null=True, upload_to="path_images/")),
+                (
+                    "image",
+                    models.ImageField(blank=True, null=True, upload_to="path_images/"),
+                ),
             ],
             options={
                 "verbose_name": "Path",
@@ -223,7 +257,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
@@ -240,7 +277,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("text", models.TextField()),
@@ -271,7 +311,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("title", models.CharField(max_length=200)),
@@ -299,14 +342,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("completed_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "section",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.lessonsection"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.lessonsection",
                     ),
                 ),
             ],
@@ -320,14 +367,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("answer", models.TextField()),
                 (
                     "question",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.question"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.question",
                     ),
                 ),
                 (
@@ -351,7 +402,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("is_course_complete", models.BooleanField(default=False)),
@@ -362,7 +416,9 @@ class Migration(migrations.Migration):
                 (
                     "completed_lessons",
                     models.ManyToManyField(
-                        blank=True, through="education.LessonCompletion", to="education.lesson"
+                        blank=True,
+                        through="education.LessonCompletion",
+                        to="education.lesson",
                     ),
                 ),
                 (
@@ -410,7 +466,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("goal", models.CharField(blank=True, max_length=255, null=True)),
@@ -459,7 +518,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("answer", models.CharField(max_length=200)),
@@ -467,7 +529,8 @@ class Migration(migrations.Migration):
                 (
                     "question",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.question"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.question",
                     ),
                 ),
             ],
@@ -498,7 +561,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("completed", models.BooleanField(default=False)),
@@ -508,13 +574,15 @@ class Migration(migrations.Migration):
                 (
                     "exercise",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.exercise"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.exercise",
                     ),
                 ),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -529,7 +597,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("completed_at", models.DateTimeField(auto_now_add=True)),
@@ -542,7 +613,8 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -557,7 +629,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("completed_at", models.DateTimeField(auto_now_add=True)),
@@ -566,7 +641,8 @@ class Migration(migrations.Migration):
                 (
                     "exercise",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="education.exercise"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="education.exercise",
                     ),
                 ),
                 (
@@ -580,7 +656,8 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],

@@ -27,7 +27,11 @@ router.register(r"financial-goals", FinancialGoalViewSet, basename="financial-go
 urlpatterns = [
     path("", include(router.urls)),
     # Compatibility prefix for clients hitting /api/finance/entitlements/
-    path("finance/entitlements/", EntitlementStatusView.as_view(), name="entitlements-compat"),
+    path(
+        "finance/entitlements/",
+        EntitlementStatusView.as_view(),
+        name="entitlements-compat",
+    ),
     path("savings-account/", SavingsAccountView.as_view(), name="savings-account"),
     path("finance-fact/", FinanceFactView.as_view(), name="finance-fact"),
     path(
@@ -37,10 +41,18 @@ urlpatterns = [
     ),
     path("rewards/shop/", RewardViewSet.as_view({"get": "list"}), name="shop-rewards"),
     path("rewards/donate/", RewardViewSet.as_view({"get": "list"}), name="donate-rewards"),
-    path("purchases/", UserPurchaseViewSet.as_view({"post": "create"}), name="purchases-create"),
+    path(
+        "purchases/",
+        UserPurchaseViewSet.as_view({"post": "create"}),
+        name="purchases-create",
+    ),
     path("stripe-webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
     path("verify-session/", VerifySessionView.as_view(), name="verify-session"),
-    path("subscriptions/create/", SubscriptionCreateView.as_view(), name="subscriptions-create"),
+    path(
+        "subscriptions/create/",
+        SubscriptionCreateView.as_view(),
+        name="subscriptions-create",
+    ),
     path("entitlements/", EntitlementStatusView.as_view(), name="entitlements"),
     path("funnel/events/", FunnelEventIngestView.as_view(), name="funnel-events"),
     path("funnel/metrics/", FunnelMetricsView.as_view(), name="funnel-metrics"),

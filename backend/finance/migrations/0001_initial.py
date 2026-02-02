@@ -20,7 +20,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("text", models.TextField()),
@@ -38,7 +41,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("name", models.CharField(max_length=200)),
@@ -47,12 +53,19 @@ class Migration(migrations.Migration):
                 (
                     "type",
                     models.CharField(
-                        choices=[("shop", "Shop Item"), ("donate", "Donation Cause")], max_length=10
+                        choices=[("shop", "Shop Item"), ("donate", "Donation Cause")],
+                        max_length=10,
                     ),
                 ),
-                ("image", models.ImageField(blank=True, null=True, upload_to="rewards/")),
+                (
+                    "image",
+                    models.ImageField(blank=True, null=True, upload_to="rewards/"),
+                ),
                 ("is_active", models.BooleanField(default=True)),
-                ("donation_organization", models.CharField(blank=True, max_length=200, null=True)),
+                (
+                    "donation_organization",
+                    models.CharField(blank=True, max_length=200, null=True),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
@@ -65,7 +78,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
@@ -95,7 +111,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("purchased_at", models.DateTimeField(auto_now_add=True)),
@@ -108,7 +127,8 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -122,7 +142,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("stripe_payment_id", models.CharField(max_length=255, unique=True)),
@@ -148,14 +171,21 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
-                ("balance", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                (
+                    "balance",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
                 (
                     "user",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -169,18 +199,25 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (
                     "asset_type",
                     models.CharField(
-                        choices=[("stock", "Stock"), ("crypto", "Crypto")], max_length=20
+                        choices=[("stock", "Stock"), ("crypto", "Crypto")],
+                        max_length=20,
                     ),
                 ),
                 ("symbol", models.CharField(max_length=10)),
                 ("quantity", models.DecimalField(decimal_places=8, max_digits=20)),
-                ("purchase_price", models.DecimalField(decimal_places=8, max_digits=20)),
+                (
+                    "purchase_price",
+                    models.DecimalField(decimal_places=8, max_digits=20),
+                ),
                 ("purchase_date", models.DateField()),
                 (
                     "current_price",
@@ -190,7 +227,8 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -206,19 +244,26 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("goal_name", models.CharField(max_length=100)),
                 ("target_amount", models.DecimalField(decimal_places=2, max_digits=20)),
-                ("current_amount", models.DecimalField(decimal_places=2, default=0, max_digits=20)),
+                (
+                    "current_amount",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=20),
+                ),
                 ("deadline", models.DateField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],
@@ -235,20 +280,25 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("read_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "fact",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="finance.financefact"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="finance.financefact",
                     ),
                 ),
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],

@@ -17,9 +17,22 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src",
+    "baseUrl": ".",
+    "rootDir": "src",
     "downlevelIteration": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "paths": {
+      "contexts/*": ["src/contexts/*"],
+      "components/*": ["src/components/*"],
+      "services/*": ["src/services/*"],
+      "constants/*": ["src/constants/*"],
+      "utils/*": ["src/utils/*"],
+      "lib/*": ["src/lib/*"],
+      "types/*": ["src/types/*"],
+      "assets/*": ["src/assets/*"],
+      "hooks/*": ["src/hooks/*"],
+      "stores/*": ["src/stores/*"]
+    }
   },
   "include": ["src"]
 }

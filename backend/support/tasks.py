@@ -7,7 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
 )
 def send_contact_email(self, email: str, topic: str, message: str) -> None:
     """

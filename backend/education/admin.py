@@ -170,7 +170,13 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
     audit_target_type = "Lesson"
     """Admin configuration for managing lessons."""
     inlines = [LessonSectionInline]
-    list_display = ("title", "course", "section_count", "published_section_count", "last_updated")
+    list_display = (
+        "title",
+        "course",
+        "section_count",
+        "published_section_count",
+        "last_updated",
+    )
     list_filter = ("course",)
     search_fields = ("title", "course__title")
     actions = ["migrate_legacy_content"]
@@ -288,13 +294,26 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
     audit_target_type = "Exercise"
     """Admin configuration for managing exercises."""
 
-    list_display = ("type", "category", "difficulty", "version", "is_published", "created_at")
+    list_display = (
+        "type",
+        "category",
+        "difficulty",
+        "version",
+        "is_published",
+        "created_at",
+    )
     list_filter = ("type", "category", "difficulty", "is_published")
     search_fields = ("question", "category", "misconception_tags")
     readonly_fields = ("preview",)
     fieldsets = (
-        (None, {"fields": ("type", "category", "difficulty", "version", "is_published")}),
-        ("Content", {"fields": ("question", "exercise_data", "correct_answer", "preview")}),
+        (
+            None,
+            {"fields": ("type", "category", "difficulty", "version", "is_published")},
+        ),
+        (
+            "Content",
+            {"fields": ("question", "exercise_data", "correct_answer", "preview")},
+        ),
         ("Quality Metadata", {"fields": ("misconception_tags", "error_patterns")}),
     )
     formfield_overrides = {
@@ -390,7 +409,10 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
         self.message_user(request, f"Created {created} draft version(s).")
         for exercise in queryset:
             self.log_audit(
-                request, exercise, "version duplicated", extra={"new_version": exercise.version + 1}
+                request,
+                exercise,
+                "version duplicated",
+                extra={"new_version": exercise.version + 1},
             )
 
 
@@ -484,7 +506,14 @@ class EducationAuditLogAdmin(admin.ModelAdmin):
     list_display = ("action", "target_type", "target_id", "user", "created_at")
     list_filter = ("target_type", "action")
     search_fields = ("target_type", "target_id", "user__username")
-    readonly_fields = ("action", "target_type", "target_id", "user", "metadata", "created_at")
+    readonly_fields = (
+        "action",
+        "target_type",
+        "target_id",
+        "user",
+        "metadata",
+        "created_at",
+    )
     ordering = ("-created_at",)
 
     def has_add_permission(self, request):
@@ -503,7 +532,11 @@ class SectionCompletionAdmin(admin.ModelAdmin):
 
     list_display = ("section", "user", "lesson", "course", "completed_at")
     list_filter = ("section__lesson__course", "section__lesson")
-    search_fields = ("section__title", "user_progress__user__username", "section__lesson__title")
+    search_fields = (
+        "section__title",
+        "user_progress__user__username",
+        "section__lesson__title",
+    )
 
     def user(self, obj):
         return getattr(obj.user_progress, "user", None)

@@ -367,7 +367,11 @@ class Mastery(models.Model):
         db_table = "core_mastery"
 
     def bump(
-        self, correct: bool, confidence: str | None = None, hints_used: int = 0, attempts: int = 1
+        self,
+        correct: bool,
+        confidence: str | None = None,
+        hints_used: int = 0,
+        attempts: int = 1,
     ):
         """Simple Leitner-style scheduler with confidence + hint shaping.
 
@@ -459,7 +463,11 @@ class Questionnaire(models.Model):
     )
     preferred_style = models.CharField(
         max_length=50,
-        choices=[("Visual", "Visual"), ("Auditory", "Auditory"), ("Kinesthetic", "Kinesthetic")],
+        choices=[
+            ("Visual", "Visual"),
+            ("Auditory", "Auditory"),
+            ("Kinesthetic", "Kinesthetic"),
+        ],
         blank=True,
         null=True,
     )
@@ -516,7 +524,11 @@ class UserResponse(models.Model):
     """
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_responses", null=True, blank=True
+        User,
+        on_delete=models.CASCADE,
+        related_name="user_responses",
+        null=True,
+        blank=True,
     )
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField()

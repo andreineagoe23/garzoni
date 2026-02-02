@@ -41,10 +41,18 @@ urlpatterns = [
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
     path("update-avatar/", update_avatar, name="update_avatar"),
     path("entitlements/", EntitlementsView.as_view(), name="entitlements"),
-    path("entitlements/consume/", ConsumeEntitlementView.as_view(), name="consume-entitlement"),
+    path(
+        "entitlements/consume/",
+        ConsumeEntitlementView.as_view(),
+        name="consume-entitlement",
+    ),
     path("plans/", PlansView.as_view(), name="plans"),
     path("user/settings/", UserSettingsView.as_view(), name="user-settings"),
-    path("password-reset/", PasswordResetRequestView.as_view(), name="password_reset_request"),
+    path(
+        "password-reset/",
+        PasswordResetRequestView.as_view(),
+        name="password_reset_request",
+    ),
     path(
         "password-reset-confirm/<uidb64>/<token>/",
         PasswordResetConfirmView.as_view(),
@@ -52,12 +60,20 @@ urlpatterns = [
     ),
     path("change-password/", change_password, name="change-password"),
     path("delete-account/", delete_account, name="delete-account"),
-    path("leaderboard/friends/", FriendsLeaderboardView.as_view(), name="friends-leaderboard"),
+    path(
+        "leaderboard/friends/",
+        FriendsLeaderboardView.as_view(),
+        name="friends-leaderboard",
+    ),
     path("referrals/", ReferralApplyView.as_view(), name="apply-referral"),
     path("csrf/", get_csrf_token, name="get_csrf_token"),
     # Hearts (lives) system
     path("user/hearts/", UserHeartsView.as_view(), name="user-hearts"),
-    path("user/hearts/decrement/", UserHeartsDecrementView.as_view(), name="user-hearts-decrement"),
+    path(
+        "user/hearts/decrement/",
+        UserHeartsDecrementView.as_view(),
+        name="user-hearts-decrement",
+    ),
     path("user/hearts/grant/", UserHeartsGrantView.as_view(), name="user-hearts-grant"),
     path("user/hearts/refill/", UserHeartsRefillView.as_view(), name="user-hearts-refill"),
     # Include router URLs for ViewSet endpoints

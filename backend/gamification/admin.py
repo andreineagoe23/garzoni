@@ -139,7 +139,12 @@ class MissionCompletionAdmin(admin.ModelAdmin):
         "completion_time_seconds",
         "completion_idempotency_key",
     )
-    list_filter = ("status", "mission__mission_type", "first_try_bonus", "mastery_bonus")
+    list_filter = (
+        "status",
+        "mission__mission_type",
+        "first_try_bonus",
+        "mastery_bonus",
+    )
     search_fields = ("user__username", "mission__name")
     readonly_fields = ("completion_idempotency_key",)
 
@@ -147,7 +152,14 @@ class MissionCompletionAdmin(admin.ModelAdmin):
 class BadgeAdmin(admin.ModelAdmin):
     """Admin configuration for managing badges."""
 
-    list_display = ("name", "badge_level", "criteria_type", "threshold", "is_active", "badge_image")
+    list_display = (
+        "name",
+        "badge_level",
+        "criteria_type",
+        "threshold",
+        "is_active",
+        "badge_image",
+    )
     fields = (
         "name",
         "description",

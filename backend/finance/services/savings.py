@@ -15,7 +15,10 @@ def add_savings_and_update_missions(user, amount):
     today = timezone.now().date()
 
     with transaction.atomic():
-        account, created = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
+        (
+            account,
+            created,
+        ) = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
             user=user, defaults={"balance": amount}
         )
         if not created:
@@ -58,6 +61,10 @@ def add_savings_and_update_missions(user, amount):
 
     logger.info(
         "savings_updated",
-        extra={"user_id": user.id, "amount": str(amount), "balance": str(account.balance)},
+        extra={
+            "user_id": user.id,
+            "amount": str(amount),
+            "balance": str(account.balance),
+        },
     )
     return account

@@ -21,7 +21,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
@@ -45,7 +48,11 @@ class Migration(migrations.Migration):
                 (
                     "badge_level",
                     models.CharField(
-                        choices=[("bronze", "Bronze"), ("silver", "Silver"), ("gold", "Gold")],
+                        choices=[
+                            ("bronze", "Bronze"),
+                            ("silver", "Silver"),
+                            ("gold", "Gold"),
+                        ],
                         default="bronze",
                         max_length=10,
                     ),
@@ -62,7 +69,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
@@ -112,7 +122,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("progress", models.IntegerField(default=0)),
@@ -156,14 +169,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("earned_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "badge",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="gamification.badge"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="gamification.badge",
                     ),
                 ),
                 (

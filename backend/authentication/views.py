@@ -630,7 +630,10 @@ class CustomTokenRefreshView(TokenRefreshView):
             # Blacklisted, expired, or invalid refresh token — clear cookie and return 401
             logger.warning("Refresh token rejected (blacklisted or invalid): %s", exc)
             response = Response(
-                {"detail": "Session expired. Please sign in again.", "code": "token_invalid"},
+                {
+                    "detail": "Session expired. Please sign in again.",
+                    "code": "token_invalid",
+                },
                 status=401,
             )
             clear_refresh_cookie(response)
@@ -853,7 +856,8 @@ class PasswordResetRequestView(APIView):
             return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response(
-                {"error": "No user found with this email."}, status=status.HTTP_404_NOT_FOUND
+                {"error": "No user found with this email."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
@@ -869,7 +873,8 @@ class PasswordResetConfirmView(APIView):
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response(
-                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid user ID or token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if PasswordResetTokenGenerator().check_token(user, token):
@@ -887,12 +892,14 @@ class PasswordResetConfirmView(APIView):
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response(
-                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid user ID or token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not PasswordResetTokenGenerator().check_token(user, token):
             return Response(
-                {"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         new_password = request.data.get("new_password")
@@ -943,12 +950,14 @@ class FriendRequestView(viewsets.ViewSet):
             )
             if existing_request.exists():
                 return Response(
-                    {"error": "Friend request already sent"}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Friend request already sent"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             FriendRequest.objects.create(sender=request.user, receiver=receiver)
             return Response(
-                {"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED
+                {"message": "Friend request sent successfully"},
+                status=status.HTTP_201_CREATED,
             )
 
         except User.DoesNotExist:

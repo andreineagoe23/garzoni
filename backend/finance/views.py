@@ -120,7 +120,8 @@ class SavingsAccountView(APIView):
                     completion.save()
 
                 return Response(
-                    {"message": "Savings updated!", "balance": float(account.balance)}, status=200
+                    {"message": "Savings updated!", "balance": float(account.balance)},
+                    status=200,
                 )
 
         except (ValueError, InvalidOperation) as e:
@@ -142,18 +143,21 @@ class StockPriceView(APIView):
         symbol = request.query_params.get("symbol")
         if not symbol:
             return Response(
-                {"error": "Stock symbol is required.", "request_id": request_id}, status=400
+                {"error": "Stock symbol is required.", "request_id": request_id},
+                status=400,
             )
         if len(symbol) > 12:
             return Response(
-                {"error": "Stock symbol is too long.", "request_id": request_id}, status=400
+                {"error": "Stock symbol is too long.", "request_id": request_id},
+                status=400,
             )
 
         api_key = settings.ALPHA_VANTAGE_API_KEY
         if not api_key:
             logger.error("ALPHA_VANTAGE_API_KEY is not configured.")
             return Response(
-                {"error": "Price feed unavailable.", "request_id": request_id}, status=503
+                {"error": "Price feed unavailable.", "request_id": request_id},
+                status=503,
             )
 
         cache_key = f"alpha_quote_{symbol.upper()}"
@@ -178,7 +182,8 @@ class StockPriceView(APIView):
         except requests.RequestException as exc:
             logger.error("Alpha Vantage request failed: %s", exc)
             return Response(
-                {"error": "Unable to fetch price data.", "request_id": request_id}, status=502
+                {"error": "Unable to fetch price data.", "request_id": request_id},
+                status=502,
             )
 
         payload = response.json()
@@ -199,7 +204,8 @@ class StockPriceView(APIView):
         if price is None:
             logger.warning("Alpha Vantage returned no price for symbol %s", symbol)
             return Response(
-                {"error": "No price data available.", "request_id": request_id}, status=502
+                {"error": "No price data available.", "request_id": request_id},
+                status=502,
             )
 
         result = {
@@ -236,7 +242,10 @@ class ForexRateView(APIView):
 
         if len(base_currency) != 3 or len(quote_currency) != 3:
             return Response(
-                {"error": "Currencies must be 3-letter ISO codes.", "request_id": request_id},
+                {
+                    "error": "Currencies must be 3-letter ISO codes.",
+                    "request_id": request_id,
+                },
                 status=400,
             )
 
@@ -291,7 +300,8 @@ class ForexRateView(APIView):
 
         if result is None:
             return Response(
-                {"error": "Unable to fetch forex rate.", "request_id": request_id}, status=502
+                {"error": "Unable to fetch forex rate.", "request_id": request_id},
+                status=502,
             )
 
         cache.set(cache_key, result, timeout=120)
@@ -309,11 +319,13 @@ class CryptoPriceView(APIView):
         crypto_id = request.query_params.get("id")
         if not crypto_id:
             return Response(
-                {"error": "Crypto id is required.", "request_id": request_id}, status=400
+                {"error": "Crypto id is required.", "request_id": request_id},
+                status=400,
             )
         if len(crypto_id) > 64:
             return Response(
-                {"error": "Crypto id is too long.", "request_id": request_id}, status=400
+                {"error": "Crypto id is too long.", "request_id": request_id},
+                status=400,
             )
 
         crypto_id = crypto_id.strip().lower()
@@ -340,7 +352,8 @@ class CryptoPriceView(APIView):
         except requests.RequestException as exc:
             logger.error("CoinGecko request failed: %s", exc)
             return Response(
-                {"error": "Unable to fetch crypto price.", "request_id": request_id}, status=502
+                {"error": "Unable to fetch crypto price.", "request_id": request_id},
+                status=502,
             )
 
         payload = response.json().get(crypto_id)
@@ -381,7 +394,8 @@ class FinanceFactView(APIView):
                 return Response(status=204)
 
             return Response(
-                {"id": fact.id, "text": fact.text, "category": fact.category}, status=200
+                {"id": fact.id, "text": fact.text, "category": fact.category},
+                status=200,
             )
 
         except Exception as e:
@@ -405,7 +419,8 @@ class FinanceFactView(APIView):
 
             if already_read_today:
                 return Response(
-                    {"message": "You already completed today's finance fact."}, status=200
+                    {"message": "You already completed today's finance fact."},
+                    status=200,
                 )
 
             # Log the fact as read
@@ -610,7 +625,10 @@ class StripeWebhookView(APIView):
                         user_profile.save(update_fields=["has_paid", "stripe_payment_id"])
 
                         cache.delete_many(
-                            [f"user_payment_status_{user_id}", f"user_profile_{user_id}"]
+                            [
+                                f"user_payment_status_{user_id}",
+                                f"user_profile_{user_id}",
+                            ]
                         )
 
                         record_funnel_event(
@@ -745,7 +763,9 @@ class SubscriptionCreateView(APIView):
             return Response({"error": "plan_id is required"}, status=400)
         if plan_id == "starter" or plan_id == "free":
             return Response(
-                {"error": "Starter plan does not require checkout. Use the free option on the plans page."},
+                {
+                    "error": "Starter plan does not require checkout. Use the free option on the plans page."
+                },
                 status=400,
             )
         stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
@@ -758,9 +778,8 @@ class SubscriptionCreateView(APIView):
         # Resolve Stripe price by plan: Plus and Pro each have their own price ID
         price_id = None
         if plan_id == "plus":
-            price_id = (
-                getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
-                or getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
+            price_id = getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None) or getattr(
+                settings, "STRIPE_DEFAULT_PRICE_ID", None
             )
         elif plan_id == "pro":
             price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
@@ -771,7 +790,9 @@ class SubscriptionCreateView(APIView):
         if not price_id:
             logger.error("No Stripe price configured for plan_id=%s", plan_id)
             return Response(
-                {"error": "This plan is not configured for checkout. Please try another plan or contact support."},
+                {
+                    "error": "This plan is not configured for checkout. Please try another plan or contact support."
+                },
                 status=503,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
@@ -1023,7 +1044,8 @@ class FinancialGoalViewSet(viewsets.ModelViewSet):
 
         if amount <= 0:
             return Response(
-                {"error": "Amount must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Amount must be greater than 0"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         goal.current_amount += amount

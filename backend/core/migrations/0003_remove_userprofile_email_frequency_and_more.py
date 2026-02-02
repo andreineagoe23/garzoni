@@ -25,7 +25,11 @@ class Migration(migrations.Migration):
             model_name="userprofile",
             name="email_reminder_preference",
             field=models.CharField(
-                choices=[("none", "No Reminders"), ("daily", "Daily"), ("weekly", "Weekly")],
+                choices=[
+                    ("none", "No Reminders"),
+                    ("daily", "Daily"),
+                    ("weekly", "Weekly"),
+                ],
                 default="none",
                 max_length=10,
             ),

@@ -12,7 +12,11 @@ class UserProfile(models.Model):
     through streaks and last completed dates, providing methods to update these attributes dynamically.
     """
 
-    REMINDER_CHOICES = [("none", "No Reminders"), ("daily", "Daily"), ("weekly", "Weekly")]
+    REMINDER_CHOICES = [
+        ("none", "No Reminders"),
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+    ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)

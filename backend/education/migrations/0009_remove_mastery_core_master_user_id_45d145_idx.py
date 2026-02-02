@@ -6,7 +6,10 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("education", "0008_rename_mastery_user_due_idx_core_master_user_id_45d145_idx"),
+        (
+            "education",
+            "0008_rename_mastery_user_due_idx_core_master_user_id_45d145_idx",
+        ),
     ]
 
     operations = [

@@ -25,7 +25,10 @@ class RewardAdmin(admin.ModelAdmin):
     list_display = ("name", "type", "cost", "is_active")
     list_filter = ("type", "is_active")
     fieldsets = (
-        (None, {"fields": ("name", "description", "cost", "type", "image", "is_active")}),
+        (
+            None,
+            {"fields": ("name", "description", "cost", "type", "image", "is_active")},
+        ),
         (
             "Donation Specific",
             {

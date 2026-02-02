@@ -1,6 +1,6 @@
 // ErrorBoundary.js
 import React from "react";
-import { captureException } from "sentry";
+import { captureException } from "@sentry/react";
 
 type ErrorBoundaryState = {
   hasError: boolean;
@@ -31,7 +31,9 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    captureException(error, info);
+    captureException(error, {
+      contexts: { react: { componentStack: info.componentStack } },
+    });
 
     // Auto-recover from deploy/cache mismatch (hashed chunk file missing).
     // We do this only once per tab to avoid reload loops (e.g. flaky network).

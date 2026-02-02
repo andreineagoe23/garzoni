@@ -5,7 +5,10 @@ from rest_framework.decorators import api_view, permission_classes
 
 from authentication.models import UserProfile
 from authentication.serializers import UserProfileSettingsSerializer
-from authentication.services.profile import build_profile_payload, invalidate_profile_cache
+from authentication.services.profile import (
+    build_profile_payload,
+    invalidate_profile_cache,
+)
 
 
 class UserProfileView(generics.GenericAPIView):
