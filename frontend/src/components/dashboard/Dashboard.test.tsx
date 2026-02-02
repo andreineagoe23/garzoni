@@ -107,6 +107,14 @@ describe("Dashboard personalized path CTA", () => {
       if (queryKey?.[0] === "profile") {
         return { data: mockProfileResponse, isLoading: false };
       }
+      if (queryKey?.[0] === "questionnaire-progress") {
+        return {
+          data: { status: "completed" },
+          isLoading: false,
+          isFetching: false,
+          isFetched: true,
+        };
+      }
 
       return {
         data: { data: { overall_progress: 0, paths: [] } },
@@ -120,7 +128,7 @@ describe("Dashboard personalized path CTA", () => {
 
     render(<Dashboard />);
 
-    fireEvent.click(screen.getByRole("button", { name: /personalizedPath/i }));
+    fireEvent.click(screen.getByRole("button", { name: /personalized path/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/onboarding");
   });
@@ -131,7 +139,7 @@ describe("Dashboard personalized path CTA", () => {
 
     render(<Dashboard />);
 
-    fireEvent.click(screen.getByRole("button", { name: /personalizedPath/i }));
+    fireEvent.click(screen.getByRole("button", { name: /personalized path/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/personalized-path");
   });

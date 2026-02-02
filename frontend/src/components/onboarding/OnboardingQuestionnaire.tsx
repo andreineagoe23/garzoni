@@ -418,9 +418,14 @@ const OnboardingQuestionnaire: React.FC = () => {
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
             You're ready to choose a plan and unlock your personalized path.
           </p>
-          <GlassButton onClick={() => navigate("/subscriptions")} variant="primary">
-            View Plans
-          </GlassButton>
+          <div className="flex flex-wrap justify-center gap-3">
+            <GlassButton onClick={() => navigate("/subscriptions")} variant="primary">
+              View Plans
+            </GlassButton>
+            <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
+              Go to All Topics
+            </GlassButton>
+          </div>
         </GlassCard>
       </div>
     );
@@ -491,18 +496,28 @@ const OnboardingQuestionnaire: React.FC = () => {
         <div className="mx-auto flex max-w-4xl flex-col gap-8">
           {/* Header */}
           <header className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                 Question {currentQuestionNumberDisplay} of {totalQuestionsDisplay}
               </p>
-              <GlassButton
-                variant="ghost"
-                size="sm"
-                onClick={handleSaveAndFinishLater}
-                disabled={abandonMutation.isPending}
-              >
-                Save and Finish Later
-              </GlassButton>
+              <div className="flex items-center gap-2">
+                <GlassButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/all-topics")}
+                  aria-label="Go to All Topics"
+                >
+                  All Topics
+                </GlassButton>
+                <GlassButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveAndFinishLater}
+                  disabled={abandonMutation.isPending}
+                >
+                  Save and Finish Later
+                </GlassButton>
+              </div>
             </div>
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
             Tell us about yourself

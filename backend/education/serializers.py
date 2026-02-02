@@ -214,8 +214,6 @@ class ExerciseSerializer(serializers.ModelSerializer):
             "exercise_data",
             "category",
             "difficulty",
-            "version",
-            "is_published",
             "misconception_tags",
             "error_patterns",
         ]
