@@ -20,14 +20,21 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
-                ("version", models.PositiveIntegerField(help_text="Version number", unique=True)),
+                (
+                    "version",
+                    models.PositiveIntegerField(help_text="Version number", unique=True),
+                ),
                 (
                     "is_active",
                     models.BooleanField(
-                        default=True, help_text="Whether this version is currently active"
+                        default=True,
+                        help_text="Whether this version is currently active",
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
@@ -49,7 +56,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (
@@ -73,7 +83,8 @@ class Migration(migrations.Migration):
                 (
                     "section_answers",
                     models.JSONField(
-                        default=dict, help_text="Answers organized by section for summary display"
+                        default=dict,
+                        help_text="Answers organized by section for summary display",
                     ),
                 ),
                 ("started_at", models.DateTimeField(auto_now_add=True)),
@@ -82,7 +93,8 @@ class Migration(migrations.Migration):
                 (
                     "rewards_granted",
                     models.BooleanField(
-                        default=False, help_text="Whether rewards have been granted for completion"
+                        default=False,
+                        help_text="Whether rewards have been granted for completion",
                     ),
                 ),
                 (
@@ -98,7 +110,8 @@ class Migration(migrations.Migration):
                 (
                     "time_spent_per_question",
                     models.JSONField(
-                        default=dict, help_text="Time spent (in seconds) per question_id"
+                        default=dict,
+                        help_text="Time spent (in seconds) per question_id",
                     ),
                 ),
                 (

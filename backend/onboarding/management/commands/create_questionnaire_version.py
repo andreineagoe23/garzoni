@@ -21,12 +21,27 @@ class Command(BaseCommand):
                             "type": "multiple_select",
                             "text": "What are your top money goals right now?",
                             "options": [
-                                {"value": "build_budget", "label": "Build a realistic budget"},
-                                {"value": "pay_down_debt", "label": "Pay down debt faster"},
-                                {"value": "grow_savings", "label": "Grow savings / emergency fund"},
-                                {"value": "start_investing", "label": "Start investing"},
+                                {
+                                    "value": "build_budget",
+                                    "label": "Build a realistic budget",
+                                },
+                                {
+                                    "value": "pay_down_debt",
+                                    "label": "Pay down debt faster",
+                                },
+                                {
+                                    "value": "grow_savings",
+                                    "label": "Grow savings / emergency fund",
+                                },
+                                {
+                                    "value": "start_investing",
+                                    "label": "Start investing",
+                                },
                                 {"value": "retirement", "label": "Plan for retirement"},
-                                {"value": "improve_credit", "label": "Improve my credit score"},
+                                {
+                                    "value": "improve_credit",
+                                    "label": "Improve my credit score",
+                                },
                             ],
                             "required": True,
                         },
@@ -35,10 +50,22 @@ class Command(BaseCommand):
                             "type": "multiple_choice",
                             "text": "What's your biggest challenge today?",
                             "options": [
-                                {"value": "overspending", "label": "Overspending / impulse buys"},
-                                {"value": "inconsistent_income", "label": "Inconsistent income"},
-                                {"value": "debt_payments", "label": "High debt payments"},
-                                {"value": "no_plan", "label": "I don't have a clear plan"},
+                                {
+                                    "value": "overspending",
+                                    "label": "Overspending / impulse buys",
+                                },
+                                {
+                                    "value": "inconsistent_income",
+                                    "label": "Inconsistent income",
+                                },
+                                {
+                                    "value": "debt_payments",
+                                    "label": "High debt payments",
+                                },
+                                {
+                                    "value": "no_plan",
+                                    "label": "I don't have a clear plan",
+                                },
                                 {
                                     "value": "investing_confidence",
                                     "label": "Low investing confidence",
@@ -69,9 +96,15 @@ class Command(BaseCommand):
                             "type": "multiple_choice",
                             "text": "Which best describes your income?",
                             "options": [
-                                {"value": "salaried", "label": "Salaried / steady paycheck"},
+                                {
+                                    "value": "salaried",
+                                    "label": "Salaried / steady paycheck",
+                                },
                                 {"value": "hourly", "label": "Hourly / variable"},
-                                {"value": "self_employed", "label": "Self-employed / freelance"},
+                                {
+                                    "value": "self_employed",
+                                    "label": "Self-employed / freelance",
+                                },
                                 {"value": "student", "label": "Student"},
                                 {"value": "retired", "label": "Retired"},
                                 {"value": "other", "label": "Other"},
@@ -93,7 +126,10 @@ class Command(BaseCommand):
                                     "value": "detailed_budget",
                                     "label": "Detailed spreadsheet budget",
                                 },
-                                {"value": "envelope", "label": "Envelope / cash system"},
+                                {
+                                    "value": "envelope",
+                                    "label": "Envelope / cash system",
+                                },
                             ],
                             "required": True,
                         },
@@ -103,7 +139,10 @@ class Command(BaseCommand):
                             "text": "How would you describe your debt situation?",
                             "options": [
                                 {"value": "none", "label": "No debt"},
-                                {"value": "credit_cards", "label": "Mostly credit cards"},
+                                {
+                                    "value": "credit_cards",
+                                    "label": "Mostly credit cards",
+                                },
                                 {"value": "student_loans", "label": "Student loans"},
                                 {"value": "mortgage", "label": "Mortgage"},
                                 {"value": "mixed", "label": "A mix of several types"},
@@ -123,7 +162,10 @@ class Command(BaseCommand):
                             "options": [
                                 {"value": "new", "label": "Completely new"},
                                 {"value": "beginner", "label": "Know the basics"},
-                                {"value": "intermediate", "label": "Have invested before"},
+                                {
+                                    "value": "intermediate",
+                                    "label": "Have invested before",
+                                },
                                 {"value": "advanced", "label": "Very confident"},
                             ],
                             "required": True,
@@ -134,8 +176,14 @@ class Command(BaseCommand):
                             "text": "What level of risk feels right?",
                             "options": [
                                 {"value": "low", "label": "Low risk, steady growth"},
-                                {"value": "balanced", "label": "Balanced risk and growth"},
-                                {"value": "growth", "label": "Higher growth, some volatility"},
+                                {
+                                    "value": "balanced",
+                                    "label": "Balanced risk and growth",
+                                },
+                                {
+                                    "value": "growth",
+                                    "label": "Higher growth, some volatility",
+                                },
                                 {"value": "aggressive", "label": "Aggressive growth"},
                             ],
                             "required": True,
@@ -171,7 +219,10 @@ class Command(BaseCommand):
                                 {"value": "quick_lessons", "label": "Quick lessons"},
                                 {"value": "deep_dives", "label": "Deep dives"},
                                 {"value": "visual", "label": "Visual explainers"},
-                                {"value": "interactive", "label": "Interactive exercises"},
+                                {
+                                    "value": "interactive",
+                                    "label": "Interactive exercises",
+                                },
                                 {"value": "coaching", "label": "Guided coaching"},
                             ],
                             "required": True,
@@ -226,10 +277,16 @@ class Command(BaseCommand):
                             "type": "multiple_select",
                             "text": "Where should we focus first?",
                             "options": [
-                                {"value": "budgeting_tools", "label": "Budgeting tools"},
+                                {
+                                    "value": "budgeting_tools",
+                                    "label": "Budgeting tools",
+                                },
                                 {"value": "debt_plan", "label": "Debt payoff plan"},
                                 {"value": "savings_plan", "label": "Savings plan"},
-                                {"value": "investment_plan", "label": "Investment plan"},
+                                {
+                                    "value": "investment_plan",
+                                    "label": "Investment plan",
+                                },
                                 {"value": "credit_score", "label": "Credit score"},
                                 {"value": "income_growth", "label": "Income growth"},
                             ],

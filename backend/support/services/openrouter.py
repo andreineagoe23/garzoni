@@ -40,7 +40,14 @@ class OpenRouterService:
         return any(term in text.lower() for term in path_terms)
 
     def is_recommendation_query(self, text):
-        recommend_terms = ["recommend", "suggest", "what should", "which", "best", "next course"]
+        recommend_terms = [
+            "recommend",
+            "suggest",
+            "what should",
+            "which",
+            "best",
+            "next course",
+        ]
         return any(term in text.lower() for term in recommend_terms)
 
     def is_reset_query(self, text):
@@ -54,7 +61,12 @@ class OpenRouterService:
             return [p["title"] for p in paths]
         except Exception as exc:
             logger.error("Error retrieving learning paths: %s", exc)
-            default_paths = ["Basic Finance", "Investing", "Real Estate", "Cryptocurrency"]
+            default_paths = [
+                "Basic Finance",
+                "Investing",
+                "Real Estate",
+                "Cryptocurrency",
+            ]
             self.path_links = {
                 p.lower(): f"/all-topics#{p.lower().replace(' ', '-')}" for p in default_paths
             }
@@ -304,7 +316,10 @@ class OpenRouterService:
         if idempotency_key is not None:
             idempotency_key = str(idempotency_key).strip()
             if not idempotency_key or len(idempotency_key) > 128:
-                return {"error": "Invalid Idempotency-Key.", "request_id": request_id}, 400
+                return {
+                    "error": "Invalid Idempotency-Key.",
+                    "request_id": request_id,
+                }, 400
 
         idem_cache_key = None
         idem_lock_key = None
@@ -319,7 +334,10 @@ class OpenRouterService:
                 cached_idem = cache.get(idem_cache_key)
                 if cached_idem:
                     return cached_idem, 200
-                return {"error": "Request already in progress.", "request_id": request_id}, 409
+                return {
+                    "error": "Request already in progress.",
+                    "request_id": request_id,
+                }, 409
 
         cache_ttl = int(getattr(settings, "OPENROUTER_CACHE_TTL_SECONDS", 0) or 0)
         if settings.DEBUG and cache_ttl <= 0:
@@ -384,7 +402,8 @@ class OpenRouterService:
                         {
                             "text": f"View {path.title()} Path",
                             "path": self.path_links.get(
-                                path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                path.lower(),
+                                f"/all-topics#{path.lower().replace(' ', '-')}",
                             ),
                             "icon": "📚",
                         }
@@ -400,7 +419,8 @@ class OpenRouterService:
                         {
                             "text": f"View {path.title()} Path",
                             "path": self.path_links.get(
-                                path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                path.lower(),
+                                f"/all-topics#{path.lower().replace(' ', '-')}",
                             ),
                             "icon": "📚",
                         }
@@ -532,7 +552,10 @@ class OpenRouterService:
                     request_id,
                     str(exc),
                 )
-                return {"error": "AI service unavailable.", "request_id": request_id}, 502
+                return {
+                    "error": "AI service unavailable.",
+                    "request_id": request_id,
+                }, 502
 
             if response.status_code == 200:
                 response_data = response.json()
@@ -561,7 +584,10 @@ class OpenRouterService:
                         )
 
                     return result, 200
-                return {"error": "No valid response from the model.", "request_id": request_id}, 502
+                return {
+                    "error": "No valid response from the model.",
+                    "request_id": request_id,
+                }, 502
 
             logger.warning(
                 "OpenRouter non-200 request_id=%s status=%s body=%s",

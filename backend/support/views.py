@@ -183,7 +183,14 @@ class OpenRouterProxyView(APIView):
 
     def is_recommendation_query(self, text):
         """Check if the message is asking for recommendations."""
-        recommend_terms = ["recommend", "suggest", "what should", "which", "best", "next course"]
+        recommend_terms = [
+            "recommend",
+            "suggest",
+            "what should",
+            "which",
+            "best",
+            "next course",
+        ]
         return any(term in text.lower() for term in recommend_terms)
 
     def is_reset_query(self, text):
@@ -199,7 +206,12 @@ class OpenRouterProxyView(APIView):
             return [p["title"] for p in paths]
         except Exception as e:
             logger.error(f"Error retrieving learning paths: {str(e)}")
-            default_paths = ["Basic Finance", "Investing", "Real Estate", "Cryptocurrency"]
+            default_paths = [
+                "Basic Finance",
+                "Investing",
+                "Real Estate",
+                "Cryptocurrency",
+            ]
             self.path_links = {
                 p.lower(): f"/all-topics#{p.lower().replace(' ', '-')}" for p in default_paths
             }
@@ -364,7 +376,8 @@ class OpenRouterProxyView(APIView):
                             {
                                 "text": f"View {path.title()} Path",
                                 "path": self.path_links.get(
-                                    path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                    path.lower(),
+                                    f"/all-topics#{path.lower().replace(' ', '-')}",
                                 ),
                                 "icon": "📚",
                             }
@@ -382,7 +395,8 @@ class OpenRouterProxyView(APIView):
                             {
                                 "text": f"View {path.title()} Path",
                                 "path": self.path_links.get(
-                                    path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
+                                    path.lower(),
+                                    f"/all-topics#{path.lower().replace(' ', '-')}",
                                 ),
                                 "icon": "📚",
                             }
@@ -514,7 +528,10 @@ class OpenRouterProxyView(APIView):
                 response = result.response
             except requests.Timeout:
                 return Response(
-                    {"error": "AI service timed out. Please try again.", "request_id": request_id},
+                    {
+                        "error": "AI service timed out. Please try again.",
+                        "request_id": request_id,
+                    },
                     status=504,
                 )
             except requests.RequestException as exc:
@@ -524,7 +541,8 @@ class OpenRouterProxyView(APIView):
                     str(exc),
                 )
                 return Response(
-                    {"error": "AI service unavailable.", "request_id": request_id}, status=502
+                    {"error": "AI service unavailable.", "request_id": request_id},
+                    status=502,
                 )
 
             if response.status_code == 200:
@@ -556,7 +574,10 @@ class OpenRouterProxyView(APIView):
                     return Response(result)
                 else:
                     return Response(
-                        {"error": "No valid response from the model.", "request_id": request_id},
+                        {
+                            "error": "No valid response from the model.",
+                            "request_id": request_id,
+                        },
                         status=502,
                     )
             else:

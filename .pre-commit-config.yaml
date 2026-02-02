@@ -1,6 +1,5 @@
-# Run on every `git commit` after you install the hook once:
-#   python -m pip install -r backend/requirements-dev.txt
-#   pre-commit install
+# Runs on every `git commit` after you run once:  pre-commit install
+# (Requires: pip install -r backend/requirements-dev.txt)
 
 exclude: |
   (?x)^(

@@ -18,5 +18,8 @@ def apply_referral(referrer_profile, referred_user):
         referred_user.profile.add_points(5)
     logger.info(
         "referral_applied",
-        extra={"referrer_id": referrer_profile.user_id, "referred_id": referred_user.id},
+        extra={
+            "referrer_id": referrer_profile.user_id,
+            "referred_id": referred_user.id,
+        },
     )

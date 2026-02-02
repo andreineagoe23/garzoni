@@ -29,7 +29,13 @@ from gamification.serializers import (
     LeaderboardSerializer,
 )
 from authentication.models import UserProfile
-from education.models import LessonCompletion, QuizCompletion, UserProgress, Mastery, Exercise
+from education.models import (
+    LessonCompletion,
+    QuizCompletion,
+    UserProgress,
+    Mastery,
+    Exercise,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +125,10 @@ class MissionView(APIView):
 
             mission_completion.update_progress(increment)
             return Response(
-                {"message": "Mission progress updated.", "progress": mission_completion.progress},
+                {
+                    "message": "Mission progress updated.",
+                    "progress": mission_completion.progress,
+                },
                 status=200,
             )
 
@@ -128,7 +137,8 @@ class MissionView(APIView):
         except Exception as e:
             logger.error(f"Error updating mission progress for user {user.username}: {str(e)}")
             return Response(
-                {"error": "An error occurred while updating mission progress."}, status=500
+                {"error": "An error occurred while updating mission progress."},
+                status=500,
             )
 
 
@@ -509,7 +519,8 @@ class MissionSwapView(APIView):
 
                 if not new_mission:
                     return Response(
-                        {"error": "No suitable replacement mission available."}, status=400
+                        {"error": "No suitable replacement mission available."},
+                        status=400,
                     )
 
                 # Create new completion
@@ -606,7 +617,7 @@ class StreakItemView(APIView):
                     {
                         "type": item.item_type,
                         "quantity": item.quantity,
-                        "expires_at": item.expires_at.isoformat() if item.expires_at else None,
+                        "expires_at": (item.expires_at.isoformat() if item.expires_at else None),
                     }
                     for item in items
                 ]
@@ -647,7 +658,10 @@ class StreakItemView(APIView):
                 item.save()
 
                 return Response(
-                    {"message": f"{item_type} used successfully.", "remaining": item.quantity}
+                    {
+                        "message": f"{item_type} used successfully.",
+                        "remaining": item.quantity,
+                    }
                 )
 
         except Exception as e:

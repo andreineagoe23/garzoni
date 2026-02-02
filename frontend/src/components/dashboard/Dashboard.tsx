@@ -286,7 +286,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       return;
     // Only redirect when we have progress data and it says not completed (don't redirect on API error)
     if (!questionnaireProgress) return;
-    if (questionnaireProgress.status === "completed") return;
+    const progress = questionnaireProgress as { status?: string };
+    if (progress.status === "completed") return;
     navigate("/onboarding", { replace: true });
   }, [
     authInitialized,

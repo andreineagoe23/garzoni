@@ -19,18 +19,25 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (
                     "asset_type",
                     models.CharField(
-                        choices=[("stock", "Stock"), ("crypto", "Crypto")], max_length=20
+                        choices=[("stock", "Stock"), ("crypto", "Crypto")],
+                        max_length=20,
                     ),
                 ),
                 ("symbol", models.CharField(max_length=10)),
                 ("quantity", models.DecimalField(decimal_places=8, max_digits=20)),
-                ("purchase_price", models.DecimalField(decimal_places=8, max_digits=20)),
+                (
+                    "purchase_price",
+                    models.DecimalField(decimal_places=8, max_digits=20),
+                ),
                 ("purchase_date", models.DateField()),
                 (
                     "current_price",
@@ -40,7 +47,8 @@ class Migration(migrations.Migration):
                 (
                     "user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
             ],

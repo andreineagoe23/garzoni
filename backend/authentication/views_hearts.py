@@ -5,7 +5,11 @@ from django.db import transaction
 from django.utils import timezone
 
 from authentication.models import UserProfile
-from authentication.services.hearts import apply_hearts_regen, hearts_constants, hearts_payload
+from authentication.services.hearts import (
+    apply_hearts_regen,
+    hearts_constants,
+    hearts_payload,
+)
 
 
 class UserHeartsView(APIView):

@@ -67,3 +67,17 @@ npm start
 ## Contributing
 
 Pull requests are welcome. Please open an issue for major changes first to discuss what you would like to modify. Ensure lint/tests pass before submitting.
+
+### Pre-commit hooks (run on every `git commit`)
+
+To run Black (backend), pre-commit-hooks, and detect-secrets automatically on each commit:
+
+```bash
+# From repo root, once per clone:
+python3 -m venv .venv
+source .venv/bin/activate   # or .venv\Scripts\activate on Windows
+pip install -r backend/requirements-dev.txt
+pre-commit install
+```
+
+After that, every `git commit` will run these checks; if Black reformats files, the commit will fail until you `git add` the changes and commit again.

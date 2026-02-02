@@ -103,7 +103,8 @@ class PasswordResetConfirmView(APIView):
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response(
-                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid user ID or token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if PasswordResetTokenGenerator().check_token(user, token):
@@ -120,12 +121,14 @@ class PasswordResetConfirmView(APIView):
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response(
-                {"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid user ID or token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not PasswordResetTokenGenerator().check_token(user, token):
             return Response(
-                {"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         new_password = request.data.get("new_password")

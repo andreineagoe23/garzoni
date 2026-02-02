@@ -367,12 +367,19 @@ class QuizViewSet(viewsets.ModelViewSet):
                 user_profile.save()
 
                 return Response(
-                    {"message": "Quiz completed!", "correct": True, "earned_money": 10.00},
+                    {
+                        "message": "Quiz completed!",
+                        "correct": True,
+                        "earned_money": 10.00,
+                    },
                     status=status.HTTP_200_OK,
                 )
             else:
                 return Response(
-                    {"message": "Incorrect answer. Please try again.", "correct": False},
+                    {
+                        "message": "Incorrect answer. Please try again.",
+                        "correct": False,
+                    },
                     status=status.HTTP_200_OK,
                 )
         except Quiz.DoesNotExist:
@@ -434,7 +441,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if path:
                     courses_in_path = Course.objects.filter(path=path)
                     completed_courses = UserProgress.objects.filter(
-                        user=request.user, course__in=courses_in_path, is_course_complete=True
+                        user=request.user,
+                        course__in=courses_in_path,
+                        is_course_complete=True,
                     ).count()
 
                     if completed_courses == courses_in_path.count():
@@ -454,7 +463,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 mission_completion.update_progress()
 
             return Response(
-                {"status": "Lesson completed", "streak": user_progress.user.profile.streak},
+                {
+                    "status": "Lesson completed",
+                    "streak": user_progress.user.profile.streak,
+                },
                 status=status.HTTP_200_OK,
             )
 
@@ -475,7 +487,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
             progress_data.append(
                 {
-                    "path": progress.course.path.title if progress.course.path else None,
+                    "path": (progress.course.path.title if progress.course.path else None),
                     "course": progress.course.title,
                     "percent_complete": percent_complete,
                 }
@@ -530,7 +542,8 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             course_id = int(course_id)
         except (TypeError, ValueError):
             return Response(
-                {"error": "course must be an integer"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "course must be an integer"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         progress, _ = UserProgress.objects.get_or_create(user=request.user, course_id=course_id)
@@ -553,11 +566,13 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             current_index = int(current_index)
         except (TypeError, ValueError):
             return Response(
-                {"error": "current_index must be an integer"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "current_index must be an integer"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         if current_index < 0:
             return Response(
-                {"error": "current_index must be >= 0"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "current_index must be >= 0"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         progress.flow_current_index = current_index
@@ -885,7 +900,11 @@ def reset_exercise(request):
         progress.user_answer = None
         progress.save()
         return Response({"message": "Progress reset successfully."}, status=200)
-    except (UserExerciseProgress.DoesNotExist, LessonSection.DoesNotExist, Exercise.DoesNotExist):
+    except (
+        UserExerciseProgress.DoesNotExist,
+        LessonSection.DoesNotExist,
+        Exercise.DoesNotExist,
+    ):
         return Response({"error": "No progress found to reset."}, status=404)
 
 
@@ -952,7 +971,10 @@ def next_exercise(request):
     queue_response = review_queue(request)
     if queue_response.data.get("due"):
         return Response(
-            {"exercise_id": queue_response.data["due"][0]["exercise_id"], "reason": "review_due"}
+            {
+                "exercise_id": queue_response.data["due"][0]["exercise_id"],
+                "reason": "review_due",
+            }
         )
 
     completed_ids = set(
@@ -1004,7 +1026,10 @@ class PersonalizedPathView(APIView):
 
             if not user_profile.has_paid:
                 return Response(
-                    {"error": "Payment required for personalized path", "redirect": "/upgrade"},
+                    {
+                        "error": "Payment required for personalized path",
+                        "redirect": "/upgrade",
+                    },
                     status=403,
                 )
 

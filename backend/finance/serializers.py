@@ -31,7 +31,15 @@ class RewardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reward
-        fields = ["id", "name", "description", "cost", "type", "image", "donation_organization"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "cost",
+            "type",
+            "image",
+            "donation_organization",
+        ]
 
 
 class UserPurchaseSerializer(serializers.ModelSerializer):

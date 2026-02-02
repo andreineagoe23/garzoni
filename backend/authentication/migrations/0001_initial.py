@@ -20,14 +20,23 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
-                ("earned_money", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                (
+                    "earned_money",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
                 ("points", models.IntegerField(default=0)),
                 ("profile_avatar", models.URLField(blank=True, null=True)),
                 ("recommended_courses", models.JSONField(blank=True, default=list)),
-                ("referral_code", models.CharField(max_length=20, null=True, unique=True)),
+                (
+                    "referral_code",
+                    models.CharField(max_length=20, null=True, unique=True),
+                ),
                 ("referral_points", models.PositiveIntegerField(default=0)),
                 ("dark_mode", models.BooleanField(default=False)),
                 ("has_paid", models.BooleanField(default=False)),
@@ -72,11 +81,17 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("referral_code", models.CharField(blank=True, max_length=20, unique=True)),
+                (
+                    "referral_code",
+                    models.CharField(blank=True, max_length=20, unique=True),
+                ),
                 ("referral_points", models.PositiveIntegerField(default=0)),
                 (
                     "referred_user",
@@ -105,7 +120,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 (

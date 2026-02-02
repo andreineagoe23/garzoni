@@ -7,7 +7,7 @@ Quick reference for all environment variables used in the Monevo backend.
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `SECRET_KEY` | Django secret key | Generated via `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
-| `DATABASE_URL` | PostgreSQL connection string | Auto-set by Render from database service |
+| `DATABASE_URL` | Database URL (MySQL, PostgreSQL, or SQLite) | For local dev without MySQL: unset or `sqlite:///db.sqlite3`. Backend uses PyMySQL (pure Python) so no MySQL C libs are required. |
 | `REDIS_URL` | Redis connection string | Auto-set by Render from Redis service |
 
 ## Email Configuration
