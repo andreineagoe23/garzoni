@@ -44,7 +44,9 @@ if (!enableLogs) {
 }
 
 // Suppress extension and third-party console noise in both dev and production.
-// Runs for all environments so users don't see TSS, Content Script Bridge, etc.
+// Note: Messages from content-scripts.js / injection-tss*.js run in the browser
+// extension context and may bypass this patch; those can only be hidden by
+// disabling the extension on this site or filtering in DevTools.
 if (typeof window !== "undefined") {
   const originalLog = console.log;
   const originalInfo = console.info;
@@ -92,6 +94,15 @@ if (typeof window !== "undefined") {
     "MBTSS_NOTIFICATION",
     "Banner not shown:",
     "beforeinstallpromptevent.preventDefault()",
+    // Chrome DevTools violations and network noise
+    "Violation",
+    "non-passive",
+    "Forced reflow",
+    "handler took",
+    "scroll-blocking",
+    "event listener",
+    "ERR_BLOCKED_BY_CLIENT",
+    "Caught create URL",
   ];
 
   const shouldSuppress = (...args: unknown[]) => {
