@@ -87,6 +87,11 @@ if (typeof window !== "undefined") {
     "Caught history",
     "Checking if repeated",
     "excluded result",
+    "Risky TLD",
+    "aggressive protection",
+    "MBTSS_NOTIFICATION",
+    "Banner not shown:",
+    "beforeinstallpromptevent.preventDefault()",
   ];
 
   const shouldSuppress = (...args: unknown[]) => {
