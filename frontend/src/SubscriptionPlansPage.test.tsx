@@ -10,9 +10,31 @@ jest.mock("services/analyticsService", () => ({
   recordFunnelEvent: jest.fn(),
 }));
 
-jest.mock("axios");
+jest.mock("axios", () => {
+  const mock = {
+    get: jest.fn(),
+    post: jest.fn(),
+    create: () => ({
+      get: jest.fn(),
+      post: jest.fn(),
+      defaults: { headers: { common: {} } },
+      interceptors: {
+        request: { use: jest.fn(), eject: jest.fn() },
+        response: { use: jest.fn(), eject: jest.fn() },
+      },
+    }),
+    defaults: { headers: { common: {} } },
+    interceptors: {
+      request: { use: jest.fn(), eject: jest.fn() },
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  };
+  return { __esModule: true, default: mock };
+});
 const mockNavigate = jest.fn();
 const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
+
+let mockQuestionnaireStatus: "in_progress" | "completed" = "in_progress";
 
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -33,8 +55,27 @@ jest.mock("contexts/AuthContext", () => ({
       user_data: { has_paid: false, is_questionnaire_completed: false },
     }),
     isAuthenticated: true,
+    getAccessToken: jest.fn(() => "token"),
   }),
 }));
+
+jest.mock("@tanstack/react-query", () => {
+  const actual = jest.requireActual("@tanstack/react-query");
+  return {
+    ...actual,
+    useQuery: (opts: { queryKey?: unknown[] }) => {
+      if (opts?.queryKey?.[0] === "questionnaire-progress") {
+        return {
+          data: { status: mockQuestionnaireStatus },
+          isLoading: false,
+          isFetching: false,
+          isFetched: true,
+        };
+      }
+      return actual.useQuery(opts);
+    },
+  };
+});
 
 const plansResponse = {
   plans: [
@@ -110,7 +151,7 @@ describe("SubscriptionPlansPage", () => {
     );
 
     const plusLabel = "Plus";
-    const choosePlus = `Choose ${plusLabel}`;
+    const choosePlus = "Choose Plus — Go to checkout";
     const priceLabel = formatCurrency(12, "USD", getLocale(), {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
@@ -129,20 +170,72 @@ describe("SubscriptionPlansPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("navigates to onboarding before selecting a plan", async () => {
+  it("navigates to onboarding when questionnaire incomplete and user clicks Plus", async () => {
+    mockQuestionnaireStatus = "in_progress";
     render(
       <MemoryRouter initialEntries={["/subscriptions"]}>
         <SubscriptionPlansPage />
       </MemoryRouter>
     );
 
-    const plusLabel = "Plus";
-    const choosePlus = `Choose ${plusLabel}`;
+    const choosePlus = "Choose Plus — Go to checkout";
     const button = await screen.findByRole("button", { name: choosePlus });
     fireEvent.click(button);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/onboarding");
+    });
+  });
+
+  it("navigates to all-topics when questionnaire complete and user clicks Starter (Free)", async () => {
+    mockQuestionnaireStatus = "completed";
+    render(
+      <MemoryRouter initialEntries={["/subscriptions"]}>
+        <SubscriptionPlansPage />
+      </MemoryRouter>
+    );
+
+    const starterButton = await screen.findByRole("button", {
+      name: "Start with Starter (Free)",
+    });
+    fireEvent.click(starterButton);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/all-topics");
+    });
+    expect(axiosMock.post).not.toHaveBeenCalled();
+  });
+
+  it("calls subscription create and redirects to Stripe when questionnaire complete and user clicks Plus", async () => {
+    mockQuestionnaireStatus = "completed";
+    const mockAssign = jest.fn();
+    Object.defineProperty(window, "location", {
+      value: { assign: mockAssign },
+      writable: true,
+    });
+    axiosMock.post.mockResolvedValue({
+      data: { redirect_url: "https://checkout.stripe.com/session/xxx" },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/subscriptions"]}>
+        <SubscriptionPlansPage />
+      </MemoryRouter>
+    );
+
+    const choosePlus = "Choose Plus — Go to checkout";
+    const button = await screen.findByRole("button", { name: choosePlus });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(axiosMock.post).toHaveBeenCalledWith(
+        expect.stringContaining("/subscriptions/create/"),
+        { plan_id: "plus", billing_interval: "monthly" },
+        expect.any(Object)
+      );
+    });
+    await waitFor(() => {
+      expect(mockAssign).toHaveBeenCalledWith("https://checkout.stripe.com/session/xxx");
     });
   });
 });

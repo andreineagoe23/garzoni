@@ -21,6 +21,7 @@ import {
   fetchMasterySummary,
   fetchMissions,
 } from "services/userService";
+import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { UserProfile } from "types/api";
 import { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
@@ -162,6 +163,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     placeholderData: (previousData) => previousData ?? authProfile,
   });
 
+  const {
+    data: questionnaireProgress,
+    isLoading: isQuestionnaireProgressLoading,
+    isFetching: isQuestionnaireProgressFetching,
+    isFetched: isQuestionnaireProgressFetched,
+  } = useQuery({
+    queryKey: ["questionnaire-progress"],
+    queryFn: fetchQuestionnaireProgress,
+    retry: 2,
+    staleTime: 0,
+    refetchOnMount: true,
+    enabled: authInitialized,
+  });
+
   const { data: progressResponse, isLoading: isProgressLoading } =
     useProgressSummaryQuery({
       // Dashboard should feel responsive, but doesn't need constant refetching.
@@ -253,22 +268,35 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
   }, [location.pathname, location.search, queryClient, reloadEntitlements]);
 
-  // Refetch questionnaire progress and profile when dashboard mounts so we have fresh onboarding status
+  // Refetch questionnaire progress, profile, and entitlements when dashboard mounts (e.g. after payment)
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["questionnaire-progress"] });
     queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-  }, [queryClient]);
+    reloadEntitlements?.();
+  }, [queryClient, reloadEntitlements]);
 
-  // Redirect new users (incomplete onboarding) to onboarding when they land on dashboard
-  // Only redirect once we have loaded profile (not loading) and it says not completed
+  // Redirect to onboarding only when we have a definitive "not completed" from the questionnaire API.
+  // Do not redirect while questionnaire progress is still loading/refetching, so users aren't bounced
+  // away when landing on /all-topics (e.g. after login or subscription).
   useEffect(() => {
-    if (!authInitialized || isProfileLoading) return;
+    if (!authInitialized) return;
     if (hasPaid) return;
-    if (isQuestionnaireCompleted) return;
-    // No profile yet (e.g. first load): don't redirect until we have data
-    if (profilePayload === undefined && !authProfile) return;
+    // Wait until we have a settled fetch (not loading, not refetching after invalidation)
+    if (!isQuestionnaireProgressFetched || isQuestionnaireProgressLoading || isQuestionnaireProgressFetching)
+      return;
+    // Only redirect when we have progress data and it says not completed (don't redirect on API error)
+    if (!questionnaireProgress) return;
+    if (questionnaireProgress.status === "completed") return;
     navigate("/onboarding", { replace: true });
-  }, [authInitialized, isProfileLoading, hasPaid, isQuestionnaireCompleted, profilePayload, authProfile, navigate]);
+  }, [
+    authInitialized,
+    hasPaid,
+    isQuestionnaireProgressFetched,
+    isQuestionnaireProgressLoading,
+    isQuestionnaireProgressFetching,
+    questionnaireProgress,
+    navigate,
+  ]);
 
   // Removed mobile view tracking
 

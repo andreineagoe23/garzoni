@@ -5,10 +5,12 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 import { BACKEND_URL } from "services/backendUrl";
+import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 
 type PlanFeature = {
@@ -50,12 +52,20 @@ const SubscriptionPlansPage = () => {
   } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState({
     hasPaid: false,
-    questionnaireComplete: false,
   });
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const locale = getLocale();
+
+  const { data: questionnaireProgress } = useQuery({
+    queryKey: ["questionnaire-progress"],
+    queryFn: fetchQuestionnaireProgress,
+    enabled: isAuthenticated ?? false,
+    staleTime: 0,
+  });
+  const questionnaireComplete = questionnaireProgress?.status === "completed";
+
   const trialEndLabel = useMemo(
     () => (entitlements?.trialEnd ? formatDate(entitlements.trialEnd, locale) : null),
     [entitlements?.trialEnd, locale]
@@ -70,10 +80,6 @@ const SubscriptionPlansPage = () => {
           entitlements?.entitled ||
             userData?.has_paid ||
             (profilePayload as { has_paid?: boolean })?.has_paid
-        ),
-        questionnaireComplete: Boolean(
-          userData?.is_questionnaire_completed ??
-            (profilePayload as { is_questionnaire_completed?: boolean })?.is_questionnaire_completed
         ),
       });
     } catch (e) {
@@ -104,12 +110,12 @@ const SubscriptionPlansPage = () => {
       navigate("/personalized-path");
       return;
     }
-    if (!subscriptionInfo.questionnaireComplete) {
+    if (!questionnaireComplete) {
       navigate("/onboarding");
       return;
     }
     navigate("/subscriptions", { state: { from: "/subscriptions" } });
-  }, [navigate, subscriptionInfo.hasPaid, subscriptionInfo.questionnaireComplete]);
+  }, [navigate, subscriptionInfo.hasPaid, questionnaireComplete]);
 
   const upgradeComplete = useMemo(
     () => new URLSearchParams(location.search).get("redirect") === "upgradeComplete",
@@ -127,15 +133,15 @@ const SubscriptionPlansPage = () => {
         return;
       }
       setSelectionError("");
-      if (!subscriptionInfo.questionnaireComplete) {
-        setSelectionError("Please complete onboarding before choosing a plan.");
-        navigate("/onboarding");
-        return;
-      }
       const isStarter = plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
       if (isStarter) {
         reloadEntitlements?.();
         navigate("/all-topics");
+        return;
+      }
+      if (!questionnaireComplete) {
+        setSelectionError("Please complete onboarding before choosing a plan.");
+        navigate("/onboarding");
         return;
       }
       try {
@@ -149,13 +155,18 @@ const SubscriptionPlansPage = () => {
           return;
         }
       } catch (err) {
-        setSelectionError(
-          (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-            "Could not start checkout. Please try again."
-        );
+        const status = (err as { response?: { status?: number; data?: { error?: string } } })?.response?.status;
+        const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+        if (status === 503) {
+          setSelectionError(
+            message || "Payment is not configured yet. Please try again later or contact support."
+          );
+        } else {
+          setSelectionError(message || "Could not start checkout. Please try again.");
+        }
       }
     },
-    [isAuthenticated, navigate, subscriptionInfo.questionnaireComplete, reloadEntitlements, getAccessToken]
+    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken]
   );
 
   useEffect(() => {
@@ -204,7 +215,7 @@ const SubscriptionPlansPage = () => {
               Choose Your Plan
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Select a subscription plan to unlock premium features
+              Starter is free after onboarding. Plus and Pro unlock your personalized path and premium features via secure Stripe checkout.
             </p>
             {upgradeComplete && (
               <p className="rounded-lg bg-[color:var(--success,#16a34a)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--success,#16a34a)]">
@@ -239,6 +250,7 @@ const SubscriptionPlansPage = () => {
                 : null;
               const name =
                 plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+              const paidPlan = !isStarter;
               return (
                 <div
                   key={`${plan.plan_id}-${plan.billing_interval}`}
@@ -253,7 +265,12 @@ const SubscriptionPlansPage = () => {
                       <div className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                         {name}
                       </div>
-                      {trialLabel && (
+                      {isStarter && (
+                        <span className="rounded-full bg-[color:var(--success,#16a34a)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--success,#16a34a)]">
+                          Free
+                        </span>
+                      )}
+                      {trialLabel && paidPlan && (
                         <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
                           {trialLabel}
                         </span>
@@ -276,12 +293,19 @@ const SubscriptionPlansPage = () => {
                       <li key={fe}>• {fe}</li>
                     ))}
                   </ul>
+                  {paidPlan && (
+                    <p className="text-xs text-[color:var(--primary,#2563eb)] font-medium">
+                      Unlocks personalized path + secure Stripe checkout
+                    </p>
+                  )}
                   <GlassButton
                     variant={isHighlight ? "primary" : "ghost"}
                     className="w-full"
                     onClick={() => handlePlanSelect(plan)}
                   >
-                    {isStarter ? "Start with Starter" : `Choose ${name}`}
+                    {isStarter
+                      ? "Start with Starter (Free)"
+                      : `Choose ${name} — Go to checkout`}
                   </GlassButton>
                 </div>
               );
@@ -321,8 +345,10 @@ const SubscriptionPlansPage = () => {
             </p>
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
               {subscriptionInfo.hasPaid
-                ? "You're all set with Premium access."
-                : "Upgrade to unlock unlimited personalized learning."}
+                ? "You're on Plus or Pro — personalized path and premium features unlocked."
+                : questionnaireComplete
+                  ? "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path."
+                  : "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro."}
             </p>
             {entitlements?.status === "trialing" && trialEndLabel && (
               <p className="text-xs text-[color:var(--accent,#2563eb)]">
@@ -337,7 +363,9 @@ const SubscriptionPlansPage = () => {
           >
             {subscriptionInfo.hasPaid
               ? "View your personalized path"
-              : "Check subscription options"}
+              : questionnaireComplete
+                ? "Go to dashboard"
+                : "Check subscription options"}
           </GlassButton>
         </div>
 

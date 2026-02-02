@@ -692,6 +692,8 @@ class UserSettingsView(APIView):
             {
                 "email_reminder_preference": user_profile.email_reminder_preference,
                 "dark_mode": user_profile.dark_mode,
+                "sound_enabled": user_profile.sound_enabled,
+                "animations_enabled": user_profile.animations_enabled,
                 "profile": {
                     "username": request.user.username,
                     "email": request.user.email,
@@ -721,6 +723,14 @@ class UserSettingsView(APIView):
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
 
+        sound_enabled = request.data.get("sound_enabled")
+        if sound_enabled is not None:
+            user_profile.sound_enabled = sound_enabled
+
+        animations_enabled = request.data.get("animations_enabled")
+        if animations_enabled is not None:
+            user_profile.animations_enabled = animations_enabled
+
         email_reminder_preference = request.data.get("email_reminder_preference")
         if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
             user_profile.email_reminder_preference = email_reminder_preference
@@ -733,6 +743,8 @@ class UserSettingsView(APIView):
                 "message": "Settings updated successfully.",
                 "dark_mode": user_profile.dark_mode,
                 "email_reminder_preference": user_profile.email_reminder_preference,
+                "sound_enabled": user_profile.sound_enabled,
+                "animations_enabled": user_profile.animations_enabled,
             }
         )
 

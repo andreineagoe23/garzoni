@@ -31,6 +31,8 @@ function Settings() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [loading, setLoading] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
   const { data: entitlementsData } = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -51,6 +53,14 @@ function Settings() {
           String(
             (data as { email_reminder_preference?: unknown })
               .email_reminder_preference || "none"
+          )
+        );
+        setSoundEnabled(
+          Boolean((data as { sound_enabled?: boolean }).sound_enabled ?? true)
+        );
+        setAnimationsEnabled(
+          Boolean(
+            (data as { animations_enabled?: boolean }).animations_enabled ?? true
           )
         );
         setProfileData({
@@ -87,6 +97,8 @@ function Settings() {
             last_name: profileData.last_name,
           },
           email_reminder_preference: emailReminderPreference,
+          sound_enabled: soundEnabled,
+          animations_enabled: animationsEnabled,
         },
         {
           headers: {
@@ -307,6 +319,40 @@ function Settings() {
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Lesson Sounds
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={soundEnabled}
+                      onChange={(event) => setSoundEnabled(event.target.checked)}
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                    />
+                    <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                      Play subtle chimes for answers
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                    Animations
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={animationsEnabled}
+                      onChange={(event) =>
+                        setAnimationsEnabled(event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                    />
+                    <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                      Enable mascot and confetti animations
+                    </span>
+                  </div>
                 </div>
               </div>
             </section>

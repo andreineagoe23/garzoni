@@ -101,6 +101,21 @@ const Chatbot = () => {
     }
   }, [hasGreeted]);
 
+  useEffect(() => {
+    const handleTutorOpen = (event) => {
+      const context = event?.detail?.context;
+      setIsOpen(true);
+      if (typeof context === "string" && context.trim().length > 0) {
+        setInputMessage(context);
+      }
+    };
+
+    window.addEventListener("monevo:tutor", handleTutorOpen);
+    return () => {
+      window.removeEventListener("monevo:tutor", handleTutorOpen);
+    };
+  }, []);
+
   // Removed mobile/visibility side-effects
 
   useEffect(() => {

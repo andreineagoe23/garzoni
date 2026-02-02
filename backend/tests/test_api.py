@@ -1,5 +1,6 @@
 import logging
 from django.urls import reverse
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
@@ -142,3 +143,73 @@ class HeartsAndFlowStateTest(AuthenticatedTestCase):
         response = self.client.get(f"/api/userprogress/flow_state/?course={self.course.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["current_index"], 3)
+
+
+class SubscriptionCreateTest(AuthenticatedTestCase):
+    """Subscription create workflow: Starter rejected, Plus/Pro use Stripe checkout."""
+
+    def test_subscription_create_rejects_starter(self):
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "starter", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Starter", response.data.get("error", ""))
+
+    def test_subscription_create_rejects_free_plan_id(self):
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "free", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(STRIPE_SECRET_KEY="")
+    def test_subscription_create_503_when_stripe_not_configured(self):
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "plus", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertIn("error", response.data)
+
+    @patch("finance.views.stripe.checkout.Session.create")
+    @override_settings(
+        STRIPE_SECRET_KEY="sk_test_fake",
+        STRIPE_PRICE_PLUS_MONTHLY="price_plus_123",
+    )
+    def test_subscription_create_plus_returns_redirect_url(self, mock_stripe_create):
+        mock_stripe_create.return_value = Mock(id="cs_test_123", url="https://checkout.stripe.com/xxx")
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "plus", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("redirect_url"), "https://checkout.stripe.com/xxx")
+        mock_stripe_create.assert_called_once()
+        call_kwargs = mock_stripe_create.call_args[1]
+        self.assertEqual(call_kwargs.get("mode"), "subscription")
+        self.assertEqual(call_kwargs["line_items"][0]["price"], "price_plus_123")
+
+
+class PlansCatalogTest(APITestCase):
+    """Plans API returns catalog with personalized_path feature by tier."""
+
+    def test_plans_include_personalized_path_feature(self):
+        response = self.client.get("/api/plans/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        plans = response.data.get("plans", [])
+        self.assertGreater(len(plans), 0)
+        by_id = {p["plan_id"]: p for p in plans}
+        self.assertIn("starter", by_id)
+        self.assertIn("plus", by_id)
+        self.assertIn("pro", by_id)
+        features = by_id.get("starter", {}).get("features", {})
+        self.assertIn("personalized_path", features)
+        self.assertFalse(features["personalized_path"].get("enabled"))
+        plus_features = by_id.get("plus", {}).get("features", {})
+        self.assertIn("personalized_path", plus_features)
+        self.assertTrue(plus_features["personalized_path"].get("enabled"))

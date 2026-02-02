@@ -48,6 +48,20 @@ from gamification.models import MissionCompletion
 
 logger = logging.getLogger(__name__)
 
+# Fields to load for Exercise when DB may lack version/is_published (use .only() to avoid selecting them)
+EXERCISE_SAFE_FIELDS = [
+    "id",
+    "type",
+    "question",
+    "exercise_data",
+    "correct_answer",
+    "category",
+    "difficulty",
+    "misconception_tags",
+    "error_patterns",
+    "created_at",
+]
+
 
 class PathViewSet(viewsets.ModelViewSet):
     """ViewSet to manage paths, including listing and retrieving paths."""
@@ -693,12 +707,13 @@ def _evaluate_budget(exercise, user_answer):
 class ExerciseViewSet(viewsets.ModelViewSet):
     """Manage exercises, including filtering by type, category, and difficulty."""
 
-    queryset = Exercise.objects.all()
+    queryset = Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS)
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Exercise.objects.all()
+        # Only load safe fields so DBs missing core_exercise.version still work
+        queryset = Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS)
         exercise_type = self.request.query_params.get("type", None)
         category = self.request.query_params.get("category", None)
         difficulty = self.request.query_params.get("difficulty", None)
@@ -828,7 +843,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 def get_exercise_progress(request, exercise_id):
     """Retrieve the progress of a specific exercise for the authenticated user."""
     try:
-        exercise = Exercise.objects.get(id=exercise_id)
+        exercise = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).get(id=exercise_id)
         progress = UserExerciseProgress.objects.filter(user=request.user, exercise=exercise).first()
 
         if progress:
@@ -859,7 +874,7 @@ def reset_exercise(request):
         if section_id:
             # If section_id is provided, find the exercise through the section
             section = LessonSection.objects.get(id=section_id)
-            exercise = Exercise.objects.filter(section=section).first()
+            exercise = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(section=section).first()
             if not exercise:
                 return Response({"error": "No exercise found for this section"}, status=404)
             exercise_id = exercise.id
@@ -883,7 +898,10 @@ def review_queue(request):
     queue = []
     for mastery in due_mastery:
         exercise = (
-            Exercise.objects.filter(category=mastery.skill).order_by("difficulty", "id").first()
+            Exercise.objects.only(*EXERCISE_SAFE_FIELDS)
+            .filter(category=mastery.skill)
+            .order_by("difficulty", "id")
+            .first()
         )
         if not exercise:
             continue
@@ -944,17 +962,20 @@ def next_exercise(request):
     )
 
     if last_exercise_id and not last_correct:
-        retry = Exercise.objects.filter(id=last_exercise_id).first()
+        retry = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(id=last_exercise_id).first()
         if retry:
             return Response({"exercise_id": retry.id, "reason": "remediate"})
 
     next_available = (
-        Exercise.objects.exclude(id__in=completed_ids).order_by("difficulty", "id").first()
+        Exercise.objects.only(*EXERCISE_SAFE_FIELDS)
+        .exclude(id__in=completed_ids)
+        .order_by("difficulty", "id")
+        .first()
     )
     if next_available:
         return Response({"exercise_id": next_available.id, "reason": "fresh"})
 
-    fallback = Exercise.objects.order_by("-created_at").first()
+    fallback = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).order_by("-created_at").first()
     if fallback:
         return Response({"exercise_id": fallback.id, "reason": "fallback"})
 
@@ -1204,7 +1225,7 @@ class PersonalizedPathView(APIView):
                 additional = (
                     Course.objects.filter(is_active=True)
                     .exclude(id__in=[c.id for c in recommended_courses])
-                    .order_by("-popularity")[: 10 - len(recommended_courses)]
+                    .order_by("order", "id")[: 10 - len(recommended_courses)]
                 )
                 recommended_courses.extend(additional)
 
@@ -1228,7 +1249,7 @@ class PersonalizedPathView(APIView):
                 additional = (
                     Course.objects.filter(is_active=True)
                     .exclude(id__in=[c.id for c in recommended_courses])
-                    .order_by("-popularity")[: 10 - len(recommended_courses)]
+                    .order_by("order", "id")[: 10 - len(recommended_courses)]
                 )
                 recommended_courses.extend(additional)
 

@@ -60,11 +60,12 @@ RUN pip install --upgrade pip setuptools wheel \
 # Copy application code
 COPY . .
 
-# Entrypoint runs migrations + collectstatic (unless disabled), then starts gunicorn.
-RUN chmod +x /app/docker/entrypoint.sh
+# Fix entrypoint line endings (CRLF can cause "permission denied") and ensure executable
+RUN sed -i 's/\r$//' /app/docker/entrypoint.sh 2>/dev/null || true \
+    && chmod +x /app/docker/entrypoint.sh
 
 EXPOSE 8000
 
-# Use exec form for better signal handling
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
+# Run entrypoint via sh so it works even if exec bit is lost (e.g. volume mounts)
+ENTRYPOINT ["/bin/sh", "/app/docker/entrypoint.sh"]
 CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "300", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100"]
