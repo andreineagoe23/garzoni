@@ -7,6 +7,7 @@ import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
+import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
 
 type LeaderboardUser = {
@@ -264,17 +265,15 @@ const Leaderboards = () => {
                 #{userRank.rank}
               </span>
               <div className="flex items-center gap-3">
-                {userRank.user.profile_avatar ? (
-                  <img
-                    src={userRank.user.profile_avatar}
-                    alt={`${userRank.user.username}'s avatar`}
-                    className="h-10 w-10 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
-                  />
-                ) : (
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--card-bg,#ffffff)] text-sm font-semibold text-[color:var(--accent,#2563eb)] shadow-inner">
-                    {userRank.user.username.charAt(0).toUpperCase()}
-                  </span>
-                )}
+                <img
+                  src={userRank.user.profile_avatar || DEFAULT_AVATAR_URL}
+                  alt={`${userRank.user.username}'s avatar`}
+                  className="h-10 w-10 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_AVATAR_URL;
+                  }}
+                />
                 <div className="text-sm">
                   <p className="font-semibold text-[color:var(--accent,#111827)]">
                     You ({userRank.user.username})
@@ -316,17 +315,15 @@ const Leaderboards = () => {
                       #{position}
                     </span>
                     <div className="flex items-center gap-3">
-                      {entry.user.profile_avatar ? (
-                        <img
-                          src={entry.user.profile_avatar}
+                      <img
+                          src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
                           alt={`${entry.user.username}'s avatar`}
                           className="h-12 w-12 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = DEFAULT_AVATAR_URL;
+                          }}
                         />
-                      ) : (
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#2563eb)] text-base font-semibold text-white shadow-inner">
-                          {entry.user.username.charAt(0).toUpperCase()}
-                        </span>
-                      )}
                       <div>
                         <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
                           {entry.user.username}

@@ -1,18 +1,18 @@
 // Design tokens & shared utilities
-@import "abstracts/variables";
-@import "abstracts/mixins";
-@import "abstracts/functions";
+@use "abstracts/variables" as *;
+@use "abstracts/mixins" as *;
+@use "abstracts/functions" as *;
 
 // Base styles
-@import "base/reset";
-@import "base/typography";
-@import "base/utilities";
+@use "base/reset";
+@use "base/typography";
+@use "base/utilities";
 
 // Layout primitives
-@import "layout/grid";
-@import "layout/sidebar";
-@import "layout/header";
-@import "layout/app-layout";
+@use "layout/grid";
+@use "layout/sidebar";
+@use "layout/header";
+@use "layout/app-layout";
 
 // Theme overrides
-@import "themes/dark-mode";
+@use "themes/dark-mode";
