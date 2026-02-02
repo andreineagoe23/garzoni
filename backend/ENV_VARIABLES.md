@@ -28,6 +28,9 @@ Quick reference for all environment variables used in the Monevo backend.
 | `STRIPE_SECRET_KEY` | Stripe secret key (starts with `sk_`) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret (starts with `whsec_`) |
 | `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (starts with `pk_`) |
+| `STRIPE_PRICE_PLUS_MONTHLY` | Stripe Price ID for Plus plan (create in Dashboard → Products → Prices) |
+| `STRIPE_PRICE_PRO_MONTHLY` | Stripe Price ID for Pro plan |
+| `STRIPE_DEFAULT_PRICE_ID` | Fallback Price ID if plan-specific not set |
 
 ## reCAPTCHA
 

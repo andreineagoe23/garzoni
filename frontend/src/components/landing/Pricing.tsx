@@ -246,7 +246,7 @@ function Pricing() {
   const handlePlanSelect = async (plan) => {
     setCheckoutError("");
     if (plan.isStarter) {
-      navigate(isAuthenticated ? "/questionnaire" : "/register");
+      navigate(isAuthenticated ? "/onboarding" : "/register");
       return;
     }
     if (!isAuthenticated) {

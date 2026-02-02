@@ -10,6 +10,10 @@ export const ANALYTICS_EVENTS = [
   "sort_change",
   "filter_change",
   "improve_recommendation_click",
+  "questionnaire_step_view",
+  "questionnaire_answer_submitted",
+  "questionnaire_abandoned",
+  "questionnaire_completed",
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

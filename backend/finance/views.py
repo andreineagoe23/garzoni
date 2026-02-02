@@ -733,6 +733,89 @@ class VerifySessionView(APIView):
             return Response({"error": "Server error"}, status=500)
 
 
+class SubscriptionCreateView(APIView):
+    """Create a Stripe checkout session for a plan (for users who already completed questionnaire)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        plan_id = request.data.get("plan_id")
+        billing_interval = request.data.get("billing_interval", "monthly")
+        if not plan_id:
+            return Response({"error": "plan_id is required"}, status=400)
+        if plan_id == "starter" or plan_id == "free":
+            return Response(
+                {"error": "Starter plan does not require checkout. Use the free option on the plans page."},
+                status=400,
+            )
+        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        if not stripe_key:
+            logger.error("STRIPE_SECRET_KEY is not configured.")
+            return Response(
+                {"error": "Payment is not configured. Please try again later."},
+                status=503,
+            )
+        # Resolve Stripe price by plan: Plus and Pro each have their own price ID
+        price_id = None
+        if plan_id == "plus":
+            price_id = (
+                getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
+                or getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
+            )
+        elif plan_id == "pro":
+            price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
+        if not price_id:
+            price_id = getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None) or getattr(
+                settings, "STRIPE_PRICE_PLUS_MONTHLY", None
+            )
+        if not price_id:
+            logger.error("No Stripe price configured for plan_id=%s", plan_id)
+            return Response(
+                {"error": "This plan is not configured for checkout. Please try another plan or contact support."},
+                status=503,
+            )
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
+        try:
+            stripe.api_key = stripe_key
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
+                success_url=(
+                    f"{frontend_url}/personalized-path?"
+                    "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
+                ),
+                cancel_url=f"{frontend_url}/subscriptions",
+                metadata={"user_id": str(request.user.id), "plan_id": plan_id},
+                client_reference_id=str(request.user.id),
+            )
+            record_funnel_event(
+                "checkout_created",
+                user=request.user,
+                session_id=getattr(checkout_session, "id", ""),
+                metadata={
+                    "plan_id": plan_id,
+                    "billing_interval": billing_interval,
+                },
+            )
+            return Response(
+                {"success": True, "redirect_url": checkout_session.url},
+                status=200,
+            )
+        except stripe.error.StripeError as e:
+            logger.error("Stripe error creating checkout: %s", e)
+            return Response(
+                {"error": "Payment processing failed. Please try again."},
+                status=400,
+            )
+        except Exception as e:
+            logger.error("Subscription create error: %s", e, exc_info=True)
+            return Response(
+                {"error": "Server error. Please try again later."},
+                status=500,
+            )
+
+
 class EntitlementStatusView(APIView):
     """Expose entitlement information for authenticated users."""
 
@@ -789,6 +872,11 @@ class FunnelEventIngestView(APIView):
         "sort_change",
         "filter_change",
         "improve_recommendation_click",
+        # Onboarding questionnaire events
+        "questionnaire_step_view",
+        "questionnaire_answer_submitted",
+        "questionnaire_abandoned",
+        "questionnaire_completed",
     }
 
     def post(self, request):

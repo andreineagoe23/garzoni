@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "../abstracts/variables" as *;
+@use "../abstracts/mixins" as *;
+
 // Top navigation for desktop and mobile
 .top-nav {
   --top-nav-height: 72px;
@@ -18,22 +22,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: map-get($spacers, 3);
-    padding: 0.75rem map-get($spacers, 4);
+    gap: map.get($spacers, 3);
+    padding: 0.75rem map.get($spacers, 4);
 
     @include media-breakpoint-down(md) {
-      padding: 0.65rem map-get($spacers, 3);
+      padding: 0.65rem map.get($spacers, 3);
     }
 
     @include media-breakpoint-down(sm) {
-      padding: 0.6rem map-get($spacers, 3);
+      padding: 0.6rem map.get($spacers, 3);
     }
   }
 
   &__brand {
     display: flex;
     align-items: center;
-    gap: map-get($spacers, 2);
+    gap: map.get($spacers, 2);
     font-size: 1.35rem;
     font-weight: $font-weight-bold;
     color: var(--text-color);
@@ -92,7 +96,7 @@
   &__menu {
     display: flex;
     align-items: center;
-    gap: map-get($spacers, 3);
+    gap: map.get($spacers, 3);
     flex: 1;
     justify-content: flex-end;
 
@@ -104,7 +108,7 @@
       flex-direction: column;
       align-items: flex-start;
       background: var(--card-bg);
-      padding: map-get($spacers, 3);
+      padding: map.get($spacers, 3);
       border-bottom: 1px solid var(--border-color);
       box-shadow: var(--shadow-lg);
       transform: translateY(-10px);
@@ -113,7 +117,7 @@
       transition:
         transform 0.2s ease,
         opacity 0.2s ease;
-      gap: map-get($spacers, 2);
+      gap: map.get($spacers, 2);
 
       &.is-open {
         transform: translateY(0);
@@ -127,7 +131,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: map-get($spacers, 2);
+    gap: map.get($spacers, 2);
     list-style: none;
     margin: 0;
     padding: 0;
@@ -136,7 +140,7 @@
       width: 100%;
       flex-direction: column;
       align-items: stretch;
-      gap: map-get($spacers, 1);
+      gap: map.get($spacers, 1);
     }
   }
 
@@ -147,7 +151,7 @@
   &__link {
     display: flex;
     align-items: center;
-    gap: map-get($spacers, 2);
+    gap: map.get($spacers, 2);
     padding: 0.6rem 0.85rem;
     border-radius: var(--border-radius);
     color: var(--text-color);

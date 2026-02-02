@@ -19,6 +19,7 @@ from .views import (
     FriendsLeaderboardView,
     EntitlementsView,
     ConsumeEntitlementView,
+    PlansView,
     get_csrf_token,
     ReferralApplyView,
     UserHeartsView,
@@ -41,6 +42,7 @@ urlpatterns = [
     path("update-avatar/", update_avatar, name="update_avatar"),
     path("entitlements/", EntitlementsView.as_view(), name="entitlements"),
     path("entitlements/consume/", ConsumeEntitlementView.as_view(), name="consume-entitlement"),
+    path("plans/", PlansView.as_view(), name="plans"),
     path("user/settings/", UserSettingsView.as_view(), name="user-settings"),
     path("password-reset/", PasswordResetRequestView.as_view(), name="password_reset_request"),
     path(

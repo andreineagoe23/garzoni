@@ -21,6 +21,7 @@ import {
   fetchMasterySummary,
   fetchMissions,
 } from "services/userService";
+import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { UserProfile } from "types/api";
 import { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
@@ -31,6 +32,7 @@ import StatusSummary from "./StatusSummary";
 import EntitlementUsage from "./EntitlementUsage";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
+import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
 import { selectPrimaryCTA } from "./primaryCtaSelector";
 import { getLocale } from "utils/format";
 import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
@@ -71,6 +73,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: authProfile,
     reloadEntitlements,
     entitlements,
+    isInitialized: authInitialized,
   } = useAuth();
 
   useEffect(() => {
@@ -158,6 +161,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     gcTime: 30_000,
     initialData: authProfile,
     placeholderData: (previousData) => previousData ?? authProfile,
+  });
+
+  const {
+    data: questionnaireProgress,
+    isLoading: isQuestionnaireProgressLoading,
+    isFetching: isQuestionnaireProgressFetching,
+    isFetched: isQuestionnaireProgressFetched,
+  } = useQuery({
+    queryKey: ["questionnaire-progress"],
+    queryFn: fetchQuestionnaireProgress,
+    retry: 2,
+    staleTime: 0,
+    refetchOnMount: true,
+    enabled: authInitialized,
   });
 
   const { data: progressResponse, isLoading: isProgressLoading } =
@@ -251,6 +268,36 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
   }, [location.pathname, location.search, queryClient, reloadEntitlements]);
 
+  // Refetch questionnaire progress, profile, and entitlements when dashboard mounts (e.g. after payment)
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["questionnaire-progress"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+    reloadEntitlements?.();
+  }, [queryClient, reloadEntitlements]);
+
+  // Redirect to onboarding only when we have a definitive "not completed" from the questionnaire API.
+  // Do not redirect while questionnaire progress is still loading/refetching, so users aren't bounced
+  // away when landing on /all-topics (e.g. after login or subscription).
+  useEffect(() => {
+    if (!authInitialized) return;
+    if (hasPaid) return;
+    // Wait until we have a settled fetch (not loading, not refetching after invalidation)
+    if (!isQuestionnaireProgressFetched || isQuestionnaireProgressLoading || isQuestionnaireProgressFetching)
+      return;
+    // Only redirect when we have progress data and it says not completed (don't redirect on API error)
+    if (!questionnaireProgress) return;
+    if (questionnaireProgress.status === "completed") return;
+    navigate("/onboarding", { replace: true });
+  }, [
+    authInitialized,
+    hasPaid,
+    isQuestionnaireProgressFetched,
+    isQuestionnaireProgressLoading,
+    isQuestionnaireProgressFetching,
+    questionnaireProgress,
+    navigate,
+  ]);
+
   // Removed mobile view tracking
 
   const handleCourseClick = (courseId: number, pathId?: number) => {
@@ -270,7 +317,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
 
     if (!isQuestionnaireCompleted) {
-      navigate("/questionnaire");
+      navigate("/onboarding");
       return;
     }
 
@@ -495,7 +542,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         Personalized Path
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-            Complete Questionnaire
+            Complete Onboarding
           </span>
         )}
       </button>
@@ -527,6 +574,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               canAdminister={canAdminister}
               adminMode={adminMode}
               toggleAdminMode={toggleAdminMode}
+            />
+
+            <QuestionnaireReminderBanner
+              hasPaid={hasPaid}
+              authReady={authInitialized}
             />
 
             <DailyGoalCard

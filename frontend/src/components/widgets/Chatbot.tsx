@@ -8,6 +8,7 @@ import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
 import { BACKEND_URL } from "services/backendUrl";
 import { queryKeys, staleTimes } from "lib/reactQuery";
+import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
 
 const LANGUAGES = [
@@ -33,7 +34,7 @@ const Chatbot = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
-  const [userAvatar, setUserAvatar] = useState("/default-avatar.png");
+  const [userAvatar, setUserAvatar] = useState(DEFAULT_AVATAR_URL);
   const [chatHistory, setChatHistory] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0].code);
   const [lockedFeature, setLockedFeature] = useState(null);
@@ -99,6 +100,21 @@ const Chatbot = () => {
       setHasGreeted(true);
     }
   }, [hasGreeted]);
+
+  useEffect(() => {
+    const handleTutorOpen = (event) => {
+      const context = event?.detail?.context;
+      setIsOpen(true);
+      if (typeof context === "string" && context.trim().length > 0) {
+        setInputMessage(context);
+      }
+    };
+
+    window.addEventListener("monevo:tutor", handleTutorOpen);
+    return () => {
+      window.removeEventListener("monevo:tutor", handleTutorOpen);
+    };
+  }, []);
 
   // Removed mobile/visibility side-effects
 

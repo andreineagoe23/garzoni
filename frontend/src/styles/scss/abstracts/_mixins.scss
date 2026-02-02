@@ -1,8 +1,10 @@
 // _mixins.scss - Reusable SASS mixins
+@use "sass:map";
+@use "variables" as *;
 
 // Media queries based on Bootstrap breakpoints
 @mixin media-breakpoint-up($breakpoint) {
-  $min: map-get($grid-breakpoints, $breakpoint);
+  $min: map.get($grid-breakpoints, $breakpoint);
   @if $min {
     @media (min-width: $min) {
       @content;
@@ -13,7 +15,7 @@
 }
 
 @mixin media-breakpoint-down($breakpoint) {
-  $max: map-get($grid-breakpoints, $breakpoint);
+  $max: map.get($grid-breakpoints, $breakpoint);
   @if $max {
     @media (max-width: #{ $max - 0.02 }) {
       @content;

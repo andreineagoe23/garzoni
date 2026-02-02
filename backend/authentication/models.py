@@ -38,6 +38,12 @@ class UserProfile(models.Model):
     email_reminder_preference = models.CharField(
         max_length=10, choices=REMINDER_CHOICES, default="none"
     )
+    sound_enabled = models.BooleanField(
+        default=True, help_text="Allow lesson/exercise audio feedback."
+    )
+    animations_enabled = models.BooleanField(
+        default=True, help_text="Allow celebratory and mascot animations."
+    )
     streak = models.IntegerField(default=0)
     last_completed_date = models.DateField(null=True, blank=True)
     last_login_date = models.DateField(null=True, blank=True)
