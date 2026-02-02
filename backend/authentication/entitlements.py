@@ -21,6 +21,7 @@ FEATURE_FLAGS = {
     "downloads": "feature.resources.downloads",
     "analytics": "feature.analytics.access",
     "ai_tutor": "feature.ai.tutor",
+    "personalized_path": "feature.learning.personalized_path",
 }
 
 
@@ -57,6 +58,11 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 5,
                 "description": "Five AI tutor prompts per day",
             },
+            "personalized_path": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Personalized path (Plus/Pro only)",
+            },
         },
     },
     "premium": {
@@ -91,6 +97,11 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "enabled": True,
                 "daily_quota": 50,
                 "description": "50 AI tutor prompts per day",
+            },
+            "personalized_path": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Personalized learning path based on your goals",
             },
         },
     },

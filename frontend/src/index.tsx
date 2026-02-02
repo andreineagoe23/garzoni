@@ -55,6 +55,14 @@ if (typeof window !== "undefined") {
     "Banner not shown",
     "beforeinstallprompt",
     "Content Script Bridge",
+    "Sending response back to page context",
+    "React DevTools",
+    "Download the React DevTools",
+    "react refresh",
+    "unsupported",
+    "uses an unsupported",
+    "preload",
+    "rel=preload",
   ];
 
   const shouldSuppress = (...args: unknown[]) => {

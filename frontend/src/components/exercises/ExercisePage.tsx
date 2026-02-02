@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "services/backendUrl";
 import { GlassCard } from "components/ui";
 import { formatNumber, getLocale } from "utils/format";
+import { playFeedbackChime } from "utils/sound";
 
 const ExercisePage = () => {
   const locale = getLocale();
@@ -29,7 +30,7 @@ const ExercisePage = () => {
     difficulty: "",
   });
   const [categories, setCategories] = useState([]);
-  const { getAccessToken, isInitialized, isAuthenticated, entitlements } =
+  const { getAccessToken, isInitialized, isAuthenticated, entitlements, settings } =
     useAuth();
   const navigate = useNavigate();
   const [streak, setStreak] = useState(0);
@@ -63,6 +64,9 @@ const ExercisePage = () => {
   const [skillProficiency, setSkillProficiency] = useState({});
   const [firstTryCorrect, setFirstTryCorrect] = useState(0);
   const [streakMultiplier, setStreakMultiplier] = useState(1);
+  const [inlineHint, setInlineHint] = useState("");
+  const [coinsEarned, setCoinsEarned] = useState(0);
+  const inlineHintTimeoutRef = useRef(null);
   const isDevelopment = process.env.NODE_ENV === "development";
   const logError = useCallback(
     (...args) => {
@@ -82,6 +86,9 @@ const ExercisePage = () => {
   const hintRemaining = hintFeature?.remaining_today;
   const hintUnlimited = hintRemaining === null || hintRemaining === undefined;
   const hintDepleted = !hintUnlimited && hintRemaining <= 0;
+  const soundEnabled = settings?.sound_enabled ?? true;
+  const animationsEnabled = settings?.animations_enabled ?? true;
+  const hintCoinCost = 5;
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -109,7 +116,12 @@ const ExercisePage = () => {
             (exercise.type === "drag-and-drop" &&
               Array.isArray(exercise.exercise_data.items)) ||
             (exercise.type === "budget-allocation" &&
-              Array.isArray(exercise.exercise_data.categories)))
+              Array.isArray(exercise.exercise_data.categories)) ||
+            (exercise.type === "fill-in-table" &&
+              Array.isArray(exercise.exercise_data?.table?.rows) &&
+              Array.isArray(exercise.exercise_data?.table?.columns)) ||
+            (exercise.type === "scenario-simulation" &&
+              Array.isArray(exercise.exercise_data?.choices)))
       );
 
       setLessonExercises(validatedExercises);
@@ -259,6 +271,16 @@ const ExercisePage = () => {
           acc[category] = 0;
           return acc;
         }, {});
+      case "fill-in-table": {
+        const columns = exercise.exercise_data?.table?.columns || [];
+        const rows = exercise.exercise_data?.table?.rows || [];
+        return rows.reduce((acc, row) => {
+          acc[row.id] = Array.from({ length: columns.length }).map(() => "");
+          return acc;
+        }, {});
+      }
+      case "scenario-simulation":
+        return null;
       default:
         return null;
     }
@@ -272,6 +294,7 @@ const ExercisePage = () => {
       setSubmissionFeedback("");
       setScratchpad("");
       setConfidence("medium");
+      setInlineHint("");
     }
   }, [currentExercise]);
 
@@ -309,6 +332,14 @@ const ExercisePage = () => {
     }
   }, [sessionCompleted]);
 
+  useEffect(() => {
+    return () => {
+      if (inlineHintTimeoutRef.current) {
+        clearTimeout(inlineHintTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleRetry = () => {
     if (!currentExercise) return;
     setIsRetrying(true);
@@ -328,6 +359,7 @@ const ExercisePage = () => {
     setShowCorrection(false);
     setExplanation("");
     setSubmissionFeedback("");
+    setInlineHint("");
     setIsRetrying(false);
   };
 
@@ -339,7 +371,17 @@ const ExercisePage = () => {
         userAnswer === null ||
         userAnswer === undefined ||
         (typeof userAnswer === "string" && userAnswer.trim() === "") ||
-        (Array.isArray(userAnswer) && userAnswer.length === 0)
+        (Array.isArray(userAnswer) && userAnswer.length === 0) ||
+        (typeof userAnswer === "object" &&
+          !Array.isArray(userAnswer) &&
+          Object.values(userAnswer).every((value) => {
+            if (Array.isArray(value)) {
+              return value.every(
+                (cell) => cell === null || String(cell).trim() === ""
+              );
+            }
+            return value === null || String(value).trim() === "";
+          }))
       ) {
         setSubmissionFeedback("Please submit an answer before continuing.");
         setShowCorrection(true);
@@ -375,9 +417,29 @@ const ExercisePage = () => {
       setProgress(updated);
       setExplanation(response.data.explanation || "");
       setSubmissionFeedback(response.data.feedback || "");
+      playFeedbackChime({
+        enabled: Boolean(soundEnabled ?? true),
+        correct: Boolean(response.data.correct),
+      });
       setXpTotal((prev) => prev + (response.data.xp_delta || 0));
+      if (typeof response.data.coins_delta === "number") {
+        setCoinsEarned((prev) => prev + response.data.coins_delta);
+      }
       fetchReviewQueue();
       setShowCorrection(true);
+
+      const inlineMessage =
+        response.data.explanation ||
+        (response.data.correct
+          ? "Nice work! Keep going."
+          : "Hint: revisit the prompt and try again.");
+      setInlineHint(inlineMessage);
+      if (inlineHintTimeoutRef.current) {
+        clearTimeout(inlineHintTimeoutRef.current);
+      }
+      inlineHintTimeoutRef.current = setTimeout(() => {
+        setInlineHint("");
+      }, 4500);
 
       const projectedFirstTry =
         response.data.correct && wasFreshAttempt
@@ -437,6 +499,16 @@ const ExercisePage = () => {
       setError("Submission failed. Please try again.");
     }
   };
+
+  const openTutor = useCallback(() => {
+    if (!currentExercise) return;
+    const context = `Question: ${currentExercise.question}\nYour answer: ${
+      userAnswer ?? "No answer"
+    }\nExplanation: ${explanation || submissionFeedback || "N/A"}`;
+    window.dispatchEvent(
+      new CustomEvent("monevo:tutor", { detail: { context } })
+    );
+  }, [currentExercise, explanation, submissionFeedback, userAnswer]);
 
   const revealNextHint = () => {
     const currentExercise = exercises[currentExerciseIndex];
@@ -595,6 +667,7 @@ const ExercisePage = () => {
     setShowCorrection(false);
     setExplanation("");
     setSubmissionFeedback("");
+    setInlineHint("");
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex((prev) => prev + 1);
     } else {
@@ -616,6 +689,13 @@ const ExercisePage = () => {
       );
     }
 
+    const hasResult = Boolean(showCorrection && progress[currentExerciseIndex]);
+    const isAnswerCorrect = Boolean(progress[currentExerciseIndex]?.correct);
+    const learnMoreUrl =
+      exercise.exercise_data?.learn_more_url ||
+      exercise.exercise_data?.learn_more_link ||
+      "";
+
     switch (exercise.type) {
       case "multiple-choice":
         return (
@@ -634,6 +714,12 @@ const ExercisePage = () => {
                       userAnswer === index
                         ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
                         : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
+                    } ${
+                      hasResult && userAnswer === index
+                        ? isAnswerCorrect
+                          ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
+                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                        : ""
                     }`}
                   >
                     <input
@@ -668,6 +754,13 @@ const ExercisePage = () => {
             <div className="flex flex-wrap gap-3">
               {userAnswer.map((itemIndex, index) => {
                 const item = exercise.exercise_data.items[itemIndex];
+                const correctOrder = Array.isArray(exercise.correct_answer)
+                  ? exercise.correct_answer
+                  : null;
+                const isCorrectSlot =
+                  hasResult && correctOrder
+                    ? correctOrder[index] === itemIndex
+                    : null;
                 return (
                   <div
                     key={`${item}-${index}`}
@@ -675,6 +768,31 @@ const ExercisePage = () => {
                     onDragStart={(event) =>
                       event.dataTransfer.setData("text/plain", String(index))
                     }
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                        event.preventDefault();
+                        if (index === 0) return;
+                        const newOrder = [...userAnswer];
+                        [newOrder[index - 1], newOrder[index]] = [
+                          newOrder[index],
+                          newOrder[index - 1],
+                        ];
+                        setUserAnswer(newOrder);
+                      }
+                      if (
+                        event.key === "ArrowRight" ||
+                        event.key === "ArrowDown"
+                      ) {
+                        event.preventDefault();
+                        if (index === userAnswer.length - 1) return;
+                        const newOrder = [...userAnswer];
+                        [newOrder[index + 1], newOrder[index]] = [
+                          newOrder[index],
+                          newOrder[index + 1],
+                        ];
+                        setUserAnswer(newOrder);
+                      }
+                    }}
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => {
                       const fromIndex = parseInt(
@@ -688,7 +806,16 @@ const ExercisePage = () => {
                       ];
                       setUserAnswer(newOrder);
                     }}
-                    className="flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#2563eb)]/40"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Drag item ${item}`}
+                    className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#2563eb)]/40 ${
+                      hasResult && isCorrectSlot !== null
+                        ? isCorrectSlot
+                          ? "border-emerald-500/60 bg-emerald-500/10"
+                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                        : "border-[color:var(--border-color,#d1d5db)]"
+                    }`}
                   >
                     {item}
                   </div>
@@ -717,7 +844,13 @@ const ExercisePage = () => {
                 placeholder={
                   exercise.exercise_data?.placeholder || "Enter a number"
                 }
-                className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
+                  hasResult
+                    ? isAnswerCorrect
+                      ? "border-emerald-500/60 bg-emerald-500/10"
+                      : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                    : "border-[color:var(--border-color,#d1d5db)]"
+                }`}
               />
               {exercise.exercise_data?.unit && (
                 <span className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)]">
@@ -743,7 +876,13 @@ const ExercisePage = () => {
               {exercise.exercise_data.categories.map((category, index) => (
                 <label
                   key={`${category}-${index}`}
-                  className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4"
+                  className={`flex flex-col gap-2 rounded-2xl border px-4 py-4 ${
+                    hasResult
+                      ? isAnswerCorrect
+                        ? "border-emerald-500/60 bg-emerald-500/10"
+                        : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]"
+                  }`}
                 >
                   <span className="text-sm font-semibold text-[color:var(--accent,#111827)]">
                     {category}
@@ -768,6 +907,154 @@ const ExercisePage = () => {
             </div>
           </div>
         );
+
+      case "fill-in-table": {
+        const columns = exercise.exercise_data?.table?.columns || [];
+        const rows = exercise.exercise_data?.table?.rows || [];
+        const correctAnswer = exercise.correct_answer || {};
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              {exercise.question}
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-separate border-spacing-2 text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                      Row
+                    </th>
+                    {columns.map((column) => (
+                      <th
+                        key={column}
+                        className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]"
+                      >
+                        {column}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.id}>
+                      <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
+                        {row.label || `Row ${row.id}`}
+                      </td>
+                      {columns.map((column, colIndex) => {
+                        const value = userAnswer?.[row.id]?.[colIndex] ?? "";
+                        const expected =
+                          correctAnswer?.[row.id]?.[colIndex] ?? "";
+                        const isCellCorrect = hasResult
+                          ? String(value).trim().toLowerCase() ===
+                            String(expected).trim().toLowerCase()
+                          : null;
+                        return (
+                          <td key={`${row.id}-${column}`}>
+                            <input
+                              type="text"
+                              value={value}
+                              onChange={(event) => {
+                                const nextValue = event.target.value;
+                                setUserAnswer((prev) => {
+                                  const next = { ...(prev || {}) };
+                                  const rowValues = [
+                                    ...(next[row.id] || Array(columns.length).fill("")),
+                                  ];
+                                  rowValues[colIndex] = nextValue;
+                                  next[row.id] = rowValues;
+                                  return next;
+                                });
+                              }}
+                              aria-label={`${row.label || "Row"} ${column}`}
+                              className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
+                                hasResult
+                                  ? isCellCorrect
+                                    ? "border-emerald-500/60 bg-emerald-500/10"
+                                    : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)]"
+                              }`}
+                            />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+
+      case "scenario-simulation": {
+        const choices = exercise.exercise_data?.choices || [];
+        const selectedChoice = choices.find((choice) => choice.id === userAnswer);
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              {exercise.question}
+            </h3>
+            {exercise.exercise_data?.scenario && (
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                {exercise.exercise_data.scenario}
+              </p>
+            )}
+            <div
+              className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                const choiceId = event.dataTransfer.getData("text/plain");
+                if (!choiceId) return;
+                const parsed =
+                  Number.isNaN(Number(choiceId)) || choiceId.trim() === ""
+                    ? choiceId
+                    : Number(choiceId);
+                setUserAnswer(parsed);
+              }}
+            >
+              <span className="font-semibold text-[color:var(--accent,#111827)]">
+                Action slot:
+              </span>{" "}
+              {selectedChoice?.label ||
+                "Drag a choice here or select one below."}
+            </div>
+            <div className="grid gap-3">
+              {choices.map((choice, index) => {
+                const isSelected = userAnswer === choice.id;
+                return (
+                  <button
+                    key={`${choice.id}-${index}`}
+                    type="button"
+                    draggable
+                    onDragStart={(event) =>
+                      event.dataTransfer.setData("text/plain", String(choice.id))
+                    }
+                    onClick={() => setUserAnswer(choice.id)}
+                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                      isSelected
+                        ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
+                        : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
+                    } ${
+                      hasResult && isSelected
+                        ? isAnswerCorrect
+                          ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
+                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                        : ""
+                    }`}
+                  >
+                    <span>{choice.label}</span>
+                    {isSelected && (
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
+                        Selected
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
 
       default:
         return (
@@ -818,6 +1105,10 @@ const ExercisePage = () => {
   const progressPercent = exercises.length
     ? Math.round(((currentExerciseIndex + 1) / exercises.length) * 100)
     : 0;
+  const currentLearnMoreUrl =
+    currentExercise?.exercise_data?.learn_more_url ||
+    currentExercise?.exercise_data?.learn_more_link ||
+    "";
 
   return (
     <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
@@ -921,6 +1212,8 @@ const ExercisePage = () => {
                   <option value="numeric">Numeric</option>
                   <option value="drag-and-drop">Drag and Drop</option>
                   <option value="budget-allocation">Budget Allocation</option>
+                  <option value="fill-in-table">Fill In Table</option>
+                  <option value="scenario-simulation">Scenario Simulation</option>
                 </select>
               </div>
 
@@ -1010,6 +1303,15 @@ const ExercisePage = () => {
 
             <div className="pt-6">{renderExercise()}</div>
 
+            {inlineHint && (
+              <div
+                className="mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)]"
+                aria-live="polite"
+              >
+                {inlineHint}
+              </div>
+            )}
+
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                 <div className="flex items-center justify-between">
@@ -1026,12 +1328,15 @@ const ExercisePage = () => {
                         : "text-[color:var(--accent,#2563eb)]"
                     }`}
                   >
-                    Show next hint (-5 XP)
+                    Show next hint (-{hintCoinCost} coins)
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Remaining today:{" "}
+                  Hint credits:{" "}
                   {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
+                </div>
+                <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  Earn more hint credits via missions.
                 </div>
                 {hintError && (
                   <div className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
@@ -1119,6 +1424,27 @@ const ExercisePage = () => {
                     <span className="font-semibold">Remember:</span>{" "}
                     {explanation}
                   </div>
+                )}
+                {showCorrection &&
+                  !progress[currentExerciseIndex]?.correct &&
+                  currentLearnMoreUrl && (
+                    <a
+                      href={currentLearnMoreUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                    >
+                      Learn more about this topic
+                    </a>
+                  )}
+                {showCorrection && !progress[currentExerciseIndex]?.correct && (
+                  <button
+                    type="button"
+                    onClick={openTutor}
+                    className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                  >
+                    Ask the AI tutor for a deeper explanation
+                  </button>
                 )}
               </div>
             )}
@@ -1265,8 +1591,30 @@ const ExercisePage = () => {
         >
           <GlassCard
             padding="lg"
-            className="w-full max-w-xl shadow-2xl shadow-black/30"
+            className="relative w-full max-w-xl shadow-2xl shadow-black/30"
           >
+            {animationsEnabled && (
+              <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                {Array.from({ length: 18 }).map((_, index) => (
+                  <span
+                    key={`confetti-${index}`}
+                    className="absolute h-2 w-2 rounded-sm animate-bounce"
+                    style={{
+                      left: `${(index * 17) % 100}%`,
+                      top: `${(index * 11) % 100}%`,
+                      backgroundColor: [
+                        "#34d399",
+                        "#60a5fa",
+                        "#facc15",
+                        "#f472b6",
+                        "#f97316",
+                      ][index % 5],
+                      animationDelay: `${index * 0.08}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
               <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 <span className="mr-2">🏆</span> Exercise Session Summary
@@ -1280,6 +1628,16 @@ const ExercisePage = () => {
               </button>
             </div>
             <div className="space-y-4 px-6 py-6">
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-4 text-center text-sm text-emerald-700">
+                <img
+                  src="https://media.giphy.com/media/3o6gbbuLW76jkt8vIc/giphy.gif"
+                  alt="Celebrating mascot"
+                  className={`h-24 w-24 rounded-2xl object-cover ${
+                    animationsEnabled ? "animate-bounce" : ""
+                  }`}
+                />
+                <p className="font-semibold">You did it! Keep the streak alive.</p>
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-4 text-center text-sm text-emerald-500">
                   <h4 className="text-base font-semibold">Total Completed</h4>
@@ -1330,6 +1688,17 @@ const ExercisePage = () => {
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    Coins Earned
+                  </h4>
+                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                    {coinsEarned}
+                  </p>
+                  <p className="text-xs">
+                    Earn more coins by finishing missions.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     Average Attempts
                   </h4>
                   <p>
@@ -1374,6 +1743,23 @@ const ExercisePage = () => {
                     )}
                   </div>
                 )}
+              </div>
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+                <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                  Mission progress
+                </h4>
+                <p>
+                  First-try correct answers:{" "}
+                  <span className="font-semibold text-[color:var(--accent,#111827)]">
+                    {firstTryCorrect}
+                  </span>
+                </p>
+                <p>
+                  Current streak:{" "}
+                  <span className="font-semibold text-[color:var(--accent,#111827)]">
+                    {streak}
+                  </span>
+                </p>
               </div>
               {Object.keys(skillGains).length > 0 && (
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
@@ -1443,6 +1829,7 @@ const ExercisePage = () => {
                     setStreak(0);
                     setSessionCompleted(false);
                     setXpTotal(0);
+                    setCoinsEarned(0);
                     setStartTime(Date.now());
                     setFirstTryCorrect(0);
                     setSkillGains({});

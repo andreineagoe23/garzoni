@@ -86,15 +86,15 @@ class QuestionnaireProgressTestCase(TestCase):
         self.assertEqual(progress.current_question_index, 0)
 
     def test_progress_percentage(self):
-        """Test progress percentage calculation."""
+        """Test progress percentage calculation (question-based: answered / total)."""
         progress = QuestionnaireProgress.objects.create(
             user=self.user,
             version=self.version,
             status="in_progress",
             current_section_index=1,
         )
-        # Should be 50% (1 of 2 sections)
-        self.assertEqual(progress.get_progress_percentage(), 50)
+        # Version has 3 questions (2 in section1, 1 in section2). At section 1, question 0 we're on question 3; answered = 2 → 66%
+        self.assertEqual(progress.get_progress_percentage(), 66)
 
     def test_idempotent_saving(self):
         """Test that saving the same answer twice doesn't create duplicates."""

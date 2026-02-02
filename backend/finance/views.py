@@ -745,7 +745,7 @@ class SubscriptionCreateView(APIView):
             return Response({"error": "plan_id is required"}, status=400)
         if plan_id == "starter" or plan_id == "free":
             return Response(
-                {"error": "Starter plan does not require checkout"},
+                {"error": "Starter plan does not require checkout. Use the free option on the plans page."},
                 status=400,
             )
         stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
@@ -755,18 +755,32 @@ class SubscriptionCreateView(APIView):
                 {"error": "Payment is not configured. Please try again later."},
                 status=503,
             )
-        price_id = (
-            getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
-            or getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
-            or "price_1R9sQlBi8QnQXyou7cLlu0wF"
-        )
+        # Resolve Stripe price by plan: Plus and Pro each have their own price ID
+        price_id = None
+        if plan_id == "plus":
+            price_id = (
+                getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
+                or getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
+            )
+        elif plan_id == "pro":
+            price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
+        if not price_id:
+            price_id = getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None) or getattr(
+                settings, "STRIPE_PRICE_PLUS_MONTHLY", None
+            )
+        if not price_id:
+            logger.error("No Stripe price configured for plan_id=%s", plan_id)
+            return Response(
+                {"error": "This plan is not configured for checkout. Please try another plan or contact support."},
+                status=503,
+            )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
         try:
             stripe.api_key = stripe_key
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=[{"price": price_id, "quantity": 1}],
-                mode="payment",
+                mode="subscription",
                 success_url=(
                     f"{frontend_url}/personalized-path?"
                     "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
