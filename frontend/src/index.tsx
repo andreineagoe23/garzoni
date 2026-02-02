@@ -37,17 +37,20 @@ if (typeof window !== "undefined") {
 
 const enableLogs = process.env.REACT_APP_ENABLE_LOGS === "true";
 if (!enableLogs) {
-  ["log", "info", "warn", "error"].forEach((method) => {
+  ["log", "info", "warn", "error", "debug"].forEach((method) => {
     // eslint-disable-next-line no-console
     console[method] = () => undefined;
   });
 }
 
-// Suppress browser extension and PWA install banner warnings
+// Suppress extension and third-party console noise in both dev and production.
+// Runs for all environments so users don't see TSS, Content Script Bridge, etc.
 if (typeof window !== "undefined") {
   const originalLog = console.log;
-  const originalError = console.error;
+  const originalInfo = console.info;
   const originalWarn = console.warn;
+  const originalError = console.error;
+  const originalDebug = console.debug;
 
   const suppressedPhrases = [
     "runtime.lastError",
@@ -63,6 +66,27 @@ if (typeof window !== "undefined") {
     "uses an unsupported",
     "preload",
     "rel=preload",
+    // Extension / protection tooling (TSS, CONTENT_SHELL, SCHJK, DFP, etc.)
+    "TSS:",
+    "CONTENT_SHELL",
+    "Page is excluded",
+    "Skipping shell protection",
+    "Shell protection",
+    "SCHJK",
+    "Search Hijacking",
+    "DFP",
+    "Breach notification",
+    "feature flag is enabled",
+    "Unknown message type",
+    "MSG_CHECK_DOMAIN_ALLOW_LIST_RESPONSE",
+    "injection-tss",
+    "hosted page injected",
+    "MBTSS",
+    "webpackOk",
+    "Counted history",
+    "Caught history",
+    "Checking if repeated",
+    "excluded result",
   ];
 
   const shouldSuppress = (...args: unknown[]) => {
@@ -84,14 +108,24 @@ if (typeof window !== "undefined") {
     originalLog.apply(console, args);
   };
 
-  console.error = function (...args) {
+  console.info = function (...args) {
     if (shouldSuppress(...args)) return;
-    originalError.apply(console, args);
+    originalInfo.apply(console, args);
   };
 
   console.warn = function (...args) {
     if (shouldSuppress(...args)) return;
     originalWarn.apply(console, args);
+  };
+
+  console.error = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalError.apply(console, args);
+  };
+
+  console.debug = function (...args) {
+    if (shouldSuppress(...args)) return;
+    originalDebug.apply(console, args);
   };
 }
 
