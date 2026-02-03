@@ -1,3 +1,5 @@
+import type * as React from "react";
+
 export {};
 
 declare global {
@@ -39,5 +41,14 @@ declare global {
     ) => number;
     SpeechRecognition?: new () => SpeechRecognition;
     webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      "tv-economic-map": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & { theme?: "dark" | "light" },
+        HTMLElement
+      >;
+    }
   }
 }

@@ -7,10 +7,10 @@
   --bg-color: #121212; // Improved dark background
   --text-color: #e0e0e0; // Improved readability
   --card-bg: #1e1e1e; // More neutral dark card background
-  --border-color: rgba(255, 215, 0, 0.15); // Gold border
+  --border-color: rgba(224, 224, 224, 0.12); // Neutral border
   --primary: #2a6041; // Medium green
   --primary-rgb: 42, 96, 65; // RGB values for opacity manipulations
-  --accent: #ffd700; // Pure gold
+  --accent: #ffd700; // Gold for headers/titles only (descriptions use --text-color / --muted-text)
   --accent-rgb: 255, 215, 0; // RGB values for opacity manipulations
   --input-bg: rgba(0, 0, 0, 0.25); // Transparent black
   --muted-text: rgba(224, 224, 224, 0.7); // Subdued text

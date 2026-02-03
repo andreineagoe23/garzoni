@@ -21,6 +21,15 @@ class ErrorBoundary extends React.Component<
   static getDerivedStateFromError(error: Error) {
     const message = String(error?.message || "");
     const name = String(error?.name || "");
+    const stack = String(error?.stack || "");
+    const isThirdParty =
+      message === "Script error." ||
+      message === "script error" ||
+      /invalid environment|couldn't load support|support portal|dataproblemmodel|queryselector/i.test(message) ||
+      /tradingview|embed-widget|embed_events|embed_timeline|snowplow|support-portal/i.test(stack);
+    if (isThirdParty) {
+      return { hasError: false, error: null, isChunkLoadError: false };
+    }
     const isChunkLoadError =
       name === "ChunkLoadError" ||
       /ChunkLoadError/i.test(message) ||

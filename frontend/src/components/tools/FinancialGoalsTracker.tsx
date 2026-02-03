@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
@@ -17,6 +17,8 @@ const STATUS_COLORS = {
   completed: "bg-emerald-500/10 text-emerald-400",
 };
 
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:goals";
+
 const FinancialGoalsTracker = () => {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,37 @@ const FinancialGoalsTracker = () => {
   });
   const { getAccessToken } = useAuth();
   const locale = getLocale();
+  const presets = useMemo(
+    () => [
+      {
+        label: "Emergency fund",
+        values: {
+          name: "Emergency Fund",
+          target_amount: "10000",
+          current_amount: "1000",
+          target_date: new Date(
+            new Date().setFullYear(new Date().getFullYear() + 1)
+          )
+            .toISOString()
+            .split("T")[0],
+        },
+      },
+      {
+        label: "Vacation",
+        values: {
+          name: "Vacation Trip",
+          target_amount: "3000",
+          current_amount: "500",
+          target_date: new Date(
+            new Date().setMonth(new Date().getMonth() + 6)
+          )
+            .toISOString()
+            .split("T")[0],
+        },
+      },
+    ],
+    []
+  );
 
   const fetchGoals = useCallback(async () => {
     try {
@@ -48,6 +81,14 @@ const FinancialGoalsTracker = () => {
   useEffect(() => {
     fetchGoals();
   }, [fetchGoals]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem(
+      ACTIVITY_STORAGE_KEY,
+      JSON.stringify({ label: `${goals.length} active goals` })
+    );
+  }, [goals.length]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -106,6 +147,28 @@ const FinancialGoalsTracker = () => {
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            Demo presets
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {presets.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => setNewGoal(preset.values)}
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+            <li>• Add a goal and update progress every month</li>
+            <li>• Set a realistic target date for motivation</li>
+            <li>• Track multiple goals at once</li>
+          </ul>
+        </div>
         <form
           onSubmit={handleAddGoal}
           className="grid gap-4 md:grid-cols-2"
@@ -186,7 +249,12 @@ const FinancialGoalsTracker = () => {
           </div>
         ) : goals.length === 0 ? (
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-            No financial goals yet. Add your first goal above.
+            <p className="font-semibold text-[color:var(--accent,#111827)]">
+              No financial goals yet.
+            </p>
+            <p className="mt-1">
+              Add your first goal above or choose a demo preset to get started.
+            </p>
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">

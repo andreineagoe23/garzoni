@@ -9,6 +9,7 @@ from .views import (
     VerifyAuthView,
     LogoutView,
     UserProfileView,
+    FinancialProfileView,
     UserSettingsView,
     update_avatar,
     change_password,
@@ -39,6 +40,7 @@ urlpatterns = [
     path("verify-auth/", VerifyAuthView.as_view(), name="verify-auth"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
+    path("me/profile/", FinancialProfileView.as_view(), name="financial-profile"),
     path("update-avatar/", update_avatar, name="update_avatar"),
     path("entitlements/", EntitlementsView.as_view(), name="entitlements"),
     path(

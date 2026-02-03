@@ -1,7 +1,8 @@
 import React from "react";
 
-const mockNavigate = jest.fn();
+export const mockNavigate = jest.fn();
 const getSearch = () => (global as any).__TEST_LOCATION_SEARCH__ || "";
+const getPathname = () => (global as any).__TEST_LOCATION_PATHNAME__ || "/";
 
 const reactRouterDomMock = {
   BrowserRouter: ({ children }: { children: React.ReactNode }) => (
@@ -17,6 +18,29 @@ const reactRouterDomMock = {
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
     <a href={typeof to === "string" ? to : "#"}>{children}</a>
   ),
+  NavLink: ({
+    to,
+    children,
+    className,
+    onClick,
+  }: {
+    to: string;
+    children: React.ReactNode;
+    className?: string | ((props: { isActive: boolean }) => string);
+    onClick?: () => void;
+  }) => {
+    const resolvedClassName =
+      typeof className === "function" ? className({ isActive: false }) : className;
+    return (
+      <a
+        href={typeof to === "string" ? to : "#"}
+        className={resolvedClassName}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  },
   Navigate: ({ to }: { to: string }) => (
     <div
       data-mock-navigate={typeof to === "string" ? to : ""}
@@ -24,8 +48,9 @@ const reactRouterDomMock = {
     />
   ),
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/", search: getSearch() }),
+  useLocation: () => ({ pathname: getPathname(), search: getSearch() }),
   useParams: () => ({}),
+  mockNavigate,
 };
 
 export default reactRouterDomMock;
