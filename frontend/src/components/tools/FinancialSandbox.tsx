@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { GlassCard, GlassButton } from "components/ui";
 import Skeleton from "components/common/Skeleton";
 import { formatCurrency, getLocale } from "utils/format";
+
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:sandbox";
 
 const FinancialSandbox = () => {
   const [monthlyContribution, setMonthlyContribution] = useState(100);
@@ -19,6 +21,14 @@ const FinancialSandbox = () => {
     }
     return balance;
   }, [averageReturn, monthlyContribution, years]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem(
+      ACTIVITY_STORAGE_KEY,
+      JSON.stringify({ label: `${years} yrs @ ${averageReturn}%` })
+    );
+  }, [averageReturn, years]);
 
   return (
     <GlassCard padding="lg" className="space-y-4">
@@ -72,6 +82,15 @@ const FinancialSandbox = () => {
       >
         Start Projection
       </GlassButton>
+
+      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+        <p className="font-semibold uppercase tracking-wide">Try this</p>
+        <ul className="mt-2 space-y-1">
+          <li>• Double your monthly contribution and compare outcomes</li>
+          <li>• Increase the horizon to 15+ years to see compounding</li>
+          <li>• Lower the return rate to stress-test projections</li>
+        </ul>
+      </div>
 
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]/70 px-4 py-3 shadow-inner">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">

@@ -326,3 +326,33 @@ html[data-theme="dark"] .ck.ck-list__item .ck-button:hover,
     display: none;
   }
 }
+
+/* TradingView embed: script injects iframe as direct child of container; make it fill height; responsive */
+.tradingview-widget-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.tradingview-widget-container > iframe {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100% !important;
+}
+.tradingview-widget-container__widget {
+  flex: 1;
+  min-height: 0;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+}
+.tradingview-widget-container__widget iframe {
+  height: 100% !important;
+  max-width: 100%;
+}
+.tradingview-widget-copyright {
+  flex-shrink: 0;
+}

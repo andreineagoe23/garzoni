@@ -1,37 +1,25 @@
 import React, { useEffect } from "react";
+import { useTheme } from "contexts/ThemeContext";
+
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
+
+// Investing.com economic calendar — embeddable iframe (allows framing). No Cashback Forex, no gtag.
+const INVESTING_CALENDAR_BASE = "https://sslecal2.investing.com";
+const CALENDAR_OPEN_URL = "https://www.investing.com/economic-calendar/";
 
 const NewsCalendars = () => {
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src =
-      "https://www.cashbackforex.com/Content/remote/remote-widgets.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.RemoteCalc) {
-        window.RemoteCalc({
-          Url: "https://www.cashbackforex.com",
-          ContainerWidth: "100%",
-          HighlightColor: "#ffff00",
-          IsDisplayTitle: false,
-          IsShowChartLinks: false,
-          IsShowEmbedButton: false,
-          Lang: navigator.language?.startsWith("es") ? "es" : "en",
-          CompactType: "full",
-          Calculator: "economic-calendar",
-          ContainerId: "economic-calendar-widget",
-          analytics: false,
-          logging: false,
-        });
-      }
-    };
-    document.body.appendChild(script);
+  const { darkMode } = useTheme();
 
-    return () => {
-      document.body.removeChild(script);
-      const container = document.getElementById("economic-calendar-widget");
-      if (container) container.innerHTML = "";
-    };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        ACTIVITY_STORAGE_KEY,
+        JSON.stringify({ label: "Viewed upcoming events" })
+      );
+    }
   }, []);
+
+  const iframeSrc = `${INVESTING_CALENDAR_BASE}?theme=${darkMode ? "dark" : "light"}&calendarType=week&size=8&width=100%25&height=600`;
 
   return (
     <section className="space-y-4">
@@ -51,10 +39,39 @@ const NewsCalendars = () => {
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
-        <div
-          id="economic-calendar-widget"
-          className="h-[600px] overflow-hidden rounded-2xl bg-[color:var(--bg-color,#f8fafc)]"
-        />
+        <div className="relative">
+          <iframe
+            title="Economic Calendar"
+            src={iframeSrc}
+            className="h-[600px] w-full overflow-hidden rounded-2xl border-0 bg-[color:var(--bg-color,#f8fafc)]"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            referrerPolicy="no-referrer"
+          />
+          {/* Fallback CTA: if calendar is blocked (e.g. ad blocker), user can open in new tab */}
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-center">
+            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+              Economic calendar by{" "}
+              <a
+                href={CALENDAR_OPEN_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+                className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+              >
+                Investing.com
+              </a>
+              . If the calendar doesn’t load above,{" "}
+              <a
+                href={CALENDAR_OPEN_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+                className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
+              >
+                open it in a new tab
+              </a>
+              .
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

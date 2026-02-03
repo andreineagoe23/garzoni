@@ -4,9 +4,10 @@
     <!-- Suppress console noise as early as possible (before extensions and app bundle). -->
     <script>
       (function () {
-        var p = ["TSS:","CONTENT_SHELL","Content Script Bridge","Sending response back","React DevTools","Download the React DevTools","SCHJK","DFP","Breach notification","feature flag is enabled","Unknown message type","MSG_CHECK_DOMAIN_ALLOW_LIST","injection-tss","hosted page injected","MBTSS","excluded result","Risky TLD","aggressive protection","MBTSS_NOTIFICATION","Banner not shown","beforeinstallprompt","Violation","non-passive","Forced reflow","handler took","ERR_BLOCKED_BY_CLIENT","Caught create URL","Caught history","Checking if repeated","Shell protection","Search Hijacking","rel=preload","uses an unsupported","webpackOk","runtime.lastError","message port closed"];
+        var p = ["TSS:","CONTENT_SHELL","Content Script Bridge","Sending response back","React DevTools","Download the React DevTools","SCHJK","DFP","Breach notification","feature flag is enabled","Unknown message type","MSG_CHECK_DOMAIN_ALLOW_LIST","injection-tss","hosted page injected","MBTSS","excluded result","Risky TLD","aggressive protection","MBTSS_NOTIFICATION","Banner not shown","beforeinstallprompt","prompt() to show the banner","Violation","non-passive","Forced reflow","handler took","ERR_BLOCKED_BY_CLIENT","Caught create URL","Caught history","Checking if repeated","Shell protection","Search Hijacking","rel=preload","uses an unsupported","webpackOk","runtime.lastError","message port closed","heartbeat","event-","open-fx","stream:"];
         function suppress(args) {
-          var s = args.map(function(a) { return typeof a === "string" ? a : String(a); }).join(" ");
+          var arr = args && typeof args.length === "number" ? Array.prototype.slice.call(args) : (args != null ? [args] : []);
+          var s = arr.map(function(a) { return typeof a === "string" ? a : String(a); }).join(" ");
           return p.some(function(phrase) { return s.indexOf(phrase) !== -1; });
         }
         ["log","info","warn","error","debug"].forEach(function(m) {

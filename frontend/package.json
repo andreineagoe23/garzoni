@@ -57,6 +57,16 @@
   },
   "jest": {
     "moduleNameMapper": {
+      "^contexts/(.*)$": "<rootDir>/src/contexts/$1",
+      "^components/(.*)$": "<rootDir>/src/components/$1",
+      "^services/(.*)$": "<rootDir>/src/services/$1",
+      "^constants/(.*)$": "<rootDir>/src/constants/$1",
+      "^utils/(.*)$": "<rootDir>/src/utils/$1",
+      "^lib/(.*)$": "<rootDir>/src/lib/$1",
+      "^types/(.*)$": "<rootDir>/src/types/$1",
+      "^assets/(.*)$": "<rootDir>/src/assets/$1",
+      "^hooks/(.*)$": "<rootDir>/src/hooks/$1",
+      "^stores/(.*)$": "<rootDir>/src/stores/$1",
       "^react-router-dom$": "<rootDir>/src/test-utils/react-router-dom-mock.tsx",
       "^axios$": "<rootDir>/src/test-utils/axios-mock.ts"
     }

@@ -1,3 +1,12 @@
+export type FinancialProfile = {
+  goal_types?: string[];
+  timeframe?: string;
+  risk_comfort?: string;
+  income_range?: string;
+  savings_rate_estimate?: string;
+  investing_experience?: string;
+};
+
 export type UserProfile = {
   id?: number | string;
   username?: string;
@@ -10,6 +19,7 @@ export type UserProfile = {
   is_staff?: boolean;
   is_superuser?: boolean;
   user_data?: Record<string, unknown>;
+  financial_profile?: FinancialProfile;
   profile_avatar?: string;
   profile_avatar_url?: string;
   avatar?: string;

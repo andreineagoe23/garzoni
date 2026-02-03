@@ -1,87 +1,63 @@
 import React, { useEffect } from "react";
 
-/* pragma: allowlist secret */
+// Investing.com pip calculator — iframe embed. No third-party script, no gtag/POST 404.
+const INVESTING_PIP_CALC_BASE = "https://ssltools.investing.com/pip-calculator";
+const FOREX_CALC_OPEN_URL = "https://www.investing.com/tools/forex-pip-calculator";
+
 const ForexTools = () => {
+
   useEffect(() => {
-    const containerId = "position-size-calculator-524750";
-
-    const initializeCalculator = () => {
-      try {
-        if (window.RemoteCalc && document.getElementById(containerId)) {
-          window.RemoteCalc({
-            Url: "https://www.cashbackforex.com",
-            TopPaneStyle:
-              "YmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KCMxYmExYzQgMjAlLCAjNDliOWFkIDQ1JSk7IGJvcmRlcjogc29saWQgMHB4OyBib3JkZXItYm90dG9tOiBub25lOyBjb2xvcjogd2hpdGU7", // pragma: allowlist secret
-            BottomPaneStyle:
-              "YmFja2dyb3VuZDogd2hpdGU7IGJvcmRlcjogc29saWQgMXB4ICM3YTdhN2E7IGJvcmRlci10b3A6IG5vbmU7IGNvbG9yOiBibGFjazs=", // pragma: allowlist secret
-            ButtonStyle:
-              "YmFja2dyb3VuZDogIzFiYTFjNDsgY29sb3I6IHdoaXRlOyBib3JkZXItcmFkaXVzOiAyMHB4Ow==", // pragma: allowlist secret
-            TitleStyle:
-              "dGV4dC1hbGlnbjogbGVmdDsgZm9udC1zaXplOiA0MHB4OyBmb250LXdlaWdodDogNTAwOw==", // pragma: allowlist secret
-            TextboxStyle:
-              "YmFja2dyb3VuZC1jb2xvcjogd2hpdGU7IGNvbG9yOiBibGFjazsgYm9yZGVyOiBzb2xpZCAxcHggI2FhYWFhYQ==", // pragma: allowlist secret
-            ContainerWidth: "800",
-            HighlightColor: "#ffff00",
-            IsDisplayTitle: false,
-            IsShowChartLinks: true,
-            IsShowEmbedButton: true,
-            Lang: navigator.language?.startsWith("es") ? "es" : "en",
-            CompactType: "large",
-            Calculator: "position-size-calculator",
-            ContainerId: containerId,
-            analytics: false,
-            logging: false,
-            enableAutofocus: false,
-            onError: (err) => console.error("Calculator error:", err),
-          });
-        }
-      } catch (error) {
-        console.error("Error initializing calculator:", error);
-      }
-    };
-
-    const loadScript = () => {
-      const scriptId = "cashbackforex-calculator-script";
-
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement("script");
-        script.src =
-          "https://www.cashbackforex.com/Content/remote/remote-widgets.js";
-        script.id = scriptId;
-        script.onload = () => setTimeout(initializeCalculator, 500);
-        script.onerror = () =>
-          console.error("Failed to load calculator script");
-        document.body.appendChild(script);
-      } else {
-        initializeCalculator();
-      }
-    };
-
-    const timer = setTimeout(loadScript, 500);
-
-    return () => {
-      clearTimeout(timer);
-      const container = document.getElementById(containerId);
-      if (container) container.innerHTML = "";
-    };
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        "monevo:tools:activity:forex",
+        JSON.stringify({ label: "Viewed forex calculator" })
+      );
+    }
   }, []);
+
+  // force_lang 51 = English (configurable per Investing.com docs)
+  const iframeSrc = `${INVESTING_PIP_CALC_BASE}/index.php?force_lang=51`;
 
   return (
     <section className="space-y-4">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          Forex Position Size Calculator
+          Forex Pip & Position Calculator
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Calculate optimal position sizes for your forex trades
+          Calculate pip values and position sizes for your forex pairs
         </p>
       </header>
 
       <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-6 shadow-xl shadow-black/5">
-        <div
-          id="position-size-calculator-524750"
-          className="minimal-scrollbar overflow-hidden rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-4"
+        <iframe
+          title="Forex Pip Calculator"
+          src={iframeSrc}
+          className="h-[520px] w-full overflow-hidden rounded-2xl border-0 bg-[color:var(--bg-color,#f8fafc)]"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          referrerPolicy="no-referrer"
         />
+        <p className="mt-2 text-center text-xs text-[color:var(--muted-text,#6b7280)]">
+          Calculator by{" "}
+          <a
+            href={FOREX_CALC_OPEN_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+          >
+            Investing.com
+          </a>
+          . If it doesn’t load above,{" "}
+          <a
+            href={FOREX_CALC_OPEN_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
+          >
+            open it in a new tab
+          </a>
+          .
+        </p>
       </div>
     </section>
   );

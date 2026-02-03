@@ -15,8 +15,14 @@ from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
 import json
 import logging
+import re
+import urllib.parse
+from html import unescape
 import requests
 import stripe
+import hashlib
+import xml.etree.ElementTree as ET
+from email.utils import parsedate_to_datetime
 from django.conf import settings
 from finance.throttles import FinanceExternalRateThrottle
 from core.http_client import request_with_backoff
@@ -44,6 +50,220 @@ from finance.utils import record_funnel_event
 from django.apps import apps
 
 logger = logging.getLogger(__name__)
+
+# Trusted sources chosen for RSS feeds that provide thumbnails (media:content, media:thumbnail, enclosure, or img in description).
+# Fallback: per-source logo URLs (publisher-owned, used only when item has no image).
+NEWS_FEEDS = [
+    {
+        "name": "CNBC Markets",
+        "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html",
+        "logo_url": "https://www.cnbc.com/favicon.ico",
+    },
+    {
+        "name": "CNBC Top News",
+        "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+        "logo_url": "https://www.cnbc.com/favicon.ico",
+    },
+    {
+        "name": "BBC Business",
+        "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "logo_url": "https://www.bbc.com/favicon.ico",
+    },
+    {
+        "name": "NPR Business",
+        "url": "https://feeds.npr.org/1006/rss.xml",
+        "logo_url": "https://www.npr.org/favicon.ico",
+    },
+    {
+        "name": "WSJ Markets",
+        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+        "logo_url": "https://www.wsj.com/favicon.ico",
+    },
+]
+SOURCE_LOGO_FALLBACK = {f["name"]: f.get("logo_url") for f in NEWS_FEEDS if f.get("logo_url")}
+
+NEWS_FEED_TIMEOUT_SECONDS = 8
+NEWS_CACHE_KEY = "monevo:news-feed:v1"
+NEWS_LAST_GOOD_CACHE_KEY = "monevo:news-feed:last-good"
+NEWS_CACHE_TTL_SECONDS = 60 * 3  # 3 min for fresher updates
+
+NEWS_CATEGORY_KEYWORDS = {
+    "Macro economy": ["inflation", "cpi", "rates", "gdp", "jobs", "fed"],
+    "Markets": ["stocks", "equities", "index", "market", "rally", "selloff"],
+    "Personal finance": ["mortgage", "savings", "budget", "credit", "loan", "rent"],
+    "Crypto": ["bitcoin", "crypto", "ethereum", "blockchain"],
+}
+
+NEWS_LESSON_LINKS = {
+    "Macro economy": "/all-topics?topic=inflation",
+    "Markets": "/all-topics?topic=investing",
+    "Personal finance": "/all-topics?topic=budgeting",
+    "Crypto": "/all-topics?topic=crypto",
+}
+
+
+def _pick_category(title: str, description: str):
+    haystack = f"{title} {description}".lower()
+    for category, keywords in NEWS_CATEGORY_KEYWORDS.items():
+        if any(keyword in haystack for keyword in keywords):
+            return category
+    return "Markets"
+
+
+def _build_context(category: str):
+    if category == "Macro economy":
+        return (
+            "Macro signals often shape savings rates and borrowing costs.",
+            "If you save or borrow, these shifts can affect your monthly budget.",
+            "Savers and borrowers",
+        )
+    if category == "Personal finance":
+        return (
+            "This may influence everyday cash flow or living costs.",
+            "Small changes can add up quickly across monthly expenses.",
+            "Budgeters and savers",
+        )
+    if category == "Crypto":
+        return (
+            "Crypto moves fast and can swing sharply in either direction.",
+            "If you hold crypto, volatility can dominate short-term results.",
+            "Crypto investors",
+        )
+    return (
+        "Markets can swing based on sentiment and expectations.",
+        "Long-term decisions shouldn’t be driven by a single headline.",
+        "Investors and curious learners",
+    )
+
+
+def _normalize_url(url: str) -> str:
+    """Strip tracking and ref params; keep URL stable for dedup and display."""
+    if not url or "?" not in url:
+        return (url or "").strip()
+    parsed = urllib.parse.urlparse(url)
+    qs = urllib.parse.parse_qs(parsed.query)
+    drop = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref", "fbclid"}
+    filtered = {k: v for k, v in qs.items() if k.lower() not in drop}
+    new_query = urllib.parse.urlencode(filtered, doseq=True)
+    new = parsed._replace(query=new_query)
+    return urllib.parse.urlunparse(new)
+
+
+def _resolve_image_url(url: str, base_link: str) -> str:
+    """Resolve relative image URL against the article link (legal: same origin)."""
+    if not url or url.startswith(("http://", "https://", "//")):
+        return (url or "").strip()
+    try:
+        base = urllib.parse.urlparse(base_link)
+        if url.startswith("//"):
+            return base.scheme + ":" + url
+        if url.startswith("/"):
+            return f"{base.scheme}://{base.netloc}{url}"
+        return str(urllib.parse.urljoin(base_link, url))
+    except Exception:
+        return url.strip()
+
+
+def _extract_image_url(item, description: str, link: str) -> str | None:
+    """Extract thumbnail from RSS/Atom using only feed-provided metadata (legal)."""
+    # Media RSS (Yahoo, CNBC, BBC, etc.)
+    media_ns = {"media": "http://search.yahoo.com/mrss/"}
+    for tag in ("media:content", "media:thumbnail"):
+        el = item.find(tag, media_ns)
+        if el is not None and el.get("url"):
+            return _resolve_image_url(el.get("url"), link)
+    # Some feeds use media namespace with different URI
+    for ns_uri in ("http://search.yahoo.com/mrss/", "http://rssnamespace.org/media/content/"):
+        try:
+            media_content = item.find(f"{{{ns_uri}}}content") or item.find(f"{{{ns_uri}}}thumbnail")
+            if media_content is not None and media_content.get("url"):
+                return _resolve_image_url(media_content.get("url"), link)
+        except Exception:
+            pass
+    # Enclosure (image/*)
+    enclosure = item.find("enclosure")
+    if enclosure is not None:
+        enc_type = (enclosure.get("type") or "").lower()
+        if enc_type.startswith("image/") and enclosure.get("url"):
+            return _resolve_image_url(enclosure.get("url"), link)
+    # Atom link rel="enclosure"
+    for link_el in item.findall("link"):
+        if (link_el.get("rel") or "").lower() == "enclosure" and link_el.get("href"):
+            return _resolve_image_url(link_el.get("href"), link)
+    # First img in description (many feeds embed this; same as publisher content)
+    if description:
+        match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', unescape(description), re.I)
+        if match:
+            return _resolve_image_url(match.group(1), link)
+    return None
+
+
+def _plain_snippet(html_description: str, max_length: int = 220) -> str:
+    """Strip HTML and return a short plain-text snippet for display (real article context)."""
+    if not html_description or not html_description.strip():
+        return ""
+    text = re.sub(r"<[^>]+>", " ", unescape(html_description))
+    text = " ".join(text.split()).strip()
+    if len(text) <= max_length:
+        return text
+    return text[: max_length - 3].rsplit(" ", 1)[0] + "…"
+
+
+def _may_require_subscription(title: str, description: str) -> bool:
+    """Heuristic: content may be behind a paywall."""
+    haystack = f"{title} {description}".lower()
+    return any(
+        phrase in haystack
+        for phrase in ("subscription", "subscriber", "paywall", "premium only", "members only")
+    )
+
+
+def _parse_rss_items(feed_text: str, source: str):
+    """Parse RSS XML into items; returns [] on malformed XML."""
+    items = []
+    try:
+        root = ET.fromstring(feed_text)
+    except ET.ParseError:
+        return items
+    for item in root.findall(".//item"):
+        title = (item.findtext("title") or "").strip()
+        link = (item.findtext("link") or "").strip()
+        description = (item.findtext("description") or "").strip()
+        image_url = _extract_image_url(item, description, link)
+        link = _normalize_url(link)
+        pub_date = item.findtext("pubDate")
+        published_at = None
+        if pub_date:
+            try:
+                published_at = parsedate_to_datetime(pub_date).isoformat()
+            except Exception:
+                published_at = None
+        if not title or not link:
+            continue
+        category = _pick_category(title, description)
+        what_this_means, why_it_matters, who_should_care = _build_context(category)
+        may_paywall = _may_require_subscription(title, description)
+        # Legal thumbnails: from RSS first, else publisher favicon (source logo)
+        thumbnail_url = image_url or SOURCE_LOGO_FALLBACK.get(source)
+        snippet = _plain_snippet(description)
+        items.append(
+            {
+                "id": hashlib.sha256(link.encode("utf-8")).hexdigest()[:16],
+                "title": title,
+                "url": link,
+                "source": source,
+                "published_at": published_at,
+                "category": category,
+                "snippet": snippet or why_it_matters,
+                "what_this_means": what_this_means,
+                "why_it_matters": why_it_matters,
+                "who_should_care": who_should_care,
+                "lesson_link": NEWS_LESSON_LINKS.get(category),
+                "may_require_subscription": may_paywall,
+                "image_url": thumbnail_url,
+            }
+        )
+    return items
 
 
 class SavingsAccountView(APIView):
@@ -317,18 +537,33 @@ class CryptoPriceView(APIView):
     def get(self, request):
         request_id = getattr(request, "request_id", None)
         crypto_id = request.query_params.get("id")
-        if not crypto_id:
+        crypto_symbol = request.query_params.get("symbol")
+        if not crypto_id and not crypto_symbol:
             return Response(
                 {"error": "Crypto id is required.", "request_id": request_id},
                 status=400,
             )
-        if len(crypto_id) > 64:
+        raw_value = crypto_id or crypto_symbol
+        if raw_value and len(raw_value) > 64:
             return Response(
                 {"error": "Crypto id is too long.", "request_id": request_id},
                 status=400,
             )
 
-        crypto_id = crypto_id.strip().lower()
+        COINGECKO_ID_MAP = {
+            "btc": "bitcoin",
+            "bitcoin": "bitcoin",
+            "eth": "ethereum",
+            "ethereum": "ethereum",
+            "sol": "solana",
+            "solana": "solana",
+            "xrp": "ripple",
+            "ada": "cardano",
+            "doge": "dogecoin",
+            "bnb": "binancecoin",
+        }
+        crypto_id = (raw_value or "").strip().lower()
+        crypto_id = COINGECKO_ID_MAP.get(crypto_id, crypto_id)
         cache_key = f"crypto_{crypto_id}"
         cached = cache.get(cache_key)
         if cached:
@@ -1111,3 +1346,70 @@ class FinancialGoalViewSet(viewsets.ModelViewSet):
             user_profile.save()
 
         return Response(self.get_serializer(goal).data)
+
+
+class NewsFeedView(APIView):
+    """Return a cached, curated finance news feed with context.
+    Uses multiple RSS sources; on total failure serves last-known-good cache (stale).
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        cached = cache.get(NEWS_CACHE_KEY)
+        if cached:
+            return Response(cached)
+
+        all_items = []
+        timeout = NEWS_FEED_TIMEOUT_SECONDS
+        for feed in NEWS_FEEDS:
+            try:
+                response = requests.get(feed["url"], timeout=timeout)
+                response.raise_for_status()
+                feed_items = _parse_rss_items(response.text, feed["name"])
+                # Cap per source so one feed doesn't dominate (newest 4 per source)
+                feed_items_sorted = sorted(
+                    feed_items, key=lambda x: x.get("published_at") or "", reverse=True
+                )
+                all_items.extend(feed_items_sorted[:4])
+            except Exception as exc:
+                logger.warning("Failed to fetch feed %s: %s", feed["url"], exc)
+                continue
+
+        # Deduplicate by URL (keep first = most recent when sorted)
+        seen_urls = set()
+        unique = []
+        for item in sorted(all_items, key=lambda x: x.get("published_at") or "", reverse=True):
+            url = (item.get("url") or "").strip()
+            if not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
+            unique.append(item)
+
+        items = unique[:12]
+
+        generated_at = timezone.now().isoformat()
+        payload = {
+            "items": items,
+            "generated_at": generated_at,
+            "stale": False,
+            "sources": [feed["name"] for feed in NEWS_FEEDS],
+        }
+        if items:
+            cache.set(NEWS_CACHE_KEY, payload, timeout=NEWS_CACHE_TTL_SECONDS)
+            cache.set(NEWS_LAST_GOOD_CACHE_KEY, payload, timeout=7 * 24 * 60 * 60)
+            return Response(payload)
+
+        last_good = cache.get(NEWS_LAST_GOOD_CACHE_KEY)
+        if last_good:
+            last_good["stale"] = True
+            return Response(last_good)
+
+        return Response(
+            {
+                "items": [],
+                "generated_at": generated_at,
+                "stale": False,
+                "sources": [feed["name"] for feed in NEWS_FEEDS],
+            }
+        )

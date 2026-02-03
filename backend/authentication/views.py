@@ -29,6 +29,7 @@ from authentication.serializers import (
     FriendRequestSerializer,
     UserSearchSerializer,
     UserProfileSettingsSerializer,
+    FinancialProfileSerializer,
 )
 from authentication.tokens import delete_jwt_cookies
 from authentication.entitlements import (
@@ -41,6 +42,7 @@ from education.models import LessonCompletion, Question, UserResponse
 from core.utils import env_bool
 from authentication.throttles import LoginRateThrottle
 from core.http_client import request_with_backoff
+from authentication.services.profile import invalidate_profile_cache
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +203,14 @@ class UserProfileView(APIView):
                     "is_premium": user_profile.is_premium,
                     "subscription_status": user_profile.subscription_status,
                     "is_questionnaire_completed": questionnaire_completed,
+                    "financial_profile": {
+                        "goal_types": user_profile.goal_types,
+                        "timeframe": user_profile.timeframe,
+                        "risk_comfort": user_profile.risk_comfort,
+                        "income_range": user_profile.income_range,
+                        "savings_rate_estimate": user_profile.savings_rate_estimate,
+                        "investing_experience": user_profile.investing_experience,
+                    },
                 },
                 "activity_calendar": activity_calendar,
                 "current_month": current_month,
@@ -215,6 +225,25 @@ class UserProfileView(APIView):
             user_profile.email_reminder_preference = email_reminder_preference
             user_profile.save()
         return Response({"message": "Profile updated successfully."})
+
+
+class FinancialProfileView(APIView):
+    """GET/PUT a single financial profile source of truth."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_profile = request.user.profile
+        serializer = FinancialProfileSerializer(user_profile)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user_profile = request.user.profile
+        serializer = FinancialProfileSerializer(user_profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        invalidate_profile_cache(request.user)
+        return Response(serializer.data)
 
 
 class EntitlementsView(APIView):

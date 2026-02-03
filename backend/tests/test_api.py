@@ -197,6 +197,55 @@ class SubscriptionCreateTest(AuthenticatedTestCase):
         self.assertEqual(call_kwargs["line_items"][0]["price"], "price_plus_123")
 
 
+class FinancialProfileTest(AuthenticatedTestCase):
+    """GET/PUT /api/me/profile/: auth required, validation, partial update, cache invalidation."""
+
+    def test_me_profile_get_requires_auth(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get("/api/me/profile/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_me_profile_put_requires_auth(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.put(
+            "/api/me/profile/",
+            {"timeframe": "medium", "risk_comfort": "low"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_me_profile_get_returns_profile(self):
+        response = self.client.get("/api/me/profile/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("goal_types", response.data)
+        self.assertIn("timeframe", response.data)
+        self.assertIn("risk_comfort", response.data)
+
+    def test_me_profile_put_partial_update_idempotent(self):
+        data = {"timeframe": "medium", "risk_comfort": "low"}
+        r1 = self.client.put("/api/me/profile/", data, format="json")
+        self.assertEqual(r1.status_code, status.HTTP_200_OK)
+        r2 = self.client.put("/api/me/profile/", data, format="json")
+        self.assertEqual(r2.status_code, status.HTTP_200_OK)
+        self.assertEqual(r1.data.get("timeframe"), r2.data.get("timeframe"))
+
+    def test_me_profile_put_invalid_payload_rejected(self):
+        response = self.client.put(
+            "/api/me/profile/",
+            {"timeframe": "x" * 100},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_me_profile_put_goal_types_validated(self):
+        response = self.client.put(
+            "/api/me/profile/",
+            {"goal_types": "not-a-list"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class PlansCatalogTest(APITestCase):
     """Plans API returns catalog with personalized_path feature by tier."""
 

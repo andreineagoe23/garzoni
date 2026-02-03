@@ -3,7 +3,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-from authentication.views import CustomTokenRefreshView
+from authentication.views import CustomTokenRefreshView, FinancialProfileView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -17,6 +17,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Add a direct route for token refresh to avoid cookie path issues
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh-direct"),
+    # Compatibility route to ensure /api/me/profile/ is always available
+    path("api/me/profile/", FinancialProfileView.as_view(), name="financial-profile-direct"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",

@@ -19,3 +19,16 @@ export const captureException = (error: unknown, info?: unknown) => {
     extra: (info as Record<string, unknown> | undefined) ?? undefined,
   });
 };
+
+export const captureMessage = (
+  message: string,
+  level: "info" | "warning" | "error" = "info",
+  extra?: Record<string, unknown>
+) => {
+  if (!dsn) return;
+  Sentry.withScope((scope) => {
+    if (extra) scope.setContext("tool", extra);
+    scope.setLevel(level);
+    Sentry.captureMessage(message);
+  });
+};

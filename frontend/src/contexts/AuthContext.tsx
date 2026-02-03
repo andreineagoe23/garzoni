@@ -11,7 +11,7 @@ import { BACKEND_URL } from "services/backendUrl";
 import { EntitlementFeature } from "types/api";
 import { attachToken } from "services/httpClient";
 import { queryClient, queryKeys } from "lib/reactQuery";
-import type { Entitlements, UserProfile } from "types/api";
+import type { Entitlements, FinancialProfile, UserProfile } from "types/api";
 
 type ApiErrorResponse = {
   response?: {
@@ -32,6 +32,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserProfile | null;
   profile: UserProfile | null;
+  financialProfile: FinancialProfile | null;
   settings: Record<string, unknown> | null;
   loginUser: (
     credentials: Record<string, unknown>
@@ -47,6 +48,12 @@ type AuthContextValue = {
   isInitialized: boolean;
   loadProfile: (options?: { force?: boolean }) => Promise<UserProfile | null>;
   refreshProfile: () => Promise<void>;
+  loadFinancialProfile: (options?: {
+    force?: boolean;
+  }) => Promise<FinancialProfile | null>;
+  updateFinancialProfile: (
+    data: Partial<FinancialProfile>
+  ) => Promise<FinancialProfile | null>;
   loadSettings: (options?: {
     force?: boolean;
   }) => Promise<Record<string, unknown> | null>;
@@ -94,6 +101,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [financialProfile, setFinancialProfile] =
+    useState<FinancialProfile | null>(null);
   const [settings, setSettings] = useState<Record<string, unknown> | null>(
     null
   );
@@ -114,6 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const lastRefreshAttempt = useRef(0);
   const inFlightRequestsRef = useRef(new Map<string, Promise<unknown>>());
   const profileRef = useRef<UserProfile | null>(null);
+  const financialProfileRef = useRef<FinancialProfile | null>(null);
   const settingsRef = useRef<Record<string, unknown> | null>(null);
   const entitlementsRef = useRef<Entitlements | null>(null);
   const didRequestInitialVerifyRef = useRef(false);
@@ -125,6 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAuthenticated(false);
     setUser(null);
     setProfile(null);
+    setFinancialProfile(null);
     setSettings(null);
     setEntitlements({
       plan: "free",
@@ -138,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     setEntitlementError(null);
     profileRef.current = null;
+    financialProfileRef.current = null;
     settingsRef.current = null;
     entitlementsRef.current = null;
     refreshAttempts = 0;
@@ -503,12 +515,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { force }
       );
 
-      profileRef.current = data;
-      setProfile(data);
-      queryClient.setQueryData(queryKeys.profile(), data);
-      return data;
+      const profileData = data as UserProfile;
+      profileRef.current = profileData;
+      setProfile(profileData);
+      const embeddedFinancial =
+        (profileData?.user_data as { financial_profile?: FinancialProfile } | undefined)
+          ?.financial_profile ?? null;
+      if (embeddedFinancial && !financialProfileRef.current) {
+        financialProfileRef.current = embeddedFinancial;
+        setFinancialProfile(embeddedFinancial);
+      }
+      queryClient.setQueryData(queryKeys.profile(), profileData);
+      return profileData;
     },
     [cacheRequest, isAuthenticated]
+  );
+
+  const loadFinancialProfile = useCallback(
+    async ({ force = false }: { force?: boolean } = {}) => {
+      if (!isAuthenticated) return null;
+      if (!force && financialProfileRef.current) {
+        return financialProfileRef.current;
+      }
+      const data = await cacheRequest(
+        "financial-profile",
+        async () => {
+          const response = await axios.get(`${BACKEND_URL}/me/profile/`, {
+            headers: { Authorization: `Bearer ${inMemoryToken}` },
+          });
+          return response.data;
+        },
+        { force }
+      );
+      financialProfileRef.current = data as FinancialProfile;
+      setFinancialProfile(data as FinancialProfile);
+      return data as FinancialProfile;
+    },
+    [cacheRequest, isAuthenticated]
+  );
+
+  const updateFinancialProfile = useCallback(
+    async (data: Partial<FinancialProfile>) => {
+      if (!isAuthenticated) return null;
+      const response = await axios.put(`${BACKEND_URL}/me/profile/`, data, {
+        headers: { Authorization: `Bearer ${inMemoryToken}` },
+      });
+      financialProfileRef.current = response.data;
+      setFinancialProfile(response.data);
+      return response.data;
+    },
+    [isAuthenticated]
   );
 
   const loadSettings = useCallback(
@@ -642,7 +698,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshProfile = useCallback(async () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     await loadProfile({ force: true });
-  }, [loadProfile]);
+    await loadFinancialProfile({ force: true });
+  }, [loadFinancialProfile, loadProfile]);
 
   useEffect(() => {
     const requestId = axios.interceptors.request.use(
@@ -712,13 +769,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       setEntitlementError(null);
       entitlementsRef.current = null;
+      financialProfileRef.current = null;
+      setFinancialProfile(null);
       return;
     }
 
     loadEntitlements().catch((error) => {
       authError("Failed to prefetch entitlements:", error);
     });
-  }, [isAuthenticated, loadEntitlements]);
+    loadFinancialProfile().catch((error) => {
+      authError("Failed to prefetch financial profile:", error);
+    });
+  }, [isAuthenticated, loadEntitlements, loadFinancialProfile]);
 
   if (!isInitialized) {
     return <div>Loading authentication...</div>;
@@ -730,6 +792,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isAuthenticated,
         user,
         profile,
+        financialProfile,
         settings,
         loginUser,
         registerUser,
@@ -738,6 +801,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isInitialized,
         loadProfile,
         refreshProfile,
+        loadFinancialProfile,
+        updateFinancialProfile,
         loadSettings,
         loadEntitlements,
         reloadEntitlements,

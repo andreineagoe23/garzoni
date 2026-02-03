@@ -18,6 +18,7 @@ from .views import (
     EntitlementStatusView,
     FunnelEventIngestView,
     FunnelMetricsView,
+    NewsFeedView,
 )
 
 router = DefaultRouter()
@@ -32,6 +33,8 @@ urlpatterns = [
         EntitlementStatusView.as_view(),
         name="entitlements-compat",
     ),
+    # Compatibility prefix for clients hitting /api/finance/news/
+    path("finance/news/", NewsFeedView.as_view(), name="news-feed-compat"),
     path("savings-account/", SavingsAccountView.as_view(), name="savings-account"),
     path("finance-fact/", FinanceFactView.as_view(), name="finance-fact"),
     path(
@@ -59,4 +62,5 @@ urlpatterns = [
     path("stock-price/", StockPriceView.as_view(), name="stock-price"),
     path("forex-rate/", ForexRateView.as_view(), name="forex-rate"),
     path("crypto-price/", CryptoPriceView.as_view(), name="crypto-price"),
+    path("news/", NewsFeedView.as_view(), name="news-feed"),
 ]

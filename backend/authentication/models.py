@@ -55,6 +55,13 @@ class UserProfile(models.Model):
     # Duolingo-like hearts system (lives)
     hearts = models.PositiveSmallIntegerField(default=5)
     hearts_last_refill_at = models.DateTimeField(default=timezone.now)
+    # Financial profile (single source of truth for tools)
+    goal_types = models.JSONField(default=list, blank=True)
+    timeframe = models.CharField(max_length=32, blank=True, default="")
+    risk_comfort = models.CharField(max_length=32, blank=True, default="")
+    income_range = models.CharField(max_length=64, blank=True, default="")
+    savings_rate_estimate = models.CharField(max_length=32, blank=True, default="")
+    investing_experience = models.CharField(max_length=32, blank=True, default="")
 
     def __str__(self):
         return self.user.username

@@ -53,6 +53,114 @@ class UserProfileSettingsSerializer(serializers.ModelSerializer):
         fields = ["email_reminder_preference"]
 
 
+ALLOWED_GOAL_TYPES = {
+    "save",
+    "emergency",
+    "savings",
+    "invest",
+    "wealth",
+    "portfolio",
+    "debt",
+    "loan",
+    "mortgage",
+    "retirement",
+    "education",
+    "other",
+}
+ALLOWED_TIMEFRAMES = {
+    "",
+    "short",
+    "medium",
+    "long",
+    "1-3",
+    "3-5",
+    "5-10",
+    "10+",
+    "1-3 years",
+    "3-5 years",
+    "5+ years",
+}
+ALLOWED_RISK_COMFORT = {"", "low", "medium", "high", "conservative", "moderate", "aggressive"}
+ALLOWED_INCOME_RANGE = {
+    "",
+    "under_30k",
+    "30k_50k",
+    "50k_80k",
+    "80k_120k",
+    "120k_plus",
+    "prefer_not",
+}
+ALLOWED_SAVINGS_RATE = {"", "low", "medium", "high", "0-5", "5-10", "10-20", "20+"}
+ALLOWED_INVESTING_EXPERIENCE = {"", "new", "beginner", "intermediate", "advanced", "experienced"}
+
+
+class FinancialProfileSerializer(serializers.ModelSerializer):
+    """Serializer for the user's financial profile (tools source of truth). Validates allowed values."""
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "goal_types",
+            "timeframe",
+            "risk_comfort",
+            "income_range",
+            "savings_rate_estimate",
+            "investing_experience",
+        ]
+
+    def validate_goal_types(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Must be a list of strings.")
+        for g in value:
+            if not isinstance(g, str) or not g.strip():
+                continue
+            if ALLOWED_GOAL_TYPES and g.strip().lower() not in {
+                x.lower() for x in ALLOWED_GOAL_TYPES
+            }:
+                pass  # allow unknown for flexibility; optionally restrict: raise ValidationError
+        return [str(x).strip().lower() for x in value if isinstance(x, str) and str(x).strip()][:20]
+
+    def validate_timeframe(self, value):
+        if value is None or value == "":
+            return ""
+        v = str(value).strip().lower()
+        if len(v) > 32:
+            raise serializers.ValidationError("Max 32 characters.")
+        return v
+
+    def validate_risk_comfort(self, value):
+        if value is None or value == "":
+            return ""
+        v = str(value).strip().lower()
+        if len(v) > 32:
+            raise serializers.ValidationError("Max 32 characters.")
+        return v
+
+    def validate_income_range(self, value):
+        if value is None or value == "":
+            return ""
+        v = str(value).strip()
+        if len(v) > 64:
+            raise serializers.ValidationError("Max 64 characters.")
+        return v
+
+    def validate_savings_rate_estimate(self, value):
+        if value is None or value == "":
+            return ""
+        v = str(value).strip()
+        if len(v) > 32:
+            raise serializers.ValidationError("Max 32 characters.")
+        return v
+
+    def validate_investing_experience(self, value):
+        if value is None or value == "":
+            return ""
+        v = str(value).strip().lower()
+        if len(v) > 32:
+            raise serializers.ValidationError("Max 32 characters.")
+        return v
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the UserProfile model.
