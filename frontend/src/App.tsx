@@ -436,7 +436,7 @@ const AppContent = () => {
                   }
                 />
                 <Route
-                  path="/tools"
+                  path="/tools/*"
                   element={
                     <ProtectedRoute>
                       <ToolsPage />

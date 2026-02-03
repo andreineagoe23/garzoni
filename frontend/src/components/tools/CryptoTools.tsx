@@ -1,17 +1,28 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:crypto";
+const WIDGET_LOAD_TIMEOUT_MS = 15000;
+
+// Note: TradingView embed may log a moment.defineLocale deprecation in the console; that comes from their script and cannot be fixed here.
+
 const CryptoTools = () => {
-  const container = useRef(null);
+  const container = useRef<HTMLDivElement | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const { darkMode } = useTheme();
 
   useEffect(() => {
     const currentContainer = container.current;
+    if (!currentContainer) return undefined;
+    currentContainer.innerHTML = "";
+    setLoadError(false);
     const script = document.createElement("script");
     script.src =
       "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
     script.async = true;
+    script.crossOrigin = "anonymous";
+    script.onerror = () => setLoadError(true);
     script.innerHTML = JSON.stringify({
       width: "100%",
       height: "500",
@@ -35,24 +46,41 @@ const CryptoTools = () => {
       support_host: "https://www.tradingview.com",
     });
 
+    let cancelled = false;
     const timer = setTimeout(() => {
-      if (currentContainer) {
-        currentContainer.appendChild(script);
+      if (cancelled || !currentContainer) return;
+      currentContainer.appendChild(script);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          ACTIVITY_STORAGE_KEY,
+          JSON.stringify({ label: "Watched crypto markets" })
+        );
       }
     }, 100);
 
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled) return;
+      const el = currentContainer?.querySelector(".tradingview-widget-container__widget");
+      if (el && !el.hasChildNodes()) setLoadError(true);
+    }, WIDGET_LOAD_TIMEOUT_MS);
+
     return () => {
+      cancelled = true;
       clearTimeout(timer);
+      window.clearTimeout(timeoutId);
       if (currentContainer && script.parentNode) {
         currentContainer.removeChild(script);
+      }
+      if (currentContainer) {
+        currentContainer.innerHTML = "";
       }
     };
   }, [darkMode]);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 min-w-0 w-full">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl">
           Cryptocurrency Trading
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -61,20 +89,37 @@ const CryptoTools = () => {
       </header>
 
       <div
-        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         style={{
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
+        {loadError && (
+          <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
+            <p className="font-semibold">Chart failed to load.</p>
+            <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
+              Try disabling ad blockers or content blockers for this site, or open TradingView in a new tab.
+            </p>
+            <a
+              href="https://www.tradingview.com/"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-90"
+            >
+              Open TradingView in new tab
+            </a>
+          </div>
+        )}
         <div
-          className="tradingview-widget-container"
+          className={`tradingview-widget-container ${loadError ? "hidden" : ""}`}
           ref={container}
           style={{
             width: "100%",
             border: 0,
             overflow: "hidden",
-            height: "500px",
+            height: "clamp(340px, 55vh, 500px)",
+            colorScheme: darkMode ? "dark" : "light",
           }}
         >
           <div

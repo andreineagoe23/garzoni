@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import {
   PieChart,
@@ -8,11 +9,16 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import toast from "react-hot-toast";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
+import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
+import { recordToolEvent } from "services/toolsAnalytics";
 
 const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
+const EXPORT_EVENT = "monevo:tools:export";
 
 type PortfolioEntry = {
   id?: string | number;
@@ -46,7 +52,8 @@ function PortfolioAnalyzer() {
     purchase_price: "",
     purchase_date: new Date().toISOString().split("T")[0],
   });
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, financialProfile } = useAuth();
+  const formRef = useRef<HTMLDivElement | null>(null);
 
   const fetchStockPrice = useCallback(
     async (symbol) => {
@@ -69,8 +76,22 @@ function PortfolioAnalyzer() {
   const fetchCryptoPrice = useCallback(
     async (symbol) => {
       try {
+        const normalized = String(symbol || "").trim().toLowerCase();
+        const COINGECKO_ID_MAP: Record<string, string> = {
+          btc: "bitcoin",
+          bitcoin: "bitcoin",
+          eth: "ethereum",
+          ethereum: "ethereum",
+          sol: "solana",
+          solana: "solana",
+          xrp: "ripple",
+          ada: "cardano",
+          doge: "dogecoin",
+          bnb: "binancecoin",
+        };
+        const cryptoId = COINGECKO_ID_MAP[normalized] || normalized;
         const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
-          params: { id: symbol },
+          params: { id: cryptoId },
           headers: { Authorization: `Bearer ${getAccessToken()}` },
           withCredentials: true,
         });
@@ -160,12 +181,107 @@ function PortfolioAnalyzer() {
     return () => clearInterval(interval);
   }, [fetchPortfolio]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem(
+      ACTIVITY_STORAGE_KEY,
+      JSON.stringify({ label: `${entries.length} holdings` })
+    );
+  }, [entries.length]);
+
+  useEffect(() => {
+    if (!summary || entries.length === 0 || typeof window === "undefined") return;
+    const key = "monevo:tools:completed:portfolio";
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "true");
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "tool_completed", {
+        tool_id: "portfolio",
+        detail: "portfolio_summary_ready",
+      });
+    }
+    recordToolEvent("tool_complete", "portfolio", {
+      detail: "portfolio_summary_ready",
+    });
+  }, [summary, entries.length]);
+
+  useEffect(() => {
+    const handleExport = (event: Event) => {
+      const detail = (event as CustomEvent<{ toolId?: string }>).detail;
+      if (detail?.toolId !== "portfolio") return;
+      if (entries.length === 0) {
+        toast.error("No portfolio entries to export yet.");
+        return;
+      }
+      const header = [
+        "Asset Type",
+        "Symbol",
+        "Quantity",
+        "Purchase Price",
+        "Purchase Date",
+        "Current Price",
+        "Current Value",
+        "Gain/Loss",
+        "Gain/Loss %",
+      ];
+      const rows = entries.map((entry) => [
+        entry.asset_type,
+        entry.symbol,
+        entry.quantity,
+        entry.purchase_price,
+        entry.purchase_date ?? "",
+        entry.current_price ?? "",
+        entry.current_value ?? "",
+        entry.gain_loss ?? "",
+        entry.gain_loss_percentage ?? "",
+      ]);
+      const csv = [header, ...rows]
+        .map((row) =>
+          row
+            .map((value) =>
+              `"${String(value ?? "").replace(/"/g, '""')}"`
+            )
+            .join(",")
+        )
+        .join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "portfolio.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Portfolio export ready.");
+    };
+
+    window.addEventListener(EXPORT_EVENT, handleExport as EventListener);
+    return () => {
+      window.removeEventListener(EXPORT_EVENT, handleExport as EventListener);
+    };
+  }, [entries]);
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setNewEntry((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleDemoEntry = (entry: {
+    asset_type: string;
+    symbol: string;
+    quantity: string;
+    purchase_price: string;
+  }) => {
+    setNewEntry((prev) => ({
+      ...prev,
+      ...entry,
+      purchase_date: new Date().toISOString().split("T")[0],
+    }));
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   const handleSubmit = async (event) => {
@@ -182,6 +298,11 @@ function PortfolioAnalyzer() {
         purchase_date: new Date().toISOString().split("T")[0],
       });
       fetchPortfolio();
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "portfolio_entry_added", {
+          tool_id: "portfolio",
+        });
+      }
     } catch (err) {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
@@ -198,6 +319,11 @@ function PortfolioAnalyzer() {
         headers: { Authorization: `Bearer ${getAccessToken()}` },
       });
       fetchPortfolio();
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "portfolio_entry_deleted", {
+          tool_id: "portfolio",
+        });
+      }
     } catch (err) {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
@@ -226,6 +352,221 @@ function PortfolioAnalyzer() {
     return (summary.total_gain_loss / totalCost) * 100;
   }, [summary, entries]);
 
+  const insight = useMemo(() => {
+    if (!summary || entries.length === 0) return null;
+    const total = summary.total_value || 0;
+    const totalCost = entries.reduce(
+      (sum, entry) => sum + (entry.purchase_price * entry.quantity || 0),
+      0
+    );
+    const cryptoValue = summary.allocation?.crypto ?? 0;
+    const stockValue = summary.allocation?.stock ?? 0;
+    const cryptoPct = total > 0 ? (cryptoValue / total) * 100 : 0;
+
+    let riskLevel: "low" | "moderate" | "high" = "low";
+    const problems: string[] = [];
+    const bullets: string[] = [];
+
+    const maxSinglePct = Math.max(
+      ...entries.map(
+        (e) => ((e.current_value ?? 0) / total) * 100
+      ),
+      0
+    );
+
+    if (entries.length === 1) {
+      problems.push("All your money is in one investment.");
+      riskLevel = "high";
+    } else if (maxSinglePct >= 60) {
+      problems.push(
+        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio — concentration is high.`
+      );
+      riskLevel = "high";
+    } else if (maxSinglePct >= 40) {
+      problems.push(
+        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio. Consider spreading risk.`
+      );
+      riskLevel = "moderate";
+    }
+
+    if (cryptoPct >= 50 && total > 0) {
+      problems.push(
+        "Most of your portfolio is in crypto, which tends to be more volatile."
+      );
+      if (riskLevel === "low") riskLevel = "moderate";
+    }
+
+    if (totalCost > 0 && totalGainLossPercentage < -10) {
+      bullets.push(
+        "You’re currently down on paper. Check if your timeline and risk tolerance still match this mix."
+      );
+    }
+
+    if (entries.length >= 2 && Object.keys(summary.allocation || {}).length >= 2) {
+      bullets.push("You’re spread across more than one asset type — that helps smooth volatility.");
+    }
+    if (total > 0 && stockValue > 0) {
+      const pct = Math.round((stockValue / total) * 100);
+      bullets.push(`Stocks make up ${pct}% of your portfolio.`);
+    }
+    if (total > 0 && cryptoValue > 0) {
+      const pct = Math.round((cryptoValue / total) * 100);
+      bullets.push(`Crypto makes up ${pct}% — remember it can swing more than stocks.`);
+    }
+    bullets.push(
+      `Total value is ${formatCurrency(total, "USD", locale, { maximumFractionDigits: 0 })} with ${totalGainLossPercentage >= 0 ? "a gain" : "a loss"} of ${formatNumber(Math.abs(totalGainLossPercentage), locale, { maximumFractionDigits: 1 })}% overall.`
+    );
+
+    const riskComfort = financialProfile?.risk_comfort || "";
+    const timeframe = financialProfile?.timeframe || "";
+    let goalAlignment: "good_fit" | "risky" | "misaligned" =
+      riskLevel === "high" ? "misaligned" : riskLevel === "moderate" ? "risky" : "good_fit";
+
+    if (riskComfort === "low" && riskLevel !== "low") {
+      goalAlignment = "misaligned";
+    } else if (riskComfort === "medium" && riskLevel === "high") {
+      goalAlignment = "misaligned";
+    }
+    if (timeframe === "short_term" && riskLevel !== "low") {
+      goalAlignment = "misaligned";
+    } else if (timeframe === "mid_term" && riskLevel === "high") {
+      goalAlignment = "risky";
+    }
+
+    const biggestProblem = problems[0] ?? null;
+
+    const insightCards: Array<{
+      id: string;
+      title: string;
+      meaning: string;
+      why: string;
+      nextSteps: string[];
+      lessonLink?: string;
+      actionLink?: string;
+      confidence: "low" | "medium" | "high";
+    }> = [];
+
+    if (maxSinglePct >= 40) {
+      insightCards.push({
+        id: "concentration",
+        title: "Concentration risk",
+        meaning: `One holding dominates at ${Math.round(maxSinglePct)}% of your portfolio.`,
+        why: "A single decline can swing your overall results.",
+        nextSteps: [
+          "Add a second holding in a different area.",
+          "Consider trimming the oversized position.",
+        ],
+        lessonLink: PORTFOLIO_INSIGHT_LESSONS.concentration,
+        actionLink: "/tools/portfolio",
+        confidence: "high",
+      });
+    }
+
+    if (entries.length < 3) {
+      insightCards.push({
+        id: "diversification",
+        title: "Low diversification",
+        meaning: "You have fewer than three holdings.",
+        why: "Small portfolios tend to be less resilient to shocks.",
+        nextSteps: [
+          "Add a broad market ETF or index exposure.",
+          "Balance with another asset type.",
+        ],
+        lessonLink: PORTFOLIO_INSIGHT_LESSONS.diversification,
+        actionLink: "/tools/market-explorer",
+        confidence: "medium",
+      });
+    }
+
+    if (cryptoPct >= 30 && total > 0) {
+      insightCards.push({
+        id: "volatility",
+        title: "High volatility exposure",
+        meaning: `Crypto is about ${Math.round(cryptoPct)}% of your portfolio.`,
+        why: "Crypto tends to swing more than stocks or bonds.",
+        nextSteps: [
+          "Decide if this aligns with your risk comfort.",
+          "Balance with less volatile assets.",
+        ],
+        lessonLink: PORTFOLIO_INSIGHT_LESSONS.volatility,
+        actionLink: "/tools/market-explorer",
+        confidence: "high",
+      });
+    }
+
+    if (totalGainLossPercentage < -10) {
+      insightCards.push({
+        id: "drawdown",
+        title: "Portfolio drawdown",
+        meaning: "Your portfolio is down more than 10% overall.",
+        why: "Large drawdowns can test your time horizon and confidence.",
+        nextSteps: [
+          "Review your time horizon before making changes.",
+          "Avoid panic selling without a plan.",
+        ],
+        lessonLink: "/all-topics?topic=investing",
+        actionLink: "/tools/reality-check",
+        confidence: "medium",
+      });
+    }
+
+    if (insightCards.length === 0) {
+      insightCards.push({
+        id: "healthy",
+        title: "Healthy balance",
+        meaning: "Your mix looks reasonably diversified.",
+        why: "Balanced portfolios tend to handle volatility better.",
+        nextSteps: [
+          "Keep monitoring allocation drift quarterly.",
+          "Explore new assets only if they fit your goal.",
+        ],
+        lessonLink: "/all-topics?topic=investing",
+        actionLink: "/tools/market-explorer",
+        confidence: "medium",
+      });
+    }
+
+    let nextAction: {
+      type: "learn" | "adjust" | "explore";
+      label: string;
+      href: string;
+    };
+    if (riskLevel === "high" || (biggestProblem && biggestProblem.includes("one investment"))) {
+      nextAction = {
+        type: "learn",
+        label: "Learn: Why diversification helps",
+        href: "/all-topics?topic=investing",
+      };
+    } else if (riskLevel === "moderate" || (biggestProblem && biggestProblem.includes("concentration"))) {
+      nextAction = {
+        type: "adjust",
+        label: "Consider rebalancing or adding another holding",
+        href: "/tools/portfolio",
+      };
+    } else {
+      nextAction = {
+        type: "explore",
+        label: "Explore: Market Explorer to compare assets",
+        href: "/tools/market-explorer",
+      };
+    }
+
+    return {
+      riskLevel,
+      biggestProblem,
+      goalAlignment,
+      summaryBullets: bullets.slice(0, 5),
+      nextAction,
+      insightCards: insightCards.slice(0, 5),
+      confidence: financialProfile ? "medium" : "low",
+    };
+  }, [summary, entries, totalGainLossPercentage, locale, financialProfile]);
+
+  useEffect(() => {
+    if (!insight || typeof window === "undefined") return;
+    sessionStorage.setItem("monevo:tools:signal:portfolio_risk", insight.riskLevel);
+  }, [insight]);
+
   if (loading) {
     return (
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
@@ -237,9 +578,9 @@ function PortfolioAnalyzer() {
   const hasEntries = entries.length > 0;
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 min-w-0 w-full">
       <header className="space-y-2 text-center">
-        <h3 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)] sm:text-2xl">
           Portfolio Analyzer
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -254,7 +595,7 @@ function PortfolioAnalyzer() {
       )}
 
       {!hasEntries && !loading && (
-        <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-8 py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
+        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
             <h4 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
@@ -263,15 +604,44 @@ function PortfolioAnalyzer() {
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               Add your first investment to start tracking your portfolio
             </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleDemoEntry({
+                    asset_type: "stock",
+                    symbol: "AAPL",
+                    quantity: "10",
+                    purchase_price: "185",
+                  })
+                }
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              >
+                Load sample stock
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleDemoEntry({
+                    asset_type: "crypto",
+                    symbol: "bitcoin",
+                    quantity: "0.25",
+                    purchase_price: "34000",
+                  })
+                }
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              >
+                Load sample crypto
+              </button>
+            </div>
             <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-2">
-                Tips
+                Try this
               </p>
               <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <li>• Add stocks, crypto, or other assets</li>
-                <li>• Current prices are fetched automatically</li>
-                <li>• Track your portfolio performance over time</li>
-                <li>• Real-time price updates</li>
+                <li>• Add a sample stock to see allocation charts</li>
+                <li>• Compare a stock and crypto holding together</li>
+                <li>• Review total gain/loss once you add entries</li>
               </ul>
             </div>
           </div>
@@ -280,9 +650,9 @@ function PortfolioAnalyzer() {
 
       {summary && hasEntries && (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-w-0">
             <div
-              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -305,7 +675,7 @@ function PortfolioAnalyzer() {
             </div>
 
             <div
-              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -348,7 +718,7 @@ function PortfolioAnalyzer() {
             </div>
 
             <div
-              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -368,9 +738,154 @@ function PortfolioAnalyzer() {
             </div>
           </div>
 
+          {insight && (
+            <div
+              className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              style={{
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
+                Portfolio insight
+              </h4>
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                    insight.goalAlignment === "good_fit"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                      : insight.goalAlignment === "risky"
+                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                        : "bg-[color:var(--error,#dc2626)]/15 text-[color:var(--error,#dc2626)]"
+                  }`}
+                >
+                  {insight.goalAlignment === "good_fit"
+                    ? "Good fit"
+                    : insight.goalAlignment === "risky"
+                      ? "Risky"
+                      : "Misaligned"}
+                </span>
+                <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  Confidence: {insight.confidence}
+                </span>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    Is this portfolio risky for me?
+                  </p>
+                  <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
+                    {insight.riskLevel === "low"
+                      ? "Risk looks reasonable — you’re not over-concentrated in one place."
+                      : insight.riskLevel === "moderate"
+                        ? "Moderate risk — one area dominates; consider spreading out."
+                        : "Higher risk — concentration or volatility is high; worth reviewing."}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    What’s the biggest problem here?
+                  </p>
+                  <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
+                    {insight.biggestProblem ??
+                      "Nothing major — your mix looks reasonable for a long-term approach."}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  In plain English
+                </p>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[color:var(--text-color,#111827)]">
+                  {insight.summaryBullets.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  Insights you can act on
+                </p>
+                <div className="mt-2 grid gap-3 grid-cols-1 md:grid-cols-2 min-w-0">
+                  {insight.insightCards.map((card) => (
+                    <div
+                      key={card.id}
+                      className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 text-sm text-[color:var(--text-color,#111827)] min-w-0"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-semibold">{card.title}</h5>
+                        <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                          {card.confidence} confidence
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          What it means:
+                        </span>{" "}
+                        {card.meaning}
+                      </p>
+                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                          Why it matters:
+                        </span>{" "}
+                        {card.why}
+                      </p>
+                      <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        {card.nextSteps.map((step) => (
+                          <li key={step}>{step}</li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        {card.lessonLink && (
+                          <Link
+                            to={card.lessonLink}
+                            onClick={() => {
+                              recordToolEvent("tool_to_lesson_click", "portfolio", {
+                                href: card.lessonLink,
+                                card_title: card.title,
+                              });
+                              if (typeof window.gtag === "function") {
+                                window.gtag("event", "lesson_started_from_tool", {
+                                  tool_id: "portfolio",
+                                  link: card.lessonLink,
+                                });
+                              }
+                            }}
+                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                          >
+                            Lesson →
+                          </Link>
+                        )}
+                        {card.actionLink && (
+                          <Link
+                            to={card.actionLink}
+                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#2563eb)]"
+                          >
+                            Tool action →
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  Next step:
+                </span>
+                <Link
+                  to={insight.nextAction.href}
+                  className="inline-flex items-center rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
+                >
+                  {insight.nextAction.label} →
+                </Link>
+              </div>
+            </div>
+          )}
+
           {chartData.length > 0 && (
             <div
-              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -379,7 +894,7 @@ function PortfolioAnalyzer() {
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
                 Asset Allocation
               </h4>
-              <div className="h-64 w-full">
+              <div className="h-56 sm:h-64 w-full min-h-0">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
@@ -417,9 +932,9 @@ function PortfolioAnalyzer() {
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 min-w-0">
             <div
-              className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -468,13 +983,14 @@ function PortfolioAnalyzer() {
         </>
       )}
 
-      <div
-        className={`grid gap-6 ${
-          hasEntries ? "lg:grid-cols-[320px_minmax(0,1fr)]" : "lg:grid-cols-1"
-        }`}
-      >
+          <div
+            ref={formRef}
+            className={`grid gap-4 sm:gap-6 min-w-0 ${
+              hasEntries ? "lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]" : "lg:grid-cols-1"
+            }`}
+          >
         <div
-          className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+          className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
@@ -559,13 +1075,13 @@ function PortfolioAnalyzer() {
         </div>
 
         <div
-          className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+          className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
           }}
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
               Portfolio Entries
             </h4>
@@ -577,9 +1093,9 @@ function PortfolioAnalyzer() {
           </div>
 
           {hasEntries ? (
-            <div className="mt-4 overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)]">
-              <div className="max-h-[400px] overflow-y-auto">
-                <table className="min-w-full border-collapse text-sm">
+            <div className="mt-4 overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] min-w-0">
+              <div className="max-h-[400px] overflow-auto">
+                <table className="min-w-full border-collapse text-sm" style={{ minWidth: "640px" }}>
                   <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">

@@ -69,6 +69,14 @@ def build_profile_payload(user, profile: UserProfile):
             ),
             "trial_end": profile.trial_end,
             "is_questionnaire_completed": questionnaire_completed,
+            "financial_profile": {
+                "goal_types": profile.goal_types,
+                "timeframe": profile.timeframe,
+                "risk_comfort": profile.risk_comfort,
+                "income_range": profile.income_range,
+                "savings_rate_estimate": profile.savings_rate_estimate,
+                "investing_experience": profile.investing_experience,
+            },
         },
         "activity_calendar": activity_calendar,
         "current_month": {
