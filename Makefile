@@ -1,3 +1,11 @@
+dev:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+prod:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+down:
+	docker compose down -v
 .PHONY: help up down build logs backend-shell backend-migrate backend-collectstatic backend-superuser \
 	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections frontend-install frontend-test frontend-lint frontend-build \
 	pre-commit-install pre-commit
