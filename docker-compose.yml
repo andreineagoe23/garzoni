@@ -1,31 +1,4 @@
 services:
-  db:
-    image: mysql:8.0
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-recover123}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-monevo}
-      MYSQL_USER: ${MYSQL_USER:-monevo}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-monevo}
-    volumes:
-      - backend_mysql_data:/var/lib/mysql
-    ports:
-      - "${MYSQL_PORT:-3307}:3306"
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD && mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' $$MYSQL_DATABASE || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
-  # Redis disabled for local development
-  # redis:
-  #   image: redis:7-alpine
-  #   restart: unless-stopped
-  #   command: redis-server --save 60 1 --loglevel warning
-  #   ports:
-  #     - "${REDIS_PORT:-6379}:6379"
-
   backend:
     build:
       context: ./backend
@@ -35,96 +8,74 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DEBUG: "${DJANGO_DEBUG:-True}"
-      # Set a fixed SECRET_KEY to prevent session corruption on restart
-      # This ensures sessions remain valid across container restarts
-      SECRET_KEY: "django-insecure-fixed-local-dev-key-1234567890123456789012345678901234567890"  # pragma: allowlist secret
-      TIME_ZONE: "${TIME_ZONE:-UTC}"
-      FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-      DATABASE_URL: "mysql://${MYSQL_USER:-monevo}:${MYSQL_PASSWORD:-monevo}@db:3306/${MYSQL_DATABASE:-monevo}"
-      # Redis disabled for local development - Celery will run in eager mode (synchronous)
-      # REDIS_URL: "redis://redis:6379/0"
-      # CELERY_BROKER_URL: "redis://redis:6379/0"
-      CELERY_TASK_ALWAYS_EAGER: "True"
-      ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
-      CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
-      CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
+      DJANGO_SETTINGS_MODULE: settings.settings
     volumes:
-      - ./backend:/app
       - backend_static:/app/staticfiles
+      - backend_media:/app/media
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
-      # redis:
-      #   condition: service_started
+      redis:
+        condition: service_started
 
-  # Celery services disabled for local development
-  # Tasks will run synchronously (eager mode) when CELERY_TASK_ALWAYS_EAGER=True
-  # celery_worker:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   command: celery -A settings worker -l info
-  #   environment:
-  #     DEBUG: "${DJANGO_DEBUG:-True}"
-  #     SECRET_KEY: "${DJANGO_SECRET_KEY:-}"
-  #     TIME_ZONE: "${TIME_ZONE:-UTC}"
-  #     FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-  #     DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-monevo}"
-  #     REDIS_URL: "redis://redis:6379/0"
-  #     CELERY_BROKER_URL: "redis://redis:6379/0"
-  #     ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
-  #     CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
-  #     CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
-  #     SKIP_COLLECTSTATIC: "1"
-  #     SKIP_MIGRATIONS: "1"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     redis:
-  #       condition: service_started
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-monevo}
+      POSTGRES_USER: ${POSTGRES_USER:-monevo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monevo}
+    volumes:
+      - backend_db_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
-  # celery_beat:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   command: celery -A settings beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-  #   environment:
-  #     DEBUG: "${DJANGO_DEBUG:-True}"
-  #     SECRET_KEY: "${DJANGO_SECRET_KEY:-}"
-  #     TIME_ZONE: "${TIME_ZONE:-UTC}"
-  #     FRONTEND_URL: "${FRONTEND_URL:-http://localhost:3000}"
-  #     DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-monevo}"
-  #     REDIS_URL: "redis://redis:6379/0"
-  #     CELERY_BROKER_URL: "redis://redis:6379/0"
-  #     ALLOWED_HOSTS_CSV: "${DJANGO_ALLOWED_HOSTS_CSV:-localhost,127.0.0.1}"
-  #     CORS_ALLOWED_ORIGINS_CSV: "${CORS_ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
-  #     CSRF_TRUSTED_ORIGINS_CSV: "${CSRF_TRUSTED_ORIGINS_CSV:-http://localhost:3000,http://127.0.0.1:3000}"
-  #     SKIP_COLLECTSTATIC: "1"
-  #     SKIP_MIGRATIONS: "1"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     redis:
-  #       condition: service_started
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
 
-  # Frontend removed - run locally with npm start instead
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${FRONTEND_PORT:-3000}:3000"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: monevo-backend:latest
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    command: celery -A settings worker -l info
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: monevo-backend:latest
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    command: celery -A settings beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
 
 volumes:
-  backend_mysql_data:
+  backend_db_data:
   backend_media:
   backend_static:

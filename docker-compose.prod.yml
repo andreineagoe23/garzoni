@@ -1,0 +1,72 @@
+services:
+  backend:
+    env_file:
+      - ./backend/.env.production
+    environment:
+      DJANGO_ENV: "production"
+      DEBUG: "False"
+      CELERY_TASK_ALWAYS_EAGER: "False"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    volumes:
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-monevo}
+      POSTGRES_USER: ${POSTGRES_USER:-monevo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monevo}
+    volumes:
+      - backend_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  celery_worker:
+    env_file:
+      - ./backend/.env.production
+    environment:
+      DJANGO_ENV: "production"
+      DEBUG: "False"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      SKIP_COLLECTSTATIC: "1"
+      SKIP_MIGRATIONS: "1"
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  celery_beat:
+    env_file:
+      - ./backend/.env.production
+    environment:
+      DJANGO_ENV: "production"
+      DEBUG: "False"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      SKIP_COLLECTSTATIC: "1"
+      SKIP_MIGRATIONS: "1"
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started

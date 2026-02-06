@@ -4,6 +4,11 @@ set -eu
 MIGRATE_MAX_TRIES="${MIGRATE_MAX_TRIES:-60}"
 MIGRATE_SLEEP_SECONDS="${MIGRATE_SLEEP_SECONDS:-2}"
 
+if [ "${DJANGO_ENV:-production}" = "production" ] && [ "${DEBUG:-}" != "True" ] && [ -z "${SECRET_KEY:-}" ]; then
+  echo "[entrypoint] ERROR: SECRET_KEY not set in production" >&2
+  exit 1
+fi
+
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
   i=0
   until python manage.py migrate --noinput --fake-initial 2>/dev/null || python manage.py migrate --noinput; do
