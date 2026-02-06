@@ -27,8 +27,11 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
 fi
 
 if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
+  mkdir -p /app/staticfiles /app/media
   python manage.py collectstatic --noinput
 fi
+# Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
+mkdir -p /app/staticfiles /app/media
 
 # Railway (and similar) set PORT; bind gunicorn to it so no shell expansion is needed in start command
 if [ "$1" = "gunicorn" ] && [ -n "${PORT:-}" ]; then
