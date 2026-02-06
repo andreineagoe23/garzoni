@@ -59,6 +59,9 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 # Copy application code
 COPY . .
 
+# Ensure STATIC_ROOT exists so WhiteNoise never warns (collectstatic will populate it at runtime)
+RUN mkdir -p /app/staticfiles /app/media
+
 # Fix entrypoint line endings (CRLF can cause "permission denied") and ensure executable
 RUN sed -i 's/\r$//' /app/docker/entrypoint.sh 2>/dev/null || true \
     && chmod +x /app/docker/entrypoint.sh
