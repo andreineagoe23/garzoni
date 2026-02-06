@@ -169,21 +169,21 @@ def _get_client_ip(request):
 
 
 def _require_recaptcha(request):
-    """Return a Response if reCAPTCHA fails, otherwise None."""
-    if not settings.RECAPTCHA_PRIVATE_KEY:
-        return None
-    if getattr(settings, "DEBUG", False) and env_bool("RECAPTCHA_SKIP_WHEN_DEBUG", False):
-        return None
-
-    token = request.data.get("recaptcha_token")
-    if not token:
-        return Response({"detail": "reCAPTCHA token is required."}, status=400)
-
-    remote_ip = _get_client_ip(request) or None
-    if not verify_recaptcha(token, remote_ip=remote_ip):
-        return Response({"detail": "reCAPTCHA verification failed."}, status=400)
-
+    """Return a Response if reCAPTCHA fails, otherwise None. Disabled for now."""
+    # reCAPTCHA implementation commented out for now (was: "reCAPTCHA token is required").
+    # To re-enable: uncomment below and ensure RECAPTCHA_PRIVATE_KEY is set.
     return None
+    # if not settings.RECAPTCHA_PRIVATE_KEY:
+    #     return None
+    # if getattr(settings, "DEBUG", False) and env_bool("RECAPTCHA_SKIP_WHEN_DEBUG", False):
+    #     return None
+    # token = request.data.get("recaptcha_token")
+    # if not token:
+    #     return Response({"detail": "reCAPTCHA token is required."}, status=400)
+    # remote_ip = _get_client_ip(request) or None
+    # if not verify_recaptcha(token, remote_ip=remote_ip):
+    #     return Response({"detail": "reCAPTCHA verification failed."}, status=400)
+    # return None
 
 
 @ensure_csrf_cookie
