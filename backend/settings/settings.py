@@ -122,7 +122,8 @@ if SERVE_FRONTEND:
 
 WSGI_APPLICATION = "settings.wsgi.application"
 
-database_url = os.getenv("DATABASE_URL")
+# Prefer public URL on Railway so the host resolves (private *.railway.internal can be unreachable at deploy time)
+database_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
 # Convert postgres:// to postgresql:// for compatibility
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
