@@ -30,4 +30,10 @@ if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
   python manage.py collectstatic --noinput
 fi
 
+# Railway (and similar) set PORT; bind gunicorn to it so no shell expansion is needed in start command
+if [ "$1" = "gunicorn" ] && [ -n "${PORT:-}" ]; then
+  shift
+  set -- gunicorn "$@" --bind "0.0.0.0:${PORT}"
+fi
+
 exec "$@"
