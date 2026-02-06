@@ -14,7 +14,8 @@ from core.utils import env_bool, env_csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
-DEBUG = env_bool("DEBUG", False)
+DJANGO_ENV = os.getenv("DJANGO_ENV", "production")
+DEBUG = env_bool("DEBUG", DJANGO_ENV != "production")
 
 # Optional: serve the built React SPA (frontend/build) from Django/WhiteNoise.
 # This keeps BrowserRouter URLs clean (e.g. /dashboard instead of fragment-based URLs)
@@ -33,14 +34,21 @@ if not SECRET_KEY:
         raise ImproperlyConfigured(
             "SECRET_KEY environment variable must be set when DEBUG is False."
         )
+if DEBUG:
+    print("[settings] DEBUG mode enabled")
+else:
+    print("[settings] Production mode (DEBUG=False)")
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
-    default=[
-        "localhost",
-        "127.0.0.1",
-        "andreineagoe23.pythonanywhere.com",
-    ],
+    default=env_csv(
+        "ALLOWED_HOSTS",
+        default=[
+            "localhost",
+            "127.0.0.1",
+            "andreineagoe23.pythonanywhere.com",
+        ],
+    ),
 )
 
 INSTALLED_APPS = [
@@ -233,6 +241,8 @@ OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
 SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
 
 cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS_CSV")
+if not cors_allowed_origins:
+    cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS")
 if DEBUG and not cors_allowed_origins:
     cors_allowed_origins = [
         "http://localhost:3000",
@@ -249,6 +259,8 @@ if DEBUG and not cors_allowed_origins:
 CORS_ALLOWED_ORIGINS = cors_allowed_origins
 
 CSRF_TRUSTED_ORIGINS = env_csv("CSRF_TRUSTED_ORIGINS_CSV", default=[])
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = env_csv("CSRF_TRUSTED_ORIGINS", default=[])
 if DEBUG:
     CSRF_TRUSTED_ORIGINS.extend(
         [
@@ -323,6 +335,8 @@ EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or (os.getenv("REDIS_URL") if DEBUG else None)
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
+if not DEBUG and CELERY_TASK_ALWAYS_EAGER:
+    raise ImproperlyConfigured("Celery eager mode is not allowed in production.")
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
