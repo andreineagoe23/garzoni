@@ -24,7 +24,7 @@ FRONTEND_BUILD_DIR = Path(
     os.getenv("FRONTEND_BUILD_DIR", str(BASE_DIR.parent / "frontend" / "build"))
 ).resolve()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
         # Avoid committing any dev default that can be flagged as a "secret".
@@ -32,7 +32,9 @@ if not SECRET_KEY:
         SECRET_KEY = get_random_secret_key()
     else:
         raise ImproperlyConfigured(
-            "SECRET_KEY environment variable must be set when DEBUG is False."
+            "SECRET_KEY must be set in production. "
+            "On Railway: Dashboard → your backend service → Variables → add SECRET_KEY (and DJANGO_ENV=production). "
+            'Generate a key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
         )
 if DEBUG:
     print("[settings] DEBUG mode enabled")
@@ -146,7 +148,9 @@ if not default_db:
         }
     else:
         raise ImproperlyConfigured(
-            "DATABASE_URL environment variable must be set when DEBUG is False."
+            "DATABASE_URL must be set in production. "
+            "On Railway: add a PostgreSQL service and link it to your backend (Railway sets DATABASE_URL automatically), "
+            "or set DATABASE_URL manually, e.g. postgresql://user:pass@host:5432/dbname"  # pragma: allowlist secret
         )
 
 DATABASES = {"default": default_db}
@@ -335,8 +339,16 @@ EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or (os.getenv("REDIS_URL") if DEBUG else None)
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
-if not DEBUG and CELERY_TASK_ALWAYS_EAGER:
-    raise ImproperlyConfigured("Celery eager mode is not allowed in production.")
+# Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
+if not DEBUG and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
+    raise ImproperlyConfigured(
+        "Celery eager mode is not allowed in production when CELERY_BROKER_URL/REDIS_URL is set. "
+        "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker."
+    )
+if not DEBUG and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
+    print(
+        "[settings] Production with no broker: Celery tasks run inline (eager). Add REDIS_URL + Celery worker for async tasks."
+    )
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
