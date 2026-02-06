@@ -101,11 +101,25 @@ def clear_refresh_cookie(response):
     response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
 
 
-def verify_recaptcha(token):
-    """Verify the reCAPTCHA token with Google's API"""
+def verify_recaptcha(token, remote_ip=None):
+    """
+    Verify the user's reCAPTCHA response token with Google's siteverify API.
+    https://developers.google.com/recaptcha/docs/verify
+
+    - POST to https://www.google.com/recaptcha/api/siteverify
+    - Required: secret, response. Optional: remoteip.
+    - Token is valid for two minutes and must be verified only once (no replay).
+    - For v3: also requires score >= RECAPTCHA_REQUIRED_SCORE. For v2 (checkbox): no score.
+    """
     try:
         url = "https://www.google.com/recaptcha/api/siteverify"
-        data = {"secret": settings.RECAPTCHA_PRIVATE_KEY, "response": token}
+        data = {
+            "secret": settings.RECAPTCHA_PRIVATE_KEY,
+            "response": token,
+        }
+        if remote_ip:
+            data["remoteip"] = remote_ip
+
         result = request_with_backoff(
             method="POST",
             url=url,
@@ -113,18 +127,63 @@ def verify_recaptcha(token):
             allow_retry=False,
             max_attempts=1,
         )
-        response = result.response
-        result = response.json()
-        return (
-            result.get("success", False)
-            and result.get("score", 0) >= settings.RECAPTCHA_REQUIRED_SCORE
-        )
+        resp = result.response
+        body = resp.json()
+
+        success = body.get("success", False)
+        if not success:
+            error_codes = body.get("error-codes", [])
+            logger.warning(
+                "reCAPTCHA siteverify failed: success=false, error_codes=%s",
+                error_codes,
+            )
+            return False
+
+        # v3 returns a score (0.0–1.0); v2 checkbox does not. Only enforce score when present.
+        score = body.get("score")
+        if score is not None:
+            required = getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.5)
+            if score < required:
+                logger.warning(
+                    "reCAPTCHA score too low: score=%.2f, required=%.2f",
+                    score,
+                    required,
+                )
+                return False
+
+        return True
     except requests.Timeout:
         logger.warning("reCAPTCHA verification timed out")
         return False
     except Exception as e:
-        logger.error(f"reCAPTCHA verification error: {str(e)}")
+        logger.error("reCAPTCHA verification error: %s", e)
         return False
+
+
+def _get_client_ip(request):
+    """Client IP for optional reCAPTCHA remoteip parameter (e.g. behind proxy)."""
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "")
+
+
+def _require_recaptcha(request):
+    """Return a Response if reCAPTCHA fails, otherwise None."""
+    if not settings.RECAPTCHA_PRIVATE_KEY:
+        return None
+    if getattr(settings, "DEBUG", False) and env_bool("RECAPTCHA_SKIP_WHEN_DEBUG", False):
+        return None
+
+    token = request.data.get("recaptcha_token")
+    if not token:
+        return Response({"detail": "reCAPTCHA token is required."}, status=400)
+
+    remote_ip = _get_client_ip(request) or None
+    if not verify_recaptcha(token, remote_ip=remote_ip):
+        return Response({"detail": "reCAPTCHA verification failed."}, status=400)
+
+    return None
 
 
 @ensure_csrf_cookie
@@ -508,6 +567,10 @@ class LoginSecureView(APIView):
             logger.warning("Login attempt with missing credentials")
             return Response({"detail": "Username and password are required."}, status=400)
 
+        recaptcha_error = _require_recaptcha(request)
+        if recaptcha_error:
+            return recaptcha_error
+
         try:
             user = User.objects.get(username=username)
             if not user.check_password(password):
@@ -564,7 +627,13 @@ class RegisterSecureView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        recaptcha_error = _require_recaptcha(request)
+        if recaptcha_error:
+            return recaptcha_error
+
+        data = request.data.copy() if hasattr(request.data, "copy") else dict(request.data)
+        data.pop("recaptcha_token", None)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 

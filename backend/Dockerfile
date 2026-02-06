@@ -50,11 +50,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy wheels and requirements from builder and install
+# Copy wheels and requirements from builder and install (no network: use base pip + local wheels only)
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
-RUN pip install --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
     && rm -rf /wheels
 
 # Copy application code

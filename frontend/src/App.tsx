@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { ThemeProvider } from "contexts/ThemeContext";
 import { AuthProvider } from "contexts/AuthContext";
 import { AdminProvider } from "contexts/AdminContext";
@@ -123,6 +124,7 @@ const AppContent = () => {
     location.pathname.includes("/lessons/") &&
     location.pathname.endsWith("/flow");
   const didPrefetchRef = useRef(false);
+  const recaptchaKey = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
 
   useOnlineSync();
 
@@ -492,12 +494,23 @@ const AppContent = () => {
     </ThemeProvider>
   );
 
-  return (
+  const providers = (
     <AuthProvider>
       <AdminProvider>
         <ErrorBoundary>{content}</ErrorBoundary>
       </AdminProvider>
     </AuthProvider>
+  );
+
+  // Always wrap so useGoogleReCaptcha() is valid. When key is empty, script won't load
+  // and executeRecaptcha will be undefined (login/register then submit without token).
+  return (
+    <GoogleReCaptchaProvider
+      reCaptchaKey={recaptchaKey}
+      scriptProps={{ async: true, defer: true, appendTo: "head" }}
+    >
+      {providers}
+    </GoogleReCaptchaProvider>
   );
 };
 
