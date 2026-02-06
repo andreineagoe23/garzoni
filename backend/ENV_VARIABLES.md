@@ -38,7 +38,10 @@ Quick reference for all environment variables used in the Monevo backend.
 |----------|-------------|---------|
 | `RECAPTCHA_PUBLIC_KEY` | reCAPTCHA site key | - |
 | `RECAPTCHA_PRIVATE_KEY` | reCAPTCHA secret key | - |
-| `RECAPTCHA_REQUIRED_SCORE` | Minimum score (0.0-1.0) | `0.5` |
+| `RECAPTCHA_REQUIRED_SCORE` | Minimum score (0.0-1.0) for v3 | `0.5` |
+| `RECAPTCHA_SKIP_WHEN_DEBUG` | If `true` and `DEBUG` is on, skip verification (local dev) | - |
+
+**Local and production:** In [reCAPTCHA Admin](https://www.google.com/recaptcha/admin), add **localhost** and **127.0.0.1** to the key’s domains for local testing, and your production domain (e.g. **www.monevo.tech**) for production. Use the same key pair for both, or separate keys per environment.
 
 ## Google Cloud
 

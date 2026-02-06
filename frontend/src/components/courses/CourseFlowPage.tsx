@@ -35,6 +35,7 @@ import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
 import FillInTableExercise from "components/exercises/FillInTableExercise";
 import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationExercise";
+import MascotMedia from "components/common/MascotMedia";
 import LessonSectionEditorPanel, {
   type LessonSection,
 } from "./LessonSectionEditorPanel";
@@ -79,9 +80,6 @@ type SaveState = {
   status: "idle" | "saving" | "saved" | "error";
   message: string;
 };
-
-const MASCOT_GIF =
-  "https://media.giphy.com/media/3o6gbbuLW76jkt8vIc/giphy.gif";
 
 type FlowItem =
   | {
@@ -163,7 +161,7 @@ function CourseFlowPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { getAccessToken, settings } = useAuth();
-  const animationsEnabled = settings?.animations_enabled ?? true;
+  const animationsEnabled = Boolean(settings?.animations_enabled ?? true);
   const { preferences } = usePreferences();
   const { adminMode } = useAdmin();
   const { setCourseFlowProgress, resetCourseFlowProgress } = useProgress();
@@ -924,22 +922,27 @@ function CourseFlowPage() {
   const [mascotMood, setMascotMood] = useState<"neutral" | "celebrate" | "encourage">(
     "neutral"
   );
+  const pulseMascot = useCallback(
+    (nextMood: "celebrate" | "encourage") => {
+      if (mascotTimeoutRef.current) {
+        window.clearTimeout(mascotTimeoutRef.current);
+      }
+      setMascotMood(nextMood);
+      mascotTimeoutRef.current = window.setTimeout(() => {
+        setMascotMood("neutral");
+      }, 3500);
+    },
+    []
+  );
 
   const handleAttempt = useCallback(
     ({ correct }: { correct: boolean }) => {
       if (!adminMode && heartsEnabled && !correct) {
         decrementHeart();
       }
-
-      if (mascotTimeoutRef.current) {
-        window.clearTimeout(mascotTimeoutRef.current);
-      }
-      setMascotMood(correct ? "celebrate" : "encourage");
-      mascotTimeoutRef.current = window.setTimeout(() => {
-        setMascotMood("neutral");
-      }, 3500);
+      pulseMascot(correct ? "celebrate" : "encourage");
     },
-    [adminMode, decrementHeart, heartsEnabled]
+    [adminMode, decrementHeart, heartsEnabled, pulseMascot]
   );
 
   useEffect(() => {
@@ -985,6 +988,7 @@ function CourseFlowPage() {
       }
     }
 
+    pulseMascot("celebrate");
     handleNavigateForward();
   }, [
     completeLessonMutation,
@@ -992,6 +996,7 @@ function CourseFlowPage() {
     currentItem,
     handleNavigateForward,
     isBlocked,
+    pulseMascot,
   ]);
 
   const heartCountdownMs = useMemo(() => {
@@ -1454,38 +1459,30 @@ function CourseFlowPage() {
             <div className="flex flex-col gap-8 lg:flex-row">
               <div className="flex-1 space-y-8">{renderSectionBody()}</div>
               <aside className="w-full lg:w-64">
-                <div className="sticky top-6 rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                      Mascot coach
-                    </span>
-                    <span className="text-lg" aria-hidden="true">
-                      {mascotMood === "celebrate"
-                        ? "👍"
+                <div className="sticky top-6 flex flex-col items-center text-center gap-3">
+                  <MascotMedia
+                    mascot={
+                      mascotMood === "celebrate"
+                        ? "owl"
                         : mascotMood === "encourage"
-                          ? "💪"
-                          : "🦉"}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex items-center justify-center rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-4">
-                    <img
-                      src={MASCOT_GIF}
-                      alt="Financial mascot"
-                      className={`h-28 w-28 rounded-2xl object-cover ${
-                        animationsEnabled && mascotMood === "celebrate"
-                          ? "animate-bounce"
-                          : animationsEnabled && mascotMood === "encourage"
-                            ? "animate-pulse"
-                            : ""
-                      }`}
-                    />
-                  </div>
-                  <p className="mt-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+                          ? "bull"
+                          : "bear"
+                    }
+                    animated={animationsEnabled}
+                    className={`h-28 w-28 object-contain ${
+                      animationsEnabled && mascotMood === "celebrate"
+                        ? "animate-bounce"
+                        : animationsEnabled && mascotMood === "encourage"
+                          ? "animate-pulse"
+                          : ""
+                    }`}
+                  />
+                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                     {mascotMood === "celebrate"
-                      ? "Great job! Keep the momentum going."
+                      ? "Great job! You nailed that step."
                       : mascotMood === "encourage"
-                        ? "Try again — you are close!"
-                        : "I am here if you need a nudge."}
+                        ? "Mistakes happen. Keep the optimism up."
+                        : "Steady progress is the goal."}
                   </p>
                 </div>
               </aside>

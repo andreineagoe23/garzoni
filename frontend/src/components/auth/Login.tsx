@@ -6,6 +6,7 @@ import loginBg from "assets/login-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 function Login() {
   const [formData, setFormData] = useState({
     username: "",
@@ -18,6 +19,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -75,7 +77,17 @@ function Login() {
     setError("");
 
     try {
-      const result = await loginUser(formData);
+      let payload: Record<string, unknown> = { ...formData };
+      if (executeRecaptcha) {
+        const recaptchaToken = await executeRecaptcha("login");
+        if (!recaptchaToken) {
+          setError("reCAPTCHA verification failed. Please try again.");
+          return;
+        }
+        payload.recaptcha_token = recaptchaToken;
+      }
+
+      const result = await loginUser(payload);
       if (!result.success) {
         setError(result.error || "Login failed. Please try again.");
       }

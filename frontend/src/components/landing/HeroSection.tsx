@@ -39,14 +39,14 @@ export default function HeroSection({
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E6C87A]" />
               </span>
               <span className="welcome-font-mono text-[11px] uppercase tracking-wide text-[#E6C87A]">
-                New
+                500+ lessons
               </span>
             </div>
 
-            <h1 className="welcome-font-display mt-7 text-center sm:text-left text-5xl font-semibold tracking-tight text-white leading-[0.95] sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl">
+            <h1 className="welcome-font-display mt-7 text-center sm:text-left text-3xl font-semibold tracking-tight text-white leading-[0.95] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
               Master Finance <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-500">
-                Your Way
+                The Smart Way
               </span>
             </h1>
 
@@ -284,18 +284,11 @@ export default function HeroSection({
                 Close
               </button>
             </div>
-            <p className="mt-3 text-sm text-white/70">See how Monevo can help you master finance. Watch our interactive demo to explore the platform.</p>
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <div className="mt-4 flex flex-col items-center text-center">
+              <p className="text-sm text-white/70">See how Monevo can help you master finance. Watch our interactive demo to explore the platform.</p>
               <button
                 type="button"
-                className="rounded border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white/85 hover:bg-white/10"
-                onClick={() => setIsDemoOpen(false)}
-              >
-                Not Now
-              </button>
-              <button
-                type="button"
-                className="rounded bg-[#E6C87A] px-5 py-2 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669]"
+                className="mt-5 rounded bg-[#E6C87A] px-5 py-2 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669]"
                 onClick={() => navigate("/register")}
               >
                 Start Learning

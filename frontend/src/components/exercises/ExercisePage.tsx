@@ -10,6 +10,7 @@ import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "services/backendUrl";
 import { GlassCard } from "components/ui";
+import MascotMedia from "components/common/MascotMedia";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 
@@ -68,6 +69,10 @@ const ExercisePage = () => {
   const [coinsEarned, setCoinsEarned] = useState(0);
   const inlineHintTimeoutRef = useRef(null);
   const isDevelopment = process.env.NODE_ENV === "development";
+  const mascotTimeoutRef = useRef(null);
+  const [mascotMood, setMascotMood] = useState<"neutral" | "celebrate" | "encourage">(
+    "neutral"
+  );
   const logError = useCallback(
     (...args) => {
       if (isDevelopment) {
@@ -76,6 +81,15 @@ const ExercisePage = () => {
     },
     [isDevelopment]
   );
+  const pulseMascot = useCallback((nextMood: "celebrate" | "encourage") => {
+    if (mascotTimeoutRef.current) {
+      clearTimeout(mascotTimeoutRef.current);
+    }
+    setMascotMood(nextMood);
+    mascotTimeoutRef.current = setTimeout(() => {
+      setMascotMood("neutral");
+    }, 3500);
+  }, []);
 
   const currentExercise = useMemo(
     () => exercises[currentExerciseIndex] || null,
@@ -87,7 +101,7 @@ const ExercisePage = () => {
   const hintUnlimited = hintRemaining === null || hintRemaining === undefined;
   const hintDepleted = !hintUnlimited && hintRemaining <= 0;
   const soundEnabled = settings?.sound_enabled ?? true;
-  const animationsEnabled = settings?.animations_enabled ?? true;
+  const animationsEnabled = Boolean(settings?.animations_enabled ?? true);
   const hintCoinCost = 5;
 
   const fetchExercises = useCallback(async () => {
@@ -337,6 +351,9 @@ const ExercisePage = () => {
       if (inlineHintTimeoutRef.current) {
         clearTimeout(inlineHintTimeoutRef.current);
       }
+      if (mascotTimeoutRef.current) {
+        clearTimeout(mascotTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -421,6 +438,7 @@ const ExercisePage = () => {
         enabled: Boolean(soundEnabled ?? true),
         correct: Boolean(response.data.correct),
       });
+      pulseMascot(response.data.correct ? "celebrate" : "encourage");
       setXpTotal((prev) => prev + (response.data.xp_delta || 0));
       if (typeof response.data.coins_delta === "number") {
         setCoinsEarned((prev) => prev + response.data.coins_delta);
@@ -1109,6 +1127,18 @@ const ExercisePage = () => {
     currentExercise?.exercise_data?.learn_more_url ||
     currentExercise?.exercise_data?.learn_more_link ||
     "";
+  const mascotType =
+    mascotMood === "celebrate"
+      ? "owl"
+      : mascotMood === "encourage"
+        ? "bull"
+        : "bear";
+  const mascotMessage =
+    mascotMood === "celebrate"
+      ? "Great job! You got it right."
+      : mascotMood === "encourage"
+        ? "Keep the optimism. Try again."
+        : "Calm and steady progress wins.";
 
   return (
     <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
@@ -1536,48 +1566,66 @@ const ExercisePage = () => {
             </div>
           </GlassCard>
 
-          <GlassCard padding="lg" className="w-full lg:w-80">
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              Your Progress
-            </h3>
-            <div className="mt-4 space-y-3">
-              {exercises
-                .map((exercise, index) => ({
-                  exercise,
-                  index,
-                  progress: progress[index],
-                }))
-                .filter(
-                  ({ progress: prog }) => prog !== undefined && prog !== null
-                )
-                .map(({ index, progress: prog }) => (
-                  <div
-                    key={`progress-${index}`}
-                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
-                      prog?.correct
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                        : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                    }`}
-                  >
-                    <span className="font-medium">Exercise {index + 1}</span>
-                    <span className="text-xs uppercase tracking-wide">
-                      {prog?.status === "completed" ? "Completed" : "Attempted"}
-                    </span>
-                  </div>
-                ))}
-              {exercises.filter(
-                (_, index) =>
-                  progress[index] !== undefined && progress[index] !== null
-              ).length === 0 && (
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                  <p>
-                    No progress yet. Start an exercise to see your progress
-                    here!
-                  </p>
-                </div>
-              )}
+          <div className="w-full lg:w-80 space-y-6">
+            <div className="flex flex-col items-center text-center gap-3">
+              <MascotMedia
+                mascot={mascotType}
+                animated={animationsEnabled}
+                className={`h-24 w-24 object-contain ${
+                  animationsEnabled && mascotMood === "celebrate"
+                    ? "animate-bounce"
+                    : animationsEnabled && mascotMood === "encourage"
+                      ? "animate-pulse"
+                      : ""
+                }`}
+              />
+              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                {mascotMessage}
+              </p>
             </div>
-          </GlassCard>
+            <GlassCard padding="lg">
+              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                Your Progress
+              </h3>
+              <div className="mt-4 space-y-3">
+                {exercises
+                  .map((exercise, index) => ({
+                    exercise,
+                    index,
+                    progress: progress[index],
+                  }))
+                  .filter(
+                    ({ progress: prog }) => prog !== undefined && prog !== null
+                  )
+                  .map(({ index, progress: prog }) => (
+                    <div
+                      key={`progress-${index}`}
+                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
+                        prog?.correct
+                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                          : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                      }`}
+                    >
+                      <span className="font-medium">Exercise {index + 1}</span>
+                      <span className="text-xs uppercase tracking-wide">
+                        {prog?.status === "completed" ? "Completed" : "Attempted"}
+                      </span>
+                    </div>
+                  ))}
+                {exercises.filter(
+                  (_, index) =>
+                    progress[index] !== undefined && progress[index] !== null
+                ).length === 0 && (
+                  <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <p>
+                      No progress yet. Start an exercise to see your progress
+                      here!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </div>
         </div>
       </div>
 
@@ -1628,11 +1676,11 @@ const ExercisePage = () => {
               </button>
             </div>
             <div className="space-y-4 px-6 py-6">
-              <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-4 text-center text-sm text-emerald-700">
-                <img
-                  src="https://media.giphy.com/media/3o6gbbuLW76jkt8vIc/giphy.gif"
-                  alt="Celebrating mascot"
-                  className={`h-24 w-24 rounded-2xl object-cover ${
+              <div className="flex flex-col items-center gap-3 text-center text-sm text-emerald-700">
+                <MascotMedia
+                  mascot="owl"
+                  animated={animationsEnabled}
+                  className={`h-24 w-24 object-contain ${
                     animationsEnabled ? "animate-bounce" : ""
                   }`}
                 />
