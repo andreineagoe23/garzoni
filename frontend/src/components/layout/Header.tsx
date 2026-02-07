@@ -9,7 +9,7 @@ const VISIBLE_PATHS = new Set([
   "/welcome",
   "/register",
   "/login",
-  "/pricing",
+  "/subscriptions",
 ]);
 
 function Header() {

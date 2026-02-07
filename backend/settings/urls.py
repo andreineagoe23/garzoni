@@ -3,6 +3,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 from authentication.views import CustomTokenRefreshView, FinancialProfileView
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -36,6 +37,14 @@ urlpatterns = [
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 
+LEGAL_PAGE_ROUTES = [
+    "privacy-policy",
+    "cookie-policy",
+    "terms-of-service",
+    "financial-disclaimer",
+    "no-financial-advice",
+]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
@@ -43,6 +52,19 @@ if settings.DEBUG:
 # - /api/*, /admin/* etc remain server-handled
 # - everything else returns index.html so React can route client-side
 if getattr(settings, "SERVE_FRONTEND", False):
+    for route in LEGAL_PAGE_ROUTES:
+        urlpatterns += [
+            path(
+                route,
+                TemplateView.as_view(template_name="index.html"),
+                name=f"{route}-page",
+            ),
+            path(
+                f"{route}/",
+                TemplateView.as_view(template_name="index.html"),
+                name=f"{route}-page-slash",
+            ),
+        ]
     urlpatterns += [
         re_path(
             r"^(?!api/|admin/|token/|ckeditor5/|static/|media/).*",
@@ -50,3 +72,19 @@ if getattr(settings, "SERVE_FRONTEND", False):
             name="spa-fallback",
         ),
     ]
+else:
+    frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
+    if frontend_url:
+        for route in LEGAL_PAGE_ROUTES:
+            urlpatterns += [
+                path(
+                    route,
+                    RedirectView.as_view(url=f"{frontend_url}/{route}", permanent=False),
+                    name=f"{route}-redirect",
+                ),
+                path(
+                    f"{route}/",
+                    RedirectView.as_view(url=f"{frontend_url}/{route}", permanent=False),
+                    name=f"{route}-redirect-slash",
+                ),
+            ]
