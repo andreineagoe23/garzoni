@@ -26,12 +26,27 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
   done
 fi
 
+# Optional: seed exercises and lesson sections (dev only; set SEED_AFTER_MIGRATE=1)
+if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
+  echo "[entrypoint] Running seed_exercises and ensure_lesson_sections..."
+  python manage.py seed_exercises 2>/dev/null || true
+  python manage.py ensure_lesson_sections 2>/dev/null || true
+  python manage.py verify_restore 2>/dev/null || true
+fi
+
 if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
   mkdir -p /app/staticfiles /app/media
   python manage.py collectstatic --noinput
 fi
 # Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
 mkdir -p /app/staticfiles /app/media
+
+# When /app/media is a volume (e.g. production), populate mascots from image if missing
+if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
+  mkdir -p /app/media/mascots
+  cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
+  echo "[entrypoint] Populated /app/media/mascots from image"
+fi
 
 # Railway (and similar) set PORT; bind gunicorn to it so no shell expansion is needed in start command
 if [ "$1" = "gunicorn" ] && [ -n "${PORT:-}" ]; then
