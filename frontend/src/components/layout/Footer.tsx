@@ -38,14 +38,16 @@ function Footer() {
       links: [
         { label: "Privacy Policy", to: "/privacy-policy" },
         { label: "Cookie Policy", to: "/cookie-policy" },
-        { label: "Terms of Service", to: "/terms-of-service" },
+        { label: "Terms & Conditions", to: "/terms-of-service" },
+        { label: "Financial Disclaimer", to: "/financial-disclaimer" },
+        { label: "No Financial Advice Notice", to: "/no-financial-advice" },
       ],
     },
     {
       heading: "Company",
       links: [
         { label: "About", to: "/welcome" },
-        { label: "Pricing", to: "/pricing" },
+        { label: "Subscriptions", to: "/subscriptions" },
         { label: "FAQ", to: "/faq" },
       ],
     },
@@ -86,6 +88,10 @@ function Footer() {
               </span>
               <p className="max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
                 Learn money skills with lessons, missions, and practice.
+              </p>
+              <p className="max-w-sm text-xs leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                Educational platform only. Monevo does not provide financial
+                advice.
               </p>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <a
@@ -190,6 +196,10 @@ function Footer() {
           <div className="flex flex-col items-center justify-between gap-4 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-4 sm:flex-row">
             <p className="text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-left">
               © {year} Monevo. All rights reserved.
+            </p>
+            <p className="text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-right">
+              Information is educational and general, not personalized financial
+              advice.
             </p>
           </div>
         </div>

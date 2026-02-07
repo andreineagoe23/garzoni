@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAnalytics } from "hooks/useAnalytics";
 import Loader from "components/common/Loader";
@@ -20,6 +20,7 @@ import { calculatePercent } from "utils/progress";
 
 /** Short questionnaire has 6 questions; fallback if API doesn't send total */
 const DEFAULT_TOTAL_QUESTIONS = 6;
+const NO_ADVICE_ACK_STORAGE_KEY = "monevo:no-advice-ack:v1";
 
 const OnboardingQuestionnaire: React.FC = () => {
   const navigate = useNavigate();
@@ -31,14 +32,13 @@ const OnboardingQuestionnaire: React.FC = () => {
   const [currentAnswer, setCurrentAnswer] = useState<unknown>(null);
   const [sectionIndex, setSectionIndex] = useState(0);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [totalSections, setTotalSections] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(0);
-  const [progressPercentage, setProgressPercentage] = useState(0);
-  const [isLastQuestion, setIsLastQuestion] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionRewards, setCompletionRewards] = useState<{ xp: number; coins: number } | null>(null);
   const [sectionSummary, setSectionSummary] = useState<NextQuestionResponse["section_summary"] | null>(null);
+  const [hasNoAdviceAcknowledgement, setHasNoAdviceAcknowledgement] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(NO_ADVICE_ACK_STORAGE_KEY) === "1";
+  });
 
   // Fetch progress
   const {
@@ -84,11 +84,6 @@ const OnboardingQuestionnaire: React.FC = () => {
       setCurrentQuestion(nextQuestionData.question);
       setSectionIndex(nextQuestionData.section_index);
       setQuestionIndex(nextQuestionData.question_index);
-      setTotalSections(nextQuestionData.total_sections);
-      setTotalQuestions(nextQuestionData.total_questions ?? 0);
-      setCurrentQuestionNumber(nextQuestionData.current_question_number ?? 0);
-      setProgressPercentage(nextQuestionData.progress_percentage ?? 0);
-      setIsLastQuestion(nextQuestionData.is_last_question);
       setSectionSummary(nextQuestionData.section_summary || null);
       questionStartTimeRef.current = Date.now();
 
@@ -144,10 +139,6 @@ const OnboardingQuestionnaire: React.FC = () => {
     },
   });
 
-  const handleAnswerChange = useCallback((value: unknown) => {
-    setCurrentAnswer(value);
-  }, []);
-
   const handleSaveAndFinishLater = useCallback(async () => {
     if (currentQuestion && currentAnswer !== null) {
       const timeSpent = (Date.now() - questionStartTimeRef.current) / 1000;
@@ -163,7 +154,21 @@ const OnboardingQuestionnaire: React.FC = () => {
     await abandonMutation.mutateAsync();
   }, [currentQuestion, currentAnswer, sectionIndex, questionIndex, saveAnswerMutation, abandonMutation]);
 
+  const handleNoAdviceAcknowledgement = useCallback((checked: boolean) => {
+    setHasNoAdviceAcknowledgement(checked);
+    if (typeof window === "undefined") return;
+    if (checked) {
+      localStorage.setItem(NO_ADVICE_ACK_STORAGE_KEY, "1");
+      return;
+    }
+    localStorage.removeItem(NO_ADVICE_ACK_STORAGE_KEY);
+  }, []);
+
   const handleNext = useCallback(async () => {
+    if (!hasNoAdviceAcknowledgement) {
+      toast.error("Please confirm the educational-use notice to continue.");
+      return;
+    }
     if (!currentQuestion || currentAnswer === null) {
       toast.error("Please select an answer");
       return;
@@ -203,10 +208,15 @@ const OnboardingQuestionnaire: React.FC = () => {
     saveAnswerMutation,
     refetchNextQuestion,
     queryClient,
+    hasNoAdviceAcknowledgement,
     trackEvent,
   ]);
 
   const handleComplete = useCallback(async () => {
+    if (!hasNoAdviceAcknowledgement) {
+      toast.error("Please confirm the educational-use notice to continue.");
+      return;
+    }
     if (!currentQuestion || currentAnswer === null) {
       toast.error("Please select an answer");
       return;
@@ -240,6 +250,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     questionIndex,
     saveAnswerMutation,
     completeMutation,
+    hasNoAdviceAcknowledgement,
   ]);
 
   /** Stable question id (backend structure may omit id for some questions). */
@@ -251,6 +262,10 @@ const OnboardingQuestionnaire: React.FC = () => {
     async (value: unknown) => {
       if (!currentQuestion) return;
       if (saveAnswerMutation.isPending || completeMutation.isPending) return;
+      if (!hasNoAdviceAcknowledgement) {
+        toast.error("Please confirm the educational-use notice to continue.");
+        return;
+      }
 
       setCurrentAnswer(value);
       const timeSpent = (Date.now() - questionStartTimeRef.current) / 1000;
@@ -298,6 +313,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       completeMutation,
       refetchNextQuestion,
       queryClient,
+      hasNoAdviceAcknowledgement,
       trackEvent,
     ]
   );
@@ -307,7 +323,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       case "multiple_choice": {
         const options = question.options || [];
         const isSaving =
-          saveAnswerMutation.isPending || completeMutation.isPending;
+          saveAnswerMutation.isPending || completeMutation.isPending || !hasNoAdviceAcknowledgement;
         return (
           <div className="relative z-10 grid gap-3 sm:grid-cols-2">
             {options.map((option, index) => {
@@ -338,7 +354,7 @@ const OnboardingQuestionnaire: React.FC = () => {
         // One tap = pick this option and advance (same as multiple_choice; save as [value])
         const options = question.options || [];
         const isSaving =
-          saveAnswerMutation.isPending || completeMutation.isPending;
+          saveAnswerMutation.isPending || completeMutation.isPending || !hasNoAdviceAcknowledgement;
         return (
           <div className="relative z-10 grid gap-3 sm:grid-cols-2">
             {options.map((option, index) => {
@@ -525,6 +541,36 @@ const OnboardingQuestionnaire: React.FC = () => {
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               Answer a few quick questions so we can tailor your learning experience.
             </p>
+            <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+              <label className="inline-flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)]"
+                  checked={hasNoAdviceAcknowledgement}
+                  onChange={(event) =>
+                    handleNoAdviceAcknowledgement(event.target.checked)
+                  }
+                />
+                <span>
+                  I understand Monevo provides educational information only and
+                  does not provide financial advice.
+                </span>
+              </label>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide">
+                <Link
+                  to="/financial-disclaimer"
+                  className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+                >
+                  Financial Disclaimer
+                </Link>
+                <Link
+                  to="/no-financial-advice"
+                  className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+                >
+                  No Financial Advice
+                </Link>
+              </div>
+            </div>
           </header>
 
           {/* Progress Stepper */}
@@ -593,7 +639,11 @@ const OnboardingQuestionnaire: React.FC = () => {
                   <GlassButton
                     variant="primary"
                     onClick={handleNext}
-                    disabled={currentAnswer === null || saveAnswerMutation.isPending}
+                    disabled={
+                      currentAnswer === null ||
+                      saveAnswerMutation.isPending ||
+                      !hasNoAdviceAcknowledgement
+                    }
                   >
                     {saveAnswerMutation.isPending ? "Saving..." : "Next →"}
                   </GlassButton>
@@ -601,7 +651,11 @@ const OnboardingQuestionnaire: React.FC = () => {
                   <GlassButton
                     variant="primary"
                     onClick={handleComplete}
-                    disabled={currentAnswer === null || completeMutation.isPending}
+                    disabled={
+                      currentAnswer === null ||
+                      completeMutation.isPending ||
+                      !hasNoAdviceAcknowledgement
+                    }
                   >
                     {completeMutation.isPending ? "Completing..." : "Complete"}
                   </GlassButton>

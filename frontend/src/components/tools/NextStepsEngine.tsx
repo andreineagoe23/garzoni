@@ -183,10 +183,10 @@ const NextStepsEngine = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Decision recommender
+              Learning guide
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              1–3 focused next steps based on your recent activity.
+              1–3 focused learning next steps based on your recent activity.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -195,7 +195,7 @@ const NextStepsEngine = () => {
               onClick={() => setUseDemo((prev) => !prev)}
               className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
             >
-              {useDemo ? "Use live activity" : "Use demo recommendations"}
+              {useDemo ? "Use live activity" : "Use demo suggestions"}
             </button>
           </div>
         </div>
@@ -246,7 +246,7 @@ const NextStepsEngine = () => {
               </p>
             )}
             <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-              Take action →
+              Open resource →
             </span>
           </a>
         ))}
