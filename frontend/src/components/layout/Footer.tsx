@@ -17,6 +17,9 @@ const FaFacebookFIcon = FaFacebookF as React.ComponentType<{ size?: number }>;
 const FaYoutubeIcon = FaYoutube as React.ComponentType<{ size?: number }>;
 const FaLinkedinInIcon = FaLinkedinIn as React.ComponentType<{ size?: number }>;
 
+const BMC_BUTTON_IMG =
+  "https://img.buymeacoffee.com/button-api/?slug=monevo&button_colour=FFDD00&font_colour=000000&font_family=Cookie&text=Buy%20me%20a%20coffee&outline_colour=000000&coffee_colour=ffffff";
+
 // We no longer need a flat links array because the footer is organized into
 // sections. Each section defines its own list of links below.
 
@@ -27,18 +30,15 @@ function Footer() {
   /**
    * To make the footer span the full width of the page and be more useful, we
    * break the content into sections. Each section contains a heading and
-   * associated links. Additional sections can easily be added here.
+   * associated links. Order: Legal, Company, Product.
    */
   const sections = [
     {
-      heading: "Product",
+      heading: "Legal",
       links: [
-        { label: "Dashboard", to: "/all-topics" },
-        { label: "Exercises", to: "/exercises" },
-        { label: "Missions", to: "/missions" },
-        { label: "Tools", to: "/tools" },
-        { label: "Leaderboards", to: "/leaderboards" },
-        { label: "Rewards", to: "/rewards" },
+        { label: "Privacy Policy", to: "/privacy-policy" },
+        { label: "Cookie Policy", to: "/cookie-policy" },
+        { label: "Terms of Service", to: "/terms-of-service" },
       ],
     },
     {
@@ -50,10 +50,14 @@ function Footer() {
       ],
     },
     {
-      heading: "Legal",
+      heading: "Product",
       links: [
-        { label: "Privacy Policy", to: "/privacy-policy" },
-        { label: "Cookie Policy", to: "/cookie-policy" },
+        { label: "Dashboard", to: "/all-topics" },
+        { label: "Exercises", to: "/exercises" },
+        { label: "Missions", to: "/missions" },
+        { label: "Tools", to: "/tools" },
+        { label: "Leaderboards", to: "/leaderboards" },
+        { label: "Rewards", to: "/rewards" },
       ],
     },
   ];
@@ -85,7 +89,7 @@ function Footer() {
               </p>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <a
-                  href="https://www.tiktok.com/@monevo"
+                  href="https://www.tiktok.com/@monevo.educational"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -94,7 +98,7 @@ function Footer() {
                   <FaTiktokIcon size={18} />
                 </a>
                 <a
-                  href="https://x.com/monevo"
+                  href="https://x.com/monevo_"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -103,7 +107,7 @@ function Footer() {
                   <FaXTwitterIcon size={18} />
                 </a>
                 <a
-                  href="https://www.instagram.com/monevo"
+                  href="https://www.instagram.com/monevo.educational/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -112,7 +116,7 @@ function Footer() {
                   <FaInstagramIcon size={18} />
                 </a>
                 <a
-                  href="https://www.facebook.com/monevo"
+                  href="https://www.facebook.com/profile.php?id=61587379603993"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -121,7 +125,7 @@ function Footer() {
                   <FaFacebookFIcon size={18} />
                 </a>
                 <a
-                  href="https://www.youtube.com/@monevo"
+                  href="https://www.youtube.com/@monevo.educational"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -130,13 +134,29 @@ function Footer() {
                   <FaYoutubeIcon size={18} />
                 </a>
                 <a
-                  href="https://www.linkedin.com/company/monevo"
+                  href="https://www.linkedin.com/in/monevo-educational-3594283ab/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                   aria-label="Monevo on LinkedIn"
                 >
                   <FaLinkedinInIcon size={18} />
+                </a>
+              </div>
+              {/* Buy Me a Coffee - same styling as script (yellow, Cookie font, black outline) */}
+              <div className="mt-4 flex items-center">
+                <a
+                  href="https://www.buymeacoffee.com/monevo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block transition opacity-90 hover:opacity-100"
+                  aria-label="Buy me a coffee"
+                >
+                  <img
+                    src={BMC_BUTTON_IMG}
+                    alt="Buy me a coffee"
+                    className="h-10 w-auto"
+                  />
                 </a>
               </div>
             </div>

@@ -58,6 +58,9 @@ const PrivacyPolicy = React.lazy(
   () => import("./components/legal/PrivacyPolicy")
 );
 const CookiePolicy = React.lazy(() => import("./components/legal/CookiePolicy"));
+const TermsOfService = React.lazy(
+  () => import("./components/legal/TermsOfService")
+);
 const PricingPage = React.lazy(() => import("./components/landing/Pricing"));
 const PricingFunnelDashboard = React.lazy(
   () => import("./components/analytics/PricingFunnelDashboard")
@@ -316,6 +319,7 @@ const AppContent = () => {
                 <Route path="/" element={<Welcome />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route
                   path="/onboarding"
