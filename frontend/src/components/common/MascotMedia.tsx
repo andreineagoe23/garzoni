@@ -52,7 +52,7 @@ const MascotMedia = ({ mascot, animated = true, className }: MascotMediaProps) =
         poster={image}
         onError={() => setVideoFailed(true)}
       >
-        <source src={video} type="video/mp4" />
+        <source src={video} type="video/quicktime" />
         {fallback}
       </video>
     );

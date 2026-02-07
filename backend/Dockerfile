@@ -14,7 +14,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
-    default-libmysqlclient-dev \
     libjpeg-dev \
     zlib1g-dev \
     libfreetype6-dev \
@@ -43,8 +42,6 @@ WORKDIR /app
 # Install only runtime dependencies (no build tools, no debconf prompts)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
-    default-mysql-client \
-    libmariadb3 \
     libjpeg62-turbo \
     zlib1g \
     libfreetype6 \
@@ -60,6 +57,9 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 
 # Copy application code
 COPY . .
+
+# Mascots template: copied into media volume on first run when /app/media is mounted (prod)
+RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true
 
 # Ensure STATIC_ROOT exists so WhiteNoise never warns (collectstatic will populate it at runtime)
 RUN mkdir -p /app/staticfiles /app/media

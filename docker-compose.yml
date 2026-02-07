@@ -9,6 +9,8 @@ services:
       - ./backend/.env
     environment:
       DJANGO_SETTINGS_MODULE: settings.settings
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
     volumes:
       - backend_static:/app/staticfiles
       - backend_media:/app/media
@@ -52,6 +54,9 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
     command: celery -A settings worker -l info
     depends_on:
       backend:
@@ -67,6 +72,9 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
     command: celery -A settings beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       backend:
