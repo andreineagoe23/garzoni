@@ -48,6 +48,7 @@ ALLOWED_HOSTS = env_csv(
         default=[
             "localhost",
             "127.0.0.1",
+            "monevo-production-bc08.up.railway.app",
             "andreineagoe23.pythonanywhere.com",
         ],
     ),
