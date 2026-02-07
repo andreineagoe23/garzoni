@@ -76,7 +76,7 @@ let inMemoryToken: string | null = null;
 const ACCESS_TOKEN_STORAGE_KEY = "monevo_access_token";
 const REFRESH_SESSION_KEY = "monevo_has_refresh_session";
 const ENTITLEMENT_SUPPORT_URL =
-  "mailto:support@monevo.com?subject=Billing%20support";
+  "mailto:monevo.educational@gmail.com?subject=Billing%20support";
 const isDevelopment = process.env.NODE_ENV === "development";
 const authLog = (...args: unknown[]) => {
   if (isDevelopment) {

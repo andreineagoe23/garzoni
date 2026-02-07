@@ -426,6 +426,20 @@ function Settings() {
                 >
                   Cookie Policy
                 </Link>
+                <span>•</span>
+                <Link
+                  to="/privacy-policy"
+                  className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                >
+                  Privacy Policy
+                </Link>
+                <span>•</span>
+                <Link
+                  to="/financial-disclaimer"
+                  className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+                >
+                  Financial Disclaimer
+                </Link>
               </div>
             </section>
 

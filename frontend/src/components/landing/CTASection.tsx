@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GlassCard, GlassButton } from "components/ui";
 
 export default function CTASection() {
@@ -33,6 +33,23 @@ export default function CTASection() {
           >
             Log in
           </GlassButton>
+        </div>
+        <p className="mt-6 text-xs text-white/60">
+          Monevo is a financial education platform, not a financial adviser.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide text-white/70">
+          <Link to="/financial-disclaimer" className="hover:text-white">
+            Financial Disclaimer
+          </Link>
+          <Link to="/no-financial-advice" className="hover:text-white">
+            No Financial Advice
+          </Link>
+          <Link to="/privacy-policy" className="hover:text-white">
+            Privacy
+          </Link>
+          <Link to="/terms-of-service" className="hover:text-white">
+            Terms
+          </Link>
         </div>
       </GlassCard>
     </section>

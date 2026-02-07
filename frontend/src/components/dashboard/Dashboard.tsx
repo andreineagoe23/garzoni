@@ -582,6 +582,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               authReady={authInitialized}
             />
 
+            <div className="mb-4 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+              Educational insights only. This dashboard does not provide
+              personalized financial advice or investment recommendations.{" "}
+              <a
+                href="/financial-disclaimer"
+                className="font-semibold text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+              >
+                Financial Disclaimer
+              </a>{" "}
+              •{" "}
+              <a
+                href="/no-financial-advice"
+                className="font-semibold text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+              >
+                No Financial Advice
+              </a>
+            </div>
+
             <DailyGoalCard
               dailyGoalProgress={dailyGoalProgress}
               locale={locale}

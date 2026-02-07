@@ -24,7 +24,7 @@ import {
 } from "./toolsRegistry";
 
 const TOOL_BASE_PATH = "/tools";
-const TOOL_FEEDBACK_EMAIL = "support@monevo.com";
+const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
 
 type ToolNavSource =
   | "hub_card"
@@ -111,10 +111,11 @@ const ToolsHub = ({
         <section className="space-y-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Recommended for you
+              Suggested learning tools
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Based on your profile and recent activity.
+              Based on your learning activity. These are educational prompts,
+              not investment recommendations.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -207,9 +208,26 @@ const ToolView = ({
 
   return (
     <div className="space-y-5 min-w-0">
-      <p className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/80 px-3 py-2 text-xs font-medium text-[color:var(--muted-text)]">
-        Educational only — not financial advice. Use for learning; decisions are yours.
-      </p>
+      <div className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/80 px-3 py-2">
+        <p className="text-xs font-medium text-[color:var(--muted-text)]">
+          Educational only. Not personal financial advice, and not a
+          recommendation to buy, sell, or hold any asset.
+        </p>
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide">
+          <Link
+            to="/financial-disclaimer"
+            className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+          >
+            Financial Disclaimer
+          </Link>
+          <Link
+            to="/no-financial-advice"
+            className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+          >
+            No Financial Advice
+          </Link>
+        </div>
+      </div>
       <div className="flex flex-col gap-3 rounded-2xl border border-white/30 bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between sm:px-6 min-w-0">
         <div className="space-y-2 min-w-0 flex-1">
           <div>
@@ -302,7 +320,6 @@ const ToolView = ({
 const ToolsPage = () => {
   const { isAuthenticated, financialProfile } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const sessionIdRef = useRef(getSessionId());
   const navSourceRef = useRef<ToolNavSource>("deep_link");
   const analyticsRef = useRef<{ toolId: string | null; startedAt: number }>({
@@ -448,6 +465,7 @@ const ToolsPage = () => {
   }, [activeTool]);
 
   useEffect(() => {
+    const sessionId = sessionIdRef.current;
     return () => {
       const currentToolId = analyticsRef.current.toolId;
       if (!currentToolId || typeof window.gtag !== "function") return;
@@ -458,7 +476,7 @@ const ToolsPage = () => {
       window.gtag("event", "tool_duration", {
         tool_id: currentToolId,
         duration_seconds: durationSeconds,
-        session_id: sessionIdRef.current,
+        session_id: sessionId,
       });
     };
   }, []);

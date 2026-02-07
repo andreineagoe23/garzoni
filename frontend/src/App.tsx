@@ -5,6 +5,7 @@
 import React, { Suspense, useEffect, useRef } from "react";
 import {
   BrowserRouter as Router,
+  Navigate,
   Route,
   Routes,
   useLocation,
@@ -61,7 +62,12 @@ const CookiePolicy = React.lazy(() => import("./components/legal/CookiePolicy"))
 const TermsOfService = React.lazy(
   () => import("./components/legal/TermsOfService")
 );
-const PricingPage = React.lazy(() => import("./components/landing/Pricing"));
+const FinancialDisclaimer = React.lazy(
+  () => import("./components/legal/FinancialDisclaimer")
+);
+const NoFinancialAdvice = React.lazy(
+  () => import("./components/legal/NoFinancialAdvice")
+);
 const PricingFunnelDashboard = React.lazy(
   () => import("./components/analytics/PricingFunnelDashboard")
 );
@@ -160,7 +166,10 @@ const AppContent = () => {
     "/payment-required",
     "/privacy-policy",
     "/cookie-policy",
-    "/pricing",
+    "/terms-of-service",
+    "/financial-disclaimer",
+    "/no-financial-advice",
+    "/subscriptions",
   ];
 
   const noNavbarPaths = publicPaths;
@@ -169,7 +178,7 @@ const AppContent = () => {
   const noFooterPaths = [
     "/",
     "/welcome",
-    "/pricing",
+    "/subscriptions",
     "/login",
     "/register",
     "/forgot-password",
@@ -320,7 +329,18 @@ const AppContent = () => {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="/pricing" element={<PricingPage />} />
+                <Route
+                  path="/financial-disclaimer"
+                  element={<FinancialDisclaimer />}
+                />
+                <Route
+                  path="/no-financial-advice"
+                  element={<NoFinancialAdvice />}
+                />
+                <Route
+                  path="/pricing"
+                  element={<Navigate to="/subscriptions" replace />}
+                />
                 <Route
                   path="/onboarding"
                   element={
