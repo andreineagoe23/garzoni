@@ -6,7 +6,7 @@ import registerBg from "assets/register-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+// import { useGoogleReCaptcha } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
 function Register() {
   const [formData, setFormData] = useState({
     username: "",
@@ -22,7 +22,7 @@ function Register() {
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();
-  const { executeRecaptcha } = useGoogleReCaptcha();
+  // const { executeRecaptcha } = useGoogleReCaptcha(); // reCAPTCHA commented out
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -35,17 +35,8 @@ function Register() {
     setErrorMessage("");
 
     try {
-      let payload: Record<string, unknown> = { ...formData };
-      if (executeRecaptcha) {
-        const recaptchaToken = await executeRecaptcha("register");
-        if (!recaptchaToken) {
-          setErrorMessage("reCAPTCHA verification failed. Please try again.");
-          return;
-        }
-        payload.recaptcha_token = recaptchaToken;
-      }
-
-      const result = await registerUser(payload);
+      // reCAPTCHA commented out: was getting token and adding to payload
+      const result = await registerUser(formData);
       if (result.success) {
         // Always send new users to onboarding first; replace so back doesn't return to register
         navigate("/onboarding", { replace: true });
