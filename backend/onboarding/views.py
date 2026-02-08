@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Stale progress cleanup threshold (30 days)
 STALE_PROGRESS_THRESHOLD_DAYS = 30
 
-# Short questionnaire (~1–2 min): 2 sections, 6 questions, all single-tap.
+# Short questionnaire (~1-2 min): 2 sections, 6 questions, all single-tap.
 # Ensures /api/questionnaire/progress/ never returns 503 for "no active version".
 DEFAULT_QUESTIONNAIRE_STRUCTURE = {
     "sections": [

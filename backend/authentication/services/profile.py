@@ -45,7 +45,7 @@ def build_profile_payload(user, profile: UserProfile):
 
     activity_calendar = build_activity_calendar(user, first_day, last_day)
 
-    # Use new onboarding (QuestionnaireProgress) only — so new users get is_questionnaire_completed=False
+    # Use new onboarding (QuestionnaireProgress) only - so new users get is_questionnaire_completed=False
     questionnaire_completed = QuestionnaireProgress.objects.filter(
         user=user, status="completed"
     ).exists()

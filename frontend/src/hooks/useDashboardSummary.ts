@@ -72,6 +72,8 @@ export const useDashboardSummary = ({
     return Math.min(100, ((currentXP % targetXP) / targetXP) * 100);
   }, [profile?.points]);
 
+  const resume = progressData.resume ?? null;
+
   return {
     coursesCompleted,
     overallProgress,
@@ -80,5 +82,6 @@ export const useDashboardSummary = ({
     entitlementUsage,
     weakestSkills,
     dailyGoalProgress,
+    resume,
   };
 };

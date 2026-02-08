@@ -172,7 +172,7 @@ const AppContent = () => {
     "/subscriptions",
   ];
 
-  const noNavbarPaths = publicPaths;
+  const noNavbarPaths = [...publicPaths, "/onboarding"];
   const noChatbotPaths = [...publicPaths, "/onboarding"];
   // Pages that render a standalone marketing/auth layout (they render their own Footer)
   const noFooterPaths = [
@@ -183,6 +183,7 @@ const AppContent = () => {
     "/register",
     "/forgot-password",
     "/password-reset",
+    "/onboarding",
   ];
 
   useEffect(() => {

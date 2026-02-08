@@ -279,7 +279,7 @@ def check_and_consume_entitlement(user, feature: str) -> Tuple[bool, Dict]:
     used_today = _get_usage(user.id, feature)
     if used_today >= daily_quota:
         return False, {
-            "error": "You have reached today’s limit for this feature.",
+            "error": "You have reached today's limit for this feature.",
             "flag": feature_state.get("flag"),
             "remaining_today": 0,
             "reason": "limit",

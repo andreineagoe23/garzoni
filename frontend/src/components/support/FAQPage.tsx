@@ -302,7 +302,7 @@ function FAQPage() {
               Still need help? Contact us
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Share a brief description of the issue and we’ll be in touch.
+              Share a brief description of the issue and we'll be in touch.
             </p>
           </header>
 

@@ -151,7 +151,7 @@ describe("SubscriptionPlansPage", () => {
     );
 
     const plusLabel = "Plus";
-    const choosePlus = "Choose Plus — Go to checkout";
+    const choosePlus = "Choose Plus - Go to checkout";
     const priceLabel = formatCurrency(12, "USD", getLocale(), {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
@@ -178,7 +178,7 @@ describe("SubscriptionPlansPage", () => {
       </MemoryRouter>
     );
 
-    const choosePlus = "Choose Plus — Go to checkout";
+    const choosePlus = "Choose Plus - Go to checkout";
     const button = await screen.findByRole("button", { name: choosePlus });
     fireEvent.click(button);
 
@@ -223,7 +223,7 @@ describe("SubscriptionPlansPage", () => {
       </MemoryRouter>
     );
 
-    const choosePlus = "Choose Plus — Go to checkout";
+    const choosePlus = "Choose Plus - Go to checkout";
     const button = await screen.findByRole("button", { name: choosePlus });
     fireEvent.click(button);
 

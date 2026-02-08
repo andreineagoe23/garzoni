@@ -4,7 +4,7 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
 export const queryKeys = {
-  // Keep these as functions so callsites can’t accidentally diverge.
+  // Keep these as functions so callsites can't accidentally diverge.
   // When we add typing later, this pattern becomes fully type-safe.
   profile: () => ["profile"] as const,
   entitlements: () => ["entitlements"] as const,
@@ -41,12 +41,12 @@ export const staleTimes = {
   // Hearts: short-lived (server truth can change from other tabs / sessions).
   hearts: 15_000,
 
-  // “Static-ish” content.
+  // "Static-ish" content.
   content: 6 * HOUR,
 };
 
 export function defaultRetry(failureCount: number, error: unknown) {
-  // Don’t retry while offline.
+  // Don't retry while offline.
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     return false;
   }
@@ -54,7 +54,7 @@ export function defaultRetry(failureCount: number, error: unknown) {
   // Axios-style error shaping: error.response.status
   const errorObj = error as { response?: { status?: number } };
   const status = errorObj?.response?.status;
-  // Don’t retry most 4xx (except rate limiting).
+  // Don't retry most 4xx (except rate limiting).
   if (typeof status === "number" && status >= 400 && status < 500) {
     return status === 429 && failureCount < 2;
   }

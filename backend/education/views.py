@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import Count, F, Prefetch
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 import json
@@ -475,23 +475,66 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def progress_summary(self, request):
-        """Retrieve a summary of the user's progress across all courses and paths."""
+        """Retrieve a summary of the user's progress across all courses and paths.
+        Progress is section-based: percent = (completed_sections / total_sections_in_course) * 100.
+        """
         user = request.user
         progress_data = []
 
-        user_progress = UserProgress.objects.filter(user=user)
+        user_progress = (
+            UserProgress.objects.filter(user=user)
+            .select_related("course", "course__path")
+            .prefetch_related("completed_sections")
+        )
+        course_ids = list(user_progress.values_list("course_id", flat=True).distinct())
+        section_counts = dict(
+            LessonSection.objects.filter(lesson__course_id__in=course_ids)
+            .values("lesson__course_id")
+            .annotate(c=Count("id"))
+            .values_list("lesson__course_id", "c")
+        )
+
         for progress in user_progress:
-            total_lessons = progress.course.lessons.count()
-            completed_lessons = progress.completed_lessons.count()
-            percent_complete = (completed_lessons / total_lessons) * 100 if total_lessons > 0 else 0
+            total_sections = section_counts.get(progress.course_id, 0)
+            completed_sections = progress.completed_sections.count()
+            percent_complete = (
+                (completed_sections / total_sections) * 100 if total_sections > 0 else 0
+            )
 
             progress_data.append(
                 {
                     "path": (progress.course.path.title if progress.course.path else None),
+                    "path_id": progress.course.path_id,
                     "course": progress.course.title,
+                    "course_id": progress.course_id,
                     "percent_complete": percent_complete,
                 }
             )
+
+        # Resume: last place in the flow (most recently updated flow position)
+        resume = None
+        last_flow = (
+            UserProgress.objects.filter(user=user)
+            .exclude(flow_current_index=0)
+            .select_related("course", "course__path")
+            .order_by("-flow_updated_at")
+            .first()
+        )
+        if not last_flow and progress_data:
+            # No flow progress yet; use any course with most recent update
+            last_flow = (
+                UserProgress.objects.filter(user=user)
+                .select_related("course", "course__path")
+                .order_by("-flow_updated_at")
+                .first()
+            )
+        if last_flow:
+            resume = {
+                "course_id": last_flow.course_id,
+                "course_title": last_flow.course.title,
+                "flow_current_index": getattr(last_flow, "flow_current_index", 0) or 0,
+                "path_id": last_flow.course.path_id,
+            }
 
         return Response(
             {
@@ -501,6 +544,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                     else 0
                 ),
                 "paths": progress_data,
+                "resume": resume,
             }
         )
 
@@ -648,7 +692,7 @@ def _evaluate_numeric(exercise, user_answer):
     threshold = max(relative_band, absolute_band)
 
     if diff <= threshold:
-        return True, "Correct — you're inside the expected range."
+        return True, "Correct - you're inside the expected range."
 
     # Diagnostics
     diagnostics = []
@@ -656,7 +700,7 @@ def _evaluate_numeric(exercise, user_answer):
     if period_hint == "annual":
         if expected_value != 0 and abs(user_value - (expected_value / Decimal("12"))) <= threshold:
             diagnostics.append(
-                "It looks like you divided an annual figure by 12 — watch the period."
+                "It looks like you divided an annual figure by 12 - watch the period."
             )
         if abs(user_value - (expected_value * Decimal("12"))) <= threshold:
             diagnostics.append(
@@ -715,7 +759,7 @@ def _evaluate_budget(exercise, user_answer):
             is_correct = False
             messages.append("Your plan differs from the target solution. Adjust and try again.")
 
-    feedback = " ".join(messages) if messages else "Great allocation — you met the constraints."
+    feedback = " ".join(messages) if messages else "Great allocation - you met the constraints."
     return is_correct, feedback
 
 
@@ -842,7 +886,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 "explanation": getattr(exercise, "explanation", None),
                 "feedback": feedback
                 or (
-                    "On point — keep going!"
+                    "On point - keep going!"
                     if is_correct
                     else "Not quite. Re-read the prompt and try again."
                 ),

@@ -82,18 +82,13 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
   const totalQuestions = progress.total_questions ?? 0;
   const currentQuestionNumber = progress.current_question_number ?? 0;
   const isCompleted = progress.status === "completed";
-  const primaryCtaLabel = isCompleted
-    ? hasPaid
-      ? "View Personalized Path"
-      : "Choose a Plan"
-    : completedSections > 0
-      ? "Resume Onboarding"
-      : "Start Onboarding";
-  const primaryCtaTarget = isCompleted
-    ? hasPaid
-      ? "/personalized-path"
-      : "/subscriptions"
-    : "/onboarding";
+  // When onboarding is complete, don't show this banner; dashboard shows "Pick up where you left off" instead.
+  if (isCompleted) {
+    return null;
+  }
+  const primaryCtaLabel =
+    completedSections > 0 ? "Resume Onboarding" : "Start Onboarding";
+  const primaryCtaTarget = "/onboarding";
 
   return (
     <GlassCard

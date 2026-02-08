@@ -251,7 +251,7 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
             if lesson.video_url:
                 payloads.append(
                     {
-                        "title": f"{lesson.title} - Video",
+                        "title": "Video",
                         "content_type": "video",
                         "video_url": lesson.video_url,
                     }
@@ -259,7 +259,7 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
             if lesson.exercise_type:
                 payloads.append(
                     {
-                        "title": f"{lesson.title} - Exercise",
+                        "title": "Exercise",
                         "content_type": "exercise",
                         "exercise_type": lesson.exercise_type,
                         "exercise_data": lesson.exercise_data or {},
