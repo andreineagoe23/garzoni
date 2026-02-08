@@ -9,6 +9,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth.models import User
+
+from authentication.user_display import user_display_dict
 from django.http import JsonResponse
 from django.conf import settings
 from django.middleware.csrf import get_token
@@ -169,15 +171,9 @@ class LoginSecureView(APIView):
             response = Response(
                 {
                     "access": access_token,
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                        "is_staff": user.is_staff,
-                        "is_superuser": user.is_superuser,
-                    },
+                    "user": user_display_dict(
+                        user, include_id=True, include_email=True, include_staff=True
+                    ),
                 }
             )
 
@@ -216,15 +212,9 @@ class RegisterSecureView(generics.CreateAPIView):
         response = Response(
             {
                 "access": access_token,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "is_staff": user.is_staff,
-                    "is_superuser": user.is_superuser,
-                },
+                "user": user_display_dict(
+                    user, include_id=True, include_email=True, include_staff=True
+                ),
                 "next": "/all-topics",
             },
             status=status.HTTP_201_CREATED,
@@ -245,13 +235,9 @@ class VerifyAuthView(APIView):
         return Response(
             {
                 "isAuthenticated": True,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "is_staff": user.is_staff,
-                    "is_superuser": user.is_superuser,
-                },
+                "user": user_display_dict(
+                    user, include_id=True, include_email=True, include_staff=True
+                ),
             }
         )
 

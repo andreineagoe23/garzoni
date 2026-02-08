@@ -1,6 +1,8 @@
 # authentication/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
+
+from authentication.user_display import normalize_display_string
 from authentication.models import UserProfile, Referral, FriendRequest
 
 
@@ -193,12 +195,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return float(obj.earned_money)
 
     def get_user(self, obj):
+        from authentication.user_display import user_display_dict
+
+        d = user_display_dict(obj.user, include_id=True, include_email=True)
         return {
-            "id": obj.user.id,
-            "username": obj.user.username,
-            "email": obj.user.email,
-            "first_name": obj.user.first_name,
-            "last_name": obj.user.last_name,
+            "id": d["id"],
+            "username": d["username"],
+            "email": d["email"],
+            "first_name": d["first_name"],
+            "last_name": d["last_name"],
         }
 
     def get_badges(self, obj):
@@ -222,7 +227,10 @@ class ReferralSerializer(serializers.ModelSerializer):
         fields = ["referred_user", "created_at"]
 
     def get_referred_user(self, obj):
-        return {"id": obj.referred_user.id, "username": obj.referred_user.username}
+        from authentication.user_display import user_display_dict
+
+        d = user_display_dict(obj.referred_user, include_id=True)
+        return {"id": d["id"], "username": d["username"]}
 
 
 class UserSearchSerializer(serializers.ModelSerializer):
@@ -231,9 +239,14 @@ class UserSearchSerializer(serializers.ModelSerializer):
     Provides a minimal representation of a user, including their ID and username, for search purposes.
     """
 
+    username = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ["id", "username"]
+
+    def get_username(self, obj):
+        return normalize_display_string(obj.username)
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
@@ -250,7 +263,13 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         fields = ["id", "sender", "receiver", "status", "created_at"]
 
     def get_sender(self, obj):
-        return {"id": obj.sender.id, "username": obj.sender.username}
+        from authentication.user_display import user_display_dict
+
+        d = user_display_dict(obj.sender, include_id=True)
+        return {"id": d["id"], "username": d["username"]}
 
     def get_receiver(self, obj):
-        return {"id": obj.receiver.id, "username": obj.receiver.username}
+        from authentication.user_display import user_display_dict
+
+        d = user_display_dict(obj.receiver, include_id=True)
+        return {"id": d["id"], "username": d["username"]}

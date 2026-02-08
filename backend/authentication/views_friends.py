@@ -8,6 +8,7 @@ from django.db import models
 
 from django.contrib.auth.models import User
 
+from authentication.user_display import user_display_dict
 from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import FriendRequestSerializer, UserSearchSerializer
 from authentication.services.referrals import apply_referral
@@ -165,8 +166,7 @@ class FriendsLeaderboardView(APIView):
         leaderboard_data = [
             {
                 "user": {
-                    "id": friend.id,
-                    "username": friend.username,
+                    **user_display_dict(friend, include_id=True),
                     "profile_avatar": friend.profile.profile_avatar,
                 },
                 "points": friend.profile.points,

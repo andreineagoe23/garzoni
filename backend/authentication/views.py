@@ -22,6 +22,7 @@ import logging
 import requests
 import os
 
+from authentication.user_display import user_display_dict
 from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import (
     RegisterSerializer,
@@ -205,8 +206,8 @@ class UserProfileView(APIView):
         return Response(
             {
                 "user_data": {
-                    "first_name": request.user.first_name,
-                    "last_name": request.user.last_name,
+                    "first_name": user_display_dict(request.user)["first_name"],
+                    "last_name": user_display_dict(request.user)["last_name"],
                     "email": request.user.email,
                     "earned_money": user_profile.earned_money,
                     "points": user_profile.points,
@@ -551,15 +552,9 @@ class LoginSecureView(APIView):
                 {
                     "access": access_token,
                     "refresh": refresh_token,
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                        "is_staff": user.is_staff,
-                        "is_superuser": user.is_superuser,
-                    },
+                    "user": user_display_dict(
+                        user, include_id=True, include_email=True, include_staff=True
+                    ),
                 }
             )
 
@@ -607,15 +602,9 @@ class RegisterSecureView(generics.CreateAPIView):
             {
                 "access": access_token,
                 "refresh": str(refresh),
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "is_staff": user.is_staff,
-                    "is_superuser": user.is_superuser,
-                },
+                "user": user_display_dict(
+                    user, include_id=True, include_email=True, include_staff=True
+                ),
                 "next": "/onboarding",  # New users complete onboarding first
             },
             status=status.HTTP_201_CREATED,
@@ -637,13 +626,9 @@ class VerifyAuthView(APIView):
         return Response(
             {
                 "isAuthenticated": True,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "is_staff": user.is_staff,
-                    "is_superuser": user.is_superuser,
-                },
+                "user": user_display_dict(
+                    user, include_id=True, include_email=True, include_staff=True
+                ),
             }
         )
 
@@ -757,10 +742,7 @@ class UserSettingsView(APIView):
                 "sound_enabled": user_profile.sound_enabled,
                 "animations_enabled": user_profile.animations_enabled,
                 "profile": {
-                    "username": request.user.username,
-                    "email": request.user.email,
-                    "first_name": request.user.first_name,
-                    "last_name": request.user.last_name,
+                    **user_display_dict(request.user, include_email=True),
                     "dark_mode": user_profile.dark_mode,
                 },
             }
@@ -1135,8 +1117,7 @@ class FriendsLeaderboardView(APIView):
             leaderboard_data.append(
                 {
                     "user": {
-                        "id": friend.id,
-                        "username": friend.username,
+                        **user_display_dict(friend, include_id=True),
                         "profile_avatar": friend.profile.profile_avatar,
                     },
                     "points": friend.profile.points,
