@@ -1,7 +1,9 @@
 # gamification/serializers.py
 from rest_framework import serializers
-from gamification.models import Badge, UserBadge, Mission, MissionCompletion
+
+from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
+from gamification.models import Badge, UserBadge, Mission, MissionCompletion
 
 
 class BadgeSerializer(serializers.ModelSerializer):
@@ -77,9 +79,5 @@ class LeaderboardSerializer(serializers.ModelSerializer):
         fields = ["user", "points"]
 
     def get_user(self, obj):
-        return {
-            "id": obj.user.id,
-            "username": obj.user.username,
-            "email": obj.user.email,
-            "profile_avatar": obj.profile_avatar,
-        }
+        d = user_display_dict(obj.user, include_id=True, include_email=True)
+        return {**d, "profile_avatar": obj.profile_avatar}

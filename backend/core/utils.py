@@ -25,6 +25,15 @@ def normalize_text_encoding(text: str | None) -> str | None:
         ("\u00e2\u20ac\u0153", '"'),  # mojibake for left double quote
         ("\u00e2\u20ac\u201d", '"'),  # mojibake for right double quote
         ("\u00c2\u00a3", "\u00a3"),  # Â£ (UTF-8 £ read as Latin-1) -> £
+        # Romanian ș (U+0219) UTF-8 C8 99 -> È™ when read as Windows-1252
+        ("\u00c8\u2122", "\u0219"),  # ș
+        # Romanian ț (U+021B) UTF-8 C8 9B -> È› when read as Windows-1252
+        ("\u00c8\u203a", "\u021b"),  # ț
+        # Romanian Î (U+00CE) UTF-8 C3 8E -> ÃŽ
+        ("\u00c3\u008e", "\u00ce"),  # Î
+        # Warning sign + variation selector ⚠️ (U+26A0 U+FE0F) UTF-8 E2 9A A0 EF B8 8F -> âš ï¸
+        ("\u00e2\u009a\u00a0\u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # ⚠️
+        ("\u00e2\u009a\u00a0", "\u26a0"),  # ⚠ (without variation selector)
     ]
     out = text
     for old, new in replacements:

@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from authentication.entitlements import get_user_plan, plan_allows
+from authentication.user_display import normalize_display_string
 from education.models import (
     Path,
     Course,
@@ -50,7 +51,7 @@ class LessonSectionSerializer(serializers.ModelSerializer):
         ]
 
     def get_updated_by(self, obj):
-        return obj.updated_by.username if obj.updated_by else None
+        return normalize_display_string(obj.updated_by.username) if obj.updated_by else None
 
 
 class LessonSectionWriteSerializer(serializers.ModelSerializer):
