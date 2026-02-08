@@ -6,6 +6,31 @@ import os
 from typing import Iterable, List, Optional
 
 
+def normalize_text_encoding(text: str | None) -> str | None:
+    """Fix common mojibake from UTF-8 being misinterpreted as Latin-1/Windows-1252.
+
+    Use when returning user-facing strings from DB or external sources so apostrophes
+    and quotes display correctly (e.g. ' won't ' instead of ' wonâ€™t ').
+    """
+    if text is None or not isinstance(text, str):
+        return text
+    replacements = [
+        ("\u2019", "'"),  # RIGHT SINGLE QUOTATION MARK
+        ("\u2018", "'"),  # LEFT SINGLE QUOTATION MARK
+        ("\u201c", '"'),  # LEFT DOUBLE QUOTATION MARK
+        ("\u201d", '"'),  # RIGHT DOUBLE QUOTATION MARK
+        ("\u2013", "-"),  # EN DASH
+        ("\u2014", "-"),  # EM DASH
+        ("\u00e2\u20ac\u2122", "'"),  # mojibake for U+2019 (e.g. won't)
+        ("\u00e2\u20ac\u0153", '"'),  # mojibake for left double quote
+        ("\u00e2\u20ac\u201d", '"'),  # mojibake for right double quote
+    ]
+    out = text
+    for old, new in replacements:
+        out = out.replace(old, new)
+    return out
+
+
 _TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
 
 

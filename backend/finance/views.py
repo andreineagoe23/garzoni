@@ -131,7 +131,7 @@ def _build_context(category: str):
         )
     return (
         "Markets can swing based on sentiment and expectations.",
-        "Long-term decisions shouldn’t be driven by a single headline.",
+        "Long-term decisions shouldn't be driven by a single headline.",
         "Investors and curious learners",
     )
 

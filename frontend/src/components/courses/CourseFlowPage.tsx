@@ -1198,14 +1198,14 @@ function CourseFlowPage() {
       return (
         <div className="space-y-4">
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
-            This lesson uses a legacy “lesson-level” exercise format.
+            This lesson uses a legacy "lesson-level" exercise format.
           </div>
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-5 py-5 text-sm text-[color:var(--muted-text,#6b7280)]">
             Exercise type{" "}
             <span className="font-semibold">
               {currentItem.lessonExerciseType}
             </span>{" "}
-            isn’t supported in the new flow yet.
+            isn't supported in the new flow yet.
           </div>
         </div>
       );
@@ -1317,7 +1317,7 @@ function CourseFlowPage() {
               </span>
               {hearts <= 1 && (
                 <span className="text-[11px] text-rose-600">
-                  Careful — hearts low
+                  Careful - hearts low
                 </span>
               )}
             </div>
@@ -1378,16 +1378,12 @@ function CourseFlowPage() {
 
           {!courseComplete &&
             currentItem?.kind === "section" &&
-            currentItem.section?.title && (
+            adminMode &&
+            !currentItem.section?.is_published && (
               <div className="mb-6 flex flex-wrap items-center gap-3">
-                <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-                  {currentItem.section.title}
-                </h2>
-                {adminMode && !currentItem.section.is_published && (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[color:rgba(var(--accent-rgb,255,215,0),0.35)] bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#FFD700)]">
-                    Draft – hidden from learners
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-2 rounded-full border border-[color:rgba(var(--accent-rgb,255,215,0),0.35)] bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#FFD700)]">
+                  Draft - hidden from learners
+                </span>
               </div>
             )}
 
@@ -1715,7 +1711,7 @@ function CourseFlowPage() {
                 onClick={async () => {
                   try {
                     await grantHeartsSafe(1);
-                    toast.success("Practice complete — +1 heart");
+                    toast.success("Practice complete - +1 heart");
                   } finally {
                     setOutOfHeartsModalOpen(false);
                   }

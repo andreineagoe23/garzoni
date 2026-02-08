@@ -4,7 +4,7 @@
  * - Cache updates via updateQueryData (if mutation returns authoritative payload)
  * - Targeted invalidation via invalidate (queryKeys.*())
  *
- * This helps avoid “invalidate too much / too little” drift over time.
+ * This helps avoid "invalidate too much / too little" drift over time.
  */
 import { QueryClient } from "@tanstack/react-query";
 

@@ -1159,7 +1159,7 @@ const ExercisePage = () => {
             </span>
             {reviewQueue.due?.length > 0 && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                Next up: {reviewQueue.due[0].skill} —{" "}
+                Next up: {reviewQueue.due[0].skill} -{" "}
                 {reviewQueue.due[0].question}
               </span>
             )}
@@ -1327,7 +1327,7 @@ const ExercisePage = () => {
 
             {streak > 0 && (
               <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
-                🔥 You've completed {streak} exercises in a row — keep it up!
+                🔥 You've completed {streak} exercises in a row - keep it up!
               </div>
             )}
 

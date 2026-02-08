@@ -82,5 +82,18 @@ export type MissionBuckets = {
 
 export type ProgressSummary = {
   overall_progress?: number;
-  paths?: Array<{ percent_complete?: number }>;
+  paths?: Array<{
+    path?: string | null;
+    path_id?: number | null;
+    course?: string;
+    course_id?: number;
+    percent_complete?: number;
+  }>;
+  /** Last place in the lesson flow (for "Pick up where you left off") */
+  resume?: {
+    course_id: number;
+    course_title: string;
+    flow_current_index: number;
+    path_id?: number | null;
+  } | null;
 };

@@ -90,7 +90,7 @@ const NextStepsEngine = () => {
         id: "fundamentals",
         label: "Learn: Investing fundamentals",
         detail: "Build a baseline before making changes.",
-        because: "Because you’re new to investing; fundamentals help first.",
+        because: "Because you're new to investing; fundamentals help first.",
         href: "/all-topics?topic=investing",
         score: 2,
       });
@@ -112,7 +112,7 @@ const NextStepsEngine = () => {
         id: "calendar-bridge",
         label: "Connect news to macro events",
         detail: "See what upcoming events could move prices.",
-        because: "Because you’ve been reading news; the calendar adds context.",
+        because: "Because you've been reading news; the calendar adds context.",
         href: "/tools/calendar",
         score: 1.5,
       });
@@ -186,7 +186,7 @@ const NextStepsEngine = () => {
               Learning guide
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              1–3 focused learning next steps based on your recent activity.
+              1-3 focused learning next steps based on your recent activity.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

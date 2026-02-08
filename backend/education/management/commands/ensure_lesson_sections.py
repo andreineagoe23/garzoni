@@ -104,7 +104,7 @@ class Command(BaseCommand):
         return {
             "lesson": lesson,
             "order": order,
-            "title": f"{lesson.title}: {title_suffix}",
+            "title": title_suffix,
             "content_type": "text",
             "text_content": text_content,
             "is_published": True,
@@ -118,7 +118,7 @@ class Command(BaseCommand):
         return {
             "lesson": lesson,
             "order": order,
-            "title": f"{lesson.title}: Watch and learn",
+            "title": "Watch and learn",
             "content_type": "video",
             "video_url": lesson.video_url or fallback_video,
             "text_content": (
@@ -164,7 +164,7 @@ class Command(BaseCommand):
         return {
             "lesson": lesson,
             "order": order,
-            "title": f"{lesson.title}: Practice #{index}",
+            "title": f"Practice #{index}",
             "content_type": "exercise",
             "exercise_type": "multiple-choice",
             "exercise_data": {

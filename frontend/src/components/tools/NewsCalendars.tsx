@@ -3,7 +3,7 @@ import { useTheme } from "contexts/ThemeContext";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
 
-// Investing.com economic calendar — embeddable iframe (allows framing). No Cashback Forex, no gtag.
+// Investing.com economic calendar - embeddable iframe (allows framing). No Cashback Forex, no gtag.
 const INVESTING_CALENDAR_BASE = "https://sslecal2.investing.com";
 const CALENDAR_OPEN_URL = "https://www.investing.com/economic-calendar/";
 
@@ -59,7 +59,7 @@ const NewsCalendars = () => {
               >
                 Investing.com
               </a>
-              . If the calendar doesn’t load above,{" "}
+              . If the calendar doesn't load above,{" "}
               <a
                 href={CALENDAR_OPEN_URL}
                 rel="noopener noreferrer"
