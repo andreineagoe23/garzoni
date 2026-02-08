@@ -679,7 +679,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             user_id = token_obj.get("user_id")
             User.objects.get(id=user_id)
         except TokenError as exc:
-            # Blacklisted, expired, or invalid refresh token — clear cookie and return 401
+            # Blacklisted, expired, or invalid refresh token - clear cookie and return 401
             logger.warning("Refresh token rejected (blacklisted or invalid): %s", exc)
             response = Response(
                 {

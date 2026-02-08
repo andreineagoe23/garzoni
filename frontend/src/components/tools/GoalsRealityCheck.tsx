@@ -68,7 +68,7 @@ const GoalsRealityCheck = () => {
       leverList.push({ label: "Increase monthly income or extend the timeline", key: "income" });
     } else if (goal > 0 && months > 0 && surplusLow < required) {
       warn.push(
-        "You’ll likely need to reduce expenses or extend the timeline."
+        "You'll likely need to reduce expenses or extend the timeline."
       );
       leverList.push({ label: "Reduce monthly expenses by a small amount", key: "expenses" });
     }
@@ -292,7 +292,7 @@ const GoalsRealityCheck = () => {
               Realistic saving range
             </p>
             <p className="mt-2 text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {formatCurrency(lowSurplus, "USD", locale)} –{" "}
+              {formatCurrency(lowSurplus, "USD", locale)} -{" "}
               {formatCurrency(highSurplus, "USD", locale)} / month
             </p>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -313,7 +313,7 @@ const GoalsRealityCheck = () => {
               />
             </div>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-              You’re{" "}
+              You're{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
                 {Math.round(progressPct)}%
               </span>{" "}

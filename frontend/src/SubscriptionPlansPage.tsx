@@ -305,7 +305,7 @@ const SubscriptionPlansPage = () => {
                   >
                     {isStarter
                       ? "Start with Starter (Free)"
-                      : `Choose ${name} — Go to checkout`}
+                      : `Choose ${name} - Go to checkout`}
                   </GlassButton>
                 </div>
               );
@@ -345,7 +345,7 @@ const SubscriptionPlansPage = () => {
             </p>
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
               {subscriptionInfo.hasPaid
-                ? "You're on Plus or Pro — personalized path and premium features unlocked."
+                ? "You're on Plus or Pro - personalized path and premium features unlocked."
                 : questionnaireComplete
                   ? "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path."
                   : "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro."}

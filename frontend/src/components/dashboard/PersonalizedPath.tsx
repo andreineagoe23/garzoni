@@ -370,7 +370,7 @@ function PersonalizedPath({
 
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          🔁 Based on your latest onboarding answers —{" "}
+          🔁 Based on your latest onboarding answers -{" "}
           <button
             type="button"
             onClick={() => navigate("/onboarding")}

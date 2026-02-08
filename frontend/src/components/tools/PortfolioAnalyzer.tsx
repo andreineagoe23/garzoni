@@ -379,7 +379,7 @@ function PortfolioAnalyzer() {
       riskLevel = "high";
     } else if (maxSinglePct >= 60) {
       problems.push(
-        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio — concentration is high.`
+        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio - concentration is high.`
       );
       riskLevel = "high";
     } else if (maxSinglePct >= 40) {
@@ -398,12 +398,12 @@ function PortfolioAnalyzer() {
 
     if (totalCost > 0 && totalGainLossPercentage < -10) {
       bullets.push(
-        "You’re currently down on paper. Check if your timeline and risk tolerance still match this mix."
+        "You're currently down on paper. Check if your timeline and risk tolerance still match this mix."
       );
     }
 
     if (entries.length >= 2 && Object.keys(summary.allocation || {}).length >= 2) {
-      bullets.push("You’re spread across more than one asset type — that helps smooth volatility.");
+      bullets.push("You're spread across more than one asset type - that helps smooth volatility.");
     }
     if (total > 0 && stockValue > 0) {
       const pct = Math.round((stockValue / total) * 100);
@@ -411,7 +411,7 @@ function PortfolioAnalyzer() {
     }
     if (total > 0 && cryptoValue > 0) {
       const pct = Math.round((cryptoValue / total) * 100);
-      bullets.push(`Crypto makes up ${pct}% — remember it can swing more than stocks.`);
+      bullets.push(`Crypto makes up ${pct}% - remember it can swing more than stocks.`);
     }
     bullets.push(
       `Total value is ${formatCurrency(total, "USD", locale, { maximumFractionDigits: 0 })} with ${totalGainLossPercentage >= 0 ? "a gain" : "a loss"} of ${formatNumber(Math.abs(totalGainLossPercentage), locale, { maximumFractionDigits: 1 })}% overall.`
@@ -776,19 +776,19 @@ function PortfolioAnalyzer() {
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
                     {insight.riskLevel === "low"
-                      ? "Risk looks reasonable — you’re not over-concentrated in one place."
+                      ? "Risk looks reasonable - you're not over-concentrated in one place."
                       : insight.riskLevel === "moderate"
-                        ? "Moderate risk — one area dominates; consider spreading out."
-                        : "Higher risk — concentration or volatility is high; worth reviewing."}
+                        ? "Moderate risk - one area dominates; consider spreading out."
+                        : "Higher risk - concentration or volatility is high; worth reviewing."}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    What’s the biggest problem here?
+                    What's the biggest problem here?
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
                     {insight.biggestProblem ??
-                      "Nothing major — your mix looks reasonable for a long-term approach."}
+                      "Nothing major - your mix looks reasonable for a long-term approach."}
                   </p>
                 </div>
               </div>

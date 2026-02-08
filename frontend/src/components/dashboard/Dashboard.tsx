@@ -342,6 +342,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     entitlementUsage,
     weakestSkills,
     dailyGoalProgress,
+    resume,
   } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
@@ -577,28 +578,71 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               toggleAdminMode={toggleAdminMode}
             />
 
-            <QuestionnaireReminderBanner
-              hasPaid={hasPaid}
-              authReady={authInitialized}
-            />
+            {!isQuestionnaireCompleted && (
+              <QuestionnaireReminderBanner
+                hasPaid={hasPaid}
+                authReady={authInitialized}
+              />
+            )}
 
-            <div className="mb-4 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
-              Educational insights only. This dashboard does not provide
-              personalized financial advice or investment recommendations.{" "}
-              <a
-                href="/financial-disclaimer"
-                className="font-semibold text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
-              >
-                Financial Disclaimer
-              </a>{" "}
-              •{" "}
-              <a
-                href="/no-financial-advice"
-                className="font-semibold text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
-              >
-                No Financial Advice
-              </a>
-            </div>
+            {(isQuestionnaireCompleted ||
+              (questionnaireProgress as { status?: string } | null)?.status ===
+                "completed") &&
+              (resume ? (
+                <div className="mt-6 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl" aria-hidden="true">
+                        📖
+                      </span>
+                      <div>
+                        <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                          Pick up where you left off
+                        </p>
+                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          Continue with {resume.course_title}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleCourseClick(resume.course_id, resume.path_id ?? undefined)
+                      }
+                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                      aria-label="Continue lesson"
+                    >
+                      Continue lesson
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl" aria-hidden="true">
+                        📖
+                      </span>
+                      <div>
+                        <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                          Pick up where you left off
+                        </p>
+                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          Start your first lesson and we&apos;ll remember your place.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/all-topics")}
+                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                      aria-label="Browse topics"
+                    >
+                      Browse topics
+                    </button>
+                  </div>
+                </div>
+              ))}
 
             <DailyGoalCard
               dailyGoalProgress={dailyGoalProgress}

@@ -44,7 +44,7 @@ export default function ReviewsSection() {
                 ))}
               </div>
               <p className="mt-4 text-sm leading-relaxed text-white/80">
-                “{review.quote}”
+                "{review.quote}"
               </p>
               <div className="mt-6 border-t border-white/10 pt-4">
                 <p className="text-sm font-semibold text-white">

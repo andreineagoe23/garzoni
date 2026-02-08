@@ -240,7 +240,7 @@ const ToolView = ({
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
             <span className="font-semibold text-[color:var(--accent,#111827)]">
-              Who it’s for:
+              Who it's for:
             </span>{" "}
             {tool.whoItsFor}
           </div>

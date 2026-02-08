@@ -103,7 +103,7 @@ function FactCard({ fact, onMarkRead }) {
         </div>
       ) : (
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          No new financial facts available right now — check back soon!
+          No new financial facts available right now - check back soon!
         </p>
       )}
     </GlassCard>

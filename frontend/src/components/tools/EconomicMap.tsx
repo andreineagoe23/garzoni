@@ -61,7 +61,7 @@ const EconomicMap = () => {
         />
       </div>
       <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
-        Educational only — use as context, not a trading signal.
+        Educational only - use as context, not a trading signal.
       </p>
     </section>
   );

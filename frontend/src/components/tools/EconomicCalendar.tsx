@@ -176,7 +176,7 @@ const EconomicCalendar = () => {
           >
             TradingView
           </a>
-          . If it doesn’t load,{" "}
+          . If it doesn't load,{" "}
           <a
             href="https://www.tradingview.com/economic-calendar/"
             rel="noopener noreferrer"

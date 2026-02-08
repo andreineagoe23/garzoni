@@ -70,7 +70,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     retry: 1,
   });
 
-  // Progress bar: same pattern as CourseFlowPage — completed count / total (from answers count)
+  // Progress bar: same pattern as CourseFlowPage - completed count / total (from answers count)
   const totalQuestionsDisplay =
     (progress?.total_questions ?? nextQuestionData?.total_questions) || DEFAULT_TOTAL_QUESTIONS;
   const answersCount = progress?.answers ? Object.keys(progress.answers).length : 0;
@@ -107,7 +107,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     }
   }, [currentQuestion, progress]);
 
-  // Save answer mutation — update progress cache so bar updates (answers count drives progress)
+  // Save answer mutation - update progress cache so bar updates (answers count drives progress)
   const saveAnswerMutation = useMutation({
     mutationFn: saveAnswer,
     onSuccess: (updatedProgress: QuestionnaireProgress) => {
@@ -115,7 +115,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     },
   });
 
-  // Complete questionnaire mutation — redirect with window.location so it always works
+  // Complete questionnaire mutation - redirect with window.location so it always works
   const completeMutation = useMutation({
     mutationFn: completeQuestionnaire,
     onSuccess: (data) => {
