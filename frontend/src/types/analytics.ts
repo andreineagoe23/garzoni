@@ -6,6 +6,7 @@ export const ANALYTICS_EVENTS = [
   "webhook_received",
   "dashboard_view",
   "cta_click",
+  "upgrade_click",
   "weak_skill_click",
   "sort_change",
   "filter_change",

@@ -28,7 +28,7 @@ class OpenRouterPlanRateThrottle(UserRateThrottle):
         user = getattr(request, "user", None) if request else None
         if user and getattr(user, "is_authenticated", False):
             plan = get_user_plan(user)
-            if plan == "premium":
+            if plan in {"plus", "pro"}:
                 return getattr(settings, "OPENROUTER_THROTTLE_RATE_PREMIUM", "120/min")
             return getattr(settings, "OPENROUTER_THROTTLE_RATE_FREE", "30/min")
         # Shouldn't happen for OpenRouter (auth required) but keep safe.

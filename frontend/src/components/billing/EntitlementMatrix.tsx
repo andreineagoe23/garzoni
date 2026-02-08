@@ -3,21 +3,32 @@ import { GlassCard } from "components/ui";
 import { FEATURE_COPY } from "services/entitlementsService";
 
 const PLAN_DETAILS = {
-  free: {
-    daily_limits: "Limited",
-    hints: "Limited",
+  starter: {
+    daily_limits: "3 / day",
+    hints: "2 / day",
     streak_repair: "Not available",
-    downloads: "Not available",
+    downloads: "1 / day",
     analytics: "Not available",
-    ai_tutor: "Limited",
+    ai_tutor: "5 / day",
+    personalized_path: "Not included",
   },
-  premium: {
+  plus: {
     daily_limits: "Unlimited",
     hints: "Unlimited",
-    streak_repair: "Available",
-    downloads: "Available",
-    analytics: "Available",
-    ai_tutor: "Unlimited",
+    streak_repair: "1 / day",
+    downloads: "Unlimited",
+    analytics: "Included",
+    ai_tutor: "50 / day",
+    personalized_path: "Included",
+  },
+  pro: {
+    daily_limits: "Unlimited",
+    hints: "Unlimited",
+    streak_repair: "1 / day",
+    downloads: "Unlimited",
+    analytics: "Included",
+    ai_tutor: "200 / day",
+    personalized_path: "Included",
   },
 };
 
@@ -37,14 +48,16 @@ const FeatureRow = ({
   entitlements?: EntitlementsPayload;
 }) => {
   const feature = FEATURE_COPY[featureKey];
-  const freeValue = PLAN_DETAILS.free[featureKey as keyof typeof PLAN_DETAILS.free];
-  const premiumValue = PLAN_DETAILS.premium[featureKey as keyof typeof PLAN_DETAILS.premium];
+  const starterValue =
+    PLAN_DETAILS.starter[featureKey as keyof typeof PLAN_DETAILS.starter];
+  const plusValue = PLAN_DETAILS.plus[featureKey as keyof typeof PLAN_DETAILS.plus];
+  const proValue = PLAN_DETAILS.pro[featureKey as keyof typeof PLAN_DETAILS.pro];
   const isActivePlan = entitlements?.plan;
   const userFeature = entitlements?.features?.[featureKey];
   const featureLabel = feature;
 
   return (
-    <div className="grid grid-cols-3 items-center gap-4 rounded-2xl px-4 py-3 hover:bg-[color:var(--bg-color,#f8fafc)]/60">
+    <div className="grid grid-cols-4 items-center gap-4 rounded-2xl px-4 py-3 hover:bg-[color:var(--bg-color,#f8fafc)]/60">
       <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--border-color,#e5e7eb)] ${
@@ -58,27 +71,36 @@ const FeatureRow = ({
         <div>
           <div>{featureLabel}</div>
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            {userFeature?.description || premiumValue}
+            {userFeature?.description || plusValue}
           </p>
         </div>
       </div>
       <div
         className={`text-sm text-center ${
-          isActivePlan === "free"
+          isActivePlan === "starter"
             ? "font-semibold text-[color:var(--accent,#2563eb)]"
             : "text-[color:var(--muted-text,#6b7280)]"
         }`}
       >
-        {freeValue}
+        {starterValue}
       </div>
       <div
         className={`text-sm text-center ${
-          isActivePlan === "premium"
+          isActivePlan === "plus"
             ? "font-semibold text-[color:var(--accent,#2563eb)]"
             : "text-[color:var(--muted-text,#6b7280)]"
         }`}
       >
-        {premiumValue}
+        {plusValue}
+      </div>
+      <div
+        className={`text-sm text-center ${
+          isActivePlan === "pro"
+            ? "font-semibold text-[color:var(--accent,#2563eb)]"
+            : "text-[color:var(--muted-text,#6b7280)]"
+        }`}
+      >
+        {proValue}
       </div>
     </div>
   );
@@ -105,13 +127,16 @@ const EntitlementMatrix = ({
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-4 rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+      <div className="grid grid-cols-4 gap-4 rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
         <span>Capability</span>
         <span className="text-center">
-          Free
+          Starter
         </span>
         <span className="text-center">
-          Premium
+          Plus
+        </span>
+        <span className="text-center">
+          Pro
         </span>
       </div>
 

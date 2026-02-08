@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     null
   );
   const [entitlements, setEntitlements] = useState<Entitlements>({
-    plan: "free",
+    plan: "starter",
     label: null,
     entitled: false,
     status: null,
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setFinancialProfile(null);
     setSettings(null);
     setEntitlements({
-      plan: "free",
+      plan: "starter",
       label: null,
       entitled: false,
       status: null,
@@ -599,8 +599,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadEntitlements = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
       if (!isAuthenticated) {
-        const fallbackEntitlements = {
-          plan: "free",
+      const fallbackEntitlements = {
+          plan: "starter",
           label: null,
           entitled: false,
           status: null,
@@ -640,7 +640,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription?: { status?: string; trial_end?: string };
         };
         const normalized: Entitlements = {
-          plan: dataObj?.plan || "free",
+          plan: dataObj?.plan || "starter",
           label: dataObj?.label || null,
           entitled: Boolean(dataObj?.entitled),
           status:
@@ -666,7 +666,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return normalized;
       } catch (error) {
         const fallbackEntitlements: Entitlements = {
-          plan: "free",
+          plan: "starter",
           label: null,
           entitled: false,
           status: null,
@@ -758,7 +758,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!isAuthenticated) {
       setEntitlements({
-        plan: "free",
+        plan: "starter",
         label: null,
         entitled: false,
         status: null,

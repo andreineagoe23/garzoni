@@ -10,7 +10,7 @@ def normalize_text_encoding(text: str | None) -> str | None:
     """Fix common mojibake from UTF-8 being misinterpreted as Latin-1/Windows-1252.
 
     Use when returning user-facing strings from DB or external sources so apostrophes
-    and quotes display correctly (e.g. ' won't ' instead of ' wonâ€™t ').
+    and quotes display correctly (e.g. "won't" instead of mojibake).
     """
     if text is None or not isinstance(text, str):
         return text
@@ -24,6 +24,7 @@ def normalize_text_encoding(text: str | None) -> str | None:
         ("\u00e2\u20ac\u2122", "'"),  # mojibake for U+2019 (e.g. won't)
         ("\u00e2\u20ac\u0153", '"'),  # mojibake for left double quote
         ("\u00e2\u20ac\u201d", '"'),  # mojibake for right double quote
+        ("\u00c2\u00a3", "\u00a3"),  # Â£ (UTF-8 £ read as Latin-1) -> £
     ]
     out = text
     for old, new in replacements:

@@ -41,12 +41,47 @@ from education.serializers import (
     ExerciseSerializer,
 )
 from education.permissions import IsStaffOrSuperuser
-from education.utils import log_admin_action
+from education.utils import log_admin_action, resolve_path_access_tier
 from authentication.models import UserProfile
+from authentication.entitlements import allowed_plan_tiers, get_user_plan, plan_allows
 from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
 
 logger = logging.getLogger(__name__)
+
+
+def _user_is_staff(user) -> bool:
+    return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+
+
+def _allowed_path_ids(user):
+    if _user_is_staff(user):
+        return Path.objects.values_list("id", flat=True)
+    plan = get_user_plan(user)
+    allowed_tiers = allowed_plan_tiers(plan)
+    return [
+        path.id
+        for path in Path.objects.all().only("id", "title", "access_tier")
+        if resolve_path_access_tier(path) in allowed_tiers
+    ]
+
+
+def _user_can_access_path(user, path: Path) -> bool:
+    if _user_is_staff(user):
+        return True
+    plan = get_user_plan(user)
+    return plan_allows(plan, resolve_path_access_tier(path))
+
+
+def _path_access_denied_response(path: Path):
+    return Response(
+        {
+            "error": "Upgrade required to access this learning path.",
+            "required_plan": path.access_tier,
+        },
+        status=403,
+    )
+
 
 # Fields to load for Exercise when DB may lack version/is_published (use .only() to avoid selecting them)
 EXERCISE_SAFE_FIELDS = [
@@ -85,10 +120,29 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter courses by path if path_id is provided."""
         queryset = Course.objects.all()
+        if not _user_is_staff(self.request.user):
+            queryset = queryset.filter(path_id__in=_allowed_path_ids(self.request.user))
         path_id = self.request.query_params.get("path", None)
         if path_id:
             queryset = queryset.filter(path_id=path_id)
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        path_id = request.query_params.get("path")
+        if path_id:
+            path = Path.objects.filter(id=path_id).first()
+            if path and not _user_can_access_path(request.user, path):
+                return _path_access_denied_response(path)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = Course.objects.select_related("path").filter(pk=kwargs.get("pk")).first()
+        if not instance:
+            return Response({"error": "Course not found."}, status=404)
+        if instance.path and not _user_can_access_path(request.user, instance.path):
+            return _path_access_denied_response(instance.path)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class LessonViewSet(viewsets.ModelViewSet):
@@ -116,6 +170,12 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permissions]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if _user_is_staff(self.request.user):
+            return queryset
+        return queryset.filter(course__path_id__in=_allowed_path_ids(self.request.user))
+
     @action(detail=True, methods=["post"])
     def complete_section(self, request, pk=None):
         """Mark a specific section of a lesson as completed."""
@@ -142,6 +202,12 @@ class LessonViewSet(viewsets.ModelViewSet):
         course_id = request.query_params.get("course", None)
         if not course_id:
             return Response({"error": "Course ID is required."}, status=400)
+        try:
+            course = Course.objects.select_related("path").get(id=course_id)
+        except Course.DoesNotExist:
+            return Response({"error": "Course not found."}, status=404)
+        if course.path and not _user_can_access_path(request.user, course.path):
+            return _path_access_denied_response(course.path)
 
         include_unpublished = request.query_params.get("include_unpublished") == "true" and (
             request.user.is_staff or request.user.is_superuser
@@ -310,6 +376,9 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         try:
             lesson = Lesson.objects.get(id=lesson_id)
+            if lesson.course and lesson.course.path:
+                if not _user_can_access_path(user, lesson.course.path):
+                    return _path_access_denied_response(lesson.course.path)
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, course=lesson.course
             )
@@ -350,6 +419,17 @@ class QuizViewSet(viewsets.ModelViewSet):
         quizzes = Quiz.objects.filter(course_id=course_id)
         return quizzes
 
+    def list(self, request, *args, **kwargs):
+        course_id = request.query_params.get("course")
+        if not course_id:
+            return Response([], status=status.HTTP_200_OK)
+        course = Course.objects.select_related("path").filter(id=course_id).first()
+        if not course:
+            return Response({"error": "Course not found."}, status=404)
+        if course.path and not _user_can_access_path(request.user, course.path):
+            return _path_access_denied_response(course.path)
+        return super().list(request, *args, **kwargs)
+
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
         """Mark a quiz as completed and reward the user if the answer is correct."""
@@ -358,6 +438,9 @@ class QuizViewSet(viewsets.ModelViewSet):
 
         try:
             quiz = Quiz.objects.get(id=quiz_id)
+            if quiz.course and quiz.course.path:
+                if not _user_can_access_path(request.user, quiz.course.path):
+                    return _path_access_denied_response(quiz.course.path)
             if quiz.correct_answer == selected_answer:
                 QuizCompletion.objects.get_or_create(user=request.user, quiz=quiz)
 
@@ -407,6 +490,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         try:
             lesson = Lesson.objects.get(id=lesson_id)
             course = lesson.course
+            if course and course.path:
+                if not _user_can_access_path(request.user, course.path):
+                    return _path_access_denied_response(course.path)
             user_profile = request.user.profile
             user_progress, created = UserProgress.objects.get_or_create(
                 user=request.user, course=course
@@ -536,6 +622,26 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 "path_id": last_flow.course.path_id,
             }
 
+        # Start here: first course of first path the user can access (for "Browse topics" with no resume)
+        start_here = None
+        allowed_ids = list(_allowed_path_ids(user))
+        if allowed_ids:
+            first_path = (
+                Path.objects.filter(id__in=allowed_ids)
+                .order_by("sort_order", "id")
+                .values_list("id", flat=True)
+                .first()
+            )
+            if first_path:
+                first_course = (
+                    Course.objects.filter(path_id=first_path)
+                    .order_by("order", "id")
+                    .values_list("id", flat=True)
+                    .first()
+                )
+                if first_course:
+                    start_here = {"path_id": first_path, "course_id": first_course}
+
         return Response(
             {
                 "overall_progress": (
@@ -545,6 +651,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 ),
                 "paths": progress_data,
                 "resume": resume,
+                "start_here": start_here,
             }
         )
 
@@ -557,6 +664,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             section = LessonSection.objects.get(id=section_id)
             if not section.is_published and not (user.is_staff or user.is_superuser):
                 return Response({"error": "Section not available."}, status=403)
+            if section.lesson and section.lesson.course and section.lesson.course.path:
+                if not _user_can_access_path(user, section.lesson.course.path):
+                    return _path_access_denied_response(section.lesson.course.path)
             progress, _ = UserProgress.objects.get_or_create(
                 user=user, course=section.lesson.course
             )
@@ -589,6 +699,12 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 {"error": "course must be an integer"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        course = Course.objects.select_related("path").filter(id=course_id).first()
+        if not course:
+            return Response({"error": "Course not found."}, status=404)
+        if course.path and not _user_can_access_path(request.user, course.path):
+            return _path_access_denied_response(course.path)
 
         progress, _ = UserProgress.objects.get_or_create(user=request.user, course_id=course_id)
 
@@ -1058,6 +1174,7 @@ class PersonalizedPathView(APIView):
         """Retrieve personalized course recommendations for the user."""
         try:
             user_profile = UserProfile.objects.get(user=request.user)
+            plan = get_user_plan(request.user)
 
             if not self._has_completed_questionnaire(request.user):
                 return Response(
@@ -1068,7 +1185,7 @@ class PersonalizedPathView(APIView):
                     status=400,
                 )
 
-            if not user_profile.has_paid:
+            if not plan_allows(plan, "plus"):
                 return Response(
                     {
                         "error": "Payment required for personalized path",
@@ -1078,11 +1195,14 @@ class PersonalizedPathView(APIView):
                 )
 
             # Generate recommendations if not already present
+            allowed_path_ids = _allowed_path_ids(request.user)
             if not user_profile.recommended_courses:
-                self.generate_recommendations(user_profile)
+                self.generate_recommendations(user_profile, request.user, allowed_path_ids)
 
+            # Only return courses from paths the user can access (Plus: starter + plus; Pro: all)
             recommended_courses = Course.objects.filter(
-                id__in=user_profile.recommended_courses
+                id__in=user_profile.recommended_courses,
+                path_id__in=allowed_path_ids,
             ).order_by("order")
 
             serializer = CourseSerializer(
@@ -1108,20 +1228,24 @@ class PersonalizedPathView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def generate_recommendations(self, user_profile):
-        """Generate personalized course recommendations based on onboarding answers."""
+    def generate_recommendations(self, user_profile, user, allowed_path_ids):
+        """Generate personalized course recommendations based on onboarding answers.
+        Only includes courses from paths the user can access (plan-based).
+        """
         answers = self._get_onboarding_answers(user_profile.user)
         if answers:
             path_weights = self.calculate_onboarding_path_weights(answers)
-            sorted_paths = self.get_sorted_paths(path_weights)
-            recommended_courses = self.get_recommended_courses(sorted_paths)
+            sorted_paths = self.get_sorted_paths(path_weights, allowed_path_ids)
+            recommended_courses = self.get_recommended_courses(sorted_paths, allowed_path_ids)
         else:
             responses = UserResponse.objects.filter(user=user_profile.user)
             path_weights = self.calculate_path_weights(responses)
             sorted_paths = [
                 name for name, _ in sorted(path_weights.items(), key=lambda x: x[1], reverse=True)
             ]
-            recommended_courses = self.get_recommended_courses_by_name(sorted_paths)
+            recommended_courses = self.get_recommended_courses_by_name(
+                sorted_paths, allowed_path_ids
+            )
 
         user_profile.recommended_courses = [c.id for c in recommended_courses]
         user_profile.save()
@@ -1173,8 +1297,8 @@ class PersonalizedPathView(APIView):
 
         return weights
 
-    def get_sorted_paths(self, weights):
-        """Sort Path objects by keyword weights (falls back to title)."""
+    def get_sorted_paths(self, weights, allowed_path_ids):
+        """Sort Path objects by keyword weights (only paths the user can access)."""
         keyword_map = {
             "budget": ["budget", "budgeting", "spending", "cash"],
             "debt": ["debt", "credit"],
@@ -1182,7 +1306,7 @@ class PersonalizedPathView(APIView):
             "invest": ["invest", "investing", "stocks", "portfolio"],
         }
 
-        paths = list(Path.objects.all())
+        paths = list(Path.objects.filter(id__in=allowed_path_ids))
         scored = []
         for path in paths:
             title = (path.title or "").lower()
@@ -1282,8 +1406,8 @@ class PersonalizedPathView(APIView):
         except Exception as e:
             logger.error(f"Budget handling error: {str(e)}")
 
-    def get_recommended_courses(self, sorted_paths):
-        """Retrieve recommended courses based on ordered Path objects."""
+    def get_recommended_courses(self, sorted_paths, allowed_path_ids):
+        """Retrieve recommended courses based on ordered Path objects (only from allowed paths)."""
         recommended_courses = []
         try:
             for path in sorted_paths[:3]:
@@ -1292,7 +1416,7 @@ class PersonalizedPathView(APIView):
 
             if len(recommended_courses) < 10:
                 additional = (
-                    Course.objects.filter(is_active=True)
+                    Course.objects.filter(is_active=True, path_id__in=allowed_path_ids)
                     .exclude(id__in=[c.id for c in recommended_courses])
                     .order_by("order", "id")[: 10 - len(recommended_courses)]
                 )
@@ -1302,21 +1426,27 @@ class PersonalizedPathView(APIView):
 
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
-            return Course.objects.filter(is_active=True).order_by("?")[:10]
+            return list(
+                Course.objects.filter(is_active=True, path_id__in=allowed_path_ids).order_by("?")[
+                    :10
+                ]
+            )
 
-    def get_recommended_courses_by_name(self, sorted_paths):
-        """Legacy fallback: path titles to courses."""
+    def get_recommended_courses_by_name(self, sorted_paths, allowed_path_ids):
+        """Legacy fallback: path titles to courses (only from allowed paths)."""
         recommended_courses = []
         try:
             for path_name in sorted_paths[:3]:
                 courses = Course.objects.filter(
-                    path__title__iexact=path_name, is_active=True
+                    path__title__iexact=path_name,
+                    path_id__in=allowed_path_ids,
+                    is_active=True,
                 ).order_by("order")[:2]
                 recommended_courses.extend(courses)
 
             if len(recommended_courses) < 10:
                 additional = (
-                    Course.objects.filter(is_active=True)
+                    Course.objects.filter(is_active=True, path_id__in=allowed_path_ids)
                     .exclude(id__in=[c.id for c in recommended_courses])
                     .order_by("order", "id")[: 10 - len(recommended_courses)]
                 )
@@ -1326,7 +1456,11 @@ class PersonalizedPathView(APIView):
 
         except Exception as e:
             logger.error(f"Course fetch error: {str(e)}")
-            return Course.objects.filter(is_active=True).order_by("?")[:10]
+            return list(
+                Course.objects.filter(is_active=True, path_id__in=allowed_path_ids).order_by("?")[
+                    :10
+                ]
+            )
 
     def _has_completed_questionnaire(self, user):
         """Check whether the user has completed onboarding."""

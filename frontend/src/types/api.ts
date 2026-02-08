@@ -18,6 +18,7 @@ export type UserProfile = {
   is_questionnaire_completed?: boolean;
   is_staff?: boolean;
   is_superuser?: boolean;
+  subscription_plan_id?: string | null;
   user_data?: Record<string, unknown>;
   financial_profile?: FinancialProfile;
   profile_avatar?: string;
@@ -96,4 +97,6 @@ export type ProgressSummary = {
     flow_current_index: number;
     path_id?: number | null;
   } | null;
+  /** First course of first accessible path (for "Browse topics" when no resume) */
+  start_here?: { path_id: number; course_id: number } | null;
 };
