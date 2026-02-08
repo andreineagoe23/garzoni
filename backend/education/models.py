@@ -11,9 +11,22 @@ class Path(models.Model):
     It includes a title, description, and an optional image to visually represent the path.
     """
 
+    ACCESS_TIER_CHOICES = [
+        ("starter", "Starter"),
+        ("plus", "Plus"),
+        ("pro", "Pro"),
+    ]
+
     title = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to="path_images/", blank=True, null=True)
+    access_tier = models.CharField(
+        max_length=16,
+        choices=ACCESS_TIER_CHOICES,
+        default="starter",
+        help_text="Minimum subscription tier required to access this path.",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -22,6 +35,7 @@ class Path(models.Model):
         verbose_name = "Path"
         verbose_name_plural = "Paths"
         db_table = "core_path"
+        ordering = ["sort_order", "id"]
 
 
 class Course(models.Model):

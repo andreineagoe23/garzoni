@@ -24,10 +24,21 @@ FEATURE_FLAGS = {
     "personalized_path": "feature.learning.personalized_path",
 }
 
+PLAN_ORDER = {
+    "starter": 0,
+    "plus": 1,
+    "pro": 2,
+}
+
+PLAN_ALIASES = {
+    "free": "starter",
+    "premium": "plus",
+}
+
 
 PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
-    "free": {
-        "label": "Free",
+    "starter": {
+        "label": "Starter",
         "features": {
             "daily_limits": {
                 "enabled": True,
@@ -42,7 +53,7 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
             "streak_repair": {
                 "enabled": False,
                 "daily_quota": 0,
-                "description": "Streak repairs are premium only",
+                "description": "Streak repairs are Plus/Pro only",
             },
             "downloads": {
                 "enabled": True,
@@ -51,7 +62,7 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
             },
             "analytics": {
                 "enabled": False,
-                "description": "Advanced analytics locked to premium",
+                "description": "Advanced analytics locked to Plus/Pro",
             },
             "ai_tutor": {
                 "enabled": True,
@@ -65,8 +76,8 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
             },
         },
     },
-    "premium": {
-        "label": "Premium",
+    "plus": {
+        "label": "Plus",
         "features": {
             "daily_limits": {
                 "enabled": True,
@@ -105,6 +116,46 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
             },
         },
     },
+    "pro": {
+        "label": "Pro",
+        "features": {
+            "daily_limits": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Unlimited learning actions per day",
+            },
+            "hints": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Unlimited lesson and quiz hints",
+            },
+            "streak_repair": {
+                "enabled": True,
+                "daily_quota": 1,
+                "description": "One streak repair token per day",
+            },
+            "downloads": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Unlimited certificate/share downloads",
+            },
+            "analytics": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Full analytics and insights",
+            },
+            "ai_tutor": {
+                "enabled": True,
+                "daily_quota": 200,
+                "description": "200 AI tutor prompts per day",
+            },
+            "personalized_path": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Personalized learning path based on your goals",
+            },
+        },
+    },
 }
 
 PLAN_CATALOG = [
@@ -116,7 +167,7 @@ PLAN_CATALOG = [
         "currency": "USD",
         "trial_days": 0,
         "sort_order": 1,
-        "entitlements_plan": "free",
+        "entitlements_plan": "starter",
         "stripe_price_setting": "STRIPE_PRICE_STARTER_MONTHLY",
         "feature_overrides": {},
     },
@@ -128,7 +179,7 @@ PLAN_CATALOG = [
         "currency": "USD",
         "trial_days": 7,
         "sort_order": 2,
-        "entitlements_plan": "premium",
+        "entitlements_plan": "plus",
         "stripe_price_setting": "STRIPE_PRICE_PLUS_MONTHLY",
         "feature_overrides": {},
     },
@@ -140,7 +191,7 @@ PLAN_CATALOG = [
         "currency": "USD",
         "trial_days": 7,
         "sort_order": 3,
-        "entitlements_plan": "premium",
+        "entitlements_plan": "pro",
         "stripe_price_setting": "STRIPE_PRICE_PRO_MONTHLY",
         "feature_overrides": {
             "ai_tutor": {"daily_quota": 200},
@@ -158,9 +209,9 @@ def _get_usage(user_id: int, feature: str) -> int:
     return cache.get(_usage_cache_key(user_id, feature), 0)
 
 
-def _increment_usage(user_id: int, feature: str) -> int:
+def _increment_usage(user_id: int, feature: str, amount: int = 1) -> int:
     key = _usage_cache_key(user_id, feature)
-    current_count = cache.get(key, 0) + 1
+    current_count = cache.get(key, 0) + max(int(amount), 1)
     # Cache until end of the day
     midnight = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     cache_ttl = max(int((midnight - timezone.now()).total_seconds()), 60)
@@ -168,13 +219,44 @@ def _increment_usage(user_id: int, feature: str) -> int:
     return current_count
 
 
+def normalize_plan_id(plan_id: Optional[str]) -> str:
+    if not plan_id:
+        return "starter"
+    plan = str(plan_id).strip().lower()
+    return PLAN_ALIASES.get(plan, plan)
+
+
+def plan_rank(plan_id: Optional[str]) -> int:
+    return PLAN_ORDER.get(normalize_plan_id(plan_id), 0)
+
+
+def plan_allows(user_plan: Optional[str], required_plan: Optional[str]) -> bool:
+    return plan_rank(user_plan) >= plan_rank(required_plan)
+
+
+def allowed_plan_tiers(user_plan: Optional[str]) -> list:
+    rank = plan_rank(user_plan)
+    return [plan for plan, value in PLAN_ORDER.items() if value <= rank]
+
+
 def get_user_plan(user) -> str:
     try:
-        if hasattr(user, "profile") and user.profile.has_paid:
-            return "premium"
+        profile = getattr(user, "profile", None)
+        if not profile:
+            return "starter"
+        raw_plan = getattr(profile, "subscription_plan_id", None)
+        if not raw_plan:
+            raw_plan = getattr(profile, "subscription_plan", None)
+            if raw_plan and not isinstance(raw_plan, str):
+                raw_plan = getattr(raw_plan, "plan_id", None)
+        plan = normalize_plan_id(raw_plan)
+        if plan in PLAN_ORDER:
+            return plan
+        if getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False):
+            return "plus"
     except Exception:
         pass
-    return "free"
+    return "starter"
 
 
 def _build_feature_state(plan: str, feature: str, config: Dict) -> FeatureState:
@@ -198,7 +280,7 @@ def _feature_usage(user_id: int, feature: str, daily_quota: Optional[int]) -> Di
 
 def get_entitlements_for_user(user) -> Dict:
     plan = get_user_plan(user)
-    plan_config = PLAN_MATRIX.get(plan, PLAN_MATRIX["free"])
+    plan_config = PLAN_MATRIX.get(plan, PLAN_MATRIX["starter"])
     features = {}
 
     for feature_key, config in plan_config.get("features", {}).items():
@@ -224,7 +306,7 @@ def get_plan_catalog(settings) -> Dict[str, list]:
     plans = []
     for plan in PLAN_CATALOG:
         plan_key = plan["entitlements_plan"]
-        plan_config = PLAN_MATRIX.get(plan_key, PLAN_MATRIX["free"])
+        plan_config = PLAN_MATRIX.get(plan_key, PLAN_MATRIX["starter"])
         features = {}
         for feature_key, config in plan_config.get("features", {}).items():
             overrides = plan.get("feature_overrides", {}).get(feature_key, {})
@@ -256,7 +338,7 @@ def get_plan_catalog(settings) -> Dict[str, list]:
     return {"plans": plans}
 
 
-def check_and_consume_entitlement(user, feature: str) -> Tuple[bool, Dict]:
+def check_and_consume_entitlement(user, feature: str, amount: int = 1) -> Tuple[bool, Dict]:
     entitlements = get_entitlements_for_user(user)
     feature_state = entitlements["features"].get(feature)
 
@@ -277,7 +359,7 @@ def check_and_consume_entitlement(user, feature: str) -> Tuple[bool, Dict]:
         }
 
     used_today = _get_usage(user.id, feature)
-    if used_today >= daily_quota:
+    if used_today + max(int(amount), 1) > daily_quota:
         return False, {
             "error": "You have reached today's limit for this feature.",
             "flag": feature_state.get("flag"),
@@ -285,9 +367,9 @@ def check_and_consume_entitlement(user, feature: str) -> Tuple[bool, Dict]:
             "reason": "limit",
         }
 
-    _increment_usage(user.id, feature)
+    _increment_usage(user.id, feature, amount)
     return True, {
-        "remaining_today": max(daily_quota - used_today - 1, 0),
+        "remaining_today": max(daily_quota - used_today - max(int(amount), 1), 0),
         "flag": feature_state.get("flag"),
         "reason": "ok",
     }

@@ -1,6 +1,7 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
 import CourseList from "./CourseList";
@@ -22,23 +23,26 @@ type LearningPathCoursesResponse = {
 function CoursePage() {
   const { pathId } = useParams();
   const { getAccessToken } = useAuth();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const { data, isLoading, error } = useQuery<
-    LearningPathCoursesResponse,
-    Error
-  >({
+  const { data, isLoading, error } = useQuery<LearningPathCoursesResponse, unknown>({
     queryKey: queryKeys.learningPathCourses(Number(pathId)),
     queryFn: () => fetchLearningPathCourses(pathId ?? ""),
     staleTime: staleTimes.content,
     enabled: Boolean(pathId),
   });
 
-  const errorMessage =
-    error instanceof Error
+  const accessDenied =
+    axios.isAxiosError(error) && error.response?.status === 403;
+  const requiredPlan =
+    axios.isAxiosError(error) ? error.response?.data?.required_plan : null;
+  const errorMessage = accessDenied
+    ? `Upgrade to ${requiredPlan === "pro" ? "Pro" : "Plus"} to access this path.`
+    : error instanceof Error
       ? error.message
       : "We couldn't load the courses for this path. Please try again.";
 
@@ -74,7 +78,18 @@ function CoursePage() {
           padding="md"
           className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
         >
-          {errorMessage}
+          <div className="flex flex-col gap-3">
+            <div>{errorMessage}</div>
+            {accessDenied && (
+              <button
+                type="button"
+                className="w-fit rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:shadow-lg"
+                onClick={() => navigate("/subscriptions")}
+              >
+                Upgrade
+              </button>
+            )}
+          </div>
         </GlassCard>
       ) : (
         <CourseList courses={data?.data || []} />

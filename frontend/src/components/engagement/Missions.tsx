@@ -65,7 +65,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
                   : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--muted-text,#6b7280)]"
               }`}
             >
-              £{amount}
+              {"\u00A3"}{amount}
               <span className="coin-label mt-1 text-xs font-medium">
                 {unlocked ? "Unlocked" : "Locked"}
               </span>
@@ -75,7 +75,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
       </div>
       {balance < target && (
         <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#2563eb)]">
-          Save £{coinUnit - (balance % coinUnit)} more to unlock the next coin!
+          Save {"\u00A3"}{coinUnit - (balance % coinUnit)} more to unlock the next coin!
         </div>
       )}
     </GlassCard>
@@ -660,8 +660,8 @@ function Missions() {
                           }
                           placeholder={
                             isDaily
-                              ? "Enter amount (e.g., £1)"
-                              : "Enter amount (e.g., £10)"
+                              ? "Enter amount (e.g., \u00A31)"
+                              : "Enter amount (e.g., \u00A310)"
                           }
                           className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                           disabled={isDaily && isCompleted}
@@ -743,8 +743,7 @@ function Missions() {
               )}
               {adaptiveSuggestions && (
                 <p className="mt-2 text-xs text-[color:var(--accent,#2563eb)]">
-                  💡 Suggested savings target: £
-                  {adaptiveSuggestions.suggestedSavingsTarget}
+                  💡 Suggested savings target: {"\u00A3"}{adaptiveSuggestions.suggestedSavingsTarget}
                   (based on your {adaptiveSuggestions.level} level)
                 </p>
               )}

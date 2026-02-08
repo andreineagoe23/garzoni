@@ -11,6 +11,7 @@ import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import EntitlementUsage from "components/dashboard/EntitlementUsage";
 import { BACKEND_URL } from "services/backendUrl";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
@@ -71,7 +72,7 @@ function Profile() {
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [isLgUp, setIsLgUp] = useState(false);
 
-  const { getAccessToken, loadProfile, isAuthenticated, isInitialized } =
+  const { getAccessToken, loadProfile, isAuthenticated, isInitialized, entitlements } =
     useAuth();
   const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
@@ -330,6 +331,27 @@ function Profile() {
     ? filteredBadges
     : filteredBadges.slice(0, visibleBadgeLimit);
 
+  const entitlementUsage = useMemo(() => {
+    const features = entitlements?.features || {};
+    return Object.values(features)
+      .map(
+        (feature: {
+          flag?: string;
+          name?: string;
+          enabled?: boolean;
+          used_today?: number;
+          remaining_today?: number;
+        }) => ({
+          key: feature.flag || feature.name,
+          name: feature.name,
+          enabled: feature.enabled,
+          used: feature.used_today,
+          remaining: feature.remaining_today,
+        })
+      )
+      .filter((feature) => feature.name && feature.enabled !== false);
+  }, [entitlements?.features]);
+
   if (isLoading) {
     return (
       <PageContainer maxWidth="5xl" layout="centered">
@@ -441,6 +463,10 @@ function Profile() {
               );
             })}
           </div>
+        </section>
+
+        <section className="space-y-4">
+          <EntitlementUsage entitlementUsage={entitlementUsage} />
         </section>
 
         <section className="space-y-6">

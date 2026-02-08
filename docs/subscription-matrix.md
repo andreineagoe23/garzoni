@@ -2,14 +2,15 @@
 
 ## Plan comparison
 
-| Capability | Free | Premium |
-| --- | --- | --- |
-| Daily learning limit | 3 core actions/day | Unlimited |
-| Hints | 2 lesson/quiz hints/day | Unlimited |
-| Streak repair | Locked | 1 repair/day |
-| Downloads | 1 certificate/share download/day | Unlimited |
-| Analytics & insights | Locked | Full access |
-| AI tutor quota | 5 prompts/day | 50 prompts/day |
+| Capability | Starter | Plus | Pro |
+| --- | --- | --- | --- |
+| Daily learning limit | 3 core actions/day | Unlimited | Unlimited |
+| Hints | 2 lesson/quiz hints/day | Unlimited | Unlimited |
+| Streak repair | Locked | 1 repair/day | 1 repair/day |
+| Downloads | 1 certificate/share download/day | Unlimited | Unlimited |
+| Analytics & insights | Locked | Full access | Full access |
+| AI tutor quota | 5 prompts/day | 50 prompts/day | 200 prompts/day |
+| Personalized path | Locked | Included | Included |
 
 ## Feature flag and permission mapping
 
@@ -21,6 +22,7 @@
 | Downloads | `feature.resources.downloads` | `/api/entitlements/consume/` | Rewards share CTA (lock/limit) |
 | Analytics & insights | `feature.analytics.access` | `/api/entitlements/` response | `EntitlementMatrix` highlights lock state |
 | AI tutor quota | `feature.ai.tutor` | `/api/proxy/openrouter/` + `/api/entitlements/consume/` | Chatbot send action (lock/limit + upsell) |
+| Personalized path | `feature.learning.personalized_path` | `/api/personalized-path/` | Personalized path CTA (lock + upsell) |
 
 ## Enforcement notes
 

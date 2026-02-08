@@ -17,6 +17,8 @@ type LearningPath = {
   title?: string;
   description?: string;
   courses?: LearningPathCourse[];
+  access_tier?: string;
+  is_locked?: boolean;
 };
 
 function getLessonCount(course: LearningPathCourse) {
@@ -54,6 +56,7 @@ function LearningPathList({
     <div className="space-y-10">
       {learningPaths.map((path) => {
         const courses = Array.isArray(path.courses) ? path.courses : [];
+        const isLocked = Boolean(path.is_locked);
         return (
           <GlassCard key={path.id} padding="lg" className="group space-y-5">
             <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
@@ -68,7 +71,6 @@ function LearningPathList({
                   </p>
                 )}
               </header>
-
               <div className="space-y-4">
                 {courses.length === 0 && (
                   <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -82,16 +84,20 @@ function LearningPathList({
                     <GlassCard
                       key={course.id}
                       padding="none"
-                      className="group flex cursor-pointer flex-col overflow-hidden transition hover:-translate-y-1"
-                      onClick={() =>
-                        onCourseClick?.(Number(course.id), Number(path.id))
-                      }
+                      className={`group flex flex-col overflow-hidden transition ${
+                        isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:-translate-y-1"
+                      }`}
+                      onClick={() => {
+                        if (isLocked) return;
+                        onCourseClick?.(Number(course.id), Number(path.id));
+                      }}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter")
+                        if (event.key === "Enter" && !isLocked)
                           onCourseClick?.(Number(course.id), Number(path.id));
                       }}
                       role="button"
-                      tabIndex={0}
+                      tabIndex={isLocked ? -1 : 0}
+                      aria-disabled={isLocked}
                     >
                       {showCourseImages && course.image && (
                         <div className="relative h-40 w-full overflow-hidden">

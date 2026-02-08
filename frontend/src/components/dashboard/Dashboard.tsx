@@ -29,7 +29,6 @@ import { usePreferences } from "hooks/usePreferences";
 import DashboardHeader from "./DashboardHeader";
 import DailyGoalCard from "./DailyGoalCard";
 import StatusSummary from "./StatusSummary";
-import EntitlementUsage from "./EntitlementUsage";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
@@ -242,7 +241,23 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     (profilePayload as UserProfile)?.has_paid ||
     (profilePayload as UserProfile)?.user_data?.has_paid
   );
-  const hasPaid = hasPaidProfile || Boolean(entitlements?.entitled);
+  const profilePlanId =
+    (profile as UserProfile)?.subscription_plan_id ||
+    (profile as UserProfile)?.user_data?.subscription_plan_id ||
+    (profilePayload as UserProfile)?.subscription_plan_id ||
+    (profilePayload as UserProfile)?.user_data?.subscription_plan_id ||
+    null;
+  const resolvedPlan: string =
+    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ||
+    (typeof profilePlanId === "string" ? profilePlanId : null) ||
+    (hasPaidProfile ? "plus" : "starter");
+  const planRank = (plan?: string | null) => {
+    if (plan === "plus") return 1;
+    if (plan === "pro") return 2;
+    return 0;
+  };
+  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+  const hasPaid = hasPlusAccess;
 
   const isQuestionnaireCompleted = Boolean(
     (profile as UserProfile)?.is_questionnaire_completed ||
@@ -280,7 +295,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   // away when landing on /all-topics (e.g. after login or subscription).
   useEffect(() => {
     if (!authInitialized) return;
-    if (hasPaid) return;
+    if (hasPlusAccess) return;
     // Wait until we have a settled fetch (not loading, not refetching after invalidation)
     if (!isQuestionnaireProgressFetched || isQuestionnaireProgressLoading || isQuestionnaireProgressFetching)
       return;
@@ -291,7 +306,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     navigate("/onboarding", { replace: true });
   }, [
     authInitialized,
-    hasPaid,
+    hasPlusAccess,
     isQuestionnaireProgressFetched,
     isQuestionnaireProgressLoading,
     isQuestionnaireProgressFetching,
@@ -311,7 +326,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const handlePersonalizedPathClick = () => {
     // Paid users can go straight to personalized path even if questionnaire flag is stale
-    if (hasPaid) {
+    if (hasPlusAccess) {
       startTransition(() => setActivePage("personalized-path"));
       navigate("/personalized-path");
       return;
@@ -322,7 +337,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       return;
     }
 
-    if (!hasPaid) {
+    if (!hasPlusAccess) {
       navigate("/subscriptions", { state: { from: location.pathname } });
       return;
     }
@@ -339,10 +354,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     overallProgress,
     reviewsDue,
     activeMissions,
-    entitlementUsage,
     weakestSkills,
     dailyGoalProgress,
     resume,
+    startHere,
   } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
@@ -634,7 +649,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     </div>
                     <button
                       type="button"
-                      onClick={() => navigate("/all-topics")}
+                      onClick={() => {
+                        if (startHere?.path_id != null && startHere?.course_id != null) {
+                          navigate(`/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`);
+                        } else {
+                          navigate("/all-topics");
+                        }
+                      }}
                       className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                       aria-label="Browse topics"
                     >
@@ -663,7 +684,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               locale={locale}
             />
 
-            <EntitlementUsage entitlementUsage={entitlementUsage} />
 
             <PrimaryCTA primaryCTA={primaryCTA} />
 
@@ -671,6 +691,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               show={preferences.showWeakSkills}
               masteryError={masteryError}
               weakestSkills={weakSkillItems}
+              hasAnyMasteryData={(masteryData?.masteries?.length ?? 0) > 0}
               refetchMastery={refetchMastery}
               locale={locale}
               prefersReducedMotion={prefersReducedMotion.current}

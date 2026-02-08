@@ -18,9 +18,7 @@ class UserProfileView(generics.GenericAPIView):
 
     def get(self, request):
         """Retrieve and return the user's profile data."""
-        user_profile = UserProfile.objects.select_related("user", "subscription_plan").get(
-            user=request.user
-        )
+        user_profile = UserProfile.objects.select_related("user").get(user=request.user)
         payload = build_profile_payload(request.user, user_profile)
         return Response(payload)
 

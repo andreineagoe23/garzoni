@@ -55,7 +55,7 @@ export const useDashboardSummary = ({
           remaining: feature.remaining_today,
         })
       )
-      .filter((feature) => feature.name);
+      .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
 
   const weakestSkills = useMemo(() => {
@@ -73,6 +73,7 @@ export const useDashboardSummary = ({
   }, [profile?.points]);
 
   const resume = progressData.resume ?? null;
+  const startHere = progressData.start_here ?? null;
 
   return {
     coursesCompleted,
@@ -83,5 +84,6 @@ export const useDashboardSummary = ({
     weakestSkills,
     dailyGoalProgress,
     resume,
+    startHere,
   };
 };

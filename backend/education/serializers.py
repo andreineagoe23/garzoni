@@ -1,5 +1,7 @@
 # education/serializers.py
 from rest_framework import serializers
+
+from authentication.entitlements import get_user_plan, plan_allows
 from education.models import (
     Path,
     Course,
@@ -16,6 +18,7 @@ from education.models import (
     UserResponse,
     PathRecommendation,
 )
+from education.utils import resolve_path_access_tier
 
 
 # Serializer for quizzes, including fields for course association and question details.
@@ -135,10 +138,31 @@ class PathSerializer(serializers.ModelSerializer):
     """
 
     courses = CourseSerializer(many=True, read_only=True)
+    is_locked = serializers.SerializerMethodField()
 
     class Meta:
         model = Path
-        fields = ["id", "title", "description", "courses", "image"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "courses",
+            "image",
+            "access_tier",
+            "sort_order",
+            "is_locked",
+        ]
+
+    def get_is_locked(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if not user or not getattr(user, "is_authenticated", False):
+            return True
+        if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+            return False
+        plan = get_user_plan(user)
+        required_tier = resolve_path_access_tier(obj)
+        return not plan_allows(plan, required_tier)
 
 
 class UserProgressSerializer(serializers.ModelSerializer):

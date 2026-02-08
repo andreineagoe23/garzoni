@@ -48,6 +48,7 @@ from authentication.models import UserProfile
 from gamification.models import MissionCompletion
 from finance.utils import record_funnel_event
 from django.apps import apps
+from authentication.entitlements import get_entitlements_for_user, get_user_plan, normalize_plan_id
 
 logger = logging.getLogger(__name__)
 
@@ -816,6 +817,10 @@ class StripeWebhookView(APIView):
 
             if event["type"] == "checkout.session.completed":
                 session = event["data"]["object"]
+                metadata = session.get("metadata", {}) or {}
+                plan_id = normalize_plan_id(metadata.get("plan_id")) if metadata else None
+                if plan_id not in {"starter", "plus", "pro"}:
+                    plan_id = "plus"
                 user_id_raw = session.get("client_reference_id")
                 if not user_id_raw:
                     logger.warning(
@@ -858,6 +863,7 @@ class StripeWebhookView(APIView):
                                         "is_premium": False,
                                         "subscription_status": "inactive",
                                         "stripe_payment_id": "",
+                                        "subscription_plan_id": plan_id or "plus",
                                     },
                                 )
                                 if not user_profile.has_paid:
@@ -867,12 +873,15 @@ class StripeWebhookView(APIView):
                                 user_profile.stripe_payment_id = (
                                     session.get("payment_intent", "") or ""
                                 )
+                                if plan_id:
+                                    user_profile.subscription_plan_id = plan_id
                                 user_profile.save(
                                     update_fields=[
                                         "has_paid",
                                         "is_premium",
                                         "subscription_status",
                                         "stripe_payment_id",
+                                        "subscription_plan_id",
                                     ]
                                 )
                                 cache.delete_many(
@@ -963,6 +972,9 @@ class VerifySessionView(APIView):
                 return Response({"status": "pending"}, status=202)
 
             metadata = getattr(session, "metadata", {}) or {}
+            plan_id = normalize_plan_id(metadata.get("plan_id")) if metadata else None
+            if plan_id not in {"starter", "plus", "pro"}:
+                plan_id = "plus"
             target_user_id = session.client_reference_id or metadata.get("user_id")
 
             if request.user and request.user.is_authenticated:
@@ -986,6 +998,7 @@ class VerifySessionView(APIView):
                             "is_premium": True,
                             "subscription_status": "active",
                             "stripe_payment_id": stripe_payment_id,
+                            "subscription_plan_id": plan_id or "plus",
                         },
                     )
 
@@ -993,12 +1006,15 @@ class VerifySessionView(APIView):
                     profile.is_premium = True
                     profile.subscription_status = "active"
                     profile.stripe_payment_id = stripe_payment_id
+                    if plan_id:
+                        profile.subscription_plan_id = plan_id
                     profile.save(
                         update_fields=[
                             "has_paid",
                             "is_premium",
                             "subscription_status",
                             "stripe_payment_id",
+                            "subscription_plan_id",
                         ]
                     )
 
@@ -1132,15 +1148,19 @@ class EntitlementStatusView(APIView):
     def get(self, request):
         try:
             profile = UserProfile.objects.get(user=request.user)
-            plan = "paid" if profile.has_paid else "free"
+            plan = get_user_plan(request.user)
+            entitlements = get_entitlements_for_user(request.user)
             subscription = {
                 "is_premium": bool(getattr(profile, "is_premium", False)),
                 "status": getattr(profile, "subscription_status", "inactive"),
                 "has_paid": bool(profile.has_paid),
+                "plan_id": plan,
             }
             payload = {
-                "entitled": bool(profile.has_paid),
+                "entitled": plan != "starter",
                 "plan": plan,
+                "label": entitlements.get("label"),
+                "features": entitlements.get("features", {}),
                 "subscription": subscription,
                 "checked_at": timezone.now(),
             }
@@ -1180,6 +1200,7 @@ class FunnelEventIngestView(APIView):
         "sort_change",
         "filter_change",
         "improve_recommendation_click",
+        "upgrade_click",
         # Onboarding questionnaire events
         "questionnaire_step_view",
         "questionnaire_answer_submitted",

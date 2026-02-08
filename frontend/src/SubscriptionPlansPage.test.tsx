@@ -47,7 +47,7 @@ jest.mock("react-router-dom", () => {
 
 jest.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
-    entitlements: { plan: "free", status: "inactive", trialEnd: null },
+    entitlements: { plan: "starter", status: "inactive", trialEnd: null },
     entitlementError: null,
     entitlementSupportLink: null,
     reloadEntitlements: jest.fn(),

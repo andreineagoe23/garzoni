@@ -84,7 +84,7 @@ const SubscriptionManager = () => {
   const sortedPlans = useMemo(() => {
     return [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [plans]);
-  const currentPlanId = entitlements?.plan || "free";
+  const currentPlanId = entitlements?.plan || "starter";
   const trialEndLabel = entitlements?.trialEnd
     ? formatDate(entitlements.trialEnd, locale)
     : null;

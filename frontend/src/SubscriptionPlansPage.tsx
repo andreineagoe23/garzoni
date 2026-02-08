@@ -75,9 +75,16 @@ const SubscriptionPlansPage = () => {
     try {
       const profilePayload = await loadProfile?.({ force: true });
       const userData = profilePayload?.user_data || profilePayload || {};
+      const planId =
+        entitlements?.plan ||
+        userData?.subscription_plan_id ||
+        (profilePayload as { subscription_plan_id?: string })?.subscription_plan_id ||
+        null;
+      const hasPlusAccess = planId === "plus" || planId === "pro";
       setSubscriptionInfo({
         hasPaid: Boolean(
-          entitlements?.entitled ||
+          hasPlusAccess ||
+            entitlements?.entitled ||
             userData?.has_paid ||
             (profilePayload as { has_paid?: boolean })?.has_paid
         ),
@@ -114,7 +121,7 @@ const SubscriptionPlansPage = () => {
       navigate("/onboarding");
       return;
     }
-    navigate("/subscriptions", { state: { from: "/subscriptions" } });
+    navigate("/all-topics");
   }, [navigate, subscriptionInfo.hasPaid, questionnaireComplete]);
 
   const upgradeComplete = useMemo(
