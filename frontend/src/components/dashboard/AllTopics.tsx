@@ -7,6 +7,7 @@ import { BACKEND_URL } from "services/backendUrl";
 import { useProgressMetrics } from "hooks/useProgressMetrics";
 import { useAnalytics } from "hooks/useAnalytics";
 import { formatNumber, getLocale } from "utils/format";
+import { useNavigate } from "react-router-dom";
 
 type LearningPathCourse = {
   id: number;
@@ -27,6 +28,9 @@ type LearningPath = {
   courses?: LearningPathCourse[];
   progress?: number;
   courseProgresses?: number[];
+  access_tier?: string;
+  sort_order?: number;
+  is_locked?: boolean;
 };
 
 const AllTopics = ({
@@ -44,9 +48,15 @@ const AllTopics = ({
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("default");
   const [filterBy, setFilterBy] = useState("all");
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, entitlements } = useAuth();
   const { trackEvent } = useAnalytics();
   const locale = getLocale();
+  const navigate = useNavigate();
+  const planRank = (plan?: string | null) => {
+    if (plan === "plus") return 1;
+    if (plan === "pro") return 2;
+    return 0;
+  };
 
   const { getCourseProgress, getPathProgress } = useProgressMetrics();
   const deferredPaths = useDeferredValue(learningPaths);
@@ -72,6 +82,10 @@ const AllTopics = ({
               title: String(p.title || ""),
               description: p.description ? String(p.description) : undefined,
               image: p.image ? String(p.image) : undefined,
+              access_tier: p.access_tier ? String(p.access_tier) : undefined,
+              sort_order:
+                typeof p.sort_order === "number" ? Number(p.sort_order) : undefined,
+              is_locked: typeof p.is_locked === "boolean" ? p.is_locked : undefined,
               courses: Array.isArray(p.courses)
                 ? p.courses.map((course: unknown): LearningPathCourse => {
                     const c = course as Partial<LearningPathCourse>;
@@ -134,13 +148,18 @@ const AllTopics = ({
     fetchPaths();
   }, [getAccessToken]);
 
-  const handleTogglePath = (pathId: number | string) => {
+  const handleTogglePath = (pathId: number | string, isLocked?: boolean) => {
+    if (isLocked) return;
     setActivePathId((prev) => (prev === pathId ? null : pathId));
   };
 
   // Enhanced paths with progress data and sorting/filtering
   const enhancedPaths = useMemo(() => {
     let paths = deferredPaths.map((path) => {
+      const isLocked =
+        typeof path.is_locked === "boolean"
+          ? path.is_locked
+          : planRank(entitlements?.plan) < planRank(path.access_tier || "starter");
       const coursesInPath = path.courses || [];
       const courseProgresses = coursesInPath.map((course) =>
         getCourseProgress(course)
@@ -149,6 +168,7 @@ const AllTopics = ({
 
       return {
         ...path,
+        is_locked: isLocked,
         progress: pathProgress,
         courseProgresses: courseProgresses,
       };
@@ -179,7 +199,7 @@ const AllTopics = ({
     }
 
     return paths;
-  }, [deferredPaths, getCourseProgress, getPathProgress, sortBy, filterBy]);
+  }, [deferredPaths, entitlements?.plan, getCourseProgress, getPathProgress, sortBy, filterBy]);
 
   if (loading) {
     return (
@@ -264,13 +284,17 @@ const AllTopics = ({
         </div>
       </GlassCard>
 
-      {enhancedPaths.map((path) => (
-        <GlassCard
-          key={String(path.id)}
-          id={String(path.id)}
-          className="group"
-          padding="lg"
-        >
+      {enhancedPaths.map((path) => {
+        const isLocked = Boolean(path.is_locked);
+        const requiredPlan = path.access_tier === "pro" ? "Pro" : "Plus";
+
+        return (
+          <GlassCard
+            key={String(path.id)}
+            id={String(path.id)}
+            className="group"
+            padding="lg"
+          >
           <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
           <div className="relative">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -288,8 +312,8 @@ const AllTopics = ({
                   </div>
                 )}
                 <div className="flex-1">
-                  <h3 className="flex items-center gap-2 text-xl font-semibold text-[color:var(--accent,#111827)]">
-                    <span>{path.title}</span>
+                  <h3 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                    {path.title}
                   </h3>
                   {path.description && (
                     <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
@@ -334,15 +358,31 @@ const AllTopics = ({
                 </div>
               </div>
 
-              <GlassButton
-                variant={activePathId === path.id ? "primary" : "success"}
-                onClick={() => handleTogglePath(path.id)}
-                icon={activePathId === path.id ? "▼" : "▶"}
-                aria-expanded={activePathId === path.id}
-                aria-controls={`path-${path.id}-courses`}
-              >
-                {activePathId === path.id ? "Hide Courses" : "View Courses"}
-              </GlassButton>
+              <div className="flex flex-wrap items-center gap-2">
+                {!isLocked && (
+                  <GlassButton
+                    variant={activePathId === path.id ? "primary" : "success"}
+                    onClick={() => handleTogglePath(path.id, false)}
+                    icon={activePathId === path.id ? "▼" : "▶"}
+                    aria-expanded={activePathId === path.id}
+                    aria-controls={`path-${path.id}-courses`}
+                  >
+                    {activePathId === path.id ? "Hide Courses" : "View Courses"}
+                  </GlassButton>
+                )}
+                {isLocked && (
+                  <GlassButton
+                    variant="primary"
+                    icon="⚡"
+                    onClick={() => {
+                      trackEvent("upgrade_click", { source: "path_lock", path: path.title });
+                      navigate("/subscriptions");
+                    }}
+                  >
+                    Upgrade to {requiredPlan}
+                  </GlassButton>
+                )}
+              </div>
             </div>
 
             {activePathId === path.id && (
@@ -361,7 +401,8 @@ const AllTopics = ({
             )}
           </div>
         </GlassCard>
-      ))}
+        );
+      })}
     </div>
   );
 };

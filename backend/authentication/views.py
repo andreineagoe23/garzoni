@@ -38,7 +38,8 @@ from authentication.entitlements import (
     get_entitlements_for_user,
     get_plan_catalog,
 )
-from education.models import LessonCompletion, Question, UserResponse
+from education.models import LessonCompletion
+from onboarding.models import QuestionnaireProgress
 from core.utils import env_bool
 from authentication.throttles import LoginRateThrottle
 from core.http_client import request_with_backoff
@@ -187,11 +188,11 @@ class UserProfileView(APIView):
         for completion in lesson_completions:
             activity_calendar[str(completion["completed_at__date"])] = completion["count"]
 
-        active_questions = Question.objects.filter(is_active=True).count()
-        answered_questions = UserResponse.objects.filter(
-            user=request.user, question__is_active=True
-        ).count()
-        questionnaire_completed = active_questions == 0 or answered_questions >= active_questions
+        # Use onboarding progress (new flow) to avoid auto-completing when legacy
+        # question bank is empty.
+        questionnaire_completed = QuestionnaireProgress.objects.filter(
+            user=request.user, status="completed"
+        ).exists()
 
         # Add current month information
         current_month = {
@@ -332,10 +333,16 @@ def _hearts_constants(profile=None):
 
     is_premium = False
     if profile is not None:
-        # Be forgiving: some installs use has_paid to represent premium-like access.
-        is_premium = bool(
-            getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
-        )
+        try:
+            from authentication.entitlements import get_user_plan, plan_allows
+
+            plan = get_user_plan(profile.user)
+            is_premium = plan_allows(plan, "plus")
+        except Exception:
+            # Be forgiving: some installs use has_paid to represent premium-like access.
+            is_premium = bool(
+                getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
+            )
 
     regen_seconds = premium_regen_seconds if is_premium else standard_regen_seconds
     return int(max_hearts), int(regen_seconds)

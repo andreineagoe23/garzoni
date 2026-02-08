@@ -33,6 +33,12 @@ class UserProfile(models.Model):
     dark_mode = models.BooleanField(default=False)
     has_paid = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
+    subscription_plan_id = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Subscription tier identifier (starter, plus, pro).",
+    )
     stripe_payment_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     subscription_status = models.CharField(
         max_length=50,

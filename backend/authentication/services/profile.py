@@ -64,8 +64,9 @@ def build_profile_payload(user, profile: UserProfile):
             "has_paid": profile.has_paid,
             "is_premium": profile.is_premium,
             "subscription_status": profile.subscription_status,
-            "subscription_plan": getattr(
-                getattr(profile, "subscription_plan", None), "plan_id", None
+            "subscription_plan_id": (
+                profile.subscription_plan_id
+                or getattr(getattr(profile, "subscription_plan", None), "plan_id", None)
             ),
             "trial_end": profile.trial_end,
             "is_questionnaire_completed": questionnaire_completed,

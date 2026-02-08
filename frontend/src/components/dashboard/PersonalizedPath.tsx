@@ -119,7 +119,21 @@ function PersonalizedPath({
           false
         );
 
-        if (!(profilePayload as UserProfile)?.has_paid && sessionId) {
+        const profilePlanId =
+          (profilePayload as UserProfile)?.subscription_plan_id ||
+          (profilePayload as UserProfile)?.user_data?.subscription_plan_id ||
+          null;
+        const resolvedPlan =
+          entitlements?.plan ||
+          profilePlanId ||
+          ((profilePayload as UserProfile)?.has_paid ||
+          (profilePayload as UserProfile)?.user_data?.has_paid ||
+          entitlements?.entitled
+            ? "plus"
+            : "starter");
+        const hasPlusAccess = resolvedPlan === "plus" || resolvedPlan === "pro";
+
+        if (!hasPlusAccess && sessionId) {
           profilePayload = await loadProfile({ force: true });
           const pollPaymentStatus = async (attempt = 0): Promise<void> => {
             try {
@@ -165,12 +179,7 @@ function PersonalizedPath({
           return;
         }
 
-        const hasPaidFlag = Boolean(
-          (profilePayload as UserProfile)?.has_paid ||
-          (profilePayload as UserProfile)?.user_data?.has_paid ||
-          entitlements?.entitled ||
-          false
-        );
+        const hasPaidFlag = hasPlusAccess;
 
         if (!questionnaireCompleted) {
           navigate("/onboarding");
@@ -216,6 +225,7 @@ function PersonalizedPath({
     sessionId,
     redirectIntent,
     entitlements?.entitled,
+    entitlements?.plan,
     reloadEntitlements,
     location.search,
   ]);

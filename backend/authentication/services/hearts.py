@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 from django.conf import settings
+
+from authentication.entitlements import get_user_plan, plan_allows
 from django.utils import timezone
 
 
@@ -24,10 +26,14 @@ def hearts_constants(profile=None):
 
     is_premium = False
     if profile is not None:
-        # Be forgiving: some installs use has_paid to represent premium-like access.
-        is_premium = bool(
-            getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
-        )
+        try:
+            plan = get_user_plan(profile.user)
+            is_premium = plan_allows(plan, "plus")
+        except Exception:
+            # Be forgiving: some installs use has_paid to represent premium-like access.
+            is_premium = bool(
+                getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
+            )
 
     regen_seconds = premium_regen_seconds if is_premium else standard_regen_seconds
     return int(max_hearts), int(regen_seconds)

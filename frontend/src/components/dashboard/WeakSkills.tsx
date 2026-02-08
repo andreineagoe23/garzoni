@@ -12,6 +12,8 @@ type WeakSkillsProps = {
   show?: boolean;
   masteryError?: unknown;
   weakestSkills?: WeakSkill[];
+  /** When false, user has no mastery data yet (no lessons done); show a different empty state. */
+  hasAnyMasteryData?: boolean;
   refetchMastery?: () => void;
   locale?: string;
   prefersReducedMotion?: boolean;
@@ -23,6 +25,7 @@ const WeakSkills = ({
   show = true,
   masteryError,
   weakestSkills = [],
+  hasAnyMasteryData = false,
   refetchMastery,
   locale,
   prefersReducedMotion,
@@ -44,6 +47,17 @@ const WeakSkills = ({
   }
 
   if (weakestSkills.length === 0) {
+    if (!hasAnyMasteryData) {
+      return (
+        <div className="mt-6">
+          <EmptyState
+            icon="🎯"
+            title="Skill insights"
+            description="Complete lessons and quizzes to see your skill strengths and areas to improve."
+          />
+        </div>
+      );
+    }
     return (
       <div className="mt-6">
         <EmptyState
