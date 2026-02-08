@@ -9,6 +9,7 @@ from datetime import timedelta
 import logging
 
 from authentication.models import UserProfile
+from authentication.user_display import normalize_display_string
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ def send_email_reminders():
     for profile in daily_users:
         send_mail(
             "Daily Reminder: Continue Your Financial Learning Journey",
-            f"""Hi {profile.user.username},
+            f"""Hi {normalize_display_string(profile.user.username)},
 
 We noticed you haven't logged in for a while. Don't forget to continue your financial learning journey!
 
@@ -68,7 +69,7 @@ The Monevo Team""",
     for profile in weekly_users:
         send_mail(
             "Weekly Reminder: Your Financial Learning Journey Awaits",
-            f"""Hi {profile.user.username},
+            f"""Hi {normalize_display_string(profile.user.username)},
 
 It's been a week since your last login. Your financial learning journey is waiting for you!
 

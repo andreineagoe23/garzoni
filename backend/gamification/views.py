@@ -14,6 +14,7 @@ from django.core.cache import cache
 import hashlib
 import json
 
+from authentication.user_display import user_display_dict
 from gamification.models import (
     Badge,
     UserBadge,
@@ -355,8 +356,7 @@ class UserRankView(APIView):
                     "rank": rank,
                     "points": user_profile.points,
                     "user": {
-                        "id": request.user.id,
-                        "username": request.user.username,
+                        **user_display_dict(request.user, include_id=True),
                         "profile_avatar": user_profile.profile_avatar,
                     },
                 }

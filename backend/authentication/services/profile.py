@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 
+from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
 from education.models import LessonCompletion
 from onboarding.models import QuestionnaireProgress
@@ -50,10 +51,11 @@ def build_profile_payload(user, profile: UserProfile):
         user=user, status="completed"
     ).exists()
 
+    display = user_display_dict(user)
     payload = {
         "user_data": {
-            "first_name": user.first_name,
-            "last_name": user.last_name,
+            "first_name": display["first_name"],
+            "last_name": display["last_name"],
             "email": user.email,
             "earned_money": profile.earned_money,
             "points": profile.points,

@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
+from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
 from authentication.serializers import UserProfileSettingsSerializer
 from authentication.services.profile import (
@@ -48,10 +49,7 @@ class UserSettingsView(generics.GenericAPIView):
                 "email_reminder_preference": user_profile.email_reminder_preference,
                 "dark_mode": user_profile.dark_mode,
                 "profile": {
-                    "username": request.user.username,
-                    "email": request.user.email,
-                    "first_name": request.user.first_name,
-                    "last_name": request.user.last_name,
+                    **user_display_dict(request.user, include_email=True),
                     "dark_mode": user_profile.dark_mode,
                 },
             }
