@@ -7,8 +7,7 @@ import {
   FaLinkedinIn,
   FaTiktok,
   FaXTwitter,
-  FaYoutube,
-} from "react-icons/fa6";
+  FaYoutube } from "react-icons/fa6";
 import { GlassContainer } from "components/ui";
 
 const FaTiktokIcon = FaTiktok as React.ComponentType<{ size?: number }>;
@@ -38,16 +37,14 @@ function Footer() {
         { label: t("footer.termsConditions"), to: "/terms-of-service" },
         { label: t("footer.financialDisclaimer"), to: "/financial-disclaimer" },
         { label: t("footer.noFinancialAdviceNotice"), to: "/no-financial-advice" },
-      ],
-    },
+      ] },
     {
       heading: t("footer.company"),
       links: [
         { label: t("footer.about"), to: "/welcome" },
         { label: t("footer.subscriptions"), to: "/subscriptions" },
         { label: t("footer.faq"), to: "/faq" },
-      ],
-    },
+      ] },
     {
       heading: t("footer.product"),
       links: [
@@ -57,14 +54,13 @@ function Footer() {
         { label: t("footer.tools"), to: "/tools" },
         { label: t("footer.leaderboards"), to: "/leaderboards" },
         { label: t("footer.rewards"), to: "/rewards" },
-      ],
-    },
+      ] },
   ];
 
   return (
     <footer
       className="w-full px-4 pb-8"
-      aria-label="Site footer"
+      aria-label={t("footer.ariaLabel")}
       data-path={location.pathname}
     >
       {/*

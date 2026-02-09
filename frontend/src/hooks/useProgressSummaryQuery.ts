@@ -7,6 +7,5 @@ export function useProgressSummaryQuery(options = {}) {
     queryKey: queryKeys.progressSummary(),
     queryFn: fetchProgressSummary,
     staleTime: staleTimes.progressSummary,
-    ...options,
-  });
+    ...options });
 }

@@ -4,8 +4,7 @@ import React, {
   useState,
   useRef,
   useCallback,
-  startTransition,
-} from "react";
+  startTransition } from "react";
 import PropTypes from "prop-types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,8 +18,7 @@ import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import {
   fetchReviewQueue,
   fetchMasterySummary,
-  fetchMissions,
-} from "services/userService";
+  fetchMissions } from "services/userService";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { UserProfile } from "types/api";
 import { attachToken } from "services/httpClient";
@@ -74,8 +72,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: authProfile,
     reloadEntitlements,
     entitlements,
-    isInitialized: authInitialized,
-  } = useAuth();
+    isInitialized: authInitialized } = useAuth();
 
   useEffect(() => {
     attachToken(getAccessToken());
@@ -85,8 +82,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   useEffect(() => {
     trackEvent("dashboard_view", {
       active_page: activePage,
-      timestamp: new Date().toISOString(),
-    });
+      timestamp: new Date().toISOString() });
   }, [activePage, trackEvent]);
 
   // Check for post-action state (returning from exercises/lessons)
@@ -109,24 +105,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 ...current,
                 user_data: {
                   ...current.user_data,
-                  points: currentPoints + xpGained,
-                },
-              };
+                  points: currentPoints + xpGained } };
             }
 
             const currentPoints = Number(current.points || 0);
             return {
               ...current,
-              points: currentPoints + xpGained,
-            };
+              points: currentPoints + xpGained };
           }
         );
 
         // Background refresh to ensure server-truth (and update other widgets)
         queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
         queryClient.invalidateQueries({
-          queryKey: queryKeys.progressSummary(),
-        });
+          queryKey: queryKeys.progressSummary() });
       }
 
       if (xpGained > 0 || skillsImproved.length > 0) {
@@ -135,15 +127,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             xpGained > 0 && t("dashboard.toast.xpGained", { count: xpGained }),
             skillsImproved.length > 0 &&
               t("dashboard.toast.skillsImproved", {
-                count: skillsImproved.length,
-              }),
+                count: skillsImproved.length }),
           ]
             .filter(Boolean)
             .join(" • ");
           toast.success(message, {
             icon: "🎉",
-            duration: 4000,
-          });
+            duration: 4000 });
         }, 500);
       }
       // Clear state
@@ -154,68 +144,58 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const {
     data: profilePayload,
     isFetching: isProfileFetching,
-    isInitialLoading: isProfileLoading,
-  } = useQuery({
+    isInitialLoading: isProfileLoading } = useQuery({
     queryKey: queryKeys.profile(),
     queryFn: () => loadProfile(),
     staleTime: staleTimes.profile,
     gcTime: 30_000,
     initialData: authProfile,
-    placeholderData: (previousData) => previousData ?? authProfile,
-  });
+    placeholderData: (previousData) => previousData ?? authProfile });
 
   const {
     data: questionnaireProgress,
     isLoading: isQuestionnaireProgressLoading,
     isFetching: isQuestionnaireProgressFetching,
-    isFetched: isQuestionnaireProgressFetched,
-  } = useQuery({
+    isFetched: isQuestionnaireProgressFetched } = useQuery({
     queryKey: ["questionnaire-progress"],
     queryFn: fetchQuestionnaireProgress,
     retry: 2,
     staleTime: 0,
     refetchOnMount: true,
-    enabled: authInitialized,
-  });
+    enabled: authInitialized });
 
   const { data: progressResponse, isLoading: isProgressLoading } =
     useProgressSummaryQuery({
       // Dashboard should feel responsive, but doesn't need constant refetching.
       // Invalidation is triggered after lesson/exercise completion elsewhere.
-      retry: 2,
-    });
+      retry: 2 });
 
   const {
     data: reviewQueueData,
     error: reviewError,
-    refetch: refetchReview,
-  } = useQuery({
+    refetch: refetchReview } = useQuery({
     queryKey: queryKeys.reviewQueue(),
     queryFn: fetchReviewQueue,
     select: (response) => response?.data || { due: [], count: 0 },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 60000,
-  });
+    staleTime: 60000 });
 
   const {
     data: masteryData,
     error: masteryError,
-    refetch: refetchMastery,
-  } = useQuery({
+    refetch: refetchMastery } = useQuery({
     queryKey: queryKeys.masterySummary(),
     queryFn: fetchMasterySummary,
     select: (response) => response?.data || { masteries: [] },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 120000,
-  });
+    staleTime: 120000 });
 
   const {
     data: missionsData,
     error: missionsError,
-    refetch: refetchMissions,
-  } = useQuery({
+    refetch: refetchMissions } = useQuery({
     queryKey: queryKeys.missions(),
     queryFn: fetchMissions,
     select: (response) =>
@@ -224,8 +204,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 60000,
     refetchInterval: 120000,
-    refetchIntervalInBackground: true,
-  });
+    refetchIntervalInBackground: true });
 
   const profile = useMemo(() => {
     if (profilePayload?.user_data) {
@@ -359,15 +338,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     weakestSkills,
     dailyGoalProgress,
     resume,
-    startHere,
-  } = useDashboardSummary({
+    startHere } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
     missionsData,
     masteryData,
     entitlements,
-    profile: profile ?? undefined,
-  });
+    profile: profile ?? undefined });
 
   const weakSkillItems = useMemo(
     () =>
@@ -377,8 +354,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         )
         .map((skill) => ({
           skill: skill.skill,
-          proficiency: skill.proficiency ?? 0,
-        })),
+          proficiency: skill.proficiency ?? 0 })),
     [weakestSkills]
   );
 
@@ -394,31 +370,25 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     switch (primaryCTASignal.type) {
       case "reviews_due":
         return {
-          text: t("dashboard.cta.doReviews", { defaultValue: "Do Reviews" }),
+          text: t("dashboard.cta.doReviews"),
           action: () => {
             trackEvent("cta_click", {
               reason: "reviews_due",
-              count: reviewsDue,
-            });
+              count: reviewsDue });
             navigate("/exercises");
           },
           icon: primaryCTASignal.icon,
           priority: "high",
           reason: t("dashboard.cta.reviewsDue", {
-            count: primaryCTASignal.reasonCount || 0,
-          }),
-        };
+            count: primaryCTASignal.reasonCount || 0 }) };
       case "continue_lesson": {
         const lessonMission = primaryCTASignal.mission;
         return {
-          text: t("dashboard.cta.continueLesson", {
-            defaultValue: "Continue Lesson",
-          }),
+          text: t("dashboard.cta.continueLesson"),
           action: () => {
             trackEvent("cta_click", {
               reason: "continue_lesson",
-              mission_id: lessonMission?.id,
-            });
+              mission_id: lessonMission?.id });
             if (lessonMission?.goal_reference?.course_id) {
               navigate(
                 `/lessons/${lessonMission.goal_reference.course_id}/flow`
@@ -429,44 +399,31 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: t("dashboard.cta.continueWhereLeftOff", {
-            defaultValue: "Continue where you left off",
-          }),
-        };
+          reason: t("dashboard.cta.continueWhereLeftOff") };
       }
       case "start_mission":
         return {
-          text: t("dashboard.cta.startMission", {
-            defaultValue: "Start Mission",
-          }),
+          text: t("dashboard.cta.startMission"),
           action: () => {
             trackEvent("cta_click", {
               reason: "start_mission",
-              mission_count: activeMissions.length,
-            });
+              mission_count: activeMissions.length });
             navigate("/missions");
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
           reason: t("dashboard.cta.missionsAvailable", {
-            count: primaryCTASignal.reasonCount || 0,
-          }),
-        };
+            count: primaryCTASignal.reasonCount || 0 }) };
       default:
         return {
-          text: t("dashboard.cta.continueLearning", {
-            defaultValue: "Continue Learning",
-          }),
+          text: t("dashboard.cta.continueLearning"),
           action: () => {
             trackEvent("cta_click", { reason: "continue_learning" });
             navigate("/all-topics");
           },
           icon: primaryCTASignal.icon,
           priority: "low",
-          reason: t("dashboard.cta.continueLearningReason", {
-            defaultValue: "Continue your learning journey",
-          }),
-        };
+          reason: t("dashboard.cta.continueLearningReason") };
     }
   }, [
     primaryCTASignal,
@@ -489,8 +446,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     (skill: WeakSkill) => {
       trackEvent("weak_skill_click", {
         skill: skill.skill,
-        proficiency: skill.proficiency,
-      });
+        proficiency: skill.proficiency });
       navigate("/exercises");
     },
     [navigate, trackEvent]
@@ -503,9 +459,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         state: {
           from: "dashboard",
           targetSkill: skill.skill,
-          reason: "improve_weak_skill",
-        },
-      });
+          reason: "improve_weak_skill" } });
     },
     [navigate, trackEvent]
   );
@@ -553,7 +507,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         icon="📚"
         className="w-full sm:w-auto"
       >
-        {t("dashboard.nav.allTopics", { defaultValue: "All Topics" })}
+        {t("dashboard.nav.allTopics")}
       </GlassButton>
 
       <button
@@ -569,18 +523,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }`}
         style={{
           backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
+          WebkitBackdropFilter: "blur(8px)" }}
       >
         <span>🎯</span>
-        {t("dashboard.nav.personalizedPath", {
-          defaultValue: "Personalized Path",
-        })}
+        {t("dashboard.nav.personalizedPath")}
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-            {t("dashboard.nav.completeOnboarding", {
-              defaultValue: "Complete Onboarding",
-            })}
+            {t("dashboard.nav.completeOnboarding")}
           </span>
         )}
       </button>
@@ -598,7 +547,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }}
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[color:var(--primary,#1d5330)] focus:text-white focus:rounded-lg focus:shadow-lg"
       >
-        {t("dashboard.skipToContent", { defaultValue: "Skip to content" })}
+        {t("dashboard.skipToContent")}
       </a>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
         <GlassCard
@@ -633,15 +582,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                       </span>
                       <div>
                         <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          {t("dashboard.resume.title", {
-                            defaultValue: "Pick up where you left off",
-                          })}
+                          {t("dashboard.resume.title")}
                         </p>
                         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                           {t("dashboard.resume.continueWith", {
-                            defaultValue: "Continue with {{course}}",
-                            course: resume.course_title,
-                          })}
+                            course: resume.course_title })}
                         </p>
                       </div>
                     </div>
@@ -650,14 +595,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                       onClick={() =>
                         handleCourseClick(resume.course_id, resume.path_id ?? undefined)
                       }
-                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-                      aria-label={t("dashboard.resume.continueLesson", {
-                        defaultValue: "Continue lesson",
-                      })}
+                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                      aria-label={t("dashboard.resume.continueLesson")}
                     >
-                      {t("dashboard.resume.continueLesson", {
-                        defaultValue: "Continue lesson",
-                      })}
+                      {t("dashboard.resume.continueLesson")}
                     </button>
                   </div>
                 </div>
@@ -670,15 +611,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                       </span>
                       <div>
                         <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          {t("dashboard.resume.title", {
-                            defaultValue: "Pick up where you left off",
-                          })}
+                          {t("dashboard.resume.title")}
                         </p>
                         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          {t("dashboard.resume.startFirstLesson", {
-                            defaultValue:
-                              "Start your first lesson and we'll remember your place.",
-                          })}
+                          {t("dashboard.resume.startFirstLesson")}
                         </p>
                       </div>
                     </div>
@@ -691,14 +627,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           navigate("/all-topics");
                         }
                       }}
-                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-                      aria-label={t("dashboard.resume.browseTopics", {
-                        defaultValue: "Browse topics",
-                      })}
+                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                      aria-label={t("dashboard.resume.browseTopics")}
                     >
-                      {t("dashboard.resume.browseTopics", {
-                        defaultValue: "Browse topics",
-                      })}
+                      {t("dashboard.resume.browseTopics")}
                     </button>
                   </div>
                 </div>
@@ -766,7 +698,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 }
 
 Dashboard.propTypes = {
-  activePage: PropTypes.string,
-};
+  activePage: PropTypes.string };
 
 export default Dashboard;

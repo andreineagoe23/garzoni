@@ -16,8 +16,7 @@ class ErrorBoundary extends React.Component<
   state: ErrorBoundaryState = {
     hasError: false,
     error: null,
-    isChunkLoadError: false,
-  };
+    isChunkLoadError: false };
 
   static getDerivedStateFromError(error: Error) {
     const message = String(error?.message || "");
@@ -42,8 +41,7 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     captureException(error, {
-      contexts: { react: { componentStack: info.componentStack } },
-    });
+      contexts: { react: { componentStack: info.componentStack } } });
 
     // Auto-recover from deploy/cache mismatch (hashed chunk file missing).
     // We do this only once per tab to avoid reload loops (e.g. flaky network).

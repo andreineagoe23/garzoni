@@ -4,12 +4,14 @@ import { useAuth } from "contexts/AuthContext";
 import { CALENDAR_EXPLAINERS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { captureMessage } from "../../sentry";
+import { Trans, useTranslation } from "react-i18next";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
 
 const WIDGET_LOAD_TIMEOUT_MS = 15000;
 
 const EconomicCalendar = () => {
+  const { t, i18n } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const lastInjectedRef = useRef<{ dark: boolean; all: boolean } | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -37,9 +39,9 @@ const EconomicCalendar = () => {
     if (typeof window === "undefined") return;
     sessionStorage.setItem(
       ACTIVITY_STORAGE_KEY,
-      JSON.stringify({ label: "Checked macro events" })
+      JSON.stringify({ label: t("tools.calendar.activityLabel") })
     );
-  }, []);
+  }, [t]);
 
   // Inject widget; re-inject when theme or filter changes so calendar matches app (dark/light) and importance filter.
   useEffect(() => {
@@ -69,16 +71,16 @@ const EconomicCalendar = () => {
     script.async = true;
     script.crossOrigin = "anonymous";
     const theme = darkMode ? "dark" : "light";
+    const locale = i18n.language?.toLowerCase().startsWith("ro") ? "ro" : "en";
     script.innerHTML = JSON.stringify({
       width: "100%",
       height: calendarHeight,
-      locale: "en",
+      locale,
       colorTheme: theme,
       theme: theme,
       isTransparent: false,
       importanceFilter: showAllEvents ? "-1,0,1" : "1",
-      currencyFilter: "USD,EUR,GBP,JPY,CAD,AUD",
-    });
+      currencyFilter: "USD,EUR,GBP,JPY,CAD,AUD" });
     script.onload = () => setLoaded(true);
     script.onerror = () => {
       captureMessage("Calendar widget failed to load (script error)", "warning", { tool_id: "calendar" });
@@ -113,8 +115,7 @@ const EconomicCalendar = () => {
     if (typeof window.gtag === "function") {
       window.gtag("event", "tool_completed", {
         tool_id: "calendar",
-        detail: "calendar_loaded",
-      });
+        detail: "calendar_loaded" });
     }
     recordToolEvent("tool_complete", "calendar", { detail: "calendar_loaded" });
   }, [loaded]);
@@ -125,10 +126,10 @@ const EconomicCalendar = () => {
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Impact filter
+              {t("tools.calendar.impactFilter.title")}
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              High-impact events only by default.
+              {t("tools.calendar.impactFilter.subtitle")}
             </p>
           </div>
           <button
@@ -136,15 +137,17 @@ const EconomicCalendar = () => {
             onClick={() => setShowAllEvents((prev) => !prev)}
             className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
           >
-            {showAllEvents ? "Hide low-impact events" : "Show all events"}
+            {showAllEvents
+              ? t("tools.calendar.impactFilter.hideLow")
+              : t("tools.calendar.impactFilter.showAll")}
           </button>
         </div>
         {/* Theme (dark/light) is set at first load from app theme; script embed cannot update on toggle. */}
         {loadError && (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
-            <p className="font-semibold">Calendar failed to load.</p>
+            <p className="font-semibold">{t("tools.calendar.errors.loadFailed")}</p>
             <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
-              Try disabling ad blockers or content blockers for this site, or open the calendar in a new tab.
+              {t("tools.calendar.errors.loadFailedHelp")}
             </p>
             <a
               href="https://www.tradingview.com/economic-calendar/"
@@ -152,13 +155,13 @@ const EconomicCalendar = () => {
               target="_blank"
               className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-90"
             >
-              Open calendar in new tab
+              {t("tools.calendar.errors.openNewTab")}
             </a>
           </div>
         )}
         {!loaded && !loadError && (
           <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-            Loading the economic calendar…
+            {t("tools.calendar.loading")}
           </div>
         )}
         <div
@@ -167,88 +170,93 @@ const EconomicCalendar = () => {
           style={!loadError ? { minHeight: "clamp(380px, 55vh, 760px)", colorScheme: darkMode ? "dark" : "light" } : undefined}
         />
         <p className="mt-2 text-center text-xs text-[color:var(--muted-text,#6b7280)]">
-          Economic calendar by{" "}
-          <a
-            href="https://www.tradingview.com/economic-calendar/"
-            rel="noopener noreferrer"
-            target="_blank"
-            className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
-          >
-            TradingView
-          </a>
-          . If it doesn't load,{" "}
-          <a
-            href="https://www.tradingview.com/economic-calendar/"
-            rel="noopener noreferrer"
-            target="_blank"
-            className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
-          >
-            open it in a new tab
-          </a>
-          .
+          <Trans
+            i18nKey="tools.calendar.fallback"
+            components={{
+              provider: (
+                <a
+                  href="https://www.tradingview.com/economic-calendar/"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                />
+              ),
+              open: (
+                <a
+                  href="https://www.tradingview.com/economic-calendar/"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
+                />
+              ) }}
+          />
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {CALENDAR_EXPLAINERS.map((event) => {
+          const eventCopy = {
+            label: t(`tools.calendar.explainers.${event.id}.label`),
+            difficulty: t(`tools.calendar.explainers.${event.id}.difficulty`),
+            why: t(`tools.calendar.explainers.${event.id}.why`),
+            who: t(`tools.calendar.explainers.${event.id}.who`),
+            affects: t(`tools.calendar.explainers.${event.id}.affects`) };
           const isRelevant =
             relevanceTags.size > 0 &&
             event.tags?.some((tag) => relevanceTags.has(tag));
           return (
           <div
-            key={event.label}
+            key={event.id}
             className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                {event.label}
+                {eventCopy.label}
               </h4>
               <div className="flex items-center gap-2">
                 {isRelevant && (
                   <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-                    Relevant to you
+                    {t("tools.calendar.relevant")}
                   </span>
                 )}
                 <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {event.difficulty}
+                  {eventCopy.difficulty}
                 </span>
               </div>
             </div>
             <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                Why this matters:
+                {t("tools.calendar.why")}
               </span>{" "}
-              {event.why}
+              {eventCopy.why}
             </p>
             <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                Who should care:
+                {t("tools.calendar.who")}
               </span>{" "}
-              {event.who}
+              {eventCopy.who}
             </p>
             <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                What it affects:
+                {t("tools.calendar.affects")}
               </span>{" "}
-              {event.affects}
+              {eventCopy.affects}
             </p>
             <a
               href={event.learnPath}
               onClick={() => {
                 recordToolEvent("tool_to_lesson_click", "calendar", {
                   href: event.learnPath,
-                  event_label: event.label,
-                });
+                  event_label: eventCopy.label });
                 if (typeof window.gtag === "function") {
                   window.gtag("event", "lesson_started_from_tool", {
                     tool_id: "calendar",
-                    link: event.learnPath,
-                  });
+                    link: event.learnPath });
                 }
               }}
               className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
             >
-              Learn more →
+              {t("tools.calendar.learnMore")}
             </a>
           </div>
         );

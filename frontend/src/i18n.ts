@@ -3,8 +3,7 @@ import { initReactI18next } from "react-i18next";
 import {
   DEFAULT_LANGUAGE,
   LANGUAGE_STORAGE_KEY,
-  SUPPORTED_LANGUAGES,
-} from "constants/i18n";
+  SUPPORTED_LANGUAGES } from "constants/i18n";
 import en from "./locales/en";
 import ro from "./locales/ro";
 
@@ -38,18 +37,15 @@ const supportedLanguageCodes = SUPPORTED_LANGUAGES.filter(
 i18n.use(initReactI18next).init({
   resources: {
     en: { common: en },
-    ro: { common: ro },
-  },
+    ro: { common: ro } },
   lng: getInitialLanguage(),
   fallbackLng: DEFAULT_LANGUAGE,
   supportedLngs: supportedLanguageCodes,
   defaultNS: "common",
   ns: ["common"],
   interpolation: {
-    escapeValue: false,
-  },
-  returnNull: false,
-});
+    escapeValue: false },
+  returnNull: false });
 
 if (typeof document !== "undefined") {
   document.documentElement.lang = i18n.language;

@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchQuestionnaireProgress,
-  type QuestionnaireProgress,
-} from "services/questionnaireService";
+  type QuestionnaireProgress } from "services/questionnaireService";
 import { GlassButton, GlassCard } from "components/ui";
 
 type QuestionnaireReminderBannerProps = {
@@ -16,8 +15,7 @@ type QuestionnaireReminderBannerProps = {
 
 const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = ({
   hasPaid,
-  authReady = true,
-}) => {
+  authReady = true }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -26,8 +24,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     isLoading,
     isError,
     refetch,
-    isRefetching,
-  } = useQuery<QuestionnaireProgress>({
+    isRefetching } = useQuery<QuestionnaireProgress>({
     queryKey: ["questionnaire-progress"],
     queryFn: () => fetchQuestionnaireProgress(),
     retry: 2,
@@ -35,8 +32,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     refetchOnWindowFocus: false,
     staleTime: 0,
     refetchOnMount: true,
-    enabled: authReady,
-  });
+    enabled: authReady });
 
   if (!authReady || (isLoading && !progress)) {
     return (

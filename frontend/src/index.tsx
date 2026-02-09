@@ -318,7 +318,6 @@ reportWebVitals((metric) => {
   trackAnalyticsEvent("web_vital", {
     name: metric.name,
     value: metric.value,
-    id: metric.id,
-  });
+    id: metric.id });
 });
 registerServiceWorker();

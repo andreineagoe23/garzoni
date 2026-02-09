@@ -8,16 +8,14 @@ let mockProfileResponse: {
   is_questionnaire_completed: boolean;
   has_paid?: boolean;
 } = {
-  is_questionnaire_completed: true,
-};
+  is_questionnaire_completed: true };
 const mockUseQuery = jest.fn();
 
 jest.mock(
   "react-router-dom",
   () => ({
     useNavigate: () => mockNavigate,
-    useLocation: () => ({ pathname: "/all-topics" }),
-  }),
+    useLocation: () => ({ pathname: "/all-topics" }) }),
   { virtual: true }
 );
 
@@ -26,17 +24,13 @@ jest.mock("contexts/AuthContext", () => ({
     getAccessToken: jest.fn(() => "token"),
     user: { first_name: "Alex" },
     loadProfile: jest.fn(),
-    profile: null,
-  }),
-}));
+    profile: null }) }));
 
 jest.mock("contexts/AdminContext", () => ({
   useAdmin: () => ({
     adminMode: false,
     toggleAdminMode: jest.fn(),
-    canAdminister: false,
-  }),
-}));
+    canAdminister: false }) }));
 
 // Translation removed - no mock needed
 
@@ -44,11 +38,9 @@ jest.mock("axios", () => ({
   __esModule: true,
   default: {
     get: jest.fn(),
-    post: jest.fn(),
-  },
+    post: jest.fn() },
   get: jest.fn(),
-  post: jest.fn(),
-}));
+  post: jest.fn() }));
 
 jest.mock("@tanstack/react-query", () => {
   const actual = jest.requireActual("@tanstack/react-query");
@@ -57,32 +49,25 @@ jest.mock("@tanstack/react-query", () => {
     useQuery: (...args: unknown[]) => mockUseQuery(...args),
     useQueryClient: () => ({
       setQueryData: jest.fn(),
-      invalidateQueries: jest.fn(),
-    }),
-  };
+      invalidateQueries: jest.fn() }) };
 });
 
 jest.mock("services/userService", () => ({
-  fetchProgressSummary: jest.fn(),
-}));
+  fetchProgressSummary: jest.fn() }));
 
 jest.mock("services/httpClient", () => ({
-  attachToken: jest.fn(),
-}));
+  attachToken: jest.fn() }));
 
 jest.mock("./AllTopics", () => ({
   __esModule: true,
   default: ({
-    navigationControls,
-  }: {
+    navigationControls }: {
     navigationControls?: React.ReactNode;
-  }) => <div>{navigationControls}</div>,
-}));
+  }) => <div>{navigationControls}</div> }));
 
 jest.mock("./PersonalizedPath", () => ({
   __esModule: true,
-  default: () => null,
-}));
+  default: () => null }));
 
 describe("Dashboard personalized path CTA", () => {
   beforeAll(() => {
@@ -96,8 +81,7 @@ describe("Dashboard personalized path CTA", () => {
         removeListener: jest.fn(), // deprecated
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-      });
+        dispatchEvent: jest.fn() });
     }
   });
 
@@ -112,14 +96,12 @@ describe("Dashboard personalized path CTA", () => {
           data: { status: "completed" },
           isLoading: false,
           isFetching: false,
-          isFetched: true,
-        };
+          isFetched: true };
       }
 
       return {
         data: { data: { overall_progress: 0, paths: [] } },
-        isLoading: false,
-      };
+        isLoading: false };
     });
   });
 

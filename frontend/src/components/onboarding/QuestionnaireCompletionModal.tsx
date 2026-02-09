@@ -17,8 +17,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
   isOpen,
   rewards,
   onClose,
-  onStartLearning,
-}) => {
+  onStartLearning }) => {
   const { t } = useTranslation();
   const confettiFiredRef = useRef(false);
 
@@ -42,8 +41,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
-        });
+          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
 
         // Right side
         confetti({
@@ -51,8 +49,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
-        });
+          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
 
         // Center burst
         if (Math.random() > 0.7) {
@@ -60,8 +57,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
             particleCount: 5,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
-          });
+            colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
         }
       }, 100);
     }

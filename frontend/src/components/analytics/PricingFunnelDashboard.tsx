@@ -45,8 +45,7 @@ const PricingFunnelDashboard = () => {
     queryFn: async () => {
       const response = await fetchFunnelMetrics();
       return response.data;
-    },
-  });
+    } });
 
   const summary = data?.summary || {};
   const dailyBreakdown = useMemo<DailyBreakdownRow[]>(

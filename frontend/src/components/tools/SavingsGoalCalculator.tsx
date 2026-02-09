@@ -14,8 +14,7 @@ const SavingsGoalCalculator = () => {
     initial_investment: "",
     years_to_grow: "",
     annual_interest_rate: "",
-    compound_frequency: "1",
-  });
+    compound_frequency: "1" });
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const { getAccessToken } = useAuth();
@@ -29,9 +28,7 @@ const SavingsGoalCalculator = () => {
           initial_investment: "1000",
           years_to_grow: "2",
           annual_interest_rate: "5",
-          compound_frequency: "12",
-        },
-      },
+          compound_frequency: "12" } },
       {
         label: t("tools.savingsCalc.longTerm"),
         values: {
@@ -39,9 +36,7 @@ const SavingsGoalCalculator = () => {
           initial_investment: "5000",
           years_to_grow: "10",
           annual_interest_rate: "6",
-          compound_frequency: "12",
-        },
-      },
+          compound_frequency: "12" } },
     ],
     [t]
   );
@@ -77,9 +72,7 @@ const SavingsGoalCalculator = () => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       setResult(response.data);
       if (typeof window !== "undefined") {
@@ -91,14 +84,12 @@ const SavingsGoalCalculator = () => {
               "USD",
               locale,
               { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-            )}`,
-          })
+            )}` })
         );
       }
       if (typeof window.gtag === "function") {
         window.gtag("event", "savings_calc_submitted", {
-          tool_id: "savings",
-        });
+          tool_id: "savings" });
       }
     } catch (err) {
       console.error("Calculation error:", err);
@@ -125,8 +116,7 @@ const SavingsGoalCalculator = () => {
         className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
+          WebkitBackdropFilter: "blur(12px)" }}
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">

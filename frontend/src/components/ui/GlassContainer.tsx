@@ -16,8 +16,7 @@ const GlassContainer = ({
     subtle:
       "bg-[color:var(--card-bg,#ffffff)]/70 shadow-sm shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]",
     strong:
-      "bg-[color:var(--card-bg,#ffffff)]/98 shadow-2xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.15))]",
-  };
+      "bg-[color:var(--card-bg,#ffffff)]/98 shadow-2xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.15))]" };
 
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${className}`;
 
@@ -26,8 +25,7 @@ const GlassContainer = ({
       className={combinedClassName}
       style={{
         backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-      }}
+        WebkitBackdropFilter: "blur(12px)" }}
       {...props}
     >
       {children}

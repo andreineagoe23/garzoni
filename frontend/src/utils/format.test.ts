@@ -8,8 +8,7 @@ import {
   formatDate,
   formatTime,
   getLocale,
-  getTimezone,
-} from "./format";
+  getTimezone } from "./format";
 import { LANGUAGE_STORAGE_KEY } from "constants/i18n";
 
 describe("format utilities", () => {
@@ -56,8 +55,7 @@ describe("format utilities", () => {
     it("handles custom options", () => {
       const result = formatCurrency(1234.56, "USD", "en-US", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
+        maximumFractionDigits: 0 });
       expect(result).toMatch(/\$1,235|1,235\s*USD/);
     });
   });
@@ -105,8 +103,7 @@ describe("format utilities", () => {
       const date = new Date("2024-01-15");
       const result = formatDate(date, "en-US", {
         year: "numeric",
-        month: "long",
-      });
+        month: "long" });
       expect(result).toMatch(/January|2024/);
     });
   });

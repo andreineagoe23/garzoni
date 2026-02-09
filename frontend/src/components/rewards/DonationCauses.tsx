@@ -27,8 +27,7 @@ function DonationCauses({ onDonate }) {
   const handleDonate = async (rewardId) => {
     try {
       const response = await apiClient.post("/purchases/", {
-        reward_id: rewardId,
-      });
+        reward_id: rewardId });
 
       if (response.status === 201) {
         alert("Donation successful!");
@@ -46,9 +45,7 @@ function DonationCauses({ onDonate }) {
         padding="lg"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-sm text-[color:var(--muted-text,#6b7280)]"
       >
-        {t("rewards.donate.empty", {
-          defaultValue: "No donation causes available right now.",
-        })}
+        {t("rewards.donate.empty")}
       </GlassCard>
     );
   }
@@ -57,13 +54,10 @@ function DonationCauses({ onDonate }) {
     <section className="space-y-6">
       <header className="space-y-2">
         <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          {t("rewards.tabs.donate", { defaultValue: "Donate" })}
+          {t("rewards.tabs.donate")}
         </h2>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("rewards.donate.subtitle", {
-            defaultValue:
-              "Support meaningful organizations with a portion of your coins.",
-          })}
+          {t("rewards.donate.subtitle")}
         </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -95,7 +89,7 @@ function DonationCauses({ onDonate }) {
               <div className="mt-auto space-y-3">
                 <div className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
                   <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-                    {cause.cost} {t("rewards.coins", { defaultValue: "coins" })}
+                    {cause.cost} {t("rewards.coins")}
                   </span>
                   {cause.donation_organization && (
                     <span className="text-xs uppercase tracking-wide">

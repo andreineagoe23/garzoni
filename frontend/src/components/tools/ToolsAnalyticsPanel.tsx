@@ -3,8 +3,7 @@ import { getToolAnalytics } from "services/toolsAnalytics";
 
 const thresholds = {
   portfolio_return_rate: 0.2,
-  next_steps_clickthrough: 0.15,
-};
+  next_steps_clickthrough: 0.15 };
 
 const ToolsAnalyticsPanel = () => {
   const analytics = useMemo(() => getToolAnalytics(), []);

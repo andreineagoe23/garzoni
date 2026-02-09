@@ -5,8 +5,7 @@ import { BACKEND_URL } from "services/backendUrl";
 
 const apiClient = axios.create({
   baseURL: BACKEND_URL,
-  withCredentials: true,
-});
+  withCredentials: true });
 
 const AUTH_EXPIRED_REASON = "session-expired";
 

@@ -53,8 +53,7 @@ function TradingViewMarketExplorer() {
       withdateranges: false,
       compareSymbols: [],
       studies: [],
-      autosize: true,
-    });
+      autosize: true });
 
     script.onload = () => {
       const key = "monevo:tools:completed:market-explorer";
@@ -63,12 +62,10 @@ function TradingViewMarketExplorer() {
       if (typeof window.gtag === "function") {
         window.gtag("event", "tool_completed", {
           tool_id: "market-explorer",
-          detail: "advanced_chart_loaded",
-        });
+          detail: "advanced_chart_loaded" });
       }
       recordToolEvent("tool_complete", "market-explorer", {
-        detail: "advanced_chart_loaded",
-      });
+        detail: "advanced_chart_loaded" });
     };
 
     currentContainer.appendChild(script);

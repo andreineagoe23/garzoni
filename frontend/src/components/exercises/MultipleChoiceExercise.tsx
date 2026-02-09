@@ -12,8 +12,7 @@ const MultipleChoiceExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false,
-}) => {
+  disabled = false }) => {
   const { question, options = [], correctAnswer, explanation, learn_more_url } =
     data || {};
   const { t } = useTranslation();
@@ -60,9 +59,7 @@ const MultipleChoiceExercise = ({
         { section_id: exerciseId },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       setSelectedAnswer(null);
       setFeedback("");

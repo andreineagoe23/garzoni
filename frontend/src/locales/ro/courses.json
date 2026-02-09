@@ -79,7 +79,8 @@
     "noCoursesInPath": "Nu există încă cursuri în acest traseu.",
     "lesson_one": "{{count}} lecție",
     "lesson_other": "{{count}} lecții",
-    "viewDetails": "Vezi detalii →"
+    "viewDetails": "Vezi detalii →",
+    "lesson": "Lecție"
   },
   "editor": {
     "loadFailed": "Nu s-a putut încărca editorul.",

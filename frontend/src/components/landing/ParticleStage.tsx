@@ -7,8 +7,7 @@ export default function ParticleStage({
   brainStageRef,
   topicRefs,
   lineRefs,
-  flowRef,
-}) {
+  flowRef }) {
   return (
     <Suspense
       fallback={
@@ -20,8 +19,7 @@ export default function ParticleStage({
             width: "100%",
             height: "100%",
             background: "#0B0F14",
-            pointerEvents: "none",
-          }}
+            pointerEvents: "none" }}
         />
       }
     >

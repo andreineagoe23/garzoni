@@ -79,7 +79,8 @@
     "noCoursesInPath": "No courses available in this path yet.",
     "lesson_one": "{{count}} lesson",
     "lesson_other": "{{count}} lessons",
-    "viewDetails": "View details →"
+    "viewDetails": "View details →",
+    "lesson": "Lesson"
   },
   "editor": {
     "loadFailed": "Failed to load editor.",

@@ -1,81 +1,64 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { GlassCard } from "components/ui";
+import { Trans, useTranslation } from "react-i18next";
 
 const mutedClass =
   "text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]";
 const contentClass =
   "prose prose-slate max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--accent,#111827)] prose-a:text-[color:var(--primary,#2563eb)] hover:prose-a:text-[color:var(--accent,#2563eb)]";
 
-const NoFinancialAdvice = () => (
-  <section className="bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
-    <GlassCard padding="xl" className="mx-auto w-full max-w-4xl space-y-6">
-      <header className="space-y-3">
-        <p className={mutedClass}>Last updated: February 7, 2026</p>
-        <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-          No Financial Advice Notice
-        </h1>
-      </header>
+const NoFinancialAdvice = () => {
+  const { t } = useTranslation();
+  return (
+    <section className="bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
+      <GlassCard padding="xl" className="mx-auto w-full max-w-4xl space-y-6">
+        <header className="space-y-3">
+          <p className={mutedClass}>
+            {t("legal.lastUpdated", { date: t("legal.dates.feb7_2026") })}
+          </p>
+          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+            {t("legal.noAdvice.title")}
+          </h1>
+        </header>
 
-      <div className={contentClass}>
-        <p>
-          <strong>
-            Monevo does not provide financial, investment, tax, or legal advice.
-          </strong>
-        </p>
+        <div className={contentClass}>
+          <p>
+            <strong>{t("legal.noAdvice.intro")}</strong>
+          </p>
 
-        <h2>Regulatory position</h2>
-        <ul>
-          <li>
-            Monevo is positioned as a financial education platform and
-            information tool.
-          </li>
-          <li>
-            Monevo is not authorised by the UK Financial Conduct Authority
-            (FCA) to provide regulated investment advice.
-          </li>
-          <li>
-            Monevo does not act as your financial adviser, investment adviser,
-            broker, or fiduciary.
-          </li>
-          <li>
-            Use of Monevo does not create an adviser-client or fiduciary
-            relationship.
-          </li>
-        </ul>
+          <h2>{t("legal.noAdvice.sections.regulatory.title")}</h2>
+          <ul>
+            <li>{t("legal.noAdvice.sections.regulatory.items.position")}</li>
+            <li>{t("legal.noAdvice.sections.regulatory.items.fca")}</li>
+            <li>{t("legal.noAdvice.sections.regulatory.items.noAdvisor")}</li>
+            <li>{t("legal.noAdvice.sections.regulatory.items.noRelationship")}</li>
+          </ul>
 
-        <h2>What you should not infer</h2>
-        <ul>
-          <li>
-            Tool outputs, rankings, prompts, and scenarios are not personal
-            recommendations.
-          </li>
-          <li>
-            Educational workflows are not instructions to enter any trade or
-            investment.
-          </li>
-          <li>
-            Labels such as "next step" refer to learning flow, not regulated
-            advice.
-          </li>
-        </ul>
+          <h2>{t("legal.noAdvice.sections.infer.title")}</h2>
+          <ul>
+            <li>{t("legal.noAdvice.sections.infer.items.outputs")}</li>
+            <li>{t("legal.noAdvice.sections.infer.items.workflows")}</li>
+            <li>{t("legal.noAdvice.sections.infer.items.labels")}</li>
+          </ul>
 
-        <h2>Professional advice</h2>
-        <p>
-          If you need advice tailored to your circumstances, speak to a
-          qualified and appropriately regulated adviser before making financial
-          decisions.
-        </p>
+          <h2>{t("legal.noAdvice.sections.professional.title")}</h2>
+          <p>{t("legal.noAdvice.sections.professional.body")}</p>
 
-        <h2>Related documents</h2>
-        <p>
-          Review the <Link to="/financial-disclaimer">Financial Disclaimer</Link>,{" "}
-          <Link to="/terms-of-service">Terms of Service</Link>, and{" "}
-          <Link to="/privacy-policy">Privacy Policy</Link>.
-        </p>
-      </div>
-    </GlassCard>
-  </section>
-);
+          <h2>{t("legal.noAdvice.sections.related.title")}</h2>
+          <p>
+            <Trans
+              i18nKey="legal.noAdvice.sections.related.body"
+              components={{
+                financial: <Link to="/financial-disclaimer" />,
+                terms: <Link to="/terms-of-service" />,
+                privacy: <Link to="/privacy-policy" /> }}
+            />
+          </p>
+        </div>
+      </GlassCard>
+    </section>
+  );
+};
 
 export default NoFinancialAdvice;

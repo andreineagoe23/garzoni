@@ -23,5 +23,7 @@
   "pleaseSelectAnswer": "Please select an answer before submitting.",
   "loadingAuth": "Loading authentication...",
   "loadingNav": "Loading navigation...",
-  "loadingPage": "Loading page..."
+  "loadingPage": "Loading page...",
+  "breadcrumb": "Breadcrumb",
+  "apiError": "Something went wrong. Please try again."
 }

@@ -52,8 +52,7 @@ export function queueMissionCompletion(missionData: OfflineMission): boolean {
 
     queue.push({
       ...missionData,
-      queued_at: new Date().toISOString(),
-    });
+      queued_at: new Date().toISOString() });
 
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
     return true;

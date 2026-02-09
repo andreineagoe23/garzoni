@@ -3,8 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   VerticalTimeline,
-  VerticalTimelineElement,
-} from "react-vertical-timeline-component";
+  VerticalTimelineElement } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import AvatarSelector from "./AvatarSelector";
 import Chatbot from "components/widgets/Chatbot";
@@ -21,8 +20,7 @@ const activityIcons = {
   quiz: "🧠",
   mission: "🚀",
   course: "🎓",
-  default: "📌",
-};
+  default: "📌" };
 
 function Profile() {
   const { t } = useTranslation();
@@ -34,30 +32,22 @@ function Profile() {
     last_name: "",
     earned_money: 0,
     points: 0,
-    streak: 0,
-  });
+    streak: 0 });
   const [imageUrl, setImageUrl] = useState(DEFAULT_AVATAR_URL);
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [goals, setGoals] = useState({
     daily: {
-      label: t("profile.goals.dailyLabel", {
-        defaultValue: "Complete 1 lesson",
-      }),
+      label: t("profile.goals.dailyLabel"),
       current: 0,
       target: 1,
-      completed: false,
-    },
+      completed: false },
     weekly: {
-      label: t("profile.goals.weeklyLabel", {
-        defaultValue: "Earn 500 points",
-      }),
+      label: t("profile.goals.weeklyLabel"),
       current: 0,
       target: 500,
-      completed: false,
-    },
-  });
+      completed: false } });
   const [activityCalendar, setActivityCalendar] = useState<
     Record<string, unknown>
   >({});
@@ -70,18 +60,17 @@ function Profile() {
     first_day: null,
     last_day: null,
     month_name: "",
-    year: null,
-  });
+    year: null });
   const [badgeFilter, setBadgeFilter] = useState("all"); // all | earned | locked
   const weekdayLabels = useMemo(
     () => [
-      t("profile.weekdays.sun", { defaultValue: "Sun" }),
-      t("profile.weekdays.mon", { defaultValue: "Mon" }),
-      t("profile.weekdays.tue", { defaultValue: "Tue" }),
-      t("profile.weekdays.wed", { defaultValue: "Wed" }),
-      t("profile.weekdays.thu", { defaultValue: "Thu" }),
-      t("profile.weekdays.fri", { defaultValue: "Fri" }),
-      t("profile.weekdays.sat", { defaultValue: "Sat" }),
+      t("profile.weekdays.sun"),
+      t("profile.weekdays.mon"),
+      t("profile.weekdays.tue"),
+      t("profile.weekdays.wed"),
+      t("profile.weekdays.thu"),
+      t("profile.weekdays.fri"),
+      t("profile.weekdays.sat"),
     ],
     [t]
   );
@@ -140,8 +129,7 @@ function Profile() {
               ? profilePayload.streak
               : typeof profileUserData.streak === "number"
                 ? profileUserData.streak
-                : 0,
-        });
+                : 0 });
 
         setImageUrl(
           String(profileUserData.profile_avatar || DEFAULT_AVATAR_URL)
@@ -155,8 +143,7 @@ function Profile() {
           : undefined;
 
         const missionsResponse = await axios.get(`${BACKEND_URL}/missions/`, {
-          headers: authHeaders,
-        });
+          headers: authHeaders });
 
         const dailyLessonMission = missionsResponse.data.daily_missions.find(
           (mission) => mission.goal_type === "complete_lesson"
@@ -170,8 +157,7 @@ function Profile() {
               : 0,
             completed: dailyLessonMission
               ? dailyLessonMission.status === "completed"
-              : false,
-          },
+              : false },
           weekly: {
             ...prevGoals.weekly,
             current:
@@ -181,15 +167,12 @@ function Profile() {
             completed:
               (typeof profileUserData.points === "number"
                 ? profileUserData.points
-                : 0) >= prevGoals.weekly.target,
-          },
-        }));
+                : 0) >= prevGoals.weekly.target } }));
 
         const activityResponse = await axios.get(
           `${BACKEND_URL}/recent-activity/`,
           {
-            headers: authHeaders,
-          }
+            headers: authHeaders }
         );
 
         const formattedActivities = activityResponse.data.recent_activities.map(
@@ -200,10 +183,8 @@ function Profile() {
             action: activity.action,
             timestamp: formatDate(activity.timestamp, locale, {
               dateStyle: "medium",
-              timeStyle: "short",
-            }),
-            details: activity.course ? `in ${activity.course}` : "",
-          })
+              timeStyle: "short" }),
+            details: activity.course ? `in ${activity.course}` : "" })
         );
 
         if (isMounted) {
@@ -212,11 +193,9 @@ function Profile() {
 
         const [userBadgesResponse, allBadgesResponse] = await Promise.all([
           axios.get(`${BACKEND_URL}/user-badges/`, {
-            headers: authHeaders,
-          }),
+            headers: authHeaders }),
           axios.get(`${BACKEND_URL}/badges/`, {
-            headers: authHeaders,
-          }),
+            headers: authHeaders }),
         ]);
 
         const earnedBadgesMap = {};
@@ -229,8 +208,7 @@ function Profile() {
           return {
             badge,
             earned: !!userBadge,
-            earned_at: userBadge ? userBadge.earned_at : null,
-          };
+            earned_at: userBadge ? userBadge.earned_at : null };
         });
 
         if (isMounted) {
@@ -314,8 +292,7 @@ function Profile() {
                     : "var(--input-bg,rgba(15,23,42,0.04))",
                   boxShadow: hasActivity
                     ? "0 0 0 1px rgba(var(--accent-rgb,59,130,246),0.25)"
-                    : "none",
-                }}
+                    : "none" }}
               >
                 <span className="text-sm font-semibold">{day}</span>
                 {hasActivity && (
@@ -334,7 +311,7 @@ function Profile() {
   const displayUsername =
     profileData.username ||
     (profileData.email ? profileData.email.split("@")[0] : "") ||
-    t("profile.fallbackUser", { defaultValue: "User" });
+    t("profile.fallbackUser");
 
   const visibleBadgeLimit = isLgUp ? 9 : 4; // 3x3 on lg+, 2x2 on smaller
   const filteredBadges = useMemo(() => {
@@ -362,8 +339,7 @@ function Profile() {
           name: feature.name,
           enabled: feature.enabled,
           used: feature.used_today,
-          remaining: feature.remaining_today,
-        })
+          remaining: feature.remaining_today })
       )
       .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
@@ -374,7 +350,7 @@ function Profile() {
         <div className="flex flex-col items-center gap-4 text-[color:var(--muted-text,#6b7280)]">
           <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
           <p className="text-sm">
-            {t("profile.loading", { defaultValue: "Loading profile..." })}
+            {t("profile.loading")}
           </p>
         </div>
       </PageContainer>
@@ -388,7 +364,7 @@ function Profile() {
           <div className="relative">
             <img
               src={imageUrl || DEFAULT_AVATAR_URL}
-              alt={t("profile.avatarAlt", { defaultValue: "Avatar" })}
+              alt={t("profile.avatarAlt")}
               className="h-36 w-36 rounded-full border-4 border-[color:var(--accent,#2563eb)] object-cover shadow-xl shadow-[color:var(--accent,#2563eb)]/20"
             />
             <div className="absolute -bottom-2 right-2">
@@ -417,9 +393,7 @@ function Profile() {
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--accent,#1d4ed8)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/40"
             >
               <span aria-hidden>🧭</span>
-              {t("profile.actions.personalizedPath", {
-                defaultValue: "Jump to Personalized Path",
-              })}
+              {t("profile.actions.personalizedPath")}
             </button>
             <button
               type="button"
@@ -427,9 +401,7 @@ function Profile() {
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
               <span aria-hidden>💳</span>
-              {t("profile.actions.subscription", {
-                defaultValue: "Jump to Subscription",
-              })}
+              {t("profile.actions.subscription")}
             </button>
           </div>
         </section>
@@ -437,12 +409,10 @@ function Profile() {
         <section className="space-y-6">
           <header>
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {t("profile.goals.title", { defaultValue: "Your Goals" })}
+              {t("profile.goals.title")}
             </h3>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("profile.goals.subtitle", {
-                defaultValue: "Track daily and weekly learning progress.",
-              })}
+              {t("profile.goals.subtitle")}
             </p>
           </header>
 
@@ -465,12 +435,8 @@ function Profile() {
                 >
                   <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
                     {key === "daily"
-                      ? t("profile.goals.dailyTitle", {
-                          defaultValue: "🎯 Daily Goal",
-                        })
-                      : t("profile.goals.weeklyTitle", {
-                          defaultValue: "🗓 Weekly Goal",
-                        })}
+                      ? t("profile.goals.dailyTitle")
+                      : t("profile.goals.weeklyTitle")}
                   </h4>
                   <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
                     {goal.label}
@@ -485,9 +451,7 @@ function Profile() {
                     {Math.min(goal.current, goal.target)} / {goal.target}
                     {goal.completed && (
                       <span className="ml-2 text-[color:var(--accent,#2563eb)]">
-                        {t("profile.goals.completed", {
-                          defaultValue: "✓ Completed!",
-                        })}
+                        {t("profile.goals.completed")}
                       </span>
                     )}
                   </p>
@@ -504,14 +468,10 @@ function Profile() {
         <section className="space-y-6">
           <header>
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {t("profile.streak.title", {
-                defaultValue: "Learning Streak",
-              })}
+              {t("profile.streak.title")}
             </h3>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("profile.streak.subtitle", {
-                defaultValue: "Visualize your daily activity for the month.",
-              })}
+              {t("profile.streak.subtitle")}
             </p>
           </header>
           {renderCalendar()}
@@ -520,7 +480,7 @@ function Profile() {
         <section className="space-y-6">
           <header>
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {t("profile.stats.title", { defaultValue: "Statistics" })}
+              {t("profile.stats.title")}
             </h3>
           </header>
           <div className="grid gap-5 md:grid-cols-3">
@@ -529,7 +489,7 @@ function Profile() {
               className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
             >
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.stats.balance", { defaultValue: "Balance" })}
+                {t("profile.stats.balance")}
               </p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
                 {formatNumber(
@@ -537,7 +497,7 @@ function Profile() {
                   locale,
                   { minimumFractionDigits: 0, maximumFractionDigits: 0 }
                 )}{" "}
-                {t("rewards.coins", { defaultValue: "coins" })}
+                {t("rewards.coins")}
               </p>
             </GlassCard>
             <GlassCard
@@ -545,7 +505,7 @@ function Profile() {
               className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
             >
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.stats.points", { defaultValue: "Points" })}
+                {t("profile.stats.points")}
               </p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
                 {profileData.points}
@@ -556,32 +516,24 @@ function Profile() {
               className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
             >
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.stats.streak", { defaultValue: "Streak" })}
+                {t("profile.stats.streak")}
               </p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
                 {t("profile.stats.streakDays", {
-                  defaultValue: "{{count}} days",
-                  count: profileData.streak,
-                })}
+                  count: profileData.streak })}
               </p>
               <div className="mt-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                 {profileData.streak >= 7 ? (
                   <span className="text-emerald-500">
-                    {t("profile.stats.hotStreak", {
-                      defaultValue: "🔥 Hot streak!",
-                    })}
+                    {t("profile.stats.hotStreak")}
                   </span>
                 ) : profileData.streak >= 3 ? (
                   <span className="text-amber-400">
-                    {t("profile.stats.keepGoing", {
-                      defaultValue: "↑ Keep going!",
-                    })}
+                    {t("profile.stats.keepGoing")}
                   </span>
                 ) : (
                   <span>
-                    {t("profile.stats.startStreak", {
-                      defaultValue: "Start your streak",
-                    })}
+                    {t("profile.stats.startStreak")}
                   </span>
                 )}
               </div>
@@ -593,16 +545,12 @@ function Profile() {
           <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                {t("profile.achievements.title", {
-                  defaultValue: "Achievements",
-                })}
+                {t("profile.achievements.title")}
               </h3>
               <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
                 {t("profile.achievements.showing", {
-                  defaultValue: "Showing {{shown}} of {{total}}",
                   shown: Math.min(badgesToRender.length, filteredBadges.length),
-                  total: filteredBadges.length,
-                })}
+                  total: filteredBadges.length })}
               </p>
             </div>
 
@@ -611,9 +559,7 @@ function Profile() {
                 htmlFor="badge-filter"
                 className="text-sm font-medium text-[color:var(--text-color,#111827)]"
               >
-                {t("profile.achievements.filterLabel", {
-                  defaultValue: "Filter:",
-                })}
+                {t("profile.achievements.filterLabel")}
               </label>
               <select
                 id="badge-filter"
@@ -625,19 +571,13 @@ function Profile() {
                 className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               >
                 <option value="all">
-                  {t("profile.achievements.filterAll", {
-                    defaultValue: "All",
-                  })}
+                  {t("profile.achievements.filterAll")}
                 </option>
                 <option value="earned">
-                  {t("profile.achievements.filterEarned", {
-                    defaultValue: "Earned",
-                  })}
+                  {t("profile.achievements.filterEarned")}
                 </option>
                 <option value="locked">
-                  {t("profile.achievements.filterLocked", {
-                    defaultValue: "Locked",
-                  })}
+                  {t("profile.achievements.filterLocked")}
                 </option>
               </select>
 
@@ -648,12 +588,8 @@ function Profile() {
                   className="rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
                   {showAllBadges
-                    ? t("profile.achievements.showLess", {
-                        defaultValue: "Show less",
-                      })
-                    : t("profile.achievements.showAll", {
-                        defaultValue: "Show all",
-                      })}
+                    ? t("profile.achievements.showLess")
+                    : t("profile.achievements.showAll")}
                 </button>
               )}
             </div>
@@ -668,9 +604,7 @@ function Profile() {
                   className="flex h-28 flex-col items-center justify-center bg-[color:var(--input-bg,#f3f4f6)]/60 text-center transition"
                   title={`${userBadge.badge.name}\n${
                     userBadge.badge.description ||
-                    t("profile.achievements.earnedAchievement", {
-                      defaultValue: "Earned achievement",
-                    })
+                    t("profile.achievements.earnedAchievement")
                   }`}
                   style={
                     userBadge.earned
@@ -686,25 +620,19 @@ function Profile() {
                   <p className="mt-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
                     {userBadge.earned
                       ? userBadge.badge.name
-                      : t("profile.achievements.locked", {
-                          defaultValue: "Locked",
-                        })}
+                      : t("profile.achievements.locked")}
                   </p>
                   {userBadge.earned && userBadge.earned_at && (
                     <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
                       {t("profile.achievements.earnedOn", {
-                        defaultValue: "Earned {{date}}",
-                        date: formatDate(userBadge.earned_at),
-                      })}
+                        date: formatDate(userBadge.earned_at) })}
                     </p>
                   )}
                 </GlassCard>
               ))
             ) : (
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.achievements.empty", {
-                  defaultValue: "No badges earned yet",
-                })}
+                {t("profile.achievements.empty")}
               </p>
             )}
           </div>
@@ -713,9 +641,7 @@ function Profile() {
         <section className="space-y-6">
           <header>
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {t("profile.activity.title", {
-                defaultValue: "Recent Activity",
-              })}
+              {t("profile.activity.title")}
             </h3>
           </header>
 
@@ -736,11 +662,9 @@ function Profile() {
                     boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
                     border:
                       "1px solid var(--border-color, rgba(148,163,184,0.4))",
-                    padding: "18px",
-                  }}
+                    padding: "18px" }}
                   contentArrowStyle={{
-                    borderRight: "7px solid var(--card-bg, #ffffff)",
-                  }}
+                    borderRight: "7px solid var(--card-bg, #ffffff)" }}
                   date={activity.timestamp}
                   dateClassName="text-xs text-[color:var(--muted-text,#6b7280)]"
                   icon={
@@ -751,8 +675,7 @@ function Profile() {
                         justifyContent: "center",
                         alignItems: "center",
                         height: "100%",
-                        width: "100%",
-                      }}
+                        width: "100%" }}
                     >
                       {activityIcons[activity.type] || activityIcons.default}
                     </span>
@@ -762,8 +685,7 @@ function Profile() {
                     color: "#fff",
                     display: "flex",
                     justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                    alignItems: "center" }}
                 >
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {activity.title}
@@ -776,19 +698,14 @@ function Profile() {
             </VerticalTimeline>
           ) : (
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("profile.activity.empty", {
-                defaultValue: "No recent activity",
-              })}
+              {t("profile.activity.empty")}
             </p>
           )}
 
           {recentActivity.length > 3 && (
             <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
               {t("profile.activity.showing", {
-                defaultValue:
-                  "Showing the 3 most recent activities of {{total}} total.",
-                total: recentActivity.length,
-              })}
+                total: recentActivity.length })}
             </p>
           )}
         </section>

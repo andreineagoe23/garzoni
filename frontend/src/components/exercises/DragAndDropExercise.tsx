@@ -36,8 +36,7 @@ const DragAndDropExercise = ({
   onComplete,
   onAttempt,
   isCompleted: isCompletedProp = false,
-  disabled = false,
-}: DragAndDropExerciseProps) => {
+  disabled = false }: DragAndDropExerciseProps) => {
   const { t } = useTranslation();
   const { items = [], targets = [], learn_more_url, explanation } = (data || {}) as {
     items?: DragItem[];
@@ -61,8 +60,7 @@ const DragAndDropExercise = ({
   const [targetStates, setTargetStates] = useState(() =>
     targetsArray.map((target) => ({
       ...target,
-      status: null as "correct" | "incorrect" | null,
-    }))
+      status: null as "correct" | "incorrect" | null }))
   );
   const [isCompleted, setIsCompleted] = useState(false);
   const [keyboardSelectedId, setKeyboardSelectedId] = useState<
@@ -89,8 +87,7 @@ const DragAndDropExercise = ({
     setTargetStates(
       targetsArray.map((target) => ({
         ...target,
-        status: null as "correct" | "incorrect" | null,
-      }))
+        status: null as "correct" | "incorrect" | null }))
     );
     setUserAnswers({});
     setFeedback("");
@@ -107,9 +104,7 @@ const DragAndDropExercise = ({
           `${BACKEND_URL}/exercises/progress/${exerciseId}/`,
           {
             headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
+              Authorization: `Bearer ${getAccessToken()}` } }
         );
 
         if (response.data.completed) {
@@ -120,8 +115,7 @@ const DragAndDropExercise = ({
             targetsArray.map((target) => ({
               ...target,
               status:
-                savedAnswers[target.id] === target.id ? "correct" : "incorrect",
-            }))
+                savedAnswers[target.id] === target.id ? "correct" : "incorrect" }))
           );
           setFeedback(t("exercises.drag.alreadyCompleted"));
           setFeedbackType("success");
@@ -138,8 +132,7 @@ const DragAndDropExercise = ({
     if (isCompleted || disabled) return;
     setUserAnswers((prev) => ({
       ...prev,
-      [target.id]: item.id,
-    }));
+      [target.id]: item.id }));
   };
 
   const handleSubmit = async () => {
@@ -193,16 +186,13 @@ const DragAndDropExercise = ({
         { section_id: exerciseId },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       setUserAnswers({});
       setTargetStates(
         targetsArray.map((target) => ({
           ...target,
-          status: null as "correct" | "incorrect" | null,
-        }))
+          status: null as "correct" | "incorrect" | null }))
       );
       setFeedback("");
       setFeedbackType(null);
@@ -328,17 +318,14 @@ const DraggableItem = ({
   item,
   isDisabled,
   isSelected,
-  onKeyboardSelect,
-}) => {
+  onKeyboardSelect }) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "EXERCISE_ITEM",
       item: { id: item.id },
       canDrag: () => !isDisabled,
       collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    }),
+        isDragging: monitor.isDragging() }) }),
     [item, isDisabled]
   );
 
@@ -367,8 +354,7 @@ const DraggableItem = ({
           : "border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)]"
       }`}
       style={{
-        backgroundColor: item.color || "var(--card-bg,#ffffff)",
-      }}
+        backgroundColor: item.color || "var(--card-bg,#ffffff)" }}
     >
       {item.text}
     </div>
@@ -383,8 +369,7 @@ const DroppableTarget = ({
   itemsById,
   isDisabled,
   keyboardSelectedId,
-  onKeyboardDrop,
-}) => {
+  onKeyboardDrop }) => {
   const { t } = useTranslation();
   const [{ isOver }, drop] = useDrop(
     () => ({
@@ -392,9 +377,7 @@ const DroppableTarget = ({
       canDrop: () => !isDisabled,
       drop: (item) => onDrop(target, item),
       collect: (monitor) => ({
-        isOver: monitor.isOver() && monitor.canDrop(),
-      }),
-    }),
+        isOver: monitor.isOver() && monitor.canDrop() }) }),
     [target, onDrop, isDisabled]
   );
 
