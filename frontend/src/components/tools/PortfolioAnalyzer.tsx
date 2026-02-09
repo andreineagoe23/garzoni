@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import {
   PieChart,
   Pie,
@@ -40,6 +41,7 @@ type PortfolioSummary = {
 };
 
 function PortfolioAnalyzer() {
+  const { t } = useTranslation();
   const locale = getLocale();
   const [entries, setEntries] = useState<PortfolioEntry[]>([]);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
@@ -168,7 +170,7 @@ function PortfolioAnalyzer() {
 
       setError(null);
     } catch (err) {
-      setError("Failed to load portfolio. Please try again.");
+      setError(t("tools.portfolio.loadError"));
       console.error("Error fetching portfolio:", err);
     } finally {
       setLoading(false);
@@ -210,7 +212,7 @@ function PortfolioAnalyzer() {
       const detail = (event as CustomEvent<{ toolId?: string }>).detail;
       if (detail?.toolId !== "portfolio") return;
       if (entries.length === 0) {
-        toast.error("No portfolio entries to export yet.");
+        toast.error(t("tools.portfolio.exportEmpty"));
         return;
       }
       const header = [
@@ -251,7 +253,7 @@ function PortfolioAnalyzer() {
       link.download = "portfolio.csv";
       link.click();
       URL.revokeObjectURL(url);
-      toast.success("Portfolio export ready.");
+      toast.success(t("tools.portfolio.exportReady"));
     };
 
     window.addEventListener(EXPORT_EVENT, handleExport as EventListener);
@@ -306,9 +308,7 @@ function PortfolioAnalyzer() {
     } catch (err) {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
-      setError(
-        apiMessage || "Failed to add portfolio entry. Please try again."
-      );
+      setError(apiMessage || t("tools.portfolio.addFailed"));
       console.error(err);
     }
   };
@@ -327,9 +327,7 @@ function PortfolioAnalyzer() {
     } catch (err) {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
-      setError(
-        apiMessage || "Failed to delete portfolio entry. Please try again."
-      );
+      setError(apiMessage || t("tools.portfolio.deleteFailed"));
       console.error(err);
     }
   };
@@ -375,46 +373,46 @@ function PortfolioAnalyzer() {
     );
 
     if (entries.length === 1) {
-      problems.push("All your money is in one investment.");
+      problems.push(t("tools.portfolio.problems.oneInvestment"));
       riskLevel = "high";
     } else if (maxSinglePct >= 60) {
       problems.push(
-        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio - concentration is high.`
+        t("tools.portfolio.problems.largestHolding", { pct: Math.round(maxSinglePct) })
       );
       riskLevel = "high";
     } else if (maxSinglePct >= 40) {
       problems.push(
-        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio. Consider spreading risk.`
+        t("tools.portfolio.problems.largestHoldingModerate", { pct: Math.round(maxSinglePct) })
       );
       riskLevel = "moderate";
     }
 
     if (cryptoPct >= 50 && total > 0) {
-      problems.push(
-        "Most of your portfolio is in crypto, which tends to be more volatile."
-      );
+      problems.push(t("tools.portfolio.problems.cryptoVolatile"));
       if (riskLevel === "low") riskLevel = "moderate";
     }
 
     if (totalCost > 0 && totalGainLossPercentage < -10) {
-      bullets.push(
-        "You're currently down on paper. Check if your timeline and risk tolerance still match this mix."
-      );
+      bullets.push(t("tools.portfolio.problems.downOnPaper"));
     }
 
     if (entries.length >= 2 && Object.keys(summary.allocation || {}).length >= 2) {
-      bullets.push("You're spread across more than one asset type - that helps smooth volatility.");
+      bullets.push(t("tools.portfolio.problems.spreadAcross"));
     }
     if (total > 0 && stockValue > 0) {
       const pct = Math.round((stockValue / total) * 100);
-      bullets.push(`Stocks make up ${pct}% of your portfolio.`);
+      bullets.push(t("tools.portfolio.problems.stocksPct", { pct }));
     }
     if (total > 0 && cryptoValue > 0) {
       const pct = Math.round((cryptoValue / total) * 100);
-      bullets.push(`Crypto makes up ${pct}% - remember it can swing more than stocks.`);
+      bullets.push(t("tools.portfolio.problems.cryptoPct", { pct }));
     }
     bullets.push(
-      `Total value is ${formatCurrency(total, "USD", locale, { maximumFractionDigits: 0 })} with ${totalGainLossPercentage >= 0 ? "a gain" : "a loss"} of ${formatNumber(Math.abs(totalGainLossPercentage), locale, { maximumFractionDigits: 1 })}% overall.`
+      t("tools.portfolio.problems.totalValueBullet", {
+        value: formatCurrency(total, "USD", locale, { maximumFractionDigits: 0 }),
+        gainOrLoss: totalGainLossPercentage >= 0 ? t("tools.portfolio.problems.gain") : t("tools.portfolio.problems.loss"),
+        pct: formatNumber(Math.abs(totalGainLossPercentage), locale, { maximumFractionDigits: 1 }),
+      })
     );
 
     const riskComfort = financialProfile?.risk_comfort || "";
@@ -449,12 +447,12 @@ function PortfolioAnalyzer() {
     if (maxSinglePct >= 40) {
       insightCards.push({
         id: "concentration",
-        title: "Concentration risk",
-        meaning: `One holding dominates at ${Math.round(maxSinglePct)}% of your portfolio.`,
-        why: "A single decline can swing your overall results.",
+        title: t("tools.portfolio.insights.concentrationTitle"),
+        meaning: t("tools.portfolio.insights.concentrationMeaning", { pct: Math.round(maxSinglePct) }),
+        why: t("tools.portfolio.insights.concentrationWhy"),
         nextSteps: [
-          "Add a second holding in a different area.",
-          "Consider trimming the oversized position.",
+          t("tools.portfolio.insights.concentrationStep1"),
+          t("tools.portfolio.insights.concentrationStep2"),
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.concentration,
         actionLink: "/tools/portfolio",
@@ -465,12 +463,12 @@ function PortfolioAnalyzer() {
     if (entries.length < 3) {
       insightCards.push({
         id: "diversification",
-        title: "Low diversification",
-        meaning: "You have fewer than three holdings.",
-        why: "Small portfolios tend to be less resilient to shocks.",
+        title: t("tools.portfolio.insights.diversificationTitle"),
+        meaning: t("tools.portfolio.insights.diversificationMeaning"),
+        why: t("tools.portfolio.insights.diversificationWhy"),
         nextSteps: [
-          "Add a broad market ETF or index exposure.",
-          "Balance with another asset type.",
+          t("tools.portfolio.insights.diversificationStep1"),
+          t("tools.portfolio.insights.diversificationStep2"),
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.diversification,
         actionLink: "/tools/market-explorer",
@@ -481,12 +479,12 @@ function PortfolioAnalyzer() {
     if (cryptoPct >= 30 && total > 0) {
       insightCards.push({
         id: "volatility",
-        title: "High volatility exposure",
-        meaning: `Crypto is about ${Math.round(cryptoPct)}% of your portfolio.`,
-        why: "Crypto tends to swing more than stocks or bonds.",
+        title: t("tools.portfolio.insights.volatilityTitle"),
+        meaning: t("tools.portfolio.insights.volatilityMeaning", { pct: Math.round(cryptoPct) }),
+        why: t("tools.portfolio.insights.volatilityWhy"),
         nextSteps: [
-          "Decide if this aligns with your risk comfort.",
-          "Balance with less volatile assets.",
+          t("tools.portfolio.insights.volatilityStep1"),
+          t("tools.portfolio.insights.volatilityStep2"),
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.volatility,
         actionLink: "/tools/market-explorer",
@@ -497,12 +495,12 @@ function PortfolioAnalyzer() {
     if (totalGainLossPercentage < -10) {
       insightCards.push({
         id: "drawdown",
-        title: "Portfolio drawdown",
-        meaning: "Your portfolio is down more than 10% overall.",
-        why: "Large drawdowns can test your time horizon and confidence.",
+        title: t("tools.portfolio.insights.drawdownTitle"),
+        meaning: t("tools.portfolio.insights.drawdownMeaning"),
+        why: t("tools.portfolio.insights.drawdownWhy"),
         nextSteps: [
-          "Review your time horizon before making changes.",
-          "Avoid panic selling without a plan.",
+          t("tools.portfolio.insights.drawdownStep1"),
+          t("tools.portfolio.insights.drawdownStep2"),
         ],
         lessonLink: "/all-topics?topic=investing",
         actionLink: "/tools/reality-check",
@@ -513,12 +511,12 @@ function PortfolioAnalyzer() {
     if (insightCards.length === 0) {
       insightCards.push({
         id: "healthy",
-        title: "Healthy balance",
-        meaning: "Your mix looks reasonably diversified.",
-        why: "Balanced portfolios tend to handle volatility better.",
+        title: t("tools.portfolio.insights.healthyTitle"),
+        meaning: t("tools.portfolio.insights.healthyMeaning"),
+        why: t("tools.portfolio.insights.healthyWhy"),
         nextSteps: [
-          "Keep monitoring allocation drift quarterly.",
-          "Explore new assets only if they fit your goal.",
+          t("tools.portfolio.insights.healthyStep1"),
+          t("tools.portfolio.insights.healthyStep2"),
         ],
         lessonLink: "/all-topics?topic=investing",
         actionLink: "/tools/market-explorer",
@@ -531,22 +529,22 @@ function PortfolioAnalyzer() {
       label: string;
       href: string;
     };
-    if (riskLevel === "high" || (biggestProblem && biggestProblem.includes("one investment"))) {
+    if (riskLevel === "high" || entries.length === 1) {
       nextAction = {
         type: "learn",
-        label: "Learn: Why diversification helps",
+        label: t("tools.portfolio.learnDiversification"),
         href: "/all-topics?topic=investing",
       };
-    } else if (riskLevel === "moderate" || (biggestProblem && biggestProblem.includes("concentration"))) {
+    } else if (riskLevel === "moderate" || (biggestProblem && maxSinglePct >= 40)) {
       nextAction = {
         type: "adjust",
-        label: "Consider rebalancing or adding another holding",
+        label: t("tools.portfolio.considerRebalancing"),
         href: "/tools/portfolio",
       };
     } else {
       nextAction = {
         type: "explore",
-        label: "Explore: Market Explorer to compare assets",
+        label: t("tools.portfolio.exploreMarket"),
         href: "/tools/market-explorer",
       };
     }
@@ -560,7 +558,7 @@ function PortfolioAnalyzer() {
       insightCards: insightCards.slice(0, 5),
       confidence: financialProfile ? "medium" : "low",
     };
-  }, [summary, entries, totalGainLossPercentage, locale, financialProfile]);
+  }, [summary, entries, totalGainLossPercentage, locale, financialProfile, t]);
 
   useEffect(() => {
     if (!insight || typeof window === "undefined") return;
@@ -570,7 +568,7 @@ function PortfolioAnalyzer() {
   if (loading) {
     return (
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-        Loading portfolio...
+        {t("tools.portfolio.loading")}
       </div>
     );
   }
@@ -581,10 +579,10 @@ function PortfolioAnalyzer() {
     <section className="space-y-6 min-w-0 w-full">
       <header className="space-y-2 text-center">
         <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)] sm:text-2xl">
-          Portfolio Analyzer
+          {t("tools.portfolio.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Track and analyze your investment portfolio
+          {t("tools.portfolio.subtitle")}
         </p>
       </header>
 
@@ -599,10 +597,10 @@ function PortfolioAnalyzer() {
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
             <h4 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-              No Portfolio Entries
+              {t("tools.portfolio.noEntries")}
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Add your first investment to start tracking your portfolio
+              {t("tools.portfolio.noEntriesSubtitle")}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               <button
@@ -617,7 +615,7 @@ function PortfolioAnalyzer() {
                 }
                 className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
               >
-                Load sample stock
+                {t("tools.portfolio.loadSampleStock")}
               </button>
               <button
                 type="button"
@@ -631,17 +629,17 @@ function PortfolioAnalyzer() {
                 }
                 className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
               >
-                Load sample crypto
+                {t("tools.portfolio.loadSampleCrypto")}
               </button>
             </div>
             <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-2">
-                Try this
+                {t("tools.portfolio.tryThis")}
               </p>
               <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <li>• Add a sample stock to see allocation charts</li>
-                <li>• Compare a stock and crypto holding together</li>
-                <li>• Review total gain/loss once you add entries</li>
+                <li>• {t("tools.portfolio.tryThisBullet1")}</li>
+                <li>• {t("tools.portfolio.tryThisBullet2")}</li>
+                <li>• {t("tools.portfolio.tryThisBullet3")}</li>
               </ul>
             </div>
           </div>
@@ -659,7 +657,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-                Total Portfolio Value
+                {t("tools.portfolio.totalValue")}
               </h4>
               <div className="space-y-1">
                 <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
@@ -669,7 +667,7 @@ function PortfolioAnalyzer() {
                   })}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Current value
+                  {t("tools.portfolio.currentValue")}
                 </p>
               </div>
             </div>
@@ -682,7 +680,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-                Total Gain/Loss
+                {t("tools.portfolio.totalGainLoss")}
               </h4>
               <div className="space-y-1">
                 <p
@@ -725,14 +723,14 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
-                Total Holdings
+                {t("tools.portfolio.totalHoldings")}
               </h4>
               <div className="space-y-1">
                 <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
                   {entries.length}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {entries.length} {entries.length === 1 ? 'investment' : 'investments'}
+                  {entries.length} {entries.length === 1 ? t("tools.portfolio.investment_one") : t("tools.portfolio.investment_other")}
                 </p>
               </div>
             </div>
@@ -747,7 +745,7 @@ function PortfolioAnalyzer() {
               }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-                Portfolio insight
+                {t("tools.portfolio.portfolioInsight")}
               </h4>
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <span
@@ -760,41 +758,40 @@ function PortfolioAnalyzer() {
                   }`}
                 >
                   {insight.goalAlignment === "good_fit"
-                    ? "Good fit"
+                    ? t("tools.portfolio.goodFit")
                     : insight.goalAlignment === "risky"
-                      ? "Risky"
-                      : "Misaligned"}
+                      ? t("tools.portfolio.risky")
+                      : t("tools.portfolio.misaligned")}
                 </span>
                 <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Confidence: {insight.confidence}
+                  {t("tools.portfolio.confidence", { level: insight.confidence })}
                 </span>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    Is this portfolio risky for me?
+                    {t("tools.portfolio.isPortfolioRisky")}
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
                     {insight.riskLevel === "low"
-                      ? "Risk looks reasonable - you're not over-concentrated in one place."
+                      ? t("tools.portfolio.riskReasonable")
                       : insight.riskLevel === "moderate"
-                        ? "Moderate risk - one area dominates; consider spreading out."
-                        : "Higher risk - concentration or volatility is high; worth reviewing."}
+                        ? t("tools.portfolio.riskModerate")
+                        : t("tools.portfolio.riskHigh")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    What's the biggest problem here?
+                    {t("tools.portfolio.biggestProblem")}
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
-                    {insight.biggestProblem ??
-                      "Nothing major - your mix looks reasonable for a long-term approach."}
+                    {insight.biggestProblem ?? t("tools.portfolio.nothingMajor")}
                   </p>
                 </div>
               </div>
               <div className="mt-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  In plain English
+                  {t("tools.portfolio.inPlainEnglish")}
                 </p>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[color:var(--text-color,#111827)]">
                   {insight.summaryBullets.map((b, i) => (
@@ -1008,8 +1005,8 @@ function PortfolioAnalyzer() {
                 onChange={handleInputChange}
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                <option value="stock">Stock</option>
-                <option value="crypto">Crypto</option>
+                <option value="stock">{t("tools.portfolio.stock")}</option>
+                <option value="crypto">{t("tools.portfolio.crypto")}</option>
               </select>
             </label>
 
@@ -1020,7 +1017,7 @@ function PortfolioAnalyzer() {
                 name="symbol"
                 value={newEntry.symbol}
                 onChange={handleInputChange}
-                placeholder="e.g., AAPL, BTC"
+                placeholder={t("tools.portfolio.symbolPlaceholder")}
                 required
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               />

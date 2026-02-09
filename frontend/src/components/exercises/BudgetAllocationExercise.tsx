@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
@@ -31,6 +32,7 @@ const BudgetAllocationExercise = ({
 }: BudgetAllocationExerciseProps) => {
   const { question, categories = [], total = 0, id, learn_more_url, explanation } =
     data || {};
+  const { t } = useTranslation();
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const initialAllocations = useMemo<Record<string, string>>(() => {
@@ -71,19 +73,19 @@ const BudgetAllocationExercise = ({
   const handleSubmit = async () => {
     if (disabled) return;
     if (currentTotal === total) {
-      setFeedback("Great job! Your budget allocation is correct!");
+      setFeedback(t("exercises.budget.correct"));
       setFeedbackType("success");
       playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: true });
       onAttempt?.({ correct: true });
       try {
         await onComplete?.();
       } catch (error) {
-        setFeedback("Error saving progress. Please try again.");
+        setFeedback(t("exercises.saveError"));
         setFeedbackType("error");
       }
     } else {
       setFeedback(
-        `Your total must be ${total}. Current total: ${currentTotal}`
+        t("exercises.budget.totalMismatch", { total, current: currentTotal })
       );
       setFeedbackType("error");
       playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: false });
@@ -119,8 +121,7 @@ const BudgetAllocationExercise = ({
           {question}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Allocate your budget across the categories below. Make sure the total
-          adds up to {total}.
+          {t("exercises.budget.instruction", { total })}
         </p>
       </header>
 
@@ -157,13 +158,13 @@ const BudgetAllocationExercise = ({
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
         <span>
-          Current Total:{" "}
+          {t("exercises.budget.currentTotal")}{" "}
           <span className="font-semibold text-[color:var(--accent,#111827)]">
             ${currentTotal}
           </span>
         </span>
         <span>
-          Target:{" "}
+          {t("exercises.budget.target")}{" "}
           <span className="font-semibold text-[color:var(--accent,#111827)]">
             ${total}
           </span>
@@ -214,7 +215,7 @@ const BudgetAllocationExercise = ({
                 rel="noreferrer"
                 className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
               >
-                Learn more
+                {t("exercises.explanation.learnMoreLink")}
               </a>
             </div>
           )}

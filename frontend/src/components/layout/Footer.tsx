@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaFacebookF,
@@ -24,42 +25,38 @@ const BMC_BUTTON_IMG =
 // sections. Each section defines its own list of links below.
 
 function Footer() {
+  const { t } = useTranslation();
   const location = useLocation();
   const year = new Date().getFullYear();
 
-  /**
-   * To make the footer span the full width of the page and be more useful, we
-   * break the content into sections. Each section contains a heading and
-   * associated links. Order: Legal, Company, Product.
-   */
   const sections = [
     {
-      heading: "Legal",
+      heading: t("footer.legal"),
       links: [
-        { label: "Privacy Policy", to: "/privacy-policy" },
-        { label: "Cookie Policy", to: "/cookie-policy" },
-        { label: "Terms & Conditions", to: "/terms-of-service" },
-        { label: "Financial Disclaimer", to: "/financial-disclaimer" },
-        { label: "No Financial Advice Notice", to: "/no-financial-advice" },
+        { label: t("footer.privacyPolicy"), to: "/privacy-policy" },
+        { label: t("footer.cookiePolicy"), to: "/cookie-policy" },
+        { label: t("footer.termsConditions"), to: "/terms-of-service" },
+        { label: t("footer.financialDisclaimer"), to: "/financial-disclaimer" },
+        { label: t("footer.noFinancialAdviceNotice"), to: "/no-financial-advice" },
       ],
     },
     {
-      heading: "Company",
+      heading: t("footer.company"),
       links: [
-        { label: "About", to: "/welcome" },
-        { label: "Subscriptions", to: "/subscriptions" },
-        { label: "FAQ", to: "/faq" },
+        { label: t("footer.about"), to: "/welcome" },
+        { label: t("footer.subscriptions"), to: "/subscriptions" },
+        { label: t("footer.faq"), to: "/faq" },
       ],
     },
     {
-      heading: "Product",
+      heading: t("footer.product"),
       links: [
-        { label: "Dashboard", to: "/all-topics" },
-        { label: "Exercises", to: "/exercises" },
-        { label: "Missions", to: "/missions" },
-        { label: "Tools", to: "/tools" },
-        { label: "Leaderboards", to: "/leaderboards" },
-        { label: "Rewards", to: "/rewards" },
+        { label: t("footer.dashboard"), to: "/all-topics" },
+        { label: t("footer.exercises"), to: "/exercises" },
+        { label: t("footer.missions"), to: "/missions" },
+        { label: t("footer.tools"), to: "/tools" },
+        { label: t("footer.leaderboards"), to: "/leaderboards" },
+        { label: t("footer.rewards"), to: "/rewards" },
       ],
     },
   ];
@@ -87,11 +84,10 @@ function Footer() {
                 monevo
               </span>
               <p className="max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
-                Learn money skills with lessons, missions, and practice.
+                {t("footer.tagline")}
               </p>
               <p className="max-w-sm text-xs leading-relaxed text-[color:var(--muted-text,#6b7280)]">
-                Educational platform only. Monevo does not provide financial
-                advice.
+                {t("footer.disclaimer")}
               </p>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <a
@@ -99,7 +95,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on TikTok"
+                  aria-label={t("footer.monevoOn", { platform: "TikTok" })}
                 >
                   <FaTiktokIcon size={18} />
                 </a>
@@ -108,7 +104,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on X"
+                  aria-label={t("footer.monevoOn", { platform: "X" })}
                 >
                   <FaXTwitterIcon size={18} />
                 </a>
@@ -117,7 +113,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on Instagram"
+                  aria-label={t("footer.monevoOn", { platform: "Instagram" })}
                 >
                   <FaInstagramIcon size={18} />
                 </a>
@@ -126,7 +122,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on Facebook"
+                  aria-label={t("footer.monevoOn", { platform: "Facebook" })}
                 >
                   <FaFacebookFIcon size={18} />
                 </a>
@@ -135,7 +131,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on YouTube"
+                  aria-label={t("footer.monevoOn", { platform: "YouTube" })}
                 >
                   <FaYoutubeIcon size={18} />
                 </a>
@@ -144,7 +140,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-                  aria-label="Monevo on LinkedIn"
+                  aria-label={t("footer.monevoOn", { platform: "LinkedIn" })}
                 >
                   <FaLinkedinInIcon size={18} />
                 </a>
@@ -156,11 +152,11 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block transition opacity-90 hover:opacity-100"
-                  aria-label="Buy me a coffee"
+                  aria-label={t("footer.buyMeACoffee")}
                 >
                   <img
                     src={BMC_BUTTON_IMG}
-                    alt="Buy me a coffee"
+                    alt={t("footer.buyMeACoffee")}
                     className="h-10 w-auto"
                   />
                 </a>
@@ -195,11 +191,10 @@ function Footer() {
           {/* Bottom bar with copyright */}
           <div className="flex flex-col items-center justify-between gap-4 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-4 sm:flex-row">
             <p className="text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-left">
-              © {year} Monevo. All rights reserved.
+              {t("footer.copyright", { year })}
             </p>
             <p className="text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-right">
-              Information is educational and general, not personalized financial
-              advice.
+              {t("footer.infoDisclaimer")}
             </p>
           </div>
         </div>

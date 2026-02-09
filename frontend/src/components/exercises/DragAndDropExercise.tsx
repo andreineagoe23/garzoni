@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import axios from "axios";
@@ -37,6 +38,7 @@ const DragAndDropExercise = ({
   isCompleted: isCompletedProp = false,
   disabled = false,
 }: DragAndDropExerciseProps) => {
+  const { t } = useTranslation();
   const { items = [], targets = [], learn_more_url, explanation } = (data || {}) as {
     items?: DragItem[];
     targets?: DragTarget[];
@@ -121,7 +123,7 @@ const DragAndDropExercise = ({
                 savedAnswers[target.id] === target.id ? "correct" : "incorrect",
             }))
           );
-          setFeedback("This exercise is already completed.");
+          setFeedback(t("exercises.drag.alreadyCompleted"));
           setFeedbackType("success");
         }
       } catch (error) {
@@ -155,7 +157,7 @@ const DragAndDropExercise = ({
     playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: allCorrect });
 
     if (allCorrect) {
-      setFeedback("Great job! You completed the exercise!");
+      setFeedback(t("exercises.drag.completed"));
       setFeedbackType("success");
       setIsCompleted(true);
 
@@ -163,13 +165,13 @@ const DragAndDropExercise = ({
         await onComplete?.();
       } catch (error) {
         console.error("Error saving exercise progress:", error);
-        setFeedback("Error saving progress. Please try again.");
+        setFeedback(t("exercises.saveError"));
         setFeedbackType("error");
         setIsCompleted(false);
       }
     } else {
       setFeedback(
-        `${correctCount} out of ${targetsArray.length} answers are correct. Try again!`
+        t("exercises.drag.partialCorrect", { correct: correctCount, total: targetsArray.length })
       );
       setFeedbackType("error");
     }
@@ -216,18 +218,17 @@ const DragAndDropExercise = ({
       <GlassCard padding="lg" className="transition">
         <header className="space-y-2">
           <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-            Match The Correct Items
+            {t("exercises.drag.title")}
           </h3>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Drag each item to the matching target. Submit your answers when you
-            are ready.
+            {t("exercises.drag.instruction")}
           </p>
         </header>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Items
+              {t("exercises.drag.items")}
             </h4>
             <div className="mt-3 flex flex-wrap gap-3">
               {itemsArray.map((item) => (
@@ -244,7 +245,7 @@ const DragAndDropExercise = ({
 
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Targets
+              {t("exercises.drag.targets")}
             </h4>
             <div className="mt-3 grid gap-3">
               {targetStates.map((target) => (
@@ -312,7 +313,7 @@ const DragAndDropExercise = ({
                   rel="noreferrer"
                   className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
                 >
-                  Learn more
+                  {t("exercises.explanation.learnMoreLink")}
                 </a>
               </div>
             )}
@@ -384,6 +385,7 @@ const DroppableTarget = ({
   keyboardSelectedId,
   onKeyboardDrop,
 }) => {
+  const { t } = useTranslation();
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: "EXERCISE_ITEM",
@@ -427,7 +429,7 @@ const DroppableTarget = ({
       </p>
       {userAnswer && (
         <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-[color:var(--muted-text,#6b7280)] shadow-inner">
-          Answer: {itemsById[userAnswer]?.text || userAnswer}
+          {t("exercises.drag.answerLabel")} {itemsById[userAnswer]?.text || userAnswer}
         </div>
       )}
     </div>

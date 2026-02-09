@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
 
 type DailyGoalCardProps = {
@@ -12,6 +13,7 @@ const DailyGoalCard = ({
   locale,
   prefersReducedMotion,
 }: DailyGoalCardProps) => {
+  const { t } = useTranslation();
   return (
     <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
       <div className="mb-2 flex items-center justify-between">
@@ -20,7 +22,7 @@ const DailyGoalCard = ({
             🎯
           </span>
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
-            Daily Goal
+            {t("dashboard.dailyGoal.label")}
           </span>
         </div>
         <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -37,7 +39,7 @@ const DailyGoalCard = ({
           aria-valuenow={dailyGoalProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Daily Goal: ${formatPercentage(
+          aria-label={`${t("dashboard.dailyGoal.label")}: ${formatPercentage(
             dailyGoalProgress,
             locale,
             0
@@ -45,7 +47,7 @@ const DailyGoalCard = ({
         />
       </div>
       <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-        Complete your daily learning goal to maintain your streak
+        {t("dashboard.dailyGoal.completeDesc")}
       </p>
     </div>
   );

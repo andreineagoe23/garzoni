@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useMemo, useDeferredValue } from "react";
-import axios from "axios";
 import LearningPathList from "components/courses/LearningPathList";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useProgressMetrics } from "hooks/useProgressMetrics";
 import { useAnalytics } from "hooks/useAnalytics";
 import { formatNumber, getLocale } from "utils/format";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 type LearningPathCourse = {
   id: number;
@@ -52,6 +52,7 @@ const AllTopics = ({
   const { trackEvent } = useAnalytics();
   const locale = getLocale();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const planRank = (plan?: string | null) => {
     if (plan === "plus") return 1;
     if (plan === "pro") return 2;
@@ -65,14 +66,7 @@ const AllTopics = ({
     const fetchPaths = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<LearningPath[]>(
-          `${BACKEND_URL}/paths/`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
-        );
+        const response = await apiClient.get<LearningPath[]>("/paths/");
 
         setLearningPaths(
           response.data.map((path: unknown): LearningPath => {
@@ -139,14 +133,19 @@ const AllTopics = ({
         }
       } catch (err) {
         console.error("Error fetching learning paths:", err);
-        setError("Failed to load learning paths. Please try again later.");
+        setError(
+          t("allTopics.error", {
+            defaultValue:
+              "Failed to load learning paths. Please try again later.",
+          })
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchPaths();
-  }, [getAccessToken]);
+  }, [getAccessToken, t]);
 
   const handleTogglePath = (pathId: number | string, isLocked?: boolean) => {
     if (isLocked) return;
@@ -206,7 +205,9 @@ const AllTopics = ({
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
         <div className="flex items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          Loading learning paths...
+          {t("allTopics.loading", {
+            defaultValue: "Loading learning paths...",
+          })}
         </div>
       </div>
     );
@@ -232,7 +233,7 @@ const AllTopics = ({
             htmlFor="sort-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            Sort by:
+            {t("allTopics.sortByLabel", { defaultValue: "Sort by:" })}
           </label>
           <select
             id="sort-select"
@@ -243,14 +244,32 @@ const AllTopics = ({
               trackEvent("sort_change", { sort_by: newSort });
             }}
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-            aria-label="Sort learning paths"
+            aria-label={t("allTopics.sortByAria", {
+              defaultValue: "Sort learning paths",
+            })}
           >
-            <option value="default">Default</option>
-            <option value="name">Name (A-Z)</option>
-            <option value="easiest">Easiest First</option>
-            <option value="hardest">Hardest First</option>
-            <option value="progress-asc">Progress (Low to High)</option>
-            <option value="progress-desc">Progress (High to Low)</option>
+            <option value="default">
+              {t("allTopics.sort.default", { defaultValue: "Default" })}
+            </option>
+            <option value="name">
+              {t("allTopics.sort.name", { defaultValue: "Name (A-Z)" })}
+            </option>
+            <option value="easiest">
+              {t("allTopics.sort.easiest", { defaultValue: "Easiest First" })}
+            </option>
+            <option value="hardest">
+              {t("allTopics.sort.hardest", { defaultValue: "Hardest First" })}
+            </option>
+            <option value="progress-asc">
+              {t("allTopics.sort.progressAsc", {
+                defaultValue: "Progress (Low to High)",
+              })}
+            </option>
+            <option value="progress-desc">
+              {t("allTopics.sort.progressDesc", {
+                defaultValue: "Progress (High to Low)",
+              })}
+            </option>
           </select>
         </div>
         {navigationControls ? (
@@ -263,7 +282,7 @@ const AllTopics = ({
             htmlFor="filter-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            Filter:
+            {t("allTopics.filterLabel", { defaultValue: "Filter:" })}
           </label>
           <select
             id="filter-select"
@@ -274,12 +293,26 @@ const AllTopics = ({
               trackEvent("filter_change", { filter_by: newFilter });
             }}
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-            aria-label="Filter learning paths"
+            aria-label={t("allTopics.filterAria", {
+              defaultValue: "Filter learning paths",
+            })}
           >
-            <option value="all">All Topics</option>
-            <option value="not-started">Not Started</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value="all">
+              {t("allTopics.filter.all", { defaultValue: "All Topics" })}
+            </option>
+            <option value="not-started">
+              {t("allTopics.filter.notStarted", {
+                defaultValue: "Not Started",
+              })}
+            </option>
+            <option value="in-progress">
+              {t("allTopics.filter.inProgress", {
+                defaultValue: "In Progress",
+              })}
+            </option>
+            <option value="completed">
+              {t("allTopics.filter.completed", { defaultValue: "Completed" })}
+            </option>
           </select>
         </div>
       </GlassCard>
@@ -325,7 +358,9 @@ const AllTopics = ({
                     <div className="mt-3 space-y-1">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
-                          Path Progress
+                          {t("allTopics.pathProgress", {
+                            defaultValue: "Path Progress",
+                          })}
                         </span>
                         <span className="font-semibold text-[color:var(--text-color,#111827)]">
                           {formatNumber(path.progress ?? 0, locale, {
@@ -343,14 +378,13 @@ const AllTopics = ({
                           aria-valuenow={path.progress}
                           aria-valuemin={0}
                           aria-valuemax={100}
-                          aria-label={`${formatNumber(
-                            path.progress ?? 0,
-                            locale,
-                            {
+                          aria-label={t("allTopics.progressAria", {
+                            defaultValue: "{{value}}% complete",
+                            value: formatNumber(path.progress ?? 0, locale, {
                               minimumFractionDigits: 0,
                               maximumFractionDigits: 0,
-                            }
-                          )}% complete`}
+                            }),
+                          })}
                         />
                       </div>
                     </div>
@@ -367,7 +401,13 @@ const AllTopics = ({
                     aria-expanded={activePathId === path.id}
                     aria-controls={`path-${path.id}-courses`}
                   >
-                    {activePathId === path.id ? "Hide Courses" : "View Courses"}
+                    {activePathId === path.id
+                      ? t("allTopics.hideCourses", {
+                          defaultValue: "Hide Courses",
+                        })
+                      : t("allTopics.viewCourses", {
+                          defaultValue: "View Courses",
+                        })}
                   </GlassButton>
                 )}
                 {isLocked && (
@@ -379,7 +419,10 @@ const AllTopics = ({
                       navigate("/subscriptions");
                     }}
                   >
-                    Upgrade to {requiredPlan}
+                    {t("allTopics.upgradeTo", {
+                      defaultValue: "Upgrade to {{plan}}",
+                      plan: requiredPlan,
+                    })}
                   </GlassButton>
                 )}
               </div>
@@ -390,7 +433,10 @@ const AllTopics = ({
                 id={`path-${path.id}-courses`}
                 className="mt-6"
                 role="region"
-                aria-label={`Courses in ${path.title}`}
+                aria-label={t("allTopics.coursesIn", {
+                  defaultValue: "Courses in {{title}}",
+                  title: path.title,
+                })}
               >
                 <LearningPathList
                   learningPaths={[path]}

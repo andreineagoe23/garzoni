@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -149,6 +150,7 @@ function fixImagePaths(content: string) {
 }
 
 function CourseFlowPage() {
+  const { t } = useTranslation();
   const { courseId, pathId } = useParams();
   const courseIdNumber = useMemo(
     () => Number.parseInt(courseId ?? "0", 10),
@@ -465,7 +467,7 @@ function CourseFlowPage() {
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
-    onError: () => toast.error("Failed to save progress. Please try again."),
+    onError: () => toast.error(t("courses.flow.saveProgressFailed")),
   });
 
   const completeLessonMutation = useMutation({
@@ -473,7 +475,7 @@ function CourseFlowPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
-    onError: () => toast.error("Failed to save progress. Please try again."),
+    onError: () => toast.error(t("courses.flow.saveProgressFailed")),
   });
 
   const totalSteps = flowSections.length || 1;
@@ -573,7 +575,7 @@ function CourseFlowPage() {
 
       setSaveState({
         status: "saving",
-        message: silent ? "" : "Saving changes...",
+        message: silent ? "" : t("courses.flow.savingChanges"),
       });
 
       try {
@@ -602,12 +604,12 @@ function CourseFlowPage() {
           )
         );
         setDraftSection(normalized);
-        setSaveState({ status: "saved", message: silent ? "" : "Saved" });
+        setSaveState({ status: "saved", message: silent ? "" : t("shared.saved") });
       } catch (err) {
         console.error("Failed to save section", err);
         setSaveState({
           status: "error",
-          message: "Could not save changes.",
+          message: t("courses.flow.couldNotSaveChanges"),
         });
       }
     },
@@ -624,7 +626,7 @@ function CourseFlowPage() {
     const newSection = {
       id: tempId,
       lessonId,
-      title: "New section",
+      title: t("courses.flow.newSection"),
       content_type: "text",
       text_content: "",
       video_url: "",
@@ -652,7 +654,7 @@ function CourseFlowPage() {
     } catch (err) {
       console.error("Failed to create section", err);
       setLessons(previousSnapshot);
-      setSaveState({ status: "error", message: "Could not create section." });
+      setSaveState({ status: "error", message: t("courses.flow.couldNotCreateSection") });
       beginEditingSection(null, null);
     }
   };
@@ -675,7 +677,7 @@ function CourseFlowPage() {
     } catch (err) {
       console.error("Failed to delete section", err);
       setLessons(previousSnapshot);
-      setSaveState({ status: "error", message: "Failed to delete section." });
+      setSaveState({ status: "error", message: t("courses.flow.failedToDeleteSection") });
     }
   };
 
@@ -726,7 +728,7 @@ function CourseFlowPage() {
       setLessons(previousSnapshot);
       setSaveState({
         status: "error",
-        message: "Could not update ordering.",
+        message: t("courses.flow.couldNotUpdateOrdering"),
       });
     }
   };
@@ -1058,14 +1060,14 @@ function CourseFlowPage() {
   const sanitizedLessonDetailHtml = useMemo(() => {
     if (!currentItem || currentItem.kind === "section") return null;
     return DOMPurify.sanitize(
-      currentItem.lessonDetailedContent || "No lesson content available."
+      currentItem.lessonDetailedContent || t("courses.flow.noLessonContent")
     );
   }, [currentItem]);
 
   const headerText = useMemo(() => {
     if (!currentItem) return null;
     return {
-      title: currentItem.lessonTitle || "Lesson",
+      title: currentItem.lessonTitle || t("courses.flow.lessonFallback"),
       subtitle: currentItem.lessonShortDescription || "",
     };
   }, [currentItem]);
@@ -1113,7 +1115,7 @@ function CourseFlowPage() {
               ) : (
                 <video controls className="h-full w-full">
                   <source src={section.video_url} type="video/mp4" />
-                  Your browser does not support the video tag.
+                  {t("courses.flow.videoNotSupported")}
                 </video>
               )}
             </div>
@@ -1188,7 +1190,7 @@ function CourseFlowPage() {
 
       return (
         <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-5 py-5 text-sm text-[color:var(--muted-text,#6b7280)]">
-          No content available for this section.
+          {t("courses.flow.noSectionContent")}
         </div>
       );
     }
@@ -1198,14 +1200,10 @@ function CourseFlowPage() {
       return (
         <div className="space-y-4">
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
-            This lesson uses a legacy "lesson-level" exercise format.
+            {t("courses.flow.legacyExerciseFormat")}
           </div>
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-5 py-5 text-sm text-[color:var(--muted-text,#6b7280)]">
-            Exercise type{" "}
-            <span className="font-semibold">
-              {currentItem.lessonExerciseType}
-            </span>{" "}
-            isn't supported in the new flow yet.
+            {t("courses.flow.unsupportedExerciseType", { type: currentItem.lessonExerciseType })}
           </div>
         </div>
       );
@@ -1242,14 +1240,14 @@ function CourseFlowPage() {
         <div className="mx-auto w-full max-w-3xl">
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-5 py-6 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/10">
             {error?.message ||
-              "We couldn't load this course flow. Please try again."}
+              t("courses.flow.loadError")}
           </div>
           <button
             type="button"
             onClick={() => navigate("/all-topics")}
             className="mt-6 rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)]"
           >
-            Back to dashboard
+            {t("courses.flow.backToDashboard")}
           </button>
         </div>
       </div>
@@ -1265,7 +1263,7 @@ function CourseFlowPage() {
           <button
             type="button"
             onClick={handleExit}
-            aria-label="Exit course"
+            aria-label={t("courses.flow.exitCourse")}
             className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-3 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
           >
             ✕
@@ -1275,7 +1273,7 @@ function CourseFlowPage() {
           <div className="flex-1 min-w-0">
             <div className="mx-auto w-full max-w-[560px]">
               <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-[color:var(--muted-text,#6b7280)]">
-                <span>Progress</span>
+                <span>{t("shared.progress")}</span>
                 <span>
                   {completedSteps}/{totalSteps}
                 </span>
@@ -1286,7 +1284,7 @@ function CourseFlowPage() {
                 aria-valuenow={progressPercent}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`${progressPercent}% complete`}
+                aria-label={t("courses.flow.progressAria", { percent: progressPercent })}
               >
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-300"
@@ -1300,7 +1298,7 @@ function CourseFlowPage() {
           <div className="flex min-w-[140px] items-center justify-end gap-3">
             <div
               className="flex items-center gap-1"
-              aria-label={`Hearts: ${hearts} of ${maxHearts}`}
+              aria-label={t("courses.flow.heartsAria", { hearts, max: maxHearts })}
               role="status"
             >
               {Array.from({ length: maxHearts }).map((_, idx) => (
@@ -1312,12 +1310,12 @@ function CourseFlowPage() {
             <div className="hidden flex-col sm:flex items-end">
               <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                 {hearts >= maxHearts
-                  ? "Full"
-                  : `Next in ${formatCountdown(heartCountdownMs)}`}
+                  ? t("courses.flow.full")
+                  : t("courses.flow.nextIn", { time: formatCountdown(heartCountdownMs) })}
               </span>
               {hearts <= 1 && (
                 <span className="text-[11px] text-rose-600">
-                  Careful - hearts low
+                  {t("courses.flow.heartsLow")}
                 </span>
               )}
             </div>
@@ -1331,10 +1329,10 @@ function CourseFlowPage() {
           {courseComplete && (
             <div className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-8 text-center shadow-xl shadow-emerald-500/10">
               <h1 className="text-3xl font-bold text-emerald-900">
-                Course complete
+                {t("courses.flow.courseComplete")}
               </h1>
               <p className="mt-2 text-sm text-emerald-900/70">
-                You&apos;ve completed all sections. Ready for the quiz?
+                {t("courses.flow.courseCompleteSubtitle")}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {nextCourseIdInPath ? (
@@ -1345,7 +1343,7 @@ function CourseFlowPage() {
                       handleGoToCourse(nextCourseIdInPath, flowSections.length)
                     }
                   >
-                    Next course
+                    {t("courses.flow.nextCourse")}
                   </GlassButton>
                 ) : (
                   <GlassButton
@@ -1353,11 +1351,11 @@ function CourseFlowPage() {
                     size="xl"
                     onClick={handleFinishCourse}
                   >
-                    Take the course quiz
+                    {t("courses.flow.takeQuiz")}
                   </GlassButton>
                 )}
                 <GlassButton variant="ghost" size="xl" onClick={handleExit}>
-                  Back to dashboard
+                  {t("courses.flow.backToDashboard")}
                 </GlassButton>
               </div>
             </div>
@@ -1382,7 +1380,7 @@ function CourseFlowPage() {
             !currentItem.section?.is_published && (
               <div className="mb-6 flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-2 rounded-full border border-[color:rgba(var(--accent-rgb,255,215,0),0.35)] bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#FFD700)]">
-                  Draft - hidden from learners
+                  {t("courses.flow.draftHidden")}
                 </span>
               </div>
             )}
@@ -1394,7 +1392,7 @@ function CourseFlowPage() {
                 variant="ghost"
                 onClick={() => handleAddSection(currentItem.lessonId)}
               >
-                Add section
+                {t("courses.flow.addSection")}
               </GlassButton>
               <GlassButton
                 size="sm"
@@ -1403,7 +1401,7 @@ function CourseFlowPage() {
                   beginEditingSection(currentItem.lessonId, currentItem.section)
                 }
               >
-                Edit section
+                {t("courses.flow.editSection")}
               </GlassButton>
               <GlassButton
                 size="sm"
@@ -1417,7 +1415,7 @@ function CourseFlowPage() {
                 }
                 disabled={currentSectionIndex <= 0}
               >
-                Move up
+                {t("courses.flow.moveUp")}
               </GlassButton>
               <GlassButton
                 size="sm"
@@ -1434,7 +1432,7 @@ function CourseFlowPage() {
                   currentSectionIndex >= currentLessonSections.length - 1
                 }
               >
-                Move down
+                {t("courses.flow.moveDown")}
               </GlassButton>
               <GlassButton
                 size="sm"
@@ -1446,7 +1444,7 @@ function CourseFlowPage() {
                   )
                 }
               >
-                Delete
+                {t("shared.delete")}
               </GlassButton>
             </div>
           )}
@@ -1475,10 +1473,10 @@ function CourseFlowPage() {
                   />
                   <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                     {mascotMood === "celebrate"
-                      ? "Great job! You nailed that step."
+                      ? t("courses.flow.mascotCelebrate")
                       : mascotMood === "encourage"
-                        ? "Mistakes happen. Keep the optimism up."
-                        : "Steady progress is the goal."}
+                        ? t("courses.flow.mascotEncourage")
+                        : t("courses.flow.mascotSteady")}
                   </p>
                 </div>
               </aside>
@@ -1500,9 +1498,9 @@ function CourseFlowPage() {
               >
                 {currentIndex <= 0
                   ? Number.isFinite(pathIdNumber)
-                    ? "Back to courses"
-                    : "Back to dashboard"
-                  : "Back"}
+                    ? t("courses.flow.backToCourses")
+                    : t("courses.flow.backToDashboard")
+                  : t("shared.back")}
               </GlassButton>
 
               {!isBlocked && (
@@ -1528,9 +1526,9 @@ function CourseFlowPage() {
                 >
                   {isLast
                     ? nextCourseIdInPath
-                      ? "Next course"
-                      : "Finish"
-                    : "Continue"}
+                      ? t("courses.flow.nextCourse")
+                      : t("shared.finish")
+                    : t("shared.continue")}
                 </GlassButton>
               )}
             </div>
@@ -1538,7 +1536,7 @@ function CourseFlowPage() {
 
           {!courseComplete && isBlocked && (
             <div className="mt-10 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-sm text-rose-700">
-              You&apos;re out of hearts. Regain a heart to continue.
+              {t("courses.flow.outOfHearts")}
             </div>
           )}
 
@@ -1548,14 +1546,11 @@ function CourseFlowPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    Your progress
+                    {t("courses.flow.yourProgress")}
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
-                    <span className="font-semibold">{completedSteps}</span> of{" "}
-                    <span className="font-semibold">{totalSteps}</span> sections
-                    completed •{" "}
-                    <span className="font-semibold">{progressPercent}%</span>
-                  </p>
+                    {t("courses.flow.sectionsCompleted", { completed: completedSteps, total: totalSteps, percent: progressPercent })}
+                    </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -1563,7 +1558,7 @@ function CourseFlowPage() {
                     onClick={handleGoToAllTopicsPath}
                     className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
                   >
-                    Back to path
+                    {t("courses.flow.backToPath")}
                   </button>
                   <button
                     type="button"
@@ -1572,7 +1567,7 @@ function CourseFlowPage() {
                     disabled={!Number.isFinite(pathIdNumber)}
                     aria-disabled={!Number.isFinite(pathIdNumber)}
                   >
-                    Other courses
+                    {t("courses.flow.otherCourses")}
                   </button>
                 </div>
               </div>
@@ -1580,11 +1575,11 @@ function CourseFlowPage() {
               {Number.isFinite(pathIdNumber) && (
                 <div className="mt-5">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    Jump to another course
+                    {t("courses.flow.jumpToCourse")}
                   </p>
                   {isPathCoursesLoading ? (
                     <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      Loading courses…
+                      {t("courses.flow.loadingCourses")}
                     </div>
                   ) : otherCourses.length ? (
                     <div className="flex flex-wrap gap-2">
@@ -1602,7 +1597,7 @@ function CourseFlowPage() {
                     </div>
                   ) : (
                     <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      No other courses found in this path.
+                      {t("courses.flow.noOtherCourses")}
                     </div>
                   )}
                 </div>
@@ -1617,7 +1612,7 @@ function CourseFlowPage() {
           className="fixed inset-0 z-[1400] bg-[color:var(--bg-color,#f8fafc)]/92 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Lesson section editor"
+          aria-label={t("courses.flow.lessonSectionEditor")}
         >
           <div className="relative h-full w-full">
             <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
@@ -1625,7 +1620,7 @@ function CourseFlowPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => beginEditingSection(null, null)}
-                aria-label="Close editor"
+                aria-label={t("courses.flow.closeEditor")}
               >
                 ✕
               </GlassButton>
@@ -1675,31 +1670,30 @@ function CourseFlowPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Out of hearts"
+          aria-label={t("courses.flow.outOfHeartsModalTitle")}
         >
           <div className="w-full max-w-lg rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-white p-6 shadow-2xl shadow-black/25">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                  You&apos;re out of hearts
+                  {t("courses.flow.outOfHeartsModalTitle")}
                 </h3>
                 <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Make a quick choice: practise to earn a heart, refill now, or
-                  wait for regeneration.
+                  {t("courses.flow.outOfHeartsModalSubtitle")}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOutOfHeartsModalOpen(false)}
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40"
-                aria-label="Close out of hearts dialog"
+                aria-label={t("courses.flow.closeOutOfHearts")}
               >
                 ✕
               </button>
             </div>
 
             <div className="mt-5 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-              Next heart in{" "}
+              {t("courses.flow.nextHeartIn")}{" "}
               <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {formatCountdown(heartCountdownMs)}
               </span>
@@ -1711,7 +1705,7 @@ function CourseFlowPage() {
                 onClick={async () => {
                   try {
                     await grantHeartsSafe(1);
-                    toast.success("Practice complete - +1 heart");
+                    toast.success(t("courses.flow.practiceCompleteHeart"));
                   } finally {
                     setOutOfHeartsModalOpen(false);
                   }
@@ -1719,14 +1713,14 @@ function CourseFlowPage() {
                 disabled={isHeartsMutating}
                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)] bg-white px-5 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
               >
-                Practise (+1 heart)
+                {t("courses.flow.practiseHeart")}
               </button>
               <button
                 type="button"
                 onClick={async () => {
                   try {
                     await refillHeartsSafe();
-                    toast.success("Hearts refilled");
+                    toast.success(t("courses.flow.heartsRefilled"));
                   } finally {
                     setOutOfHeartsModalOpen(false);
                   }
@@ -1734,14 +1728,14 @@ function CourseFlowPage() {
                 disabled={isHeartsMutating}
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/25"
               >
-                Refill hearts
+                {t("courses.flow.refillHearts")}
               </button>
               <button
                 type="button"
                 onClick={handleExit}
                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
               >
-                Back to dashboard
+                {t("courses.flow.backToDashboard")}
               </button>
             </div>
           </div>

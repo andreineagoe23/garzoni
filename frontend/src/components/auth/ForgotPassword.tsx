@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/monevo-logo-png.png";
 
 function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -21,16 +23,16 @@ function ForgotPassword() {
 
     try {
       const response = await requestPasswordReset(email);
-      setMessage(response.data.message || "Password reset email sent successfully");
+      setMessage(response.data.message || t("auth.forgotPassword.success"));
     } catch (requestError) {
       if (axios.isAxiosError(requestError)) {
         setError(
           requestError.response?.data?.error ||
             requestError.response?.data?.detail ||
-            "An error occurred. Please try again."
+            t("auth.forgotPassword.error")
         );
       } else {
-        setError("An error occurred. Please try again.");
+        setError(t("auth.forgotPassword.error"));
       }
     } finally {
       setIsLoading(false);
@@ -50,15 +52,15 @@ function ForgotPassword() {
         >
           <img
             src={logo}
-            alt="Monevo logo"
+            alt={t("auth.forgotPassword.logoAlt")}
             className="mb-6 h-12 w-auto"
             loading="lazy"
           />
           <h2 className="text-2xl font-bold text-[color:var(--accent,#2563eb)]">
-            Forgot Password
+            {t("auth.forgotPassword.title")}
           </h2>
           <p className="mt-2 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-            Enter your email address and we'll send you a link to reset your password.
+            {t("auth.forgotPassword.subtitle")}
           </p>
 
           {message && (
@@ -90,14 +92,14 @@ function ForgotPassword() {
                 htmlFor="email"
                 className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
               >
-                Email
+                {t("auth.forgotPassword.email")}
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Enter your email"
+                placeholder={t("auth.forgotPassword.emailPlaceholder")}
                 required
                 className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
               />
@@ -108,7 +110,7 @@ function ForgotPassword() {
               disabled={isLoading}
               className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? "Sending..." : "Send Reset Link"}
+              {isLoading ? t("auth.forgotPassword.submitting") : t("auth.forgotPassword.submit")}
             </button>
           </form>
 
@@ -117,7 +119,7 @@ function ForgotPassword() {
             onClick={() => navigate("/login")}
             className="mt-8 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
           >
-            Back to Login
+            {t("auth.forgotPassword.backToLogin")}
           </button>
         </div>
       </div>

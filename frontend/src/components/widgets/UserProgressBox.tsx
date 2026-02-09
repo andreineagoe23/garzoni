@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
 import { formatNumber, getLocale } from "utils/format";
 
 function UserProgressBox({ progressData }) {
+  const { t } = useTranslation();
   const locale = getLocale();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ function UserProgressBox({ progressData }) {
         setUserProfile({
           points: profileData.points || 0,
           streak: profilePayload?.streak || 0,
-          username: profileData.username || "User",
+          username: profileData.username || t("profile.fallbackUser"),
         });
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -37,7 +39,7 @@ function UserProgressBox({ progressData }) {
     return () => {
       isMounted = false;
     };
-  }, [loadProfile]);
+  }, [loadProfile, t]);
 
   const handleLogout = async () => {
     try {
@@ -52,7 +54,7 @@ function UserProgressBox({ progressData }) {
   if (!progressData) {
     return (
       <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-        Loading progress...
+        {t("widgets.userProgress.loading")}
       </div>
     );
   }
@@ -69,16 +71,16 @@ function UserProgressBox({ progressData }) {
       <div className="relative shrink-0 space-y-4 px-5 py-4">
         <div className="flex items-center justify-between">
           <h5 className="flex items-center gap-2 text-lg font-semibold text-[color:var(--text-color,#111827)]">
-            <span>User Profile</span>
+            <span>{t("widgets.userProgress.userProfile")}</span>
           </h5>
           <GlassButton variant="danger" size="sm" onClick={handleLogout}>
-            Logout
+            {t("widgets.userProgress.logout")}
           </GlassButton>
         </div>
 
         {loading ? (
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Loading user info...
+            {t("widgets.userProgress.loadingUserInfo")}
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 text-center">
@@ -89,7 +91,7 @@ function UserProgressBox({ progressData }) {
                   {userProfile?.points}
                 </span>
                 <span className="mt-1 block text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Points
+                  {t("widgets.userProgress.points")}
                 </span>
               </div>
             </div>
@@ -101,7 +103,7 @@ function UserProgressBox({ progressData }) {
                   {userProfile?.streak}
                 </span>
                 <span className="mt-1 block text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Day{userProfile?.streak !== 1 ? "s" : ""} Streak
+                  {t("widgets.userProgress.streak", { count: userProfile?.streak || 0 })}
                 </span>
               </div>
             </div>
@@ -117,7 +119,7 @@ function UserProgressBox({ progressData }) {
         }}
       >
         <h3 className="flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
-          <span>Learning Progress</span>
+          <span>{t("widgets.userProgress.learningProgress")}</span>
         </h3>
       </div>
 
@@ -133,7 +135,7 @@ function UserProgressBox({ progressData }) {
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 font-medium text-[color:var(--muted-text,#6b7280)]">
-                <span>Overall Completion</span>
+                <span>{t("widgets.userProgress.overallCompletion")}</span>
               </span>
               <span className="font-bold text-[color:var(--accent,#111827)]">
                 {formatNumber(overallProgress, locale, {
@@ -154,7 +156,7 @@ function UserProgressBox({ progressData }) {
           {paths.length > 0 && (
             <div className="space-y-4">
               <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--accent,#111827)]">
-                <span>Path Progress</span>
+                <span>{t("widgets.userProgress.pathProgress")}</span>
               </h4>
               <div className="space-y-4">
                 {paths.map((path) => (

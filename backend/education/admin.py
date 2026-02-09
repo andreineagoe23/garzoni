@@ -22,6 +22,12 @@ from education.models import (
     PollResponse,
     SectionCompletion,
     EducationAuditLog,
+    PathTranslation,
+    CourseTranslation,
+    LessonTranslation,
+    LessonSectionTranslation,
+    QuizTranslation,
+    ExerciseTranslation,
 )
 
 
@@ -132,6 +138,26 @@ class LessonSectionInline(admin.StackedInline):
     ]
 
 
+class LessonTranslationInline(admin.TabularInline):
+    model = LessonTranslation
+    extra = 0
+    fields = ("language", "title", "short_description", "detailed_content")
+
+
+class LessonSectionTranslationInline(admin.TabularInline):
+    model = LessonSectionTranslation
+    extra = 0
+    fields = ("language", "title", "text_content", "exercise_data")
+    formfield_overrides = {models.JSONField: {"widget": PrettyJSONWidget}}
+
+
+class ExerciseTranslationInline(admin.TabularInline):
+    model = ExerciseTranslation
+    extra = 0
+    fields = ("language", "question", "exercise_data")
+    formfield_overrides = {models.JSONField: {"widget": PrettyJSONWidget}}
+
+
 class EducationAuditMixin:
     """Lightweight audit logger for lesson-related admin actions."""
 
@@ -169,7 +195,7 @@ class EducationAuditMixin:
 class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
     audit_target_type = "Lesson"
     """Admin configuration for managing lessons."""
-    inlines = [LessonSectionInline]
+    inlines = [LessonSectionInline, LessonTranslationInline]
     list_display = (
         "title",
         "course",
@@ -322,9 +348,10 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
     actions = ["publish_selected", "duplicate_for_editing"]
 
     def get_inlines(self, request, obj=None):
+        inlines = [ExerciseTranslationInline]
         if obj and obj.type == "multiple-choice":
-            return [MultipleChoiceChoiceInline]
-        return []
+            inlines.append(MultipleChoiceChoiceInline)
+        return inlines
 
     def preview(self, obj):
         if not obj:
@@ -442,9 +469,44 @@ class PollResponseAdmin(admin.ModelAdmin):
     list_filter = ("question",)
 
 
-admin.site.register(Path)
-admin.site.register(Course)
-admin.site.register(Quiz)
+class PathTranslationInline(admin.TabularInline):
+    model = PathTranslation
+    extra = 0
+    fields = ("language", "title", "description")
+
+
+class CourseTranslationInline(admin.TabularInline):
+    model = CourseTranslation
+    extra = 0
+    fields = ("language", "title", "description")
+
+
+class QuizTranslationInline(admin.TabularInline):
+    model = QuizTranslation
+    extra = 0
+    fields = ("language", "title", "question", "choices", "correct_answer")
+    formfield_overrides = {models.JSONField: {"widget": PrettyJSONWidget}}
+
+
+@admin.register(Path)
+class PathAdmin(admin.ModelAdmin):
+    list_display = ("title", "access_tier", "sort_order")
+    list_filter = ("access_tier",)
+    inlines = [PathTranslationInline]
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ("title", "path", "order", "is_active")
+    list_filter = ("path", "is_active")
+    inlines = [CourseTranslationInline]
+
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ("title", "course")
+    list_filter = ("course",)
+    inlines = [QuizTranslationInline]
 
 
 @admin.register(UserProgress)
@@ -478,6 +540,7 @@ class UserProgressAdmin(admin.ModelAdmin):
 class LessonSectionAdmin(EducationAuditMixin, admin.ModelAdmin):
     audit_target_type = "LessonSection"
     """Standalone admin for lesson sections to manage draft/publish workflows."""
+    inlines = [LessonSectionTranslationInline]
 
     list_display = (
         "title",

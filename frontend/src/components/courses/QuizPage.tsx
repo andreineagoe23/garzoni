@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
 import { formatCurrency, getLocale } from "utils/format";
 
 type QuizChoice = {
@@ -20,6 +21,7 @@ type Quiz = {
 };
 
 function QuizPage() {
+  const { t } = useTranslation();
   const { courseId } = useParams();
   const locale = getLocale();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -28,19 +30,14 @@ function QuizPage() {
   const [earnedMoney, setEarnedMoney] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const { getAccessToken } = useAuth();
+  useAuth();
 
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `${BACKEND_URL}/quizzes/?course=${courseId ?? ""}`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          }
+        const response = await apiClient.get(
+          `/quizzes/?course=${courseId ?? ""}`
         );
 
         const quizData = response.data?.[0];
@@ -54,37 +51,32 @@ function QuizPage() {
           });
           setError("");
         } else {
-          setError("No quiz data available for this course.");
+          setError(t("courses.quiz.noData"));
         }
       } catch (err) {
         console.error("Failed to fetch quiz:", err);
-        setError("Failed to load quiz. Please try again.");
+        setError(t("courses.quiz.loadFailed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchQuiz();
-  }, [courseId, getAccessToken]);
+  }, [courseId]);
 
   const handleSubmit = async () => {
     if (!quiz) return;
 
     if (selectedAnswer === null) {
-      setFeedback("Please select an answer before submitting.");
+      setFeedback(t("shared.pleaseSelectAnswer"));
       return;
     }
 
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/quizzes/complete/`,
-        { quiz_id: quiz.id, selected_answer: selectedAnswer },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await apiClient.post("/quizzes/complete/", {
+        quiz_id: quiz.id,
+        selected_answer: selectedAnswer,
+      });
 
       setFeedback(response.data.message);
       setEarnedMoney(response.data.earned_money || 0);
@@ -99,10 +91,10 @@ function QuizPage() {
       if (axios.isAxiosError(err)) {
         setFeedback(
           err.response?.data?.message ||
-            "Something went wrong. Please try again."
+            t("shared.somethingWentWrong")
         );
       } else {
-        setFeedback("Something went wrong. Please try again.");
+        setFeedback(t("shared.somethingWentWrong"));
       }
     }
   };
@@ -112,7 +104,7 @@ function QuizPage() {
       <PageContainer maxWidth="4xl" layout="centered">
         <div className="flex items-center gap-3 text-[color:var(--muted-text,#6b7280)]">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          Loading quiz...
+          {t("courses.quiz.loading")}
         </div>
       </PageContainer>
     );
@@ -135,7 +127,7 @@ function QuizPage() {
     return (
       <PageContainer maxWidth="4xl">
         <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
-          No quiz data available.
+          {t("courses.quiz.noQuizData")}
         </div>
       </PageContainer>
     );
@@ -148,7 +140,7 @@ function QuizPage() {
           Quiz: {quiz.title}
         </h2>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Answer correctly to earn rewards and boost your progress.
+          {t("courses.quiz.answerToEarn")}
         </p>
       </header>
 
@@ -187,7 +179,7 @@ function QuizPage() {
           onClick={handleSubmit}
           className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
         >
-          Submit Answer
+          {t("courses.quiz.submitAnswer")}
         </button>
 
         {feedback && (
@@ -203,12 +195,12 @@ function QuizPage() {
             <p>{feedback}</p>
             {earnedMoney > 0 && (
               <p className="mt-1 font-semibold">
-                You earned{" "}
-                {formatCurrency(earnedMoney, "GBP", locale, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                {t("courses.quiz.youEarned", {
+                  amount: formatCurrency(earnedMoney, "GBP", locale, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
                 })}
-                !
               </p>
             )}
           </div>

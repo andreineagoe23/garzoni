@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { GlassCard } from "components/ui";
 
 type LearningPathCourse = {
@@ -41,13 +42,14 @@ function LearningPathList({
   onCourseClick?: (courseId: number, pathId: number) => void;
   showCourseImages?: boolean;
 }) {
+  const { t } = useTranslation();
   if (!learningPaths?.length) {
     return (
       <GlassCard
         padding="lg"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-center text-sm text-[color:var(--muted-text,#6b7280)]"
       >
-        No learning paths available yet.
+        {t("courses.learningPath.noPathsAvailable")}
       </GlassCard>
     );
   }
@@ -63,7 +65,7 @@ function LearningPathList({
             <div className="relative">
               <header className="flex items-baseline justify-between gap-3">
                 <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-                  {path.title || "Custom Path"}
+                  {path.title || t("courses.learningPath.customPath")}
                 </h3>
                 {path.description && (
                   <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -74,7 +76,7 @@ function LearningPathList({
               <div className="space-y-4">
                 {courses.length === 0 && (
                   <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-                    No courses available in this path yet.
+                    {t("courses.learningPath.noCoursesInPath")}
                   </div>
                 )}
                 {courses.map((course) => {
@@ -122,11 +124,10 @@ function LearningPathList({
                         )}
                         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                           <span>
-                            {lessonCount}{" "}
-                            {lessonCount === 1 ? "lesson" : "lessons"}
+                            {t("courses.learningPath.lesson", { count: lessonCount })}
                           </span>
                           <span className="text-[color:var(--primary,#1d5330)]">
-                            View details →
+                            {t("courses.learningPath.viewDetails")}
                           </span>
                         </div>
                       </div>

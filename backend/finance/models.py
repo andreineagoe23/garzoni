@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from core.utils import normalize_text_encoding
 
 
 class FinanceFact(models.Model):
@@ -15,6 +16,11 @@ class FinanceFact(models.Model):
 
     def __str__(self):
         return self.text[:50] + "..."
+
+    def save(self, *args, **kwargs):
+        self.text = normalize_text_encoding(self.text) or ""
+        self.category = normalize_text_encoding(self.category) or "General"
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "core_financefact"
@@ -75,6 +81,11 @@ class Tool(models.Model):
     class Meta:
         db_table = "core_tool"
 
+    def save(self, *args, **kwargs):
+        self.name = normalize_text_encoding(self.name) or ""
+        self.description = normalize_text_encoding(self.description) or ""
+        super().save(*args, **kwargs)
+
 
 class Reward(models.Model):
     """
@@ -95,6 +106,12 @@ class Reward(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = normalize_text_encoding(self.name) or ""
+        self.description = normalize_text_encoding(self.description) or ""
+        self.donation_organization = normalize_text_encoding(self.donation_organization)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "core_reward"
@@ -185,6 +202,10 @@ class FinancialGoal(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s {self.goal_name}"
+
+    def save(self, *args, **kwargs):
+        self.goal_name = normalize_text_encoding(self.goal_name) or ""
+        super().save(*args, **kwargs)
 
 
 class FunnelEvent(models.Model):

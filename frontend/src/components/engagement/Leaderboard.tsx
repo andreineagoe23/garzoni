@@ -9,6 +9,7 @@ import { GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
+import { useTranslation } from "react-i18next";
 
 type LeaderboardUser = {
   id: number;
@@ -30,12 +31,6 @@ type SentRequest = {
   receiver: { id: number };
 };
 
-const timeFilterOptions = [
-  { value: "all-time", label: "All Time" },
-  { value: "month", label: "This Month" },
-  { value: "week", label: "This Week" },
-];
-
 const highlightClasses = [
   "bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border-amber-400/40",
   "bg-gradient-to-r from-slate-300/20 via-slate-200/10 to-transparent border-slate-300/40",
@@ -44,6 +39,7 @@ const highlightClasses = [
 
 const Leaderboards = () => {
   const locale = getLocale();
+  const { t } = useTranslation();
   const [globalLeaderboard, setGlobalLeaderboard] = useState<
     LeaderboardEntry[]
   >([]);
@@ -60,6 +56,15 @@ const Leaderboards = () => {
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const { getAccessToken, loadProfile } = useAuth();
+
+  const timeFilterOptions = useMemo(
+    () => [
+      { value: "all-time", label: t("leaderboard.time.allTime", { defaultValue: "All Time" }) },
+      { value: "month", label: t("leaderboard.time.thisMonth", { defaultValue: "This Month" }) },
+      { value: "week", label: t("leaderboard.time.thisWeek", { defaultValue: "This Week" }) },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,7 +117,10 @@ const Leaderboards = () => {
         console.error("Error fetching leaderboard data:", err);
         setError(
           err.response?.data?.detail ||
-            "Failed to load leaderboard data. Please try again."
+            t("leaderboard.errors.loadFailed", {
+              defaultValue:
+                "Failed to load leaderboard data. Please try again.",
+            })
         );
       } finally {
         setLoading(false);
@@ -120,7 +128,7 @@ const Leaderboards = () => {
     };
 
     fetchData();
-  }, [getAccessToken, timeFilter, loadProfile]);
+  }, [getAccessToken, timeFilter, loadProfile, t]);
 
   const sendFriendRequest = async (receiverId: number) => {
     try {
@@ -144,7 +152,9 @@ const Leaderboards = () => {
         err.response?.data?.error ||
         err.response?.data?.detail ||
         err.message ||
-        "Failed to send friend request.";
+        t("leaderboard.errors.friendRequestFailed", {
+          defaultValue: "Failed to send friend request.",
+        });
       alert(message);
     }
   };
@@ -168,7 +178,11 @@ const Leaderboards = () => {
   if (loading) {
     return (
       <PageContainer layout="centered" maxWidth="4xl">
-        <Loader message="Loading leaderboard data..." />
+        <Loader
+          message={t("leaderboard.loading", {
+            defaultValue: "Loading leaderboard data...",
+          })}
+        />
       </PageContainer>
     );
   }
@@ -192,11 +206,18 @@ const Leaderboards = () => {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
             {activeTab === "global"
-              ? "Global Leaderboard"
-              : "Friends Leaderboard"}
+              ? t("leaderboard.title.global", {
+                  defaultValue: "Global Leaderboard",
+                })
+              : t("leaderboard.title.friends", {
+                  defaultValue: "Friends Leaderboard",
+                })}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Track progress, celebrate wins, and connect with the community.
+            {t("leaderboard.subtitle", {
+              defaultValue:
+                "Track progress, celebrate wins, and connect with the community.",
+            })}
           </p>
         </div>
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
@@ -212,7 +233,9 @@ const Leaderboards = () => {
                     : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/60 hover:bg-[color:var(--accent,#2563eb)]/10 hover:text-[color:var(--accent,#2563eb)]"
                 }`}
               >
-                {tab === "global" ? "Global" : "Friends"}
+                {tab === "global"
+                  ? t("leaderboard.tabs.global", { defaultValue: "Global" })
+                  : t("leaderboard.tabs.friends", { defaultValue: "Friends" })}
               </button>
             ))}
           </div>
@@ -237,7 +260,9 @@ const Leaderboards = () => {
           <input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search users..."
+            placeholder={t("leaderboard.searchPlaceholder", {
+              defaultValue: "Search users...",
+            })}
             className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
             type="text"
           />
@@ -276,10 +301,16 @@ const Leaderboards = () => {
                 />
                 <div className="text-sm">
                   <p className="font-semibold text-[color:var(--accent,#111827)]">
-                    You ({userRank.user.username})
+                    {t("leaderboard.you", {
+                      defaultValue: "You ({{username}})",
+                      username: userRank.user.username,
+                    })}
                   </p>
                   <p className="text-[color:var(--accent,#2563eb)]">
-                    {userRank.points} points
+                    {t("leaderboard.points", {
+                      defaultValue: "{{points}} points",
+                      points: userRank.points,
+                    })}
                   </p>
                 </div>
               </div>
@@ -291,7 +322,9 @@ const Leaderboards = () => {
         {filteredLeaderboard.length === 0 ? (
           <GlassCard padding="lg" className="text-center">
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              No users found for the current selection.
+              {t("leaderboard.empty", {
+                defaultValue: "No users found for the current selection.",
+              })}
             </p>
           </GlassCard>
         ) : (
@@ -329,7 +362,10 @@ const Leaderboards = () => {
                           {entry.user.username}
                         </p>
                         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                          {formatNumber(entry.points || 0, locale)} points
+                          {t("leaderboard.points", {
+                            defaultValue: "{{points}} points",
+                            points: formatNumber(entry.points || 0, locale),
+                          })}
                         </p>
                       </div>
                     </div>
@@ -338,10 +374,16 @@ const Leaderboards = () => {
                         type="button"
                         title={
                           isFriend
-                            ? "Already friends"
+                            ? t("leaderboard.friendStatus.alreadyFriends", {
+                                defaultValue: "Already friends",
+                              })
                             : pending
-                              ? "Request pending"
-                              : "Add as friend"
+                              ? t("leaderboard.friendStatus.pending", {
+                                  defaultValue: "Request pending",
+                                })
+                              : t("leaderboard.friendStatus.addFriend", {
+                                  defaultValue: "Add as friend",
+                                })
                         }
                         onClick={() => sendFriendRequest(entry.user.id)}
                         disabled={isFriend || pending}
@@ -354,10 +396,16 @@ const Leaderboards = () => {
                         }`}
                       >
                         {isFriend
-                          ? "Friends"
+                          ? t("leaderboard.friendStatus.friends", {
+                              defaultValue: "Friends",
+                            })
                           : pending
-                            ? "Pending"
-                            : "Add Friend"}
+                            ? t("leaderboard.friendStatus.pendingShort", {
+                                defaultValue: "Pending",
+                              })
+                            : t("leaderboard.friendStatus.addFriendShort", {
+                                defaultValue: "Add Friend",
+                              })}
                       </button>
                     )}
                   </div>

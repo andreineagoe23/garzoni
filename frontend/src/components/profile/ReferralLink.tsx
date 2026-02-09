@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { GlassCard } from "components/ui";
 
 const ReferralLink = ({ referralCode }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const referralLink = useMemo(
@@ -23,10 +25,13 @@ const ReferralLink = ({ referralCode }) => {
     <GlassCard padding="md" className="transition-colors">
       <div className="flex flex-col gap-2">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          Invite Friends
+          {t("profile.referral.title", { defaultValue: "Invite Friends" })}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Share your link and earn rewards when friends join.
+          {t("profile.referral.subtitle", {
+            defaultValue:
+              "Share your link and earn rewards when friends join.",
+          })}
         </p>
       </div>
 
@@ -35,7 +40,9 @@ const ReferralLink = ({ referralCode }) => {
           htmlFor="referralLink"
           className="block text-xs font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]"
         >
-          Your unique referral link
+          {t("profile.referral.linkLabel", {
+            defaultValue: "Your unique referral link",
+          })}
         </label>
         <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f3f4f6)] p-4 shadow-inner shadow-black/5 sm:flex-row sm:items-center">
           <input
@@ -55,7 +62,9 @@ const ReferralLink = ({ referralCode }) => {
                 : "bg-[color:var(--primary,#2563eb)] text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40"
             }`}
           >
-            {copied ? "Copied!" : "Copy Link"}
+            {copied
+              ? t("profile.referral.copied", { defaultValue: "Copied!" })
+              : t("profile.referral.copyLink", { defaultValue: "Copy Link" })}
           </button>
         </div>
       </div>

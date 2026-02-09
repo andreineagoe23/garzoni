@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAnalytics } from "hooks/useAnalytics";
@@ -23,6 +24,7 @@ const DEFAULT_TOTAL_QUESTIONS = 6;
 const NO_ADVICE_ACK_STORAGE_KEY = "monevo:no-advice-ack:v1";
 
 const OnboardingQuestionnaire: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { trackEvent } = useAnalytics();
   const queryClient = useQueryClient();
@@ -126,7 +128,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       window.location.href = "/subscriptions";
     },
     onError: (error: { response?: { data?: { error?: string } } }) => {
-      toast.error(error.response?.data?.error || "Failed to complete onboarding");
+      toast.error(error.response?.data?.error || t("onboarding.failedToComplete"));
     },
   });
 
@@ -135,7 +137,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     mutationFn: abandonQuestionnaire,
     onSuccess: () => {
       navigate("/all-topics");
-      toast.success("Progress saved. You can resume anytime!");
+      toast.success(t("onboarding.progressSaved"));
     },
   });
 
@@ -166,11 +168,11 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   const handleNext = useCallback(async () => {
     if (!hasNoAdviceAcknowledgement) {
-      toast.error("Please confirm the educational-use notice to continue.");
+      toast.error(t("onboarding.confirmNotice"));
       return;
     }
     if (!currentQuestion || currentAnswer === null) {
-      toast.error("Please select an answer");
+      toast.error(t("onboarding.selectAnswer"));
       return;
     }
 
@@ -198,7 +200,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       setCurrentAnswer(null);
     } catch (error) {
       console.error("Failed to save answer:", error);
-      toast.error("Failed to save. Please try again.");
+      toast.error(t("onboarding.failedToSave"));
     }
   }, [
     currentQuestion,
@@ -210,15 +212,16 @@ const OnboardingQuestionnaire: React.FC = () => {
     queryClient,
     hasNoAdviceAcknowledgement,
     trackEvent,
+    t,
   ]);
 
   const handleComplete = useCallback(async () => {
     if (!hasNoAdviceAcknowledgement) {
-      toast.error("Please confirm the educational-use notice to continue.");
+      toast.error(t("onboarding.confirmNotice"));
       return;
     }
     if (!currentQuestion || currentAnswer === null) {
-      toast.error("Please select an answer");
+      toast.error(t("onboarding.selectAnswer"));
       return;
     }
 
@@ -236,12 +239,12 @@ const OnboardingQuestionnaire: React.FC = () => {
       try {
         await completeMutation.mutateAsync(undefined);
       } catch {
-        toast.error("Could not complete. Taking you to plans…");
+        toast.error(t("onboarding.couldNotComplete"));
       }
       window.location.href = "/subscriptions";
     } catch (error) {
       console.error("Failed to save answer:", error);
-      toast.error("Failed to save. Please try again.");
+      toast.error(t("onboarding.failedToSave"));
     }
   }, [
     currentQuestion,
@@ -251,6 +254,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     saveAnswerMutation,
     completeMutation,
     hasNoAdviceAcknowledgement,
+    t,
   ]);
 
   /** Stable question id (backend structure may omit id for some questions). */
@@ -263,7 +267,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       if (!currentQuestion) return;
       if (saveAnswerMutation.isPending || completeMutation.isPending) return;
       if (!hasNoAdviceAcknowledgement) {
-        toast.error("Please confirm the educational-use notice to continue.");
+        toast.error(t("onboarding.confirmNotice"));
         return;
       }
 
@@ -290,7 +294,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           try {
             await completeMutation.mutateAsync(undefined);
           } catch {
-            toast.error("Could not complete. Taking you to plans…");
+            toast.error(t("onboarding.couldNotComplete"));
           }
           window.location.href = "/subscriptions";
           return;
@@ -300,7 +304,7 @@ const OnboardingQuestionnaire: React.FC = () => {
         setCurrentAnswer(null);
       } catch (error) {
         console.error("Failed to save answer", error);
-        toast.error("Failed to save. Please try again.");
+        toast.error(t("onboarding.failedToSave"));
       }
     },
     [
@@ -315,6 +319,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       queryClient,
       hasNoAdviceAcknowledgement,
       trackEvent,
+      t,
     ]
   );
 
@@ -385,7 +390,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       default:
         return (
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Unsupported question type: {question.type}
+            {t("onboarding.unsupportedQuestionType", { type: question.type })}
           </div>
         );
     }
@@ -394,7 +399,7 @@ const OnboardingQuestionnaire: React.FC = () => {
   if (isLoadingProgress) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <Loader message="Loading onboarding..." />
+        <Loader message={t("onboarding.loading")} />
       </div>
     );
   }
@@ -402,21 +407,21 @@ const OnboardingQuestionnaire: React.FC = () => {
   if (isProgressError) {
     const message =
       (progressError as { response?: { status?: number } })?.response?.status === 503
-        ? "Onboarding is being set up. Please try again in a moment."
-        : "We couldn't load onboarding. Please try again.";
+        ? t("onboarding.errorSetup")
+        : t("onboarding.errorLoad");
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
           <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
-            Something went wrong
+            {t("onboarding.somethingWentWrong")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">{message}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <GlassButton onClick={() => refetchProgress()} variant="primary">
-              Try again
+              {t("onboarding.tryAgain")}
             </GlassButton>
             <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
-              Go to Dashboard
+              {t("onboarding.goToDashboard")}
             </GlassButton>
           </div>
         </GlassCard>
@@ -429,17 +434,17 @@ const OnboardingQuestionnaire: React.FC = () => {
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
           <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
-            Onboarding Complete!
+            {t("onboarding.completeTitle")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-            You're ready to choose a plan and unlock your personalized path.
+            {t("onboarding.completeSubtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <GlassButton onClick={() => navigate("/subscriptions")} variant="primary">
-              View Plans
+              {t("onboarding.viewPlans")}
             </GlassButton>
             <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
-              Go to All Topics
+              {t("onboarding.goToAllTopics")}
             </GlassButton>
           </div>
         </GlassCard>
@@ -450,21 +455,21 @@ const OnboardingQuestionnaire: React.FC = () => {
   if (isProgressActive && isNextQuestionError) {
     const message =
       (nextQuestionError as { response?: { status?: number } })?.response?.status === 503
-        ? "Questionnaire is being set up. Please try again in a moment."
-        : "We couldn't load the next question. Please try again.";
+        ? t("onboarding.errorNextQuestionSetup")
+        : t("onboarding.errorNextQuestion");
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
           <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
-            Something went wrong
+            {t("onboarding.somethingWentWrong")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">{message}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <GlassButton onClick={() => refetchNextQuestion()} variant="primary">
-              Try again
+              {t("onboarding.tryAgain")}
             </GlassButton>
             <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
-              Go to Dashboard
+              {t("onboarding.goToDashboard")}
             </GlassButton>
           </div>
         </GlassCard>
@@ -472,24 +477,23 @@ const OnboardingQuestionnaire: React.FC = () => {
     );
   }
 
-  // No question yet: show retry if query finished but we have no question; otherwise show loading only while fetching
   if (isProgressActive && !currentQuestion) {
     if (!isLoadingQuestion) {
       return (
         <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
           <GlassCard padding="lg" className="max-w-md text-center">
             <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
-              No question loaded
+              {t("onboarding.noQuestionLoaded")}
             </h2>
             <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-              We couldn&apos;t load the next question. Please try again.
+              {t("onboarding.errorNextQuestion")}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <GlassButton onClick={() => refetchNextQuestion()} variant="primary">
-                Try again
+                {t("onboarding.tryAgain")}
               </GlassButton>
               <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
-                Go to Dashboard
+                {t("onboarding.goToDashboard")}
               </GlassButton>
             </div>
         </GlassCard>
@@ -498,7 +502,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     }
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <Loader message="Loading question..." />
+        <Loader message={t("onboarding.loadingQuestion")} />
       </div>
     );
   }
@@ -514,16 +518,16 @@ const OnboardingQuestionnaire: React.FC = () => {
           <header className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                Question {currentQuestionNumberDisplay} of {totalQuestionsDisplay}
+                {t("onboarding.questionOf", { current: currentQuestionNumberDisplay, total: totalQuestionsDisplay })}
               </p>
               <div className="flex items-center gap-2">
                 <GlassButton
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/all-topics")}
-                  aria-label="Go to All Topics"
+                  aria-label={t("onboarding.goToAllTopics")}
                 >
-                  All Topics
+                  {t("onboarding.allTopics")}
                 </GlassButton>
                 <GlassButton
                   variant="ghost"
@@ -531,15 +535,15 @@ const OnboardingQuestionnaire: React.FC = () => {
                   onClick={handleSaveAndFinishLater}
                   disabled={abandonMutation.isPending}
                 >
-                  Save and Finish Later
+                  {t("onboarding.saveAndFinishLater")}
                 </GlassButton>
               </div>
             </div>
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-            Tell us about yourself
+            {t("onboarding.tellUsAboutYourself")}
           </h1>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Answer a few quick questions so we can tailor your learning experience.
+              {t("onboarding.answerFewQuestions")}
             </p>
             <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
               <label className="inline-flex cursor-pointer items-start gap-2">
@@ -552,8 +556,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                   }
                 />
                 <span>
-                  I understand Monevo provides educational information only and
-                  does not provide financial advice.
+                  {t("onboarding.noAdviceNotice")}
                 </span>
               </label>
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide">
@@ -561,13 +564,13 @@ const OnboardingQuestionnaire: React.FC = () => {
                   to="/financial-disclaimer"
                   className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
                 >
-                  Financial Disclaimer
+                  {t("onboarding.financialDisclaimer")}
                 </Link>
                 <Link
                   to="/no-financial-advice"
                   className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
                 >
-                  No Financial Advice
+                  {t("onboarding.noFinancialAdvice")}
                 </Link>
               </div>
             </div>
@@ -576,7 +579,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           {/* Progress Stepper */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-              <span>Progress</span>
+              <span>{t("onboarding.progress")}</span>
               <span>{computedProgressPercentage}%</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
@@ -595,7 +598,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           {sectionSummary && (
             <GlassCard padding="md" className="border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5">
               <h3 className="mb-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
-                {sectionSummary.section_title} Summary
+                {sectionSummary.section_title} {t("onboarding.summary")}
               </h3>
               <div className="space-y-2">
                 {sectionSummary.answers.map((item, idx) => (
@@ -627,11 +630,11 @@ const OnboardingQuestionnaire: React.FC = () => {
                 variant="ghost"
                 onClick={() => {
                   // Go back to previous question (would need backend support)
-                  toast("Previous question navigation coming soon");
+                  toast(t("onboarding.previousComingSoon"));
                 }}
                 disabled
               >
-                ← Previous
+                {t("onboarding.previous")}
               </GlassButton>
 
               <div className="flex gap-3">
@@ -645,7 +648,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                       !hasNoAdviceAcknowledgement
                     }
                   >
-                    {saveAnswerMutation.isPending ? "Saving..." : "Next →"}
+                    {saveAnswerMutation.isPending ? t("onboarding.saving") : t("onboarding.next")}
                   </GlassButton>
                 ) : (
                   <GlassButton
@@ -657,7 +660,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                       !hasNoAdviceAcknowledgement
                     }
                   >
-                    {completeMutation.isPending ? "Completing..." : "Complete"}
+                    {completeMutation.isPending ? t("onboarding.completing") : t("onboarding.complete")}
                   </GlassButton>
                 )}
               </div>

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { queryKeys } from "lib/reactQuery";
 import { UserProfile } from "types/api";
+import { useTranslation } from "react-i18next";
 
 type PersonalizedCourse = {
   id: number;
@@ -35,6 +35,7 @@ function PersonalizedPath({
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const {
     getAccessToken,
     isAuthenticated,
@@ -54,16 +55,8 @@ function PersonalizedPath({
 
   const fetchPersonalizedPath = useCallback(async () => {
     try {
-      const response = await axios.get<{ courses: PersonalizedCourse[] }>(
-        `${BACKEND_URL}/personalized-path/`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-            "X-CSRFToken":
-              document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || "",
-          },
-          withCredentials: true,
-        }
+      const response = await apiClient.get<{ courses: PersonalizedCourse[] }>(
+        "/personalized-path/"
       );
 
       setPersonalizedCourses(
@@ -77,7 +70,11 @@ function PersonalizedPath({
       setIsLoading(false);
     } catch (err) {
       const status = err.response?.status;
-      const errorMessage = err.response?.data?.error || "Access denied";
+      const errorMessage =
+        err.response?.data?.error ||
+        t("personalizedPath.errors.accessDenied", {
+          defaultValue: "Access denied",
+        });
       const redirectPath = err.response?.data?.redirect;
 
       if (status === 400 || status === 403) {
@@ -91,14 +88,24 @@ function PersonalizedPath({
         } else if (errorMessage.toLowerCase().includes("payment")) {
           navigate("/subscriptions");
         } else {
-          setError("Failed to load recommendations. Please try again later.");
+          setError(
+            t("personalizedPath.errors.recommendationsFailed", {
+              defaultValue:
+                "Failed to load recommendations. Please try again later.",
+            })
+          );
         }
       } else {
-        setError("Failed to load recommendations. Please try again later.");
+        setError(
+          t("personalizedPath.errors.recommendationsFailed", {
+            defaultValue:
+              "Failed to load recommendations. Please try again later.",
+          })
+        );
       }
       setIsLoading(false);
     }
-  }, [navigate, getAccessToken]);
+  }, [navigate, getAccessToken, t]);
 
   useEffect(() => {
     const verifyAuthAndPayment = async () => {
@@ -137,10 +144,9 @@ function PersonalizedPath({
           profilePayload = await loadProfile({ force: true });
           const pollPaymentStatus = async (attempt = 0): Promise<void> => {
             try {
-              const verificationRes = await axios.post(
-                `${BACKEND_URL}/verify-session/`,
-                { session_id: sessionId, force_check: true },
-                { headers: { Authorization: `Bearer ${getAccessToken()}` } }
+              const verificationRes = await apiClient.post(
+                "/verify-session/",
+                { session_id: sessionId, force_check: true }
               );
 
               if (verificationRes.data.status === "verified") {
@@ -207,7 +213,10 @@ function PersonalizedPath({
       } catch (err) {
         setError(
           err.response?.data?.error ||
-            "We couldn't verify your payment. Please try again."
+            t("personalizedPath.errors.paymentVerifyFailed", {
+              defaultValue:
+                "We couldn't verify your payment. Please try again.",
+            })
         );
         setPaymentVerified(false);
       }
@@ -241,7 +250,10 @@ function PersonalizedPath({
         className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
       >
         <h2 className="mb-3 text-lg font-semibold">
-          ⚠️ Error Loading Recommendations
+          ⚠️{" "}
+          {t("personalizedPath.errorTitle", {
+            defaultValue: "Error Loading Recommendations",
+          })}
         </h2>
         <p className="mb-4 text-sm">{error}</p>
         <button
@@ -249,7 +261,7 @@ function PersonalizedPath({
           onClick={() => window.location.reload()}
           className="rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
         >
-          Try Again
+          {t("personalizedPath.tryAgain", { defaultValue: "Try Again" })}
         </button>
       </GlassCard>
     );
@@ -263,7 +275,9 @@ function PersonalizedPath({
         role="status"
         aria-live="polite"
       >
-        Verifying your access...
+        {t("personalizedPath.verifying", {
+          defaultValue: "Verifying your access...",
+        })}
       </GlassCard>
     );
   }
@@ -272,7 +286,9 @@ function PersonalizedPath({
     <div className="space-y-8">
       <GlassCard padding="lg" className="text-center">
         <p className="text-lg font-semibold text-[color:var(--muted-text,#6b7280)]">
-          Your personalized learning path:
+          {t("personalizedPath.title", {
+            defaultValue: "Your personalized learning path:",
+          })}
         </p>
       </GlassCard>
 
@@ -322,18 +338,29 @@ function PersonalizedPath({
                   }}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Open ${course.title}`}
+                  aria-label={t("personalizedPath.courseAria", {
+                    defaultValue: "Open {{title}}",
+                    title: course.title,
+                  })}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                         {String(
-                          (course as PersonalizedCourse).path_title || "Path"
+                          (course as PersonalizedCourse).path_title ||
+                            t("personalizedPath.pathLabel", {
+                              defaultValue: "Path",
+                            })
                         )}
                       </span>
                       <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                        {`${(course as PersonalizedCourse).estimated_duration || 4} hrs · ${(course as PersonalizedCourse).exercises || 3} exercises`}
+                        {t("personalizedPath.courseMeta", {
+                          defaultValue: "{{hours}} hrs · {{exercises}} exercises",
+                          hours:
+                            (course as PersonalizedCourse).estimated_duration || 4,
+                          exercises: (course as PersonalizedCourse).exercises || 3,
+                        })}
                       </span>
                     </div>
                     <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
@@ -343,11 +370,16 @@ function PersonalizedPath({
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[color:var(--muted-text,#6b7280)]">
-                          Progress
+                          {t("personalizedPath.progressLabel", {
+                            defaultValue: "Progress",
+                          })}
                         </span>
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
-                          {course.progress ?? 0}/{course.totalLessons ?? 0}{" "}
-                          lessons
+                          {t("personalizedPath.lessonCount", {
+                            defaultValue: "{{completed}}/{{total}} lessons",
+                            completed: course.progress ?? 0,
+                            total: course.totalLessons ?? 0,
+                          })}
                         </span>
                       </div>
 
@@ -380,13 +412,18 @@ function PersonalizedPath({
 
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          🔁 Based on your latest onboarding answers -{" "}
+          🔁{" "}
+          {t("personalizedPath.basedOnOnboarding", {
+            defaultValue: "Based on your latest onboarding answers -",
+          })}{" "}
           <button
             type="button"
             onClick={() => navigate("/onboarding")}
             className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
           >
-            Update Preferences
+            {t("personalizedPath.updatePreferences", {
+              defaultValue: "Update Preferences",
+            })}
           </button>
         </p>
       </GlassCard>

@@ -14,6 +14,24 @@ def normalize_text_encoding(text: str | None) -> str | None:
     """
     if text is None or not isinstance(text, str):
         return text
+    if text == "":
+        return text
+
+    # Common mojibake marker characters when UTF-8 bytes are decoded using
+    # legacy encodings (latin-1/cp1252/cp1250).
+    mojibake_markers = ("Â", "Ã", "â", "È", "ï¸", "š")
+
+    def _score(value: str) -> int:
+        return sum(value.count(marker) for marker in mojibake_markers)
+
+    candidates = [text]
+    # Try byte roundtrip recovery for the most common failure modes.
+    for source_encoding in ("latin1", "cp1252", "cp1250"):
+        try:
+            repaired = text.encode(source_encoding).decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            continue
+        candidates.append(repaired)
     replacements = [
         ("\u2019", "'"),  # RIGHT SINGLE QUOTATION MARK
         ("\u2018", "'"),  # LEFT SINGLE QUOTATION MARK
@@ -33,9 +51,10 @@ def normalize_text_encoding(text: str | None) -> str | None:
         ("\u00c3\u008e", "\u00ce"),  # Î
         # Warning sign + variation selector ⚠️ (U+26A0 U+FE0F) UTF-8 E2 9A A0 EF B8 8F -> âš ï¸
         ("\u00e2\u009a\u00a0\u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # ⚠️
+        ("\u00e2\u0161\u00a0\u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # âš ï¸ -> ⚠️
         ("\u00e2\u009a\u00a0", "\u26a0"),  # ⚠ (without variation selector)
     ]
-    out = text
+    out = min(candidates, key=_score)
     for old, new in replacements:
         out = out.replace(old, new)
     return out

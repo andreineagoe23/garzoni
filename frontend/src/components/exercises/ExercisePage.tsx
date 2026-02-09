@@ -5,16 +5,17 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import axios from "axios";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { BACKEND_URL } from "services/backendUrl";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
+import { useTranslation } from "react-i18next";
 
 const ExercisePage = () => {
+  const { t } = useTranslation();
   const locale = getLocale();
   const [exercises, setExercises] = useState([]);
   const [lessonExercises, setLessonExercises] = useState([]);
@@ -111,12 +112,7 @@ const ExercisePage = () => {
       if (filters.category) params.append("category", filters.category);
       if (filters.difficulty) params.append("difficulty", filters.difficulty);
 
-      const response = await axios.get(`${BACKEND_URL}/exercises/`, {
-        params,
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      });
+      const response = await apiClient.get("/exercises/", { params });
 
       const validatedExercises = response.data.filter(
         (exercise) =>
@@ -144,18 +140,18 @@ const ExercisePage = () => {
       }
       setLoading(false);
     } catch (err) {
-      setError("Failed to load exercises. Please try again later.");
+      setError(
+        t("exercises.errors.loadFailed", {
+          defaultValue: "Failed to load exercises. Please try again later.",
+        })
+      );
       setLoading(false);
     }
-  }, [filters, getAccessToken, mode]);
+  }, [filters, getAccessToken, mode, t]);
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/exercises/categories/`, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      });
+      const response = await apiClient.get("/exercises/categories/");
       setCategories(response.data);
     } catch (err) {
       logError("Failed to load categories:", err);
@@ -164,11 +160,7 @@ const ExercisePage = () => {
 
   const fetchReviewQueue = useCallback(async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/review-queue/`, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      });
+      const response = await apiClient.get("/review-queue/");
       setReviewQueue(response.data);
     } catch (err) {
       logError("Failed to load review queue", err);
@@ -186,9 +178,7 @@ const ExercisePage = () => {
     try {
       const details = await Promise.all(
         reviewQueue.due.map((item) =>
-          axios.get(`${BACKEND_URL}/exercises/${item.exercise_id}/`, {
-            headers: { Authorization: `Bearer ${getAccessToken()}` },
-          })
+          apiClient.get(`/exercises/${item.exercise_id}/`)
         )
       );
       setMode("review");
@@ -215,21 +205,14 @@ const ExercisePage = () => {
   const goToRecommended = useCallback(async () => {
     try {
       const lastExercise = exercises[currentExerciseIndex];
-      const response = await axios.post(
-        `${BACKEND_URL}/next/`,
-        {
-          last_exercise_id: lastExercise?.id,
-          last_correct: progress[currentExerciseIndex]?.correct,
-        },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
+      const response = await apiClient.post("/next/", {
+        last_exercise_id: lastExercise?.id,
+        last_correct: progress[currentExerciseIndex]?.correct,
+      });
 
       if (response.data?.exercise_id) {
-        const detail = await axios.get(
-          `${BACKEND_URL}/exercises/${response.data.exercise_id}/`,
-          { headers: { Authorization: `Bearer ${getAccessToken()}` } }
+        const detail = await apiClient.get(
+          `/exercises/${response.data.exercise_id}/`
         );
         setMode("lesson");
         setExercises([detail.data]);
@@ -400,7 +383,11 @@ const ExercisePage = () => {
             return value === null || String(value).trim() === "";
           }))
       ) {
-        setSubmissionFeedback("Please submit an answer before continuing.");
+        setSubmissionFeedback(
+          t("exercises.errors.submitAnswer", {
+            defaultValue: "Please submit an answer before continuing.",
+          })
+        );
         setShowCorrection(true);
         return;
       }
@@ -413,14 +400,9 @@ const ExercisePage = () => {
         [currentExercise.id]: userAnswer,
       }));
 
-      const response = await axios.post(
-        `${BACKEND_URL}/exercises/${currentExercise.id}/submit/`,
-        { user_answer: userAnswer, confidence, hints_used: hintIndex },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+      const response = await apiClient.post(
+        `/exercises/${currentExercise.id}/submit/`,
+        { user_answer: userAnswer, confidence, hints_used: hintIndex }
       );
 
       const updated = [...progress];
@@ -449,8 +431,12 @@ const ExercisePage = () => {
       const inlineMessage =
         response.data.explanation ||
         (response.data.correct
-          ? "Nice work! Keep going."
-          : "Hint: revisit the prompt and try again.");
+          ? t("exercises.inline.correct", {
+              defaultValue: "Nice work! Keep going.",
+            })
+          : t("exercises.inline.incorrect", {
+              defaultValue: "Hint: revisit the prompt and try again.",
+            }));
       setInlineHint(inlineMessage);
       if (inlineHintTimeoutRef.current) {
         clearTimeout(inlineHintTimeoutRef.current);
@@ -477,7 +463,9 @@ const ExercisePage = () => {
         setStreakMultiplier(1);
       }
 
-      const skill = currentExercise.category || "General";
+      const skill =
+        currentExercise.category ||
+        t("exercises.skillFallback", { defaultValue: "General" });
       const before = skillProficiency[skill] || 0;
       const after = response.data.proficiency ?? before;
       setSkillProficiency((prev) => ({ ...prev, [skill]: after }));
@@ -514,7 +502,11 @@ const ExercisePage = () => {
         setShowStats(true);
       }
     } catch (err) {
-      setError("Submission failed. Please try again.");
+      setError(
+        t("exercises.errors.submissionFailed", {
+          defaultValue: "Submission failed. Please try again.",
+        })
+      );
     }
   };
 
@@ -532,11 +524,19 @@ const ExercisePage = () => {
     const currentExercise = exercises[currentExerciseIndex];
     const hints = currentExercise?.exercise_data?.hints || [];
     if (!hintEnabled) {
-      setHintError("Hints are unavailable on your plan. Upgrade to unlock.");
+      setHintError(
+        t("exercises.hints.unavailable", {
+          defaultValue: "Hints are unavailable on your plan. Upgrade to unlock.",
+        })
+      );
       return;
     }
     if (hintDepleted) {
-      setHintError("You have used all hints for today.");
+      setHintError(
+        t("exercises.hints.depleted", {
+          defaultValue: "You have used all hints for today.",
+        })
+      );
       return;
     }
     if (hintIndex < hints.length) {
@@ -675,7 +675,11 @@ const ExercisePage = () => {
 
     const result = stack.pop();
     if (stack.length || !Number.isFinite(result)) {
-      setCalculatorValue("Check expression");
+      setCalculatorValue(
+        t("exercises.calculator.checkExpression", {
+          defaultValue: "Check expression",
+        })
+      );
       return;
     }
     setCalculatorValue(String(result));
@@ -702,7 +706,9 @@ const ExercisePage = () => {
     if (!exercise || !exercise.exercise_data) {
       return (
         <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">
-          Invalid exercise format
+          {t("exercises.errors.invalidFormat", {
+            defaultValue: "Invalid exercise format",
+          })}
         </div>
       );
     }
@@ -860,7 +866,10 @@ const ExercisePage = () => {
                 value={userAnswer ?? ""}
                 onChange={(event) => setUserAnswer(event.target.value)}
                 placeholder={
-                  exercise.exercise_data?.placeholder || "Enter a number"
+                  exercise.exercise_data?.placeholder ||
+                  t("exercises.inputs.numberPlaceholder", {
+                    defaultValue: "Enter a number",
+                  })
                 }
                 className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
                   hasResult
@@ -940,7 +949,7 @@ const ExercisePage = () => {
                 <thead>
                   <tr>
                     <th className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                      Row
+                      {t("exercises.table.row", { defaultValue: "Row" })}
                     </th>
                     {columns.map((column) => (
                       <th
@@ -956,7 +965,11 @@ const ExercisePage = () => {
                   {rows.map((row) => (
                     <tr key={row.id}>
                       <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
-                        {row.label || `Row ${row.id}`}
+                        {row.label ||
+                          t("exercises.table.rowWithId", {
+                            defaultValue: "Row {{id}}",
+                            id: row.id,
+                          })}
                       </td>
                       {columns.map((column, colIndex) => {
                         const value = userAnswer?.[row.id]?.[colIndex] ?? "";
@@ -983,7 +996,7 @@ const ExercisePage = () => {
                                   return next;
                                 });
                               }}
-                              aria-label={`${row.label || "Row"} ${column}`}
+                              aria-label={`${row.label || t("exercises.table.row", { defaultValue: "Row" })} ${column}`}
                               className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
                                 hasResult
                                   ? isCellCorrect
@@ -1031,10 +1044,14 @@ const ExercisePage = () => {
               }}
             >
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                Action slot:
+                {t("exercises.scenario.actionSlot", {
+                  defaultValue: "Action slot:",
+                })}
               </span>{" "}
               {selectedChoice?.label ||
-                "Drag a choice here or select one below."}
+                t("exercises.scenario.dragHint", {
+                  defaultValue: "Drag a choice here or select one below.",
+                })}
             </div>
             <div className="grid gap-3">
               {choices.map((choice, index) => {
@@ -1063,7 +1080,9 @@ const ExercisePage = () => {
                     <span>{choice.label}</span>
                     {isSelected && (
                       <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
-                        Selected
+                        {t("exercises.scenario.selected", {
+                          defaultValue: "Selected",
+                        })}
                       </span>
                     )}
                   </button>
@@ -1077,7 +1096,9 @@ const ExercisePage = () => {
       default:
         return (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">
-            Unsupported exercise type.
+            {t("exercises.errors.unsupportedType", {
+              defaultValue: "Unsupported exercise type.",
+            })}
           </div>
         );
     }
@@ -1094,7 +1115,7 @@ const ExercisePage = () => {
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          Loading exercises...
+          {t("exercises.loading", { defaultValue: "Loading exercises..." })}
         </div>
       </div>
     );
@@ -1113,7 +1134,7 @@ const ExercisePage = () => {
             onClick={fetchExercises}
             className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
-            Retry
+            {t("exercises.retry", { defaultValue: "Retry" })}
           </button>
         </GlassCard>
       </div>
@@ -1135,32 +1156,51 @@ const ExercisePage = () => {
         : "bear";
   const mascotMessage =
     mascotMood === "celebrate"
-      ? "Great job! You got it right."
+      ? t("exercises.mascot.correct", {
+          defaultValue: "Great job! You got it right.",
+        })
       : mascotMood === "encourage"
-        ? "Keep the optimism. Try again."
-        : "Calm and steady progress wins.";
+        ? t("exercises.mascot.encourage", {
+            defaultValue: "Keep the optimism. Try again.",
+          })
+        : t("exercises.mascot.neutral", {
+            defaultValue: "Calm and steady progress wins.",
+          });
 
   return (
     <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-            Financial Exercises
+            {t("exercises.header.title", {
+              defaultValue: "Financial Exercises",
+            })}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Practice interactive challenges to strengthen your money skills.
+            {t("exercises.header.subtitle", {
+              defaultValue:
+                "Practice interactive challenges to strengthen your money skills.",
+            })}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] lg:justify-start">
             <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/30 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#2563eb)]">
-              Review Queue
+              {t("exercises.reviewQueue.title", {
+                defaultValue: "Review Queue",
+              })}
               <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
-                Due • {reviewQueue.count || 0}
+                {t("exercises.reviewQueue.due", {
+                  defaultValue: "Due • {{count}}",
+                  count: reviewQueue.count || 0,
+                })}
               </span>
             </span>
             {reviewQueue.due?.length > 0 && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                Next up: {reviewQueue.due[0].skill} -{" "}
-                {reviewQueue.due[0].question}
+                {t("exercises.reviewQueue.nextUp", {
+                  defaultValue: "Next up: {{skill}} - {{question}}",
+                  skill: reviewQueue.due[0].skill,
+                  question: reviewQueue.due[0].question,
+                })}
               </span>
             )}
             <button
@@ -1173,7 +1213,9 @@ const ExercisePage = () => {
                   : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
               }`}
             >
-              Start Review
+              {t("exercises.reviewQueue.start", {
+                defaultValue: "Start Review",
+              })}
             </button>
           </div>
         </header>
@@ -1185,10 +1227,14 @@ const ExercisePage = () => {
           >
             <div className="flex flex-col gap-3 text-center">
               <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                All caught up!
+                {t("exercises.reviewQueue.emptyTitle", {
+                  defaultValue: "All caught up!",
+                })}
               </p>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                No review items are due right now.
+                {t("exercises.reviewQueue.emptySubtitle", {
+                  defaultValue: "No review items are due right now.",
+                })}
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <button
@@ -1196,14 +1242,18 @@ const ExercisePage = () => {
                   onClick={exitReviewMode}
                   className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/50"
                 >
-                  Back to lesson mode
+                  {t("exercises.reviewQueue.backToLesson", {
+                    defaultValue: "Back to lesson mode",
+                  })}
                 </button>
                 <button
                   type="button"
                   onClick={fetchExercises}
                   className="rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30"
                 >
-                  Refresh content
+                  {t("exercises.reviewQueue.refresh", {
+                    defaultValue: "Refresh content",
+                  })}
                 </button>
               </div>
             </div>
@@ -1215,8 +1265,10 @@ const ExercisePage = () => {
             padding="md"
             className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20"
           >
-            🎉 Congratulations! You've completed this session. Review your stats
-            or start a new round below.
+            {t("exercises.session.complete", {
+              defaultValue:
+                "🎉 Congratulations! You've completed this session. Review your stats or start a new round below.",
+            })}
           </GlassCard>
         )}
 
@@ -1225,7 +1277,7 @@ const ExercisePage = () => {
             <div className="grid gap-4 border-b border-white/20 pb-6 lg:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Type
+                  {t("exercises.filters.type", { defaultValue: "Type" })}
                 </label>
                 <select
                   value={filters.type}
@@ -1237,19 +1289,47 @@ const ExercisePage = () => {
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="">All Types</option>
-                  <option value="multiple-choice">Multiple Choice</option>
-                  <option value="numeric">Numeric</option>
-                  <option value="drag-and-drop">Drag and Drop</option>
-                  <option value="budget-allocation">Budget Allocation</option>
-                  <option value="fill-in-table">Fill In Table</option>
-                  <option value="scenario-simulation">Scenario Simulation</option>
+                  <option value="">
+                    {t("exercises.filters.allTypes", {
+                      defaultValue: "All Types",
+                    })}
+                  </option>
+                  <option value="multiple-choice">
+                    {t("exercises.filters.multipleChoice", {
+                      defaultValue: "Multiple Choice",
+                    })}
+                  </option>
+                  <option value="numeric">
+                    {t("exercises.filters.numeric", { defaultValue: "Numeric" })}
+                  </option>
+                  <option value="drag-and-drop">
+                    {t("exercises.filters.dragDrop", {
+                      defaultValue: "Drag and Drop",
+                    })}
+                  </option>
+                  <option value="budget-allocation">
+                    {t("exercises.filters.budget", {
+                      defaultValue: "Budget Allocation",
+                    })}
+                  </option>
+                  <option value="fill-in-table">
+                    {t("exercises.filters.fillTable", {
+                      defaultValue: "Fill In Table",
+                    })}
+                  </option>
+                  <option value="scenario-simulation">
+                    {t("exercises.filters.scenario", {
+                      defaultValue: "Scenario Simulation",
+                    })}
+                  </option>
                 </select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Category
+                  {t("exercises.filters.category", {
+                    defaultValue: "Category",
+                  })}
                 </label>
                 <select
                   value={filters.category}
@@ -1261,7 +1341,11 @@ const ExercisePage = () => {
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="">All Categories</option>
+                  <option value="">
+                    {t("exercises.filters.allCategories", {
+                      defaultValue: "All Categories",
+                    })}
+                  </option>
                   {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
@@ -1272,7 +1356,9 @@ const ExercisePage = () => {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  Difficulty
+                  {t("exercises.filters.difficulty", {
+                    defaultValue: "Difficulty",
+                  })}
                 </label>
                 <select
                   value={filters.difficulty}
@@ -1284,10 +1370,26 @@ const ExercisePage = () => {
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="">All Difficulties</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="">
+                    {t("exercises.filters.allDifficulties", {
+                      defaultValue: "All Difficulties",
+                    })}
+                  </option>
+                  <option value="beginner">
+                    {t("exercises.filters.beginner", {
+                      defaultValue: "Beginner",
+                    })}
+                  </option>
+                  <option value="intermediate">
+                    {t("exercises.filters.intermediate", {
+                      defaultValue: "Intermediate",
+                    })}
+                  </option>
+                  <option value="advanced">
+                    {t("exercises.filters.advanced", {
+                      defaultValue: "Advanced",
+                    })}
+                  </option>
                 </select>
               </div>
             </div>
@@ -1295,7 +1397,11 @@ const ExercisePage = () => {
             <div className="flex items-center justify-between border-b border-white/20 py-6">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-                  Exercise {currentExerciseIndex + 1} of {exercises.length}
+                  {t("exercises.progress.label", {
+                    defaultValue: "Exercise {{current}} of {{total}}",
+                    current: currentExerciseIndex + 1,
+                    total: exercises.length,
+                  })}
                 </p>
                 <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                   <div
@@ -1306,7 +1412,9 @@ const ExercisePage = () => {
               </div>
 
               <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-                <span>Timed Mode</span>
+                <span>
+                  {t("exercises.timedMode", { defaultValue: "Timed Mode" })}
+                </span>
                 <div className="relative inline-flex h-6 w-11 items-center">
                   <input
                     type="checkbox"
@@ -1327,7 +1435,11 @@ const ExercisePage = () => {
 
             {streak > 0 && (
               <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
-                🔥 You've completed {streak} exercises in a row - keep it up!
+                {t("exercises.streak", {
+                  defaultValue:
+                    "🔥 You've completed {{count}} exercises in a row - keep it up!",
+                  count: streak,
+                })}
               </div>
             )}
 
@@ -1346,7 +1458,7 @@ const ExercisePage = () => {
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                    Hints
+                    {t("exercises.hints.title", { defaultValue: "Hints" })}
                   </h4>
                   <button
                     type="button"
@@ -1358,15 +1470,22 @@ const ExercisePage = () => {
                         : "text-[color:var(--accent,#2563eb)]"
                     }`}
                   >
-                    Show next hint (-{hintCoinCost} coins)
+                    {t("exercises.hints.showNext", {
+                      defaultValue: "Show next hint (-{{cost}} coins)",
+                      cost: hintCoinCost,
+                    })}
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Hint credits:{" "}
+                  {t("exercises.hints.credits", {
+                    defaultValue: "Hint credits:",
+                  })}{" "}
                   {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
                 </div>
                 <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Earn more hint credits via missions.
+                  {t("exercises.hints.earnMore", {
+                    defaultValue: "Earn more hint credits via missions.",
+                  })}
                 </div>
                 {hintError && (
                   <div className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
@@ -1377,7 +1496,9 @@ const ExercisePage = () => {
                         onClick={() => navigate("/subscriptions")}
                         className="font-semibold underline"
                       >
-                        Upgrade
+                        {t("exercises.hints.upgrade", {
+                          defaultValue: "Upgrade",
+                        })}
                       </button>
                     )}
                   </div>
@@ -1395,7 +1516,10 @@ const ExercisePage = () => {
                     ))}
                   {hintIndex === 0 && (
                     <p className="italic">
-                      Use hints if you need a nudge. Each one costs a little XP.
+                      {t("exercises.hints.helper", {
+                        defaultValue:
+                          "Use hints if you need a nudge. Each one costs a little XP.",
+                      })}
                     </p>
                   )}
                 </div>
@@ -1403,22 +1527,28 @@ const ExercisePage = () => {
 
               <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                 <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                  Assist
+                  {t("exercises.assist.title", { defaultValue: "Assist" })}
                 </h4>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    Scratchpad
+                    {t("exercises.assist.scratchpad", {
+                      defaultValue: "Scratchpad",
+                    })}
                   </label>
                   <textarea
                     value={scratchpad}
                     onChange={(event) => setScratchpad(event.target.value)}
                     className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    placeholder="Work through the steps here"
+                    placeholder={t("exercises.assist.scratchpadPlaceholder", {
+                      defaultValue: "Work through the steps here",
+                    })}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    Calculator
+                    {t("exercises.assist.calculator", {
+                      defaultValue: "Calculator",
+                    })}
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -1428,7 +1558,12 @@ const ExercisePage = () => {
                         setCalculatorValue(event.target.value)
                       }
                       className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                      placeholder="e.g. (1+0.05/12)^12-1"
+                      placeholder={t(
+                        "exercises.assist.calculatorPlaceholder",
+                        {
+                          defaultValue: "e.g. (1+0.05/12)^12-1",
+                        }
+                      )}
                     />
                     <button
                       type="button"
@@ -1451,7 +1586,11 @@ const ExercisePage = () => {
                 )}
                 {showCorrection && explanation && (
                   <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-700">
-                    <span className="font-semibold">Remember:</span>{" "}
+                    <span className="font-semibold">
+                      {t("exercises.explanation.remember", {
+                        defaultValue: "Remember:",
+                      })}
+                    </span>{" "}
                     {explanation}
                   </div>
                 )}
@@ -1464,7 +1603,9 @@ const ExercisePage = () => {
                       rel="noreferrer"
                       className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
                     >
-                      Learn more about this topic
+                      {t("exercises.explanation.learnMore", {
+                        defaultValue: "Learn more about this topic",
+                      })}
                     </a>
                   )}
                 {showCorrection && !progress[currentExerciseIndex]?.correct && (
@@ -1473,7 +1614,9 @@ const ExercisePage = () => {
                     onClick={openTutor}
                     className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
                   >
-                    Ask the AI tutor for a deeper explanation
+                    {t("exercises.explanation.askTutor", {
+                      defaultValue: "Ask the AI tutor for a deeper explanation",
+                    })}
                   </button>
                 )}
               </div>
@@ -1482,19 +1625,32 @@ const ExercisePage = () => {
             <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
                 <span className="font-semibold text-[color:var(--accent,#111827)]">
-                  Confidence
+                  {t("exercises.confidence.label", {
+                    defaultValue: "Confidence",
+                  })}
                 </span>
                 <select
                   value={confidence}
                   onChange={(event) => setConfidence(event.target.value)}
                   className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="low">
+                    {t("exercises.confidence.low", { defaultValue: "Low" })}
+                  </option>
+                  <option value="medium">
+                    {t("exercises.confidence.medium", {
+                      defaultValue: "Medium",
+                    })}
+                  </option>
+                  <option value="high">
+                    {t("exercises.confidence.high", { defaultValue: "High" })}
+                  </option>
                 </select>
                 <span className="text-xs">
-                  Low confidence will schedule similar practice sooner.
+                  {t("exercises.confidence.helper", {
+                    defaultValue:
+                      "Low confidence will schedule similar practice sooner.",
+                  })}
                 </span>
               </div>
 
@@ -1508,8 +1664,12 @@ const ExercisePage = () => {
                     }`}
                   >
                     {progress[currentExerciseIndex]?.correct
-                      ? "✅ Correct! Well done!"
-                      : "❌ Incorrect. Better luck next time!"}
+                      ? t("exercises.result.correct", {
+                          defaultValue: "✅ Correct! Well done!",
+                        })
+                      : t("exercises.result.incorrect", {
+                          defaultValue: "❌ Incorrect. Better luck next time!",
+                        })}
                   </div>
 
                   <div className="flex flex-wrap gap-3">
@@ -1519,7 +1679,9 @@ const ExercisePage = () => {
                       disabled={currentExerciseIndex === 0}
                       className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Restart
+                      {t("exercises.actions.restart", {
+                        defaultValue: "Restart",
+                      })}
                     </button>
 
                     {!progress[currentExerciseIndex]?.correct && (
@@ -1529,7 +1691,13 @@ const ExercisePage = () => {
                         disabled={isRetrying}
                         className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {isRetrying ? "Retrying..." : "Try Again"}
+                        {isRetrying
+                          ? t("exercises.actions.retrying", {
+                              defaultValue: "Retrying...",
+                            })
+                          : t("exercises.actions.tryAgain", {
+                              defaultValue: "Try Again",
+                            })}
                       </button>
                     )}
 
@@ -1539,8 +1707,12 @@ const ExercisePage = () => {
                       className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                     >
                       {currentExerciseIndex === exercises.length - 1
-                        ? "Finish"
-                        : "Next Exercise"}
+                        ? t("exercises.actions.finish", {
+                            defaultValue: "Finish",
+                          })
+                        : t("exercises.actions.next", {
+                            defaultValue: "Next Exercise",
+                          })}
                     </button>
                     <button
                       type="button"
@@ -1550,7 +1722,9 @@ const ExercisePage = () => {
                       }}
                       className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                     >
-                      Try Variant
+                      {t("exercises.actions.tryVariant", {
+                        defaultValue: "Try Variant",
+                      })}
                     </button>
                   </div>
                 </div>
@@ -1560,7 +1734,9 @@ const ExercisePage = () => {
                   onClick={handleSubmit}
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                 >
-                  Submit Answer
+                  {t("exercises.actions.submit", {
+                    defaultValue: "Submit Answer",
+                  })}
                 </button>
               )}
             </div>
@@ -1585,7 +1761,9 @@ const ExercisePage = () => {
             </div>
             <GlassCard padding="lg">
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                Your Progress
+                {t("exercises.progress.title", {
+                  defaultValue: "Your Progress",
+                })}
               </h3>
               <div className="mt-4 space-y-3">
                 {exercises
@@ -1606,9 +1784,20 @@ const ExercisePage = () => {
                           : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
                       }`}
                     >
-                      <span className="font-medium">Exercise {index + 1}</span>
+                      <span className="font-medium">
+                        {t("exercises.progress.exercise", {
+                          defaultValue: "Exercise {{index}}",
+                          index: index + 1,
+                        })}
+                      </span>
                       <span className="text-xs uppercase tracking-wide">
-                        {prog?.status === "completed" ? "Completed" : "Attempted"}
+                        {prog?.status === "completed"
+                          ? t("exercises.progress.completed", {
+                              defaultValue: "Completed",
+                            })
+                          : t("exercises.progress.attempted", {
+                              defaultValue: "Attempted",
+                            })}
                       </span>
                     </div>
                   ))}
@@ -1618,8 +1807,10 @@ const ExercisePage = () => {
                 ).length === 0 && (
                   <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                     <p>
-                      No progress yet. Start an exercise to see your progress
-                      here!
+                      {t("exercises.progress.empty", {
+                        defaultValue:
+                          "No progress yet. Start an exercise to see your progress here!",
+                      })}
                     </p>
                   </div>
                 )}
@@ -1688,7 +1879,7 @@ const ExercisePage = () => {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-4 text-center text-sm text-emerald-500">
-                  <h4 className="text-base font-semibold">Total Completed</h4>
+                  <h4 className="text-base font-semibold">{t("exercises.progress.totalCompleted")}</h4>
                   <p>
                     {stats.totalCompleted} of {stats.totalExercises}
                   </p>

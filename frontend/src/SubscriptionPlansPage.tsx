@@ -3,6 +3,7 @@
  * Imported statically in App so it stays in the main bundle (avoids chunk resolution issues).
  */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -31,14 +32,18 @@ type Plan = {
   features?: Record<string, PlanFeature>;
 };
 
-const formatFeatureValue = (feature: PlanFeature | undefined) => {
-  if (!feature || feature.enabled === false) return "Not Included";
-  if (feature.daily_quota === null || feature.daily_quota === undefined) return "Unlimited";
-  if (typeof feature.daily_quota === "number") return `${feature.daily_quota} / day`;
-  return "Included";
+const formatFeatureValue = (
+  feature: PlanFeature | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string
+) => {
+  if (!feature || feature.enabled === false) return t("subscriptions.notIncluded");
+  if (feature.daily_quota === null || feature.daily_quota === undefined) return t("subscriptions.unlimited");
+  if (typeof feature.daily_quota === "number") return t("subscriptions.perDay", { count: feature.daily_quota });
+  return t("subscriptions.included");
 };
 
 const SubscriptionPlansPage = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -132,7 +137,7 @@ const SubscriptionPlansPage = () => {
   const handlePlanSelect = useCallback(
     async (plan: Plan | null) => {
       if (!plan) {
-        setSelectionError("Please choose a plan to continue.");
+        setSelectionError(t("subscriptions.selectPlanError"));
         return;
       }
       if (!isAuthenticated) {
@@ -147,7 +152,7 @@ const SubscriptionPlansPage = () => {
         return;
       }
       if (!questionnaireComplete) {
-        setSelectionError("Please complete onboarding before choosing a plan.");
+        setSelectionError(t("subscriptions.completeOnboardingFirst"));
         navigate("/onboarding");
         return;
       }
@@ -165,15 +170,13 @@ const SubscriptionPlansPage = () => {
         const status = (err as { response?: { status?: number; data?: { error?: string } } })?.response?.status;
         const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
         if (status === 503) {
-          setSelectionError(
-            message || "Payment is not configured yet. Please try again later or contact support."
-          );
+          setSelectionError(message || t("subscriptions.paymentNotConfigured"));
         } else {
-          setSelectionError(message || "Could not start checkout. Please try again.");
+          setSelectionError(message || t("subscriptions.checkoutFailed"));
         }
       }
     },
-    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken]
+    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken, t]
   );
 
   useEffect(() => {
@@ -203,12 +206,12 @@ const SubscriptionPlansPage = () => {
       const label = s?.name || pl?.name || pr?.name || key.replace(/_/g, " ");
       return {
         feature: label,
-        starter: formatFeatureValue(s),
-        plus: formatFeatureValue(pl),
-        pro: formatFeatureValue(pr),
+        starter: formatFeatureValue(s, t),
+        plus: formatFeatureValue(pl, t),
+        pro: formatFeatureValue(pr, t),
       };
     });
-  }, [plans]);
+  }, [plans, t]);
 
   return (
     <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
@@ -219,19 +222,19 @@ const SubscriptionPlansPage = () => {
           </div>
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-[color:var(--accent,#111827)]">
-              Choose Your Plan
+              {t("subscriptions.choosePlan")}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Starter is free after onboarding. Plus and Pro unlock your personalized path and premium features via secure Stripe checkout.
+              {t("subscriptions.intro")}
             </p>
             {upgradeComplete && (
               <p className="rounded-lg bg-[color:var(--success,#16a34a)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--success,#16a34a)]">
-                Payment confirmed! Your subscription is now active.
+                {t("subscriptions.paymentConfirmed")}
               </p>
             )}
             {entitlements?.fallback && (
               <p className="rounded-lg bg-[color:var(--warning,#facc15)]/20 px-3 py-2 text-xs text-[color:var(--accent,#92400e)]">
-                Using fallback entitlements. Please contact support if this persists.
+                {t("subscriptions.fallbackEntitlements")}
               </p>
             )}
             {entitlementError && (
@@ -242,7 +245,7 @@ const SubscriptionPlansPage = () => {
 
         <div className="grid gap-4 md:grid-cols-3">
           {loadingPlans && (
-            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">Loading plans...</div>
+            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">{t("subscriptions.loadingPlans")}</div>
           )}
           {!loadingPlans &&
             planCards.map((plan) => {
@@ -253,7 +256,7 @@ const SubscriptionPlansPage = () => {
                 plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
               const isHighlight = plan.plan_id === "plus";
               const trialLabel = plan.trial_days
-                ? `${plan.trial_days} day${plan.trial_days > 1 ? "s" : ""} trial`
+                ? t("subscriptions.trialDays", { count: plan.trial_days })
                 : null;
               const name =
                 plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
@@ -274,7 +277,7 @@ const SubscriptionPlansPage = () => {
                       </div>
                       {isStarter && (
                         <span className="rounded-full bg-[color:var(--success,#16a34a)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--success,#16a34a)]">
-                          Free
+                          {t("subscriptions.free")}
                         </span>
                       )}
                       {trialLabel && paidPlan && (
@@ -291,18 +294,18 @@ const SubscriptionPlansPage = () => {
                         { minimumFractionDigits: 0 }
                       )}
                       <span className="ml-1 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-                        {` / ${plan.billing_interval === "monthly" ? "month" : plan.billing_interval === "yearly" ? "year" : plan.billing_interval}`}
+                        {` / ${plan.billing_interval === "monthly" ? t("subscriptions.perMonth") : plan.billing_interval === "yearly" ? t("subscriptions.perYear") : plan.billing_interval}`}
                       </span>
                     </div>
                   </div>
                   <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
-                    {(features.length ? features : ["Premium learning access"]).map((fe) => (
+                    {(features.length ? features : [t("subscriptions.premiumLearningAccess")]).map((fe) => (
                       <li key={fe}>• {fe}</li>
                     ))}
                   </ul>
                   {paidPlan && (
                     <p className="text-xs text-[color:var(--primary,#2563eb)] font-medium">
-                      Unlocks personalized path + secure Stripe checkout
+                      {t("subscriptions.unlocksPath")}
                     </p>
                   )}
                   <GlassButton
@@ -311,8 +314,8 @@ const SubscriptionPlansPage = () => {
                     onClick={() => handlePlanSelect(plan)}
                   >
                     {isStarter
-                      ? "Start with Starter (Free)"
-                      : `Choose ${name} - Go to checkout`}
+                      ? t("subscriptions.startStarter")
+                      : t("subscriptions.choosePlanCheckout", { name })}
                   </GlassButton>
                 </div>
               );
@@ -330,14 +333,14 @@ const SubscriptionPlansPage = () => {
             className="text-sm"
             icon="🔄"
           >
-            Retry entitlement check
+            {t("subscriptions.retryEntitlements")}
           </GlassButton>
           {entitlementSupportLink && (
             <a
               href={entitlementSupportLink}
               className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
             >
-              Contact support
+              {t("subscriptions.contactSupport")}
             </a>
           )}
         </div>
@@ -348,18 +351,18 @@ const SubscriptionPlansPage = () => {
         >
           <div className="space-y-1">
             <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-              Subscription status
+              {t("subscriptions.subscriptionStatus")}
             </p>
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
               {subscriptionInfo.hasPaid
-                ? "You're on Plus or Pro - personalized path and premium features unlocked."
+                ? t("subscriptions.statusPaid")
                 : questionnaireComplete
-                  ? "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path."
-                  : "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro."}
+                  ? t("subscriptions.statusStarterComplete")
+                  : t("subscriptions.statusOnboarding")}
             </p>
             {entitlements?.status === "trialing" && trialEndLabel && (
               <p className="text-xs text-[color:var(--accent,#2563eb)]">
-                Trial ends on {trialEndLabel}
+                {t("subscriptions.trialEndsOn", { date: trialEndLabel })}
               </p>
             )}
           </div>
@@ -369,10 +372,10 @@ const SubscriptionPlansPage = () => {
             icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
           >
             {subscriptionInfo.hasPaid
-              ? "View your personalized path"
+              ? t("subscriptions.viewPersonalizedPath")
               : questionnaireComplete
-                ? "Go to dashboard"
-                : "Check subscription options"}
+                ? t("subscriptions.goToDashboard")
+                : t("subscriptions.checkSubscriptionOptions")}
           </GlassButton>
         </div>
 
@@ -380,20 +383,20 @@ const SubscriptionPlansPage = () => {
           <GlassCard padding="lg" className="space-y-4">
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                Compare plans
+                {t("subscriptions.comparePlans")}
               </p>
               <h3 className="text-lg font-bold text-[color:var(--accent,#111827)]">
-                See what changes by tier
+                {t("subscriptions.seeWhatChanges")}
               </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Feature</th>
-                    <th className="px-4 py-3 font-semibold">Starter</th>
-                    <th className="px-4 py-3 font-semibold">Plus</th>
-                    <th className="px-4 py-3 font-semibold">Pro</th>
+                    <th className="px-4 py-3 font-semibold">{t("subscriptions.feature")}</th>
+                    <th className="px-4 py-3 font-semibold">{t("subscriptions.starter")}</th>
+                    <th className="px-4 py-3 font-semibold">{t("subscriptions.plus")}</th>
+                    <th className="px-4 py-3 font-semibold">{t("subscriptions.pro")}</th>
                   </tr>
                 </thead>
                 <tbody>

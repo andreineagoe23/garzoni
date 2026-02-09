@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from celery import shared_task
 from django.utils.timezone import now
 from django.utils import timezone
+from core.utils import normalize_text_encoding
 
 
 class Badge(models.Model):
@@ -35,6 +36,11 @@ class Badge(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = normalize_text_encoding(self.name) or ""
+        self.description = normalize_text_encoding(self.description) or ""
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "core_badge"
@@ -149,7 +155,10 @@ class Mission(models.Model):
             pass
 
     def save(self, *args, **kwargs):
-        """Override save to run validation."""
+        """Override save to run validation and normalize user-facing text."""
+        self.name = normalize_text_encoding(self.name) or ""
+        self.description = normalize_text_encoding(self.description) or ""
+        self.purpose_statement = normalize_text_encoding(self.purpose_statement) or ""
         self.clean()
         super().save(*args, **kwargs)
 

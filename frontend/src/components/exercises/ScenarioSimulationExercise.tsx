@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
@@ -39,6 +40,7 @@ const ScenarioSimulationExercise = ({
   const soundEnabled = settings?.sound_enabled ?? true;
   const { question, scenario, choices = [], correctAnswer, learn_more_url, explanation } =
     data || {};
+  const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
@@ -63,7 +65,7 @@ const ScenarioSimulationExercise = ({
     const isCorrect = selectedId === correctAnswer;
     setFeedbackType(isCorrect ? "success" : "error");
     setFeedback(
-      isCorrect ? "Great call! You handled the scenario well." : "Not quite. Try another strategy."
+      isCorrect ? t("exercises.scenario.correct") : t("exercises.scenario.incorrect")
     );
     playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: isCorrect });
     onAttempt?.({ correct: isCorrect });
@@ -72,7 +74,7 @@ const ScenarioSimulationExercise = ({
       try {
         await onComplete?.();
       } catch (error) {
-        setFeedback("Error saving progress. Please try again.");
+        setFeedback(t("exercises.saveError"));
         setFeedbackType("error");
       }
     }
@@ -133,9 +135,9 @@ const ScenarioSimulationExercise = ({
           }}
         >
           <span className="font-semibold text-[color:var(--accent,#111827)]">
-            Action slot:
+            {t("exercises.scenario.actionSlot")}
           </span>{" "}
-          {selectedChoice ? selectedChoice.label : "Drag a choice here or select one below."}
+          {selectedChoice ? selectedChoice.label : t("exercises.scenario.dragHint")}
         </div>
 
         <div className="grid gap-3">
@@ -172,7 +174,7 @@ const ScenarioSimulationExercise = ({
                 <span>{choice.label}</span>
                 {isSelected && (
                   <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
-                    Selected
+                    {t("exercises.scenario.selected")}
                   </span>
                 )}
               </button>
@@ -188,7 +190,7 @@ const ScenarioSimulationExercise = ({
             onClick={handleRetry}
             className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
-            Retry Exercise
+            {t("exercises.actions.retryExercise")}
           </button>
         ) : (
           <button
@@ -201,7 +203,7 @@ const ScenarioSimulationExercise = ({
                 : "bg-[color:var(--primary,#2563eb)] text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
             }`}
           >
-            Submit Choice
+            {t("exercises.scenario.submitChoice")}
           </button>
         )}
       </div>
@@ -233,7 +235,7 @@ const ScenarioSimulationExercise = ({
                 rel="noreferrer"
                 className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
               >
-                Learn more
+                {t("exercises.explanation.learnMoreLink")}
               </a>
             </div>
           )}

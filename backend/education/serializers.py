@@ -18,8 +18,24 @@ from education.models import (
     Question,
     UserResponse,
     PathRecommendation,
+    PathTranslation,
+    CourseTranslation,
+    LessonTranslation,
+    LessonSectionTranslation,
+    QuizTranslation,
+    ExerciseTranslation,
 )
-from education.utils import resolve_path_access_tier
+from education.utils import get_request_language, resolve_path_access_tier
+
+
+def _get_translation(instance, language, rel_name="translations"):
+    """Return the translation for this instance and language, from prefetched rel or one query."""
+    translations = getattr(instance, rel_name, None)
+    if translations is None:
+        return None
+    if hasattr(translations, "filter"):
+        return translations.filter(language=language).first()
+    return next((t for t in translations if getattr(t, "language", None) == language), None)
 
 
 # Serializer for quizzes, including fields for course association and question details.
@@ -27,6 +43,17 @@ class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
         fields = ["id", "course", "title", "question", "choices", "correct_answer"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["question"] = trans.question
+            data["choices"] = trans.choices
+            data["correct_answer"] = trans.correct_answer
+        return data
 
 
 # Serializer for lesson sections, supporting various content types like text, video, and exercises.
@@ -52,6 +79,19 @@ class LessonSectionSerializer(serializers.ModelSerializer):
 
     def get_updated_by(self, obj):
         return normalize_display_string(obj.updated_by.username) if obj.updated_by else None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            if trans.title:
+                data["title"] = trans.title
+            if trans.text_content is not None:
+                data["text_content"] = trans.text_content or ""
+            if trans.exercise_data is not None:
+                data["exercise_data"] = trans.exercise_data
+        return data
 
 
 class LessonSectionWriteSerializer(serializers.ModelSerializer):
@@ -79,11 +119,30 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ["id", "title", "short_description", "sections", "is_completed"]
+        fields = [
+            "id",
+            "title",
+            "short_description",
+            "detailed_content",
+            "sections",
+            "is_completed",
+        ]
 
     def get_is_completed(self, obj):
         completed_lesson_ids = self.context.get("completed_lesson_ids", [])
         return obj.id in completed_lesson_ids
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["short_description"] = trans.short_description or instance.short_description
+            data["detailed_content"] = trans.detailed_content or instance.detailed_content or ""
+        else:
+            data["detailed_content"] = instance.detailed_content or ""
+        return data
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -131,6 +190,20 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_total_lessons(self, obj):
         return obj.lessons.count()
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["description"] = trans.description
+        path = getattr(instance, "path", None)
+        if path:
+            path_trans = _get_translation(path, lang)
+            if path_trans:
+                data["path_title"] = path_trans.title
+        return data
+
 
 class PathSerializer(serializers.ModelSerializer):
     """
@@ -164,6 +237,15 @@ class PathSerializer(serializers.ModelSerializer):
         plan = get_user_plan(user)
         required_tier = resolve_path_access_tier(obj)
         return not plan_allows(plan, required_tier)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["description"] = trans.description
+        return data
 
 
 class UserProgressSerializer(serializers.ModelSerializer):
@@ -242,6 +324,16 @@ class ExerciseSerializer(serializers.ModelSerializer):
             "misconception_tags",
             "error_patterns",
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["question"] = trans.question
+            if trans.exercise_data is not None:
+                data["exercise_data"] = trans.exercise_data
+        return data
 
 
 class UserExerciseProgressSerializer(serializers.ModelSerializer):

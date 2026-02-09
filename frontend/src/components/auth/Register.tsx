@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +9,7 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
 // import { useGoogleReCaptcha } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
 function Register() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -41,17 +43,17 @@ function Register() {
         // Always send new users to onboarding first; replace so back doesn't return to register
         navigate("/onboarding", { replace: true });
       } else {
-        setErrorMessage(result.error || "Registration failed. Please try again.");
+        setErrorMessage(result.error || t("auth.register.registerFailed"));
       }
     } catch (registerError) {
       if (axios.isAxiosError(registerError)) {
         setErrorMessage(
           registerError.response?.data?.error ||
             registerError.message ||
-            "Registration failed. Please try again."
+            t("auth.register.registerFailed")
         );
       } else {
-        setErrorMessage("Registration failed. Please try again.");
+        setErrorMessage(t("auth.register.registerFailed"));
       }
     } finally {
       setIsLoading(false);
@@ -80,10 +82,10 @@ function Register() {
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
               <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                Create Account
+                {t("auth.register.title")}
               </h2>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                Sign up to get started
+                {t("auth.register.subtitle")}
               </p>
             </div>
 
@@ -103,7 +105,7 @@ function Register() {
                     htmlFor="first_name"
                     className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
-                    First Name
+                    {t("auth.register.firstName")}
                   </label>
                   <input
                     id="first_name"
@@ -113,7 +115,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="given-name"
-                    placeholder="Enter your first name"
+                    placeholder={t("auth.register.firstNamePlaceholder")}
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
@@ -123,7 +125,7 @@ function Register() {
                     htmlFor="last_name"
                     className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                   >
-                    Last Name
+                    {t("auth.register.lastName")}
                   </label>
                   <input
                     id="last_name"
@@ -133,7 +135,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="family-name"
-                    placeholder="Enter your last name"
+                    placeholder={t("auth.register.lastNamePlaceholder")}
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
@@ -144,7 +146,7 @@ function Register() {
                   htmlFor="username"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Username
+                  {t("auth.register.username")}
                 </label>
                 <input
                   id="username"
@@ -154,7 +156,7 @@ function Register() {
                   onChange={handleChange}
                   required
                   autoComplete="username"
-                  placeholder="Choose a username"
+                  placeholder={t("auth.register.usernamePlaceholder")}
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -164,7 +166,7 @@ function Register() {
                   htmlFor="email"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Email
+                  {t("auth.register.email")}
                 </label>
                 <input
                   id="email"
@@ -174,7 +176,7 @@ function Register() {
                   onChange={handleChange}
                   required
                   autoComplete="email"
-                  placeholder="Enter your email"
+                  placeholder={t("auth.register.emailPlaceholder")}
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -184,7 +186,7 @@ function Register() {
                   htmlFor="password"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Password
+                  {t("auth.register.password")}
                 </label>
                 <div className="relative">
                   <input
@@ -195,7 +197,7 @@ function Register() {
                     onChange={handleChange}
                     required
                     autoComplete="new-password"
-                    placeholder="Create a password"
+                    placeholder={t("auth.register.passwordPlaceholder")}
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                   <button
@@ -204,8 +206,8 @@ function Register() {
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
                     aria-label={
                       showPassword
-                        ? "Hide password"
-                        : "Show password"
+                        ? t("auth.login.hidePassword")
+                        : t("auth.login.showPassword")
                     }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
@@ -218,9 +220,9 @@ function Register() {
                   htmlFor="referral_code"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Referral Code{" "}
+                  {t("auth.register.referralCode")}{" "}
                   <span className="text-gray-400">
-                    (optional)
+                    ({t("auth.register.optional")})
                   </span>
                 </label>
                 <input
@@ -229,7 +231,7 @@ function Register() {
                   type="text"
                   value={formData.referral_code}
                   onChange={handleChange}
-                  placeholder="Enter referral code if you have one"
+                  placeholder={t("auth.register.referralPlaceholder")}
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
@@ -241,21 +243,21 @@ function Register() {
                   variant="primary"
                   className="w-full"
                 >
-                  {isLoading ? "Creating account..." : "Sign Up"}
+                  {isLoading ? t("auth.register.submitting") : t("auth.register.submit")}
                 </GlassButton>
               </div>
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
               <span>
-                Already have an account?{" "}
+                {t("auth.register.hasAccount")}{" "}
               </span>
               <button
                 type="button"
                 onClick={() => navigate("/login")}
                 className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
               >
-                Login here
+                {t("auth.register.loginHere")}
               </button>
             </div>
           </GlassCard>

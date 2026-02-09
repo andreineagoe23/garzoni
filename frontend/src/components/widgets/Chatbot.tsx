@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
@@ -11,19 +12,19 @@ import { queryKeys, staleTimes } from "lib/reactQuery";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
 
-const LANGUAGES = [
-  { code: "en-US", name: "English (US)" },
-  { code: "es-ES", name: "Spanish" },
-  { code: "fr-FR", name: "French" },
-  { code: "de-DE", name: "German" },
-  { code: "it-IT", name: "Italian" },
-  { code: "pt-BR", name: "Portuguese" },
-  { code: "ja-JP", name: "Japanese" },
-  { code: "ko-KR", name: "Korean" },
-  { code: "zh-CN", name: "Chinese" },
-];
-
 const Chatbot = () => {
+  const { t } = useTranslation();
+  const LANGUAGES = [
+    { code: "en-US", name: t("chatbot.languages.enUS") },
+    { code: "es-ES", name: t("chatbot.languages.esES") },
+    { code: "fr-FR", name: t("chatbot.languages.frFR") },
+    { code: "de-DE", name: t("chatbot.languages.deDE") },
+    { code: "it-IT", name: t("chatbot.languages.itIT") },
+    { code: "pt-BR", name: t("chatbot.languages.ptBR") },
+    { code: "ja-JP", name: t("chatbot.languages.jaJP") },
+    { code: "ko-KR", name: t("chatbot.languages.koKR") },
+    { code: "zh-CN", name: t("chatbot.languages.zhCN") },
+  ];
   const locale = getLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -54,11 +55,11 @@ const Chatbot = () => {
   });
 
   const quickReplies = [
-    "💰 What is compound interest?",
-    "📚 Show me learning paths",
-    "📊 Recommend a course for me",
-    "📈 What's the price of Bitcoin?",
-    "💼 How do I start investing?",
+    t("chatbot.quickReplies.compoundInterest"),
+    t("chatbot.quickReplies.learningPaths"),
+    t("chatbot.quickReplies.recommendCourse"),
+    t("chatbot.quickReplies.bitcoinPrice"),
+    t("chatbot.quickReplies.startInvesting"),
   ];
 
   const aiTutorFeature = entitlementResponse?.data?.features?.ai_tutor;
@@ -70,7 +71,7 @@ const Chatbot = () => {
         sender: "bot",
         text:
           message ||
-          "AI tutor access is limited on your current plan. Upgrade to keep chatting.",
+          t("chatbot.aiTutorLimited"),
       },
     ]);
     setLockedFeature("ai_tutor");
@@ -94,12 +95,12 @@ const Chatbot = () => {
       setMessages([
         {
           sender: "bot",
-          text: "Hello! I'm your financial assistant. Ask me about budgeting, investing, saving, cryptocurrencies, retirement planning, or any other finance topic. How can I help you today?",
+          text: t("chatbot.greeting"),
         },
       ]);
       setHasGreeted(true);
     }
-  }, [hasGreeted]);
+  }, [hasGreeted, t]);
 
   useEffect(() => {
     const handleTutorOpen = (event) => {
@@ -167,7 +168,7 @@ const Chatbot = () => {
     if (
       !("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
     ) {
-      alert("Speech recognition is not supported in your browser.");
+      alert(t("chatbot.speechNotSupported"));
       return;
     }
 
@@ -180,20 +181,24 @@ const Chatbot = () => {
 
     setMessages((prev) => [
       ...prev,
-      { sender: "system", text: "Listening..." },
+      { sender: "system", text: t("chatbot.listening") },
     ]);
     recognition.start();
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setInputMessage(transcript);
-      setMessages((prev) => prev.filter((msg) => msg.text !== "Listening..."));
+      setMessages((prev) =>
+        prev.filter((msg) => msg.text !== t("chatbot.listening"))
+      );
       handleMessageSend(transcript);
     };
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
-      setMessages((prev) => prev.filter((msg) => msg.text !== "Listening..."));
+      setMessages((prev) =>
+        prev.filter((msg) => msg.text !== t("chatbot.listening"))
+      );
     };
   };
 
@@ -203,7 +208,7 @@ const Chatbot = () => {
         ...prevMessages,
         {
           sender: "bot",
-          text: "Please log in to use the chatbot. You will be redirected to the login page.",
+          text: t("chatbot.loginRequired"),
         },
       ]);
       navigate("/login");
@@ -225,14 +230,14 @@ const Chatbot = () => {
     if (aiTutorFeature) {
       if (!aiTutorFeature.enabled) {
         blockAiTutor(
-          "AI tutor is available on Premium plans. Upgrade to continue chatting."
+          t("chatbot.aiTutorPremiumOnly")
         );
         return;
       }
 
       if (aiTutorFeature.remaining_today === 0) {
         blockAiTutor(
-          "You've reached today's AI tutor limit. Upgrade for more conversations."
+          t("chatbot.aiTutorDailyLimit")
         );
         return;
       }
@@ -274,11 +279,19 @@ const Chatbot = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
-          botResponse = `The current price of ${stockSymbol} is ${priceLabel}. The stock ${
-            stockData.change >= 0 ? "increased" : "decreased"
-          } by ${changeLabel}% today.`;
+          botResponse = t("chatbot.responses.stockPrice", {
+            symbol: stockSymbol,
+            price: priceLabel,
+            direction:
+              stockData.change >= 0
+                ? t("chatbot.responses.increased")
+                : t("chatbot.responses.decreased"),
+            change: changeLabel,
+          });
         } else {
-          botResponse = `I couldn't find current price data for ${stockSymbol}. Please check if the stock symbol is correct.`;
+          botResponse = t("chatbot.responses.stockNotFound", {
+            symbol: stockSymbol,
+          });
         }
       } else if (forexPairMatch || forexMatch) {
         let fromCurrency;
@@ -310,19 +323,27 @@ const Chatbot = () => {
             minimumFractionDigits: 4,
             maximumFractionDigits: 4,
           });
-          botResponse = `The current exchange rate from ${fromCurrency} to ${toCurrency} is ${rateLabel}.`;
+          botResponse = t("chatbot.responses.forexRate", {
+            from: fromCurrency,
+            to: toCurrency,
+            rate: rateLabel,
+          });
 
           if (Math.abs(forexData.change) > 0.0001) {
             const changeLabel = formatNumber(forexData.change, locale, {
               minimumFractionDigits: 4,
               maximumFractionDigits: 4,
             });
-            botResponse += ` The rate has changed by ${
-              forexData.change >= 0 ? "+" : ""
-            }${changeLabel} today.`;
+            botResponse += ` ${t("chatbot.responses.forexChanged", {
+              sign: forexData.change >= 0 ? "+" : "",
+              change: changeLabel,
+            })}`;
           }
         } else {
-          botResponse = `I couldn't find the exchange rate between ${fromCurrency} and ${toCurrency}. Please check if both currency codes are valid.`;
+          botResponse = t("chatbot.responses.forexNotFound", {
+            from: fromCurrency,
+            to: toCurrency,
+          });
         }
       } else if (cryptoMatch) {
         const cryptoName = (cryptoMatch[1] || cryptoMatch[3])
@@ -385,21 +406,31 @@ const Chatbot = () => {
                 maximumFractionDigits: 2,
               }
             );
-            botResponse = `The current price of ${displayName} is ${priceLabel}. It's ${
-              cryptoData.change >= 0 ? "up" : "down"
-            } ${changeLabel}% in the last 24 hours.`;
+            botResponse = t("chatbot.responses.cryptoPrice", {
+              name: displayName,
+              price: priceLabel,
+              direction:
+                cryptoData.change >= 0
+                  ? t("chatbot.responses.up")
+                  : t("chatbot.responses.down"),
+              change: changeLabel,
+            });
 
             if (cryptoData.marketCap) {
-              botResponse += ` Market cap: ${cryptoData.marketCap}.`;
+              botResponse += ` ${t("chatbot.responses.marketCap", {
+                marketCap: cryptoData.marketCap,
+              })}`;
             }
           } else {
             const displayName =
               cryptoId.split("-")[0].charAt(0).toUpperCase() +
               cryptoId.split("-")[0].slice(1);
-            botResponse = `I couldn't find current price data for ${displayName}. It may not be listed on the exchanges I have access to.`;
+            botResponse = t("chatbot.responses.cryptoNotFound", {
+              name: displayName,
+            });
           }
         } else {
-          botResponse = `I couldn't identify the cryptocurrency you're asking about. Please try specifying a major cryptocurrency like Bitcoin or Ethereum.`;
+          botResponse = t("chatbot.responses.cryptoUnrecognized");
         }
       } else {
         const apiUrl = BACKEND_URL;
@@ -407,7 +438,7 @@ const Chatbot = () => {
 
         if (!token) {
           throw new Error(
-            "Authentication token is missing. Please log in again."
+            t("chatbot.authTokenMissing")
           );
         }
 
@@ -454,23 +485,23 @@ const Chatbot = () => {
     } catch (error) {
       console.error("Error sending message:", error);
       let errorMessage =
-        "Sorry, I couldn't process your request. Please try again.";
+        t("chatbot.genericError");
 
       if (error.response) {
         if (error.response.status === 401) {
-          errorMessage = "Your session has expired. Please log in again.";
+          errorMessage = t("chatbot.sessionExpired");
         } else if (
           [402, 429].includes(error.response.status) &&
           error.response.data?.flag === "feature.ai.tutor"
         ) {
           errorMessage =
             error.response.data?.error ||
-            "You've reached today's AI tutor limit. Upgrade for more conversations.";
+              t("chatbot.aiTutorDailyLimit");
           blockAiTutor(errorMessage);
           return;
         } else if (error.response.status === 429) {
           errorMessage =
-            "You've reached the rate limit. Please try again in a moment.";
+            t("chatbot.rateLimit");
         } else if (error.response.data && error.response.data.error) {
           errorMessage = error.response.data.error;
         }
@@ -615,7 +646,9 @@ const Chatbot = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={
-          isOpen ? "Close Finance Assistant" : "Open Finance Assistant"
+          isOpen
+            ? t("chatbot.closeAssistantAria")
+            : t("chatbot.openAssistantAria")
         }
         className="fixed bottom-6 right-6 z-[1100] group inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/80 backdrop-blur-md border border-[color:var(--border-color,rgba(255,255,255,0.2))] text-white text-lg transition hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 shadow-sm sm:bottom-8 sm:right-8 touch-manipulation"
         style={{
@@ -637,7 +670,7 @@ const Chatbot = () => {
         >
           <header className="flex items-center justify-between border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-5 py-4">
             <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-              Finance Assistant
+              {t("chatbot.title")}
             </span>
             <button
               type="button"
@@ -690,7 +723,7 @@ const Chatbot = () => {
                       </option>
                     ))
                   ) : (
-                    <option>Loading voices...</option>
+                    <option>{t("chatbot.loadingVoices")}</option>
                   )}
                 </select>
               </div>
@@ -719,7 +752,7 @@ const Chatbot = () => {
                       <div className="shrink-0">
                         <img
                           src={userAvatar}
-                          alt="User avatar"
+                          alt={t("chatbot.userAvatarAlt")}
                           className="h-6 w-6 rounded-full object-cover"
                         />
                       </div>
@@ -765,7 +798,7 @@ const Chatbot = () => {
                         {msg.links && msg.links.length > 0 && (
                           <div className="space-y-2">
                             <p className="text-xs uppercase text-[color:var(--muted-text,#6b7280)]">
-                              Available paths
+                              {t("chatbot.availablePaths")}
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {msg.links.map((link, linkIndex) => (
@@ -800,7 +833,7 @@ const Chatbot = () => {
                 >
                   <div className="flex items-center gap-2">
                     <span>🤖</span>
-                    <span>Typing...</span>
+                    <span>{t("chatbot.typing")}</span>
                   </div>
                 </GlassCard>
               </div>
@@ -815,7 +848,7 @@ const Chatbot = () => {
                     <span>🤖</span>
                     <div className="space-y-2">
                       <p className="text-[color:var(--muted-text,#6b7280)]">
-                        Try asking me about:
+                        {t("chatbot.tryAsking")}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {quickReplies.map((reply, replyIndex) => (
@@ -841,7 +874,7 @@ const Chatbot = () => {
               type="button"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 text-lg text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               onClick={startVoiceRecognition}
-              aria-label="Voice input"
+              aria-label={t("chatbot.voiceInputAria")}
             >
               🎙
             </button>
@@ -852,16 +885,16 @@ const Chatbot = () => {
               onKeyDown={(event) =>
                 event.key === "Enter" && handleMessageSend()
               }
-              placeholder="Ask me about finance, budgeting, investing..."
+              placeholder={t("chatbot.inputPlaceholder")}
               className="h-10 flex-1 min-w-0 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-              aria-label="Chat input"
+              aria-label={t("chatbot.chatInputAria")}
             />
             <button
               type="button"
               onClick={() => handleMessageSend()}
               className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
-              Send
+              {t("chatbot.send")}
             </button>
           </div>
         </div>

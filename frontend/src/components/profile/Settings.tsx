@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
-import EntitlementMatrix from "components/billing/EntitlementMatrix";
-import { fetchEntitlements } from "services/entitlementsService";
-import { queryKeys, staleTimes } from "lib/reactQuery";
 import { UserProfile } from "types/api";
+import { useTranslation } from "react-i18next";
 
 function Settings() {
   const { getAccessToken, logoutUser, loadSettings } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [emailReminderPreference, setEmailReminderPreference] =
     useState("none");
@@ -33,12 +31,6 @@ function Settings() {
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
-
-  const { data: entitlementsData } = useQuery({
-    queryKey: queryKeys.entitlements(),
-    queryFn: fetchEntitlements,
-    staleTime: staleTimes.entitlements,
-  });
 
   useEffect(() => {
     let isMounted = true;
@@ -71,7 +63,11 @@ function Settings() {
         });
       } catch (error) {
         console.error("Error fetching settings:", error);
-        setErrorMessage("Failed to load settings. Please try again.");
+        setErrorMessage(
+          t("settings.errors.loadSettings", {
+            defaultValue: "Failed to load settings. Please try again.",
+          })
+        );
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -82,7 +78,7 @@ function Settings() {
     return () => {
       isMounted = false;
     };
-  }, [loadSettings]);
+  }, [loadSettings, t]);
 
   const handleSaveSettings = async () => {
     try {
@@ -108,13 +104,21 @@ function Settings() {
         }
       );
 
-      setSuccessMessage("Settings updated successfully!");
+      setSuccessMessage(
+        t("settings.success.updated", {
+          defaultValue: "Settings updated successfully!",
+        })
+      );
       setTimeout(() => setSuccessMessage(""), 3000);
 
       await loadSettings({ force: true });
     } catch (error) {
       console.error("Error updating settings:", error);
-      setErrorMessage("Failed to save settings. Please try again.");
+      setErrorMessage(
+        t("settings.errors.saveSettings", {
+          defaultValue: "Failed to save settings. Please try again.",
+        })
+      );
     }
   };
 
@@ -128,17 +132,29 @@ function Settings() {
     setErrorMessage("");
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setErrorMessage("Please fill in all password fields.");
+      setErrorMessage(
+        t("settings.errors.passwordFields", {
+          defaultValue: "Please fill in all password fields.",
+        })
+      );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage("New passwords do not match.");
+      setErrorMessage(
+        t("settings.errors.passwordMismatch", {
+          defaultValue: "New passwords do not match.",
+        })
+      );
       return;
     }
 
     if (newPassword.length < 8) {
-      setErrorMessage("Password must be at least 8 characters.");
+      setErrorMessage(
+        t("settings.errors.passwordLength", {
+          defaultValue: "Password must be at least 8 characters.",
+        })
+      );
       return;
     }
 
@@ -155,7 +171,11 @@ function Settings() {
         }
       );
 
-      setSuccessMessage("Password updated successfully!");
+      setSuccessMessage(
+        t("settings.success.passwordUpdated", {
+          defaultValue: "Password updated successfully!",
+        })
+      );
       setTimeout(() => setSuccessMessage(""), 3000);
       setCurrentPassword("");
       setNewPassword("");
@@ -164,7 +184,9 @@ function Settings() {
       const message =
         error.response?.data?.error ||
         error.response?.data?.detail ||
-        "Failed to update password.";
+        t("settings.errors.passwordUpdate", {
+          defaultValue: "Failed to update password.",
+        });
       setErrorMessage(message);
     }
   };
@@ -177,7 +199,11 @@ function Settings() {
     }
 
     if (!deletePassword) {
-      setErrorMessage("Please enter your password to confirm deletion.");
+      setErrorMessage(
+        t("settings.errors.deletePassword", {
+          defaultValue: "Please enter your password to confirm deletion.",
+        })
+      );
       return;
     }
 
@@ -192,9 +218,17 @@ function Settings() {
       navigate("/");
     } catch (error) {
       if (error.response?.status === 400) {
-        setErrorMessage("Incorrect password. Please try again.");
+        setErrorMessage(
+          t("settings.errors.incorrectPassword", {
+            defaultValue: "Incorrect password. Please try again.",
+          })
+        );
       } else {
-        setErrorMessage("Failed to delete account. Please try again.");
+        setErrorMessage(
+          t("settings.errors.deleteAccount", {
+            defaultValue: "Failed to delete account. Please try again.",
+          })
+        );
       }
       setIsConfirmingDelete(false);
       setDeletePassword("");
@@ -231,17 +265,24 @@ function Settings() {
             <section className="space-y-6">
               <header>
                 <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                  Profile Information
+                  {t("settings.profile.title", {
+                    defaultValue: "Profile Information",
+                  })}
                 </h4>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Update your personal details and email address.
+                  {t("settings.profile.subtitle", {
+                    defaultValue:
+                      "Update your personal details and email address.",
+                  })}
                 </p>
               </header>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    First Name
+                    {t("settings.profile.firstName", {
+                      defaultValue: "First Name",
+                    })}
                   </label>
                   <input
                     type="text"
@@ -253,7 +294,9 @@ function Settings() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Last Name
+                    {t("settings.profile.lastName", {
+                      defaultValue: "Last Name",
+                    })}
                   </label>
                   <input
                     type="text"
@@ -268,7 +311,9 @@ function Settings() {
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Username
+                    {t("settings.profile.username", {
+                      defaultValue: "Username",
+                    })}
                   </label>
                   <input
                     type="text"
@@ -280,7 +325,9 @@ function Settings() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Email
+                    {t("settings.profile.email", {
+                      defaultValue: "Email",
+                    })}
                   </label>
                   <input
                     type="email"
@@ -296,17 +343,24 @@ function Settings() {
             <section className="space-y-6">
               <header>
                 <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                  Preferences
+                  {t("settings.preferences.title", {
+                    defaultValue: "Preferences",
+                  })}
                 </h4>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Control reminders and personalization options.
+                  {t("settings.preferences.subtitle", {
+                    defaultValue:
+                      "Control reminders and personalization options.",
+                  })}
                 </p>
               </header>
 
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Email Reminders
+                    {t("settings.preferences.emailReminders", {
+                      defaultValue: "Email Reminders",
+                    })}
                   </label>
                   <select
                     value={emailReminderPreference}
@@ -315,14 +369,28 @@ function Settings() {
                     }
                     className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                   >
-                    <option value="none">No Reminders</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
+                    <option value="none">
+                      {t("settings.preferences.reminders.none", {
+                        defaultValue: "No Reminders",
+                      })}
+                    </option>
+                    <option value="daily">
+                      {t("settings.preferences.reminders.daily", {
+                        defaultValue: "Daily",
+                      })}
+                    </option>
+                    <option value="weekly">
+                      {t("settings.preferences.reminders.weekly", {
+                        defaultValue: "Weekly",
+                      })}
+                    </option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Lesson Sounds
+                    {t("settings.preferences.lessonSounds", {
+                      defaultValue: "Lesson Sounds",
+                    })}
                   </label>
                   <div className="flex items-center gap-3">
                     <input
@@ -332,13 +400,17 @@ function Settings() {
                       className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
                     />
                     <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      Play subtle chimes for answers
+                      {t("settings.preferences.soundsHint", {
+                        defaultValue: "Play subtle chimes for answers",
+                      })}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Animations
+                    {t("settings.preferences.animations", {
+                      defaultValue: "Animations",
+                    })}
                   </label>
                   <div className="flex items-center gap-3">
                     <input
@@ -350,7 +422,9 @@ function Settings() {
                       className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
                     />
                     <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      Enable mascot and confetti animations
+                      {t("settings.preferences.animationsHint", {
+                        defaultValue: "Enable mascot and confetti animations",
+                      })}
                     </span>
                   </div>
                 </div>
@@ -360,17 +434,24 @@ function Settings() {
             <section className="space-y-6">
               <header>
                 <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                  Change Password
+                  {t("settings.password.title", {
+                    defaultValue: "Change Password",
+                  })}
                 </h4>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Create a strong password to keep your account secure.
+                  {t("settings.password.subtitle", {
+                    defaultValue:
+                      "Create a strong password to keep your account secure.",
+                  })}
                 </p>
               </header>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Current Password
+                    {t("settings.password.current", {
+                      defaultValue: "Current Password",
+                    })}
                   </label>
                   <input
                     type="password"
@@ -381,7 +462,9 @@ function Settings() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    New Password
+                    {t("settings.password.new", {
+                      defaultValue: "New Password",
+                    })}
                   </label>
                   <input
                     type="password"
@@ -392,7 +475,9 @@ function Settings() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Confirm New Password
+                    {t("settings.password.confirm", {
+                      defaultValue: "Confirm New Password",
+                    })}
                   </label>
                   <input
                     type="password"
@@ -408,7 +493,9 @@ function Settings() {
                 onClick={handleChangePassword}
                 className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] shadow-sm transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                Update Password
+                {t("settings.password.update", {
+                  defaultValue: "Update Password",
+                })}
               </button>
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -417,28 +504,36 @@ function Settings() {
                   className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
                   onClick={() => window.UC_UI?.showSecondLayer?.()}
                 >
-                  Privacy Settings
+                  {t("settings.privacy.settings", {
+                    defaultValue: "Privacy Settings",
+                  })}
                 </button>
                 <span>•</span>
                 <Link
                   to="/cookie-policy"
                   className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
                 >
-                  Cookie Policy
+                  {t("settings.privacy.cookiePolicy", {
+                    defaultValue: "Cookie Policy",
+                  })}
                 </Link>
                 <span>•</span>
                 <Link
                   to="/privacy-policy"
                   className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
                 >
-                  Privacy Policy
+                  {t("settings.privacy.privacyPolicy", {
+                    defaultValue: "Privacy Policy",
+                  })}
                 </Link>
                 <span>•</span>
                 <Link
                   to="/financial-disclaimer"
                   className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
                 >
-                  Financial Disclaimer
+                  {t("settings.privacy.financialDisclaimer", {
+                    defaultValue: "Financial Disclaimer",
+                  })}
                 </Link>
               </div>
             </section>
@@ -446,10 +541,15 @@ function Settings() {
             <section className="space-y-6">
               <header>
                 <h4 className="text-lg font-semibold text-[color:var(--error,#dc2626)]">
-                  Danger Zone
+                  {t("settings.danger.title", {
+                    defaultValue: "Danger Zone",
+                  })}
                 </h4>
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Permanently remove your account and all associated data.
+                  {t("settings.danger.subtitle", {
+                    defaultValue:
+                      "Permanently remove your account and all associated data.",
+                  })}
                 </p>
               </header>
 
@@ -459,19 +559,25 @@ function Settings() {
                   onClick={handleDeleteAccount}
                   className="inline-flex items-center justify-center rounded-lg border border-[color:var(--error,#dc2626)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--error,#dc2626)] shadow-sm transition hover:bg-[color:var(--error,#dc2626)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
                 >
-                  Delete My Account
+                  {t("settings.danger.deleteAccount", {
+                    defaultValue: "Delete My Account",
+                  })}
                 </button>
               ) : (
                 <div className="space-y-4 rounded-xl border border-[color:var(--error,#dc2626)]/30 bg-[color:var(--error,#dc2626)]/5 p-4 shadow-inner shadow-[color:var(--error,#dc2626)]/10">
                   <p className="text-sm text-[color:var(--error,#dc2626)]">
-                    This action cannot be undone. Please enter your password to
-                    confirm.
+                    {t("settings.danger.confirmNote", {
+                      defaultValue:
+                        "This action cannot be undone. Please enter your password to confirm.",
+                    })}
                   </p>
                   <input
                     type="password"
                     value={deletePassword}
                     onChange={(event) => setDeletePassword(event.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t("settings.danger.passwordPlaceholder", {
+                      defaultValue: "Enter your password",
+                    })}
                     className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
                   />
                   <div className="flex flex-wrap gap-3">
@@ -480,7 +586,9 @@ function Settings() {
                       onClick={handleDeleteAccount}
                       className="inline-flex flex-1 items-center justify-center rounded-lg bg-[color:var(--error,#dc2626)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--error,#dc2626)]/30 transition hover:shadow-lg hover:shadow-[color:var(--error,#dc2626)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
                     >
-                      Confirm Deletion
+                      {t("settings.danger.confirmDeletion", {
+                        defaultValue: "Confirm Deletion",
+                      })}
                     </button>
                     <button
                       type="button"
@@ -491,7 +599,9 @@ function Settings() {
                       }}
                       className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:border-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                     >
-                      Cancel
+                      {t("settings.actions.cancel", {
+                        defaultValue: "Cancel",
+                      })}
                     </button>
                   </div>
                 </div>
@@ -504,13 +614,12 @@ function Settings() {
                 onClick={handleSaveSettings}
                 className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                Save Changes
+                {t("settings.actions.save", { defaultValue: "Save Changes" })}
               </button>
             </div>
           </div>
         )}
       </GlassCard>
-      <EntitlementMatrix entitlements={entitlementsData?.data} />
     </PageContainer>
   );
 }

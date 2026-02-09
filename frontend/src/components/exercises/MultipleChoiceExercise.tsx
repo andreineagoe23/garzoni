@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
@@ -15,6 +16,7 @@ const MultipleChoiceExercise = ({
 }) => {
   const { question, options = [], correctAnswer, explanation, learn_more_url } =
     data || {};
+  const { t } = useTranslation();
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -32,18 +34,18 @@ const MultipleChoiceExercise = ({
     if (selectedAnswer === null) return;
 
     if (selectedAnswer === correctAnswer) {
-      setFeedback("Correct! Well done!");
+      setFeedback(t("exercises.mc.correct"));
       setFeedbackType("success");
       playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: true });
       onAttempt?.({ correct: true });
       try {
         await onComplete?.();
       } catch (error) {
-        setFeedback("Error saving progress. Please try again.");
+        setFeedback(t("exercises.saveError"));
         setFeedbackType("error");
       }
     } else {
-      setFeedback("Incorrect. Try again!");
+      setFeedback(t("exercises.mc.incorrect"));
       setFeedbackType("error");
       playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: false });
       onAttempt?.({ correct: false });
@@ -77,7 +79,7 @@ const MultipleChoiceExercise = ({
           {question}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Choose the best answer from the options below.
+          {t("exercises.mc.chooseBest")}
         </p>
       </header>
 
@@ -107,7 +109,7 @@ const MultipleChoiceExercise = ({
               <span>{option}</span>
               {isSelected && (
                 <span className="text-xs uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
-                  Selected
+                  {t("exercises.scenario.selected")}
                 </span>
               )}
             </button>
@@ -122,7 +124,7 @@ const MultipleChoiceExercise = ({
             onClick={handleRetry}
             className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
-            Retry Exercise
+            {t("exercises.actions.retryExercise")}
           </button>
         ) : (
           <button
@@ -135,7 +137,7 @@ const MultipleChoiceExercise = ({
                 : "bg-[color:var(--primary,#2563eb)] text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
             }`}
           >
-            Submit Answer
+            {t("exercises.actions.submit")}
           </button>
         )}
       </div>
@@ -163,7 +165,7 @@ const MultipleChoiceExercise = ({
                 rel="noreferrer"
                 className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
               >
-                Learn more
+                {t("exercises.explanation.learnMoreLink")}
               </a>
             </div>
           )}

@@ -3,6 +3,7 @@
  * Page components are lazy-loaded except SubscriptionPlans (static import so it stays in main bundle).
  */
 import React, { Suspense, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BrowserRouter as Router,
   Navigate,
@@ -128,6 +129,7 @@ function App() {
 }
 
 const AppContent = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const isCourseFlowPath =
     location.pathname.includes("/lessons/") &&
@@ -308,7 +310,7 @@ const AppContent = () => {
           .trim()}
       >
         {hasNavbar && (
-          <Suspense fallback={<div className="p-4">Loading navigation...</div>}>
+          <Suspense fallback={<div className="p-4">{t("shared.loadingNav")}</div>}>
             <Navbar />
           </Suspense>
         )}
@@ -321,7 +323,7 @@ const AppContent = () => {
             <Suspense
               fallback={
                 <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                  Loading page...
+                  {t("shared.loadingPage")}
                 </div>
               }
             >

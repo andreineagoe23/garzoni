@@ -8,6 +8,7 @@ import { GlassContainer } from "components/ui";
 import LanguageSelector from "components/common/LanguageSelector";
 import { UserProfile } from "types/api";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
+import { useTranslation } from "react-i18next";
 
 const NAV_ITEMS = [
   { path: "/all-topics", key: "nav.dashboard", icon: "🏠", label: "Dashboard" },
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useTranslation();
   const { darkMode, toggleDarkMode } = useTheme();
   const {
     profile,
@@ -160,7 +162,9 @@ function Navbar() {
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <span aria-hidden="true">{item.icon}</span>
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <span className="hidden lg:inline">
+                    {t(item.key, { defaultValue: item.label })}
+                  </span>
                 </NavLink>
               ))}
             </div>
@@ -171,7 +175,7 @@ function Navbar() {
             <button
               type="button"
               onClick={handleDarkModeToggle}
-              aria-label="Toggle dark mode"
+              aria-label={t("nav.ariaToggleDarkMode")}
               className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px] md:h-[36px] md:w-[36px] lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10 2xl:h-11 2xl:w-11"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
@@ -185,7 +189,7 @@ function Navbar() {
             <button
               type="button"
               onClick={handleLogoutClick}
-              aria-label="Logout"
+              aria-label={t("nav.ariaLogout")}
               className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--muted-text,#6b7280)] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px] md:h-[36px] md:w-[36px] lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10 2xl:h-11 2xl:w-11"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
@@ -195,15 +199,13 @@ function Navbar() {
             <button
               type="button"
               onClick={handleProfileClick}
-              aria-label="Go to profile"
+              aria-label={t("nav.ariaGoToProfile")}
               className="relative z-10 inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px] md:h-[36px] md:w-[36px] lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10 2xl:h-11 2xl:w-11"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <img
                 src={avatarSrc}
-                alt={
-                  user?.username ? `${user.username} avatar` : "Profile avatar"
-                }
+                alt={t("profile.avatarAlt")}
                 className="h-full w-full object-cover"
                 onError={(event) => {
                   if (event.currentTarget.src === DEFAULT_AVATAR_URL) {
@@ -221,7 +223,7 @@ function Navbar() {
               className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 md:hidden touch-manipulation sm:h-10 sm:w-10"
               onClick={toggleMenu}
               aria-expanded={menuOpen}
-              aria-label="Toggle navigation menu"
+              aria-label={t("nav.ariaToggleMenu")}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <span className="block h-4 w-6 space-y-[6px]">
@@ -261,7 +263,7 @@ function Navbar() {
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <span aria-hidden="true">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{t(item.key, { defaultValue: item.label })}</span>
             </NavLink>
           ))}
         </GlassContainer>

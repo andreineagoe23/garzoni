@@ -1,8 +1,34 @@
 from typing import Any, Dict, Optional
 
 from django.contrib.auth.models import User
+from django.http import HttpRequest
 
 from education.models import EducationAuditLog
+
+# Supported locale codes for backend-translated content (must match frontend).
+SUPPORTED_LANGUAGES = ["en", "ro"]
+DEFAULT_LANGUAGE = "en"
+
+
+def get_request_language(request: Optional[HttpRequest]) -> str:
+    """
+    Resolve the requested language from Accept-Language header or X-App-Language.
+    Returns a supported code (e.g. 'en', 'ro') or DEFAULT_LANGUAGE.
+    """
+    if not request:
+        return DEFAULT_LANGUAGE
+    # Custom header takes precedence (frontend can set it from i18n)
+    lang_header = request.META.get("HTTP_X_APP_LANGUAGE") or request.META.get(
+        "HTTP_ACCEPT_LANGUAGE"
+    )
+    if not lang_header:
+        return DEFAULT_LANGUAGE
+    # Accept-Language can be "ro-RO,ro;q=0.9,en;q=0.8" – take first tag
+    raw = lang_header.split(",")[0].strip().split(";")[0].strip().lower()
+    if not raw:
+        return DEFAULT_LANGUAGE
+    code = raw[:2]
+    return code if code in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE
 
 
 def log_admin_action(
