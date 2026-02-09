@@ -25,10 +25,10 @@ const GlassButton = ({
     "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10";
 
   const sizeStyles = {
-    sm: "px-3 py-1.5 text-xs",
-    md: "px-4 py-2 text-sm",
-    lg: "px-5 py-2.5 text-sm",
-    xl: "px-6 py-3 text-base",
+    sm: "px-2.5 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-xs",
+    md: "px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm",
+    lg: "px-4 py-2 text-sm sm:px-5 sm:py-2.5",
+    xl: "px-5 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base",
   };
 
   const variantStyles = {
@@ -41,8 +41,7 @@ const GlassButton = ({
     danger:
       "border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)] hover:bg-[color:var(--error,#dc2626)] hover:text-white hover:shadow-md focus:ring-[color:var(--error,#dc2626)]/40",
     ghost:
-      "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40",
-  };
+      "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40" };
 
   const disabledStyles = disabled
     ? "opacity-50 cursor-not-allowed pointer-events-none"

@@ -9,5 +9,4 @@ import courses from "./courses.json";
 export default {
   ...common,
   shared,
-  courses,
-} as typeof common & { shared: typeof shared; courses: typeof courses };
+  courses } as typeof common & { shared: typeof shared; courses: typeof courses };

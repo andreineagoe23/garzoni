@@ -9,15 +9,13 @@ export const initSentry = () => {
     dsn,
     integrations: [browserTracingIntegration()],
     tracesSampleRate: 0.1,
-    environment: process.env.NODE_ENV,
-  });
+    environment: process.env.NODE_ENV });
 };
 
 export const captureException = (error: unknown, info?: unknown) => {
   if (!dsn) return;
   Sentry.captureException(error, {
-    extra: (info as Record<string, unknown> | undefined) ?? undefined,
-  });
+    extra: (info as Record<string, unknown> | undefined) ?? undefined });
 };
 
 export const captureMessage = (

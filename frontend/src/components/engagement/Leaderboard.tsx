@@ -59,9 +59,9 @@ const Leaderboards = () => {
 
   const timeFilterOptions = useMemo(
     () => [
-      { value: "all-time", label: t("leaderboard.time.allTime", { defaultValue: "All Time" }) },
-      { value: "month", label: t("leaderboard.time.thisMonth", { defaultValue: "This Month" }) },
-      { value: "week", label: t("leaderboard.time.thisWeek", { defaultValue: "This Week" }) },
+      { value: "all-time", label: t("leaderboard.time.allTime") },
+      { value: "month", label: t("leaderboard.time.thisMonth") },
+      { value: "week", label: t("leaderboard.time.thisWeek") },
     ],
     [t]
   );
@@ -73,15 +73,13 @@ const Leaderboards = () => {
         setError("");
 
         const authHeaders = {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        };
+          headers: { Authorization: `Bearer ${getAccessToken()}` } };
 
         const [globalResponse, friendsResponse, rankResponse, profilePayload] =
           await Promise.all([
             axios.get(`${BACKEND_URL}/leaderboard/`, {
               ...authHeaders,
-              params: { time_filter: timeFilter },
-            }),
+              params: { time_filter: timeFilter } }),
             axios.get(`${BACKEND_URL}/leaderboard/friends/`, authHeaders),
             axios.get(`${BACKEND_URL}/leaderboard/rank/`, authHeaders),
             loadProfile(),
@@ -117,10 +115,7 @@ const Leaderboards = () => {
         console.error("Error fetching leaderboard data:", err);
         setError(
           err.response?.data?.detail ||
-            t("leaderboard.errors.loadFailed", {
-              defaultValue:
-                "Failed to load leaderboard data. Please try again.",
-            })
+            t("leaderboard.errors.loadFailed")
         );
       } finally {
         setLoading(false);
@@ -136,15 +131,13 @@ const Leaderboards = () => {
         `${BACKEND_URL}/friend-requests/`,
         { receiver: receiverId },
         {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
+          headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
 
       const sentRequestsResponse = await axios.get(
         `${BACKEND_URL}/friend-requests/get_sent_requests/`,
         {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
+          headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
       setSentRequests(sentRequestsResponse.data);
     } catch (err) {
@@ -152,9 +145,7 @@ const Leaderboards = () => {
         err.response?.data?.error ||
         err.response?.data?.detail ||
         err.message ||
-        t("leaderboard.errors.friendRequestFailed", {
-          defaultValue: "Failed to send friend request.",
-        });
+        t("leaderboard.errors.friendRequestFailed");
       alert(message);
     }
   };
@@ -179,9 +170,7 @@ const Leaderboards = () => {
     return (
       <PageContainer layout="centered" maxWidth="4xl">
         <Loader
-          message={t("leaderboard.loading", {
-            defaultValue: "Loading leaderboard data...",
-          })}
+          message={t("leaderboard.loading")}
         />
       </PageContainer>
     );
@@ -206,18 +195,11 @@ const Leaderboards = () => {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
             {activeTab === "global"
-              ? t("leaderboard.title.global", {
-                  defaultValue: "Global Leaderboard",
-                })
-              : t("leaderboard.title.friends", {
-                  defaultValue: "Friends Leaderboard",
-                })}
+              ? t("leaderboard.title.global")
+              : t("leaderboard.title.friends")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("leaderboard.subtitle", {
-              defaultValue:
-                "Track progress, celebrate wins, and connect with the community.",
-            })}
+            {t("leaderboard.subtitle")}
           </p>
         </div>
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
@@ -234,8 +216,8 @@ const Leaderboards = () => {
                 }`}
               >
                 {tab === "global"
-                  ? t("leaderboard.tabs.global", { defaultValue: "Global" })
-                  : t("leaderboard.tabs.friends", { defaultValue: "Friends" })}
+                  ? t("leaderboard.tabs.global")
+                  : t("leaderboard.tabs.friends")}
               </button>
             ))}
           </div>
@@ -260,9 +242,7 @@ const Leaderboards = () => {
           <input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t("leaderboard.searchPlaceholder", {
-              defaultValue: "Search users...",
-            })}
+            placeholder={t("leaderboard.searchPlaceholder")}
             className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
             type="text"
           />
@@ -302,15 +282,11 @@ const Leaderboards = () => {
                 <div className="text-sm">
                   <p className="font-semibold text-[color:var(--accent,#111827)]">
                     {t("leaderboard.you", {
-                      defaultValue: "You ({{username}})",
-                      username: userRank.user.username,
-                    })}
+                      username: userRank.user.username })}
                   </p>
                   <p className="text-[color:var(--accent,#2563eb)]">
                     {t("leaderboard.points", {
-                      defaultValue: "{{points}} points",
-                      points: userRank.points,
-                    })}
+                      points: userRank.points })}
                   </p>
                 </div>
               </div>
@@ -322,9 +298,7 @@ const Leaderboards = () => {
         {filteredLeaderboard.length === 0 ? (
           <GlassCard padding="lg" className="text-center">
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("leaderboard.empty", {
-                defaultValue: "No users found for the current selection.",
-              })}
+              {t("leaderboard.empty")}
             </p>
           </GlassCard>
         ) : (
@@ -363,9 +337,7 @@ const Leaderboards = () => {
                         </p>
                         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                           {t("leaderboard.points", {
-                            defaultValue: "{{points}} points",
-                            points: formatNumber(entry.points || 0, locale),
-                          })}
+                            points: formatNumber(entry.points || 0, locale) })}
                         </p>
                       </div>
                     </div>
@@ -374,16 +346,10 @@ const Leaderboards = () => {
                         type="button"
                         title={
                           isFriend
-                            ? t("leaderboard.friendStatus.alreadyFriends", {
-                                defaultValue: "Already friends",
-                              })
+                            ? t("leaderboard.friendStatus.alreadyFriends")
                             : pending
-                              ? t("leaderboard.friendStatus.pending", {
-                                  defaultValue: "Request pending",
-                                })
-                              : t("leaderboard.friendStatus.addFriend", {
-                                  defaultValue: "Add as friend",
-                                })
+                              ? t("leaderboard.friendStatus.pending")
+                              : t("leaderboard.friendStatus.addFriend")
                         }
                         onClick={() => sendFriendRequest(entry.user.id)}
                         disabled={isFriend || pending}
@@ -396,16 +362,10 @@ const Leaderboards = () => {
                         }`}
                       >
                         {isFriend
-                          ? t("leaderboard.friendStatus.friends", {
-                              defaultValue: "Friends",
-                            })
+                          ? t("leaderboard.friendStatus.friends")
                           : pending
-                            ? t("leaderboard.friendStatus.pendingShort", {
-                                defaultValue: "Pending",
-                              })
-                            : t("leaderboard.friendStatus.addFriendShort", {
-                                defaultValue: "Add Friend",
-                              })}
+                            ? t("leaderboard.friendStatus.pendingShort")
+                            : t("leaderboard.friendStatus.addFriendShort")}
                       </button>
                     )}
                   </div>

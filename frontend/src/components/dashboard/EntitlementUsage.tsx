@@ -10,8 +10,7 @@ type EntitlementUsageItem = {
 };
 
 const EntitlementUsage = ({
-  entitlementUsage = [],
-}: {
+  entitlementUsage = [] }: {
   entitlementUsage?: EntitlementUsageItem[];
 }) => {
   const { t } = useTranslation();

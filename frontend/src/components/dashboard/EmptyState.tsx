@@ -19,8 +19,7 @@ export const EmptyState = ({
   description,
   actionLabel,
   onAction,
-  className = "",
-}: EmptyStateProps) => {
+  className = "" }: EmptyStateProps) => {
   return (
     <div
       className={`flex flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 p-8 text-center ${className}`}

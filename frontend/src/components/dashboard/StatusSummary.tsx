@@ -26,8 +26,7 @@ const StatusSummary = ({
   refetchReview,
   refetchMissions,
   reviewQueueData,
-  locale,
-}: StatusSummaryProps) => {
+  locale }: StatusSummaryProps) => {
   const { t } = useTranslation();
   return (
     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

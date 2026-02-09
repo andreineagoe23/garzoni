@@ -20,21 +20,17 @@ describe("useDashboardSummary", () => {
       <SummaryView
         progressResponse={{
           data: {
-            paths: [{ percent_complete: 100 }, { percent_complete: 50 }],
-          },
-        }}
+            paths: [{ percent_complete: 100 }, { percent_complete: 50 }] } }}
         reviewQueueData={{ count: 3 }}
         missionsData={{
           daily_missions: [{ status: "in_progress" }],
-          weekly_missions: [{ status: "complete" }],
-        }}
+          weekly_missions: [{ status: "complete" }] }}
         masteryData={{
           masteries: [
             { proficiency: 40 },
             { proficiency: 90 },
             { proficiency: 60 },
-          ],
-        }}
+          ] }}
       />
     );
 

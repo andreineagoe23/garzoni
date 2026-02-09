@@ -16,8 +16,7 @@ function Register() {
     email: "",
     first_name: "",
     last_name: "",
-    referral_code: "",
-  });
+    referral_code: "" });
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

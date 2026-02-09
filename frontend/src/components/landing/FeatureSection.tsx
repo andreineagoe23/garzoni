@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GlassCard } from "components/ui";
 import { useLandingData } from "./landingData";
+import { useTranslation } from "react-i18next";
 
 type FeatureSectionProps = {
   featureRef?: React.RefObject<HTMLElement>;
@@ -8,6 +9,7 @@ type FeatureSectionProps = {
 
 export default function FeatureSection({ featureRef }: FeatureSectionProps) {
   const { features } = useLandingData();
+  const { t } = useTranslation();
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [visibleItems, setVisibleItems] = useState<number[]>([]);
 
@@ -39,8 +41,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
       },
       {
         threshold: 0.1,
-        rootMargin: "0px 0px -5% 0px",
-      }
+        rootMargin: "0px 0px -5% 0px" }
     );
 
     nodes.forEach((node) => observer.observe(node));
@@ -52,10 +53,10 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
     <section ref={featureRef} className="relative scroll-mt-[110px]">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Everything You Need to Master Finance
+          {t("landing.features.title")}
         </h2>
         <p className="mt-4 text-sm text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
-          Discover powerful features designed to accelerate your financial learning journey
+          {t("landing.features.subtitle")}
         </p>
       </div>
 
@@ -102,7 +103,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                       </span>
                       <div className="min-w-0 text-left">
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                          Feature {index + 1}
+                          {t("landing.features.featureLabel", { count: index + 1 })}
                         </p>
                         <h3 className="mt-1 text-xl font-bold text-white">
                           {feature.title}

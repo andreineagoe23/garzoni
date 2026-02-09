@@ -3,8 +3,7 @@ import { render } from "@testing-library/react";
 import App from "./App";
 
 jest.mock("services/analyticsService", () => ({
-  recordFunnelEvent: jest.fn(() => Promise.resolve()),
-}));
+  recordFunnelEvent: jest.fn(() => Promise.resolve()) }));
 
 const consoleError = jest
   .spyOn(console, "error")

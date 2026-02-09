@@ -22,8 +22,7 @@ const reactRouterDomMock = {
     to,
     children,
     className,
-    onClick,
-  }: {
+    onClick }: {
     to: string;
     children: React.ReactNode;
     className?: string | ((props: { isActive: boolean }) => string);
@@ -50,8 +49,7 @@ const reactRouterDomMock = {
   useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: getPathname(), search: getSearch() }),
   useParams: () => ({}),
-  mockNavigate,
-};
+  mockNavigate };
 
 export default reactRouterDomMock;
 module.exports = reactRouterDomMock;

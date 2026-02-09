@@ -23,5 +23,7 @@
   "pleaseSelectAnswer": "Te rugăm să alegi un răspuns înainte de a trimite.",
   "loadingAuth": "Se încarcă autentificarea...",
   "loadingNav": "Se încarcă navigarea...",
-  "loadingPage": "Se încarcă pagina..."
+  "loadingPage": "Se încarcă pagina...",
+  "breadcrumb": "Fir de navigare",
+  "apiError": "Ceva n-a mers bine. Te rugăm să încerci din nou."
 }

@@ -47,8 +47,7 @@ function QuizPage() {
             title: quizData.title,
             question: quizData.question,
             choices: quizData.choices,
-            correct_answer: quizData.correct_answer,
-          });
+            correct_answer: quizData.correct_answer });
           setError("");
         } else {
           setError(t("courses.quiz.noData"));
@@ -75,8 +74,7 @@ function QuizPage() {
     try {
       const response = await apiClient.post("/quizzes/complete/", {
         quiz_id: quiz.id,
-        selected_answer: selectedAnswer,
-      });
+        selected_answer: selectedAnswer });
 
       setFeedback(response.data.message);
       setEarnedMoney(response.data.earned_money || 0);
@@ -198,9 +196,7 @@ function QuizPage() {
                 {t("courses.quiz.youEarned", {
                   amount: formatCurrency(earnedMoney, "GBP", locale, {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }),
-                })}
+                    maximumFractionDigits: 2 }) })}
               </p>
             )}
           </div>

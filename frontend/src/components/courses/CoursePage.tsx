@@ -35,8 +35,7 @@ function CoursePage() {
     queryKey: queryKeys.learningPathCourses(Number(pathId)),
     queryFn: () => fetchLearningPathCourses(pathId ?? ""),
     staleTime: staleTimes.content,
-    enabled: Boolean(pathId),
-  });
+    enabled: Boolean(pathId) });
 
   const accessDenied =
     axios.isAxiosError(error) && error.response?.status === 403;

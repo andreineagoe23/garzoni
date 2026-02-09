@@ -47,8 +47,7 @@ function ForgotPassword() {
           className="flex flex-col items-center rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#ffffff)] px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur transition-colors"
           style={{
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
+            WebkitBackdropFilter: "blur(8px)" }}
         >
           <img
             src={logo}

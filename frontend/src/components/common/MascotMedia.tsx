@@ -18,19 +18,15 @@ const MASCOT_MEDIA: Record<
   owl: {
     video: `${MEDIA_BASE}/media/mascots/Owl-Mascot.mov`,
     image: `${MEDIA_BASE}/media/mascots/monevo-owl.png`,
-    alt: "Owl mascot",
-  },
+    alt: "Owl mascot" },
   bull: {
     video: `${MEDIA_BASE}/media/mascots/Bull-Mascot.mov`,
     image: `${MEDIA_BASE}/media/mascots/monevo-bull.png`,
-    alt: "Bull mascot",
-  },
+    alt: "Bull mascot" },
   bear: {
     video: `${MEDIA_BASE}/media/mascots/Bear-Mascot.mov`,
     image: `${MEDIA_BASE}/media/mascots/monevo-bear.png`,
-    alt: "Bear mascot",
-  },
-};
+    alt: "Bear mascot" } };
 
 const MascotMedia = ({ mascot, animated = true, className }: MascotMediaProps) => {
   const { video, image, alt } = MASCOT_MEDIA[mascot];

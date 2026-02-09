@@ -27,8 +27,7 @@ function ShopItems({ onPurchase }) {
   const handlePurchase = async (rewardId) => {
     try {
       const response = await apiClient.post("/purchases/", {
-        reward_id: rewardId,
-      });
+        reward_id: rewardId });
 
       if (response.status === 201) {
         alert("Purchase successful!");
@@ -46,9 +45,7 @@ function ShopItems({ onPurchase }) {
         padding="lg"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-sm text-[color:var(--muted-text,#6b7280)]"
       >
-        {t("rewards.shop.empty", {
-          defaultValue: "No shop items available right now.",
-        })}
+        {t("rewards.shop.empty")}
       </GlassCard>
     );
   }
@@ -57,13 +54,10 @@ function ShopItems({ onPurchase }) {
     <section className="space-y-6">
       <header className="space-y-2">
         <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          {t("rewards.tabs.shop", { defaultValue: "Shop" })}
+          {t("rewards.tabs.shop")}
         </h2>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("rewards.shop.subtitle", {
-            defaultValue:
-              "Redeem coins for exclusive rewards and resources.",
-          })}
+          {t("rewards.shop.subtitle")}
         </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -94,14 +88,14 @@ function ShopItems({ onPurchase }) {
               </div>
               <div className="mt-auto flex items-center justify-between">
                 <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-                  {item.cost} {t("rewards.coins", { defaultValue: "coins" })}
+                  {item.cost} {t("rewards.coins")}
                 </span>
                 <button
                   type="button"
                   onClick={() => handlePurchase(item.id)}
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
-                  {t("rewards.shop.buyNow", { defaultValue: "Buy Now" })}
+                  {t("rewards.shop.buyNow")}
                 </button>
               </div>
             </div>

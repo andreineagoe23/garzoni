@@ -12,8 +12,7 @@ describe("selectPrimaryCTA", () => {
     const mission = { id: 1, goal_type: "complete_lesson" };
     const result = selectPrimaryCTA({
       reviewsDue: 0,
-      activeMissions: [mission],
-    });
+      activeMissions: [mission] });
     expect(result.type).toBe("continue_lesson");
     expect(result.mission).toBe(mission);
   });
@@ -21,8 +20,7 @@ describe("selectPrimaryCTA", () => {
   it("returns start mission when only non-lesson missions are active", () => {
     const result = selectPrimaryCTA({
       reviewsDue: 0,
-      activeMissions: [{ id: 2, goal_type: "complete_quiz" }],
-    });
+      activeMissions: [{ id: 2, goal_type: "complete_quiz" }] });
     expect(result.type).toBe("start_mission");
     expect(result.reasonKey).toBe("cta.activeMissions");
     expect(result.reasonCount).toBe(1);

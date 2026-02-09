@@ -14,5 +14,4 @@ export const FEATURE_COPY = {
   downloads: "Downloads",
   analytics: "Analytics & insights",
   ai_tutor: "AI tutor",
-  personalized_path: "Personalized path",
-};
+  personalized_path: "Personalized path" };

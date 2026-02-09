@@ -4,8 +4,7 @@ import * as THREE from "three";
 const BRAND = Object.freeze({
   bg: "#0B0F14",
   primary: "#1D5330",
-  accent: "#E6C87A",
-});
+  accent: "#E6C87A" });
 
 // Locked particle / HUD settings (Learning Engine removed).
 const PARTICLE_DEFAULTS = Object.freeze({
@@ -151,8 +150,7 @@ export default function ParticleGlobe({
   brainStageRef,
   topicRefs,
   lineRefs,
-  flowRef,
-}) {
+  flowRef }) {
   const difficulty = PARTICLE_DEFAULTS.difficulty;
   const mastery = PARTICLE_DEFAULTS.mastery;
   const focus = PARTICLE_DEFAULTS.focus;
@@ -180,8 +178,7 @@ export default function ParticleGlobe({
     const renderer = new THREE.WebGLRenderer({
       antialias: !prefersReducedMotion,
       alpha: true,
-      powerPreference: "high-performance",
-    });
+      powerPreference: "high-performance" });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x0b0f14, 0);
@@ -241,8 +238,7 @@ export default function ParticleGlobe({
       uMouse: { value: new THREE.Vector2(0, 0) },
       uColorPrimary: { value: new THREE.Color(BRAND.primary) },
       uColorAccent: { value: new THREE.Color(BRAND.accent) },
-      uOpacity: { value: 0.9 },
-    };
+      uOpacity: { value: 0.9 } };
 
     const material = new THREE.ShaderMaterial({
       vertexShader: VERTEX_SHADER,
@@ -250,8 +246,7 @@ export default function ParticleGlobe({
       uniforms,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
+      blending: THREE.AdditiveBlending });
 
     const particleSystem = new THREE.Points(geometry, material);
     constellationGroup.add(particleSystem);
@@ -266,8 +261,7 @@ export default function ParticleGlobe({
       saving: makeHudPoint(-0.15, 0.85, 0.25),
       investing: makeHudPoint(0.6, 0.22, 0.65),
       credit: makeHudPoint(0.7, -0.12, 0.55),
-      taxes: makeHudPoint(0.12, -0.75, 0.65),
-    };
+      taxes: makeHudPoint(0.12, -0.75, 0.65) };
 
     const hudConnections = [
       ["budgeting", "saving"],
@@ -303,8 +297,7 @@ export default function ParticleGlobe({
     const lineMat = new THREE.LineBasicMaterial({
       color: new THREE.Color(BRAND.primary),
       transparent: true,
-      opacity: 0.12,
-    });
+      opacity: 0.12 });
     const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
     constellationGroup.add(lineMesh);
 

@@ -9,11 +9,7 @@ const config = {
     docs: {
       description: {
         story:
-          "Modal dialog with Escape-to-close. Keyboard: Esc closes, Tab cycles focus within the page.",
-      },
-    },
-  },
-};
+          "Modal dialog with Escape-to-close. Keyboard: Esc closes, Tab cycles focus within the page." } } } };
 
 export default config;
 

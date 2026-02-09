@@ -1,8 +1,10 @@
 import React, { useMemo } from "react";
 import DOMPurify from "dompurify";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
+import { useTranslation } from "react-i18next";
 
 const InteractiveSection = ({ section, onComplete, isCompleted }) => {
+  const { t } = useTranslation();
   const getExerciseComponent = () => {
     if (!section.exercise_data) return null;
 
@@ -15,7 +17,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
             className="rounded-xl border border-amber-300/60 bg-amber-100/20 px-4 py-3 text-sm text-amber-600"
             role="alert"
           >
-            Unsupported exercise type
+            {t("lessonSection.unsupportedExercise")}
           </p>
         );
     }
@@ -31,8 +33,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
       className="space-y-6 rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-6 py-8 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-colors sm:px-8"
       style={{
         backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-      }}
+        WebkitBackdropFilter: "blur(12px)" }}
       aria-labelledby={`section-${section.id}-title`}
     >
       {section.content_type === "text" && (
@@ -40,9 +41,8 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
           id={`section-${section.id}-title`}
           className="prose max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
           dangerouslySetInnerHTML={{
-            __html: sanitizedContent,
-          }}
-          aria-label="Text content section"
+            __html: sanitizedContent }}
+          aria-label={t("lessonSection.textAria")}
         />
       )}
 
@@ -56,7 +56,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 loading="lazy"
-                aria-label="Educational video player"
+                aria-label={t("lessonSection.videoAria")}
                 className="h-full w-full border-0"
               />
             </div>
@@ -76,10 +76,10 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
             {isCompleted && (
               <span
                 role="status"
-                aria-label="Section completed"
+                aria-label={t("lessonSection.completedAria")}
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-500"
               >
-                ✓ Completed
+                ✓ {t("lessonSection.completed")}
               </span>
             )}
           </div>
@@ -93,9 +93,10 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
               type="button"
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               onClick={onComplete}
-              aria-label={`Complete ${section.title} exercise`}
+              aria-label={t("lessonSection.completeAria", {
+                title: section.title })}
             >
-              Complete Exercise
+              {t("lessonSection.completeExercise")}
             </button>
           )}
         </div>

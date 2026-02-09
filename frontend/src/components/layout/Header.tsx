@@ -5,6 +5,7 @@ import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
+import LanguageSelector from "components/common/LanguageSelector";
 const VISIBLE_PATHS = new Set([
   "/",
   "/welcome",
@@ -46,8 +47,7 @@ function Header() {
         ].join(" ")}
         style={{
           backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-        }}
+          WebkitBackdropFilter: "blur(14px)" }}
       >
         <div className="flex items-center gap-3">
           <Link
@@ -65,6 +65,7 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {isWelcome ? <LanguageSelector /> : null}
           <button
             type="button"
             onClick={handleDarkModeToggle}
