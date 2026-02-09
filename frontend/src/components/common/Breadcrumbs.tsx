@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
+import { useTranslation } from "react-i18next";
 
 type BreadcrumbItem = {
   label: string;
@@ -9,16 +10,16 @@ type BreadcrumbItem = {
 
 const Breadcrumbs = ({
   items = [],
-  className,
-}: {
+  className }: {
   items?: BreadcrumbItem[];
   className?: string;
 }) => {
+  const { t } = useTranslation();
   if (!items.length) return null;
 
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t("shared.breadcrumb")}
       className={classNames(
         "flex flex-wrap items-center gap-2 text-sm text-[color:var(--muted-text,#6b7280)]",
         className

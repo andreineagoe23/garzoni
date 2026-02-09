@@ -8,11 +8,7 @@ const config = {
     docs: {
       description: {
         story:
-          "Accessible text input with label association and helper/error text. Keyboard: Tab to focus, Enter to submit parent form.",
-      },
-    },
-  },
-};
+          "Accessible text input with label association and helper/error text. Keyboard: Tab to focus, Enter to submit parent form." } } } };
 
 export default config;
 

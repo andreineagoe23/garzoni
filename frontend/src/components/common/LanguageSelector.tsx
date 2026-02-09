@@ -2,14 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DEFAULT_LANGUAGE,
-  SUPPORTED_LANGUAGES,
-} from "constants/i18n";
+  SUPPORTED_LANGUAGES } from "constants/i18n";
 
 const LANGUAGE_FLAGS: Record<(typeof SUPPORTED_LANGUAGES)[number]["code"], string> = {
   en: "🇬🇧",
   ro: "🇷🇴",
-  es: "🇪🇸",
-};
+  es: "🇪🇸" };
 
 const LanguageSelector = () => {
   const { i18n, t } = useTranslation();
@@ -23,12 +21,10 @@ const LanguageSelector = () => {
 
   const currentFlag =
     LANGUAGE_FLAGS[currentLanguage as keyof typeof LANGUAGE_FLAGS] ?? "🌐";
-  const currentLabel = useMemo(() => {
-    const fallback =
-      SUPPORTED_LANGUAGES.find((language) => language.code === currentLanguage)
-        ?.label || "Language";
-    return t(`language.option.${currentLanguage}`, { defaultValue: fallback });
-  }, [currentLanguage, t]);
+  const currentLabel = useMemo(
+    () => t(`language.option.${currentLanguage}`),
+    [currentLanguage, t]
+  );
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -69,7 +65,7 @@ const LanguageSelector = () => {
         type="button"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-label={t("language.label", { defaultValue: "Language" })}
+        aria-label={t("language.label")}
         title={currentLabel}
         onClick={() => setIsOpen((prev) => !prev)}
         className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[13px] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--primary,#1d5330)]/40 hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px] md:h-[36px] md:w-[36px] lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10"
@@ -81,13 +77,11 @@ const LanguageSelector = () => {
       {isOpen ? (
         <div
           role="menu"
-          aria-label={t("language.label", { defaultValue: "Language" })}
+          aria-label={t("language.label")}
           className="absolute right-0 mt-2 min-w-[160px] overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.12))] bg-[color:var(--card-bg,#ffffff)]/95 p-1 shadow-lg backdrop-blur"
         >
           {SUPPORTED_LANGUAGES.map((language) => {
-            const label = t(`language.option.${language.code}`, {
-              defaultValue: language.label,
-            });
+            const label = t(`language.option.${language.code}`);
             const isComingSoon = Boolean("comingSoon" in language && language.comingSoon);
             const isActive = language.code === currentLanguage;
             return (

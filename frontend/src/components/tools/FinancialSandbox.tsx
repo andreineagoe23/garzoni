@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { GlassCard, GlassButton } from "components/ui";
 import Skeleton from "components/common/Skeleton";
 import { formatCurrency, getLocale } from "utils/format";
+import { useTranslation } from "react-i18next";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:sandbox";
 
 const FinancialSandbox = () => {
+  const { t } = useTranslation();
   const [monthlyContribution, setMonthlyContribution] = useState(100);
   const [years, setYears] = useState(5);
   const [averageReturn, setAverageReturn] = useState(7);
@@ -26,24 +28,27 @@ const FinancialSandbox = () => {
     if (typeof window === "undefined") return;
     sessionStorage.setItem(
       ACTIVITY_STORAGE_KEY,
-      JSON.stringify({ label: `${years} yrs @ ${averageReturn}%` })
+      JSON.stringify({
+        label: t("tools.sandbox.activityLabel", {
+          years,
+          rate: averageReturn }) })
     );
-  }, [averageReturn, years]);
+  }, [averageReturn, t, years]);
 
   return (
     <GlassCard padding="lg" className="space-y-4">
       <div className="flex flex-col gap-2">
         <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          Financial Sandbox
+          {t("tools.sandbox.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Experiment with contribution amounts, time horizons, and expected annual returns without touching your tracked data.
+          {t("tools.sandbox.subtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          Monthly Contribution
+          {t("tools.sandbox.monthlyContribution")}
           <input
             type="number"
             min="0"
@@ -53,7 +58,7 @@ const FinancialSandbox = () => {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          Years
+          {t("tools.sandbox.years")}
           <input
             type="number"
             min="1"
@@ -63,7 +68,7 @@ const FinancialSandbox = () => {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-          Average Return (%)
+          {t("tools.sandbox.averageReturn")}
           <input
             type="number"
             min="0"
@@ -80,21 +85,23 @@ const FinancialSandbox = () => {
         variant="primary"
         className="w-full sm:w-auto"
       >
-        Start Projection
+        {t("tools.sandbox.startProjection")}
       </GlassButton>
 
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
-        <p className="font-semibold uppercase tracking-wide">Try this</p>
+        <p className="font-semibold uppercase tracking-wide">
+          {t("tools.sandbox.tryThis")}
+        </p>
         <ul className="mt-2 space-y-1">
-          <li>• Double your monthly contribution and compare outcomes</li>
-          <li>• Increase the horizon to 15+ years to see compounding</li>
-          <li>• Lower the return rate to stress-test projections</li>
+          <li>• {t("tools.sandbox.tip1")}</li>
+          <li>• {t("tools.sandbox.tip2")}</li>
+          <li>• {t("tools.sandbox.tip3")}</li>
         </ul>
       </div>
 
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]/70 px-4 py-3 shadow-inner">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          Projected Value in {years} {years === 1 ? 'year' : 'years'}
+          {t("tools.sandbox.projectedValue", { count: years, years })}
         </p>
         {running ? (
           <Skeleton className="mt-2 h-8 w-40 rounded-lg" />
@@ -102,8 +109,7 @@ const FinancialSandbox = () => {
           <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatCurrency(projection, "USD", locale, {
               minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })}
+              maximumFractionDigits: 0 })}
           </p>
         )}
       </div>

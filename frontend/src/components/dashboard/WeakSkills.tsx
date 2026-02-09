@@ -31,8 +31,7 @@ const WeakSkills = ({
   locale,
   prefersReducedMotion,
   onSkillClick,
-  onPracticeClick,
-}: WeakSkillsProps) => {
+  onPracticeClick }: WeakSkillsProps) => {
   const { t } = useTranslation();
   if (!show) return null;
 

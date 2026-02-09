@@ -13,8 +13,7 @@ function Login() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    remember_me: false,
-  });
+    remember_me: false });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,8 +66,7 @@ function Login() {
     const { name, type, checked, value } = event.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+      [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {

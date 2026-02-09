@@ -12,13 +12,11 @@ export {
   CheckCircleFill,
   ExclamationTriangleFill,
   InfoCircleFill,
-  XCircleFill,
-} from "react-bootstrap-icons";
+  XCircleFill } from "react-bootstrap-icons";
 
 export {
   FaTwitter,
   FaFacebook,
   FaInstagram,
   FaLinkedin,
-  FaYoutube,
-} from "react-icons/fa6";
+  FaYoutube } from "react-icons/fa6";

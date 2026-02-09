@@ -53,11 +53,9 @@ const SubscriptionPlansPage = () => {
     reloadEntitlements,
     loadProfile,
     isAuthenticated,
-    getAccessToken,
-  } = useAuth();
+    getAccessToken } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState({
-    hasPaid: false,
-  });
+    hasPaid: false });
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
@@ -67,8 +65,7 @@ const SubscriptionPlansPage = () => {
     queryKey: ["questionnaire-progress"],
     queryFn: fetchQuestionnaireProgress,
     enabled: isAuthenticated ?? false,
-    staleTime: 0,
-  });
+    staleTime: 0 });
   const questionnaireComplete = questionnaireProgress?.status === "completed";
 
   const trialEndLabel = useMemo(
@@ -92,8 +89,7 @@ const SubscriptionPlansPage = () => {
             entitlements?.entitled ||
             userData?.has_paid ||
             (profilePayload as { has_paid?: boolean })?.has_paid
-        ),
-      });
+        ) });
     } catch (e) {
       console.error("Error fetching subscription info:", e);
     }
@@ -208,8 +204,7 @@ const SubscriptionPlansPage = () => {
         feature: label,
         starter: formatFeatureValue(s, t),
         plus: formatFeatureValue(pl, t),
-        pro: formatFeatureValue(pr, t),
-      };
+        pro: formatFeatureValue(pr, t) };
     });
   }, [plans, t]);
 

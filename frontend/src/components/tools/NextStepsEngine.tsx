@@ -28,22 +28,19 @@ const NextStepsEngine = () => {
           label: "Learn: Inflation basics",
           detail: "Start with the lesson to decode CPI and prices.",
           because: "Demo: a good first step for anyone.",
-          href: "/all-topics?topic=inflation",
-        },
+          href: "/all-topics?topic=inflation" },
         {
           id: "demo-try-reality",
           label: "Try: Savings & Goals Reality Check",
           detail: "See if your next goal is realistic in 2 minutes.",
           because: "Demo: helps you test a goal against your budget.",
-          href: "/tools/reality-check",
-        },
+          href: "/tools/reality-check" },
         {
           id: "demo-explore-markets",
           label: "Explore: Market Explorer",
           detail: "Scan major markets without the trading noise.",
           because: "Demo: builds context before decisions.",
-          href: "/tools/market-explorer",
-        },
+          href: "/tools/market-explorer" },
       ];
     }
 
@@ -72,8 +69,7 @@ const NextStepsEngine = () => {
         detail: "Reduce concentration risk before adding more positions.",
         because: "Because your portfolio has high concentration in one area.",
         href: "/all-topics?topic=diversification",
-        score: 3,
-      });
+        score: 3 });
     } else if (portfolioRisk === "moderate") {
       candidates.push({
         id: "risk-moderate",
@@ -81,8 +77,7 @@ const NextStepsEngine = () => {
         detail: "Check if any single holding dominates your mix.",
         because: "Because your portfolio concentration is moderate; worth a quick check.",
         href: "/tools/portfolio",
-        score: 2.5,
-      });
+        score: 2.5 });
     }
 
     if (financialProfile?.investing_experience === "new") {
@@ -92,8 +87,7 @@ const NextStepsEngine = () => {
         detail: "Build a baseline before making changes.",
         because: "Because you're new to investing; fundamentals help first.",
         href: "/all-topics?topic=investing",
-        score: 2,
-      });
+        score: 2 });
     }
 
     if (financialProfile?.goal_types?.some((g) => ["save", "emergency"].includes(g))) {
@@ -103,8 +97,7 @@ const NextStepsEngine = () => {
         detail: "Turn your goal into a realistic monthly range.",
         because: "Because your profile includes savings or emergency goals.",
         href: "/tools/reality-check",
-        score: 2,
-      });
+        score: 2 });
     }
 
     if (newsBrowsing) {
@@ -114,8 +107,7 @@ const NextStepsEngine = () => {
         detail: "See what upcoming events could move prices.",
         because: "Because you've been reading news; the calendar adds context.",
         href: "/tools/calendar",
-        score: 1.5,
-      });
+        score: 1.5 });
     }
 
     if (candidates.length === 0) {
@@ -126,24 +118,21 @@ const NextStepsEngine = () => {
           detail: "See what might influence rates and prices this week.",
           because: "A useful default when nothing else is suggested.",
           href: "/tools/calendar",
-          score: 1,
-        },
+          score: 1 },
         {
           id: "next-portfolio",
           label: "Review portfolio concentration",
           detail: "Spot any overweight positions before you make changes.",
           because: "A useful default to keep portfolio risk in mind.",
           href: "/tools/portfolio",
-          score: 1,
-        },
+          score: 1 },
         {
           id: "next-reality",
           label: "Reality-check your next goal",
           detail: "Confirm your target fits your cash flow.",
           because: "A useful default to align goals with budget.",
           href: "/tools/reality-check",
-          score: 1,
-        }
+          score: 1 }
       );
     }
 
@@ -162,19 +151,16 @@ const NextStepsEngine = () => {
     if (typeof window.gtag === "function") {
       window.gtag("event", "tool_completed", {
         tool_id: "next-steps",
-        detail: "recommendations_viewed",
-      });
+        detail: "recommendations_viewed" });
     }
     recordToolEvent("tool_complete", "next-steps", {
-      detail: "recommendations_viewed",
-    });
+      detail: "recommendations_viewed" });
   }, []);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     recordToolEvent("recommendation_shown", "next-steps", {
-      ids: recommendations.map((item) => item.id),
-    });
+      ids: recommendations.map((item) => item.id) });
   }, [recommendations]);
 
   return (
@@ -208,26 +194,22 @@ const NextStepsEngine = () => {
             href={item.href}
             onClick={() => {
               recordToolEvent("recommendation_click", "next-steps", {
-                recommendation_id: item.id,
-              });
+                recommendation_id: item.id });
               const isLesson = item.href.startsWith("/all-topics");
               if (isLesson) {
                 recordToolEvent("tool_to_lesson_click", "next-steps", {
                   href: item.href,
-                  recommendation_id: item.id,
-                });
+                  recommendation_id: item.id });
                 if (typeof window.gtag === "function") {
                   window.gtag("event", "lesson_started_from_tool", {
                     tool_id: "next-steps",
-                    link: item.href,
-                  });
+                    link: item.href });
                 }
               }
               if (typeof window.gtag === "function") {
                 window.gtag("event", "recommendation_click", {
                   tool_id: "next-steps",
-                  recommendation_id: item.id,
-                });
+                  recommendation_id: item.id });
               }
             }}
             className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md min-w-0 block"

@@ -22,8 +22,7 @@ type PersonalizedCourse = {
 };
 
 function PersonalizedPath({
-  onCourseClick,
-}: {
+  onCourseClick }: {
   onCourseClick?: (courseId: number, pathId?: number) => void;
 }) {
   const [personalizedCourses, setPersonalizedCourses] = useState<
@@ -41,8 +40,7 @@ function PersonalizedPath({
     isAuthenticated,
     loadProfile,
     reloadEntitlements,
-    entitlements,
-  } = useAuth();
+    entitlements } = useAuth();
 
   const { sessionId, redirectIntent } = useMemo(() => {
     const searchQuery = new URLSearchParams(location.search || "");
@@ -64,17 +62,14 @@ function PersonalizedPath({
           ...course,
           image: course.image || "/fallback-course.png",
           progress: course.completed_lessons || 0,
-          totalLessons: course.total_lessons || 0,
-        }))
+          totalLessons: course.total_lessons || 0 }))
       );
       setIsLoading(false);
     } catch (err) {
       const status = err.response?.status;
       const errorMessage =
         err.response?.data?.error ||
-        t("personalizedPath.errors.accessDenied", {
-          defaultValue: "Access denied",
-        });
+        t("personalizedPath.errors.accessDenied");
       const redirectPath = err.response?.data?.redirect;
 
       if (status === 400 || status === 403) {
@@ -89,18 +84,12 @@ function PersonalizedPath({
           navigate("/subscriptions");
         } else {
           setError(
-            t("personalizedPath.errors.recommendationsFailed", {
-              defaultValue:
-                "Failed to load recommendations. Please try again later.",
-            })
+            t("personalizedPath.errors.recommendationsFailed")
           );
         }
       } else {
         setError(
-          t("personalizedPath.errors.recommendationsFailed", {
-            defaultValue:
-              "Failed to load recommendations. Please try again later.",
-          })
+          t("personalizedPath.errors.recommendationsFailed")
         );
       }
       setIsLoading(false);
@@ -156,8 +145,7 @@ function PersonalizedPath({
                   "/personalized-path"
                 );
                 queryClient.invalidateQueries({
-                  queryKey: queryKeys.profile(),
-                });
+                  queryKey: queryKeys.profile() });
                 await loadProfile({ force: true });
                 reloadEntitlements?.();
                 setPaymentVerified(true);
@@ -213,10 +201,7 @@ function PersonalizedPath({
       } catch (err) {
         setError(
           err.response?.data?.error ||
-            t("personalizedPath.errors.paymentVerifyFailed", {
-              defaultValue:
-                "We couldn't verify your payment. Please try again.",
-            })
+            t("personalizedPath.errors.paymentVerifyFailed")
         );
         setPaymentVerified(false);
       }
@@ -251,17 +236,15 @@ function PersonalizedPath({
       >
         <h2 className="mb-3 text-lg font-semibold">
           ⚠️{" "}
-          {t("personalizedPath.errorTitle", {
-            defaultValue: "Error Loading Recommendations",
-          })}
+          {t("personalizedPath.errorTitle")}
         </h2>
         <p className="mb-4 text-sm">{error}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+          className="rounded-full bg-[color:var(--primary,#2563eb)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 touch-manipulation sm:px-5 sm:py-2 sm:text-sm"
         >
-          {t("personalizedPath.tryAgain", { defaultValue: "Try Again" })}
+          {t("personalizedPath.tryAgain")}
         </button>
       </GlassCard>
     );
@@ -275,9 +258,7 @@ function PersonalizedPath({
         role="status"
         aria-live="polite"
       >
-        {t("personalizedPath.verifying", {
-          defaultValue: "Verifying your access...",
-        })}
+        {t("personalizedPath.verifying")}
       </GlassCard>
     );
   }
@@ -286,9 +267,7 @@ function PersonalizedPath({
     <div className="space-y-8">
       <GlassCard padding="lg" className="text-center">
         <p className="text-lg font-semibold text-[color:var(--muted-text,#6b7280)]">
-          {t("personalizedPath.title", {
-            defaultValue: "Your personalized learning path:",
-          })}
+          {t("personalizedPath.title")}
         </p>
       </GlassCard>
 
@@ -339,9 +318,7 @@ function PersonalizedPath({
                   role="button"
                   tabIndex={0}
                   aria-label={t("personalizedPath.courseAria", {
-                    defaultValue: "Open {{title}}",
-                    title: course.title,
-                  })}
+                    title: course.title })}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
@@ -349,18 +326,14 @@ function PersonalizedPath({
                       <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                         {String(
                           (course as PersonalizedCourse).path_title ||
-                            t("personalizedPath.pathLabel", {
-                              defaultValue: "Path",
-                            })
+                            t("personalizedPath.pathLabel")
                         )}
                       </span>
                       <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                         {t("personalizedPath.courseMeta", {
-                          defaultValue: "{{hours}} hrs · {{exercises}} exercises",
                           hours:
                             (course as PersonalizedCourse).estimated_duration || 4,
-                          exercises: (course as PersonalizedCourse).exercises || 3,
-                        })}
+                          exercises: (course as PersonalizedCourse).exercises || 3 })}
                       </span>
                     </div>
                     <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
@@ -370,16 +343,12 @@ function PersonalizedPath({
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[color:var(--muted-text,#6b7280)]">
-                          {t("personalizedPath.progressLabel", {
-                            defaultValue: "Progress",
-                          })}
+                          {t("personalizedPath.progressLabel")}
                         </span>
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
                           {t("personalizedPath.lessonCount", {
-                            defaultValue: "{{completed}}/{{total}} lessons",
                             completed: course.progress ?? 0,
-                            total: course.totalLessons ?? 0,
-                          })}
+                            total: course.totalLessons ?? 0 })}
                         </span>
                       </div>
 
@@ -393,8 +362,7 @@ function PersonalizedPath({
                                     (course.totalLessons ?? 1)) *
                                   100
                                 : 0
-                            }%`,
-                          }}
+                            }%` }}
                         />
                       </div>
                     </div>
@@ -413,17 +381,13 @@ function PersonalizedPath({
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
           🔁{" "}
-          {t("personalizedPath.basedOnOnboarding", {
-            defaultValue: "Based on your latest onboarding answers -",
-          })}{" "}
+          {t("personalizedPath.basedOnOnboarding")}{" "}
           <button
             type="button"
             onClick={() => navigate("/onboarding")}
             className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
           >
-            {t("personalizedPath.updatePreferences", {
-              defaultValue: "Update Preferences",
-            })}
+            {t("personalizedPath.updatePreferences")}
           </button>
         </p>
       </GlassCard>

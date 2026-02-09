@@ -33,7 +33,8 @@
     "toast": {
       "xpGained": "+{{count}} XP",
       "skillsImproved_one": "{{count}} abilitate îmbunătățită",
-      "skillsImproved_other": "{{count}} abilități îmbunătățite"
+      "skillsImproved_other": "{{count}} abilități îmbunătățite",
+      "skillsImproved": "Abilități îmbunătățite"
     },
     "cta": {
       "doReviews": "Fă recapitulări",
@@ -45,7 +46,9 @@
       "missionsAvailable_one": "{{count}} misiune disponibilă",
       "missionsAvailable_other": "{{count}} misiuni disponibile",
       "continueWhereLeftOff": "Continuă de unde ai rămas",
-      "continueLearningReason": "Continuă-ți călătoria de învățare"
+      "continueLearningReason": "Continuă-ți călătoria de învățare",
+      "missionsAvailable": "Misiuni disponibile",
+      "reviewsDue": "Recapitulări restante"
     },
     "resume": {
       "title": "Reia de unde ai rămas",
@@ -252,7 +255,9 @@
       "backToHub": "Înapoi la hub-ul de instrumente →",
       "feedback": "Feedback",
       "resetTool": "Resetează instrumentul",
-      "export": "Exportă"
+      "export": "Exportă",
+      "feedbackSubject": "Feedback instrument - {{tool}}",
+      "feedbackBody": "Ce s-a întâmplat?\n\nUnde s-a întâmplat?\n{{url}}"
     },
     "toast": {
       "reset": "Instrument resetat."
@@ -273,18 +278,90 @@
       "hubLink": "Hub instrumente"
     },
     "groups": {
-      "understand-world": { "title": "Înțelege lumea", "imageAlt": "Economie și piețe globale" },
-      "understand-myself": { "title": "Înțelege-te pe tine", "imageAlt": "Finanțe personale și obiective" },
-      "decide-next": { "title": "Planifică ce să înveți", "imageAlt": "Plan de învățare și pași următori" }
+      "understand-world": {
+        "title": "Înțelege lumea",
+        "imageAlt": "Economie și piețe globale"
+      },
+      "understand-myself": {
+        "title": "Înțelege-te pe tine",
+        "imageAlt": "Finanțe personale și obiective"
+      },
+      "decide-next": {
+        "title": "Planifică ce să înveți",
+        "imageAlt": "Plan de învățare și pași următori"
+      }
     },
     "entries": {
-      "portfolio": { "title": "Analizor portofoliu", "promise": "Vezi dacă portofoliul ți se potrivește cu obiectivele și riscul." },
-      "reality-check": { "title": "Verificare economii și obiective", "promise": "Obține un interval realist de economii, fără precizie falsă." },
-      "calendar": { "title": "Calendar economic", "promise": "Înțelege cum evenimentele economice îți afectează banii." },
-      "economic-map": { "title": "Harta economică", "promise": "Vezi schimbările macro în toată lumea dintr-o privire." },
-      "news-context": { "title": "Știri și context de piață", "promise": "Transformă titlurile în concluzii simple și personale." },
-      "market-explorer": { "title": "Explorator de piețe", "promise": "Scanează piețele importante cu un cadru simplu, pe termen lung." },
-      "next-steps": { "title": "Ce ar trebui să învăț mai departe?", "promise": "Primește 1–3 sugestii de învățare pentru următorul pas." }
+      "portfolio": {
+        "title": "Analizor portofoliu",
+        "promise": "Vezi dacă portofoliul ți se potrivește cu obiectivele și riscul.",
+        "description": "Analizează și optimizează portofoliul tău de investiții",
+        "mostUsefulFor": "Oricine investește deja sau se gândește la realocare.",
+        "whatItDoes": "Descompune deținerile, performanța și alocarea într-o singură vedere.",
+        "sampleUseCase": "Verifică dacă portofoliul tău este prea concentrat într-un singur activ.",
+        "whoItsFor": "Investitori care vor claritate privind riscul, concentrarea și echilibrul.",
+        "questionItAnswers": "Este portofoliul meu aliniat cu obiectivele și confortul meu de risc?"
+      },
+      "reality-check": {
+        "title": "Verificare economii și obiective",
+        "promise": "Obține un interval realist de economii, fără precizie falsă.",
+        "description": "Vezi dacă obiectivele tale sunt realiste pentru venitul și costurile tale",
+        "mostUsefulFor": "Persoane cu un obiectiv și un flux lunar de numerar incert.",
+        "whatItDoes": "Transformă un obiectiv într-un interval realist de economisire și verifică fezabilitatea.",
+        "sampleUseCase": "Planifică un fond de urgență de 6.000 $ în 12 luni fără presupuneri.",
+        "whoItsFor": "Oricine vrea o imagine sinceră a ceea ce este realizabil.",
+        "questionItAnswers": "Pot atinge acest obiectiv cu fluxul meu de numerar actual?"
+      },
+      "calendar": {
+        "title": "Calendar economic",
+        "promise": "Înțelege cum evenimentele economice îți afectează banii.",
+        "description": "Urmărește evenimente macro cu context, nu doar date",
+        "mostUsefulFor": "Oricine încearcă să înțeleagă inflația și dobânzile.",
+        "whatItDoes": "Arată evenimente economice cheie și explică de ce contează.",
+        "sampleUseCase": "Vezi cum CPI sau deciziile de dobândă pot afecta ratele de economisire.",
+        "whoItsFor": "Oricine vrea să înțeleagă imaginea de ansamblu.",
+        "questionItAnswers": "Ce se întâmplă în economie și de ce ar trebui să-mi pese?"
+      },
+      "economic-map": {
+        "title": "Harta economică",
+        "promise": "Vezi schimbările macro în toată lumea dintr-o privire.",
+        "description": "Date economice globale în timp real vizualizate pe o hartă",
+        "mostUsefulFor": "Oricine urmărește tendințe macro globale.",
+        "whatItDoes": "Afișează indicatori economici pe o hartă a lumii.",
+        "sampleUseCase": "Verifică tendințele regionale înainte de a citi știrile.",
+        "whoItsFor": "Persoane care vor o vedere macro globală.",
+        "questionItAnswers": "Unde au loc schimbări economice chiar acum?"
+      },
+      "news-context": {
+        "title": "Știri și context de piață",
+        "promise": "Transformă titlurile în concluzii simple și personale.",
+        "description": "Știri financiare selectate cu explicații pe înțelesul tuturor",
+        "mostUsefulFor": "Persoane care vor știri fără panică sau exagerări.",
+        "whatItDoes": "Rezuma ce înseamnă titlurile pentru deciziile financiare de zi cu zi.",
+        "sampleUseCase": "Vezi cum o reducere a dobânzii afectează creditele sau economiile.",
+        "whoItsFor": "Persoane care vor știri fără zgomot.",
+        "questionItAnswers": "Ce înseamnă acest titlu pentru mine?"
+      },
+      "market-explorer": {
+        "title": "Explorator de piețe",
+        "promise": "Scanează piețele importante cu un cadru simplu, pe termen lung.",
+        "description": "Explorează acțiuni, ETF-uri, crypto și indici într-o singură vedere",
+        "mostUsefulFor": "Cursanți curioși care explorează piețele pentru prima dată.",
+        "whatItDoes": "Îți permite să explorezi piețele și evidențiază avertismente privind volatilitatea.",
+        "sampleUseCase": "Compară S&P 500 cu obligațiunile înainte de o decizie.",
+        "whoItsFor": "Cursanți care decid ce să exploreze mai departe.",
+        "questionItAnswers": "La ce piețe ar trebui să mă uit și cu ce precauție?"
+      },
+      "next-steps": {
+        "title": "Ce ar trebui să învăț mai departe?",
+        "promise": "Primește 1–3 sugestii de învățare pentru următorul pas.",
+        "description": "Sugestii de învățare personalizate pe baza progresului tău",
+        "mostUsefulFor": "Oricine vrea un pas următor clar în învățare.",
+        "whatItDoes": "Sugerează 1-3 acțiuni de învățare focalizate, în funcție de activitatea ta.",
+        "sampleUseCase": "Primește o listă scurtă de pași de învățare și instrumente care contează.",
+        "whoItsFor": "Oricine vrea pași următori clari și prioritizați.",
+        "questionItAnswers": "Ce ar trebui să învăț următorul pas acum?"
+      }
     },
     "realityCheck": {
       "activityLabel": "Verificare fezabilitate obiectiv",
@@ -390,8 +467,7 @@
       "monthly": "Lunar",
       "daily": "Zilnic",
       "calculate": "Calculează",
-      "finalSavings": "Economii finale"
-      ,
+      "finalSavings": "Economii finale",
       "activityPrefix": "Obiectiv"
     },
     "portfolio": {
@@ -475,6 +551,111 @@
         "gain": "un câștig",
         "loss": "o pierdere"
       }
+    },
+    "calendarEmbed": {
+      "title": "Calendar economic",
+      "subtitle": "Rămâi la curent cu evenimente economice importante și știri",
+      "iframeTitle": "Calendar economic",
+      "fallback": "Calendar economic oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
+      "activityLabel": "Ai văzut evenimentele viitoare"
+    },
+    "calendar": {
+      "activityLabel": "Ai verificat evenimentele macro",
+      "impactFilter": {
+        "title": "Filtru de impact",
+        "subtitle": "Implicit sunt afișate doar evenimentele cu impact ridicat.",
+        "showAll": "Arată toate evenimentele",
+        "hideLow": "Ascunde evenimentele cu impact scăzut"
+      },
+      "errors": {
+        "loadFailed": "Calendarul nu s-a putut încărca.",
+        "loadFailedHelp": "Încearcă să dezactivezi blocatoarele de reclame sau de conținut pentru acest site, sau deschide calendarul într-un tab nou.",
+        "openNewTab": "Deschide calendarul într-un tab nou"
+      },
+      "loading": "Se încarcă calendarul economic…",
+      "fallback": "Calendar economic oferit de <provider>TradingView</provider>. Dacă nu se încarcă, <open>deschide-l într-un tab nou</open>.",
+      "relevant": "Relevant pentru tine",
+      "why": "De ce contează:",
+      "who": "Cui îi pasă:",
+      "affects": "Ce afectează:",
+      "learnMore": "Află mai multe →",
+      "explainers": {
+        "inflation": {
+          "label": "CPI / Inflație",
+          "difficulty": "Începător",
+          "why": "Semnalează creșterea prețurilor care reduce puterea de cumpărare.",
+          "who": "Economisitorii, împrumutații și oricine are un buget.",
+          "affects": "Ratele de economisire, costul creditelor, prețurile de zi cu zi."
+        },
+        "rates": {
+          "label": "Ratele băncii centrale",
+          "difficulty": "Începător",
+          "why": "Stabilește baza pentru costurile de împrumut și economisire.",
+          "who": "Oricine are credite, ipoteci sau conturi de economii.",
+          "affects": "Ipoteci, carduri de credit, randamente la economii."
+        },
+        "jobs": {
+          "label": "Raportul locurilor de muncă",
+          "difficulty": "Intermediar",
+          "why": "Arată forța pieței muncii care influențează puterea de cumpărare.",
+          "who": "Angajați, persoane în căutare de job, investitori.",
+          "affects": "Salarii, cerere a consumatorilor, decizii de dobândă."
+        },
+        "gdp": {
+          "label": "Creșterea PIB",
+          "difficulty": "Intermediar",
+          "why": "Măsoară expansiunea sau contracția economiei.",
+          "who": "Investitori și antreprenori.",
+          "affects": "Sentimentul pieței, angajări, planuri de investiții."
+        },
+        "retail": {
+          "label": "Vânzări cu amănuntul",
+          "difficulty": "Intermediar",
+          "why": "Evidențiază tendințele de cheltuire ale consumatorilor.",
+          "who": "Cei care își fac bugetul și observatorii pieței.",
+          "affects": "Rezultatele companiilor, perspectiva asupra inflației."
+        },
+        "housing": {
+          "label": "Date despre piața imobiliară",
+          "difficulty": "Avansat",
+          "why": "Reflectă accesibilitatea și condițiile de creditare.",
+          "who": "Cumpărători de locuințe, chiriași și creditori.",
+          "affects": "Rate ipotecare, chirii, locuri de muncă în construcții."
+        }
+      }
+    },
+    "crypto": {
+      "title": "Tranzacționare criptomonede",
+      "subtitle": "Urmărește și analizează prețurile criptomonedelor",
+      "errors": {
+        "loadFailed": "Graficul nu s-a putut încărca.",
+        "loadFailedHelp": "Încearcă să dezactivezi blocatoarele de reclame sau de conținut pentru acest site, sau deschide TradingView într-un tab nou.",
+        "openNewTab": "Deschide TradingView într-un tab nou"
+      },
+      "tradingViewLabel": "Grafic TradingView"
+    },
+    "sandbox": {
+      "activityLabel": "{{years}} ani @ {{rate}}%",
+      "title": "Sandbox financiar",
+      "subtitle": "Experimentează cu sumele de contribuție, orizonturile de timp și randamentele anuale estimate fără a modifica datele urmărite.",
+      "monthlyContribution": "Contribuție lunară",
+      "years": "Ani",
+      "averageReturn": "Randament mediu (%)",
+      "startProjection": "Pornește proiecția",
+      "tryThis": "Încearcă asta",
+      "tip1": "Dublează contribuția lunară și compară rezultatele",
+      "tip2": "Mărește orizontul la 15+ ani pentru a vedea efectul compunerii",
+      "tip3": "Scade rata de randament pentru a testa scenariile",
+      "projectedValue": "Valoare proiectată în {{years}} an",
+      "projectedValue_one": "Valoare proiectată în {{years}} an",
+      "projectedValue_other": "Valoare proiectată în {{years}} ani"
+    },
+    "forex": {
+      "title": "Calculator pip & poziție Forex",
+      "subtitle": "Calculează valorile pip și dimensiunea poziției pentru perechile tale Forex",
+      "iframeTitle": "Calculator pip Forex",
+      "fallback": "Calculator oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
+      "activityLabel": "Ai vizualizat calculatorul Forex"
     }
   },
   "missions": {
@@ -714,7 +895,8 @@
       "subtitle": "Partajează linkul tău și câștigă recompense când prietenii se alătură.",
       "linkLabel": "Linkul tău unic de recomandare",
       "copied": "Copiat!",
-      "copyLink": "Copiază link"
+      "copyLink": "Copiază link",
+      "linkAria": "Link de recomandare"
     },
     "stats": {
       "title": "Statistici",
@@ -786,7 +968,8 @@
       "streak_other": "Zile serie",
       "learningProgress": "Progres de învățare",
       "overallCompletion": "Finalizare totală",
-      "pathProgress": "Progres traseu"
+      "pathProgress": "Progres traseu",
+      "streak": "serie"
     }
   },
   "chatbot": {
@@ -983,41 +1166,41 @@
   },
   "subscriptions": {
     "choosePlan": "Alege planul tău",
-    "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium prin Stripe.",
+    "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium prin checkout securizat Stripe.",
     "paymentConfirmed": "Plata a fost confirmată! Abonamentul tău este acum activ.",
     "fallbackEntitlements": "Se folosesc drepturi de rezervă. Contactează suportul dacă problema persistă.",
     "loadingPlans": "Se încarcă planurile...",
     "free": "Gratuit",
-    "trialDays": "{{count}} zi trial",
-    "trialDays_one": "{{count}} zi trial",
-    "trialDays_other": "{{count}} zile trial",
+    "trialDays": "{{count}} zi de probă",
+    "trialDays_one": "{{count}} zi de probă",
+    "trialDays_other": "{{count}} zile de probă",
     "perMonth": "lună",
     "perYear": "an",
-    "unlocksPath": "Deblochează traseul personalizat + checkout Stripe",
+    "unlocksPath": "Deblochează traseul personalizat + checkout securizat Stripe",
     "startStarter": "Începe cu Starter (gratuit)",
     "choosePlanCheckout": "Alege {{name}} - Mergi la plată",
     "premiumLearningAccess": "Acces premium la învățare",
     "selectPlanError": "Te rugăm să alegi un plan pentru a continua.",
     "completeOnboardingFirst": "Te rugăm să finalizezi onboardingul înainte de a alege un plan.",
     "paymentNotConfigured": "Plata nu este configurată încă. Te rugăm să încerci mai târziu sau contactează suportul.",
-    "checkoutFailed": "Nu s-a putut începe checkout-ul. Te rugăm să încerci din nou.",
+    "checkoutFailed": "Nu s-a putut porni plata. Te rugăm să încerci din nou.",
     "retryEntitlements": "Reîncearcă verificarea drepturilor",
     "contactSupport": "Contactează suportul",
-    "subscriptionStatus": "Status abonament",
-    "statusPaid": "Ești pe Plus sau Pro - traseu personalizat și funcții premium deblocate.",
-    "statusStarterComplete": "Ești pe Starter (gratuit). Fă upgrade la Plus sau Pro pentru traseul personalizat.",
-    "statusOnboarding": "Finalizează onboardingul, apoi alege Starter (gratuit) sau Plus/Pro.",
-    "trialEndsOn": "Trialul se termină pe {{date}}",
+    "subscriptionStatus": "Stare abonament",
+    "statusPaid": "Ești pe Plus sau Pro — traseu personalizat și funcții premium deblocate.",
+    "statusStarterComplete": "Ești pe Starter (gratuit). Fă upgrade la Plus sau Pro pentru a-ți debloca traseul personalizat.",
+    "statusOnboarding": "Finalizează onboardingul, apoi alege Starter (gratuit) sau fă upgrade la Plus/Pro.",
+    "trialEndsOn": "Perioada de probă se termină pe {{date}}",
     "viewPersonalizedPath": "Vezi traseul tău personalizat",
     "goToDashboard": "Mergi la Acasă",
-    "checkSubscriptionOptions": "Verifică opțiunile de abonament",
+    "checkSubscriptionOptions": "Vezi opțiunile de abonament",
     "comparePlans": "Compară planurile",
-    "seeWhatChanges": "Ce se schimbă pe nivel",
+    "seeWhatChanges": "Vezi ce se schimbă pe nivel",
     "feature": "Funcționalitate",
     "starter": "Starter",
     "plus": "Plus",
     "pro": "Pro",
-    "notIncluded": "Neinclus",
+    "notIncluded": "Nu este inclus",
     "unlimited": "Nelimitat",
     "perDay": "{{count}} / zi",
     "included": "Inclus"
@@ -1080,7 +1263,8 @@
       "coins": "Monede",
       "choosePlan": "Alege un plan →",
       "close": "Închide"
-    }
+    },
+    "aria": "Chestionar de onboarding"
   },
   "footer": {
     "tagline": "Învață abilități financiare cu lecții, misiuni și exerciții.",
@@ -1105,7 +1289,8 @@
     "copyright": "© {{year}} Monevo. Toate drepturile rezervate.",
     "infoDisclaimer": "Informațiile sunt educaționale și generale, nu sfaturi financiare personalizate.",
     "buyMeACoffee": "Cumpără-mi o cafea",
-    "monevoOn": "Monevo pe {{platform}}"
+    "monevoOn": "Monevo pe {{platform}}",
+    "ariaLabel": "Subsolul site-ului"
   },
   "header": {
     "premiumReady": "Premium gata",
@@ -1113,9 +1298,6 @@
     "openDashboard": "Deschide Acasă",
     "login": "Conectare",
     "getStarted": "Începe"
-  },
-  "shared": {
-    "apiError": "Ceva n-a mers bine. Te rugăm să încerci din nou."
   },
   "errorBoundary": {
     "title": "Ceva n-a mers bine la încărcarea acestei secțiuni.",
@@ -1279,6 +1461,464 @@
     },
     "loading": "Se încarcă exercițiile...",
     "retry": "Reîncearcă",
-    "skillFallback": "General"
+    "skillFallback": "General",
+    "streakCongrats": "Ai reușit! Păstrează-ți seria."
+  },
+  "landing": {
+    "hero": {
+      "aria": "Secțiunea principală",
+      "badge": "{{count}}+ lecții",
+      "titleLine1": "Stăpânește finanțele",
+      "titleLine2": "În mod inteligent",
+      "subtitle": "Învață abilități financiare în ritmul tău, cu cursuri interactive, ghidare bazată pe AI și instrumente din lumea reală.",
+      "ctaStartShort": "Începe",
+      "ctaStart": "Începe",
+      "ctaDemoShort": "Demo",
+      "ctaDemo": "Vezi demo",
+      "ctaExploreAria": "Derulează pentru a explora funcțiile",
+      "ctaExploreShort": "Explorează",
+      "ctaExplore": "Explorează funcțiile",
+      "stats": {
+        "currentStreak": "Seria curentă",
+        "days": "zile",
+        "totalXp": "XP total",
+        "today": "astăzi"
+      },
+      "topics": {
+        "budgeting": "Bugetare",
+        "saving": "Economisire",
+        "investing": "Investiții",
+        "credit": "Credit",
+        "taxes": "Taxe"
+      },
+      "demoModal": {
+        "aria": "Fereastră demo",
+        "closeAria": "Închide fereastra demo",
+        "title": "Vezi demo",
+        "close": "Închide",
+        "subtitle": "Vezi cum Monevo te ajută să stăpânești finanțele. Urmărește demo-ul nostru interactiv pentru a explora platforma.",
+        "startLearning": "Începe să înveți"
+      }
+    },
+    "features": {
+      "title": "Tot ce ai nevoie ca să stăpânești finanțele",
+      "subtitle": "Descoperă funcții puternice concepute să accelereze călătoria ta de învățare financiară",
+      "featureLabel": "Funcția {{count}}",
+      "items": {
+        "learning-paths": {
+          "title": "Trasee de învățare complete",
+          "text": "Cursuri structurate concepute să-ți construiască cunoștințele financiare de la zero.",
+          "bullets": [
+            "Module de învățare pas cu pas",
+            "Quiz-uri și evaluări interactive",
+            "Urmărirea progresului și certificate"
+          ]
+        },
+        "achievement-system": {
+          "title": "Sistem de realizări",
+          "text": "Experiență de învățare gamificată care te menține motivat și implicat.",
+          "bullets": [
+            "Câștigă insigne și recompense",
+            "Urmărește-ți seria de învățare",
+            "Concură în clasamente"
+          ]
+        },
+        "ai-tutor": {
+          "title": "Tutor bazat pe AI",
+          "text": "Primești ghidare personalizată și răspunsuri la întrebările tale financiare.",
+          "bullets": [
+            "Asistent disponibil 24/7",
+            "Răspunsuri contextualizate",
+            "Recomandări de învățare"
+          ]
+        },
+        "real-time-tools": {
+          "title": "Instrumente în timp real",
+          "text": "Accesează calculatoare și instrumente de analiză financiară.",
+          "bullets": [
+            "Analizor de portofoliu",
+            "Calculator pentru obiective de economisire",
+            "Convertor valutar"
+          ]
+        },
+        "market-insights": {
+          "title": "Perspective de piață",
+          "text": "Rămâi la curent cu ultimele știri financiare și tendințe de piață.",
+          "bullets": [
+            "Calendar economic",
+            "Analiză de piață",
+            "Agregare de știri"
+          ]
+        }
+      }
+    },
+    "reviews": {
+      "title": "Apreciat de cursanți din toată lumea",
+      "subtitle": "Vezi ce spune comunitatea despre experiența de învățare",
+      "aria": "Recenzii ale utilizatorilor",
+      "cardAria": "Recenzie de la {{name}}",
+      "items": {
+        "sarah": {
+          "title": "Consultant financiar",
+          "quote": "Monevo mi-a transformat modul în care învăț despre finanțe. Cursurile interactive sunt captivante și practice."
+        },
+        "michael": {
+          "title": "Antreprenor",
+          "quote": "Tutorul AI este extrem de util. Îmi răspunde instant și mă ajută să înțeleg concepte complexe."
+        },
+        "emily": {
+          "title": "Student",
+          "quote": "Îmi place partea de gamificare. Să câștigi insigne și să concurezi în clasamente face învățarea distractivă!"
+        },
+        "david": {
+          "title": "Investitor",
+          "quote": "Instrumentele financiare sunt de top. Analizorul de portofoliu mi-a fost de mare ajutor pentru deciziile de investiții."
+        },
+        "lisa": {
+          "title": "Proprietar de mică afacere",
+          "quote": "În sfârșit, o platformă care face educația financiară accesibilă și plăcută. Recomand cu încredere!"
+        }
+      }
+    }
+  },
+  "legal": {
+    "lastUpdated": "Ultima actualizare: {{date}}",
+    "dates": {
+      "feb7_2026": "7 februarie 2026"
+    },
+    "privacy": {
+      "title": "Politica de confidențialitate",
+      "intro": "Monevo este o platformă educațională. Această pagină explică ce date cu caracter personal colectăm, de ce le colectăm și drepturile tale conform UK GDPR și EU GDPR.",
+      "sections": {
+        "who": {
+          "title": "1. Cine suntem",
+          "body": "Această politică se aplică aplicației web Monevo și serviciilor conexe („Serviciul”). În scopuri de protecție a datelor, operatorul de date este Monevo, Regatul Unit."
+        },
+        "data": {
+          "title": "2. Datele pe care le colectăm",
+          "intro": "Colectăm următoarele categorii de date:",
+          "items": {
+            "account": {
+              "label": "Date de cont:",
+              "text": "adresa de email, numele de utilizator și hash-ul parolei."
+            },
+            "profile": {
+              "label": "Date de profil și preferințe:",
+              "text": "prenume/nume (dacă sunt furnizate), răspunsuri la onboarding, preferințe de învățare financiară, limbă, setări de memento și setări de temă."
+            },
+            "learning": {
+              "label": "Date despre învățare și utilizarea produsului:",
+              "text": "lecții vizualizate, progres, serii, misiuni, evenimente de utilizare a instrumentelor și interacțiuni cu funcții."
+            },
+            "technical": {
+              "label": "Date tehnice:",
+              "text": "adresă IP, tip dispozitiv/browser, sistem de operare, regiune aproximativă, marcaje de timp, jurnale de erori și jurnale de securitate."
+            },
+            "cookies": {
+              "label": "Date despre cookie-uri și urmărire:",
+              "text": "opțiuni de consimțământ, identificatori de analiză și date despre evenimente de publicitate/marketing unde există consimțământ."
+            },
+            "billing": {
+              "label": "Metadate de facturare:",
+              "text": "plan, status de abonament și identificatori de abonament Stripe. Nu stocăm numărul complet al cardului."
+            },
+            "inputs": {
+              "label": "Date financiare furnizate de utilizator:",
+              "text": "intrări de portofoliu simulate și date introduse în instrumentele de învățare."
+            }
+          }
+        },
+        "collection": {
+          "title": "3. Cum colectăm datele",
+          "items": {
+            "direct": "Direct de la tine (înregistrare, onboarding, setări, instrumente).",
+            "automatic": "Automat prin jurnale ale aplicației, cookie-uri, analize și pixeli.",
+            "processors": "De la procesatori care ne susțin serviciul (de exemplu, Stripe pentru statusul abonamentului)."
+          }
+        },
+        "purposes": {
+          "title": "4. De ce prelucrăm datele și temeiurile legale",
+          "items": {
+            "account": {
+              "label": "Furnizarea și administrarea contului",
+              "text": "(necesitate contractuală)."
+            },
+            "core": {
+              "label": "Livrarea funcțiilor de bază și a progresului de învățare",
+              "text": "(necesitate contractuală)."
+            },
+            "security": {
+              "label": "Menținerea securității platformei și prevenirea abuzului",
+              "text": "(interese legitime)."
+            },
+            "improve": {
+              "label": "Îmbunătățirea calității și performanței produsului",
+              "text": "(interese legitime)."
+            },
+            "comms": {
+              "label": "Transmiterea comunicărilor de serviciu",
+              "text": "precum notificările despre cont și facturare (necesitate contractuală și interese legitime)."
+            },
+            "marketing": {
+              "label": "Trimiterea mesajelor de marketing opționale",
+              "text": "(consimțământ, unde este necesar)."
+            },
+            "legal": {
+              "label": "Respectarea obligațiilor legale și fiscale",
+              "text": "(obligație legală)."
+            }
+          }
+        },
+        "cookies": {
+          "title": "5. Cookie-uri și tehnologii similare",
+          "body1": "Folosim cookie-uri strict necesare pentru funcțiile de autentificare/sesiune și, cu consimțământul tău, cookie-uri de analiză și marketing.",
+          "body2": "Poți gestiona consimțământul folosind bannerul de cookie-uri și setările de cookie-uri. Vezi <link>Politica de cookie-uri</link> pentru detalii."
+        },
+        "processors": {
+          "title": "6. Procesatori și servicii terțe",
+          "body1": "Folosim terți pentru a opera serviciul. În funcție de utilizare, acestea pot include:",
+          "items": {
+            "stripe": "Stripe (facturare și procesare a abonamentelor).",
+            "cookiebot": "Cookiebot (gestionarea consimțământului pentru cookie-uri).",
+            "google": "Google Analytics / taguri Google Ads (cu consimțământ).",
+            "amplitude": "Amplitude (analiză de produs).",
+            "sentry": "Sentry (monitorizare erori).",
+            "hosting": "Furnizori de găzduire și infrastructură.",
+            "email": "Furnizori de email și mesaje tranzacționale."
+          },
+          "body2": "Acești furnizori prelucrează date în baza unor contracte și doar pentru scopuri aprobate."
+        },
+        "transfers": {
+          "title": "7. Transferuri internaționale",
+          "body": "Unii furnizori prelucrează date în afara Regatului Unit/SEE. Când se întâmplă acest lucru, folosim garanții adecvate (de exemplu, decizii de adecvare sau clauze contractuale standard)."
+        },
+        "retention": {
+          "title": "8. Păstrarea datelor",
+          "body": "Păstrăm datele personale doar atât timp cât este necesar pentru furnizarea serviciului, obligații legale, soluționarea disputelor și securitate. Perioadele de păstrare variază în funcție de tipul de date."
+        },
+        "rights": {
+          "title": "9. Drepturile tale",
+          "body": "Sub rezerva legii aplicabile, poți solicita:",
+          "items": {
+            "access": "Accesarea datelor tale personale.",
+            "correct": "Corectarea datelor inexacte.",
+            "delete": "Ștergerea datelor.",
+            "restrict": "Restricționarea sau opoziția la anumite prelucrări.",
+            "withdraw": "Retragerea consimțământului (acolo unde prelucrarea se bazează pe consimțământ).",
+            "portable": "Primirea unei copii portabile a datelor furnizate.",
+            "complaint": "Depunerea unei plângeri la autoritatea de protecție a datelor."
+          }
+        },
+        "security": {
+          "title": "10. Securitate",
+          "body": "Folosim măsuri tehnice și organizaționale concepute pentru a proteja datele personale. Nicio metodă de stocare sau transmitere nu este complet sigură."
+        },
+        "children": {
+          "title": "11. Copiii",
+          "body": "Monevo nu este destinat copiilor sub 16 ani. Dacă crezi că un copil a furnizat date personale, contactează-ne și vom investiga."
+        },
+        "changes": {
+          "title": "12. Modificări ale politicii",
+          "body": "Putem actualiza această politică din când în când. Modificările materiale vor fi publicate în aplicație sau pe site, cu o dată actualizată."
+        },
+        "contact": {
+          "title": "13. Contact",
+          "email": "Email:",
+          "support": "Suport:",
+          "country": "Țară: Regatul Unit"
+        }
+      }
+    },
+    "financialDisclaimer": {
+      "title": "Declinare de responsabilitate financiară",
+      "intro": "Conținutul Monevo este doar în scopuri <strong>educaționale și informative</strong>.",
+      "sections": {
+        "meaning": {
+          "title": "Ce înseamnă asta",
+          "items": {
+            "general": "Conținutul este informațional și nu este adaptat circumstanțelor tale personale.",
+            "noProfile": "Nu luăm în considerare întreaga ta situație financiară, toleranța la risc, orizontul de timp sau obiectivele de investiții.",
+            "noRecommendation": "Nimic de pe Monevo nu reprezintă o recomandare sau solicitare de a cumpăra, vinde, deține sau investi în vreun activ.",
+            "examples": "Exemplele, scenariile sau rezultatele instrumentelor sunt ilustrative și pot folosi presupuneri care nu reflectă rezultate reale.",
+            "pastPerformance": "Performanța trecută, datele istorice și rezultatele modelelor nu garantează rezultate viitoare."
+          }
+        },
+        "responsibility": {
+          "title": "Responsabilitatea ta",
+          "body": "Rămâi pe deplin responsabil pentru deciziile tale financiare și de investiții. Înainte de a acționa, ia în considerare să ceri sfatul unui profesionist calificat și autorizat."
+        },
+        "warranty": {
+          "title": "Fără garanții privind acuratețea sau completitudinea",
+          "body": "Ne străduim să oferim conținut educațional util și actual, dar nu garantăm că toate informațiile sunt complete, exacte sau actualizate în orice moment."
+        },
+        "related": {
+          "title": "Notificări conexe",
+          "body": "Te rugăm să consulți și <noAdvice>Notificarea privind lipsa sfaturilor financiare</noAdvice>, <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+        }
+      }
+    },
+    "cookiePolicy": {
+      "title": "Politica de cookie-uri",
+      "intro": "Această politică explică ce cookie-uri și tehnologii similare folosim și cum îți poți gestiona preferințele.",
+      "sections": {
+        "what": {
+          "title": "1. Ce sunt cookie-urile",
+          "body": "Cookie-urile sunt fișiere text mici plasate pe dispozitivul tău când vizitezi un site. Ele ajută la autentificare, securitate, analiză și performanță."
+        },
+        "categories": {
+          "title": "2. Categorii de cookie-uri pe care le folosim",
+          "items": {
+            "necessary": {
+              "label": "Cookie-uri strict necesare:",
+              "text": "necesare pentru funcții de bază precum autentificarea, gestionarea sesiunii și securitatea."
+            },
+            "preference": {
+              "label": "Cookie-uri de preferințe:",
+              "text": "rețin setările (de exemplu, opțiunile de afișare)."
+            },
+            "analytics": {
+              "label": "Cookie-uri de analiză:",
+              "text": "ne ajută să înțelegem utilizarea și să îmbunătățim experiența produsului."
+            },
+            "marketing": {
+              "label": "Cookie-uri de marketing:",
+              "text": "măsoară performanța campaniilor și interacțiunile cu reclamele, unde există consimțământ."
+            }
+          }
+        },
+        "consent": {
+          "title": "3. Gestionarea consimțământului",
+          "body": "Poți schimba preferințele de cookie-uri oricând prin controalele bannerului sau setările browserului. Dezactivarea unor cookie-uri poate afecta anumite funcții."
+        },
+        "thirdParty": {
+          "title": "4. Tehnologii terțe",
+          "body": "Putem folosi instrumente terțe precum Cookiebot, instrumente de analiză și taguri de publicitate. Aceste servicii pot seta propriile cookie-uri în funcție de opțiunile tale de consimțământ."
+        },
+        "declaration": {
+          "title": "5. Declarația de cookie-uri",
+          "body": "Declarația de cookie-uri de mai jos listează cookie-urile detectate pe această proprietate și duratele/furnizorii."
+        },
+        "contact": {
+          "title": "6. Contact",
+          "body": "Pentru întrebări despre cookie-uri:",
+          "related": "Pagini conexe: <privacy>Politica de confidențialitate</privacy> și <terms>Termenii de serviciu</terms>"
+        }
+      },
+      "declaration": {
+        "loading": "Se încarcă declarația de cookie-uri..."
+      }
+    },
+    "terms": {
+      "title": "Termeni de serviciu",
+      "sections": {
+        "agreement": {
+          "title": "1. Acceptarea termenilor",
+          "body": "Prin crearea unui cont, accesarea sau utilizarea Monevo, accepți acești Termeni, <privacy>Politica de confidențialitate</privacy> și <cookie>Politica de cookie-uri</cookie>."
+        },
+        "about": {
+          "title": "2. Ce este Monevo (și ce nu este)",
+          "body1": "Monevo este o platformă de educație financiară și suport decizional. Monevo nu este consultant financiar, consilier de investiții, broker sau fiduciary.",
+          "body2": "Vezi <financial>Declinarea de responsabilitate financiară</financial> și <noAdvice>Notificarea privind lipsa sfaturilor financiare</noAdvice>."
+        },
+        "security": {
+          "title": "3. Eligibilitate și securitatea contului",
+          "body": "Trebuie să oferi informații de cont corecte și să-ți păstrezi în siguranță credențialele. Ești responsabil pentru activitatea din contul tău."
+        },
+        "acceptableUse": {
+          "title": "4. Utilizare acceptabilă",
+          "body": "Ești de acord să nu:",
+          "items": {
+            "unlawful": "Folosești serviciul în scopuri ilegale.",
+            "unauthorized": "Încerci acces neautorizat la sisteme sau conturi.",
+            "interfere": "Interferezi cu disponibilitatea serviciului sau controalele de securitate.",
+            "reverse": "Efectuezi inginerie inversă sau abuzezi funcționalitățile platformei."
+          }
+        },
+        "educational": {
+          "title": "5. Conținut educațional și deciziile utilizatorului",
+          "body": "Conținutul este oferit doar în scop educațional general și poate fi incomplet, simplificat, întârziat sau depășit. Ești singurul responsabil pentru deciziile și rezultatele tale financiare."
+        },
+        "subscriptions": {
+          "title": "6. Abonamente, facturare și plăți",
+          "body": "Planurile plătite, intervalele de facturare și funcțiile incluse sunt afișate în prețurile produsului. Plățile sunt procesate de furnizori terți. Dacă nu se menționează altfel, abonamentele se pot reînnoi automat până la anulare."
+        },
+        "thirdParty": {
+          "title": "7. Servicii și linkuri terțe",
+          "body": "Monevo poate integra sau oferi linkuri către servicii terțe. Nu suntem responsabili pentru conținutul, acuratețea, disponibilitatea sau practicile terților."
+        },
+        "ip": {
+          "title": "8. Proprietate intelectuală",
+          "body": "Platforma, brandingul și conținutul original sunt deținute de Monevo sau licențiatori și sunt protejate de legile aplicabile. Primești o licență limitată, neexclusivă și revocabilă pentru utilizarea serviciului în scop personal și legal."
+        },
+        "disclaimers": {
+          "title": "9. Declarații de exonerare",
+          "body": "Serviciul este oferit „ca atare” și „așa cum este disponibil”, fără garanții de niciun fel, exprese sau implicite, inclusiv pentru un anumit scop, disponibilitate neîntreruptă sau funcționare fără erori."
+        },
+        "liability": {
+          "title": "10. Limitarea răspunderii",
+          "body": "În măsura maximă permisă de lege, Monevo și afiliații săi nu sunt răspunzători pentru daune indirecte, incidentale, consecutive, speciale sau punitive, ori pentru pierderi de profit, venit, date, câștiguri din investiții sau oportunități de afaceri rezultate din utilizarea serviciului."
+        },
+        "indemnity": {
+          "title": "11. Despăgubiri",
+          "body": "Ești de acord să despăgubești și să exonerezi Monevo de pretenții, pierderi, răspunderi și cheltuieli rezultate din utilizarea necorespunzătoare a serviciului sau încălcarea acestor termeni."
+        },
+        "termination": {
+          "title": "12. Suspendare și încetare",
+          "body": "Putem suspenda sau înceta accesul dacă avem motive rezonabile să credem că ai încălcat acești termeni, ai creat un risc de securitate sau ai folosit serviciul ilegal."
+        },
+        "changes": {
+          "title": "13. Modificări ale serviciului și termenilor",
+          "body": "Putem actualiza funcțiile produsului și acești termeni din când în când. Utilizarea continuă după actualizări înseamnă că accepți termenii revizuiți."
+        },
+        "law": {
+          "title": "14. Lege aplicabilă și jurisdicție",
+          "body": "Acești termeni sunt guvernați de legile Angliei și Țării Galilor. Instanțele din Anglia și Țara Galilor au jurisdicție exclusivă, cu excepția cazurilor în care legea obligatorie a consumatorului impune altfel."
+        },
+        "contact": {
+          "title": "15. Contact",
+          "body": "Pentru întrebări despre termeni:"
+        }
+      }
+    },
+    "noAdvice": {
+      "title": "Notificare privind lipsa sfaturilor financiare",
+      "intro": "Monevo nu oferă sfaturi financiare, de investiții, fiscale sau juridice.",
+      "sections": {
+        "regulatory": {
+          "title": "Poziționare de reglementare",
+          "items": {
+            "position": "Monevo este poziționat ca platformă de educație financiară și instrument informativ.",
+            "fca": "Monevo nu este autorizat de Autoritatea de Conduită Financiară din Marea Britanie (FCA) să ofere consultanță de investiții reglementată.",
+            "noAdvisor": "Monevo nu acționează ca adviser financiar, consilier de investiții, broker sau fiduciary.",
+            "noRelationship": "Utilizarea Monevo nu creează o relație adviser-client sau fiduciary."
+          }
+        },
+        "infer": {
+          "title": "Ce nu ar trebui să deduci",
+          "items": {
+            "outputs": "Rezultatele instrumentelor, clasamentele, prompturile și scenariile nu sunt recomandări personale.",
+            "workflows": "Fluxurile educaționale nu sunt instrucțiuni pentru a efectua tranzacții sau investiții.",
+            "labels": "Etichete precum „pasul următor” se referă la fluxul de învățare, nu la sfaturi reglementate."
+          }
+        },
+        "professional": {
+          "title": "Sfaturi profesionale",
+          "body": "Dacă ai nevoie de sfaturi adaptate situației tale, discută cu un consilier calificat și autorizat înainte de a lua decizii financiare."
+        },
+        "related": {
+          "title": "Documente conexe",
+          "body": "Consultă <financial>Declinarea de responsabilitate financiară</financial>, <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+        }
+      }
+    }
+  },
+  "lessonSection": {
+    "unsupportedExercise": "Tip de exercițiu nesuportat",
+    "textAria": "Secțiune cu conținut text",
+    "videoAria": "Player video educațional",
+    "completedAria": "Secțiune finalizată",
+    "completed": "Finalizat",
+    "completeAria": "Finalizează exercițiul {{title}}",
+    "completeExercise": "Finalizează exercițiul"
   }
 }

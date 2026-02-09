@@ -22,8 +22,7 @@ const SelectInput = ({
   onChange,
   options,
   helperText,
-  error,
-}: SelectInputProps) => {
+  error }: SelectInputProps) => {
   const describedBy = helperText || error ? `${id}-help` : undefined;
 
   return (

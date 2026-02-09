@@ -40,7 +40,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
         <button
           type="button"
           onClick={primaryCTA.action}
-          className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+          className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
           aria-label={primaryCTA.text}
         >
           {t("dashboard.primaryCta.getStarted")}

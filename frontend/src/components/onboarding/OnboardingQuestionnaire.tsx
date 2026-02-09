@@ -13,8 +13,7 @@ import {
   abandonQuestionnaire,
   type QuestionnaireProgress,
   type NextQuestionResponse,
-  type QuestionnaireQuestion,
-} from "services/questionnaireService";
+  type QuestionnaireQuestion } from "services/questionnaireService";
 import QuestionnaireCompletionModal from "./QuestionnaireCompletionModal";
 import toast from "react-hot-toast";
 import { calculatePercent } from "utils/progress";
@@ -48,12 +47,10 @@ const OnboardingQuestionnaire: React.FC = () => {
     isLoading: isLoadingProgress,
     isError: isProgressError,
     error: progressError,
-    refetch: refetchProgress,
-  } = useQuery<QuestionnaireProgress>({
+    refetch: refetchProgress } = useQuery<QuestionnaireProgress>({
     queryKey: ["questionnaire-progress"],
     queryFn: () => fetchQuestionnaireProgress(),
-    retry: 1,
-  });
+    retry: 1 });
 
   // Fetch next question (also when "abandoned" so user can resume)
   const isProgressActive =
@@ -64,13 +61,11 @@ const OnboardingQuestionnaire: React.FC = () => {
     isLoading: isLoadingQuestion,
     isError: isNextQuestionError,
     error: nextQuestionError,
-    refetch: refetchNextQuestion,
-  } = useQuery<NextQuestionResponse>({
+    refetch: refetchNextQuestion } = useQuery<NextQuestionResponse>({
     queryKey: ["questionnaire-next-question"],
     queryFn: () => fetchNextQuestion(),
     enabled: isProgressActive,
-    retry: 1,
-  });
+    retry: 1 });
 
   // Progress bar: same pattern as CourseFlowPage - completed count / total (from answers count)
   const totalQuestionsDisplay =
@@ -92,8 +87,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       trackEvent("questionnaire_step_view", {
         section_index: nextQuestionData.section_index,
         question_index: nextQuestionData.question_index,
-        question_id: nextQuestionData.question?.id ?? "",
-      });
+        question_id: nextQuestionData.question?.id ?? "" });
     }
   }, [nextQuestionData, trackEvent]);
 
@@ -114,8 +108,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     mutationFn: saveAnswer,
     onSuccess: (updatedProgress: QuestionnaireProgress) => {
       queryClient.setQueryData(["questionnaire-progress"], updatedProgress);
-    },
-  });
+    } });
 
   // Complete questionnaire mutation - redirect with window.location so it always works
   const completeMutation = useMutation({
@@ -129,8 +122,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     },
     onError: (error: { response?: { data?: { error?: string } } }) => {
       toast.error(error.response?.data?.error || t("onboarding.failedToComplete"));
-    },
-  });
+    } });
 
   // Abandon questionnaire mutation
   const abandonMutation = useMutation({
@@ -138,8 +130,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     onSuccess: () => {
       navigate("/all-topics");
       toast.success(t("onboarding.progressSaved"));
-    },
-  });
+    } });
 
   const handleSaveAndFinishLater = useCallback(async () => {
     if (currentQuestion && currentAnswer !== null) {
@@ -150,8 +141,7 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent,
-      });
+        time_spent_seconds: timeSpent });
     }
     await abandonMutation.mutateAsync();
   }, [currentQuestion, currentAnswer, sectionIndex, questionIndex, saveAnswerMutation, abandonMutation]);
@@ -185,15 +175,13 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent,
-      });
+        time_spent_seconds: timeSpent });
 
       trackEvent("questionnaire_answer_submitted", {
         question_id: qId,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent,
-      });
+        time_spent_seconds: timeSpent });
 
       queryClient.invalidateQueries({ queryKey: ["questionnaire-next-question"] });
       await refetchNextQuestion();
@@ -234,8 +222,7 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent,
-      });
+        time_spent_seconds: timeSpent });
       try {
         await completeMutation.mutateAsync(undefined);
       } catch {
@@ -280,15 +267,13 @@ const OnboardingQuestionnaire: React.FC = () => {
           answer: value,
           section_index: sectionIndex,
           question_index: questionIndex,
-          time_spent_seconds: timeSpent,
-        });
+          time_spent_seconds: timeSpent });
 
         trackEvent("questionnaire_answer_submitted", {
           question_id: currentQuestion.id,
           section_index: sectionIndex,
           question_index: questionIndex,
-          time_spent_seconds: timeSpent,
-        });
+          time_spent_seconds: timeSpent });
 
         if (computedIsLastQuestion) {
           try {
@@ -511,7 +496,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     <>
       <section
         className="min-h-screen bg-gradient-to-br from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--primary,#2563eb)]/5 px-4 py-10"
-        aria-label="Onboarding Questionnaire"
+        aria-label={t("onboarding.aria")}
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-8">
           {/* Header */}

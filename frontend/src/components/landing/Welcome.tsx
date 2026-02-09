@@ -27,8 +27,7 @@ function Welcome() {
           // Make the sections below the hero match the hero's neutral dark palette
           // (instead of the default slightly blue-tinted surface).
           "--card-bg": "#15191E",
-          "--input-bg": "#15191E",
-        } as React.CSSProperties
+          "--input-bg": "#15191E" } as React.CSSProperties
       }
     >
       <div className="landing-animated-bg" aria-hidden="true" />

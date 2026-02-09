@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import ToolsPage from "./ToolsPage";
 import { mockNavigate } from "../../test-utils/react-router-dom-mock";
+import i18n from "../../i18n";
 
 const mockToastError = jest.fn();
 
@@ -9,73 +10,44 @@ jest.mock("react-hot-toast", () => ({
   __esModule: true,
   default: {
     error: (...args: unknown[]) => mockToastError(...args),
-    success: jest.fn(),
-  },
-}));
+    success: jest.fn() } }));
 
 jest.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
     isAuthenticated: true,
     financialProfile: null,
     profile: {
-      user_data: { primary_goal: "saving" },
-    },
-  }),
-}));
+      user_data: { primary_goal: "saving" } } }) }));
 
 jest.mock("./toolsRegistry", () => {
   const React = require("react");
   const toolsRegistry = [
     {
       id: "calendar",
-      title: "Economic Calendar",
-      description: "Track macro events with context",
-      promise: "Understand how events affect your money.",
-      mostUsefulFor: "Anyone following inflation and rates.",
       group: "understand-world",
       route: "calendar",
       component: () => React.createElement("div", null, "Calendar Tool"),
-      whatItDoes: "Shows key events.",
-      sampleUseCase: "Check CPI timing.",
-      whoItsFor: "Learners",
-      questionItAnswers: "What matters this week?",
       learnPath: "/all-topics?topic=macro",
       exportable: false,
-      keywords: ["calendar"],
-    },
+      keywords: ["calendar"] },
     {
       id: "portfolio",
-      title: "Portfolio Analyzer",
-      description: "Analyze your portfolio",
-      promise: "See if your portfolio matches your goals.",
-      mostUsefulFor: "Investors reviewing allocations.",
       group: "understand-myself",
       route: "portfolio",
       component: () => React.createElement("div", null, "Portfolio Tool"),
-      whatItDoes: "Breaks down holdings.",
-      sampleUseCase: "Review concentration.",
-      whoItsFor: "Investors",
-      questionItAnswers: "Is my portfolio aligned?",
       learnPath: "/all-topics?topic=investing",
       exportable: true,
-      keywords: ["portfolio"],
-    },
+      keywords: ["portfolio"] },
   ];
   const toolGroups = [
     {
       id: "understand-world",
-      title: "Understand the World",
       image: "https://example.com/world.jpg",
-      imageAlt: "World",
-      tools: [toolsRegistry[0]],
-    },
+      tools: [toolsRegistry[0]] },
     {
       id: "understand-myself",
-      title: "Understand Myself",
       image: "https://example.com/myself.jpg",
-      imageAlt: "Myself",
-      tools: [toolsRegistry[1]],
-    },
+      tools: [toolsRegistry[1]] },
   ];
   const toolByRoute = new Map(
     toolsRegistry.map((tool) => [tool.route, tool])
@@ -83,15 +55,13 @@ jest.mock("./toolsRegistry", () => {
   const TOOL_STORAGE_KEYS = {
     lastTool: "monevo:tools:last-tool",
     sessionId: "monevo:tools:session-id",
-    navSource: "monevo:tools:last-source",
-  };
+    navSource: "monevo:tools:last-source" };
 
   return {
     toolsRegistry,
     toolGroups,
     toolByRoute,
-    TOOL_STORAGE_KEYS,
-  };
+    TOOL_STORAGE_KEYS };
 });
 
 describe("ToolsPage", () => {
@@ -104,17 +74,21 @@ describe("ToolsPage", () => {
 
   test("renders the tools hub with categories", () => {
     render(<ToolsPage />);
-    expect(screen.getAllByText("Understand the World").length).toBeGreaterThan(
-      0
-    );
-    expect(screen.getAllByText("Understand Myself").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(i18n.t("tools.groups.understand-world.title")).length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(i18n.t("tools.groups.understand-myself.title")).length
+    ).toBeGreaterThan(0);
   });
 
   test("shows continue tile when last tool exists", () => {
     sessionStorage.setItem("monevo:tools:last-tool", "portfolio");
     render(<ToolsPage />);
-    expect(screen.getByText("Continue where you left off")).toBeInTheDocument();
-    expect(screen.getAllByText("Portfolio Analyzer").length).toBeGreaterThan(0);
+    expect(screen.getByText(i18n.t("tools.hub.continueTitle"))).toBeInTheDocument();
+    expect(
+      screen.getAllByText(i18n.t("tools.entries.portfolio.title")).length
+    ).toBeGreaterThan(0);
   });
 
   test("redirects unknown tool routes to hub", () => {

@@ -4,8 +4,7 @@ import React, {
   useReducer,
   useCallback,
   useMemo,
-  useRef,
-} from "react";
+  useRef } from "react";
 import apiClient from "services/httpClient";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
@@ -15,8 +14,7 @@ import toast from "react-hot-toast";
 import {
   getOfflineQueue,
   removeFromQueue,
-  isOnline,
-} from "services/offlineQueue";
+  isOnline } from "services/offlineQueue";
 import { useTranslation } from "react-i18next";
 
 const initialState = {
@@ -24,8 +22,7 @@ const initialState = {
   weeklyMissions: [],
   virtualBalance: 0,
   loading: true,
-  error: null,
-};
+  error: null };
 
 function reducer(state, action) {
   switch (action.type) {
@@ -69,8 +66,8 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
               {"\u00A3"}{amount}
               <span className="coin-label mt-1 text-xs font-medium">
                 {unlocked
-                  ? t("missions.savings.unlocked", { defaultValue: "Unlocked" })
-                  : t("missions.savings.locked", { defaultValue: "Locked" })}
+                  ? t("missions.savings.unlocked")
+                  : t("missions.savings.locked")}
               </span>
             </div>
           );
@@ -79,10 +76,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
       {balance < target && (
         <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#2563eb)]">
           {t("missions.savings.nextCoin", {
-            defaultValue:
-              "Save £{{amount}} more to unlock the next coin!",
-            amount: coinUnit - (balance % coinUnit),
-          })}
+            amount: coinUnit - (balance % coinUnit) })}
         </div>
       )}
     </GlassCard>
@@ -106,17 +100,12 @@ function FactCard({ fact, onMarkRead }) {
             onClick={onMarkRead}
             className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-xl hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
           >
-            {t("missions.facts.markRead", {
-              defaultValue: "✓ Mark as Read",
-            })}
+            {t("missions.facts.markRead")}
           </button>
         </div>
       ) : (
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("missions.facts.empty", {
-            defaultValue:
-              "No new financial facts available right now - check back soon!",
-          })}
+          {t("missions.facts.empty")}
         </p>
       )}
     </GlassCard>
@@ -150,13 +139,10 @@ function Missions() {
       const response = await apiClient.get("/missions/");
       dispatch({
         type: "setDailyMissions",
-        payload: response.data.daily_missions || [],
-      });
+        payload: response.data.daily_missions || [] });
     } catch (error) {
       setErrorMessage(
-        t("missions.errors.refreshLesson", {
-          defaultValue: "Failed to refresh lesson mission.",
-        })
+        t("missions.errors.refreshLesson")
       );
     }
   }, [getAccessToken, t]);
@@ -167,12 +153,10 @@ function Missions() {
       const response = await apiClient.get("/missions/");
       dispatch({
         type: "setDailyMissions",
-        payload: response.data.daily_missions || [],
-      });
+        payload: response.data.daily_missions || [] });
       dispatch({
         type: "setWeeklyMissions",
-        payload: response.data.weekly_missions || [],
-      });
+        payload: response.data.weekly_missions || [] });
 
       const allMissions = [
         ...(response.data.daily_missions || []),
@@ -198,15 +182,12 @@ function Missions() {
           // Only show toast if mission just became completed (transition from not-completed to completed)
           if (isNowCompleted && !wasPreviouslyCompleted) {
             const announcement = t("missions.toast.completed", {
-              defaultValue: "Completed {{name}} (+{{xp}} XP)",
               name: mission.name,
-              xp: mission.points_reward,
-            });
+              xp: mission.points_reward });
             setCelebrationMessage(announcement);
             toast.success(announcement, {
               icon: "🎉",
-              duration: 3000,
-            });
+              duration: 3000 });
             completedMissionsRef.current.add(mission.id);
           }
 
@@ -225,9 +206,7 @@ function Missions() {
       });
     } catch (error) {
       setErrorMessage(
-        t("missions.errors.loadMissions", {
-          defaultValue: "Failed to load missions. Please try again.",
-        })
+        t("missions.errors.loadMissions")
       );
     } finally {
       dispatch({ type: "setLoading", payload: false });
@@ -240,9 +219,7 @@ function Missions() {
       dispatch({ type: "setVirtualBalance", payload: response.data.balance });
     } catch (error) {
       setErrorMessage(
-        t("missions.errors.loadSavings", {
-          defaultValue: "Failed to load savings balance.",
-        })
+        t("missions.errors.loadSavings")
       );
     }
   }, [getAccessToken, t]);
@@ -280,17 +257,14 @@ function Missions() {
           hints_used: item.hints_used,
           attempts: item.attempts,
           mastery_bonus: item.mastery_bonus,
-          completion_time_seconds: item.completion_time_seconds,
-        });
+          completion_time_seconds: item.completion_time_seconds });
 
         removeFromQueue(item.idempotency_key);
         toast.success(
           t("missions.toast.synced", {
-            defaultValue: "Synced: {{name}} completed!",
             name:
               item.mission_name ||
-              t("missions.missionFallback", { defaultValue: "Mission" }),
-          })
+              t("missions.missionFallback") })
         );
       } catch (error) {
         // Keep in queue if sync fails
@@ -304,14 +278,11 @@ function Missions() {
     async (missionId) => {
       try {
         const response = await apiClient.post("/missions/swap/", {
-          mission_id: missionId,
-        });
+          mission_id: missionId });
 
         toast.success(
           response.data?.message ||
-            t("missions.toast.swapSuccess", {
-              defaultValue: "Mission swapped successfully!",
-            })
+            t("missions.toast.swapSuccess")
         );
         setCanSwap(false);
         await fetchMissions();
@@ -321,13 +292,10 @@ function Missions() {
           error.response?.data?.error ||
           error.response?.data?.message ||
           error.message ||
-          t("missions.errors.swapFailed", {
-            defaultValue: "Failed to swap mission. Please try again.",
-          });
+          t("missions.errors.swapFailed");
 
         toast.error(errorMessage, {
-          duration: 4000,
-        });
+          duration: 4000 });
 
         // If user has already swapped today, disable the swap button
         if (
@@ -366,13 +334,10 @@ function Missions() {
           level,
           suggestedSavingsTarget:
             level === "advanced" ? 50 : level === "intermediate" ? 25 : 10,
-          learningStyle,
-        });
+          learningStyle });
       } catch (error) {
         setErrorMessage(
-          t("missions.errors.loadInsights", {
-            defaultValue: "Failed to load profile insights.",
-          })
+          t("missions.errors.loadInsights")
         );
       }
     };
@@ -423,15 +388,12 @@ function Missions() {
     if (!currentFact) return;
     try {
       await apiClient.post("/finance-fact/", {
-        fact_id: currentFact.id,
-      });
+        fact_id: currentFact.id });
       await loadNewFact();
       await fetchMissions();
     } catch (error) {
       setErrorMessage(
-        t("missions.errors.markFact", {
-          defaultValue: "Failed to mark fact as read.",
-        })
+        t("missions.errors.markFact")
       );
     }
   };
@@ -441,9 +403,7 @@ function Missions() {
     const amount = parseFloat(savingsAmount);
     if (Number.isNaN(amount) || amount <= 0) {
       alert(
-        t("missions.errors.validAmount", {
-          defaultValue: "Please enter a valid amount.",
-        })
+        t("missions.errors.validAmount")
       );
       return;
     }
@@ -454,9 +414,7 @@ function Missions() {
       await fetchMissions();
     } catch (error) {
       setErrorMessage(
-        t("missions.errors.addSavings", {
-          defaultValue: "Failed to add savings. Please try again.",
-        })
+        t("missions.errors.addSavings")
       );
     }
   };
@@ -480,28 +438,15 @@ function Missions() {
   const purposeStatement = (mission) => {
     switch (mission.goal_type) {
       case "complete_lesson":
-        return t("missions.purpose.completeLesson", {
-          defaultValue:
-            "Building lesson momentum strengthens recall and keeps your streak alive.",
-        });
+        return t("missions.purpose.completeLesson");
       case "add_savings":
-        return t("missions.purpose.addSavings", {
-          defaultValue:
-            "Adding to your savings jar nudges you closer to your emergency fund.",
-        });
+        return t("missions.purpose.addSavings");
       case "read_fact":
-        return t("missions.purpose.readFact", {
-          defaultValue:
-            "Quick money facts sharpen your intuition for smarter choices.",
-        });
+        return t("missions.purpose.readFact");
       case "complete_path":
-        return t("missions.purpose.completePath", {
-          defaultValue: "Finishing a path cements mastery across related skills.",
-        });
+        return t("missions.purpose.completePath");
       default:
-        return t("missions.purpose.default", {
-          defaultValue: "Completing this mission keeps your learning loop tight.",
-        });
+        return t("missions.purpose.default");
     }
   };
 
@@ -547,35 +492,22 @@ function Missions() {
     const progressLabel =
       mission.goal_type === "read_fact" && !isDaily
         ? t("missions.progress.factsCount", {
-            defaultValue: "{{count}}/5 Facts",
-            count: Math.floor(mission.progress / 20),
-          })
+            count: Math.floor(mission.progress / 20) })
         : t("missions.progress.percent", {
-            defaultValue: "{{value}}%",
-            value: progressPercent,
-          });
+            value: progressPercent });
 
     const progressDetail =
       mission.goal_type === "read_fact" && isDaily
-        ? t("missions.progress.readOneFact", {
-            defaultValue: "Read one fact to complete",
-          })
+        ? t("missions.progress.readOneFact")
         : mission.goal_type === "read_fact"
           ? t("missions.progress.factsRemaining", {
-              defaultValue: "{{count}} of 5 facts remaining",
-              count: 5 - Math.floor(mission.progress / 20),
-            })
+              count: 5 - Math.floor(mission.progress / 20) })
           : mission.goal_type === "complete_lesson"
             ? t("missions.progress.lessonTarget", {
-                defaultValue:
-                  "{{value}}% of your {{lessons}}-lesson target",
                 value: progressPercent,
-                lessons: getLessonRequirement(mission),
-              })
+                lessons: getLessonRequirement(mission) })
             : t("missions.progress.complete", {
-                defaultValue: "{{value}}% complete",
-                value: progressPercent,
-              });
+                value: progressPercent });
 
     const completedLessons =
       mission.goal_type === "complete_lesson"
@@ -607,21 +539,21 @@ function Missions() {
               </h3>
               <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
                 {isDaily
-                  ? t("missions.badge.daily", { defaultValue: "Daily" })
-                  : t("missions.badge.weekly", { defaultValue: "Weekly" })}
+                  ? t("missions.badge.daily")
+                  : t("missions.badge.weekly")}
               </span>
             </div>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {mission.description}
             </p>
             <p className="text-xs font-semibold text-[color:var(--accent,#2563eb)]">
-              {t("missions.why", { defaultValue: "Why this matters:" })}{" "}
+              {t("missions.why")}{" "}
               {purposeStatement(mission)}
             </p>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                 <span>
-                  {t("missions.progress.label", { defaultValue: "Progress" })}
+                  {t("missions.progress.label")}
                 </span>
                 <span className="text-[color:var(--accent,#111827)]">
                   {progressLabel}
@@ -634,9 +566,7 @@ function Missions() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={t("missions.progress.aria", {
-                  defaultValue: "Mission progress: {{value}}%",
-                  value: progressPercent,
-                })}
+                  value: progressPercent })}
               >
                 <div
                   className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width] duration-500 ease-out"
@@ -645,20 +575,15 @@ function Missions() {
               </div>
               <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                 {isCompleted
-                  ? t("missions.progress.completed", {
-                      defaultValue: "Completed! 🎉",
-                    })
+                  ? t("missions.progress.completed")
                   : progressDetail}
               </p>
               {completedLessons !== null && (
                 <p className="text-[0.7rem] text-[color:var(--muted-text,#6b7280)]">
                   {t("missions.progress.levelTarget", {
-                    defaultValue:
-                      "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}.",
                     lessons: getLessonRequirement(mission),
                     plural: getLessonRequirement(mission) !== 1 ? "s" : "",
-                    completed: completedLessons,
-                  })}
+                    completed: completedLessons })}
                 </p>
               )}
             </div>
@@ -668,17 +593,12 @@ function Missions() {
             <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-700 shadow-inner shadow-emerald-500/20">
               <div className="flex items-center justify-between font-semibold">
                 <span>
-                  {t("missions.complete.title", {
-                    defaultValue: "Mission complete",
-                  })}
+                  {t("missions.complete.title")}
                 </span>
                 <span>+{mission.points_reward} XP</span>
               </div>
               <p className="text-[color:var(--muted-text,#047857)]">
-                {t("missions.complete.subtitle", {
-                  defaultValue:
-                    "Great work! Keep the momentum to unlock streak and leaderboard boosts.",
-                })}
+                {t("missions.complete.subtitle")}
               </p>
             </div>
           ) : (
@@ -689,13 +609,9 @@ function Missions() {
                   onClick={() => handleMissionSwap(mission.id)}
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                   aria-label={t("missions.swap.aria", {
-                    defaultValue: "Swap mission: {{name}}",
-                    name: mission.name,
-                  })}
+                    name: mission.name })}
                 >
-                  {t("missions.swap.label", {
-                    defaultValue: "🔄 Swap Mission",
-                  })}
+                  {t("missions.swap.label")}
                 </button>
               )}
               {mission.goal_type === "add_savings" && (
@@ -709,12 +625,8 @@ function Missions() {
                     className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                   >
                     {showSavingsMenu
-                      ? t("missions.savings.hideJar", {
-                          defaultValue: "Hide Savings Jar",
-                        })
-                      : t("missions.savings.showJar", {
-                          defaultValue: "Show Savings Jar",
-                        })}
+                      ? t("missions.savings.hideJar")
+                      : t("missions.savings.showJar")}
                   </button>
                   {showSavingsMenu && (
                     <div className="space-y-4">
@@ -724,10 +636,7 @@ function Missions() {
                         target={isDaily ? 10 : 100}
                       />
                       <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                        {t("missions.savings.suggestedNote", {
-                          defaultValue:
-                            "Suggested deposit is prefilled to unlock your next coin faster.",
-                        })}
+                        {t("missions.savings.suggestedNote")}
                       </p>
                       <form
                         onSubmit={handleSavingsSubmit}
@@ -741,12 +650,8 @@ function Missions() {
                           }
                           placeholder={
                             isDaily
-                              ? t("missions.savings.placeholderDaily", {
-                                  defaultValue: "Enter amount (e.g., £1)",
-                                })
-                              : t("missions.savings.placeholderWeekly", {
-                                  defaultValue: "Enter amount (e.g., £10)",
-                                })
+                              ? t("missions.savings.placeholderDaily")
+                              : t("missions.savings.placeholderWeekly")
                           }
                           className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-white px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                           disabled={isDaily && isCompleted}
@@ -757,12 +662,8 @@ function Missions() {
                           className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-xl hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {isDaily && isCompleted
-                            ? t("missions.savings.savedToday", {
-                                defaultValue: "Saved Today",
-                              })
-                            : t("missions.savings.add", {
-                                defaultValue: "Add to Savings",
-                              })}
+                            ? t("missions.savings.savedToday")
+                            : t("missions.savings.add")}
                         </button>
                       </form>
                     </div>
@@ -779,9 +680,7 @@ function Missions() {
                       onClick={loadNewFact}
                       className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-4 py-2 text-xs font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                     >
-                      {t("missions.facts.tryAgain", {
-                        defaultValue: "↻ Try Again",
-                      })}
+                      {t("missions.facts.tryAgain")}
                     </button>
                   )}
                 </div>
@@ -798,13 +697,10 @@ function Missions() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-            {t("missions.header.title", { defaultValue: "Daily Missions" })}
+            {t("missions.header.title")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("missions.header.subtitle", {
-              defaultValue:
-                "Complete focused challenges to earn rewards and strengthen your financial habits.",
-            })}
+            {t("missions.header.subtitle")}
           </p>
         </header>
 
@@ -815,25 +711,17 @@ function Missions() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("missions.summary.title", {
-                  defaultValue: "Progress at a glance",
-                })}
+                {t("missions.summary.title")}
               </p>
               <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {t("missions.summary.remaining", {
-                  defaultValue:
-                    "{{count}} mission{{plural}} left today",
                   count: missionsRemaining,
-                  plural: missionsRemaining === 1 ? "" : "s",
-                })}
+                  plural: missionsRemaining === 1 ? "" : "s" })}
               </p>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                 {t("missions.summary.xp", {
-                  defaultValue:
-                    "{{earned}} XP earned · {{remaining}} XP still on the table",
                   earned: dailyXpEarned,
-                  remaining: dailyXpRemaining,
-                })}
+                  remaining: dailyXpRemaining })}
               </p>
               {isOffline && (
                 <p
@@ -841,40 +729,30 @@ function Missions() {
                   role="status"
                   aria-live="polite"
                 >
-                  {t("missions.summary.offline", {
-                    defaultValue:
-                      "⚠️ Offline mode - missions will sync when you're back online",
-                  })}
+                  {t("missions.summary.offline")}
                 </p>
               )}
               {adaptiveSuggestions && (
                 <p className="mt-2 text-xs text-[color:var(--accent,#2563eb)]">
                   {t("missions.summary.suggestedSavings", {
-                    defaultValue:
-                      "💡 Suggested savings target: £{{amount}} (based on your {{level}} level)",
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
-                    level: adaptiveSuggestions.level,
-                  })}
+                    level: adaptiveSuggestions.level })}
                 </p>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent,#111827)] md:text-right">
               <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("missions.summary.streak", { defaultValue: "Streak" })}
+                  {t("missions.summary.streak")}
                 </p>
                 <p className="text-base font-semibold">
                   {t("missions.summary.streakDays", {
-                    defaultValue: "{{count}} days",
-                    count: streakCount,
-                  })}
+                    count: streakCount })}
                 </p>
               </div>
               <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("missions.summary.totalXp", {
-                    defaultValue: "Total XP today",
-                  })}
+                  {t("missions.summary.totalXp")}
                 </p>
                 <p className="text-base font-semibold">
                   {dailyXpEarned} / {dailyXpTotal}
@@ -890,10 +768,8 @@ function Missions() {
                   className="rounded-full border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#2563eb)]"
                   role="status"
                   aria-label={t("missions.streakItemAria", {
-                    defaultValue: "{{type}}: {{quantity}} available",
                     type: item.type,
-                    quantity: item.quantity,
-                  })}
+                    quantity: item.quantity })}
                 >
                   {item.type === "streak_freeze" ? "❄️" : "⚡"} {item.quantity}x
                 </div>
@@ -917,9 +793,7 @@ function Missions() {
         {state.loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader
-              message={t("missions.loading", {
-                defaultValue: "Loading missions...",
-              })}
+              message={t("missions.loading")}
             />
           </div>
         ) : (
@@ -940,31 +814,21 @@ function Missions() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                      {t("missions.wrapup.title", {
-                        defaultValue: "Daily mission wrap-up",
-                      })}
+                      {t("missions.wrapup.title")}
                     </p>
                     <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
                       {t("missions.wrapup.earned", {
-                        defaultValue: "You banked {{xp}} XP today",
-                        xp: dailyXpEarned,
-                      })}
+                        xp: dailyXpEarned })}
                     </p>
                     <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                       {t("missions.wrapup.streakReview", {
-                        defaultValue:
-                          "Streak: {{days}} day{{plural}} · Review due: {{review}}",
                         days: streakCount,
                         plural: streakCount === 1 ? "" : "s",
-                        review: reviewDue,
-                      })}
+                        review: reviewDue })}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)] shadow-[color:var(--accent,#2563eb)]/20">
-                    {t("missions.wrapup.cta", {
-                      defaultValue:
-                        "Keep going! Weekly missions and reviews will boost mastery next.",
-                    })}
+                    {t("missions.wrapup.cta")}
                   </div>
                 </div>
               </GlassCard>
@@ -973,9 +837,7 @@ function Missions() {
             {state.weeklyMissions.length > 0 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-semibold text-[color:var(--accent,#111827)]">
-                  {t("missions.weekly.title", {
-                    defaultValue: "Weekly Missions",
-                  })}
+                  {t("missions.weekly.title")}
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   {state.weeklyMissions.map((mission, index) => (

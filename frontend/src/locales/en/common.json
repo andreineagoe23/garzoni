@@ -33,7 +33,8 @@
     "toast": {
       "xpGained": "+{{count}} XP",
       "skillsImproved_one": "{{count}} skill improved",
-      "skillsImproved_other": "{{count}} skills improved"
+      "skillsImproved_other": "{{count}} skills improved",
+      "skillsImproved": "Skills improved"
     },
     "cta": {
       "doReviews": "Do Reviews",
@@ -45,7 +46,9 @@
       "missionsAvailable_one": "{{count}} mission available",
       "missionsAvailable_other": "{{count}} missions available",
       "continueWhereLeftOff": "Continue where you left off",
-      "continueLearningReason": "Continue your learning journey"
+      "continueLearningReason": "Continue your learning journey",
+      "missionsAvailable": "Missions available",
+      "reviewsDue": "Reviews due"
     },
     "resume": {
       "title": "Pick up where you left off",
@@ -252,7 +255,9 @@
       "backToHub": "Back to tools hub →",
       "feedback": "Feedback",
       "resetTool": "Reset tool",
-      "export": "Export"
+      "export": "Export",
+      "feedbackSubject": "Tool feedback - {{tool}}",
+      "feedbackBody": "What happened?\n\nWhere did it happen?\n{{url}}"
     },
     "toast": {
       "reset": "Tool reset."
@@ -273,18 +278,90 @@
       "hubLink": "Tools hub"
     },
     "groups": {
-      "understand-world": { "title": "Understand the World", "imageAlt": "Global economy and markets" },
-      "understand-myself": { "title": "Understand Myself", "imageAlt": "Personal finance and goals" },
-      "decide-next": { "title": "Plan What to Learn", "imageAlt": "Learning plan and next steps" }
+      "understand-world": {
+        "title": "Understand the World",
+        "imageAlt": "Global economy and markets"
+      },
+      "understand-myself": {
+        "title": "Understand Myself",
+        "imageAlt": "Personal finance and goals"
+      },
+      "decide-next": {
+        "title": "Plan What to Learn",
+        "imageAlt": "Learning plan and next steps"
+      }
     },
     "entries": {
-      "portfolio": { "title": "Portfolio Analyzer", "promise": "See if your portfolio matches your goals and risk comfort." },
-      "reality-check": { "title": "Savings & Goals Reality Check", "promise": "Get a realistic saving range without false precision." },
-      "calendar": { "title": "Economic Calendar", "promise": "Understand how big economic events affect your money." },
-      "economic-map": { "title": "Economic Map", "promise": "See macro changes around the world in one glance." },
-      "news-context": { "title": "News & Market Context", "promise": "Turn headlines into simple, personal takeaways." },
-      "market-explorer": { "title": "Market Explorer", "promise": "Scan major markets with simple, long-term framing." },
-      "next-steps": { "title": "What Should I Learn Next?", "promise": "Get 1-3 focused learning suggestions for your next step." }
+      "portfolio": {
+        "title": "Portfolio Analyzer",
+        "promise": "See if your portfolio matches your goals and risk comfort.",
+        "description": "Analyze and optimize your investment portfolio",
+        "mostUsefulFor": "Anyone already investing or thinking about reallocating.",
+        "whatItDoes": "Breaks down holdings, performance, and allocation in one view.",
+        "sampleUseCase": "Check if your portfolio is too concentrated in one asset.",
+        "whoItsFor": "Investors who want clarity on risk, concentration, and balance.",
+        "questionItAnswers": "Is my portfolio aligned with my goals and risk comfort?"
+      },
+      "reality-check": {
+        "title": "Savings & Goals Reality Check",
+        "promise": "Get a realistic saving range without false precision.",
+        "description": "See if your goals are realistic for your income and costs",
+        "mostUsefulFor": "People with a goal and uncertain monthly cash flow.",
+        "whatItDoes": "Turns a goal into a realistic saving range and feasibility check.",
+        "sampleUseCase": "Plan a $6k emergency fund in 12 months without guesswork.",
+        "whoItsFor": "Anyone who wants an honest view of what's achievable.",
+        "questionItAnswers": "Can I actually hit this goal with my current cash flow?"
+      },
+      "calendar": {
+        "title": "Economic Calendar",
+        "promise": "Understand how big economic events affect your money.",
+        "description": "Track macro events with context, not just dates",
+        "mostUsefulFor": "Anyone trying to make sense of inflation and rates.",
+        "whatItDoes": "Shows key economic events and explains why they matter.",
+        "sampleUseCase": "See how CPI or rate decisions could affect savings rates.",
+        "whoItsFor": "Anyone trying to understand the bigger picture.",
+        "questionItAnswers": "What's happening in the economy and why should I care?"
+      },
+      "economic-map": {
+        "title": "Economic Map",
+        "promise": "See macro changes around the world in one glance.",
+        "description": "Live global economic data visualized on a map",
+        "mostUsefulFor": "Anyone tracking global macro trends.",
+        "whatItDoes": "Displays economic indicators on a world map.",
+        "sampleUseCase": "Check regional trends before reading the news.",
+        "whoItsFor": "People who want a global macro view.",
+        "questionItAnswers": "Where are economic shifts happening right now?"
+      },
+      "news-context": {
+        "title": "News & Market Context",
+        "promise": "Turn headlines into simple, personal takeaways.",
+        "description": "Curated finance news with plain-English meaning",
+        "mostUsefulFor": "People who want news without panic or hype.",
+        "whatItDoes": "Summarizes what headlines mean for everyday money decisions.",
+        "sampleUseCase": "See how a rate cut impacts loans or savings.",
+        "whoItsFor": "People who want news without the noise.",
+        "questionItAnswers": "What does this headline mean for me?"
+      },
+      "market-explorer": {
+        "title": "Market Explorer",
+        "promise": "Scan major markets with simple, long-term framing.",
+        "description": "Explore stocks, ETFs, crypto, and indices in one view",
+        "mostUsefulFor": "Curious learners exploring markets for the first time.",
+        "whatItDoes": "Lets you explore markets while surfacing volatility warnings.",
+        "sampleUseCase": "Compare S&P 500 vs bonds before making a decision.",
+        "whoItsFor": "Learners deciding what to explore next.",
+        "questionItAnswers": "What markets should I look at, and with what caution?"
+      },
+      "next-steps": {
+        "title": "What Should I Learn Next?",
+        "promise": "Get 1-3 focused learning suggestions for your next step.",
+        "description": "Personalized learning suggestions based on your progress",
+        "mostUsefulFor": "Anyone who wants a clear learning next move.",
+        "whatItDoes": "Suggests 1-3 focused learning actions based on your activity.",
+        "sampleUseCase": "Get a short list of learning and tool steps that matter.",
+        "whoItsFor": "Anyone who wants clear, prioritized learning next steps.",
+        "questionItAnswers": "What should I learn next right now?"
+      }
     },
     "realityCheck": {
       "activityLabel": "Checked goal feasibility",
@@ -390,8 +467,7 @@
       "monthly": "Monthly",
       "daily": "Daily",
       "calculate": "Calculate",
-      "finalSavings": "Final Savings"
-      ,
+      "finalSavings": "Final Savings",
       "activityPrefix": "Goal"
     },
     "portfolio": {
@@ -475,6 +551,111 @@
         "gain": "a gain",
         "loss": "a loss"
       }
+    },
+    "calendarEmbed": {
+      "title": "Economic Calendar",
+      "subtitle": "Stay updated with important economic events and news",
+      "iframeTitle": "Economic Calendar",
+      "fallback": "Economic calendar by <provider>Investing.com</provider>. If the calendar doesn't load above, <open>open it in a new tab</open>.",
+      "activityLabel": "Viewed upcoming events"
+    },
+    "calendar": {
+      "activityLabel": "Checked macro events",
+      "impactFilter": {
+        "title": "Impact filter",
+        "subtitle": "High-impact events only by default.",
+        "showAll": "Show all events",
+        "hideLow": "Hide low-impact events"
+      },
+      "errors": {
+        "loadFailed": "Calendar failed to load.",
+        "loadFailedHelp": "Try disabling ad blockers or content blockers for this site, or open the calendar in a new tab.",
+        "openNewTab": "Open calendar in new tab"
+      },
+      "loading": "Loading the economic calendar…",
+      "fallback": "Economic calendar by <provider>TradingView</provider>. If it doesn't load, <open>open it in a new tab</open>.",
+      "relevant": "Relevant to you",
+      "why": "Why this matters:",
+      "who": "Who should care:",
+      "affects": "What it affects:",
+      "learnMore": "Learn more →",
+      "explainers": {
+        "inflation": {
+          "label": "CPI / Inflation",
+          "difficulty": "Beginner",
+          "why": "Signals rising prices that reduce purchasing power.",
+          "who": "Savers, borrowers, and anyone with a budget.",
+          "affects": "Savings rates, loan costs, everyday prices."
+        },
+        "rates": {
+          "label": "Central Bank Rates",
+          "difficulty": "Beginner",
+          "why": "Sets the baseline for borrowing and saving costs.",
+          "who": "Anyone with loans, mortgages, or savings accounts.",
+          "affects": "Mortgages, credit cards, savings yields."
+        },
+        "jobs": {
+          "label": "Jobs Report",
+          "difficulty": "Intermediate",
+          "why": "Shows labor strength which drives spending power.",
+          "who": "Workers, job seekers, investors.",
+          "affects": "Wages, consumer demand, rate decisions."
+        },
+        "gdp": {
+          "label": "GDP Growth",
+          "difficulty": "Intermediate",
+          "why": "Measures overall economic expansion or contraction.",
+          "who": "Investors and business owners.",
+          "affects": "Market sentiment, hiring, investment plans."
+        },
+        "retail": {
+          "label": "Retail Sales",
+          "difficulty": "Intermediate",
+          "why": "Highlights consumer spending trends.",
+          "who": "Budgeters and market observers.",
+          "affects": "Company earnings, inflation outlook."
+        },
+        "housing": {
+          "label": "Housing Data",
+          "difficulty": "Advanced",
+          "why": "Reflects affordability and credit conditions.",
+          "who": "Home buyers, renters, and lenders.",
+          "affects": "Mortgage rates, rents, construction jobs."
+        }
+      }
+    },
+    "crypto": {
+      "title": "Cryptocurrency Trading",
+      "subtitle": "Track and analyze cryptocurrency prices",
+      "errors": {
+        "loadFailed": "Chart failed to load.",
+        "loadFailedHelp": "Try disabling ad blockers or content blockers for this site, or open TradingView in a new tab.",
+        "openNewTab": "Open TradingView in new tab"
+      },
+      "tradingViewLabel": "TradingView Chart"
+    },
+    "sandbox": {
+      "activityLabel": "{{years}} yrs @ {{rate}}%",
+      "title": "Financial Sandbox",
+      "subtitle": "Experiment with contribution amounts, time horizons, and expected annual returns without touching your tracked data.",
+      "monthlyContribution": "Monthly Contribution",
+      "years": "Years",
+      "averageReturn": "Average Return (%)",
+      "startProjection": "Start Projection",
+      "tryThis": "Try this",
+      "tip1": "Double your monthly contribution and compare outcomes",
+      "tip2": "Increase the horizon to 15+ years to see compounding",
+      "tip3": "Lower the return rate to stress-test projections",
+      "projectedValue": "Projected Value in {{years}} year",
+      "projectedValue_one": "Projected Value in {{years}} year",
+      "projectedValue_other": "Projected Value in {{years}} years"
+    },
+    "forex": {
+      "title": "Forex Pip & Position Calculator",
+      "subtitle": "Calculate pip values and position sizes for your forex pairs",
+      "iframeTitle": "Forex Pip Calculator",
+      "fallback": "Calculator by <provider>Investing.com</provider>. If it doesn't load above, <open>open it in a new tab</open>.",
+      "activityLabel": "Viewed forex calculator"
     }
   },
   "missions": {
@@ -714,7 +895,8 @@
       "subtitle": "Share your link and earn rewards when friends join.",
       "linkLabel": "Your unique referral link",
       "copied": "Copied!",
-      "copyLink": "Copy Link"
+      "copyLink": "Copy Link",
+      "linkAria": "Referral link"
     },
     "stats": {
       "title": "Statistics",
@@ -786,7 +968,8 @@
       "streak_other": "Days Streak",
       "learningProgress": "Learning Progress",
       "overallCompletion": "Overall Completion",
-      "pathProgress": "Path Progress"
+      "pathProgress": "Path Progress",
+      "streak": "streak"
     }
   },
   "chatbot": {
@@ -1080,7 +1263,8 @@
       "coins": "Coins",
       "choosePlan": "Choose a Plan →",
       "close": "Close"
-    }
+    },
+    "aria": "Onboarding Questionnaire"
   },
   "footer": {
     "tagline": "Learn money skills with lessons, missions, and practice.",
@@ -1105,7 +1289,8 @@
     "copyright": "© {{year}} Monevo. All rights reserved.",
     "infoDisclaimer": "Information is educational and general, not personalized financial advice.",
     "buyMeACoffee": "Buy me a coffee",
-    "monevoOn": "Monevo on {{platform}}"
+    "monevoOn": "Monevo on {{platform}}",
+    "ariaLabel": "Site footer"
   },
   "header": {
     "premiumReady": "Premium Ready",
@@ -1113,9 +1298,6 @@
     "openDashboard": "Open Dashboard",
     "login": "Login",
     "getStarted": "Get Started"
-  },
-  "shared": {
-    "apiError": "Something went wrong. Please try again."
   },
   "errorBoundary": {
     "title": "Something went wrong while loading this section.",
@@ -1279,6 +1461,464 @@
     },
     "loading": "Loading exercises...",
     "retry": "Retry",
-    "skillFallback": "General"
+    "skillFallback": "General",
+    "streakCongrats": "You did it! Keep the streak alive."
+  },
+  "landing": {
+    "hero": {
+      "aria": "Hero section",
+      "badge": "{{count}}+ lessons",
+      "titleLine1": "Master Finance",
+      "titleLine2": "The Smart Way",
+      "subtitle": "Learn financial skills at your own pace with interactive courses, AI-powered guidance, and real-world tools.",
+      "ctaStartShort": "Start",
+      "ctaStart": "Get Started",
+      "ctaDemoShort": "Demo",
+      "ctaDemo": "Watch Demo",
+      "ctaExploreAria": "Scroll to explore features",
+      "ctaExploreShort": "Explore",
+      "ctaExplore": "Explore Features",
+      "stats": {
+        "currentStreak": "Current Streak",
+        "days": "days",
+        "totalXp": "Total XP",
+        "today": "today"
+      },
+      "topics": {
+        "budgeting": "Budgeting",
+        "saving": "Saving",
+        "investing": "Investing",
+        "credit": "Credit",
+        "taxes": "Taxes"
+      },
+      "demoModal": {
+        "aria": "Demo modal",
+        "closeAria": "Close demo modal",
+        "title": "Watch Demo",
+        "close": "Close",
+        "subtitle": "See how Monevo can help you master finance. Watch our interactive demo to explore the platform.",
+        "startLearning": "Start Learning"
+      }
+    },
+    "features": {
+      "title": "Everything You Need to Master Finance",
+      "subtitle": "Discover powerful features designed to accelerate your financial learning journey",
+      "featureLabel": "Feature {{count}}",
+      "items": {
+        "learning-paths": {
+          "title": "Comprehensive Learning Paths",
+          "text": "Structured courses designed to build your financial knowledge from the ground up.",
+          "bullets": [
+            "Step-by-step learning modules",
+            "Interactive quizzes and assessments",
+            "Progress tracking and certificates"
+          ]
+        },
+        "achievement-system": {
+          "title": "Achievement System",
+          "text": "Gamified learning experience that keeps you motivated and engaged.",
+          "bullets": [
+            "Earn badges and rewards",
+            "Track your learning streak",
+            "Compete on leaderboards"
+          ]
+        },
+        "ai-tutor": {
+          "title": "AI-Powered Tutor",
+          "text": "Get personalized guidance and answers to your financial questions.",
+          "bullets": [
+            "24/7 available assistant",
+            "Context-aware responses",
+            "Learning recommendations"
+          ]
+        },
+        "real-time-tools": {
+          "title": "Real-Time Tools",
+          "text": "Access powerful financial calculators and analysis tools.",
+          "bullets": [
+            "Portfolio analyzer",
+            "Savings goal calculator",
+            "Currency converter"
+          ]
+        },
+        "market-insights": {
+          "title": "Market Insights",
+          "text": "Stay updated with the latest financial news and market trends.",
+          "bullets": [
+            "Economic calendar",
+            "Market analysis",
+            "News aggregation"
+          ]
+        }
+      }
+    },
+    "reviews": {
+      "title": "Loved by Learners Worldwide",
+      "subtitle": "See what our community has to say about their learning experience",
+      "aria": "Customer reviews",
+      "cardAria": "Review by {{name}}",
+      "items": {
+        "sarah": {
+          "title": "Financial Advisor",
+          "quote": "Monevo has transformed how I learn about finance. The interactive courses are engaging and practical."
+        },
+        "michael": {
+          "title": "Entrepreneur",
+          "quote": "The AI tutor is incredibly helpful. It answers my questions instantly and helps me understand complex concepts."
+        },
+        "emily": {
+          "title": "Student",
+          "quote": "I love the gamification aspect. Earning badges and competing on leaderboards makes learning fun!"
+        },
+        "david": {
+          "title": "Investor",
+          "quote": "The financial tools are top-notch. The portfolio analyzer has been invaluable for my investment decisions."
+        },
+        "lisa": {
+          "title": "Small Business Owner",
+          "quote": "Finally, a platform that makes financial education accessible and enjoyable. Highly recommend!"
+        }
+      }
+    }
+  },
+  "legal": {
+    "lastUpdated": "Last updated: {{date}}",
+    "dates": {
+      "feb7_2026": "February 7, 2026"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "Monevo is an educational platform. This page explains what personal data we collect, why we collect it, and your rights under UK GDPR and EU GDPR.",
+      "sections": {
+        "who": {
+          "title": "1. Who we are",
+          "body": "This policy applies to the Monevo web app and related services (\"Service\"). For data protection purposes, the data controller is Monevo, United Kingdom."
+        },
+        "data": {
+          "title": "2. Data we collect",
+          "intro": "We collect the following categories of data:",
+          "items": {
+            "account": {
+              "label": "Account data:",
+              "text": "email address, username, and password hash."
+            },
+            "profile": {
+              "label": "Profile and preference data:",
+              "text": "first/last name (if provided), onboarding responses, financial learning preferences, language, reminder settings, and theme settings."
+            },
+            "learning": {
+              "label": "Learning and product usage data:",
+              "text": "lessons viewed, progress, streaks, missions, tool usage events, and feature interactions."
+            },
+            "technical": {
+              "label": "Technical data:",
+              "text": "IP address, device/browser type, operating system, approximate region, timestamps, crash/error logs, and security logs."
+            },
+            "cookies": {
+              "label": "Cookie and tracking data:",
+              "text": "consent choices, analytics identifiers, and ad/marketing event data where consent is given."
+            },
+            "billing": {
+              "label": "Billing metadata:",
+              "text": "plan, subscription status, and Stripe subscription identifiers. We do not store your full card number."
+            },
+            "inputs": {
+              "label": "User-provided finance inputs:",
+              "text": "simulated portfolio entries and learning-tool inputs entered by you."
+            }
+          }
+        },
+        "collection": {
+          "title": "3. How we collect data",
+          "items": {
+            "direct": "Directly from you (registration, onboarding, settings, tools).",
+            "automatic": "Automatically via app logs, cookies, analytics, and pixels.",
+            "processors": "From processors that support our service (for example Stripe for subscription status)."
+          }
+        },
+        "purposes": {
+          "title": "4. Why we process your data and legal bases",
+          "items": {
+            "account": {
+              "label": "Provide and run your account",
+              "text": "(contractual necessity)."
+            },
+            "core": {
+              "label": "Deliver core product features and learning progress",
+              "text": "(contractual necessity)."
+            },
+            "security": {
+              "label": "Keep the platform secure and prevent abuse",
+              "text": "(legitimate interests)."
+            },
+            "improve": {
+              "label": "Improve product quality and performance",
+              "text": "(legitimate interests)."
+            },
+            "comms": {
+              "label": "Send service communications",
+              "text": "such as account and billing notices (contractual necessity and legitimate interests)."
+            },
+            "marketing": {
+              "label": "Send optional marketing messages",
+              "text": "(consent, where required)."
+            },
+            "legal": {
+              "label": "Meet legal and tax obligations",
+              "text": "(legal obligation)."
+            }
+          }
+        },
+        "cookies": {
+          "title": "5. Cookies and similar technologies",
+          "body1": "We use strictly necessary cookies for login/session functions and, when you consent, analytics and marketing cookies.",
+          "body2": "You can manage consent using our cookie banner and cookie settings. See our <link>Cookie Policy</link> for details."
+        },
+        "processors": {
+          "title": "6. Third-party processors and services",
+          "body1": "We use third parties to operate the service. Depending on your usage, these may include:",
+          "items": {
+            "stripe": "Stripe (billing and subscription processing).",
+            "cookiebot": "Cookiebot (cookie consent management).",
+            "google": "Google Analytics / Google Ads tags (with consent).",
+            "amplitude": "Amplitude (product analytics).",
+            "sentry": "Sentry (error monitoring).",
+            "hosting": "Hosting and infrastructure providers.",
+            "email": "Email and transactional messaging providers."
+          },
+          "body2": "These providers process data under contracts and only for approved purposes."
+        },
+        "transfers": {
+          "title": "7. International transfers",
+          "body": "Some providers process data outside the UK/EEA. Where this happens, we use appropriate safeguards (such as adequacy decisions or standard contractual clauses)."
+        },
+        "retention": {
+          "title": "8. Data retention",
+          "body": "We keep personal data only as long as needed for service delivery, legal obligations, dispute resolution, and security. Retention periods vary by data type."
+        },
+        "rights": {
+          "title": "9. Your rights",
+          "body": "Subject to applicable law, you can request to:",
+          "items": {
+            "access": "Access your personal data.",
+            "correct": "Correct inaccurate data.",
+            "delete": "Delete your data.",
+            "restrict": "Restrict or object to certain processing.",
+            "withdraw": "Withdraw consent (where processing is based on consent).",
+            "portable": "Receive a portable copy of data you provided.",
+            "complaint": "Lodge a complaint with your data protection authority."
+          }
+        },
+        "security": {
+          "title": "10. Security",
+          "body": "We use technical and organizational safeguards designed to protect personal data. No method of storage or transmission is completely secure."
+        },
+        "children": {
+          "title": "11. Children",
+          "body": "Monevo is not intended for children under 16. If you believe a child has provided personal data, contact us and we will investigate."
+        },
+        "changes": {
+          "title": "12. Changes to this policy",
+          "body": "We may update this policy from time to time. Material changes will be posted in the app or on our website with an updated date."
+        },
+        "contact": {
+          "title": "13. Contact us",
+          "email": "Email:",
+          "support": "Support:",
+          "country": "Country: United Kingdom"
+        }
+      }
+    },
+    "financialDisclaimer": {
+      "title": "Financial Disclaimer",
+      "intro": "Monevo content is for <strong>educational and informational</strong> purposes only.",
+      "sections": {
+        "meaning": {
+          "title": "What this means",
+          "items": {
+            "general": "Content is general information and not tailored to your personal circumstances.",
+            "noProfile": "We do not consider your full financial situation, risk tolerance, time horizon, or investment objectives.",
+            "noRecommendation": "Nothing on Monevo is a recommendation or solicitation to buy, sell, hold, or invest in any asset.",
+            "examples": "Examples, scenarios, or tool outputs are illustrative and may use assumptions that do not match real-world outcomes.",
+            "pastPerformance": "Past performance, historical data, and model outputs do not guarantee future results."
+          }
+        },
+        "responsibility": {
+          "title": "Your responsibility",
+          "body": "You remain fully responsible for your own financial and investment decisions. Before acting, consider getting advice from a qualified, regulated professional."
+        },
+        "warranty": {
+          "title": "No warranty on accuracy or completeness",
+          "body": "We aim to provide useful and current educational content, but we do not guarantee that all content is complete, accurate, or up to date at all times."
+        },
+        "related": {
+          "title": "Related notices",
+          "body": "Please also review our <noAdvice>No Financial Advice Notice</noAdvice>, <terms>Terms of Service</terms>, and <privacy>Privacy Policy</privacy>."
+        }
+      }
+    },
+    "cookiePolicy": {
+      "title": "Cookie Policy",
+      "intro": "This policy explains what cookies and similar technologies we use, and how you can manage your preferences.",
+      "sections": {
+        "what": {
+          "title": "1. What cookies are",
+          "body": "Cookies are small text files placed on your device when you visit a website. They help with login, security, analytics, and service performance."
+        },
+        "categories": {
+          "title": "2. Cookie categories we use",
+          "items": {
+            "necessary": {
+              "label": "Strictly necessary cookies:",
+              "text": "required for core functionality such as login, session handling, and security."
+            },
+            "preference": {
+              "label": "Preference cookies:",
+              "text": "remember settings (for example display choices)."
+            },
+            "analytics": {
+              "label": "Analytics cookies:",
+              "text": "help us understand usage and improve product experience."
+            },
+            "marketing": {
+              "label": "Marketing cookies:",
+              "text": "measure campaign performance and ad interactions, where consent is provided."
+            }
+          }
+        },
+        "consent": {
+          "title": "3. Managing your consent",
+          "body": "You can change cookie preferences at any time via the cookie banner controls or your browser settings. Disabling some cookies may impact certain features."
+        },
+        "thirdParty": {
+          "title": "4. Third-party technologies",
+          "body": "We may use third-party tools such as Cookiebot, analytics tools, and advertising tags. These services may set their own cookies according to your consent choices."
+        },
+        "declaration": {
+          "title": "5. Cookie declaration",
+          "body": "The live cookie declaration below lists cookies detected on this property and their durations/providers."
+        },
+        "contact": {
+          "title": "6. Contact",
+          "body": "For cookie questions:",
+          "related": "Related pages: <privacy>Privacy Policy</privacy> and <terms>Terms of Service</terms>"
+        }
+      },
+      "declaration": {
+        "loading": "Loading cookie declaration..."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "sections": {
+        "agreement": {
+          "title": "1. Agreement to these terms",
+          "body": "By creating an account, accessing, or using Monevo, you agree to these Terms, our <privacy>Privacy Policy</privacy>, and our <cookie>Cookie Policy</cookie>."
+        },
+        "about": {
+          "title": "2. What Monevo is (and is not)",
+          "body1": "Monevo is a financial education and decision-support platform. Monevo is not a financial adviser, investment adviser, broker, or fiduciary.",
+          "body2": "See our <financial>Financial Disclaimer</financial> and <noAdvice>No Financial Advice Notice</noAdvice>."
+        },
+        "security": {
+          "title": "3. Eligibility and account security",
+          "body": "You must provide accurate account information and keep your login credentials secure. You are responsible for activity under your account."
+        },
+        "acceptableUse": {
+          "title": "4. Acceptable use",
+          "body": "You agree not to:",
+          "items": {
+            "unlawful": "Use the service for unlawful purposes.",
+            "unauthorized": "Attempt unauthorized access to systems or accounts.",
+            "interfere": "Interfere with service availability or security controls.",
+            "reverse": "Reverse engineer or abuse platform features."
+          }
+        },
+        "educational": {
+          "title": "5. Educational content and user decisions",
+          "body": "Content is provided for general educational purposes only and may be incomplete, simplified, delayed, or out of date. You are solely responsible for your financial decisions and outcomes."
+        },
+        "subscriptions": {
+          "title": "6. Subscriptions, billing, and payments",
+          "body": "Paid plans, billing intervals, and included features are displayed in product pricing. Payments are processed by third-party providers. Unless stated otherwise, subscriptions may renew automatically until cancelled."
+        },
+        "thirdParty": {
+          "title": "7. Third-party services and links",
+          "body": "Monevo may integrate with or link to third-party services. We are not responsible for third-party content, accuracy, availability, or practices."
+        },
+        "ip": {
+          "title": "8. Intellectual property",
+          "body": "The platform, branding, and original content are owned by Monevo or licensors and are protected by applicable intellectual property laws. You receive a limited, non-exclusive, revocable license to use the service for personal lawful use."
+        },
+        "disclaimers": {
+          "title": "9. Disclaimers",
+          "body": "The service is provided \"as is\" and \"as available\" without warranties of any kind, express or implied, including fitness for a particular purpose, uninterrupted availability, or error-free operation."
+        },
+        "liability": {
+          "title": "10. Limitation of liability",
+          "body": "To the maximum extent permitted by law, Monevo and its affiliates are not liable for indirect, incidental, consequential, special, or punitive damages, or for loss of profits, revenue, data, investment gains, or business opportunities arising from use of the service."
+        },
+        "indemnity": {
+          "title": "11. Indemnity",
+          "body": "You agree to indemnify and hold harmless Monevo from claims, losses, liabilities, and expenses arising out of your misuse of the service or breach of these terms."
+        },
+        "termination": {
+          "title": "12. Suspension and termination",
+          "body": "We may suspend or terminate access if we reasonably believe you have breached these terms, created security risk, or used the service unlawfully."
+        },
+        "changes": {
+          "title": "13. Changes to service and terms",
+          "body": "We may update product features and these terms from time to time. Continued use after updates means you accept the revised terms."
+        },
+        "law": {
+          "title": "14. Governing law and jurisdiction",
+          "body": "These terms are governed by the laws of England and Wales. Courts of England and Wales will have exclusive jurisdiction, unless mandatory consumer law requires otherwise."
+        },
+        "contact": {
+          "title": "15. Contact",
+          "body": "For terms questions:"
+        }
+      }
+    },
+    "noAdvice": {
+      "title": "No Financial Advice Notice",
+      "intro": "Monevo does not provide financial, investment, tax, or legal advice.",
+      "sections": {
+        "regulatory": {
+          "title": "Regulatory position",
+          "items": {
+            "position": "Monevo is positioned as a financial education platform and information tool.",
+            "fca": "Monevo is not authorised by the UK Financial Conduct Authority (FCA) to provide regulated investment advice.",
+            "noAdvisor": "Monevo does not act as your financial adviser, investment adviser, broker, or fiduciary.",
+            "noRelationship": "Use of Monevo does not create an adviser-client or fiduciary relationship."
+          }
+        },
+        "infer": {
+          "title": "What you should not infer",
+          "items": {
+            "outputs": "Tool outputs, rankings, prompts, and scenarios are not personal recommendations.",
+            "workflows": "Educational workflows are not instructions to enter any trade or investment.",
+            "labels": "Labels such as \"next step\" refer to learning flow, not regulated advice."
+          }
+        },
+        "professional": {
+          "title": "Professional advice",
+          "body": "If you need advice tailored to your circumstances, speak to a qualified and appropriately regulated adviser before making financial decisions."
+        },
+        "related": {
+          "title": "Related documents",
+          "body": "Review the <financial>Financial Disclaimer</financial>, <terms>Terms of Service</terms>, and <privacy>Privacy Policy</privacy>."
+        }
+      }
+    }
+  },
+  "lessonSection": {
+    "unsupportedExercise": "Unsupported exercise type",
+    "textAria": "Text content section",
+    "videoAria": "Educational video player",
+    "completedAria": "Section completed",
+    "completed": "Completed",
+    "completeAria": "Complete {{title}} exercise",
+    "completeExercise": "Complete Exercise"
   }
 }

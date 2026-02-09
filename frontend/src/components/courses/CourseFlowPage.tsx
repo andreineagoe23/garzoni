@@ -3,8 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
-} from "react";
+  useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,8 +26,7 @@ import {
   fetchExercises,
   reorderLessonSections,
   saveCourseFlowState,
-  updateLessonSection,
-} from "services/userService";
+  updateLessonSection } from "services/userService";
 import { attachToken } from "services/httpClient";
 import { BACKEND_URL } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
@@ -38,8 +36,7 @@ import FillInTableExercise from "components/exercises/FillInTableExercise";
 import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationExercise";
 import MascotMedia from "components/common/MascotMedia";
 import LessonSectionEditorPanel, {
-  type LessonSection,
-} from "./LessonSectionEditorPanel";
+  type LessonSection } from "./LessonSectionEditorPanel";
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
@@ -179,8 +176,7 @@ function CourseFlowPage() {
   );
   const [saveState, setSaveState] = useState<SaveState>({
     status: "idle",
-    message: "",
-  });
+    message: "" });
   const [pendingAutosave, setPendingAutosave] = useState(false);
 
   const [flowSections, setFlowSections] = useState<FlowItem[]>([]);
@@ -207,8 +203,7 @@ function CourseFlowPage() {
     refillHeartsSafe,
     decrementHeartsMutation,
     grantHeartsMutation,
-    refillHeartsMutation,
-  } = useHearts({ enabled: heartsEnabled, refetchIntervalMs: 30_000 });
+    refillHeartsMutation } = useHearts({ enabled: heartsEnabled, refetchIntervalMs: 30_000 });
 
   const isHeartsMutating =
     decrementHeartsMutation.isPending ||
@@ -249,8 +244,7 @@ function CourseFlowPage() {
   const {
     data: lessonsData,
     isLoading,
-    error,
-  } = useQuery<CourseFlowLesson[], Error>({
+    error } = useQuery<CourseFlowLesson[], Error>({
     queryKey: queryKeys.lessonsWithProgress(
       courseIdNumber,
       adminMode ? "admin" : "learner"
@@ -262,8 +256,7 @@ function CourseFlowPage() {
       );
       return response.data || [];
     },
-    enabled: Number.isFinite(courseIdNumber) && courseIdNumber > 0,
-  });
+    enabled: Number.isFinite(courseIdNumber) && courseIdNumber > 0 });
 
   const { data: exercisesData, isLoading: loadingExercises } = useQuery<
     {
@@ -278,8 +271,7 @@ function CourseFlowPage() {
     queryKey: queryKeys.exercises(),
     queryFn: () => fetchExercises().then((response) => response.data || []),
     enabled: adminMode,
-    staleTime: staleTimes.content,
-  });
+    staleTime: staleTimes.content });
 
   const exercises = exercisesData || [];
 
@@ -294,8 +286,7 @@ function CourseFlowPage() {
       exercise_data: section.exercise_data || {},
       order: section.order || 0,
       is_published:
-        typeof section.is_published === "boolean" ? section.is_published : true,
-    }),
+        typeof section.is_published === "boolean" ? section.is_published : true }),
     []
   );
 
@@ -307,8 +298,7 @@ function CourseFlowPage() {
           .map((section: CourseFlowSection) =>
             normalizeSection(section, lesson.id)
           )
-          .sort((a, b) => (a.order || 0) - (b.order || 0)),
-      })),
+          .sort((a, b) => (a.order || 0) - (b.order || 0)) })),
     [normalizeSection]
   );
 
@@ -331,8 +321,7 @@ function CourseFlowPage() {
   const { data: flowStateData, isFetched: isFlowStateFetched } = useQuery({
     queryKey: queryKeys.courseFlow(courseIdNumber),
     queryFn: () => fetchCourseFlowState(courseIdNumber).then((r) => r.data),
-    enabled: Number.isFinite(courseIdNumber),
-  });
+    enabled: Number.isFinite(courseIdNumber) });
 
   const { data: pathCourses, isLoading: isPathCoursesLoading } = useQuery({
     queryKey: queryKeys.learningPathCourses(pathIdNumber),
@@ -343,8 +332,7 @@ function CourseFlowPage() {
     enabled: Number.isFinite(pathIdNumber),
     retry: false,
     refetchOnWindowFocus: false,
-    staleTime: staleTimes.content,
-  });
+    staleTime: staleTimes.content });
 
   // Tick the countdown so it updates smoothly in the UI (local-only).
   useEffect(() => {
@@ -392,8 +380,7 @@ function CourseFlowPage() {
           isCompleted: Boolean(lesson.is_completed),
           lessonExerciseType: lesson.exercise_type || null,
           lessonExerciseData: lesson.exercise_data || {},
-          lessonDetailedContent: detailed,
-        });
+          lessonDetailedContent: detailed });
         return;
       }
 
@@ -406,8 +393,7 @@ function CourseFlowPage() {
           lessonTitle: lesson.title,
           lessonShortDescription: lesson.short_description,
           sectionIndex,
-          section,
-        });
+          section });
       });
     });
 
@@ -467,24 +453,21 @@ function CourseFlowPage() {
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
-    onError: () => toast.error(t("courses.flow.saveProgressFailed")),
-  });
+    onError: () => toast.error(t("courses.flow.saveProgressFailed")) });
 
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
     },
-    onError: () => toast.error(t("courses.flow.saveProgressFailed")),
-  });
+    onError: () => toast.error(t("courses.flow.saveProgressFailed")) });
 
   const totalSteps = flowSections.length || 1;
   const completedSteps = courseComplete
     ? totalSteps
     : Math.min(currentIndex, totalSteps);
   const progressPercent = calculatePercent(completedSteps, totalSteps, {
-    round: true,
-  });
+    round: true });
 
   useEffect(() => {
     setCourseFlowProgress({
@@ -492,8 +475,7 @@ function CourseFlowPage() {
       currentIndex,
       totalSteps,
       percent: progressPercent,
-      courseComplete,
-    });
+      courseComplete });
   }, [
     courseComplete,
     courseIdNumber,
@@ -512,8 +494,7 @@ function CourseFlowPage() {
     () =>
       lessonsRef.current.map((lesson) => ({
         ...lesson,
-        sections: (lesson.sections || []).map((section) => ({ ...section })),
-      })),
+        sections: (lesson.sections || []).map((section) => ({ ...section })) })),
     []
   );
 
@@ -575,8 +556,7 @@ function CourseFlowPage() {
 
       setSaveState({
         status: "saving",
-        message: silent ? "" : t("courses.flow.savingChanges"),
-      });
+        message: silent ? "" : t("courses.flow.savingChanges") });
 
       try {
         const response = await updateLessonSection(
@@ -590,8 +570,7 @@ function CourseFlowPage() {
             exercise_type: sectionPayload.exercise_type,
             exercise_data: sectionPayload.exercise_data,
             is_published: sectionPayload.is_published,
-            order: sectionPayload.order,
-          }
+            order: sectionPayload.order }
         );
 
         const normalized = normalizeSection(
@@ -609,8 +588,7 @@ function CourseFlowPage() {
         console.error("Failed to save section", err);
         setSaveState({
           status: "error",
-          message: t("courses.flow.couldNotSaveChanges"),
-        });
+          message: t("courses.flow.couldNotSaveChanges") });
       }
     },
     [normalizeSection, updateLessonSections]
@@ -633,8 +611,7 @@ function CourseFlowPage() {
       exercise_type: "",
       exercise_data: {},
       order: existingSections.length + 1,
-      is_published: false,
-    };
+      is_published: false };
 
     updateLessonSections(lessonId, (sections) =>
       [...sections, newSection].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -713,8 +690,7 @@ function CourseFlowPage() {
 
     const reordered = sections.map((section, index) => ({
       ...section,
-      order: index + 1,
-    }));
+      order: index + 1 }));
 
     updateLessonSections(lessonId, () => reordered);
 
@@ -728,8 +704,7 @@ function CourseFlowPage() {
       setLessons(previousSnapshot);
       setSaveState({
         status: "error",
-        message: t("courses.flow.couldNotUpdateOrdering"),
-      });
+        message: t("courses.flow.couldNotUpdateOrdering") });
     }
   };
 
@@ -1068,8 +1043,7 @@ function CourseFlowPage() {
     if (!currentItem) return null;
     return {
       title: currentItem.lessonTitle || t("courses.flow.lessonFallback"),
-      subtitle: currentItem.lessonShortDescription || "",
-    };
+      subtitle: currentItem.lessonShortDescription || "" };
   }, [currentItem]);
 
   const renderSectionBody = () => {
@@ -1084,8 +1058,7 @@ function CourseFlowPage() {
           <div
             className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
             dangerouslySetInnerHTML={{
-              __html: sanitizedSectionHtml || "",
-            }}
+              __html: sanitizedSectionHtml || "" }}
           />
         );
       }
@@ -1180,8 +1153,7 @@ function CourseFlowPage() {
               <div
                 className="prose max-w-none text-[color:var(--muted-text,#6b7280)] dark:prose-invert"
                 dangerouslySetInnerHTML={{
-                  __html: sanitizedSectionHtml || "",
-                }}
+                  __html: sanitizedSectionHtml || "" }}
               />
             )}
           </div>
@@ -1213,8 +1185,7 @@ function CourseFlowPage() {
       <div
         className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
         dangerouslySetInnerHTML={{
-          __html: sanitizedLessonDetailHtml || "",
-        }}
+          __html: sanitizedLessonDetailHtml || "" }}
       />
     );
   };
@@ -1651,8 +1622,7 @@ function CourseFlowPage() {
                   updateDraftSection({
                     content_type: "exercise",
                     exercise_type: exercise.type,
-                    exercise_data: exercise.exercise_data || {},
-                  });
+                    exercise_data: exercise.exercise_data || {} });
                 }}
                 onCloseRequest={() => beginEditingSection(null, null)}
                 currentSectionTitle={

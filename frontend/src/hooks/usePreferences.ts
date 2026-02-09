@@ -9,8 +9,7 @@ const DEFAULT_PREFERENCES = {
   reducedMotion: false,
   // Feature flags / experiments
   immersiveCourseFlow: true,
-  heartsEnabled: true,
-};
+  heartsEnabled: true };
 
 /**
  * Hook for managing dashboard user preferences

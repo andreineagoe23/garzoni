@@ -35,7 +35,7 @@ jobs:
 
       - name: Unit tests
         run: |
-          python backend/manage.py test
+          cd backend && python manage.py test
 
       - name: Security (pip-audit)
         continue-on-error: true

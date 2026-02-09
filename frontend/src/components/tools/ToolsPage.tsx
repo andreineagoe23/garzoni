@@ -5,8 +5,7 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate,
-} from "react-router-dom";
+  useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import PageContainer from "components/common/PageContainer";
 import ErrorBoundary from "components/common/ErrorBoundary";
@@ -21,8 +20,7 @@ import {
   toolByRoute,
   toolGroups,
   toolsRegistry,
-  type ToolDefinition,
-} from "./toolsRegistry";
+  type ToolDefinition } from "./toolsRegistry";
 
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
@@ -67,9 +65,7 @@ const UnknownToolRedirect = () => {
   const { t } = useTranslation();
   useEffect(() => {
     toast.error(
-      t("tools.errors.toolNotFound", {
-        defaultValue: "Tool not found. Returning to the tools hub.",
-      })
+      t("tools.errors.toolNotFound")
     );
     navigate(TOOL_BASE_PATH, { replace: true });
   }, [navigate, t]);
@@ -79,13 +75,14 @@ const UnknownToolRedirect = () => {
 const ToolsHub = ({
   lastTool,
   onNavigate,
-  recommendedTools,
-}: {
+  recommendedTools }: {
   lastTool: ToolDefinition | null;
   onNavigate: (source: ToolNavSource) => void;
   recommendedTools: ToolDefinition[];
 }) => {
   const { t } = useTranslation();
+  const getToolText = (tool: ToolDefinition, field: string) =>
+    t(`tools.entries.${tool.id}.${field}`);
   const showAnalytics =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("analytics") === "1";
@@ -95,17 +92,13 @@ const ToolsHub = ({
         <GlassCard padding="lg" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between min-w-0">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.continueTitle", {
-                defaultValue: "Continue where you left off",
-              })}
+              {t("tools.hub.continueTitle")}
             </p>
             <h2 className="mt-1 text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {lastTool.title}
+              {getToolText(lastTool, "title")}
             </h2>
             <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.continueSubtitle", {
-                defaultValue: "Jump back in without hunting for the tool.",
-              })}
+              {t("tools.hub.continueSubtitle")}
             </p>
           </div>
           <Link
@@ -113,7 +106,7 @@ const ToolsHub = ({
             onClick={() => onNavigate("hub_card")}
             className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
           >
-            {t("tools.hub.resumeTool", { defaultValue: "Resume tool →" })}
+            {t("tools.hub.resumeTool")}
           </Link>
         </GlassCard>
       )}
@@ -122,15 +115,10 @@ const ToolsHub = ({
         <section className="space-y-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.suggestedTitle", {
-                defaultValue: "Suggested learning tools",
-              })}
+              {t("tools.hub.suggestedTitle")}
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.suggestedSubtitle", {
-                defaultValue:
-                  "Based on your learning activity. These are educational prompts, not investment recommendations.",
-              })}
+              {t("tools.hub.suggestedSubtitle")}
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -142,17 +130,13 @@ const ToolsHub = ({
                   className="block"
                 >
                   <h3 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    {t(`tools.entries.${tool.id}.title`, {
-                      defaultValue: tool.title,
-                    })}
+                    {getToolText(tool, "title")}
                   </h3>
                   <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-                    {t(`tools.entries.${tool.id}.promise`, {
-                      defaultValue: tool.promise,
-                    })}
+                    {getToolText(tool, "promise")}
                   </p>
                   <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-                    {t("tools.hub.openTool", { defaultValue: "Open tool →" })}
+                    {t("tools.hub.openTool")}
                   </span>
                 </Link>
               </GlassCard>
@@ -167,11 +151,11 @@ const ToolsHub = ({
             <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] shadow-lg min-w-0">
               <img
                 src={group.image}
-                alt={t(`tools.groups.${group.id}.imageAlt`, { defaultValue: group.imageAlt })}
+                alt={t(`tools.groups.${group.id}.imageAlt`)}
                 className="h-28 w-full object-cover"
               />
               <h3 className="px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                {t(`tools.groups.${group.id}.title`, { defaultValue: group.title })}
+                {t(`tools.groups.${group.id}.title`)}
               </h3>
             </div>
             <div className="space-y-3">
@@ -187,17 +171,13 @@ const ToolsHub = ({
                     className="block"
                   >
                     <h4 className="text-sm font-semibold text-[color:var(--accent)]">
-                      {t(`tools.entries.${tool.id}.title`, {
-                        defaultValue: tool.title,
-                      })}
+                    {getToolText(tool, "title")}
                     </h4>
                     <p className="mt-1 text-xs text-[color:var(--muted-text)] line-clamp-2">
-                      {t(`tools.entries.${tool.id}.promise`, {
-                        defaultValue: tool.promise,
-                      })}
+                      {getToolText(tool, "promise")}
                     </p>
                     <span className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary)]">
-                      {t("tools.hub.open", { defaultValue: "Open →" })}
+                      {t("tools.hub.open")}
                     </span>
                   </Link>
                 </GlassCard>
@@ -214,47 +194,46 @@ const ToolsHub = ({
 const ToolView = ({
   tool,
   onReset,
-  onExport,
-}: {
+  onExport }: {
   tool: ToolDefinition;
   onReset: () => void;
   onExport: () => void;
 }) => {
   const { t } = useTranslation();
+  const toolTitle = t(`tools.entries.${tool.id}.title`);
+  const toolWhatItDoes = t(`tools.entries.${tool.id}.whatItDoes`);
+  const toolWhoItsFor = t(`tools.entries.${tool.id}.whoItsFor`);
+  const toolQuestion = t(`tools.entries.${tool.id}.questionItAnswers`);
+  const toolExample = t(`tools.entries.${tool.id}.sampleUseCase`);
   const Component = tool.component;
   const feedbackHref = useMemo(() => {
-    const subject = `Tool feedback - ${tool.title}`;
-    const body = `What happened?%0D%0A%0D%0AWhere did it happen?%0D%0A${typeof window !== "undefined" ? window.location.href : ""}`;
+    const subject = t("tools.detail.feedbackSubject", {
+      tool: toolTitle });
+    const body = t("tools.detail.feedbackBody", {
+      url: typeof window !== "undefined" ? window.location.href : "" });
     return `mailto:${TOOL_FEEDBACK_EMAIL}?subject=${encodeURIComponent(
       subject
-    )}&body=${body}`;
-  }, [tool.title]);
+    )}&body=${encodeURIComponent(body)}`;
+  }, [t, toolTitle]);
 
   return (
     <div className="space-y-5 min-w-0">
       <div className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/80 px-3 py-2">
         <p className="text-xs font-medium text-[color:var(--muted-text)]">
-          {t("tools.disclaimer.educationalOnly", {
-            defaultValue:
-              "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
-          })}
+          {t("tools.disclaimer.educationalOnly")}
         </p>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide">
           <Link
             to="/financial-disclaimer"
             className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
           >
-            {t("tools.disclaimer.financialDisclaimer", {
-              defaultValue: "Financial Disclaimer",
-            })}
+            {t("tools.disclaimer.financialDisclaimer")}
           </Link>
           <Link
             to="/no-financial-advice"
             className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
           >
-            {t("tools.disclaimer.noFinancialAdvice", {
-              defaultValue: "No Financial Advice",
-            })}
+            {t("tools.disclaimer.noFinancialAdvice")}
           </Link>
         </div>
       </div>
@@ -262,33 +241,29 @@ const ToolView = ({
         <div className="space-y-2 min-w-0 flex-1">
           <div>
             <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl">
-              {tool.title}
+              {toolTitle}
             </h2>
             <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-              {tool.whatItDoes}
+              {toolWhatItDoes}
             </p>
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
             <span className="font-semibold text-[color:var(--accent,#111827)]">
-              {t("tools.detail.whoItsFor", {
-                defaultValue: "Who it's for:",
-              })}
+              {t("tools.detail.whoItsFor")}
             </span>{" "}
-            {tool.whoItsFor}
+            {toolWhoItsFor}
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
             <span className="font-semibold text-[color:var(--accent,#111827)]">
-              {t("tools.detail.questionAnswered", {
-                defaultValue: "Question answered:",
-              })}
+              {t("tools.detail.questionAnswered")}
             </span>{" "}
-            {tool.questionItAnswers}
+            {toolQuestion}
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
             <span className="font-semibold text-[color:var(--accent,#111827)]">
-              {t("tools.detail.example", { defaultValue: "Example:" })}
+              {t("tools.detail.example")}
             </span>{" "}
-            {tool.sampleUseCase}
+            {toolExample}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
@@ -296,28 +271,22 @@ const ToolView = ({
               onClick={() => {
                 recordToolEvent("tool_to_lesson_click", tool.id, {
                   href: tool.learnPath,
-                  source: "tool_header",
-                });
+                  source: "tool_header" });
                 if (typeof window.gtag === "function") {
                   window.gtag("event", "lesson_started_from_tool", {
                     tool_id: tool.id,
-                    link: tool.learnPath,
-                  });
+                    link: tool.learnPath });
                 }
               }}
               className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
             >
-              {t("tools.detail.learnConcept", {
-                defaultValue: "Learn the concept →",
-              })}
+              {t("tools.detail.learnConcept")}
             </Link>
             <Link
               to={TOOL_BASE_PATH}
               className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#2563eb)]"
             >
-              {t("tools.detail.backToHub", {
-                defaultValue: "Back to tools hub →",
-              })}
+              {t("tools.detail.backToHub")}
             </Link>
           </div>
         </div>
@@ -326,14 +295,14 @@ const ToolView = ({
             href={feedbackHref}
             className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
           >
-            {t("tools.detail.feedback", { defaultValue: "Feedback" })}
+            {t("tools.detail.feedback")}
           </a>
           <button
             type="button"
             onClick={onReset}
             className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
           >
-            {t("tools.detail.resetTool", { defaultValue: "Reset tool" })}
+            {t("tools.detail.resetTool")}
           </button>
           {tool.exportable && (
             <button
@@ -341,7 +310,7 @@ const ToolView = ({
               onClick={onExport}
               className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
             >
-              {t("tools.detail.export", { defaultValue: "Export" })}
+              {t("tools.detail.export")}
             </button>
           )}
         </div>
@@ -363,8 +332,7 @@ const ToolsPage = () => {
   const navSourceRef = useRef<ToolNavSource>("deep_link");
   const analyticsRef = useRef<{ toolId: string | null; startedAt: number }>({
     toolId: null,
-    startedAt: Date.now(),
-  });
+    startedAt: Date.now() });
   const [resetNonceByTool, setResetNonceByTool] = useState<
     Record<string, number>
   >({});
@@ -433,22 +401,22 @@ const ToolsPage = () => {
   const handleReset = (toolId: string) => {
     setResetNonceByTool((prev) => ({
       ...prev,
-      [toolId]: (prev[toolId] ?? 0) + 1,
-    }));
-    toast.success(t("tools.toast.reset", { defaultValue: "Tool reset." }));
+      [toolId]: (prev[toolId] ?? 0) + 1 }));
+    toast.success(t("tools.toast.reset"));
   };
 
   const handleExport = (toolId: string) => {
     window.dispatchEvent(
       new CustomEvent("monevo:tools:export", {
-        detail: { toolId },
-      })
+        detail: { toolId } })
     );
   };
 
   useEffect(() => {
     const currentToolId = activeTool?.id ?? "hub";
-    const currentTitle = activeTool?.title ?? "Tools Hub";
+    const currentTitle = activeTool
+      ? t(`tools.entries.${activeTool.id}.title`)
+      : t("tools.nav.hubLink");
     const startedAt = analyticsRef.current.startedAt;
     const previousToolId = analyticsRef.current.toolId;
     const lastToolStored =
@@ -470,8 +438,7 @@ const ToolsPage = () => {
         window.gtag("event", "tool_duration", {
           tool_id: previousToolId,
           duration_seconds: durationSeconds,
-          session_id: sessionIdRef.current,
-        });
+          session_id: sessionIdRef.current });
       }
 
       const source =
@@ -482,8 +449,7 @@ const ToolsPage = () => {
         tool_id: currentToolId,
         tool_title: currentTitle,
         source,
-        session_id: sessionIdRef.current,
-      });
+        session_id: sessionIdRef.current });
       recordToolEvent("tool_open", currentToolId, { source });
 
       if (activeTool?.id && lastToolStored === activeTool.id) {
@@ -492,8 +458,7 @@ const ToolsPage = () => {
           sessionStorage.setItem(returnKey, "true");
           window.gtag("event", "tool_return", {
             tool_id: activeTool.id,
-            session_id: sessionIdRef.current,
-          });
+            session_id: sessionIdRef.current });
           recordToolEvent("tool_return", activeTool.id);
         }
       }
@@ -501,7 +466,7 @@ const ToolsPage = () => {
     }
 
     analyticsRef.current = { toolId: currentToolId, startedAt: Date.now() };
-  }, [activeTool]);
+  }, [activeTool, t]);
 
   useEffect(() => {
     const sessionId = sessionIdRef.current;
@@ -515,8 +480,7 @@ const ToolsPage = () => {
       window.gtag("event", "tool_duration", {
         tool_id: currentToolId,
         duration_seconds: durationSeconds,
-        session_id: sessionId,
-      });
+        session_id: sessionId });
     };
   }, []);
 
@@ -528,13 +492,10 @@ const ToolsPage = () => {
           className="flex flex-col items-center gap-4 text-center"
         >
           <h2 className="text-2xl font-semibold text-[color:var(--accent,#111827)]">
-            {t("tools.authRequired.title", { defaultValue: "Login Required" })}
+            {t("tools.authRequired.title")}
           </h2>
           <p className="max-w-xl text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("tools.authRequired.subtitle", {
-              defaultValue:
-                "Please log in to access our financial tools and calculators.",
-            })}
+            {t("tools.authRequired.subtitle")}
           </p>
         </GlassCard>
       </PageContainer>
@@ -550,35 +511,28 @@ const ToolsPage = () => {
     >
       <header className="space-y-2 text-center px-0 sm:px-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {t("tools.header.kicker", {
-            defaultValue: "Guided decision tools",
-          })}
+          {t("tools.header.kicker")}
         </p>
         <h1 className="text-2xl font-bold text-[color:var(--accent,#111827)] sm:text-3xl">
-          {t("tools.header.title", { defaultValue: "Financial Tools" })}
+          {t("tools.header.title")}
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)] max-w-xl mx-auto">
-          {t("tools.header.subtitle", {
-            defaultValue:
-              "Each tool answers one clear question and links to the next step.",
-          })}
+          {t("tools.header.subtitle")}
         </p>
       </header>
 
       <nav
-        aria-label={t("tools.nav.ariaLabel", {
-          defaultValue: "Tools navigation",
-        })}
+        aria-label={t("tools.nav.ariaLabel")}
         className="w-full"
       >
         <GlassCard padding="md" className="w-full overflow-hidden">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            {t("tools.nav.browse", { defaultValue: "Browse tools" })}
+            {t("tools.nav.browse")}
           </p>
           <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-5 min-w-0">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("tools.nav.hub", { defaultValue: "Hub" })}
+                {t("tools.nav.hub")}
               </span>
               <Link
                 to={TOOL_BASE_PATH}
@@ -589,13 +543,13 @@ const ToolsPage = () => {
                     : "w-fit rounded-lg px-2 py-1 text-xs font-medium transition text-[color:var(--muted-text,#6b7280)] hover:bg-[color:var(--primary,#2563eb)]/5 hover:text-[color:var(--primary,#2563eb)]"
                 }
               >
-                {t("tools.nav.hubLink", { defaultValue: "Tools hub" })}
+                {t("tools.nav.hubLink")}
               </Link>
             </div>
             {toolGroups.map((group) => (
-              <div key={group.title} className="flex flex-col gap-2">
+              <div key={group.id} className="flex flex-col gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {group.title}
+                  {t(`tools.groups.${group.id}.title`)}
                 </span>
                 <div className="flex flex-col gap-1">
                   {group.tools.map((tool) => (
@@ -614,7 +568,7 @@ const ToolsPage = () => {
                           .join(" ")
                       }
                     >
-                      {tool.title}
+                      {t(`tools.entries.${tool.id}.title`)}
                     </NavLink>
                   ))}
                 </div>

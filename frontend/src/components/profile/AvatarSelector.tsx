@@ -104,8 +104,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
       const randomSeed = Math.random().toString(36).slice(2, 8);
       return {
         seed: randomSeed,
-        url: getAvatarUrl(selectedStyle, randomSeed),
-      };
+        url: getAvatarUrl(selectedStyle, randomSeed) };
     });
   }, [isOpen, selectedStyle]);
 
@@ -123,9 +122,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
         { profile_avatar: previewAvatar },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       onAvatarChange(previewAvatar);
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });

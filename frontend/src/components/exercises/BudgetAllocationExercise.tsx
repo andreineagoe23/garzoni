@@ -28,8 +28,7 @@ const BudgetAllocationExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false,
-}: BudgetAllocationExerciseProps) => {
+  disabled = false }: BudgetAllocationExerciseProps) => {
   const { question, categories = [], total = 0, id, learn_more_url, explanation } =
     data || {};
   const { t } = useTranslation();
@@ -66,8 +65,7 @@ const BudgetAllocationExercise = ({
     const sanitized = value.replace(/[^0-9]/g, "");
     setAllocations((prev) => ({
       ...prev,
-      [category]: sanitized,
-    }));
+      [category]: sanitized }));
   };
 
   const handleSubmit = async () => {
@@ -102,9 +100,7 @@ const BudgetAllocationExercise = ({
         { section_id: sectionId },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       setAllocations(initialAllocations);
       setFeedback("");

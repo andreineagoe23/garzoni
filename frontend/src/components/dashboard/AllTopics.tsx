@@ -35,8 +35,7 @@ type LearningPath = {
 
 const AllTopics = ({
   onCourseClick,
-  navigationControls = null,
-}: {
+  navigationControls = null }: {
   onCourseClick?: (courseId: number, pathId: number) => void;
   navigationControls?: React.ReactNode;
 }) => {
@@ -99,15 +98,13 @@ const AllTopics = ({
                       totalLessons: c.totalLessons
                         ? Number(c.totalLessons)
                         : undefined,
-                      lessons: Array.isArray(c.lessons) ? c.lessons : undefined,
-                    };
+                      lessons: Array.isArray(c.lessons) ? c.lessons : undefined };
                   })
                 : undefined,
               progress: p.progress ? Number(p.progress) : undefined,
               courseProgresses: Array.isArray(p.courseProgresses)
                 ? p.courseProgresses.map(Number)
-                : undefined,
-            };
+                : undefined };
           })
         );
 
@@ -134,10 +131,7 @@ const AllTopics = ({
       } catch (err) {
         console.error("Error fetching learning paths:", err);
         setError(
-          t("allTopics.error", {
-            defaultValue:
-              "Failed to load learning paths. Please try again later.",
-          })
+          t("allTopics.error")
         );
       } finally {
         setLoading(false);
@@ -169,8 +163,7 @@ const AllTopics = ({
         ...path,
         is_locked: isLocked,
         progress: pathProgress,
-        courseProgresses: courseProgresses,
-      };
+        courseProgresses: courseProgresses };
     });
 
     // Apply filters
@@ -205,9 +198,7 @@ const AllTopics = ({
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
         <div className="flex items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          {t("allTopics.loading", {
-            defaultValue: "Loading learning paths...",
-          })}
+          {t("allTopics.loading")}
         </div>
       </div>
     );
@@ -233,7 +224,7 @@ const AllTopics = ({
             htmlFor="sort-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            {t("allTopics.sortByLabel", { defaultValue: "Sort by:" })}
+            {t("allTopics.sortByLabel")}
           </label>
           <select
             id="sort-select"
@@ -244,31 +235,25 @@ const AllTopics = ({
               trackEvent("sort_change", { sort_by: newSort });
             }}
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-            aria-label={t("allTopics.sortByAria", {
-              defaultValue: "Sort learning paths",
-            })}
+            aria-label={t("allTopics.sortByAria")}
           >
             <option value="default">
-              {t("allTopics.sort.default", { defaultValue: "Default" })}
+              {t("allTopics.sort.default")}
             </option>
             <option value="name">
-              {t("allTopics.sort.name", { defaultValue: "Name (A-Z)" })}
+              {t("allTopics.sort.name")}
             </option>
             <option value="easiest">
-              {t("allTopics.sort.easiest", { defaultValue: "Easiest First" })}
+              {t("allTopics.sort.easiest")}
             </option>
             <option value="hardest">
-              {t("allTopics.sort.hardest", { defaultValue: "Hardest First" })}
+              {t("allTopics.sort.hardest")}
             </option>
             <option value="progress-asc">
-              {t("allTopics.sort.progressAsc", {
-                defaultValue: "Progress (Low to High)",
-              })}
+              {t("allTopics.sort.progressAsc")}
             </option>
             <option value="progress-desc">
-              {t("allTopics.sort.progressDesc", {
-                defaultValue: "Progress (High to Low)",
-              })}
+              {t("allTopics.sort.progressDesc")}
             </option>
           </select>
         </div>
@@ -282,7 +267,7 @@ const AllTopics = ({
             htmlFor="filter-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            {t("allTopics.filterLabel", { defaultValue: "Filter:" })}
+            {t("allTopics.filterLabel")}
           </label>
           <select
             id="filter-select"
@@ -293,25 +278,19 @@ const AllTopics = ({
               trackEvent("filter_change", { filter_by: newFilter });
             }}
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-            aria-label={t("allTopics.filterAria", {
-              defaultValue: "Filter learning paths",
-            })}
+            aria-label={t("allTopics.filterAria")}
           >
             <option value="all">
-              {t("allTopics.filter.all", { defaultValue: "All Topics" })}
+              {t("allTopics.filter.all")}
             </option>
             <option value="not-started">
-              {t("allTopics.filter.notStarted", {
-                defaultValue: "Not Started",
-              })}
+              {t("allTopics.filter.notStarted")}
             </option>
             <option value="in-progress">
-              {t("allTopics.filter.inProgress", {
-                defaultValue: "In Progress",
-              })}
+              {t("allTopics.filter.inProgress")}
             </option>
             <option value="completed">
-              {t("allTopics.filter.completed", { defaultValue: "Completed" })}
+              {t("allTopics.filter.completed")}
             </option>
           </select>
         </div>
@@ -358,15 +337,12 @@ const AllTopics = ({
                     <div className="mt-3 space-y-1">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
-                          {t("allTopics.pathProgress", {
-                            defaultValue: "Path Progress",
-                          })}
+                          {t("allTopics.pathProgress")}
                         </span>
                         <span className="font-semibold text-[color:var(--text-color,#111827)]">
                           {formatNumber(path.progress ?? 0, locale, {
                             minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}
+                            maximumFractionDigits: 0 })}
                           %
                         </span>
                       </div>
@@ -379,12 +355,9 @@ const AllTopics = ({
                           aria-valuemin={0}
                           aria-valuemax={100}
                           aria-label={t("allTopics.progressAria", {
-                            defaultValue: "{{value}}% complete",
                             value: formatNumber(path.progress ?? 0, locale, {
                               minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            }),
-                          })}
+                              maximumFractionDigits: 0 }) })}
                         />
                       </div>
                     </div>
@@ -402,12 +375,8 @@ const AllTopics = ({
                     aria-controls={`path-${path.id}-courses`}
                   >
                     {activePathId === path.id
-                      ? t("allTopics.hideCourses", {
-                          defaultValue: "Hide Courses",
-                        })
-                      : t("allTopics.viewCourses", {
-                          defaultValue: "View Courses",
-                        })}
+                      ? t("allTopics.hideCourses")
+                      : t("allTopics.viewCourses")}
                   </GlassButton>
                 )}
                 {isLocked && (
@@ -420,9 +389,7 @@ const AllTopics = ({
                     }}
                   >
                     {t("allTopics.upgradeTo", {
-                      defaultValue: "Upgrade to {{plan}}",
-                      plan: requiredPlan,
-                    })}
+                      plan: requiredPlan })}
                   </GlassButton>
                 )}
               </div>
@@ -434,9 +401,7 @@ const AllTopics = ({
                 className="mt-6"
                 role="region"
                 aria-label={t("allTopics.coursesIn", {
-                  defaultValue: "Courses in {{title}}",
-                  title: path.title,
-                })}
+                  title: path.title })}
               >
                 <LearningPathList
                   learningPaths={[path]}

@@ -29,8 +29,7 @@ const SubscriptionManager = () => {
     getAccessToken,
     isAuthenticated,
     reloadEntitlements,
-    loadProfile,
-  } = useAuth();
+    loadProfile } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");

@@ -4,8 +4,7 @@ import React, {
   useState,
   useRef,
   useCallback,
-  useEffect,
-} from "react";
+  useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
@@ -116,8 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     trialEnd: null,
     features: {},
     subscription: null,
-    fallback: false,
-  });
+    fallback: false });
   const [entitlementError, setEntitlementError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -147,8 +145,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       trialEnd: null,
       features: {},
       subscription: null,
-      fallback: false,
-    });
+      fallback: false });
     setEntitlementError(null);
     profileRef.current = null;
     financialProfileRef.current = null;
@@ -198,9 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
           withCredentials: true,
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+            Authorization: `Bearer ${token}` } });
 
         if (userResponse.data.isAuthenticated) {
           setUser(userResponse.data.user);
@@ -389,8 +384,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           errorObj.response?.data?.detail ||
           errorObj.response?.data?.error ||
           errorObj.message ||
-          t("auth.login.loginFailed"),
-      };
+          t("auth.login.loginFailed") };
     }
   };
 
@@ -420,8 +414,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return {
         success: true,
         user: response.data.user as UserProfile,
-        next: response.data.next,
-      };
+        next: response.data.next };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
       authError(
@@ -434,8 +427,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           errorObj.response?.data?.error ||
           errorObj.response?.data?.detail ||
           errorObj.message ||
-          t("auth.register.registerFailed"),
-      };
+          t("auth.register.registerFailed") };
     }
   };
 
@@ -447,8 +439,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           {},
           {
             withCredentials: true,
-            headers: { Authorization: `Bearer ${inMemoryToken}` },
-          }
+            headers: { Authorization: `Bearer ${inMemoryToken}` } }
         );
       }
     } catch (error) {
@@ -509,9 +500,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         async () => {
           const response = await axios.get(`${BACKEND_URL}/userprofile/`, {
             headers: {
-              Authorization: `Bearer ${inMemoryToken}`,
-            },
-          });
+              Authorization: `Bearer ${inMemoryToken}` } });
           return response.data;
         },
         { force }
@@ -543,8 +532,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         "financial-profile",
         async () => {
           const response = await axios.get(`${BACKEND_URL}/me/profile/`, {
-            headers: { Authorization: `Bearer ${inMemoryToken}` },
-          });
+            headers: { Authorization: `Bearer ${inMemoryToken}` } });
           return response.data;
         },
         { force }
@@ -560,8 +548,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async (data: Partial<FinancialProfile>) => {
       if (!isAuthenticated) return null;
       const response = await axios.put(`${BACKEND_URL}/me/profile/`, data, {
-        headers: { Authorization: `Bearer ${inMemoryToken}` },
-      });
+        headers: { Authorization: `Bearer ${inMemoryToken}` } });
       financialProfileRef.current = response.data;
       setFinancialProfile(response.data);
       return response.data;
@@ -582,9 +569,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         async () => {
           const response = await axios.get(`${BACKEND_URL}/user/settings/`, {
             headers: {
-              Authorization: `Bearer ${inMemoryToken}`,
-            },
-          });
+              Authorization: `Bearer ${inMemoryToken}` } });
           return response.data;
         },
         { force }
@@ -609,8 +594,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           trialEnd: null,
           features: {},
           subscription: null,
-          fallback: false,
-        };
+          fallback: false };
         entitlementsRef.current = fallbackEntitlements;
         setEntitlements(fallbackEntitlements);
         setEntitlementError(null);
@@ -629,9 +613,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               `${BACKEND_URL}/finance/entitlements/`,
               {
                 headers: {
-                  Authorization: `Bearer ${inMemoryToken}`,
-                },
-              }
+                  Authorization: `Bearer ${inMemoryToken}` } }
             );
             return response.data;
           },
@@ -656,15 +638,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription:
             (dataObj?.subscription as Record<string, unknown>) || null,
           fallback: false,
-          checked_at: dataObj?.checked_at,
-        };
+          checked_at: dataObj?.checked_at };
 
         entitlementsRef.current = normalized;
         setEntitlements(normalized);
         setEntitlementError(null);
         queryClient.setQueryData(queryKeys.entitlements(), {
-          data: normalized,
-        });
+          data: normalized });
         return normalized;
       } catch (error) {
         const fallbackEntitlements: Entitlements = {
@@ -675,8 +655,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           trialEnd: null,
           features: {},
           subscription: null,
-          fallback: true,
-        };
+          fallback: true };
         entitlementsRef.current = fallbackEntitlements;
         setEntitlements(fallbackEntitlements);
         setEntitlementError(
@@ -684,8 +663,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             t("auth.entitlementsUnavailable")
         );
         queryClient.setQueryData(queryKeys.entitlements(), {
-          data: fallbackEntitlements,
-        });
+          data: fallbackEntitlements });
         return fallbackEntitlements;
       }
     },
@@ -767,8 +745,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         trialEnd: null,
         features: {},
         subscription: null,
-        fallback: false,
-      });
+        fallback: false });
       setEntitlementError(null);
       entitlementsRef.current = null;
       financialProfileRef.current = null;
@@ -810,8 +787,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         reloadEntitlements,
         entitlements,
         entitlementError,
-        entitlementSupportLink: ENTITLEMENT_SUPPORT_URL,
-      }}
+        entitlementSupportLink: ENTITLEMENT_SUPPORT_URL }}
     >
       {children}
     </AuthContext.Provider>

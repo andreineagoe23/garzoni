@@ -20,8 +20,7 @@ export const ErrorState = ({
   onRetry,
   isRetrying = false,
   cachedData = null,
-  className = "",
-}: ErrorStateProps) => {
+  className = "" }: ErrorStateProps) => {
   const { t } = useTranslation();
   const displayTitle = title ?? t("dashboard.errorState.title");
   const displayMessage = message ?? t("dashboard.errorState.message");

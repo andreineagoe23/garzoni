@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:crypto";
 const WIDGET_LOAD_TIMEOUT_MS = 15000;
@@ -10,6 +11,7 @@ const CryptoTools = () => {
   const container = useRef<HTMLDivElement | null>(null);
   const [loadError, setLoadError] = useState(false);
   const { darkMode } = useTheme();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const currentContainer = container.current;
@@ -23,6 +25,11 @@ const CryptoTools = () => {
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onerror = () => setLoadError(true);
+    const locale = i18n.language?.toLowerCase().startsWith("ro")
+      ? "ro"
+      : i18n.language?.toLowerCase().startsWith("es")
+        ? "es"
+        : "en";
     script.innerHTML = JSON.stringify({
       width: "100%",
       height: "500",
@@ -31,7 +38,7 @@ const CryptoTools = () => {
       timezone: "Europe/London",
       theme: darkMode ? "dark" : "light",
       style: "1",
-      locale: navigator.language?.startsWith("es") ? "es" : "en",
+      locale,
       withdateranges: true,
       allow_symbol_change: true,
       watchlist: [
@@ -43,8 +50,7 @@ const CryptoTools = () => {
       ],
       details: true,
       calendar: false,
-      support_host: "https://www.tradingview.com",
-    });
+      support_host: "https://www.tradingview.com" });
 
     let cancelled = false;
     const timer = setTimeout(() => {
@@ -81,10 +87,10 @@ const CryptoTools = () => {
     <section className="space-y-4 min-w-0 w-full">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl">
-          Cryptocurrency Trading
+          {t("tools.crypto.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Track and analyze cryptocurrency prices
+          {t("tools.crypto.subtitle")}
         </p>
       </header>
 
@@ -92,14 +98,13 @@ const CryptoTools = () => {
         className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
+          WebkitBackdropFilter: "blur(12px)" }}
       >
         {loadError && (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
-            <p className="font-semibold">Chart failed to load.</p>
+            <p className="font-semibold">{t("tools.crypto.errors.loadFailed")}</p>
             <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
-              Try disabling ad blockers or content blockers for this site, or open TradingView in a new tab.
+              {t("tools.crypto.errors.loadFailedHelp")}
             </p>
             <a
               href="https://www.tradingview.com/"
@@ -107,7 +112,7 @@ const CryptoTools = () => {
               target="_blank"
               className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-90"
             >
-              Open TradingView in new tab
+              {t("tools.crypto.errors.openNewTab")}
             </a>
           </div>
         )}
@@ -119,8 +124,7 @@ const CryptoTools = () => {
             border: 0,
             overflow: "hidden",
             height: "clamp(340px, 55vh, 500px)",
-            colorScheme: darkMode ? "dark" : "light",
-          }}
+            colorScheme: darkMode ? "dark" : "light" }}
         >
           <div
             className="tradingview-widget-container__widget"
@@ -133,7 +137,7 @@ const CryptoTools = () => {
               target="_blank"
               className="font-semibold text-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)]/80"
             >
-              TradingView Chart
+              {t("tools.crypto.tradingViewLabel")}
             </a>
           </div>
         </div>

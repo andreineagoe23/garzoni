@@ -27,8 +27,7 @@ export const queryKeys = {
 
   // Other
   courses: (pathId: string | number) => ["courses", pathId] as const,
-  pricingFunnelMetrics: () => ["pricingFunnelMetrics"] as const,
-};
+  pricingFunnelMetrics: () => ["pricingFunnelMetrics"] as const };
 
 export const staleTimes = {
   // Identity/user profile: avoid refetching on every navigation; rely on explicit invalidation after mutations.
@@ -42,8 +41,7 @@ export const staleTimes = {
   hearts: 15_000,
 
   // "Static-ish" content.
-  content: 6 * HOUR,
-};
+  content: 6 * HOUR };
 
 export function defaultRetry(failureCount: number, error: unknown) {
   // Don't retry while offline.
@@ -77,11 +75,7 @@ export const queryClient = new QueryClient({
       retryDelay: defaultRetryDelay,
       staleTime: 5 * MINUTE,
       // v5 name; v4 ignored. Harmless across versions.
-      gcTime: 30 * MINUTE,
-    },
+      gcTime: 30 * MINUTE },
     mutations: {
       retry: defaultRetry,
-      retryDelay: defaultRetryDelay,
-    },
-  },
-});
+      retryDelay: defaultRetryDelay } } });

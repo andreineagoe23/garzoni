@@ -38,8 +38,7 @@ const FillInTableExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false,
-}: FillInTableExerciseProps) => {
+  disabled = false }: FillInTableExerciseProps) => {
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const { t } = useTranslation();
@@ -146,8 +145,7 @@ const FillInTableExercise = ({
         `${BACKEND_URL}/exercises/reset/`,
         { section_id: sectionId },
         {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
+          headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
       setAnswers(emptyAnswers);
       setFeedback("");

@@ -9,8 +9,7 @@ import {
   Navigate,
   Route,
   Routes,
-  useLocation,
-} from "react-router-dom";
+  useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 // import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
@@ -108,8 +107,7 @@ const ReactQueryDevtools =
   process.env.NODE_ENV === "development"
     ? React.lazy(() =>
         import("@tanstack/react-query-devtools").then((m) => ({
-          default: m.ReactQueryDevtools,
-        }))
+          default: m.ReactQueryDevtools }))
       )
     : null;
 
@@ -147,8 +145,7 @@ const AppContent = () => {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    });
+      behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -195,8 +192,7 @@ const AppContent = () => {
     ) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
-        send_to: "G-0H3QCDXCE8",
-      });
+        send_to: "G-0H3QCDXCE8" });
     }
   }, [location.pathname, location.search]);
 

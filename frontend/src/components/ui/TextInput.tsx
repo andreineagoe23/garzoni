@@ -19,8 +19,7 @@ const TextInput = ({
   type = "text",
   placeholder,
   helperText,
-  error,
-}: TextInputProps) => {
+  error }: TextInputProps) => {
   const describedBy = helperText || error ? `${id}-help` : undefined;
 
   return (

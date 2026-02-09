@@ -83,8 +83,7 @@ export const saveAnswer = (data: SaveAnswerRequest): Promise<QuestionnaireProgre
 export const completeQuestionnaire = (idempotencyKey?: string): Promise<CompletionResponse> =>
   apiClient
     .post<CompletionResponse>("/questionnaire/complete/", {
-      idempotency_key: idempotencyKey,
-    })
+      idempotency_key: idempotencyKey })
     .then((r) => r.data);
 
 export const abandonQuestionnaire = (): Promise<QuestionnaireProgress> =>

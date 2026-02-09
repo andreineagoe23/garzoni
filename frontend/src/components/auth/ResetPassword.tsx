@@ -31,8 +31,7 @@ function ResetPassword() {
     try {
       const response = await confirmPasswordReset(uidb64, token, {
         new_password: password,
-        confirm_password: confirmPassword,
-      });
+        confirm_password: confirmPassword });
 
       setMessage(
         response.data.message || t("auth.resetPassword.success")
@@ -62,8 +61,7 @@ setError(
         className="relative w-full max-w-lg rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#111827)] px-6 py-10 shadow-2xl shadow-black/40 backdrop-blur transition-colors"
         style={{
           backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
+          WebkitBackdropFilter: "blur(8px)" }}
       >
         <div className="mb-8 space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#ffffff)]">

@@ -32,8 +32,7 @@ type Exercise = {
 
 const RichTextEditor = ({
   value,
-  onChange,
-}: {
+  onChange }: {
   value?: string;
   onChange?: (nextValue: string) => void;
 }) => {
@@ -149,8 +148,7 @@ const LessonSectionEditorPanel = ({
   loadingExercises = false,
   onExerciseAttach,
   onCloseRequest,
-  currentSectionTitle,
-}: {
+  currentSectionTitle }: {
   section: LessonSection | null;
   onChange: (updates: Partial<LessonSection>) => void;
   onDelete: () => void;
@@ -265,8 +263,7 @@ const LessonSectionEditorPanel = ({
         {currentSectionTitle && (
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
             {t("courses.editor.currentSelection", {
-              title: currentSectionTitle,
-            })}
+              title: currentSectionTitle })}
           </p>
         )}
         <GlassButton variant="ghost" size="sm" onClick={onCloseRequest}>
@@ -462,8 +459,7 @@ const LessonSectionEditorPanel = ({
             <div
               className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: sanitizedPreviewHtml,
-              }}
+                __html: sanitizedPreviewHtml }}
             />
           </div>
         )}

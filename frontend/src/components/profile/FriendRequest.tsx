@@ -17,9 +17,7 @@ const FriendRequests = () => {
       setLoading(true);
       const response = await axios.get(`${BACKEND_URL}/friend-requests/`, {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      });
+          Authorization: `Bearer ${getAccessToken()}` } });
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -41,9 +39,7 @@ const FriendRequests = () => {
         { action },
         {
           headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
+            Authorization: `Bearer ${getAccessToken()}` } }
       );
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
       setMessage(

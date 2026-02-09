@@ -34,12 +34,10 @@ const EconomicMap = () => {
       if (typeof window.gtag === "function") {
         window.gtag("event", "tool_completed", {
           tool_id: "economic-map",
-          detail: "widget_loaded",
-        });
+          detail: "widget_loaded" });
       }
       recordToolEvent("tool_complete", "economic-map", {
-        detail: "widget_loaded",
-      });
+        detail: "widget_loaded" });
     }, 1500);
 
     return () => {

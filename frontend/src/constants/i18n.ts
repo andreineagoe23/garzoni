@@ -4,6 +4,6 @@ export const DEFAULT_LANGUAGE = "en";
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
-  { code: "ro", label: "Romana" },
-  { code: "es", label: "Espanol", comingSoon: true },
+  { code: "ro", label: "Română" },
+  { code: "es", label: "Español", comingSoon: true },
 ] as const;

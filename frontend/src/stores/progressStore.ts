@@ -25,13 +25,11 @@ export const useProgressStore = create<ProgressStoreState>((set) => ({
     currentIndex: 0,
     totalSteps: 0,
     percent: 0,
-    courseComplete: false,
-  },
+    courseComplete: false },
 
   setCourseFlowProgress: (next) =>
     set((state) => ({
-      courseFlow: { ...state.courseFlow, ...next },
-    })),
+      courseFlow: { ...state.courseFlow, ...next } })),
 
   resetCourseFlowProgress: () =>
     set({
@@ -40,7 +38,4 @@ export const useProgressStore = create<ProgressStoreState>((set) => ({
         currentIndex: 0,
         totalSteps: 0,
         percent: 0,
-        courseComplete: false,
-      },
-    }),
-}));
+        courseComplete: false } }) }));

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { GlassCard } from "components/ui";
+import { Trans, useTranslation } from "react-i18next";
 
 const COOKIEBOT_ID = "12b9cf17-1f30-4bd3-8327-7a29ec5d4ee1";
 
@@ -10,6 +11,7 @@ const contentClass =
   "prose prose-slate max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--accent,#111827)] prose-a:text-[color:var(--primary,#2563eb)] hover:prose-a:text-[color:var(--accent,#2563eb)]";
 
 const CookiePolicy = () => {
+  const { t } = useTranslation();
   const declarationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -43,63 +45,49 @@ const CookiePolicy = () => {
     <section className="bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
       <GlassCard padding="xl" className="mx-auto w-full max-w-4xl space-y-6">
         <header className="space-y-3">
-          <p className={mutedClass}>Last updated: February 7, 2026</p>
+          <p className={mutedClass}>
+            {t("legal.lastUpdated", { date: t("legal.dates.feb7_2026") })}
+          </p>
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-            Cookie Policy
+            {t("legal.cookiePolicy.title")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            This policy explains what cookies and similar technologies we use,
-            and how you can manage your preferences.
+            {t("legal.cookiePolicy.intro")}
           </p>
         </header>
 
         <div className={contentClass}>
-          <h2>1. What cookies are</h2>
-          <p>
-            Cookies are small text files placed on your device when you visit a
-            website. They help with login, security, analytics, and service
-            performance.
-          </p>
+          <h2>{t("legal.cookiePolicy.sections.what.title")}</h2>
+          <p>{t("legal.cookiePolicy.sections.what.body")}</p>
 
-          <h2>2. Cookie categories we use</h2>
+          <h2>{t("legal.cookiePolicy.sections.categories.title")}</h2>
           <ul>
             <li>
-              <strong>Strictly necessary cookies:</strong> required for core
-              functionality such as login, session handling, and security.
+              <strong>{t("legal.cookiePolicy.sections.categories.items.necessary.label")}</strong>{" "}
+              {t("legal.cookiePolicy.sections.categories.items.necessary.text")}
             </li>
             <li>
-              <strong>Preference cookies:</strong> remember settings (for
-              example display choices).
+              <strong>{t("legal.cookiePolicy.sections.categories.items.preference.label")}</strong>{" "}
+              {t("legal.cookiePolicy.sections.categories.items.preference.text")}
             </li>
             <li>
-              <strong>Analytics cookies:</strong> help us understand usage and
-              improve product experience.
+              <strong>{t("legal.cookiePolicy.sections.categories.items.analytics.label")}</strong>{" "}
+              {t("legal.cookiePolicy.sections.categories.items.analytics.text")}
             </li>
             <li>
-              <strong>Marketing cookies:</strong> measure campaign performance
-              and ad interactions, where consent is provided.
+              <strong>{t("legal.cookiePolicy.sections.categories.items.marketing.label")}</strong>{" "}
+              {t("legal.cookiePolicy.sections.categories.items.marketing.text")}
             </li>
           </ul>
 
-          <h2>3. Managing your consent</h2>
-          <p>
-            You can change cookie preferences at any time via the cookie banner
-            controls or your browser settings. Disabling some cookies may impact
-            certain features.
-          </p>
+          <h2>{t("legal.cookiePolicy.sections.consent.title")}</h2>
+          <p>{t("legal.cookiePolicy.sections.consent.body")}</p>
 
-          <h2>4. Third-party technologies</h2>
-          <p>
-            We may use third-party tools such as Cookiebot, analytics tools, and
-            advertising tags. These services may set their own cookies according
-            to your consent choices.
-          </p>
+          <h2>{t("legal.cookiePolicy.sections.thirdParty.title")}</h2>
+          <p>{t("legal.cookiePolicy.sections.thirdParty.body")}</p>
 
-          <h2>5. Cookie declaration</h2>
-          <p>
-            The live cookie declaration below lists cookies detected on this
-            property and their durations/providers.
-          </p>
+          <h2>{t("legal.cookiePolicy.sections.declaration.title")}</h2>
+          <p>{t("legal.cookiePolicy.sections.declaration.body")}</p>
         </div>
 
         <div
@@ -108,21 +96,25 @@ const CookiePolicy = () => {
           className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-sm text-[color:var(--text-color,#111827)] shadow-inner shadow-black/5"
         >
           <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
-            Loading cookie declaration...
+            {t("legal.cookiePolicy.declaration.loading")}
           </p>
         </div>
 
         <div className={contentClass}>
-          <h2>6. Contact</h2>
+          <h2>{t("legal.cookiePolicy.sections.contact.title")}</h2>
           <p>
-            For cookie questions:{" "}
+            {t("legal.cookiePolicy.sections.contact.body")}{" "}
             <a href="mailto:monevo.educational@gmail.com">
               monevo.educational@gmail.com
             </a>
           </p>
           <p>
-            Related pages: <Link to="/privacy-policy">Privacy Policy</Link> and{" "}
-            <Link to="/terms-of-service">Terms of Service</Link>
+            <Trans
+              i18nKey="legal.cookiePolicy.sections.contact.related"
+              components={{
+                privacy: <Link to="/privacy-policy" />,
+                terms: <Link to="/terms-of-service" /> }}
+            />
           </p>
         </div>
       </GlassCard>

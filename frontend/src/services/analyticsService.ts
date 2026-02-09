@@ -7,8 +7,7 @@ export const recordFunnelEvent = (
 ) =>
   apiClient.post("/funnel/events/", {
     event_type: eventType,
-    ...payload,
-  });
+    ...payload });
 
 export const fetchFunnelMetrics = (params: Record<string, unknown> = {}) =>
   apiClient.get("/funnel/metrics/", { params });

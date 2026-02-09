@@ -22,8 +22,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       sm: "p-4",
       md: "p-6",
       lg: "px-6 py-8",
-      xl: "px-8 py-10",
-    };
+      xl: "px-8 py-10" };
 
     const hoverStyles = hover
       ? "hover:shadow-xl hover:shadow-[color:var(--shadow-color,rgba(0,0,0,0.12))]"
@@ -37,8 +36,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         className={combinedClassName}
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
+          WebkitBackdropFilter: "blur(12px)" }}
         {...props}
       >
         {children}

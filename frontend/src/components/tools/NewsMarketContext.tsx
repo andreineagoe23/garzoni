@@ -37,8 +37,7 @@ function TradingViewNewsWidget() {
       width: "100%",
       height: "100%",
       colorTheme: darkMode ? "dark" : "light",
-      locale: "en",
-    });
+      locale: "en" });
 
     script.onload = () => {
       const key = "monevo:tools:completed:news-context";
@@ -47,12 +46,10 @@ function TradingViewNewsWidget() {
       if (typeof window.gtag === "function") {
         window.gtag("event", "tool_completed", {
           tool_id: "news-context",
-          detail: "tradingview_news_loaded",
-        });
+          detail: "tradingview_news_loaded" });
       }
       recordToolEvent("tool_complete", "news-context", {
-        detail: "tradingview_news_loaded",
-      });
+        detail: "tradingview_news_loaded" });
     };
 
     currentContainer.appendChild(script);

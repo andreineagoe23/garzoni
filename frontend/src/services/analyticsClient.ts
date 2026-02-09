@@ -9,9 +9,7 @@ export const initAnalytics = () => {
     defaultTracking: {
       sessions: true,
       pageViews: true,
-      formInteractions: true,
-    },
-  });
+      formInteractions: true } });
   isInitialized = true;
 };
 

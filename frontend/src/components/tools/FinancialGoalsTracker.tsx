@@ -7,16 +7,14 @@ import {
   formatCurrency,
   formatDate,
   formatNumber,
-  getLocale,
-} from "utils/format";
+  getLocale } from "utils/format";
 
 const STATUS_COLORS = {
   not_started:
     "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
   in_progress:
     "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]",
-  completed: "bg-emerald-500/10 text-emerald-400",
-};
+  completed: "bg-emerald-500/10 text-emerald-400" };
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:goals";
 
@@ -29,8 +27,7 @@ const FinancialGoalsTracker = () => {
     name: "",
     target_amount: "",
     current_amount: "",
-    target_date: "",
-  });
+    target_date: "" });
   const { getAccessToken } = useAuth();
   const locale = getLocale();
   const presets = useMemo(
@@ -45,9 +42,7 @@ const FinancialGoalsTracker = () => {
             new Date().setFullYear(new Date().getFullYear() + 1)
           )
             .toISOString()
-            .split("T")[0],
-        },
-      },
+            .split("T")[0] } },
       {
         label: t("tools.goalsTracker.presetVacation"),
         values: {
@@ -58,9 +53,7 @@ const FinancialGoalsTracker = () => {
             new Date().setMonth(new Date().getMonth() + 6)
           )
             .toISOString()
-            .split("T")[0],
-        },
-      },
+            .split("T")[0] } },
     ],
     [t]
   );
@@ -68,8 +61,7 @@ const FinancialGoalsTracker = () => {
   const fetchGoals = useCallback(async () => {
     try {
       const response = await axios.get(`${BACKEND_URL}/financial-goals/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-      });
+        headers: { Authorization: `Bearer ${getAccessToken()}` } });
       setGoals(response.data);
       setError(null);
     } catch (err) {
@@ -89,8 +81,7 @@ const FinancialGoalsTracker = () => {
     sessionStorage.setItem(
       ACTIVITY_STORAGE_KEY,
       JSON.stringify({
-        label: t("tools.goalsTracker.activityLabel", { count: goals.length }),
-      })
+        label: t("tools.goalsTracker.activityLabel", { count: goals.length }) })
     );
   }, [goals.length, t]);
 
@@ -112,8 +103,7 @@ const FinancialGoalsTracker = () => {
         name: "",
         target_amount: "",
         current_amount: "",
-        target_date: "",
-      });
+        target_date: "" });
       setError(null);
     } catch (err) {
       console.error("Error adding new goal:", err);
@@ -124,8 +114,7 @@ const FinancialGoalsTracker = () => {
   const handleDeleteGoal = async (goalId) => {
     try {
       await axios.delete(`${BACKEND_URL}/financial-goals/${goalId}/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-      });
+        headers: { Authorization: `Bearer ${getAccessToken()}` } });
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
     } catch (err) {
       console.error("Error deleting goal:", err);
@@ -148,8 +137,7 @@ const FinancialGoalsTracker = () => {
         className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
+          WebkitBackdropFilter: "blur(12px)" }}
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -319,8 +307,7 @@ const FinancialGoalsTracker = () => {
                       <span className="text-[color:var(--accent,#111827)]">
                         {formatNumber(progress, locale, {
                           minimumFractionDigits: 1,
-                          maximumFractionDigits: 1,
-                        })}
+                          maximumFractionDigits: 1 })}
                         %
                       </span>
                     </div>

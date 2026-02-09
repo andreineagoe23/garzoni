@@ -34,8 +34,7 @@ const ScenarioSimulationExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false,
-}: ScenarioSimulationExerciseProps) => {
+  disabled = false }: ScenarioSimulationExerciseProps) => {
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const { question, scenario, choices = [], correctAnswer, learn_more_url, explanation } =
@@ -88,8 +87,7 @@ const ScenarioSimulationExercise = ({
         `${BACKEND_URL}/exercises/reset/`,
         { section_id: sectionId },
         {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
+          headers: { Authorization: `Bearer ${getAccessToken()}` } }
       );
       setSelectedId(null);
       setFeedback("");

@@ -36,8 +36,7 @@ function getLessonCount(course: LearningPathCourse) {
 function LearningPathList({
   learningPaths,
   onCourseClick,
-  showCourseImages = true,
-}: {
+  showCourseImages = true }: {
   learningPaths?: LearningPath[];
   onCourseClick?: (courseId: number, pathId: number) => void;
   showCourseImages?: boolean;

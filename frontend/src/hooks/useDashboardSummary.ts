@@ -16,8 +16,7 @@ export const useDashboardSummary = ({
   missionsData,
   masteryData,
   entitlements,
-  profile,
-}: DashboardSummaryArgs) => {
+  profile }: DashboardSummaryArgs) => {
   const progressData = progressResponse?.data || {};
 
   const coursesCompleted =
@@ -52,8 +51,7 @@ export const useDashboardSummary = ({
           name: feature.name,
           enabled: feature.enabled,
           used: feature.used_today,
-          remaining: feature.remaining_today,
-        })
+          remaining: feature.remaining_today })
       )
       .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
@@ -84,6 +82,5 @@ export const useDashboardSummary = ({
     weakestSkills,
     dailyGoalProgress,
     resume,
-    startHere,
-  };
+    startHere };
 };

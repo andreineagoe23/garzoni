@@ -9,8 +9,7 @@ import { GlassCard, GlassButton } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
 import {
   consumeEntitlement,
-  fetchEntitlements,
-} from "services/entitlementsService";
+  fetchEntitlements } from "services/entitlementsService";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { formatNumber, getLocale } from "utils/format";
 import { UserProfile } from "types/api";
@@ -31,8 +30,7 @@ function RewardsPage() {
   const { data: entitlementsData } = useQuery({
     queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
-    staleTime: staleTimes.entitlements,
-  });
+    staleTime: staleTimes.entitlements });
 
   const downloadsFeature = entitlementsData?.data?.features?.downloads;
 
@@ -71,13 +69,8 @@ function RewardsPage() {
       setShowUpsell(true);
       toast.error(
         downloadsFeature.enabled
-          ? t("rewards.errors.downloadLimit", {
-              defaultValue:
-                "You've reached today's download limit. Upgrade for unlimited downloads.",
-            })
-          : t("rewards.errors.downloadsPremium", {
-              defaultValue: "Downloads are Premium only. Upgrade to unlock.",
-            })
+          ? t("rewards.errors.downloadLimit")
+          : t("rewards.errors.downloadsPremium")
       );
       return false;
     }
@@ -91,10 +84,7 @@ function RewardsPage() {
       setShowUpsell(true);
       toast.error(
         error.response?.data?.error ||
-          t("rewards.errors.downloadAllowance", {
-            defaultValue:
-              "We couldn't verify your download allowance. Please try again.",
-          })
+          t("rewards.errors.downloadAllowance")
       );
       return false;
     }
@@ -122,45 +112,30 @@ function RewardsPage() {
       // Use the Web Share API with files when possible; otherwise fall back to download
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "monevo-achievement.png", {
-        type: "image/png",
-      });
+        type: "image/png" });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: t("rewards.share.title", {
-            defaultValue: "I just unlocked rewards on Monevo!",
-          }),
-          text: t("rewards.share.text", {
-            defaultValue: "Check out my latest achievement.",
-          }),
-          files: [file],
-        });
+          title: t("rewards.share.title"),
+          text: t("rewards.share.text"),
+          files: [file] });
       } else if (navigator.share) {
         await navigator.share({
-          title: t("rewards.share.title", {
-            defaultValue: "I just unlocked rewards on Monevo!",
-          }),
-          text: t("rewards.share.text", {
-            defaultValue: "Check out my latest achievement.",
-          }),
-        });
+          title: t("rewards.share.title"),
+          text: t("rewards.share.text") });
       } else {
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = "monevo-achievement.png";
         link.click();
         toast.success(
-          t("rewards.share.downloaded", {
-            defaultValue: "Share image downloaded. Post it anywhere!",
-          })
+          t("rewards.share.downloaded")
         );
       }
     } catch (error) {
       console.error("Share failed", error);
       toast.error(
-        t("rewards.share.unavailable", {
-          defaultValue: "Unable to generate share image right now.",
-        })
+        t("rewards.share.unavailable")
       );
     }
   }, [guardDownloads, t]);
@@ -178,33 +153,26 @@ function RewardsPage() {
       >
         <div className="space-y-3">
           <h1 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-            {t("rewards.title", { defaultValue: "Rewards" })}
+            {t("rewards.title")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("rewards.subtitle", {
-              defaultValue:
-                "Spend your coins on exclusive rewards or donate to causes that matter.",
-            })}
+            {t("rewards.subtitle")}
           </p>
         </div>
         <div
           className="rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--bg-color,#f8fafc)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]"
           style={{
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
+            WebkitBackdropFilter: "blur(8px)" }}
         >
           <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            {t("rewards.balanceLabel", {
-              defaultValue: "Available Balance",
-            })}
+            {t("rewards.balanceLabel")}
           </span>
           <p className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatNumber(balance, locale, {
               minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
-            {t("rewards.coins", { defaultValue: "coins" })}
+              maximumFractionDigits: 2 })}{" "}
+            {t("rewards.coins")}
           </p>
         </div>
       </GlassCard>
@@ -215,20 +183,17 @@ function RewardsPage() {
             variant={activeTab === "shop" ? "active" : "ghost"}
             onClick={() => setActiveTab("shop")}
           >
-            {t("rewards.tabs.shop", { defaultValue: "Shop" })}
+            {t("rewards.tabs.shop")}
           </GlassButton>
           <GlassButton
             variant={activeTab === "donate" ? "active" : "ghost"}
             onClick={() => setActiveTab("donate")}
           >
-            {t("rewards.tabs.donate", { defaultValue: "Donate" })}
+            {t("rewards.tabs.donate")}
           </GlassButton>
         </div>
         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-          {t("rewards.refreshNote", {
-            defaultValue:
-              "Coins refresh automatically after each purchase or donation.",
-          })}
+          {t("rewards.refreshNote")}
         </p>
         <GlassButton
           variant="ghost"
@@ -237,12 +202,8 @@ function RewardsPage() {
           disabled={downloadsFeature?.remaining_today === 0}
         >
           {downloadsFeature?.remaining_today === 0
-            ? t("rewards.downloadLimit", {
-                defaultValue: "Download limit reached",
-              })
-            : t("rewards.shareButton", {
-                defaultValue: "Share achievement card",
-              })}
+            ? t("rewards.downloadLimit")
+            : t("rewards.shareButton")}
         </GlassButton>
       </div>
 

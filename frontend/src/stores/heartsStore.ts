@@ -67,9 +67,7 @@ export const useHeartsStore = create<HeartsStoreState>((set) => ({
     set({
       isOutOfHeartsModalOpen: false,
       outOfHeartsUntilTs: readOutOfHeartsUntilTs(),
-      lastSeenServerHeartsTs: null,
-    }),
-}));
+      lastSeenServerHeartsTs: null }) }));
 
 let didInitTabSync = false;
 

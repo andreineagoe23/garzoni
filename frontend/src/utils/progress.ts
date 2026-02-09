@@ -115,8 +115,7 @@ export function indexProgressSummary(
     courseIdSet,
     courseTitleSet,
     pathIdSet,
-    pathTitleSet,
-  };
+    pathTitleSet };
 }
 
 export function hasCourseInIndex(

@@ -2,9 +2,11 @@ import React from "react";
 import { StarFill } from "react-bootstrap-icons";
 import { GlassCard } from "components/ui";
 import { useLandingData } from "./landingData";
+import { useTranslation } from "react-i18next";
 
 export default function ReviewsSection() {
   const { reviews } = useLandingData();
+  const { t } = useTranslation();
   const marqueeReviews = [...reviews, ...reviews];
   const marqueeDuration = `${Math.max(36, reviews.length * 7)}s`;
 
@@ -12,10 +14,10 @@ export default function ReviewsSection() {
     <section className="relative">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Loved by Learners Worldwide
+          {t("landing.reviews.title")}
         </h2>
         <p className="mt-4 text-sm text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
-          See what our community has to say about their learning experience
+          {t("landing.reviews.subtitle")}
         </p>
       </div>
 
@@ -23,10 +25,9 @@ export default function ReviewsSection() {
         className="landing-review-marquee mt-10"
         style={
           {
-            "--landing-review-duration": marqueeDuration,
-          } as React.CSSProperties
+            "--landing-review-duration": marqueeDuration } as React.CSSProperties
         }
-        aria-label="Customer reviews"
+        aria-label={t("landing.reviews.aria")}
       >
         <div className="landing-review-track" aria-hidden="true">
           {marqueeReviews.map((review, idx) => (
@@ -35,7 +36,7 @@ export default function ReviewsSection() {
               padding="lg"
               tabIndex={0}
               role="article"
-              aria-label={`Review by ${review.name}`}
+              aria-label={t("landing.reviews.cardAria", { name: review.name })}
               className="landing-review-card h-full p-6 bg-[color:var(--card-bg,#15191E)]/65 border-white/10"
             >
               <div className="flex items-center gap-1 text-[color:var(--gold,#E6C87A)]">
