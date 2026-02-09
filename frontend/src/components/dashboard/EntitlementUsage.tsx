@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type EntitlementUsageItem = {
   key: string | number;
@@ -13,16 +14,17 @@ const EntitlementUsage = ({
 }: {
   entitlementUsage?: EntitlementUsageItem[];
 }) => {
+  const { t } = useTranslation();
   if (!entitlementUsage.length) return null;
 
   return (
     <div className="mt-6 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-4 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-          Daily Usage
+          {t("dashboard.entitlementUsage.dailyUsage")}
         </h3>
         <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-          Resets daily
+          {t("dashboard.entitlementUsage.resetsDaily")}
         </span>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,11 +44,11 @@ const EntitlementUsage = ({
               </div>
               {feature.enabled === false ? (
                 <div className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
-                  Locked - Upgrade to unlock
+                  {t("dashboard.entitlementUsage.lockedUpgrade")}
                 </div>
               ) : (
                 <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {used} used, {remaining === "∞" ? "unlimited" : `${remaining} remaining`}
+                  {remaining === "∞" ? `${used} used, ${t("dashboard.entitlementUsage.unlimited")}` : t("dashboard.entitlementUsage.usedRemaining", { used, remaining })}
                 </div>
               )}
             </div>

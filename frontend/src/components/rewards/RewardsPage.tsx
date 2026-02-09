@@ -14,8 +14,10 @@ import {
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { formatNumber, getLocale } from "utils/format";
 import { UserProfile } from "types/api";
+import { useTranslation } from "react-i18next";
 
 function RewardsPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("shop");
   const [balance, setBalance] = useState(0);
   const didFetchRef = useRef(false);
@@ -69,8 +71,13 @@ function RewardsPage() {
       setShowUpsell(true);
       toast.error(
         downloadsFeature.enabled
-          ? "You've reached today's download limit. Upgrade for unlimited downloads."
-          : "Downloads are Premium only. Upgrade to unlock."
+          ? t("rewards.errors.downloadLimit", {
+              defaultValue:
+                "You've reached today's download limit. Upgrade for unlimited downloads.",
+            })
+          : t("rewards.errors.downloadsPremium", {
+              defaultValue: "Downloads are Premium only. Upgrade to unlock.",
+            })
       );
       return false;
     }
@@ -84,11 +91,14 @@ function RewardsPage() {
       setShowUpsell(true);
       toast.error(
         error.response?.data?.error ||
-          "We couldn't verify your download allowance. Please try again."
+          t("rewards.errors.downloadAllowance", {
+            defaultValue:
+              "We couldn't verify your download allowance. Please try again.",
+          })
       );
       return false;
     }
-  }, [downloadsFeature, queryClient]);
+  }, [downloadsFeature, queryClient, t]);
 
   const handlePurchase = useCallback(async () => {
     await fetchBalance(true);
@@ -117,27 +127,43 @@ function RewardsPage() {
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: "I just unlocked rewards on Monevo!",
-          text: "Check out my latest achievement.",
+          title: t("rewards.share.title", {
+            defaultValue: "I just unlocked rewards on Monevo!",
+          }),
+          text: t("rewards.share.text", {
+            defaultValue: "Check out my latest achievement.",
+          }),
           files: [file],
         });
       } else if (navigator.share) {
         await navigator.share({
-          title: "I just unlocked rewards on Monevo!",
-          text: "Check out my latest achievement.",
+          title: t("rewards.share.title", {
+            defaultValue: "I just unlocked rewards on Monevo!",
+          }),
+          text: t("rewards.share.text", {
+            defaultValue: "Check out my latest achievement.",
+          }),
         });
       } else {
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = "monevo-achievement.png";
         link.click();
-        toast.success("Share image downloaded. Post it anywhere!");
+        toast.success(
+          t("rewards.share.downloaded", {
+            defaultValue: "Share image downloaded. Post it anywhere!",
+          })
+        );
       }
     } catch (error) {
       console.error("Share failed", error);
-      toast.error("Unable to generate share image right now.");
+      toast.error(
+        t("rewards.share.unavailable", {
+          defaultValue: "Unable to generate share image right now.",
+        })
+      );
     }
-  }, [guardDownloads]);
+  }, [guardDownloads, t]);
 
   return (
     <PageContainer
@@ -152,11 +178,13 @@ function RewardsPage() {
       >
         <div className="space-y-3">
           <h1 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-            Rewards
+            {t("rewards.title", { defaultValue: "Rewards" })}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Spend your coins on exclusive rewards or donate to causes that
-            matter.
+            {t("rewards.subtitle", {
+              defaultValue:
+                "Spend your coins on exclusive rewards or donate to causes that matter.",
+            })}
           </p>
         </div>
         <div
@@ -167,14 +195,16 @@ function RewardsPage() {
           }}
         >
           <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            Available Balance
+            {t("rewards.balanceLabel", {
+              defaultValue: "Available Balance",
+            })}
           </span>
           <p className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatNumber(balance, locale, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}{" "}
-            coins
+            {t("rewards.coins", { defaultValue: "coins" })}
           </p>
         </div>
       </GlassCard>
@@ -185,17 +215,20 @@ function RewardsPage() {
             variant={activeTab === "shop" ? "active" : "ghost"}
             onClick={() => setActiveTab("shop")}
           >
-            Shop
+            {t("rewards.tabs.shop", { defaultValue: "Shop" })}
           </GlassButton>
           <GlassButton
             variant={activeTab === "donate" ? "active" : "ghost"}
             onClick={() => setActiveTab("donate")}
           >
-            Donate
+            {t("rewards.tabs.donate", { defaultValue: "Donate" })}
           </GlassButton>
         </div>
         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-          Coins refresh automatically after each purchase or donation.
+          {t("rewards.refreshNote", {
+            defaultValue:
+              "Coins refresh automatically after each purchase or donation.",
+          })}
         </p>
         <GlassButton
           variant="ghost"
@@ -204,8 +237,12 @@ function RewardsPage() {
           disabled={downloadsFeature?.remaining_today === 0}
         >
           {downloadsFeature?.remaining_today === 0
-            ? "Download limit reached"
-            : "Share achievement card"}
+            ? t("rewards.downloadLimit", {
+                defaultValue: "Download limit reached",
+              })
+            : t("rewards.shareButton", {
+                defaultValue: "Share achievement card",
+              })}
         </GlassButton>
       </div>
 

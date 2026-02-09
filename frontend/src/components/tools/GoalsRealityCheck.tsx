@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { GOALS_LEVER_LESSONS } from "./lessonMapping";
 import { formatCurrency, getLocale } from "utils/format";
@@ -6,7 +7,7 @@ import { formatCurrency, getLocale } from "utils/format";
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:reality-check";
 
 const demoPreset = {
-  goalName: "Emergency fund",
+  goalName: "",
   goalAmount: "6000",
   months: "12",
   currentSaved: "900",
@@ -17,6 +18,7 @@ const demoPreset = {
 };
 
 const GoalsRealityCheck = () => {
+  const { t } = useTranslation();
   const locale = getLocale();
   const [form, setForm] = useState({
     goalName: "",
@@ -28,6 +30,10 @@ const GoalsRealityCheck = () => {
     expenseLow: "",
     expenseHigh: "",
   });
+  const localizedDemoPreset = useMemo(
+    () => ({ ...demoPreset, goalName: t("tools.realityCheck.demoGoalName") }),
+    [t]
+  );
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -62,19 +68,24 @@ const GoalsRealityCheck = () => {
     const leverList: Array<{ label: string; key: keyof typeof GOALS_LEVER_LESSONS }> = [];
 
     if (goal > 0 && months > 0 && surplusHigh < required) {
-      warn.push(
-        "Even your best-month surplus looks too low for this timeline."
-      );
-      leverList.push({ label: "Increase monthly income or extend the timeline", key: "income" });
+      warn.push(t("tools.realityCheck.warningLowSurplus"));
+      leverList.push({
+        label: t("tools.realityCheck.leverIncome"),
+        key: "income",
+      });
     } else if (goal > 0 && months > 0 && surplusLow < required) {
-      warn.push(
-        "You'll likely need to reduce expenses or extend the timeline."
-      );
-      leverList.push({ label: "Reduce monthly expenses by a small amount", key: "expenses" });
+      warn.push(t("tools.realityCheck.warningReduceExpenses"));
+      leverList.push({
+        label: t("tools.realityCheck.leverExpenses"),
+        key: "expenses",
+      });
     }
     if (surplusLow < 0) {
-      warn.push("Expenses may be higher than income in a typical month.");
-      leverList.push({ label: "Lower fixed costs to regain breathing room", key: "expenses" });
+      warn.push(t("tools.realityCheck.warningExpensesHigher"));
+      leverList.push({
+        label: t("tools.realityCheck.leverFixedCosts"),
+        key: "expenses",
+      });
     }
 
     const avgSurplus = (surplusLow + surplusHigh) / 2;
@@ -100,15 +111,15 @@ const GoalsRealityCheck = () => {
       levers: leverList.slice(0, 2),
       hasInputs: Boolean(goal || months || incomeLow || incomeHigh),
     };
-  }, [form]);
+  }, [form, t]);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     sessionStorage.setItem(
       ACTIVITY_STORAGE_KEY,
-      JSON.stringify({ label: "Checked goal feasibility" })
+      JSON.stringify({ label: t("tools.realityCheck.activityLabel") })
     );
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     if (!hasInputs || typeof window === "undefined") return;
@@ -141,19 +152,19 @@ const GoalsRealityCheck = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Goal-first flow
+              {t("tools.realityCheck.goalFirstFlow")}
             </p>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Define the goal, then sanity-check your monthly reality.
+              {t("tools.realityCheck.description")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setForm(demoPreset)}
+              onClick={() => setForm(localizedDemoPreset)}
               className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
             >
-              Use demo goal
+              {t("tools.realityCheck.useDemoGoal")}
             </button>
             <button
               type="button"
@@ -171,58 +182,58 @@ const GoalsRealityCheck = () => {
               }
               className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
             >
-              Clear
+              {t("tools.realityCheck.clear")}
             </button>
           </div>
         </div>
 
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 min-w-0">
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)] min-w-0">
-            Goal name
+            {t("tools.realityCheck.goalName")}
             <input
               type="text"
               name="goalName"
               value={form.goalName}
               onChange={handleChange}
-              placeholder="Emergency fund, trip, debt payoff"
+              placeholder={t("tools.realityCheck.goalNamePlaceholder")}
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Goal amount
+            {t("tools.realityCheck.goalAmount")}
             <input
               type="number"
               name="goalAmount"
               value={form.goalAmount}
               onChange={handleChange}
-              placeholder="6000"
+              placeholder={t("tools.realityCheck.goalAmountPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Timeframe (months)
+            {t("tools.realityCheck.timeframe")}
             <input
               type="number"
               name="months"
               value={form.months}
               onChange={handleChange}
-              placeholder="12"
+              placeholder={t("tools.realityCheck.timeframePlaceholder")}
               min="1"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Already saved
+            {t("tools.realityCheck.alreadySaved")}
             <input
               type="number"
               name="currentSaved"
               value={form.currentSaved}
               onChange={handleChange}
-              placeholder="900"
+              placeholder={t("tools.realityCheck.alreadySavedPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
@@ -231,49 +242,49 @@ const GoalsRealityCheck = () => {
 
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 min-w-0">
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)] min-w-0">
-            Monthly income range (low)
+            {t("tools.realityCheck.incomeLow")}
             <input
               type="number"
               name="incomeLow"
               value={form.incomeLow}
               onChange={handleChange}
-              placeholder="2800"
+              placeholder={t("tools.realityCheck.incomeLowPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Monthly income range (high)
+            {t("tools.realityCheck.incomeHigh")}
             <input
               type="number"
               name="incomeHigh"
               value={form.incomeHigh}
               onChange={handleChange}
-              placeholder="3200"
+              placeholder={t("tools.realityCheck.incomeHighPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Monthly expense range (low)
+            {t("tools.realityCheck.expenseLow")}
             <input
               type="number"
               name="expenseLow"
               value={form.expenseLow}
               onChange={handleChange}
-              placeholder="1900"
+              placeholder={t("tools.realityCheck.expenseLowPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Monthly expense range (high)
+            {t("tools.realityCheck.expenseHigh")}
             <input
               type="number"
               name="expenseHigh"
               value={form.expenseHigh}
               onChange={handleChange}
-              placeholder="2200"
+              placeholder={t("tools.realityCheck.expenseHighPlaceholder")}
               min="0"
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             />
@@ -283,20 +294,20 @@ const GoalsRealityCheck = () => {
 
       {!hasInputs ? (
         <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-          Start by entering a goal amount and timeframe to see a realistic range.
+          {t("tools.realityCheck.emptyState")}
         </div>
       ) : (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 min-w-0">
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 shadow-sm min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Realistic saving range
+              {t("tools.realityCheck.savingRange")}
             </p>
             <p className="mt-2 text-lg font-semibold text-[color:var(--accent,#111827)]">
               {formatCurrency(lowSurplus, "USD", locale)} -{" "}
               {formatCurrency(highSurplus, "USD", locale)} / month
             </p>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-              Required to hit goal:{" "}
+              {t("tools.realityCheck.requiredToHitGoal")}{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
                 {formatCurrency(requiredMonthly, "USD", locale)} / month
               </span>
@@ -304,7 +315,7 @@ const GoalsRealityCheck = () => {
           </div>
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 shadow-sm min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Progress tracker
+              {t("tools.realityCheck.progressTracker")}
             </p>
             <div className="mt-3 h-2 w-full rounded-full bg-[color:var(--border-color,#d1d5db)]/40">
               <div
@@ -313,29 +324,35 @@ const GoalsRealityCheck = () => {
               />
             </div>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-              You're{" "}
+              {t("tools.realityCheck.youAre")}{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
                 {Math.round(progressPct)}%
               </span>{" "}
-              of the way there.
+              {t("tools.realityCheck.ofTheWayThere")}
             </p>
           </div>
           <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 shadow-sm min-w-0 md:col-span-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Time to goal (range)
+              {t("tools.realityCheck.timeToGoal")}
             </p>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-              Best:{" "}
+              {t("tools.realityCheck.best")}{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {bestMonths ? `${bestMonths} months` : "Not feasible yet"}
+                {bestMonths
+                  ? `${bestMonths} ${t("tools.realityCheck.months")}`
+                  : t("tools.realityCheck.notFeasible")}
               </span>{" "}
-              · Expected:{" "}
+              · {t("tools.realityCheck.expected")}{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {expectedMonths ? `${expectedMonths} months` : "Not feasible yet"}
+                {expectedMonths
+                  ? `${expectedMonths} ${t("tools.realityCheck.months")}`
+                  : t("tools.realityCheck.notFeasible")}
               </span>{" "}
-              · Worst:{" "}
+              · {t("tools.realityCheck.worst")}{" "}
               <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {worstMonths ? `${worstMonths} months` : "Not feasible yet"}
+                {worstMonths
+                  ? `${worstMonths} ${t("tools.realityCheck.months")}`
+                  : t("tools.realityCheck.notFeasible")}
               </span>
             </p>
           </div>
@@ -345,7 +362,7 @@ const GoalsRealityCheck = () => {
       {warnings.length > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
           <p className="text-xs font-semibold uppercase tracking-wide">
-            Feasibility warnings
+            {t("tools.realityCheck.feasibilityWarnings")}
           </p>
           <ul className="mt-2 space-y-1">
             {warnings.map((warning) => (
@@ -358,7 +375,7 @@ const GoalsRealityCheck = () => {
       {levers.length > 0 && (
         <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            Two big levers
+            {t("tools.realityCheck.twoBigLevers")}
           </p>
           <div className="mt-2 grid gap-3 md:grid-cols-2">
             {levers.map((lever) => (
@@ -370,7 +387,7 @@ const GoalsRealityCheck = () => {
                   href={GOALS_LEVER_LESSONS[lever.key]}
                   className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
                 >
-                  Learn more →
+                  {t("tools.realityCheck.learnMore")}
                 </a>
               </div>
             ))}

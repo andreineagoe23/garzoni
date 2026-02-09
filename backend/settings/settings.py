@@ -279,8 +279,10 @@ CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 CORS_ALLOW_CREDENTIALS = env_bool("CORS_ALLOW_CREDENTIALS", True)
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "access-control-allow-origin",
+    "accept-language",
     "authorization",
     "content-type",
+    "x-app-language",
     "x-csrftoken",
     "x-requested-with",
     "x-refresh-token",

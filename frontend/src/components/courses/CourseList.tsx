@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { GlassCard } from "components/ui";
 
@@ -9,6 +10,7 @@ type CourseListItem = {
 };
 
 function CourseList({ courses }: { courses?: CourseListItem[] }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathId } = useParams();
   const pathIdSegment = pathId ? `/courses/${pathId}` : null;
@@ -19,7 +21,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
         padding="md"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)]"
       >
-        No courses available yet.
+        {t("courses.list.noCoursesAvailable")}
       </GlassCard>
     );
   }
@@ -56,7 +58,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
                 {course.title}
               </h3>
               <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] group-hover:text-[color:var(--accent,#2563eb)]">
-                View lesson
+                {t("courses.list.viewLesson")}
               </span>
             </div>
             {course.description && (

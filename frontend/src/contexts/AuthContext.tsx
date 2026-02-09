@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { EntitlementFeature } from "types/api";
@@ -98,6 +99,7 @@ let refreshAttempts = 0;
 const MAX_REFRESH_ATTEMPTS = 3;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -387,7 +389,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           errorObj.response?.data?.detail ||
           errorObj.response?.data?.error ||
           errorObj.message ||
-          "Login failed. Please try again.",
+          t("auth.login.loginFailed"),
       };
     }
   };
@@ -432,7 +434,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           errorObj.response?.data?.error ||
           errorObj.response?.data?.detail ||
           errorObj.message ||
-          "Registration failed",
+          t("auth.register.registerFailed"),
       };
     }
   };
@@ -679,7 +681,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setEntitlements(fallbackEntitlements);
         setEntitlementError(
           error.response?.data?.error ||
-            "We could not confirm your entitlements right now."
+            t("auth.entitlementsUnavailable")
         );
         queryClient.setQueryData(queryKeys.entitlements(), {
           data: fallbackEntitlements,
@@ -783,7 +785,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [isAuthenticated, loadEntitlements, loadFinancialProfile]);
 
   if (!isInitialized) {
-    return <div>Loading authentication...</div>;
+    return <div>{t("shared.loadingAuth")}</div>;
   }
 
   return (

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { confirmPasswordReset } from "services/authService";
 import { useParams, useNavigate } from "react-router-dom";
 function ResetPassword() {
+  const { t } = useTranslation();
   const { uidb64, token } = useParams();
   const navigate = useNavigate();
 
@@ -20,7 +22,7 @@ function ResetPassword() {
     setMessage("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("auth.resetPassword.passwordsDoNotMatch"));
       return;
     }
 
@@ -33,19 +35,19 @@ function ResetPassword() {
       });
 
       setMessage(
-        response.data.message || "Password reset successful."
+        response.data.message || t("auth.resetPassword.success")
       );
       setTimeout(() => navigate("/login"), 2500);
     } catch (resetError) {
       if (axios.isAxiosError(resetError)) {
-        setError(
-          resetError.response?.data?.message ||
-            resetError.response?.data?.error ||
-            "An error occurred. Please try again."
-        );
-      } else {
-        setError("An error occurred. Please try again.");
-      }
+setError(
+            resetError.response?.data?.message ||
+              resetError.response?.data?.error ||
+              t("auth.resetPassword.error")
+          );
+        } else {
+          setError(t("auth.resetPassword.error"));
+        }
     } finally {
       setIsSubmitting(false);
     }
@@ -65,10 +67,10 @@ function ResetPassword() {
       >
         <div className="mb-8 space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#ffffff)]">
-            Reset Password
+            {t("auth.resetPassword.title")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#cbd5f5)]">
-            Enter your new password below
+            {t("auth.resetPassword.subtitle")}
           </p>
         </div>
 
@@ -98,7 +100,7 @@ function ResetPassword() {
               htmlFor="password"
               className="text-sm font-semibold text-[color:var(--muted-text,#cbd5f5)]"
             >
-              New Password
+              {t("auth.resetPassword.newPassword")}
             </label>
             <input
               id="password"
@@ -107,7 +109,7 @@ function ResetPassword() {
               onChange={(event) => setPassword(event.target.value)}
               required
               className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0f172a)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              placeholder="Enter your new password"
+              placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
             />
           </div>
 
@@ -116,7 +118,7 @@ function ResetPassword() {
               htmlFor="confirmPassword"
               className="text-sm font-semibold text-[color:var(--muted-text,#cbd5f5)]"
             >
-              Confirm Password
+              {t("auth.resetPassword.confirmPassword")}
             </label>
             <input
               id="confirmPassword"
@@ -125,7 +127,7 @@ function ResetPassword() {
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
               className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0f172a)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              placeholder="Confirm your new password"
+              placeholder={t("auth.resetPassword.confirmPlaceholder")}
             />
           </div>
 
@@ -134,7 +136,7 @@ function ResetPassword() {
             disabled={isSubmitting}
             className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? "Saving..." : "Reset Password"}
+            {isSubmitting ? t("auth.resetPassword.submitting") : t("auth.resetPassword.submit")}
           </button>
         </form>
       </div>

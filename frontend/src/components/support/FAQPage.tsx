@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
+import { useTranslation } from "react-i18next";
 
 const highlightText = (text, query) => {
   if (!query?.trim()) return text;
@@ -30,6 +30,7 @@ const highlightText = (text, query) => {
 
 function FAQPage() {
   const { getAccessToken } = useAuth();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [contactData, setContactData] = useState({
@@ -47,13 +48,7 @@ function FAQPage() {
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        const headers: Record<string, string> = {};
-        const token = getAccessToken();
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-
-        const response = await axios.get(`${BACKEND_URL}/faq/`, { headers });
+        const response = await apiClient.get("/faq/");
         setFaqs(response.data);
         setCategories([
           ...new Set(response.data.map((faq) => faq.category).filter(Boolean)),
@@ -66,7 +61,7 @@ function FAQPage() {
     };
 
     fetchFaqs();
-  }, [getAccessToken]);
+  }, []);
 
   const filteredFAQs = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -87,26 +82,23 @@ function FAQPage() {
     setErrorMessage("");
 
     try {
-      const headers: Record<string, string> = {};
-      const token = getAccessToken();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const response = await axios.post(
-        `${BACKEND_URL}/contact/`,
-        contactData,
-        { headers }
-      );
+      const response = await apiClient.post("/contact/", contactData);
 
       setSubmitMessage(
         response.data.message ||
-          "Your message has been received! Thank you for contacting us."
+          t("faq.contact.success", {
+            defaultValue:
+              "Your message has been received! Thank you for contacting us.",
+          })
       );
       setContactData({ email: "", topic: "", message: "" });
     } catch (submitError) {
       console.error("Contact form error:", submitError);
-      setErrorMessage("Failed to send message. Please try again later.");
+      setErrorMessage(
+        t("faq.contact.error", {
+          defaultValue: "Failed to send message. Please try again later.",
+        })
+      );
     }
   };
 
@@ -116,17 +108,7 @@ function FAQPage() {
 
   const submitVote = async (faqId, vote) => {
     try {
-      const headers: Record<string, string> = {};
-      const token = getAccessToken();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      await axios.post(
-        `${BACKEND_URL}/faq/${faqId}/vote/`,
-        { vote },
-        { headers }
-      );
+      await apiClient.post(`/faq/${faqId}/vote/`, { vote });
 
       setFaqs((prevFaqs) =>
         prevFaqs.map((faq) =>
@@ -159,14 +141,18 @@ function FAQPage() {
     >
       <header className="space-y-3 text-center lg:text-left">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          Help Center
+          {t("faq.header.kicker", { defaultValue: "Help Center" })}
         </p>
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-          Frequently Asked Questions
+          {t("faq.header.title", {
+            defaultValue: "Frequently Asked Questions",
+          })}
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Search for topics, browse categories, or reach out to our support team
-          directly.
+          {t("faq.header.subtitle", {
+            defaultValue:
+              "Search for topics, browse categories, or reach out to our support team directly.",
+          })}
         </p>
       </header>
 
@@ -177,7 +163,9 @@ function FAQPage() {
         <div className="relative w-full md:max-w-xl">
           <input
             type="text"
-            placeholder="Search FAQs..."
+            placeholder={t("faq.search.placeholder", {
+              defaultValue: "Search FAQs...",
+            })}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -188,7 +176,7 @@ function FAQPage() {
               onClick={() => setSearch("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#2563eb)]"
             >
-              Clear
+              {t("faq.search.clear", { defaultValue: "Clear" })}
             </button>
           )}
         </div>
@@ -197,16 +185,20 @@ function FAQPage() {
             htmlFor="faq-filter-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            Filter:
+            {t("faq.filter.label", { defaultValue: "Filter:" })}
           </label>
           <select
             id="faq-filter-select"
             value={activeCategory}
             onChange={(event) => setActiveCategory(event.target.value)}
             className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 md:w-auto"
-            aria-label="Filter FAQs by category"
+            aria-label={t("faq.filter.aria", {
+              defaultValue: "Filter FAQs by category",
+            })}
           >
-            <option value="all">All</option>
+            <option value="all">
+              {t("faq.filter.all", { defaultValue: "All" })}
+            </option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -220,12 +212,14 @@ function FAQPage() {
         <GlassCard padding="lg">
           {loading ? (
             <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              Loading FAQs...
+              {t("faq.loading", { defaultValue: "Loading FAQs..." })}
             </div>
           ) : filteredFAQs.length === 0 ? (
             <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              No FAQs match your search. Try different keywords or clear your
-              filters.
+              {t("faq.empty", {
+                defaultValue:
+                  "No FAQs match your search. Try different keywords or clear your filters.",
+              })}
             </div>
           ) : (
             <div className="space-y-4">
@@ -257,14 +251,22 @@ function FAQPage() {
                       <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-[color:var(--text-color,#111827)]">
                         <div>{highlightText(faq.answer, search)}</div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
-                          <span>Was this helpful?</span>
+                          <span>
+                            {t("faq.vote.prompt", {
+                              defaultValue: "Was this helpful?",
+                            })}
+                          </span>
                           {faq.user_vote === "helpful" ? (
                             <span className="font-semibold text-emerald-500">
-                              Thanks for your feedback! 👍
+                              {t("faq.vote.thanksHelpful", {
+                                defaultValue: "Thanks for your feedback! 👍",
+                              })}
                             </span>
                           ) : faq.user_vote === "not_helpful" ? (
                             <span className="font-semibold text-[color:var(--error,#dc2626)]">
-                              Thanks for your feedback! 👎
+                              {t("faq.vote.thanksNotHelpful", {
+                                defaultValue: "Thanks for your feedback! 👎",
+                              })}
                             </span>
                           ) : (
                             <>
@@ -273,7 +275,9 @@ function FAQPage() {
                                 onClick={() => submitVote(faq.id, "helpful")}
                                 className="inline-flex items-center justify-center rounded-full border border-emerald-500 px-3 py-1 font-semibold text-emerald-500 transition hover:bg-emerald-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                               >
-                                👍 Helpful
+                                {t("faq.vote.helpful", {
+                                  defaultValue: "👍 Helpful",
+                                })}
                               </button>
                               <button
                                 type="button"
@@ -282,7 +286,9 @@ function FAQPage() {
                                 }
                                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--error,#dc2626)]/40"
                               >
-                                👎 Not really
+                                {t("faq.vote.notHelpful", {
+                                  defaultValue: "👎 Not really",
+                                })}
                               </button>
                             </>
                           )}
@@ -299,10 +305,15 @@ function FAQPage() {
         <GlassCard padding="lg">
           <header className="space-y-2 text-center">
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-              Still need help? Contact us
+              {t("faq.contact.title", {
+                defaultValue: "Still need help? Contact us",
+              })}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Share a brief description of the issue and we'll be in touch.
+              {t("faq.contact.subtitle", {
+                defaultValue:
+                  "Share a brief description of the issue and we'll be in touch.",
+              })}
             </p>
           </header>
 
@@ -320,7 +331,7 @@ function FAQPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              Your Email
+              {t("faq.contact.email", { defaultValue: "Your Email" })}
               <input
                 type="email"
                 required
@@ -336,7 +347,7 @@ function FAQPage() {
             </label>
 
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              Topic
+              {t("faq.contact.topic", { defaultValue: "Topic" })}
               <select
                 required
                 value={contactData.topic}
@@ -348,18 +359,44 @@ function FAQPage() {
                 }
                 className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                <option value="">Select a topic</option>
-                <option value="Billing">Billing</option>
-                <option value="Technical Issue">Technical Issue</option>
-                <option value="Account">Account</option>
-                <option value="Content">Course Content</option>
-                <option value="Feedback">Feedback</option>
-                <option value="Other">Other</option>
+                <option value="">
+                  {t("faq.contact.selectTopic", {
+                    defaultValue: "Select a topic",
+                  })}
+                </option>
+                <option value="Billing">
+                  {t("faq.contact.topics.billing", {
+                    defaultValue: "Billing",
+                  })}
+                </option>
+                <option value="Technical Issue">
+                  {t("faq.contact.topics.technical", {
+                    defaultValue: "Technical Issue",
+                  })}
+                </option>
+                <option value="Account">
+                  {t("faq.contact.topics.account", {
+                    defaultValue: "Account",
+                  })}
+                </option>
+                <option value="Content">
+                  {t("faq.contact.topics.content", {
+                    defaultValue: "Course Content",
+                  })}
+                </option>
+                <option value="Feedback">
+                  {t("faq.contact.topics.feedback", {
+                    defaultValue: "Feedback",
+                  })}
+                </option>
+                <option value="Other">
+                  {t("faq.contact.topics.other", { defaultValue: "Other" })}
+                </option>
               </select>
             </label>
 
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              Message
+              {t("faq.contact.message", { defaultValue: "Message" })}
               <textarea
                 rows={5}
                 required
@@ -379,7 +416,7 @@ function FAQPage() {
                 type="submit"
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                Send Message
+                {t("faq.contact.send", { defaultValue: "Send Message" })}
               </button>
             </div>
           </form>

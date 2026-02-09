@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { GlassButton, GlassCard } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
@@ -22,6 +23,7 @@ type Plan = {
 };
 
 const SubscriptionManager = () => {
+  const { t } = useTranslation();
   const {
     entitlements,
     getAccessToken,
@@ -110,9 +112,9 @@ const SubscriptionManager = () => {
         window.location.assign(redirectUrl);
         return;
       }
-      setActionError("Failed to start checkout. Please try again.");
+      setActionError(t("billing.failedCheckout"));
     } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to start checkout. Please try again."));
+      setActionError(getErrorMessage(error, t("billing.failedCheckout")));
     } finally {
       setIsBusy(false);
     }
@@ -130,7 +132,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to change plan. Please try again."));
+      setActionError(getErrorMessage(error, t("billing.failedChangePlan")));
     } finally {
       setIsBusy(false);
     }
@@ -148,7 +150,7 @@ const SubscriptionManager = () => {
       );
       await reloadEntitlements?.();
     } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to cancel subscription. Please try again."));
+      setActionError(getErrorMessage(error, t("billing.failedCancel")));
     } finally {
       setIsBusy(false);
     }
@@ -169,9 +171,9 @@ const SubscriptionManager = () => {
         window.location.assign(portalUrl);
         return;
       }
-      setActionError("Failed to open customer portal. Please try again.");
+      setActionError(t("billing.failedPortal"));
     } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to open customer portal. Please try again."));
+      setActionError(getErrorMessage(error, t("billing.failedPortal")));
     } finally {
       setIsBusy(false);
     }
@@ -182,21 +184,21 @@ const SubscriptionManager = () => {
       <GlassCard padding="lg" className="space-y-3">
         <div>
           <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
-            Subscription Management
+            {t("billing.subscriptionManagement")}
           </h1>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Manage your subscription and billing
+            {t("billing.manageSubtitle")}
           </p>
         </div>
         <div className="rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-sm text-[color:var(--text-color,#111827)]">
           <div className="font-semibold">
-            Current Plan: {entitlements?.label || currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
+            {t("billing.currentPlan")}: {entitlements?.label || currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
           </div>
           <div>
-            Status: {entitlements?.status || "inactive"}
+            {t("billing.status")}: {entitlements?.status || "inactive"}
           </div>
           {entitlements?.status === "trialing" && trialEndLabel && (
-            <div>Trial ends on {trialEndLabel}</div>
+            <div>{t("billing.trialEndsOn", { date: trialEndLabel })}</div>
           )}
         </div>
       </GlassCard>
@@ -204,15 +206,15 @@ const SubscriptionManager = () => {
       <GlassCard padding="lg" className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-            Available Plans
+            {t("billing.availablePlans")}
           </h2>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Choose a plan that fits your learning needs
+            {t("billing.choosePlanSubtitle")}
           </p>
         </div>
         {loading && (
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Loading plans...
+            {t("billing.loadingPlans")}
           </p>
         )}
         {!loading && (
@@ -222,10 +224,10 @@ const SubscriptionManager = () => {
               const canChange = Boolean(stripeSubscriptionId);
               const billingLabel = plan.billing_interval || "monthly";
               const buttonLabel = isCurrent
-                ? "Current Plan"
+                ? t("billing.currentPlanButton")
                 : canChange
-                  ? "Switch Plan"
-                  : "Start Plan";
+                  ? t("billing.switchPlan")
+                  : t("billing.startPlan");
               const translatedName = plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               const featureList = Object.values(plan.features || {})
                 .filter((feature) => feature?.enabled !== false)
@@ -243,7 +245,7 @@ const SubscriptionManager = () => {
                     </div>
                     {isCurrent && (
                       <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
-                        Active
+                        {t("billing.active")}
                       </span>
                     )}
                   </div>
@@ -254,7 +256,7 @@ const SubscriptionManager = () => {
                       locale,
                       { minimumFractionDigits: 0 }
                     )}{" "}
-                    / {billingLabel === 'monthly' ? 'month' : billingLabel === 'yearly' ? 'year' : billingLabel}
+                    / {billingLabel === "monthly" ? t("subscriptions.perMonth") : billingLabel === "yearly" ? t("subscriptions.perYear") : billingLabel}
                   </div>
                   {featureList.length > 0 && (
                     <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -290,14 +292,14 @@ const SubscriptionManager = () => {
               onClick={handleCancel}
               disabled={isBusy}
             >
-              Cancel Subscription
+              {t("billing.cancelSubscription")}
             </GlassButton>
             <GlassButton
               variant="primary"
               onClick={handleOpenPortal}
               disabled={isBusy}
             >
-              Manage Subscription
+              {t("billing.manageSubscription")}
             </GlassButton>
           </div>
         )}
@@ -306,7 +308,7 @@ const SubscriptionManager = () => {
             variant="primary"
             onClick={() => window.location.assign("/subscriptions")}
           >
-            Explore Plans
+            {t("billing.explorePlans")}
           </GlassButton>
         )}
         {actionError && (

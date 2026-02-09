@@ -1,0 +1,1284 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "tools": "Tools",
+    "missions": "Missions",
+    "leaderboards": "Leaderboards",
+    "rewards": "Rewards",
+    "faq": "FAQ",
+    "profile": "Profile",
+    "settings": "Settings",
+    "conversions": "Analytics",
+    "ariaToggleDarkMode": "Toggle dark mode",
+    "ariaLogout": "Logout",
+    "ariaGoToProfile": "Go to profile",
+    "ariaToggleMenu": "Toggle navigation menu"
+  },
+  "language": {
+    "label": "Language",
+    "option": {
+      "en": "English",
+      "ro": "Romanian",
+      "es": "Spanish (coming soon)"
+    }
+  },
+  "dashboard": {
+    "skipToContent": "Skip to content",
+    "nav": {
+      "allTopics": "All Topics",
+      "personalizedPath": "Personalized Path",
+      "completeOnboarding": "Complete Onboarding"
+    },
+    "toast": {
+      "xpGained": "+{{count}} XP",
+      "skillsImproved_one": "{{count}} skill improved",
+      "skillsImproved_other": "{{count}} skills improved"
+    },
+    "cta": {
+      "doReviews": "Do Reviews",
+      "continueLesson": "Continue Lesson",
+      "startMission": "Start Mission",
+      "continueLearning": "Continue Learning",
+      "reviewsDue_one": "{{count}} review due",
+      "reviewsDue_other": "{{count}} reviews due",
+      "missionsAvailable_one": "{{count}} mission available",
+      "missionsAvailable_other": "{{count}} missions available",
+      "continueWhereLeftOff": "Continue where you left off",
+      "continueLearningReason": "Continue your learning journey"
+    },
+    "resume": {
+      "title": "Pick up where you left off",
+      "continueWith": "Continue with {{course}}",
+      "continueLesson": "Continue lesson",
+      "startFirstLesson": "Start your first lesson and we'll remember your place.",
+      "browseTopics": "Browse topics"
+    },
+    "dailyGoal": {
+      "label": "Daily Goal",
+      "completeDesc": "Complete your daily learning goal to maintain your streak"
+    },
+    "header": {
+      "welcomeBack": "Welcome back",
+      "welcomeBackName": "Welcome back, {{name}}!",
+      "yourCoachSubtitle": "Your AI coach is here to help you learn",
+      "adminMode": "Admin Mode",
+      "enableAdmin": "Enable Admin"
+    },
+    "statusSummary": {
+      "coursesCompleted": "Courses Completed",
+      "overallProgress": "Overall Progress",
+      "reviewsDue": "Reviews Due",
+      "activeMissions": "Active Missions",
+      "failedLoadReviews": "Failed to load reviews",
+      "couldNotFetchReviews": "We couldn't fetch your review queue.",
+      "failedLoadMissions": "Failed to load missions",
+      "couldNotFetchMissions": "We couldn't fetch your missions."
+    },
+    "weakSkills": {
+      "skillInsights": "Skill insights",
+      "skillInsightsDesc": "Complete lessons and quizzes to see your skill strengths and areas to improve.",
+      "noWeakSkills": "No Weak Skills",
+      "noWeakSkillsDesc": "Great job! You're doing well across all skills.",
+      "areasToImprove": "Areas to Improve",
+      "focusOnSkills": "Focus on these skills to boost your overall mastery",
+      "lowMasteryIn": "Low mastery in {{skill}}",
+      "practice": "Practice",
+      "practiceSkillAria": "Practice {{skill}} skill",
+      "practiceRecommendationAria": "Practice {{skill}} to improve this recommendation",
+      "failedLoadSkills": "Failed to load skills",
+      "couldNotFetchSkills": "We couldn't fetch your skill mastery data."
+    },
+    "entitlementUsage": {
+      "dailyUsage": "Daily Usage",
+      "resetsDaily": "Resets daily",
+      "usedRemaining": "{{used}} used, {{remaining}} remaining",
+      "unlimited": "unlimited",
+      "lockedUpgrade": "Locked - Upgrade to unlock"
+    },
+    "errorState": {
+      "title": "Something went wrong",
+      "message": "We couldn't load this data. Please try again.",
+      "showingCached": "Showing cached data from your last visit.",
+      "retrying": "Retrying...",
+      "retry": "Retry"
+    },
+    "primaryCta": {
+      "getStarted": "Get Started",
+      "continueReason": "Continue your learning journey"
+    }
+  },
+  "analytics": {
+    "adminRequired": "Admin access required",
+    "adminRequiredDesc": "Conversion analytics are only available to administrators.",
+    "title": "Pricing & Checkout Funnel",
+    "subtitle": "Monitor how users move from the pricing page to successful checkout and entitlement activation.",
+    "refresh": "Refresh",
+    "pricingViews": "Pricing views",
+    "pricingViewsFooter": "Users reaching the pricing or paywall experience",
+    "checkoutsCreated": "Checkout sessions created",
+    "conversion": "Conversion: {{percent}}%",
+    "successfulPayments": "Successful payments",
+    "entitlementsConfirmed": "Entitlements confirmed",
+    "successRate": "Success rate: {{percent}}%",
+    "entitlementFailures": "Entitlement failures",
+    "fallbackFooter": "Fallback to free mode when checks fail",
+    "dailyFunnelEvents": "Daily funnel events",
+    "dailyFunnelSubtitle": "Volume of key funnel events over time.",
+    "noActivity": "No funnel activity recorded for this period.",
+    "date": "Date",
+    "eventType": "Event type",
+    "count": "Count"
+  },
+  "billing": {
+    "subscriptionManagement": "Subscription Management",
+    "manageSubtitle": "Manage your subscription and billing",
+    "currentPlan": "Current Plan",
+    "status": "Status",
+    "trialEndsOn": "Trial ends on {{date}}",
+    "availablePlans": "Available Plans",
+    "choosePlanSubtitle": "Choose a plan that fits your learning needs",
+    "loadingPlans": "Loading plans...",
+    "currentPlanButton": "Current Plan",
+    "switchPlan": "Switch Plan",
+    "startPlan": "Start Plan",
+    "active": "Active",
+    "cancelSubscription": "Cancel Subscription",
+    "manageSubscription": "Manage Subscription",
+    "explorePlans": "Explore Plans",
+    "failedCheckout": "Failed to start checkout. Please try again.",
+    "failedChangePlan": "Failed to change plan. Please try again.",
+    "failedCancel": "Failed to cancel subscription. Please try again.",
+    "failedPortal": "Failed to open customer portal. Please try again.",
+    "featureComparison": "Feature Comparison",
+    "planComparison": "Plan Comparison",
+    "current": "Current",
+    "capability": "Capability",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "unlockPremium": "Unlock Premium",
+    "premiumFeature": "Premium Feature",
+    "upgradeDescription": "Upgrade to unlock this feature and more premium benefits.",
+    "upgradeNow": "Upgrade Now",
+    "maybeLater": "Maybe Later",
+    "closeModal": "Close modal",
+    "upgradeToPremium": "Upgrade to Premium",
+    "unlockPremiumFeatures": "Unlock Premium Features",
+    "getUnlimitedAccess": "Get unlimited access to all learning features",
+    "startFreeTrial": "Start Free Trial",
+    "shareReferral": "Share Referral",
+    "copied": "Copied!",
+    "features": {
+      "daily_limits": "Daily learning limit",
+      "hints": "Lesson & quiz hints",
+      "streak_repair": "Streak repair",
+      "downloads": "Downloads",
+      "analytics": "Analytics & insights",
+      "ai_tutor": "AI tutor",
+      "personalized_path": "Personalized path"
+    },
+    "notAvailable": "Not available"
+  },
+  "allTopics": {
+    "loading": "Loading learning paths...",
+    "error": "Failed to load learning paths. Please try again later.",
+    "sortByLabel": "Sort by:",
+    "sortByAria": "Sort learning paths",
+    "sort": {
+      "default": "Default",
+      "name": "Name (A-Z)",
+      "easiest": "Easiest First",
+      "hardest": "Hardest First",
+      "progressAsc": "Progress (Low to High)",
+      "progressDesc": "Progress (High to Low)"
+    },
+    "filterLabel": "Filter:",
+    "filterAria": "Filter learning paths",
+    "filter": {
+      "all": "All Topics",
+      "notStarted": "Not Started",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "pathProgress": "Path Progress",
+    "progressAria": "{{value}}% complete",
+    "hideCourses": "Hide Courses",
+    "viewCourses": "View Courses",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "coursesIn": "Courses in {{title}}"
+  },
+  "personalizedPath": {
+    "errorTitle": "Error Loading Recommendations",
+    "tryAgain": "Try Again",
+    "verifying": "Verifying your access...",
+    "title": "Your personalized learning path:",
+    "pathLabel": "Path",
+    "courseAria": "Open {{title}}",
+    "courseMeta": "{{hours}} hrs · {{exercises}} exercises",
+    "progressLabel": "Progress",
+    "lessonCount": "{{completed}}/{{total}} lessons",
+    "basedOnOnboarding": "Based on your latest onboarding answers -",
+    "updatePreferences": "Update Preferences",
+    "errors": {
+      "accessDenied": "Access denied",
+      "recommendationsFailed": "Failed to load recommendations. Please try again later.",
+      "paymentVerifyFailed": "We couldn't verify your payment. Please try again."
+    }
+  },
+  "tools": {
+    "errors": {
+      "toolNotFound": "Tool not found. Returning to the tools hub."
+    },
+    "hub": {
+      "continueTitle": "Continue where you left off",
+      "continueSubtitle": "Jump back in without hunting for the tool.",
+      "resumeTool": "Resume tool →",
+      "suggestedTitle": "Suggested learning tools",
+      "suggestedSubtitle": "Based on your learning activity. These are educational prompts, not investment recommendations.",
+      "openTool": "Open tool →",
+      "open": "Open →"
+    },
+    "disclaimer": {
+      "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
+      "financialDisclaimer": "Financial Disclaimer",
+      "noFinancialAdvice": "No Financial Advice"
+    },
+    "detail": {
+      "whoItsFor": "Who it's for:",
+      "questionAnswered": "Question answered:",
+      "example": "Example:",
+      "learnConcept": "Learn the concept →",
+      "backToHub": "Back to tools hub →",
+      "feedback": "Feedback",
+      "resetTool": "Reset tool",
+      "export": "Export"
+    },
+    "toast": {
+      "reset": "Tool reset."
+    },
+    "authRequired": {
+      "title": "Login Required",
+      "subtitle": "Please log in to access our financial tools and calculators."
+    },
+    "header": {
+      "kicker": "Guided decision tools",
+      "title": "Financial Tools",
+      "subtitle": "Each tool answers one clear question and links to the next step."
+    },
+    "nav": {
+      "ariaLabel": "Tools navigation",
+      "browse": "Browse tools",
+      "hub": "Hub",
+      "hubLink": "Tools hub"
+    },
+    "groups": {
+      "understand-world": { "title": "Understand the World", "imageAlt": "Global economy and markets" },
+      "understand-myself": { "title": "Understand Myself", "imageAlt": "Personal finance and goals" },
+      "decide-next": { "title": "Plan What to Learn", "imageAlt": "Learning plan and next steps" }
+    },
+    "entries": {
+      "portfolio": { "title": "Portfolio Analyzer", "promise": "See if your portfolio matches your goals and risk comfort." },
+      "reality-check": { "title": "Savings & Goals Reality Check", "promise": "Get a realistic saving range without false precision." },
+      "calendar": { "title": "Economic Calendar", "promise": "Understand how big economic events affect your money." },
+      "economic-map": { "title": "Economic Map", "promise": "See macro changes around the world in one glance." },
+      "news-context": { "title": "News & Market Context", "promise": "Turn headlines into simple, personal takeaways." },
+      "market-explorer": { "title": "Market Explorer", "promise": "Scan major markets with simple, long-term framing." },
+      "next-steps": { "title": "What Should I Learn Next?", "promise": "Get 1-3 focused learning suggestions for your next step." }
+    },
+    "realityCheck": {
+      "activityLabel": "Checked goal feasibility",
+      "goalFirstFlow": "Goal-first flow",
+      "description": "Define the goal, then sanity-check your monthly reality.",
+      "useDemoGoal": "Use demo goal",
+      "clear": "Clear",
+      "goalName": "Goal name",
+      "demoGoalName": "Emergency fund",
+      "goalNamePlaceholder": "Emergency fund, trip, debt payoff",
+      "goalAmount": "Goal amount",
+      "goalAmountPlaceholder": "6000",
+      "timeframe": "Timeframe (months)",
+      "timeframePlaceholder": "12",
+      "alreadySaved": "Already saved",
+      "alreadySavedPlaceholder": "900",
+      "incomeLow": "Monthly income range (low)",
+      "incomeLowPlaceholder": "2800",
+      "incomeHigh": "Monthly income range (high)",
+      "incomeHighPlaceholder": "3200",
+      "expenseLow": "Monthly expense range (low)",
+      "expenseLowPlaceholder": "1900",
+      "expenseHigh": "Monthly expense range (high)",
+      "expenseHighPlaceholder": "2200",
+      "emptyState": "Start by entering a goal amount and timeframe to see a realistic range.",
+      "savingRange": "Realistic saving range",
+      "requiredToHitGoal": "Required to hit goal",
+      "progressTracker": "Progress tracker",
+      "youAre": "You're",
+      "ofTheWayThere": "of the way there.",
+      "timeToGoal": "Time to goal (range)",
+      "best": "Best:",
+      "expected": "Expected:",
+      "worst": "Worst:",
+      "months": "months",
+      "notFeasible": "Not feasible yet",
+      "feasibilityWarnings": "Feasibility warnings",
+      "twoBigLevers": "Two big levers",
+      "learnMore": "Learn more →",
+      "warningLowSurplus": "Even your best-month surplus looks too low for this timeline.",
+      "warningReduceExpenses": "You'll likely need to reduce expenses or extend the timeline.",
+      "warningExpensesHigher": "Expenses may be higher than income in a typical month.",
+      "leverIncome": "Increase monthly income or extend the timeline",
+      "leverExpenses": "Reduce monthly expenses by a small amount",
+      "leverFixedCosts": "Lower fixed costs to regain breathing room"
+    },
+    "goalsTracker": {
+      "loadFailed": "Failed to load financial goals. Please try again.",
+      "activityLabel": "{{count}} active goals",
+      "addFailed": "Failed to add goal. Please try again.",
+      "deleteFailed": "Failed to delete goal. Please try again.",
+      "title": "Financial Goals Tracker",
+      "presetEmergency": "Emergency fund",
+      "presetVacation": "Vacation",
+      "subtitle": "Set and track your financial goals",
+      "demoPresets": "Demo presets",
+      "presetTip1": "Add a goal and update progress every month",
+      "presetTip2": "Set a realistic target date for motivation",
+      "presetTip3": "Track multiple goals at once",
+      "goalName": "Goal Name",
+      "goalNamePlaceholder": "e.g., Emergency Fund",
+      "defaultGoalName": "Emergency Fund",
+      "targetAmount": "Target Amount",
+      "targetAmountPlaceholder": "Enter target amount",
+      "currentAmount": "Current Amount",
+      "currentAmountPlaceholder": "Enter current amount",
+      "targetDate": "Target Date",
+      "addGoal": "Add Goal",
+      "loading": "Loading goals...",
+      "emptyTitle": "No financial goals yet.",
+      "emptySubtitle": "Add your first goal above or choose a demo preset to get started.",
+      "target": "Target",
+      "current": "Current",
+      "targetDateLabel": "Target Date",
+      "notSet": "Not set",
+      "progress": "Progress",
+      "remaining": "Remaining",
+      "delete": "Delete"
+    },
+    "savingsCalc": {
+      "starterGoal": "Starter goal",
+      "longTerm": "Long-term",
+      "allFieldsRequired": "All fields are required",
+      "interestRateMax": "Annual interest rate cannot exceed 30%",
+      "calculationFailed": "Failed to calculate savings goal. Please try again.",
+      "title": "Savings Goal Calculator",
+      "subtitle": "Calculate how much you need to save to reach your financial goals",
+      "demoPresets": "Demo presets",
+      "presetTip1": "Try a 2-year goal for a quick benchmark",
+      "presetTip2": "Adjust interest rate to match your account",
+      "presetTip3": "Compare monthly vs quarterly compounding",
+      "savingsGoal": "Savings Goal",
+      "savingsGoalPlaceholder": "Enter your savings goal amount",
+      "initialInvestment": "Initial Investment",
+      "initialInvestmentPlaceholder": "Enter your initial investment",
+      "yearsToGrow": "Years to Grow",
+      "yearsToGrowPlaceholder": "Enter number of years",
+      "annualInterestRate": "Annual Interest Rate (%)",
+      "annualInterestRatePlaceholder": "Enter annual interest rate",
+      "compoundFrequency": "Compound Frequency",
+      "annually": "Annually",
+      "quarterly": "Quarterly",
+      "monthly": "Monthly",
+      "daily": "Daily",
+      "calculate": "Calculate",
+      "finalSavings": "Final Savings"
+      ,
+      "activityPrefix": "Goal"
+    },
+    "portfolio": {
+      "stock": "Stock",
+      "crypto": "Crypto",
+      "symbolPlaceholder": "e.g., AAPL, BTC",
+      "loadError": "Failed to load portfolio. Please try again.",
+      "exportEmpty": "No portfolio entries to export yet.",
+      "exportReady": "Portfolio export ready.",
+      "addFailed": "Failed to add portfolio entry. Please try again.",
+      "deleteFailed": "Failed to delete portfolio entry. Please try again.",
+      "loading": "Loading portfolio...",
+      "title": "Portfolio Analyzer",
+      "subtitle": "Track and analyze your investment portfolio",
+      "noEntries": "No Portfolio Entries",
+      "noEntriesSubtitle": "Add your first investment to start tracking your portfolio",
+      "loadSampleStock": "Load sample stock",
+      "loadSampleCrypto": "Load sample crypto",
+      "tryThis": "Try this",
+      "tryThisBullet1": "Add a sample stock to see allocation charts",
+      "tryThisBullet2": "Compare a stock and crypto holding together",
+      "tryThisBullet3": "Review total gain/loss once you add entries",
+      "totalValue": "Total Portfolio Value",
+      "currentValue": "Current value",
+      "totalGainLoss": "Total Gain/Loss",
+      "totalHoldings": "Total Holdings",
+      "investment_one": "investment",
+      "investment_other": "investments",
+      "portfolioInsight": "Portfolio insight",
+      "goodFit": "Good fit",
+      "risky": "Risky",
+      "misaligned": "Misaligned",
+      "confidence": "Confidence: {{level}}",
+      "isPortfolioRisky": "Is this portfolio risky for me?",
+      "riskReasonable": "Risk looks reasonable - you're not over-concentrated in one place.",
+      "riskModerate": "Moderate risk - one area dominates; consider spreading out.",
+      "riskHigh": "Higher risk - concentration or volatility is high; worth reviewing.",
+      "biggestProblem": "What's the biggest problem here?",
+      "nothingMajor": "Nothing major - your mix looks reasonable for a long-term approach.",
+      "inPlainEnglish": "In plain English",
+      "learnDiversification": "Learn: Why diversification helps",
+      "considerRebalancing": "Consider rebalancing or adding another holding",
+      "exploreMarket": "Explore: Market Explorer to compare assets",
+      "insights": {
+        "concentrationTitle": "Concentration risk",
+        "concentrationMeaning": "One holding dominates at {{pct}}% of your portfolio.",
+        "concentrationWhy": "A single decline can swing your overall results.",
+        "concentrationStep1": "Add a second holding in a different area.",
+        "concentrationStep2": "Consider trimming the oversized position.",
+        "diversificationTitle": "Low diversification",
+        "diversificationMeaning": "You have fewer than three holdings.",
+        "diversificationWhy": "Small portfolios tend to be less resilient to shocks.",
+        "diversificationStep1": "Add a broad market ETF or index exposure.",
+        "diversificationStep2": "Balance with another asset type.",
+        "volatilityTitle": "High volatility exposure",
+        "volatilityMeaning": "Crypto is about {{pct}}% of your portfolio.",
+        "volatilityWhy": "Crypto tends to swing more than stocks or bonds.",
+        "volatilityStep1": "Decide if this aligns with your risk comfort.",
+        "volatilityStep2": "Balance with less volatile assets.",
+        "drawdownTitle": "Portfolio drawdown",
+        "drawdownMeaning": "Your portfolio is down more than 10% overall.",
+        "drawdownWhy": "Large drawdowns can test your time horizon and confidence.",
+        "drawdownStep1": "Review your time horizon before making changes.",
+        "drawdownStep2": "Avoid panic selling without a plan.",
+        "healthyTitle": "Healthy balance",
+        "healthyMeaning": "Your mix looks reasonably diversified.",
+        "healthyWhy": "Balanced portfolios tend to handle volatility better.",
+        "healthyStep1": "Keep monitoring allocation drift quarterly.",
+        "healthyStep2": "Explore new assets only if they fit your goal."
+      },
+      "problems": {
+        "oneInvestment": "All your money is in one investment.",
+        "largestHolding": "Your largest holding is {{pct}}% of your portfolio - concentration is high.",
+        "largestHoldingModerate": "Your largest holding is {{pct}}% of your portfolio. Consider spreading risk.",
+        "cryptoVolatile": "Most of your portfolio is in crypto, which tends to be more volatile.",
+        "downOnPaper": "You're currently down on paper. Check if your timeline and risk tolerance still match this mix.",
+        "spreadAcross": "You're spread across more than one asset type - that helps smooth volatility.",
+        "stocksPct": "Stocks make up {{pct}}% of your portfolio.",
+        "cryptoPct": "Crypto makes up {{pct}}% - remember it can swing more than stocks.",
+        "totalValueBullet": "Total value is {{value}} with {{gainOrLoss}} of {{pct}}% overall.",
+        "gain": "a gain",
+        "loss": "a loss"
+      }
+    }
+  },
+  "missions": {
+    "savings": {
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "nextCoin": "Save £{{amount}} more to unlock the next coin!",
+      "showJar": "Show Savings Jar",
+      "hideJar": "Hide Savings Jar",
+      "suggestedNote": "Suggested deposit is prefilled to unlock your next coin faster.",
+      "placeholderDaily": "Enter amount (e.g., £1)",
+      "placeholderWeekly": "Enter amount (e.g., £10)",
+      "savedToday": "Saved Today",
+      "add": "Add to Savings"
+    },
+    "facts": {
+      "markRead": "✓ Mark as Read",
+      "empty": "No new financial facts available right now - check back soon!",
+      "tryAgain": "↻ Try Again"
+    },
+    "errors": {
+      "refreshLesson": "Failed to refresh lesson mission.",
+      "loadMissions": "Failed to load missions. Please try again.",
+      "loadSavings": "Failed to load savings balance.",
+      "swapFailed": "Failed to swap mission. Please try again.",
+      "loadInsights": "Failed to load profile insights.",
+      "markFact": "Failed to mark fact as read.",
+      "addSavings": "Failed to add savings. Please try again.",
+      "validAmount": "Please enter a valid amount."
+    },
+    "toast": {
+      "completed": "Completed {{name}} (+{{xp}} XP)",
+      "synced": "Synced: {{name}} completed!",
+      "swapSuccess": "Mission swapped successfully!"
+    },
+    "missionFallback": "Mission",
+    "purpose": {
+      "completeLesson": "Building lesson momentum strengthens recall and keeps your streak alive.",
+      "addSavings": "Adding to your savings jar nudges you closer to your emergency fund.",
+      "readFact": "Quick money facts sharpen your intuition for smarter choices.",
+      "completePath": "Finishing a path cements mastery across related skills.",
+      "default": "Completing this mission keeps your learning loop tight."
+    },
+    "progress": {
+      "factsCount": "{{count}}/5 Facts",
+      "percent": "{{value}}%",
+      "readOneFact": "Read one fact to complete",
+      "factsRemaining": "{{count}} of 5 facts remaining",
+      "lessonTarget": "{{value}}% of your {{lessons}}-lesson target",
+      "complete": "{{value}}% complete",
+      "label": "Progress",
+      "aria": "Mission progress: {{value}}%",
+      "completed": "Completed! 🎉",
+      "levelTarget": "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}."
+    },
+    "badge": {
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "why": "Why this matters:",
+    "complete": {
+      "title": "Mission complete",
+      "subtitle": "Great work! Keep the momentum to unlock streak and leaderboard boosts."
+    },
+    "swap": {
+      "aria": "Swap mission: {{name}}",
+      "label": "🔄 Swap Mission"
+    },
+    "header": {
+      "title": "Daily Missions",
+      "subtitle": "Complete focused challenges to earn rewards and strengthen your financial habits."
+    },
+    "summary": {
+      "title": "Progress at a glance",
+      "remaining": "{{count}} mission{{plural}} left today",
+      "xp": "{{earned}} XP earned · {{remaining}} XP still on the table",
+      "offline": "⚠️ Offline mode - missions will sync when you're back online",
+      "suggestedSavings": "💡 Suggested savings target: £{{amount}} (based on your {{level}} level)",
+      "streak": "Streak",
+      "streakDays": "{{count}} days",
+      "totalXp": "Total XP today"
+    },
+    "streakItemAria": "{{type}}: {{quantity}} available",
+    "loading": "Loading missions...",
+    "wrapup": {
+      "title": "Daily mission wrap-up",
+      "earned": "You banked {{xp}} XP today",
+      "streakReview": "Streak: {{days}} day{{plural}} · Review due: {{review}}",
+      "cta": "Keep going! Weekly missions and reviews will boost mastery next."
+    },
+    "weekly": {
+      "title": "Weekly Missions"
+    }
+  },
+  "leaderboard": {
+    "time": {
+      "allTime": "All Time",
+      "thisMonth": "This Month",
+      "thisWeek": "This Week"
+    },
+    "errors": {
+      "loadFailed": "Failed to load leaderboard data. Please try again.",
+      "friendRequestFailed": "Failed to send friend request."
+    },
+    "loading": "Loading leaderboard data...",
+    "title": {
+      "global": "Global Leaderboard",
+      "friends": "Friends Leaderboard"
+    },
+    "subtitle": "Track progress, celebrate wins, and connect with the community.",
+    "tabs": {
+      "global": "Global",
+      "friends": "Friends"
+    },
+    "searchPlaceholder": "Search users...",
+    "you": "You ({{username}})",
+    "points": "{{points}} points",
+    "empty": "No users found for the current selection.",
+    "friendStatus": {
+      "alreadyFriends": "Already friends",
+      "pending": "Request pending",
+      "addFriend": "Add as friend",
+      "friends": "Friends",
+      "pendingShort": "Pending",
+      "addFriendShort": "Add Friend"
+    }
+  },
+  "rewards": {
+    "errors": {
+      "downloadLimit": "You've reached today's download limit. Upgrade for unlimited downloads.",
+      "downloadsPremium": "Downloads are Premium only. Upgrade to unlock.",
+      "downloadAllowance": "We couldn't verify your download allowance. Please try again."
+    },
+    "share": {
+      "title": "I just unlocked rewards on Monevo!",
+      "text": "Check out my latest achievement.",
+      "downloaded": "Share image downloaded. Post it anywhere!",
+      "unavailable": "Unable to generate share image right now."
+    },
+    "title": "Rewards",
+    "subtitle": "Spend your coins on exclusive rewards or donate to causes that matter.",
+    "balanceLabel": "Available Balance",
+    "coins": "coins",
+    "tabs": {
+      "shop": "Shop",
+      "donate": "Donate"
+    },
+    "shop": {
+      "empty": "No shop items available right now.",
+      "subtitle": "Redeem coins for exclusive rewards and resources.",
+      "buyNow": "Buy Now"
+    },
+    "donate": {
+      "empty": "No donation causes available right now.",
+      "subtitle": "Support meaningful organizations with a portion of your coins."
+    },
+    "refreshNote": "Coins refresh automatically after each purchase or donation.",
+    "downloadLimit": "Download limit reached",
+    "shareButton": "Share achievement card"
+  },
+  "faq": {
+    "header": {
+      "kicker": "Help Center",
+      "title": "Frequently Asked Questions",
+      "subtitle": "Search for topics, browse categories, or reach out to our support team directly."
+    },
+    "search": {
+      "placeholder": "Search FAQs...",
+      "clear": "Clear"
+    },
+    "filter": {
+      "label": "Filter:",
+      "aria": "Filter FAQs by category",
+      "all": "All"
+    },
+    "loading": "Loading FAQs...",
+    "empty": "No FAQs match your search. Try different keywords or clear your filters.",
+    "vote": {
+      "prompt": "Was this helpful?",
+      "thanksHelpful": "Thanks for your feedback! 👍",
+      "thanksNotHelpful": "Thanks for your feedback! 👎",
+      "helpful": "👍 Helpful",
+      "notHelpful": "👎 Not really"
+    },
+    "contact": {
+      "title": "Still need help? Contact us",
+      "subtitle": "Share a brief description of the issue and we'll be in touch.",
+      "email": "Your Email",
+      "topic": "Topic",
+      "selectTopic": "Select a topic",
+      "topics": {
+        "billing": "Billing",
+        "technical": "Technical Issue",
+        "account": "Account",
+        "content": "Course Content",
+        "feedback": "Feedback",
+        "other": "Other"
+      },
+      "message": "Message",
+      "send": "Send Message",
+      "success": "Your message has been received! Thank you for contacting us.",
+      "error": "Failed to send message. Please try again later."
+    }
+  },
+  "profile": {
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "goals": {
+      "dailyLabel": "Complete 1 lesson",
+      "weeklyLabel": "Earn 500 points",
+      "title": "Your Goals",
+      "subtitle": "Track daily and weekly learning progress.",
+      "dailyTitle": "🎯 Daily Goal",
+      "weeklyTitle": "🗓 Weekly Goal",
+      "completed": "✓ Completed!"
+    },
+    "fallbackUser": "User",
+    "loading": "Loading profile...",
+    "avatarAlt": "Avatar",
+    "actions": {
+      "personalizedPath": "Jump to Personalized Path",
+      "subscription": "Jump to Subscription"
+    },
+    "streak": {
+      "title": "Learning Streak",
+      "subtitle": "Visualize your daily activity for the month."
+    },
+    "referral": {
+      "title": "Invite Friends",
+      "subtitle": "Share your link and earn rewards when friends join.",
+      "linkLabel": "Your unique referral link",
+      "copied": "Copied!",
+      "copyLink": "Copy Link"
+    },
+    "stats": {
+      "title": "Statistics",
+      "balance": "Balance",
+      "points": "Points",
+      "streak": "Streak",
+      "streakDays": "{{count}} days",
+      "hotStreak": "🔥 Hot streak!",
+      "keepGoing": "↑ Keep going!",
+      "startStreak": "Start your streak"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "showing": "Showing {{shown}} of {{total}}",
+      "filterLabel": "Filter:",
+      "filterAll": "All",
+      "filterEarned": "Earned",
+      "filterLocked": "Locked",
+      "showLess": "Show less",
+      "showAll": "Show all",
+      "earnedAchievement": "Earned achievement",
+      "locked": "Locked",
+      "earnedOn": "Earned {{date}}",
+      "empty": "No badges earned yet"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "empty": "No recent activity",
+      "showing": "Showing the 3 most recent activities of {{total}} total."
+    },
+    "friendRequests": {
+      "loadFailed": "Unable to load friend requests right now.",
+      "accepted": "Friend request accepted!",
+      "declined": "Friend request declined.",
+      "error": "Something went wrong. Please try again.",
+      "title": "Friend Requests",
+      "subtitle": "Manage people who want to connect with you.",
+      "empty": "No pending requests",
+      "wantsToConnect": "wants to connect with you",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "avatarSelector": {
+      "changeAvatar": "Change avatar",
+      "title": "Customize Your Avatar",
+      "subtitle": "Pick a style and personalize your look.",
+      "close": "Close avatar selector",
+      "previewAlt": "Avatar preview",
+      "seedHint": "Each avatar is generated from your seed text.",
+      "style": "Avatar Style",
+      "customizationSeed": "Customization Seed",
+      "customizePlaceholder": "Enter text to customize your avatar",
+      "customizeHint": "Different words create different avatars.",
+      "quickOptions": "Quick Options",
+      "quickOptionsHint": "Click any avatar below to use it.",
+      "randomize": "Randomize",
+      "saving": "Saving...",
+      "save": "Save Avatar"
+    }
+  },
+  "widgets": {
+    "userProgress": {
+      "loading": "Loading progress...",
+      "userProfile": "User Profile",
+      "logout": "Logout",
+      "loadingUserInfo": "Loading user info...",
+      "points": "Points",
+      "streak_one": "Day Streak",
+      "streak_other": "Days Streak",
+      "learningProgress": "Learning Progress",
+      "overallCompletion": "Overall Completion",
+      "pathProgress": "Path Progress"
+    }
+  },
+  "chatbot": {
+    "title": "Finance Assistant",
+    "openAssistantAria": "Open Finance Assistant",
+    "closeAssistantAria": "Close Finance Assistant",
+    "loadingVoices": "Loading voices...",
+    "tryAsking": "Try asking me about:",
+    "voiceInputAria": "Voice input",
+    "inputPlaceholder": "Ask me about finance, budgeting, investing...",
+    "chatInputAria": "Chat input",
+    "send": "Send",
+    "typing": "Typing...",
+    "availablePaths": "Available paths",
+    "userAvatarAlt": "User avatar",
+    "speechNotSupported": "Speech recognition is not supported in your browser.",
+    "greeting": "Hello! I'm your financial assistant. Ask me about budgeting, investing, saving, cryptocurrencies, retirement planning, or any other finance topic. How can I help you today?",
+    "listening": "Listening...",
+    "loginRequired": "Please log in to use the chatbot. You will be redirected to the login page.",
+    "aiTutorLimited": "AI tutor access is limited on your current plan. Upgrade to keep chatting.",
+    "aiTutorPremiumOnly": "AI tutor is available on Premium plans. Upgrade to continue chatting.",
+    "aiTutorDailyLimit": "You've reached today's AI tutor limit. Upgrade for more conversations.",
+    "authTokenMissing": "Authentication token is missing. Please log in again.",
+    "genericError": "Sorry, I couldn't process your request. Please try again.",
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "rateLimit": "You've reached the rate limit. Please try again in a moment.",
+    "languages": {
+      "enUS": "English (US)",
+      "esES": "Spanish",
+      "frFR": "French",
+      "deDE": "German",
+      "itIT": "Italian",
+      "ptBR": "Portuguese",
+      "jaJP": "Japanese",
+      "koKR": "Korean",
+      "zhCN": "Chinese"
+    },
+    "quickReplies": {
+      "compoundInterest": "💰 What is compound interest?",
+      "learningPaths": "📚 Show me learning paths",
+      "recommendCourse": "📊 Recommend a course for me",
+      "bitcoinPrice": "📈 What's the price of Bitcoin?",
+      "startInvesting": "💼 How do I start investing?"
+    },
+    "responses": {
+      "increased": "increased",
+      "decreased": "decreased",
+      "up": "up",
+      "down": "down",
+      "stockPrice": "The current price of {{symbol}} is {{price}}. The stock {{direction}} by {{change}}% today.",
+      "stockNotFound": "I couldn't find current price data for {{symbol}}. Please check if the stock symbol is correct.",
+      "forexRate": "The current exchange rate from {{from}} to {{to}} is {{rate}}.",
+      "forexChanged": "The rate has changed by {{sign}}{{change}} today.",
+      "forexNotFound": "I couldn't find the exchange rate between {{from}} and {{to}}. Please check if both currency codes are valid.",
+      "cryptoPrice": "The current price of {{name}} is {{price}}. It's {{direction}} {{change}}% in the last 24 hours.",
+      "marketCap": "Market cap: {{marketCap}}.",
+      "cryptoNotFound": "I couldn't find current price data for {{name}}. It may not be listed on the exchanges I have access to.",
+      "cryptoUnrecognized": "I couldn't identify the cryptocurrency you're asking about. Please try specifying a major cryptocurrency like Bitcoin or Ethereum."
+    }
+  },
+  "settings": {
+    "errors": {
+      "loadSettings": "Failed to load settings. Please try again.",
+      "saveSettings": "Failed to save settings. Please try again.",
+      "passwordFields": "Please fill in all password fields.",
+      "passwordMismatch": "New passwords do not match.",
+      "passwordLength": "Password must be at least 8 characters.",
+      "passwordUpdate": "Failed to update password.",
+      "deletePassword": "Please enter your password to confirm deletion.",
+      "incorrectPassword": "Incorrect password. Please try again.",
+      "deleteAccount": "Failed to delete account. Please try again."
+    },
+    "success": {
+      "updated": "Settings updated successfully!",
+      "passwordUpdated": "Password updated successfully!"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "subtitle": "Update your personal details and email address.",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "subtitle": "Control reminders and personalization options.",
+      "emailReminders": "Email Reminders",
+      "reminders": {
+        "none": "No Reminders",
+        "daily": "Daily",
+        "weekly": "Weekly"
+      },
+      "lessonSounds": "Lesson Sounds",
+      "soundsHint": "Play subtle chimes for answers",
+      "animations": "Animations",
+      "animationsHint": "Enable mascot and confetti animations"
+    },
+    "password": {
+      "title": "Change Password",
+      "subtitle": "Create a strong password to keep your account secure.",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "update": "Update Password"
+    },
+    "privacy": {
+      "settings": "Privacy Settings",
+      "cookiePolicy": "Cookie Policy",
+      "privacyPolicy": "Privacy Policy",
+      "financialDisclaimer": "Financial Disclaimer"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Permanently remove your account and all associated data.",
+      "deleteAccount": "Delete My Account",
+      "confirmNote": "This action cannot be undone. Please enter your password to confirm.",
+      "passwordPlaceholder": "Enter your password",
+      "confirmDeletion": "Confirm Deletion"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "save": "Save Changes"
+    }
+  },
+  "auth": {
+    "entitlementsUnavailable": "We could not confirm your entitlements right now.",
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account to continue",
+      "username": "Username",
+      "password": "Password",
+      "usernamePlaceholder": "Enter your username",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "signUpNow": "Sign up now",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "loginFailed": "Login failed. Please try again.",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Sign up to get started",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "referralCode": "Referral Code",
+      "optional": "optional",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastNamePlaceholder": "Enter your last name",
+      "usernamePlaceholder": "Choose a username",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Create a password",
+      "referralPlaceholder": "Enter referral code if you have one",
+      "submit": "Sign Up",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "loginHere": "Login here",
+      "registerFailed": "Registration failed. Please try again."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "logoAlt": "Monevo logo",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "submit": "Send Reset Link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to Login",
+      "success": "Password reset email sent successfully",
+      "error": "An error occurred. Please try again."
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password below",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPlaceholder": "Confirm your new password",
+      "submit": "Reset Password",
+      "submitting": "Saving...",
+      "success": "Password reset successful.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "error": "An error occurred. Please try again."
+    }
+  },
+  "subscriptions": {
+    "choosePlan": "Choose Your Plan",
+    "intro": "Starter is free after onboarding. Plus and Pro unlock your personalized path and premium features via secure Stripe checkout.",
+    "paymentConfirmed": "Payment confirmed! Your subscription is now active.",
+    "fallbackEntitlements": "Using fallback entitlements. Please contact support if this persists.",
+    "loadingPlans": "Loading plans...",
+    "free": "Free",
+    "trialDays": "{{count}} day trial",
+    "trialDays_one": "{{count}} day trial",
+    "trialDays_other": "{{count}} days trial",
+    "perMonth": "month",
+    "perYear": "year",
+    "unlocksPath": "Unlocks personalized path + secure Stripe checkout",
+    "startStarter": "Start with Starter (Free)",
+    "choosePlanCheckout": "Choose {{name}} - Go to checkout",
+    "premiumLearningAccess": "Premium learning access",
+    "selectPlanError": "Please choose a plan to continue.",
+    "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
+    "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "retryEntitlements": "Retry entitlement check",
+    "contactSupport": "Contact support",
+    "subscriptionStatus": "Subscription status",
+    "statusPaid": "You're on Plus or Pro - personalized path and premium features unlocked.",
+    "statusStarterComplete": "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path.",
+    "statusOnboarding": "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro.",
+    "trialEndsOn": "Trial ends on {{date}}",
+    "viewPersonalizedPath": "View your personalized path",
+    "goToDashboard": "Go to dashboard",
+    "checkSubscriptionOptions": "Check subscription options",
+    "comparePlans": "Compare plans",
+    "seeWhatChanges": "See what changes by tier",
+    "feature": "Feature",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "notIncluded": "Not Included",
+    "unlimited": "Unlimited",
+    "perDay": "{{count}} / day",
+    "included": "Included"
+  },
+  "onboarding": {
+    "loading": "Loading onboarding...",
+    "loadingQuestion": "Loading question...",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Try again",
+    "goToDashboard": "Go to Dashboard",
+    "goToAllTopics": "Go to All Topics",
+    "errorSetup": "Onboarding is being set up. Please try again in a moment.",
+    "errorLoad": "We couldn't load onboarding. Please try again.",
+    "errorNextQuestion": "We couldn't load the next question. Please try again.",
+    "errorNextQuestionSetup": "Questionnaire is being set up. Please try again in a moment.",
+    "noQuestionLoaded": "No question loaded",
+    "completeTitle": "Onboarding Complete!",
+    "completeSubtitle": "You're ready to choose a plan and unlock your personalized path.",
+    "viewPlans": "View Plans",
+    "questionOf": "Question {{current}} of {{total}}",
+    "tellUsAboutYourself": "Tell us about yourself",
+    "answerFewQuestions": "Answer a few quick questions so we can tailor your learning experience.",
+    "noAdviceNotice": "I understand Monevo provides educational information only and does not provide financial advice.",
+    "financialDisclaimer": "Financial Disclaimer",
+    "noFinancialAdvice": "No Financial Advice",
+    "progress": "Progress",
+    "summary": "Summary",
+    "allTopics": "All Topics",
+    "saveAndFinishLater": "Save and Finish Later",
+    "previous": "← Previous",
+    "next": "Next →",
+    "saving": "Saving...",
+    "complete": "Complete",
+    "completing": "Completing...",
+    "confirmNotice": "Please confirm the educational-use notice to continue.",
+    "selectAnswer": "Please select an answer",
+    "failedToSave": "Failed to save. Please try again.",
+    "failedToComplete": "Failed to complete onboarding",
+    "progressSaved": "Progress saved. You can resume anytime!",
+    "couldNotComplete": "Could not complete. Taking you to plans…",
+    "unsupportedQuestionType": "Unsupported question type: {{type}}",
+    "previousComingSoon": "Previous question navigation coming soon",
+    "reminderBanner": {
+      "loading": "Loading onboarding status…",
+      "error": "Couldn't load onboarding status.",
+      "retrying": "Retrying…",
+      "tryAgain": "Try again",
+      "status": "Onboarding Status",
+      "allSet": "You're all set. Your onboarding is complete.",
+      "questionsComplete": "{{done}} of {{total}} questions complete ({{percent}}%)",
+      "sectionsComplete": "{{done}} of {{total}} sections complete ({{percent}}%)",
+      "resume": "Resume Onboarding",
+      "start": "Start Onboarding",
+      "viewStatus": "View onboarding status"
+    },
+    "completionModal": {
+      "title": "🎉 Congratulations!",
+      "subtitle": "You've completed onboarding. Here are your rewards:",
+      "xpPoints": "XP Points",
+      "coins": "Coins",
+      "choosePlan": "Choose a Plan →",
+      "close": "Close"
+    }
+  },
+  "footer": {
+    "tagline": "Learn money skills with lessons, missions, and practice.",
+    "disclaimer": "Educational platform only. Monevo does not provide financial advice.",
+    "legal": "Legal",
+    "company": "Company",
+    "product": "Product",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy",
+    "termsConditions": "Terms & Conditions",
+    "financialDisclaimer": "Financial Disclaimer",
+    "noFinancialAdviceNotice": "No Financial Advice Notice",
+    "about": "About",
+    "subscriptions": "Subscriptions",
+    "faq": "FAQ",
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "missions": "Missions",
+    "tools": "Tools",
+    "leaderboards": "Leaderboards",
+    "rewards": "Rewards",
+    "copyright": "© {{year}} Monevo. All rights reserved.",
+    "infoDisclaimer": "Information is educational and general, not personalized financial advice.",
+    "buyMeACoffee": "Buy me a coffee",
+    "monevoOn": "Monevo on {{platform}}"
+  },
+  "header": {
+    "premiumReady": "Premium Ready",
+    "toggleDarkMode": "Toggle dark mode",
+    "openDashboard": "Open Dashboard",
+    "login": "Login",
+    "getStarted": "Get Started"
+  },
+  "shared": {
+    "apiError": "Something went wrong. Please try again."
+  },
+  "errorBoundary": {
+    "title": "Something went wrong while loading this section.",
+    "chunkLoadMessage": "A new version was deployed and your browser still has an older cached file. Reloading should fix it.",
+    "genericMessage": "Please refresh the page or try again later. If the problem persists, contact support.",
+    "reloadPage": "Reload page"
+  },
+  "exercises": {
+    "errors": {
+      "loadFailed": "Failed to load exercises. Please try again later.",
+      "submissionFailed": "Submission failed. Please try again.",
+      "submitAnswer": "Please submit an answer before continuing.",
+      "invalidFormat": "Invalid exercise format",
+      "unsupportedType": "Unsupported exercise type."
+    },
+    "mascot": {
+      "correct": "Great job! You got it right.",
+      "encourage": "Keep the optimism. Try again.",
+      "neutral": "Calm and steady progress wins."
+    },
+    "header": {
+      "title": "Financial Exercises",
+      "subtitle": "Practice interactive challenges to strengthen your money skills."
+    },
+    "reviewQueue": {
+      "title": "Review Queue",
+      "due": "Due • {{count}}",
+      "nextUp": "Next up: {{skill}} - {{question}}",
+      "start": "Start Review",
+      "emptyTitle": "All caught up!",
+      "emptySubtitle": "No review items are due right now.",
+      "backToLesson": "Back to lesson mode",
+      "refresh": "Refresh content"
+    },
+    "session": {
+      "complete": "🎉 Congratulations! You've completed this session. Review your stats or start a new round below."
+    },
+    "filters": {
+      "type": "Type",
+      "allTypes": "All Types",
+      "multipleChoice": "Multiple Choice",
+      "numeric": "Numeric",
+      "dragDrop": "Drag and Drop",
+      "budget": "Budget Allocation",
+      "fillTable": "Fill In Table",
+      "scenario": "Scenario Simulation",
+      "category": "Category",
+      "allCategories": "All Categories",
+      "difficulty": "Difficulty",
+      "allDifficulties": "All Difficulties",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "progress": {
+      "label": "Exercise {{current}} of {{total}}",
+      "title": "Your Progress",
+      "exercise": "Exercise {{index}}",
+      "completed": "Completed",
+      "attempted": "Attempted",
+      "empty": "No progress yet. Start an exercise to see your progress here!",
+      "totalCompleted": "Total Completed"
+    },
+    "timedMode": "Timed Mode",
+    "streak": "🔥 You've completed {{count}} exercises in a row - keep it up!",
+    "hints": {
+      "title": "Hints",
+      "showNext": "Show next hint (-{{cost}} coins)",
+      "credits": "Hint credits:",
+      "earnMore": "Earn more hint credits via missions.",
+      "upgrade": "Upgrade",
+      "helper": "Use hints if you need a nudge. Each one costs a little XP.",
+      "unavailable": "Hints are unavailable on your plan. Upgrade to unlock.",
+      "depleted": "You have used all hints for today."
+    },
+    "assist": {
+      "title": "Assist",
+      "scratchpad": "Scratchpad",
+      "scratchpadPlaceholder": "Work through the steps here",
+      "calculator": "Calculator",
+      "calculatorPlaceholder": "e.g. (1+0.05/12)^12-1"
+    },
+    "explanation": {
+      "remember": "Remember:",
+      "learnMore": "Learn more about this topic",
+      "learnMoreLink": "Learn more",
+      "askTutor": "Ask the AI tutor for a deeper explanation"
+    },
+    "saveError": "Error saving progress. Please try again.",
+    "mc": {
+      "correct": "Correct! Well done!",
+      "incorrect": "Incorrect. Try again!",
+      "chooseBest": "Choose the best answer from the options below."
+    },
+    "drag": {
+      "title": "Match The Correct Items",
+      "instruction": "Drag each item to the matching target. Submit your answers when you are ready.",
+      "items": "Items",
+      "targets": "Targets",
+      "completed": "Great job! You completed the exercise!",
+      "partialCorrect": "{{correct}} out of {{total}} answers are correct. Try again!",
+      "alreadyCompleted": "This exercise is already completed.",
+      "answerLabel": "Answer:"
+    },
+    "budget": {
+      "instruction": "Allocate your budget across the categories below. Make sure the total adds up to {{total}}.",
+      "correct": "Great job! Your budget allocation is correct!",
+      "totalMismatch": "Your total must be {{total}}. Current total: {{current}}",
+      "currentTotal": "Current Total:",
+      "target": "Target:",
+      "submitAllocation": "Submit Allocation"
+    },
+    "table": {
+      "row": "Row",
+      "rowWithId": "Row {{id}}",
+      "instruction": "Fill in each cell with the correct values.",
+      "fillOne": "Fill in at least one cell before submitting.",
+      "correct": "Nice work! The table is filled out correctly.",
+      "incorrect": "Some entries are off. Review the table and try again.",
+      "submitTable": "Submit Table"
+    },
+    "scenario": {
+      "actionSlot": "Action slot:",
+      "dragHint": "Drag a choice here or select one below.",
+      "selected": "Selected",
+      "correct": "Great call! You handled the scenario well.",
+      "incorrect": "Not quite. Try another strategy.",
+      "submitChoice": "Submit Choice"
+    },
+    "confidence": {
+      "label": "Confidence",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "helper": "Low confidence will schedule similar practice sooner."
+    },
+    "result": {
+      "correct": "✅ Correct! Well done!",
+      "incorrect": "❌ Incorrect. Better luck next time!"
+    },
+    "actions": {
+      "restart": "Restart",
+      "retrying": "Retrying...",
+      "tryAgain": "Try Again",
+      "finish": "Finish",
+      "next": "Next Exercise",
+      "tryVariant": "Try Variant",
+      "submit": "Submit Answer",
+      "retryExercise": "Retry Exercise",
+      "submitAnswers": "Submit Answers"
+    },
+    "calculator": {
+      "checkExpression": "Check expression"
+    },
+    "inputs": {
+      "numberPlaceholder": "Enter a number"
+    },
+    "inline": {
+      "correct": "Nice work! Keep going.",
+      "incorrect": "Hint: revisit the prompt and try again."
+    },
+    "loading": "Loading exercises...",
+    "retry": "Retry",
+    "skillFallback": "General"
+  }
+}

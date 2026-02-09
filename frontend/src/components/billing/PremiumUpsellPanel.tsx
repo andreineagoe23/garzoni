@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 const CHECKOUT_URL =
@@ -22,6 +23,7 @@ const trackPremiumEvent = (
 };
 
 const PremiumUpsellPanel = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [referralCopied, setReferralCopied] = useState(false);
 
@@ -80,19 +82,19 @@ const PremiumUpsellPanel = () => {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Upgrade to Premium
+              {t("billing.upgradeToPremium")}
             </p>
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-              Unlock Premium Features
+              {t("billing.unlockPremiumFeatures")}
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Get unlimited access to all learning features
+              {t("billing.getUnlimitedAccess")}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <GlassButton variant="active" size="sm" onClick={handleTrialClick}>
-            Start Free Trial
+            {t("billing.startFreeTrial")}
           </GlassButton>
           <GlassButton
             variant="ghost"
@@ -102,9 +104,7 @@ const PremiumUpsellPanel = () => {
               referralCopied ? "border-green-500/60 text-green-700" : ""
             }
           >
-            {referralCopied
-              ? "Copied!"
-              : "Share Referral"}
+            {referralCopied ? t("billing.copied") : t("billing.shareReferral")}
           </GlassButton>
         </div>
         <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-[color:var(--muted-text,#6b7280)]">

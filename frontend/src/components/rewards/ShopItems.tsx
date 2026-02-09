@@ -1,22 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { useAuth } from "contexts/AuthContext";
+import apiClient from "services/httpClient";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import { useTranslation } from "react-i18next";
 
 function ShopItems({ onPurchase }) {
+  const { t } = useTranslation();
   const [shopItems, setShopItems] = useState([]);
   const didFetchRef = useRef(false);
-  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchShopItems = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/rewards/shop/`, {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        });
+        const response = await apiClient.get("/rewards/shop/");
         setShopItems(response.data);
       } catch (error) {
         console.error("Error fetching shop items:", error);
@@ -27,19 +22,13 @@ function ShopItems({ onPurchase }) {
       didFetchRef.current = true;
       fetchShopItems();
     }
-  }, [getAccessToken]);
+  }, []);
 
   const handlePurchase = async (rewardId) => {
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/purchases/`,
-        { reward_id: rewardId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await apiClient.post("/purchases/", {
+        reward_id: rewardId,
+      });
 
       if (response.status === 201) {
         alert("Purchase successful!");
@@ -57,7 +46,9 @@ function ShopItems({ onPurchase }) {
         padding="lg"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-sm text-[color:var(--muted-text,#6b7280)]"
       >
-        No shop items available right now.
+        {t("rewards.shop.empty", {
+          defaultValue: "No shop items available right now.",
+        })}
       </GlassCard>
     );
   }
@@ -66,10 +57,13 @@ function ShopItems({ onPurchase }) {
     <section className="space-y-6">
       <header className="space-y-2">
         <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          Shop
+          {t("rewards.tabs.shop", { defaultValue: "Shop" })}
         </h2>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Redeem coins for exclusive rewards and resources.
+          {t("rewards.shop.subtitle", {
+            defaultValue:
+              "Redeem coins for exclusive rewards and resources.",
+          })}
         </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -100,14 +94,14 @@ function ShopItems({ onPurchase }) {
               </div>
               <div className="mt-auto flex items-center justify-between">
                 <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-                  {item.cost} coins
+                  {item.cost} {t("rewards.coins", { defaultValue: "coins" })}
                 </span>
                 <button
                   type="button"
                   onClick={() => handlePurchase(item.id)}
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
-                  Buy Now
+                  {t("rewards.shop.buyNow", { defaultValue: "Buy Now" })}
                 </button>
               </div>
             </div>

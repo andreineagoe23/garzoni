@@ -10,6 +10,7 @@ import {
   getLocale,
   getTimezone,
 } from "./format";
+import { LANGUAGE_STORAGE_KEY } from "constants/i18n";
 
 describe("format utilities", () => {
   describe("formatNumber", () => {
@@ -125,8 +126,9 @@ describe("format utilities", () => {
 
   describe("getLocale", () => {
     it("returns normalized locale from navigator.language", () => {
+      window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
       const locale = getLocale();
-      expect(locale).toMatch(/^(en-US|es-ES)$/);
+      expect(locale).toMatch(/^(en-US|es-ES|ro-RO)$/);
     });
   });
 

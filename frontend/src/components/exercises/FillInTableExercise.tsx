@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
@@ -41,6 +42,7 @@ const FillInTableExercise = ({
 }: FillInTableExerciseProps) => {
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
+  const { t } = useTranslation();
   const { question, table, correctAnswer, learn_more_url, explanation } = data || {};
   const columns = table?.columns || [];
   const rows = table?.rows || [];
@@ -100,7 +102,7 @@ const FillInTableExercise = ({
       row.some((cell) => cell && String(cell).trim().length > 0)
     );
     if (!hasInput) {
-      setFeedback("Fill in at least one cell before submitting.");
+      setFeedback(t("exercises.table.fillOne"));
       setFeedbackType("error");
       return;
     }
@@ -116,10 +118,10 @@ const FillInTableExercise = ({
       );
 
     if (isCorrect) {
-      setFeedback("Nice work! The table is filled out correctly.");
+      setFeedback(t("exercises.table.correct"));
       setFeedbackType("success");
     } else {
-      setFeedback("Some entries are off. Review the table and try again.");
+      setFeedback(t("exercises.table.incorrect"));
       setFeedbackType("error");
     }
 
@@ -130,7 +132,7 @@ const FillInTableExercise = ({
       try {
         await onComplete?.();
       } catch (error) {
-        setFeedback("Error saving progress. Please try again.");
+        setFeedback(t("exercises.saveError"));
         setFeedbackType("error");
       }
     }
@@ -162,7 +164,7 @@ const FillInTableExercise = ({
           {question}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Fill in each cell with the correct values.
+          {t("exercises.table.instruction")}
         </p>
       </header>
 
@@ -171,7 +173,7 @@ const FillInTableExercise = ({
           <thead>
             <tr>
               <th className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                Row
+                {t("exercises.table.row")}
               </th>
               {columns.map((column) => (
                 <th
@@ -187,7 +189,7 @@ const FillInTableExercise = ({
             {rows.map((row) => (
               <tr key={row.id}>
                 <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
-                  {row.label || `Row ${row.id}`}
+                  {row.label || t("exercises.table.rowWithId", { id: row.id })}
                 </td>
                 {columns.map((column, colIndex) => {
                   const value = answers[row.id]?.[colIndex] ?? "";
@@ -208,7 +210,7 @@ const FillInTableExercise = ({
                           handleChange(row.id, colIndex, event.target.value)
                         }
                         disabled={isCompleted || disabled}
-                        aria-label={`${row.label || "Row"} ${column}`}
+                        aria-label={`${row.label || t("exercises.table.row")} ${column}`}
                         className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${borderClass}`}
                       />
                     </td>
@@ -227,7 +229,7 @@ const FillInTableExercise = ({
             onClick={handleRetry}
             className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
-            Retry Exercise
+            {t("exercises.actions.retryExercise")}
           </button>
         ) : (
           <button
@@ -236,7 +238,7 @@ const FillInTableExercise = ({
             disabled={disabled}
             className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
           >
-            Submit Table
+            {t("exercises.table.submitTable")}
           </button>
         )}
       </div>
@@ -263,7 +265,7 @@ const FillInTableExercise = ({
                 rel="noreferrer"
                 className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
               >
-                Learn more
+                {t("exercises.explanation.learnMoreLink")}
               </a>
             </div>
           )}

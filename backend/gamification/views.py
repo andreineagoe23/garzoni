@@ -15,6 +15,7 @@ import hashlib
 import json
 
 from authentication.user_display import user_display_dict
+from core.utils import normalize_text_encoding
 from gamification.models import (
     Badge,
     UserBadge,
@@ -70,8 +71,8 @@ class MissionView(APIView):
                 daily_missions.append(
                     {
                         "id": completion.mission.id,
-                        "name": completion.mission.name,
-                        "description": completion.mission.description,
+                        "name": normalize_text_encoding(completion.mission.name),
+                        "description": normalize_text_encoding(completion.mission.description),
                         "points_reward": completion.mission.points_reward,
                         "progress": completion.progress,
                         "status": completion.status,
@@ -84,8 +85,8 @@ class MissionView(APIView):
                 weekly_missions.append(
                     {
                         "id": completion.mission.id,
-                        "name": completion.mission.name,
-                        "description": completion.mission.description,
+                        "name": normalize_text_encoding(completion.mission.name),
+                        "description": normalize_text_encoding(completion.mission.description),
                         "points_reward": completion.mission.points_reward,
                         "progress": completion.progress,
                         "status": completion.status,
@@ -439,7 +440,7 @@ class RecentActivityView(APIView):
                 {
                     "type": "mission",
                     "action": "completed",
-                    "name": mc.mission.name,
+                    "name": normalize_text_encoding(mc.mission.name),
                     "timestamp": mc.completed_at,
                 }
             )
@@ -543,8 +544,8 @@ class MissionSwapView(APIView):
                         "message": "Mission swapped successfully.",
                         "new_mission": {
                             "id": new_mission.id,
-                            "name": new_mission.name,
-                            "description": new_mission.description,
+                            "name": normalize_text_encoding(new_mission.name),
+                            "description": normalize_text_encoding(new_mission.description),
                             "points_reward": new_mission.points_reward,
                         },
                     },
@@ -688,8 +689,8 @@ class MissionGenerationView(APIView):
                     "missions": [
                         {
                             "id": m.id,
-                            "name": m.name,
-                            "description": m.description,
+                            "name": normalize_text_encoding(m.name),
+                            "description": normalize_text_encoding(m.description),
                         }
                         for m in generated
                     ],

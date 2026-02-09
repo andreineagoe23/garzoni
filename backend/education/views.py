@@ -101,7 +101,7 @@ EXERCISE_SAFE_FIELDS = [
 class PathViewSet(viewsets.ModelViewSet):
     """ViewSet to manage paths, including listing and retrieving paths."""
 
-    queryset = Path.objects.all()
+    queryset = Path.objects.prefetch_related("translations")
     serializer_class = PathSerializer
     permission_classes = [IsAuthenticated]
 
@@ -113,13 +113,23 @@ class PathViewSet(viewsets.ModelViewSet):
 class CourseViewSet(viewsets.ModelViewSet):
     """ViewSet to manage courses, including listing, retrieving, and updating course data."""
 
-    queryset = Course.objects.all()
+    queryset = Course.objects.select_related("path").prefetch_related(
+        "translations",
+        "path__translations",
+        "lessons__translations",
+        "lessons__sections__translations",
+    )
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Filter courses by path if path_id is provided."""
-        queryset = Course.objects.all()
+        queryset = Course.objects.select_related("path").prefetch_related(
+            "translations",
+            "path__translations",
+            "lessons__translations",
+            "lessons__sections__translations",
+        )
         if not _user_is_staff(self.request.user):
             queryset = queryset.filter(path_id__in=_allowed_path_ids(self.request.user))
         path_id = self.request.query_params.get("path", None)
@@ -136,7 +146,17 @@ class CourseViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = Course.objects.select_related("path").filter(pk=kwargs.get("pk")).first()
+        instance = (
+            Course.objects.select_related("path")
+            .prefetch_related(
+                "translations",
+                "path__translations",
+                "lessons__translations",
+                "lessons__sections__translations",
+            )
+            .filter(pk=kwargs.get("pk"))
+            .first()
+        )
         if not instance:
             return Response({"error": "Course not found."}, status=404)
         if instance.path and not _user_can_access_path(request.user, instance.path):
@@ -223,14 +243,17 @@ class LessonViewSet(viewsets.ModelViewSet):
             completed_lesson_ids = []
             completed_sections = []
 
-        section_queryset = LessonSection.objects.all()
+        section_queryset = LessonSection.objects.prefetch_related("translations")
         if not include_unpublished:
             section_queryset = section_queryset.filter(is_published=True)
 
         lessons = (
             self.get_queryset()
             .filter(course_id=course_id)
-            .prefetch_related(Prefetch("sections", queryset=section_queryset.order_by("order")))
+            .prefetch_related(
+                Prefetch("sections", queryset=section_queryset.order_by("order")),
+                "translations",
+            )
         )
         serializer = self.get_serializer(
             lessons,
@@ -406,7 +429,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 class QuizViewSet(viewsets.ModelViewSet):
     """ViewSet to manage quizzes, including retrieving and completing quizzes."""
 
-    queryset = Quiz.objects.all()
+    queryset = Quiz.objects.prefetch_related("translations")
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
@@ -416,7 +439,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Quiz.objects.none()
 
-        quizzes = Quiz.objects.filter(course_id=course_id)
+        quizzes = Quiz.objects.filter(course_id=course_id).prefetch_related("translations")
         return quizzes
 
     def list(self, request, *args, **kwargs):
@@ -882,13 +905,15 @@ def _evaluate_budget(exercise, user_answer):
 class ExerciseViewSet(viewsets.ModelViewSet):
     """Manage exercises, including filtering by type, category, and difficulty."""
 
-    queryset = Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS)
+    queryset = Exercise.objects.prefetch_related("translations").only(*EXERCISE_SAFE_FIELDS)
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Only load safe fields so DBs missing core_exercise.version still work
-        queryset = Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS)
+        queryset = (
+            Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS).prefetch_related("translations")
+        )
         exercise_type = self.request.query_params.get("type", None)
         category = self.request.query_params.get("category", None)
         difficulty = self.request.query_params.get("difficulty", None)

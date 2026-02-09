@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import confetti from "canvas-confetti";
 import { GlassButton } from "components/ui";
 
@@ -18,6 +19,7 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
   onClose,
   onStartLearning,
 }) => {
+  const { t } = useTranslation();
   const confettiFiredRef = useRef(false);
 
   useEffect(() => {
@@ -109,11 +111,11 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
           id="completion-modal-title"
           className="mb-3 text-3xl font-bold text-[color:var(--accent,#111827)]"
         >
-          🎉 Congratulations!
+          {t("onboarding.completionModal.title")}
         </h2>
 
         <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-          You've completed onboarding. Here are your rewards:
+          {t("onboarding.completionModal.subtitle")}
         </p>
 
         {/* Rewards */}
@@ -122,23 +124,23 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
               +{rewards.xp}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">XP Points</div>
+            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">{t("onboarding.completionModal.xpPoints")}</div>
           </div>
           <div className="rounded-2xl border border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5 p-4">
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
               +{rewards.coins}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">Coins</div>
+            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">{t("onboarding.completionModal.coins")}</div>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <GlassButton variant="primary" size="lg" onClick={onStartLearning}>
-            Choose a Plan →
+            {t("onboarding.completionModal.choosePlan")}
           </GlassButton>
           <GlassButton variant="ghost" size="lg" onClick={onClose}>
-            Close
+            {t("onboarding.completionModal.close")}
           </GlassButton>
         </div>
       </div>

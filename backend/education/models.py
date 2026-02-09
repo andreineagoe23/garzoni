@@ -569,3 +569,78 @@ class PathRecommendation(models.Model):
 
     class Meta:
         db_table = "core_pathrecommendation"
+
+
+# ---- Translation models (one row per parent per language; canonical content is in the main model as fallback) ----
+
+
+class PathTranslation(models.Model):
+    path = models.ForeignKey(Path, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+
+    class Meta:
+        db_table = "education_path_translation"
+        unique_together = [("path", "language")]
+
+
+class CourseTranslation(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+
+    class Meta:
+        db_table = "education_course_translation"
+        unique_together = [("course", "language")]
+
+
+class LessonTranslation(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=200)
+    short_description = models.TextField(blank=True)
+    detailed_content = models.TextField(blank=True)
+
+    class Meta:
+        db_table = "education_lesson_translation"
+        unique_together = [("lesson", "language")]
+
+
+class LessonSectionTranslation(models.Model):
+    section = models.ForeignKey(
+        LessonSection, on_delete=models.CASCADE, related_name="translations"
+    )
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=200)
+    text_content = models.TextField(blank=True, null=True)
+    exercise_data = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        db_table = "education_lessonsection_translation"
+        unique_together = [("section", "language")]
+
+
+class QuizTranslation(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=200)
+    question = models.TextField()
+    choices = models.JSONField()
+    correct_answer = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = "education_quiz_translation"
+        unique_together = [("quiz", "language")]
+
+
+class ExerciseTranslation(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    question = models.TextField()
+    exercise_data = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        db_table = "education_exercise_translation"
+        unique_together = [("exercise", "language")]
