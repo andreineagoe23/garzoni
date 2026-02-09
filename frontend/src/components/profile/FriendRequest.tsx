@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { BACKEND_URL } from "services/backendUrl";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
 const FriendRequests = () => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -21,7 +23,7 @@ const FriendRequests = () => {
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
-      setMessage("Unable to load friend requests right now.");
+      setMessage(t("profile.friendRequests.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -46,15 +48,15 @@ const FriendRequests = () => {
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
       setMessage(
         action === "accept"
-          ? "Friend request accepted!"
-          : "Friend request declined."
+          ? t("profile.friendRequests.accepted")
+          : t("profile.friendRequests.declined")
       );
     } catch (error) {
       console.error(`Error updating request:`, error);
       setMessage(
         error.response?.data?.error ||
           error.response?.data?.detail ||
-          "Something went wrong. Please try again."
+          t("profile.friendRequests.error")
       );
     }
   };
@@ -64,10 +66,10 @@ const FriendRequests = () => {
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-            Friend Requests
+            {t("profile.friendRequests.title")}
           </h4>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Manage people who want to connect with you.
+            {t("profile.friendRequests.subtitle")}
           </p>
         </div>
         <span className="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)]/10 px-3 py-1 text-sm font-semibold text-[color:var(--accent,#2563eb)]">
@@ -89,7 +91,7 @@ const FriendRequests = () => {
         ) : requests.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-[color:var(--muted-text,#6b7280)]">
             <span className="text-3xl">📭</span>
-            <p className="text-sm">No pending requests</p>
+            <p className="text-sm">{t("profile.friendRequests.empty")}</p>
           </div>
         ) : (
           requests.map((request) => (
@@ -106,7 +108,7 @@ const FriendRequests = () => {
                     {request.sender.username}
                   </p>
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    wants to connect with you
+                    {t("profile.friendRequests.wantsToConnect")}
                   </p>
                 </div>
               </div>
@@ -116,14 +118,14 @@ const FriendRequests = () => {
                   onClick={() => respondToRequest(request.id, "accept")}
                   className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-md hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--primary,#2563eb)]"
                 >
-                  Accept
+                  {t("profile.friendRequests.accept")}
                 </button>
                 <button
                   type="button"
                   onClick={() => respondToRequest(request.id, "reject")}
                   className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--error,#dc2626)]/60 hover:text-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
                 >
-                  Decline
+                  {t("profile.friendRequests.decline")}
                 </button>
               </div>
             </div>

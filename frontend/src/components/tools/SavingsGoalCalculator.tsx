@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "contexts/AuthContext";
 import { BACKEND_URL } from "services/backendUrl";
 import { formatCurrency, getLocale } from "utils/format";
@@ -7,6 +8,7 @@ import { formatCurrency, getLocale } from "utils/format";
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:savings";
 
 const SavingsGoalCalculator = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     savings_goal: "",
     initial_investment: "",
@@ -21,7 +23,7 @@ const SavingsGoalCalculator = () => {
   const presets = useMemo(
     () => [
       {
-        label: "Starter goal",
+        label: t("tools.savingsCalc.starterGoal"),
         values: {
           savings_goal: "10000",
           initial_investment: "1000",
@@ -31,7 +33,7 @@ const SavingsGoalCalculator = () => {
         },
       },
       {
-        label: "Long-term",
+        label: t("tools.savingsCalc.longTerm"),
         values: {
           savings_goal: "50000",
           initial_investment: "5000",
@@ -41,7 +43,7 @@ const SavingsGoalCalculator = () => {
         },
       },
     ],
-    []
+    [t]
   );
 
   const handleChange = (event) => {
@@ -52,11 +54,11 @@ const SavingsGoalCalculator = () => {
   const validateForm = () => {
     const values = Object.values(formData);
     if (values.some((value) => value === "")) {
-      setError("All fields are required");
+      setError(t("tools.savingsCalc.allFieldsRequired"));
       return false;
     }
     if (Number(formData.annual_interest_rate) > 30) {
-      setError("Annual interest rate cannot exceed 30%");
+      setError(t("tools.savingsCalc.interestRateMax"));
       return false;
     }
     return true;
@@ -84,7 +86,7 @@ const SavingsGoalCalculator = () => {
         sessionStorage.setItem(
           ACTIVITY_STORAGE_KEY,
           JSON.stringify({
-            label: `Goal ${formatCurrency(
+            label: `${t("tools.savingsCalc.activityPrefix")} ${formatCurrency(
               Number(formData.savings_goal || 0),
               "USD",
               locale,
@@ -103,7 +105,7 @@ const SavingsGoalCalculator = () => {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(
-        apiMessage || "Failed to calculate savings goal. Please try again."
+        apiMessage || t("tools.savingsCalc.calculationFailed")
       );
     }
   };
@@ -112,10 +114,10 @@ const SavingsGoalCalculator = () => {
     <section className="space-y-6">
       <header className="space-y-2 text-center">
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-          Savings Goal Calculator
+          {t("tools.savingsCalc.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Calculate how much you need to save to reach your financial goals
+          {t("tools.savingsCalc.subtitle")}
         </p>
       </header>
 
@@ -128,7 +130,7 @@ const SavingsGoalCalculator = () => {
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            Demo presets
+            {t("tools.savingsCalc.demoPresets")}
           </p>
           <div className="flex flex-wrap gap-2">
             {presets.map((preset) => (
@@ -143,9 +145,9 @@ const SavingsGoalCalculator = () => {
             ))}
           </div>
           <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-            <li>• Try a 2-year goal for a quick benchmark</li>
-            <li>• Adjust interest rate to match your account</li>
-            <li>• Compare monthly vs quarterly compounding</li>
+            <li>• {t("tools.savingsCalc.presetTip1")}</li>
+            <li>• {t("tools.savingsCalc.presetTip2")}</li>
+            <li>• {t("tools.savingsCalc.presetTip3")}</li>
           </ul>
         </div>
         <form
@@ -154,11 +156,11 @@ const SavingsGoalCalculator = () => {
           noValidate
         >
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Savings Goal
+            {t("tools.savingsCalc.savingsGoal")}
             <input
               type="number"
               name="savings_goal"
-              placeholder="Enter your savings goal amount"
+              placeholder={t("tools.savingsCalc.savingsGoalPlaceholder")}
               value={formData.savings_goal}
               onChange={handleChange}
               required
@@ -169,11 +171,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Initial Investment
+            {t("tools.savingsCalc.initialInvestment")}
             <input
               type="number"
               name="initial_investment"
-              placeholder="Enter your initial investment"
+              placeholder={t("tools.savingsCalc.initialInvestmentPlaceholder")}
               value={formData.initial_investment}
               onChange={handleChange}
               required
@@ -184,11 +186,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Years to Grow
+            {t("tools.savingsCalc.yearsToGrow")}
             <input
               type="number"
               name="years_to_grow"
-              placeholder="Enter number of years"
+              placeholder={t("tools.savingsCalc.yearsToGrowPlaceholder")}
               value={formData.years_to_grow}
               onChange={handleChange}
               required
@@ -199,11 +201,11 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            Annual Interest Rate (%)
+            {t("tools.savingsCalc.annualInterestRate")}
             <input
               type="number"
               name="annual_interest_rate"
-              placeholder="Enter annual interest rate"
+              placeholder={t("tools.savingsCalc.annualInterestRatePlaceholder")}
               value={formData.annual_interest_rate}
               onChange={handleChange}
               required
@@ -215,17 +217,17 @@ const SavingsGoalCalculator = () => {
           </label>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)] md:col-span-2">
-            Compound Frequency
+            {t("tools.savingsCalc.compoundFrequency")}
             <select
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              <option value="1">Annually</option>
-              <option value="4">Quarterly</option>
-              <option value="12">Monthly</option>
-              <option value="365">Daily</option>
+              <option value="1">{t("tools.savingsCalc.annually")}</option>
+              <option value="4">{t("tools.savingsCalc.quarterly")}</option>
+              <option value="12">{t("tools.savingsCalc.monthly")}</option>
+              <option value="365">{t("tools.savingsCalc.daily")}</option>
             </select>
           </label>
 
@@ -234,7 +236,7 @@ const SavingsGoalCalculator = () => {
               type="submit"
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              Calculate
+              {t("tools.savingsCalc.calculate")}
             </button>
           </div>
         </form>
@@ -242,7 +244,7 @@ const SavingsGoalCalculator = () => {
         {result && (
           <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow-inner shadow-emerald-500/20">
             <p>
-              Final Savings:{" "}
+              {t("tools.savingsCalc.finalSavings")}:{" "}
               <span className="font-semibold">
                 {formatCurrency(
                   Number(result.final_savings || 0),

@@ -5,6 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { registerServiceWorker } from "./serviceWorkerRegistration";
 import "./styles/scss/main.scss";
+import "./i18n";
 import { initSentry } from "./sentry";
 import { initAnalytics, trackAnalyticsEvent } from "./services/analyticsClient";
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -21,6 +22,7 @@ type LearningPathCoursesResponse = {
 };
 
 function CoursePage() {
+  const { t } = useTranslation();
   const { pathId } = useParams();
   const { getAccessToken } = useAuth();
   const navigate = useNavigate();
@@ -41,27 +43,27 @@ function CoursePage() {
   const requiredPlan =
     axios.isAxiosError(error) ? error.response?.data?.required_plan : null;
   const errorMessage = accessDenied
-    ? `Upgrade to ${requiredPlan === "pro" ? "Pro" : "Plus"} to access this path.`
+    ? t("courses.coursePage.upgradeToAccess", { plan: requiredPlan === "pro" ? "Pro" : "Plus" })
     : error instanceof Error
       ? error.message
-      : "We couldn't load the courses for this path. Please try again.";
+      : t("courses.coursePage.loadError");
 
   return (
     <PageContainer maxWidth="5xl">
       <header className="space-y-2 text-center md:text-left">
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-          Courses
+          {t("courses.coursePage.title")}
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Explore the curated lessons inside this learning path.
+          {t("courses.coursePage.subtitle")}
         </p>
       </header>
 
       <Breadcrumbs
         className="mt-2"
         items={[
-          { label: "Dashboard", to: "/all-topics" },
-          { label: "Courses" },
+          { label: t("courses.coursePage.dashboard"), to: "/all-topics" },
+          { label: t("courses.coursePage.title") },
         ]}
       />
 
@@ -86,7 +88,7 @@ function CoursePage() {
                 className="w-fit rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:shadow-lg"
                 onClick={() => navigate("/subscriptions")}
               >
-                Upgrade
+                {t("shared.upgrade")}
               </button>
             )}
           </div>

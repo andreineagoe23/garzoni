@@ -37,6 +37,7 @@ import { getLocale } from "utils/format";
 import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useDashboardSummary } from "hooks/useDashboardSummary";
 import { queryKeys, staleTimes } from "lib/reactQuery";
+import { useTranslation } from "react-i18next";
 
 type WeakSkill = {
   skill: string;
@@ -56,6 +57,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { trackEvent } = useAnalytics();
   const { preferences } = usePreferences();
   const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
@@ -130,11 +132,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       if (xpGained > 0 || skillsImproved.length > 0) {
         setTimeout(() => {
           const message = [
-            xpGained > 0 && `+${xpGained} XP`,
+            xpGained > 0 && t("dashboard.toast.xpGained", { count: xpGained }),
             skillsImproved.length > 0 &&
-              `${skillsImproved.length} skill${
-                skillsImproved.length !== 1 ? "s" : ""
-              } improved`,
+              t("dashboard.toast.skillsImproved", {
+                count: skillsImproved.length,
+              }),
           ]
             .filter(Boolean)
             .join(" • ");
@@ -147,7 +149,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       // Clear state
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, queryClient]);
+  }, [location.state, queryClient, t]);
 
   const {
     data: profilePayload,
@@ -392,7 +394,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     switch (primaryCTASignal.type) {
       case "reviews_due":
         return {
-          text: "Do Reviews",
+          text: t("dashboard.cta.doReviews", { defaultValue: "Do Reviews" }),
           action: () => {
             trackEvent("cta_click", {
               reason: "reviews_due",
@@ -402,12 +404,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "high",
-          reason: `${primaryCTASignal.reasonCount || 0} review${(primaryCTASignal.reasonCount || 0) > 1 ? 's' : ''} due`,
+          reason: t("dashboard.cta.reviewsDue", {
+            count: primaryCTASignal.reasonCount || 0,
+          }),
         };
       case "continue_lesson": {
         const lessonMission = primaryCTASignal.mission;
         return {
-          text: "Continue Lesson",
+          text: t("dashboard.cta.continueLesson", {
+            defaultValue: "Continue Lesson",
+          }),
           action: () => {
             trackEvent("cta_click", {
               reason: "continue_lesson",
@@ -423,12 +429,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: "Continue where you left off",
+          reason: t("dashboard.cta.continueWhereLeftOff", {
+            defaultValue: "Continue where you left off",
+          }),
         };
       }
       case "start_mission":
         return {
-          text: "Start Mission",
+          text: t("dashboard.cta.startMission", {
+            defaultValue: "Start Mission",
+          }),
           action: () => {
             trackEvent("cta_click", {
               reason: "start_mission",
@@ -438,18 +448,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: `${primaryCTASignal.reasonCount || 0} mission${(primaryCTASignal.reasonCount || 0) > 1 ? 's' : ''} available`,
+          reason: t("dashboard.cta.missionsAvailable", {
+            count: primaryCTASignal.reasonCount || 0,
+          }),
         };
       default:
         return {
-          text: "Continue Learning",
+          text: t("dashboard.cta.continueLearning", {
+            defaultValue: "Continue Learning",
+          }),
           action: () => {
             trackEvent("cta_click", { reason: "continue_learning" });
             navigate("/all-topics");
           },
           icon: primaryCTASignal.icon,
           priority: "low",
-          reason: "Continue your learning journey",
+          reason: t("dashboard.cta.continueLearningReason", {
+            defaultValue: "Continue your learning journey",
+          }),
         };
     }
   }, [
@@ -458,6 +474,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     activeMissions.length,
     navigate,
     trackEvent,
+    t,
   ]);
 
   // Skip to content handler - must be before early return
@@ -536,7 +553,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         icon="📚"
         className="w-full sm:w-auto"
       >
-        All Topics
+        {t("dashboard.nav.allTopics", { defaultValue: "All Topics" })}
       </GlassButton>
 
       <button
@@ -556,10 +573,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }}
       >
         <span>🎯</span>
-        Personalized Path
+        {t("dashboard.nav.personalizedPath", {
+          defaultValue: "Personalized Path",
+        })}
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
-            Complete Onboarding
+            {t("dashboard.nav.completeOnboarding", {
+              defaultValue: "Complete Onboarding",
+            })}
           </span>
         )}
       </button>
@@ -577,7 +598,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }}
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[color:var(--primary,#1d5330)] focus:text-white focus:rounded-lg focus:shadow-lg"
       >
-        Skip to content
+        {t("dashboard.skipToContent", { defaultValue: "Skip to content" })}
       </a>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
         <GlassCard
@@ -612,10 +633,15 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                       </span>
                       <div>
                         <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          Pick up where you left off
+                          {t("dashboard.resume.title", {
+                            defaultValue: "Pick up where you left off",
+                          })}
                         </p>
                         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          Continue with {resume.course_title}
+                          {t("dashboard.resume.continueWith", {
+                            defaultValue: "Continue with {{course}}",
+                            course: resume.course_title,
+                          })}
                         </p>
                       </div>
                     </div>
@@ -625,9 +651,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                         handleCourseClick(resume.course_id, resume.path_id ?? undefined)
                       }
                       className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-                      aria-label="Continue lesson"
+                      aria-label={t("dashboard.resume.continueLesson", {
+                        defaultValue: "Continue lesson",
+                      })}
                     >
-                      Continue lesson
+                      {t("dashboard.resume.continueLesson", {
+                        defaultValue: "Continue lesson",
+                      })}
                     </button>
                   </div>
                 </div>
@@ -640,10 +670,15 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                       </span>
                       <div>
                         <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          Pick up where you left off
+                          {t("dashboard.resume.title", {
+                            defaultValue: "Pick up where you left off",
+                          })}
                         </p>
                         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          Start your first lesson and we&apos;ll remember your place.
+                          {t("dashboard.resume.startFirstLesson", {
+                            defaultValue:
+                              "Start your first lesson and we'll remember your place.",
+                          })}
                         </p>
                       </div>
                     </div>
@@ -657,9 +692,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                         }
                       }}
                       className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-                      aria-label="Browse topics"
+                      aria-label={t("dashboard.resume.browseTopics", {
+                        defaultValue: "Browse topics",
+                      })}
                     >
-                      Browse topics
+                      {t("dashboard.resume.browseTopics", {
+                        defaultValue: "Browse topics",
+                      })}
                     </button>
                   </div>
                 </div>

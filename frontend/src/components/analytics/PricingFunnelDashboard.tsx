@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "contexts/AdminContext";
 import { GlassButton, GlassCard } from "components/ui";
@@ -36,6 +37,7 @@ const MetricCard = ({ label, value, footer }: MetricCardProps) => (
 );
 
 const PricingFunnelDashboard = () => {
+  const { t } = useTranslation();
   const { canAdminister } = useAdmin();
 
   const { data, isLoading, refetch, isFetching } = useQuery({
@@ -58,10 +60,10 @@ const PricingFunnelDashboard = () => {
         <div className="mx-auto max-w-4xl text-center">
           <GlassCard padding="xl" className="space-y-3">
             <h2 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
-              Admin access required
+              {t("analytics.adminRequired")}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Conversion analytics are only available to administrators.
+              {t("analytics.adminRequiredDesc")}
             </p>
           </GlassCard>
         </div>
@@ -75,11 +77,10 @@ const PricingFunnelDashboard = () => {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
-              Pricing & Checkout Funnel
+              {t("analytics.title")}
             </h1>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              Monitor how users move from the pricing page to successful
-              checkout and entitlement activation.
+              {t("analytics.subtitle")}
             </p>
           </div>
           <GlassButton
@@ -87,7 +88,7 @@ const PricingFunnelDashboard = () => {
             onClick={() => refetch()}
             variant="ghost"
           >
-            Refresh
+            {t("analytics.refresh")}
           </GlassButton>
         </div>
 
@@ -99,29 +100,29 @@ const PricingFunnelDashboard = () => {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCard
-              label="Pricing views"
+              label={t("analytics.pricingViews")}
               value={summary.pricing_views ?? 0}
-              footer="Users reaching the pricing or paywall experience"
+              footer={t("analytics.pricingViewsFooter")}
             />
             <MetricCard
-              label="Checkout sessions created"
+              label={t("analytics.checkoutsCreated")}
               value={summary.checkouts_created ?? 0}
-              footer={`Conversion: ${summary.pricing_to_checkout_rate ?? 0}%`}
+              footer={t("analytics.conversion", { percent: summary.pricing_to_checkout_rate ?? 0 })}
             />
             <MetricCard
-              label="Successful payments"
+              label={t("analytics.successfulPayments")}
               value={summary.checkouts_completed ?? 0}
-              footer={`Conversion: ${summary.checkout_to_paid_rate ?? 0}%`}
+              footer={t("analytics.conversion", { percent: summary.checkout_to_paid_rate ?? 0 })}
             />
             <MetricCard
-              label="Entitlements confirmed"
+              label={t("analytics.entitlementsConfirmed")}
               value={summary.entitlement_success ?? 0}
-              footer={`Success rate: ${summary.entitlement_success_rate ?? 0}%`}
+              footer={t("analytics.successRate", { percent: summary.entitlement_success_rate ?? 0 })}
             />
             <MetricCard
-              label="Entitlement failures"
+              label={t("analytics.entitlementFailures")}
               value={summary.entitlement_failures ?? 0}
-              footer="Fallback to free mode when checks fail"
+              footer={t("analytics.fallbackFooter")}
             />
           </div>
         )}
@@ -130,10 +131,10 @@ const PricingFunnelDashboard = () => {
           <div className="flex items-center justify-between pb-4">
             <div>
               <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
-                Daily funnel events
+                {t("analytics.dailyFunnelEvents")}
               </h3>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                Volume of key funnel events over time.
+                {t("analytics.dailyFunnelSubtitle")}
               </p>
             </div>
           </div>
@@ -141,16 +142,16 @@ const PricingFunnelDashboard = () => {
             <Skeleton className="h-32 w-full rounded-xl" />
           ) : dailyBreakdown.length === 0 ? (
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              No funnel activity recorded for this period.
+              {t("analytics.noActivity")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left">
                 <thead>
                   <tr className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    <th className="px-3 py-2">Date</th>
-                    <th className="px-3 py-2">Event type</th>
-                    <th className="px-3 py-2 text-right">Count</th>
+                    <th className="px-3 py-2">{t("analytics.date")}</th>
+                    <th className="px-3 py-2">{t("analytics.eventType")}</th>
+                    <th className="px-3 py-2 text-right">{t("analytics.count")}</th>
                   </tr>
                 </thead>
                 <tbody>

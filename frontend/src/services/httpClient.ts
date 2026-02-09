@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import i18n from "../i18n";
 import { BACKEND_URL } from "services/backendUrl";
 
 const apiClient = axios.create({
@@ -8,6 +9,14 @@ const apiClient = axios.create({
 });
 
 const AUTH_EXPIRED_REASON = "session-expired";
+
+// Send current UI language so the backend can return translated content (lessons, exercises, etc.)
+apiClient.interceptors.request.use((config) => {
+  const lang = typeof i18n?.language === "string" ? i18n.language : "en";
+  config.headers.set("Accept-Language", lang);
+  config.headers.set("X-App-Language", lang);
+  return config;
+});
 
 let didTriggerAuthRedirect = false;
 
@@ -47,7 +56,7 @@ apiClient.interceptors.response.use(
       error.response?.data?.detail ||
       error.response?.data?.error ||
       error.message ||
-      "Something went wrong. Please try again.";
+      i18n.t("shared.apiError");
     toast.error(message);
     return Promise.reject(error);
   }

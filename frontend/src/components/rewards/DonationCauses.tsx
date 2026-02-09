@@ -1,22 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { useAuth } from "contexts/AuthContext";
+import apiClient from "services/httpClient";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import { useTranslation } from "react-i18next";
 
 function DonationCauses({ onDonate }) {
+  const { t } = useTranslation();
   const [donationCauses, setDonationCauses] = useState([]);
   const didFetchRef = useRef(false);
-  const { getAccessToken } = useAuth();
 
   useEffect(() => {
     const fetchDonationCauses = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/rewards/donate/`, {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        });
+        const response = await apiClient.get("/rewards/donate/");
         setDonationCauses(response.data);
       } catch (error) {
         console.error("Error fetching donation causes:", error);
@@ -27,19 +22,13 @@ function DonationCauses({ onDonate }) {
       didFetchRef.current = true;
       fetchDonationCauses();
     }
-  }, [getAccessToken]);
+  }, []);
 
   const handleDonate = async (rewardId) => {
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/purchases/`,
-        { reward_id: rewardId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
+      const response = await apiClient.post("/purchases/", {
+        reward_id: rewardId,
+      });
 
       if (response.status === 201) {
         alert("Donation successful!");
@@ -57,7 +46,9 @@ function DonationCauses({ onDonate }) {
         padding="lg"
         className="bg-[color:var(--card-bg,#ffffff)]/60 text-sm text-[color:var(--muted-text,#6b7280)]"
       >
-        No donation causes available right now.
+        {t("rewards.donate.empty", {
+          defaultValue: "No donation causes available right now.",
+        })}
       </GlassCard>
     );
   }
@@ -66,10 +57,13 @@ function DonationCauses({ onDonate }) {
     <section className="space-y-6">
       <header className="space-y-2">
         <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-          Donation Causes
+          {t("rewards.tabs.donate", { defaultValue: "Donate" })}
         </h2>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Support meaningful organizations with a portion of your coins.
+          {t("rewards.donate.subtitle", {
+            defaultValue:
+              "Support meaningful organizations with a portion of your coins.",
+          })}
         </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -101,7 +95,7 @@ function DonationCauses({ onDonate }) {
               <div className="mt-auto space-y-3">
                 <div className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
                   <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-                    {cause.cost} coins
+                    {cause.cost} {t("rewards.coins", { defaultValue: "coins" })}
                   </span>
                   {cause.donation_organization && (
                     <span className="text-xs uppercase tracking-wide">

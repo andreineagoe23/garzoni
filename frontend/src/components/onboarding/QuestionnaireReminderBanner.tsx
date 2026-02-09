@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,6 +18,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
   hasPaid,
   authReady = true,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const {
@@ -44,7 +46,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
       >
         <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--primary,#2563eb)] border-t-transparent" />
-          Loading onboarding status…
+          {t("onboarding.reminderBanner.loading")}
         </div>
       </GlassCard>
     );
@@ -58,7 +60,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            Couldn&apos;t load onboarding status.
+            {t("onboarding.reminderBanner.error")}
           </p>
           <GlassButton
             variant="primary"
@@ -66,7 +68,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
             onClick={() => refetch()}
             disabled={isRefetching}
           >
-            {isRefetching ? "Retrying…" : "Try again"}
+            {isRefetching ? t("onboarding.reminderBanner.retrying") : t("onboarding.reminderBanner.tryAgain")}
           </GlassButton>
         </div>
       </GlassCard>
@@ -87,7 +89,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     return null;
   }
   const primaryCtaLabel =
-    completedSections > 0 ? "Resume Onboarding" : "Start Onboarding";
+    completedSections > 0 ? t("onboarding.reminderBanner.resume") : t("onboarding.reminderBanner.start");
   const primaryCtaTarget = "/onboarding";
 
   return (
@@ -98,14 +100,14 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h3 className="mb-1 text-sm font-semibold text-[color:var(--accent,#111827)]">
-            Onboarding Status
+            {t("onboarding.reminderBanner.status")}
           </h3>
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
             {isCompleted
-              ? "You're all set. Your onboarding is complete."
+              ? t("onboarding.reminderBanner.allSet")
               : totalQuestions > 0
-                ? `${Math.max(currentQuestionNumber - 1, 0)} of ${totalQuestions} questions complete (${progress.progress_percentage ?? 0}%)`
-                : `${completedSections} of ${totalSections} section${totalSections !== 1 ? "s" : ""} complete (${progress.progress_percentage ?? 0}%)`}
+                ? t("onboarding.reminderBanner.questionsComplete", { done: Math.max(currentQuestionNumber - 1, 0), total: totalQuestions, percent: progress.progress_percentage ?? 0 })
+                : t("onboarding.reminderBanner.sectionsComplete", { done: completedSections, total: totalSections, percent: progress.progress_percentage ?? 0 })}
           </p>
           {!isCompleted && (
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
@@ -124,7 +126,7 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
           variant="primary"
           size="sm"
           onClick={() => navigate(primaryCtaTarget)}
-          aria-label="View onboarding status"
+          aria-label={t("onboarding.reminderBanner.viewStatus")}
         >
           {primaryCtaLabel}
         </GlassButton>

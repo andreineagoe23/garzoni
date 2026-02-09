@@ -2,20 +2,33 @@
  * Format utilities for locale-aware number, date, and percentage formatting
  */
 
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "constants/i18n";
+
 type LocaleLike = string | undefined;
 
 const normalizeLocale = (locale: LocaleLike) => {
   if (!locale) return "en-US";
-  if (locale.toLowerCase().startsWith("es")) return "es-ES";
-  if (locale.toLowerCase().startsWith("en")) return "en-US";
+  const lower = locale.toLowerCase();
+  if (lower.startsWith("ro")) return "ro-RO";
+  if (lower.startsWith("es")) return "es-ES";
+  if (lower.startsWith("en")) return "en-US";
   return locale;
 };
 
 export const getLocale = () => {
   try {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored) return normalizeLocale(stored);
+    }
+  } catch {
+    // Ignore storage access errors
+  }
+
+  try {
     return normalizeLocale(navigator.language);
   } catch {
-    return "en-US";
+    return normalizeLocale(DEFAULT_LANGUAGE);
   }
 };
 

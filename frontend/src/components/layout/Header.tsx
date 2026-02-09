@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { MoonStarsFill, SunFill } from "react-bootstrap-icons";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -13,6 +14,7 @@ const VISIBLE_PATHS = new Set([
 ]);
 
 function Header() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
@@ -57,7 +59,7 @@ function Header() {
 
           {isInitialized && isAuthenticated && (
             <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30 sm:px-3 sm:py-1 sm:text-[11px]">
-              Premium Ready
+              {t("header.premiumReady")}
             </span>
           )}
         </div>
@@ -66,7 +68,7 @@ function Header() {
           <button
             type="button"
             onClick={handleDarkModeToggle}
-            aria-label="Toggle dark mode"
+            aria-label={t("header.toggleDarkMode")}
             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-[color:var(--text-color,#111827)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/45 sm:h-10 sm:w-10"
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
@@ -80,7 +82,7 @@ function Header() {
               size="sm"
               className="hidden sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
             >
-              Open Dashboard
+              {t("header.openDashboard")}
             </GlassButton>
           ) : (
             <>
@@ -92,7 +94,7 @@ function Header() {
                   size="sm"
                   className="hidden sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
                 >
-                  Login
+                  {t("header.login")}
                 </GlassButton>
               )}
               {!isRegister && (
@@ -103,7 +105,7 @@ function Header() {
                   size="sm"
                   className="sm:px-4 sm:py-2 sm:text-sm"
                 >
-                  Get Started
+                  {t("header.getStarted")}
                 </GlassButton>
               )}
             </>

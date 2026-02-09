@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -36,6 +37,7 @@ const RichTextEditor = ({
   value?: string;
   onChange?: (nextValue: string) => void;
 }) => {
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,7 +85,7 @@ const RichTextEditor = ({
         // eslint-disable-next-line no-console
         console.error("CKEditor failed to initialize", err);
         if (cancelled) return;
-        setLoadError("Failed to load editor.");
+        setLoadError(t("courses.editor.loadFailed"));
       }
     })();
 
@@ -94,7 +96,7 @@ const RichTextEditor = ({
         editorRef.current = null;
       }
     };
-  }, []); // initialize editor once; callback updates via onChangeRef
+  }, [t]); // initialize editor once per locale; callback updates via onChangeRef
 
   useEffect(() => {
     if (!wrapperRef.current) return;
@@ -161,6 +163,7 @@ const LessonSectionEditorPanel = ({
   onCloseRequest: () => void;
   currentSectionTitle?: string;
 }) => {
+  const { t } = useTranslation();
   const [previewMode, setPreviewMode] = useState(false);
   const [exerciseJson, setExerciseJson] = useState("{}");
   const [lastValidExerciseJson, setLastValidExerciseJson] = useState("{}");
@@ -174,11 +177,11 @@ const LessonSectionEditorPanel = ({
 
   const getJsonErrorDetails = (value: string, error: unknown) => {
     const err = error as { message?: string } | null;
-    const message = String(err?.message || "Invalid JSON.");
+    const message = String(err?.message || t("courses.editor.invalidJson"));
     const match = message.match(/position\s+(\d+)/i);
     const position = match ? Number(match[1]) : null;
     if (position == null || Number.isNaN(position)) {
-      return { message: "Exercise configuration must be valid JSON." };
+      return { message: t("courses.editor.invalidJsonDetail") };
     }
 
     const before = value.slice(0, position);
@@ -186,9 +189,7 @@ const LessonSectionEditorPanel = ({
     const lastNewline = before.lastIndexOf("\n");
     const column = position - (lastNewline === -1 ? 0 : lastNewline + 1) + 1;
 
-    return {
-      message: `Invalid JSON at line ${line}, column ${column}.`,
-    };
+    return { line, column };
   };
 
   useEffect(() => {
@@ -235,7 +236,11 @@ const LessonSectionEditorPanel = ({
       setLastValidExerciseJson(value);
     } catch (err) {
       const details = getJsonErrorDetails(value, err);
-      setJsonError(details.message);
+      setJsonError(
+        "message" in details
+          ? details.message
+          : t("courses.editor.invalidJsonAt", { line: details.line, column: details.column })
+      );
     }
   };
 
@@ -255,16 +260,17 @@ const LessonSectionEditorPanel = ({
     return (
       <GlassCard padding="lg" className="h-full min-h-0 space-y-4">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          Select a section to begin editing or create a new section from the
-          lesson view.
+          {t("courses.editor.selectSection")}
         </p>
         {currentSectionTitle && (
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            Current selection: {currentSectionTitle}
+            {t("courses.editor.currentSelection", {
+              title: currentSectionTitle,
+            })}
           </p>
         )}
         <GlassButton variant="ghost" size="sm" onClick={onCloseRequest}>
-          Close editor
+          {t("courses.flow.closeEditor")}
         </GlassButton>
       </GlassCard>
     );
@@ -276,10 +282,10 @@ const LessonSectionEditorPanel = ({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Admin mode
+              {t("courses.editor.adminMode")}
             </p>
             <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
-              {section.title || "Untitled section"}
+              {section.title || t("courses.editor.untitledSection")}
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -290,28 +296,36 @@ const LessonSectionEditorPanel = ({
                   : "bg-[color:rgba(var(--accent-rgb,255,215,0),0.12)] text-[color:var(--accent,#FFD700)]"
               }`}
             >
-              {section.is_published ? "Published" : "Draft"}
+              {section.is_published
+                ? t("courses.editor.published")
+                : t("courses.editor.draft")}
             </span>
             <GlassButton
               variant="ghost"
               size="sm"
               onClick={() => setPreviewMode((prev) => !prev)}
             >
-              {previewMode ? "Hide preview" : "Show preview"}
+              {previewMode
+                ? t("courses.editor.hidePreview")
+                : t("courses.editor.showPreview")}
             </GlassButton>
             <GlassButton variant="primary" size="sm" onClick={onPublishToggle}>
-              {section.is_published ? "Move to draft" : "Publish"}
+              {section.is_published
+                ? t("courses.editor.moveToDraft")
+                : t("courses.editor.publish")}
             </GlassButton>
             <GlassButton variant="danger" size="sm" onClick={onDelete}>
-              Delete
+              {t("shared.delete")}
             </GlassButton>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
           {savingState?.status === "saving" && (
-            <span>Autosaving changes...</span>
+            <span>{t("courses.editor.autosaving")}</span>
           )}
-          {savingState?.status === "saved" && <span>Changes saved</span>}
+          {savingState?.status === "saved" && (
+            <span>{t("courses.editor.changesSaved")}</span>
+          )}
           {savingState?.status === "error" && (
             <span className="text-[color:var(--error,#dc2626)]">
               {savingState?.message}
@@ -323,34 +337,34 @@ const LessonSectionEditorPanel = ({
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1 pt-4">
         <div className="space-y-1">
           <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-            Title
+            {t("courses.editor.title")}
           </label>
           <input
             value={section.title || ""}
             onChange={(event) => onChange({ title: event.target.value })}
             className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-            placeholder="Section title"
+            placeholder={t("courses.editor.sectionTitlePlaceholder")}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-              Content type
+              {t("courses.editor.contentType")}
             </label>
             <select
               value={section.content_type || "text"}
               onChange={(event) => handleContentTypeChange(event.target.value)}
               className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
-              <option value="text">Text</option>
-              <option value="video">Video</option>
-              <option value="exercise">Exercise</option>
+              <option value="text">{t("courses.editor.contentTypeText")}</option>
+              <option value="video">{t("courses.editor.contentTypeVideo")}</option>
+              <option value="exercise">{t("courses.editor.contentTypeExercise")}</option>
             </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-              Order
+              {t("courses.editor.order")}
             </label>
             <input
               type="number"
@@ -367,7 +381,7 @@ const LessonSectionEditorPanel = ({
         {section.content_type === "text" && (
           <div className="space-y-2">
             <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-              Body
+              {t("courses.editor.body")}
             </label>
             <RichTextEditor
               value={section.text_content || ""}
@@ -379,13 +393,13 @@ const LessonSectionEditorPanel = ({
         {section.content_type === "video" && (
           <div className="space-y-2">
             <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-              Video URL
+              {t("courses.editor.videoUrl")}
             </label>
             <input
               value={section.video_url || ""}
               onChange={(event) => onChange({ video_url: event.target.value })}
               className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-              placeholder="https://..."
+              placeholder={t("courses.editor.videoUrlPlaceholder")}
             />
           </div>
         )}
@@ -394,7 +408,7 @@ const LessonSectionEditorPanel = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                Exercise picker
+                {t("courses.editor.exercisePicker")}
               </label>
               <select
                 onChange={(event) => {
@@ -411,8 +425,8 @@ const LessonSectionEditorPanel = ({
               >
                 <option value="">
                   {loadingExercises
-                    ? "Loading exercises..."
-                    : "Select an exercise"}
+                    ? t("courses.editor.loadingExercises")
+                    : t("courses.editor.selectExercise")}
                 </option>
                 {exercises?.map((exercise: Exercise) => (
                   <option key={exercise.id} value={exercise.id}>
@@ -423,7 +437,7 @@ const LessonSectionEditorPanel = ({
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                Exercise JSON
+                {t("courses.editor.exerciseJson")}
               </label>
               <textarea
                 value={exerciseJson}
@@ -443,7 +457,7 @@ const LessonSectionEditorPanel = ({
         {previewMode && section.text_content && (
           <div className="space-y-2 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              Preview
+              {t("courses.editor.preview")}
             </p>
             <div
               className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
@@ -461,14 +475,14 @@ const LessonSectionEditorPanel = ({
           className="rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
           onClick={onSave}
         >
-          Save now
+          {t("courses.editor.saveNow")}
         </button>
         <button
           type="button"
           className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
           onClick={onCloseRequest}
         >
-          Stop editing
+          {t("courses.editor.stopEditing")}
         </button>
       </div>
     </GlassCard>

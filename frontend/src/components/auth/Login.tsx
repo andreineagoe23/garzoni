@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
@@ -8,6 +9,7 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard, GlassButton } from "components/ui";
 // import { useGoogleReCaptcha } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
 function Login() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -26,14 +28,14 @@ function Login() {
     const reason = params.get("reason");
     if (reason !== "session-expired") return;
 
-    setError("Your session has expired. Please log in again.");
+    setError(t("auth.login.sessionExpired"));
 
     // Remove the query param so it doesn't persist across refreshes.
     params.delete("reason");
     const remaining = params.toString();
     const nextUrl = remaining ? `/login?${remaining}` : "/login";
     navigate(nextUrl, { replace: true, state: location.state });
-  }, [location.search, location.state, navigate]);
+  }, [location.search, location.state, navigate, t]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,17 +82,17 @@ function Login() {
       // reCAPTCHA commented out: was getting token and adding to payload
       const result = await loginUser(formData);
       if (!result.success) {
-        setError(result.error || "Login failed. Please try again.");
+        setError(result.error || t("auth.login.loginFailed"));
       }
     } catch (loginError) {
       if (axios.isAxiosError(loginError)) {
         setError(
           loginError.response?.data?.detail ||
             loginError.response?.data?.error ||
-            "An unexpected error occurred. Please try again."
+            t("auth.login.unexpectedError")
         );
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError(t("auth.login.unexpectedError"));
       }
     } finally {
       setIsLoading(false);
@@ -110,10 +112,10 @@ function Login() {
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
               <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-                Welcome Back
+                {t("auth.login.title")}
               </h2>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                Sign in to your account to continue
+                {t("auth.login.subtitle")}
               </p>
             </div>
 
@@ -132,7 +134,7 @@ function Login() {
                   htmlFor="username"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Username
+                  {t("auth.login.username")}
                 </label>
                 <input
                   id="username"
@@ -143,7 +145,7 @@ function Login() {
                   required
                   autoComplete="username"
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
-                  placeholder="Enter your username"
+                  placeholder={t("auth.login.usernamePlaceholder")}
                 />
               </div>
 
@@ -152,7 +154,7 @@ function Login() {
                   htmlFor="password"
                   className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
                 >
-                  Password
+                  {t("auth.login.password")}
                 </label>
                 <div className="relative">
                   <input
@@ -164,7 +166,7 @@ function Login() {
                     required
                     autoComplete="current-password"
                     className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                    placeholder="Enter your password"
+                    placeholder={t("auth.login.passwordPlaceholder")}
                   />
                   <button
                     type="button"
@@ -172,8 +174,8 @@ function Login() {
                     className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
                     aria-label={
                       showPassword
-                        ? "Hide password"
-                        : "Show password"
+                        ? t("auth.login.hidePassword")
+                        : t("auth.login.showPassword")
                     }
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
@@ -190,14 +192,14 @@ function Login() {
                     onChange={handleChange}
                     className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]"
                   />
-                  Remember me
+                  {t("auth.login.rememberMe")}
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                   className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
                 >
-                  Forgot password?
+                  {t("auth.login.forgotPassword")}
                 </button>
               </div>
 
@@ -208,21 +210,21 @@ function Login() {
                   variant="primary"
                   className="w-full"
                 >
-                  {isLoading ? "Logging in..." : "Sign In"}
+                  {isLoading ? t("auth.login.submitting") : t("auth.login.submit")}
                 </GlassButton>
               </div>
             </form>
 
             <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
               <span>
-                Don't have an account?{" "}
+                {t("auth.login.noAccount")}{" "}
               </span>
               <button
                 type="button"
                 onClick={() => navigate("/register")}
                 className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
               >
-                Sign up now
+                {t("auth.login.signUpNow")}
               </button>
             </div>
           </GlassCard>

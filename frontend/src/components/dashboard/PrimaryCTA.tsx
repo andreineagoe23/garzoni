@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type PrimaryCtaData = {
   text: string;
@@ -9,6 +10,7 @@ type PrimaryCtaData = {
 };
 
 const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
+  const { t } = useTranslation();
   if (!primaryCTA) return null;
 
   return (
@@ -31,7 +33,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
               {primaryCTA.text}
             </p>
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-              {primaryCTA.reason || "Continue your learning journey"}
+              {primaryCTA.reason || t("dashboard.primaryCta.continueReason")}
             </p>
           </div>
         </div>
@@ -41,7 +43,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
           className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
           aria-label={primaryCTA.text}
         >
-          Get Started
+          {t("dashboard.primaryCta.getStarted")}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { BACKEND_URL } from "services/backendUrl";
 import { PencilSquare, X } from "react-bootstrap-icons";
 import { useAuth } from "contexts/AuthContext";
@@ -24,6 +25,7 @@ const getAvatarUrl = (style, seed) =>
     : null;
 
 function AvatarSelector({ currentAvatar, onAvatarChange }) {
+  const { t } = useTranslation();
   const { getAccessToken } = useAuth();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -141,7 +143,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-2 text-[color:var(--muted-text,#4b5563)] shadow-sm transition hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-        aria-label="Change avatar"
+        aria-label={t("profile.avatarSelector.changeAvatar")}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
@@ -156,17 +158,17 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
           <div className="flex items-start justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
             <div>
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                Customize Your Avatar
+                {t("profile.avatarSelector.title")}
               </h3>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                Pick a style and personalize your look.
+                {t("profile.avatarSelector.subtitle")}
               </p>
             </div>
             <button
               type="button"
               onClick={closeModal}
               className="ml-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              aria-label="Close avatar selector"
+              aria-label={t("profile.avatarSelector.close")}
             >
               <X className="text-lg" />
             </button>
@@ -179,7 +181,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                   {previewAvatar ? (
                     <img
                       src={previewAvatar}
-                      alt="Avatar preview"
+                      alt={t("profile.avatarSelector.previewAlt")}
                       className="h-36 w-36 rounded-full object-cover"
                     />
                   ) : (
@@ -189,13 +191,13 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                   )}
                 </div>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  Each avatar is generated from your seed text.
+                  {t("profile.avatarSelector.seedHint")}
                 </p>
               </div>
 
               <div className="w-full space-y-5">
                 <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                  Avatar Style
+                  {t("profile.avatarSelector.style")}
                 </label>
                 <select
                   value={selectedStyle}
@@ -211,17 +213,17 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
-                    Customization Seed
+                    {t("profile.avatarSelector.customizationSeed")}
                   </label>
                   <input
                     type="text"
                     value={seed}
                     onChange={(event) => setSeed(event.target.value)}
-                    placeholder="Enter text to customize your avatar"
+                    placeholder={t("profile.avatarSelector.customizePlaceholder")}
                     className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                   />
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    Different words create different avatars.
+                    {t("profile.avatarSelector.customizeHint")}
                   </p>
                 </div>
               </div>
@@ -230,7 +232,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
             <div>
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                  Quick Options
+                  {t("profile.avatarSelector.quickOptions")}
                 </h4>
                 <button
                   type="button"
@@ -239,11 +241,11 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                   }
                   className="text-xs font-medium text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
                 >
-                  Randomize
+                  {t("profile.avatarSelector.randomize")}
                 </button>
               </div>
               <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                Click any avatar below to use it.
+                {t("profile.avatarSelector.quickOptionsHint")}
               </p>
 
               <div className="mt-4 grid grid-cols-3 gap-4 sm:grid-cols-6">
@@ -275,7 +277,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
               onClick={closeModal}
               className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
-              Cancel
+              {t("shared.cancel")}
             </button>
             <button
               type="button"
@@ -283,7 +285,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
               disabled={loading || !previewAvatar}
               className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? "Saving..." : "Save Avatar"}
+              {loading ? t("profile.avatarSelector.saving") : t("profile.avatarSelector.save")}
             </button>
           </div>
         </div>
