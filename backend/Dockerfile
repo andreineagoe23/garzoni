@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-# When Railway uses Dockerfile path "backend/Dockerfile", build context is REPO ROOT.
-# So we copy from backend/ into /app. Set BUILD_SRC=. when building from backend dir (e.g. local).
+# Build context is usually the backend dir (Railway with backend/Dockerfile, or local docker-compose).
+# So BUILD_SRC defaults to ".". From repo root: docker build --build-arg BUILD_SRC=backend -f backend/Dockerfile .
 
-ARG BUILD_SRC=backend
+ARG BUILD_SRC=.
 
 FROM python:3.12-slim-bookworm AS builder
 
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-ARG BUILD_SRC=backend
+ARG BUILD_SRC=.
 COPY ${BUILD_SRC}/requirements.txt .
 
 # Install Python dependencies
@@ -56,13 +56,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy wheels and requirements from builder and install (no network: use base pip + local wheels only)
 COPY --from=builder /wheels /wheels
-ARG BUILD_SRC=backend
+ARG BUILD_SRC=.
 COPY ${BUILD_SRC}/requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
     && rm -rf /wheels
 
 # Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
-# Railway: context = repo root → BUILD_SRC=backend (default). Local from backend dir: docker build --build-arg BUILD_SRC=. -f Dockerfile .
 COPY ${BUILD_SRC}/ /app/
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
