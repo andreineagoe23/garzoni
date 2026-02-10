@@ -1,4 +1,8 @@
 # syntax=docker/dockerfile:1
+# When Railway uses Dockerfile path "backend/Dockerfile", build context is REPO ROOT.
+# So we copy from backend/ into /app. Set BUILD_SRC=. when building from backend dir (e.g. local).
+
+ARG BUILD_SRC=backend
 
 FROM python:3.12-slim-bookworm AS builder
 
@@ -21,7 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+ARG BUILD_SRC=backend
+COPY ${BUILD_SRC}/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools wheel \
@@ -51,18 +56,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy wheels and requirements from builder and install (no network: use base pip + local wheels only)
 COPY --from=builder /wheels /wheels
-COPY requirements.txt .
+ARG BUILD_SRC=backend
+COPY ${BUILD_SRC}/requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
     && rm -rf /wheels
 
-# Copy application code
-COPY . .
+# Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
+# Railway: context = repo root → BUILD_SRC=backend (default). Local from backend dir: docker build --build-arg BUILD_SRC=. -f Dockerfile .
+COPY ${BUILD_SRC}/ /app/
 
-# Mascots template: copied into media volume on first run when /app/media is mounted (prod)
+# Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
+RUN mkdir -p /app/staticfiles \
+  && if [ -d /app/media ] && [ -n "$(ls -A /app/media 2>/dev/null)" ]; then \
+       mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/; \
+     fi
+
+# Backup for entrypoint (mascots only)
 RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true
-
-# Ensure STATIC_ROOT exists so WhiteNoise never warns (collectstatic will populate it at runtime)
-RUN mkdir -p /app/staticfiles /app/media
 
 # Fix entrypoint line endings (CRLF can cause "permission denied") and ensure executable
 RUN sed -i 's/\r$//' /app/docker/entrypoint.sh 2>/dev/null || true \
