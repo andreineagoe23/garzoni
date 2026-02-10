@@ -1105,10 +1105,7 @@ class SubscriptionCreateView(APIView):
                 payment_method_types=["card"],
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url=(
-                    f"{frontend_url}/personalized-path?"
-                    "session_id={CHECKOUT_SESSION_ID}&redirect=upgradeComplete"
-                ),
+                success_url=(f"{frontend_url}/payment-success?" "session_id={CHECKOUT_SESSION_ID}"),
                 cancel_url=f"{frontend_url}/subscriptions",
                 metadata={"user_id": str(request.user.id), "plan_id": plan_id},
                 client_reference_id=str(request.user.id),
@@ -1426,6 +1423,13 @@ class NewsFeedView(APIView):
             last_good["stale"] = True
             return Response(last_good)
 
+        # RSS ingestion failure: all feeds failed and no stale cache (Sentry disabled)
+        # if getattr(settings, "SENTRY_DSN", None):
+        #     import sentry_sdk
+        #     sentry_sdk.capture_message(
+        #         "News feed: all RSS sources failed, no last-good cache",
+        #         level="warning",
+        #     )
         return Response(
             {
                 "items": [],

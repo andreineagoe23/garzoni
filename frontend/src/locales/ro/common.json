@@ -1184,6 +1184,14 @@
     "completeOnboardingFirst": "Te rugăm să finalizezi onboardingul înainte de a alege un plan.",
     "paymentNotConfigured": "Plata nu este configurată încă. Te rugăm să încerci mai târziu sau contactează suportul.",
     "checkoutFailed": "Nu s-a putut porni plata. Te rugăm să încerci din nou.",
+    "paymentSuccess": {
+      "title": "Plată reușită",
+      "ariaLabel": "Configurarea contului tău",
+      "fetchingAnswers": "Preluăm răspunsurile tale...",
+      "syncingSubscription": "Sincronizăm abonamentul...",
+      "buildingPaths": "Construim traseele tale personalizate...",
+      "ready": "Aproape gata..."
+    },
     "retryEntitlements": "Reîncearcă verificarea drepturilor",
     "contactSupport": "Contactează suportul",
     "subscriptionStatus": "Stare abonament",
