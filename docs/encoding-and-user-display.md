@@ -29,9 +29,21 @@ This keeps mojibake from reappearing and ensures one place to extend fixes (e.g.
 
 To correct values already stored in the DB (e.g. for Django admin):
 
+**Locally:**
 ```bash
+cd backend
 python manage.py fix_user_mojibake --dry-run   # preview
 python manage.py fix_user_mojibake             # apply
 ```
 
-Optional: `--email` to also normalize the email field.
+**On production (Railway):**
+```bash
+cd backend
+railway link   # if not already linked
+railway run python manage.py fix_user_mojibake --dry-run   # preview
+railway run python manage.py fix_user_mojibake             # apply
+```
+
+Optional: `--email` to also normalize the email field (use with care).
+
+After deploying, the **Django admin Users list** uses normalized display (see `authentication.admin.UserAdmin`), so names show clean even before or after running the fix.

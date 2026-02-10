@@ -52,6 +52,7 @@ def normalize_text_encoding(text: str | None) -> str | None:
         # Warning sign + variation selector ⚠️ (U+26A0 U+FE0F) UTF-8 E2 9A A0 EF B8 8F -> âš ï¸
         ("\u00e2\u009a\u00a0\u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # ⚠️
         ("\u00e2\u0161\u00a0\u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # âš ï¸ -> ⚠️
+        ("\u00e2\u0161 \u00ef\u00b8\u008f", "\u26a0\ufe0f"),  # âš ï¸ (space) -> ⚠️
         ("\u00e2\u009a\u00a0", "\u26a0"),  # ⚠ (without variation selector)
     ]
     out = min(candidates, key=_score)
