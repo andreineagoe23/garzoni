@@ -37,6 +37,9 @@ urlpatterns = [
     path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 
+# Serve uploaded/media files (mascots, path_images, course_images) in all environments
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 LEGAL_PAGE_ROUTES = [
     "privacy-policy",
     "cookie-policy",
@@ -44,9 +47,6 @@ LEGAL_PAGE_ROUTES = [
     "financial-disclaimer",
     "no-financial-advice",
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # SPA fallback (React BrowserRouter). Only enabled when a build is present.
 # - /api/*, /admin/* etc remain server-handled
