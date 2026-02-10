@@ -41,7 +41,14 @@ fi
 # Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
 mkdir -p /app/staticfiles /app/media
 
-# When /app/media is a volume (e.g. production), populate mascots from image if missing
+# When /app/media is a Railway volume (empty on first deploy), populate from image seed
+if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
+  if [ ! -f /app/media/path_images/basicfinance.png ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
+    cp -r /app/media_seed/. /app/media/ 2>/dev/null || true
+    echo "[entrypoint] Populated /app/media from image seed (path_images, mascots, etc.)"
+  fi
+fi
+# Fallback: populate only mascots if full seed wasn't used
 if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
   mkdir -p /app/media/mascots
   cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
