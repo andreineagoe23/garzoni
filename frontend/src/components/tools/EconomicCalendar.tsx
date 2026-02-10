@@ -3,7 +3,7 @@ import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { CALENDAR_EXPLAINERS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
-import { captureMessage } from "../../sentry";
+import { reportWidgetLoadError } from "../../sentry";
 import { Trans, useTranslation } from "react-i18next";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
@@ -83,14 +83,14 @@ const EconomicCalendar = () => {
       currencyFilter: "USD,EUR,GBP,JPY,CAD,AUD" });
     script.onload = () => setLoaded(true);
     script.onerror = () => {
-      captureMessage("Calendar widget failed to load (script error)", "warning", { tool_id: "calendar" });
+      reportWidgetLoadError(new Error("Calendar widget script failed to load"), "calendar", { tool_id: "calendar" });
       setLoadError(true);
     };
 
     const timeoutId = window.setTimeout(() => {
       setLoaded((prev) => {
         if (!prev) {
-          captureMessage("Calendar widget load timeout", "warning", { tool_id: "calendar" });
+          reportWidgetLoadError(new Error("Calendar widget load timeout"), "calendar", { tool_id: "calendar" });
           setLoadError(true);
         }
         return prev;

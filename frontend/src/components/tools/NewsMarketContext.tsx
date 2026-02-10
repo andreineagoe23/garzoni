@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, memo } from "react";
 import { useTheme } from "contexts/ThemeContext";
 import { recordToolEvent } from "services/toolsAnalytics";
+import { reportWidgetLoadError } from "../../sentry";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:news-context";
 const WIDGET_HEIGHT = "82vh";
@@ -50,6 +51,9 @@ function TradingViewNewsWidget() {
       }
       recordToolEvent("tool_complete", "news-context", {
         detail: "tradingview_news_loaded" });
+    };
+    script.onerror = () => {
+      reportWidgetLoadError(new Error("News (TradingView) widget script failed to load"), "news-context", { tool_id: "news-context" });
     };
 
     currentContainer.appendChild(script);

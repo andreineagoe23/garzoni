@@ -25,15 +25,24 @@ class UserProfileView(generics.GenericAPIView):
 
     def patch(self, request):
         """Update specific fields in the user's profile."""
-        user_profile = request.user.profile
-        payload = {}
-        if "email_reminder_preference" in request.data:
-            payload["email_reminder_preference"] = request.data.get("email_reminder_preference")
-        serializer = UserProfileSettingsSerializer(user_profile, data=payload, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        invalidate_profile_cache(request.user)
-        return Response({"message": "Profile updated successfully."})
+        try:
+            user_profile = request.user.profile
+            payload = {}
+            if "email_reminder_preference" in request.data:
+                payload["email_reminder_preference"] = request.data.get("email_reminder_preference")
+            serializer = UserProfileSettingsSerializer(user_profile, data=payload, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            invalidate_profile_cache(request.user)
+            return Response({"message": "Profile updated successfully."})
+        except Exception as exc:
+            # Sentry disabled (paid in production)
+            # from django.conf import settings
+            # if getattr(settings, "SENTRY_DSN", None):
+            #     import sentry_sdk
+            #     sentry_sdk.set_tag("error_type", "profile_update")
+            #     sentry_sdk.capture_exception(exc)
+            raise
 
 
 class UserSettingsView(generics.GenericAPIView):
@@ -57,35 +66,44 @@ class UserSettingsView(generics.GenericAPIView):
 
     def patch(self, request):
         """Handle PATCH requests to update the user's settings."""
-        user = request.user
-        user_profile = user.profile
+        try:
+            user = request.user
+            user_profile = user.profile
 
-        profile_data = request.data.get("profile", {})
-        if profile_data:
-            user.username = profile_data.get("username", user.username)
-            user.email = profile_data.get("email", user.email)
-            user.first_name = profile_data.get("first_name", user.first_name)
-            user.last_name = profile_data.get("last_name", user.last_name)
-            user.save()
+            profile_data = request.data.get("profile", {})
+            if profile_data:
+                user.username = profile_data.get("username", user.username)
+                user.email = profile_data.get("email", user.email)
+                user.first_name = profile_data.get("first_name", user.first_name)
+                user.last_name = profile_data.get("last_name", user.last_name)
+                user.save()
 
-        dark_mode = request.data.get("dark_mode")
-        if dark_mode is not None:
-            user_profile.dark_mode = dark_mode
+            dark_mode = request.data.get("dark_mode")
+            if dark_mode is not None:
+                user_profile.dark_mode = dark_mode
 
-        email_reminder_preference = request.data.get("email_reminder_preference")
-        if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
-            user_profile.email_reminder_preference = email_reminder_preference
+            email_reminder_preference = request.data.get("email_reminder_preference")
+            if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
+                user_profile.email_reminder_preference = email_reminder_preference
 
-        user_profile.save()
-        invalidate_profile_cache(request.user)
+            user_profile.save()
+            invalidate_profile_cache(request.user)
 
-        return Response(
-            {
-                "message": "Settings updated successfully.",
-                "dark_mode": user_profile.dark_mode,
-                "email_reminder_preference": user_profile.email_reminder_preference,
-            }
-        )
+            return Response(
+                {
+                    "message": "Settings updated successfully.",
+                    "dark_mode": user_profile.dark_mode,
+                    "email_reminder_preference": user_profile.email_reminder_preference,
+                }
+            )
+        except Exception as exc:
+            # Sentry disabled (paid in production)
+            # from django.conf import settings
+            # if getattr(settings, "SENTRY_DSN", None):
+            #     import sentry_sdk
+            #     sentry_sdk.set_tag("error_type", "profile_update")
+            #     sentry_sdk.capture_exception(exc)
+            raise
 
 
 @api_view(["POST"])

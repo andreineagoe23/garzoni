@@ -1184,6 +1184,14 @@
     "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
     "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
     "checkoutFailed": "Could not start checkout. Please try again.",
+    "paymentSuccess": {
+      "title": "Payment successful",
+      "ariaLabel": "Setting up your account",
+      "fetchingAnswers": "Fetching your answers...",
+      "syncingSubscription": "Syncing your subscription...",
+      "buildingPaths": "Building your personalized paths...",
+      "ready": "Almost there..."
+    },
     "retryEntitlements": "Retry entitlement check",
     "contactSupport": "Contact support",
     "subscriptionStatus": "Subscription status",
