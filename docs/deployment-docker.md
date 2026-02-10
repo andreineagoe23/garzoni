@@ -41,8 +41,8 @@ The Dockerfile is written for **build context = repository root** (Railway’s d
 1. **No Root Directory needed**
    Leave Railway’s Root Directory unset (or empty). The image copies from `backend/` into `/app`, so `/app/media`, `/app/manage.py`, etc. are correct.
 
-2. **Optional: persistent media volume**
-   To persist uploads (e.g. new course images) across redeploys, add a **Volume** to the backend service and mount it at **`/app/media`**. On first deploy the entrypoint copies the image’s media seed into the volume.
+2. **Persistent media volume (recommended on Railway)**
+   Add a **Volume** to the backend service (e.g. `monevo-volume`), set **Mount path** to **`/app/media`**, and use the same region as the service. On first deploy the entrypoint copies the image’s media seed (path_images, mascots, course_images, etc.) into the volume; after that, media and uploads persist across redeploys.
 
 3. **Redeploy and clear build cache**
    After pulling the updated Dockerfile, in Railway use **Redeploy** and enable **Clear build cache** so the new image is built and media is included.
