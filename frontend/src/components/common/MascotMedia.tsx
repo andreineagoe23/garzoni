@@ -31,14 +31,13 @@ const MASCOT_MEDIA: Record<
 const MascotMedia = ({ mascot, animated = true, className }: MascotMediaProps) => {
   const { video, image, alt } = MASCOT_MEDIA[mascot];
   const [videoFailed, setVideoFailed] = useState(false);
-  const useVideo = animated && !videoFailed;
   const fallback = useMemo(
     () => <img src={image} alt={alt} className={className} />,
     [alt, className, image]
   );
 
-  // Prefer .mov video; use static image only as poster and fallback when video fails or animations off
-  if (useVideo) {
+  // Always use .mov video; show image only if video fails to load (e.g. unsupported or 404)
+  if (!videoFailed) {
     return (
       <video
         className={className}
