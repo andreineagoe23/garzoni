@@ -10,6 +10,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from django.views.static import serve as static_serve
 from core.views import root_view, robots_txt_view
 
 urlpatterns = [
@@ -38,7 +39,11 @@ urlpatterns = [
 ]
 
 # Serve uploaded/media files (mascots, path_images, course_images) in all environments
+# Django's static() only wires this when DEBUG=True, so add an explicit route for production.
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [
+    re_path(r"^media/(?P<path>.*)$", static_serve, {"document_root": settings.MEDIA_ROOT}),
+]
 
 LEGAL_PAGE_ROUTES = [
     "privacy-policy",
