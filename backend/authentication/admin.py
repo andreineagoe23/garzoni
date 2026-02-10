@@ -1,11 +1,48 @@
 # authentication/admin.py
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db import transaction
 from django.utils import timezone
 
 from authentication.models import UserProfile, Referral, FriendRequest
+from authentication.user_display import normalize_display_string
 from authentication.views import _apply_hearts_regen, _hearts_constants, _hearts_payload
 from gamification.models import MissionCompletion, UserBadge
+
+User = get_user_model()
+
+
+class UserAdmin(BaseUserAdmin):
+    """User admin with normalized display so mojibake (RoÈ™u, âš ï¸) shows clean in list."""
+
+    list_display = (
+        "username_display",
+        "email",
+        "first_name_display",
+        "last_name_display",
+        "is_staff",
+    )
+
+    def username_display(self, obj):
+        return normalize_display_string(obj.username)
+
+    username_display.short_description = "username"
+
+    def first_name_display(self, obj):
+        return normalize_display_string(obj.first_name)
+
+    first_name_display.short_description = "First name"
+
+    def last_name_display(self, obj):
+        return normalize_display_string(obj.last_name)
+
+    last_name_display.short_description = "Last name"
+
+
+# Replace default User admin so list shows normalized names
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 
 
 @admin.register(Referral)
