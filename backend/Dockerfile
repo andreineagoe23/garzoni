@@ -64,11 +64,15 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 # Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
 COPY ${BUILD_SRC}/ /app/
 
+# Force-include media so path_images, mascots, etc. are never missing (e.g. Railway)
+COPY ${BUILD_SRC}/media/ /app/media/
+
+# Verify media is present (build fails if path_images or mascots are missing)
+RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png && test -f /app/media/mascots/Bear-Mascot.mov || (echo "ERROR: /app/media missing required files. Check .dockerignore and build context." && exit 1)
+
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \
-  && if [ -d /app/media ] && [ -n "$(ls -A /app/media 2>/dev/null)" ]; then \
-       mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/; \
-     fi
+  && mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
 
 # Backup for entrypoint (mascots only)
 RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true
