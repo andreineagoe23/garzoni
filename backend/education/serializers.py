@@ -205,6 +205,47 @@ class CourseSerializer(serializers.ModelSerializer):
         return data
 
 
+class CourseSummarySerializer(serializers.ModelSerializer):
+    """
+    Lightweight course serializer for list views (no lessons/quizzes).
+    """
+
+    image = serializers.SerializerMethodField()
+    lesson_count = serializers.IntegerField(read_only=True)
+    total_lessons = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = [
+            "id",
+            "title",
+            "description",
+            "image",
+            "lesson_count",
+            "total_lessons",
+        ]
+
+    def get_image(self, obj):
+        if obj.image:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+    def get_total_lessons(self, obj):
+        if getattr(obj, "lesson_count", None) is not None:
+            return int(obj.lesson_count or 0)
+        return obj.lessons.count()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["description"] = trans.description
+        return data
+
+
 class PathSerializer(serializers.ModelSerializer):
     """
     Serializer for the Path model. Includes fields for the title, description,
@@ -212,6 +253,48 @@ class PathSerializer(serializers.ModelSerializer):
     """
 
     courses = CourseSerializer(many=True, read_only=True)
+    is_locked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Path
+        fields = [
+            "id",
+            "title",
+            "description",
+            "courses",
+            "image",
+            "access_tier",
+            "sort_order",
+            "is_locked",
+        ]
+
+    def get_is_locked(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if not user or not getattr(user, "is_authenticated", False):
+            return True
+        if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+            return False
+        plan = get_user_plan(user)
+        required_tier = resolve_path_access_tier(obj)
+        return not plan_allows(plan, required_tier)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_request_language(self.context.get("request"))
+        trans = _get_translation(instance, lang)
+        if trans:
+            data["title"] = trans.title
+            data["description"] = trans.description
+        return data
+
+
+class PathListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight Path serializer for /paths/ list (no nested lessons/quizzes).
+    """
+
+    courses = CourseSummarySerializer(many=True, read_only=True)
     is_locked = serializers.SerializerMethodField()
 
     class Meta:

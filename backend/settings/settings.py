@@ -575,6 +575,20 @@ MIGRATION_MODULES = {
     "core": None,  # Disable migrations for core app
 }
 
+# Error reporting: Sentry disabled (paid in production). Set SENTRY_DSN and uncomment to re-enable.
+# SENTRY_DSN = os.getenv("SENTRY_DSN")
+# if SENTRY_DSN and "test" not in sys.argv:
+#     import sentry_sdk
+#     from sentry_sdk.integrations.django import DjangoIntegration
+#     sentry_sdk.init(
+#         dsn=SENTRY_DSN,
+#         environment=DJANGO_ENV,
+#         integrations=[DjangoIntegration()],
+#         traces_sample_rate=0.1,
+#         send_default_pii=False,
+#         sample_rate=1.0 if not DEBUG else 0.2,
+#     )
+
 if "test" in sys.argv:
     DATABASES = {
         "default": {

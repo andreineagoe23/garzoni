@@ -32,6 +32,7 @@ from education.models import (
 )
 from education.serializers import (
     PathSerializer,
+    PathListSerializer,
     CourseSerializer,
     LessonSerializer,
     LessonSectionSerializer,
@@ -101,12 +102,28 @@ EXERCISE_SAFE_FIELDS = [
 class PathViewSet(viewsets.ModelViewSet):
     """ViewSet to manage paths, including listing and retrieving paths."""
 
-    queryset = Path.objects.prefetch_related("translations")
-    serializer_class = PathSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        if self.action == "list":
+            return Path.objects.prefetch_related(
+                "translations",
+                Prefetch(
+                    "courses",
+                    queryset=Course.objects.annotate(
+                        lesson_count=Count("lessons")
+                    ).prefetch_related("translations"),
+                ),
+            ).order_by("sort_order", "id")
+        return Path.objects.prefetch_related("translations").order_by("sort_order", "id")
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PathListSerializer
+        return PathSerializer
+
     def list(self, request, *args, **kwargs):
-        """Handle GET requests to list all paths."""
+        """Handle GET requests to list all paths (lightweight list)."""
         return super().list(request, *args, **kwargs)
 
 

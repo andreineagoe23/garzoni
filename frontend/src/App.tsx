@@ -55,6 +55,9 @@ const UpgradePage = React.lazy(() => import("./components/billing/Upgrade"));
 const SubscriptionManager = React.lazy(
   () => import("./components/billing/SubscriptionManager")
 );
+const PaymentSuccessPage = React.lazy(
+  () => import("./components/billing/PaymentSuccessPage")
+);
 const PrivacyPolicy = React.lazy(
   () => import("./components/legal/PrivacyPolicy")
 );
@@ -171,8 +174,8 @@ const AppContent = () => {
     "/subscriptions",
   ];
 
-  const noNavbarPaths = [...publicPaths, "/onboarding"];
-  const noChatbotPaths = [...publicPaths, "/onboarding"];
+  const noNavbarPaths = [...publicPaths, "/onboarding", "/payment-success"];
+  const noChatbotPaths = [...publicPaths, "/onboarding", "/payment-success"];
   // Pages that render a standalone marketing/auth layout (they render their own Footer)
   const noFooterPaths = [
     "/",
@@ -372,6 +375,14 @@ const AppContent = () => {
                   }
                 />
                 <Route path="/payment-required" element={<UpgradePage />} />
+                <Route
+                  path="/payment-success"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentSuccessPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/profile"
                   element={
