@@ -41,20 +41,31 @@ fi
 # Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
 mkdir -p /app/staticfiles /app/media
 
-# Railway volume at /app/media: when the volume is empty (first deploy), fill it from the image seed.
+# Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
 if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
-  if [ ! -f /app/media/path_images/basicfinance.png ] || [ ! -f /app/media/mascots/monevo-bear.png ]; then
-    mkdir -p /app/media
-    cp -rn /app/media_seed/. /app/media/ 2>/dev/null || true
-    echo "[entrypoint] Populated /app/media (monevo-volume) from image seed"
+  echo "[entrypoint] Seeding /app/media from image (monevo-volume mount)..." >&2
+  if cp -rn /app/media_seed/. /app/media/; then
+    echo "[entrypoint] Seed copy OK" >&2
+  else
+    echo "[entrypoint] WARN: seed copy had errors (check volume permissions; try RAILWAY_RUN_UID=0)" >&2
   fi
-fi
-# Fallback: mascots only if seed copy didn't run
-if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
-  mkdir -p /app/media/mascots
-  cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
-  echo "[entrypoint] Populated /app/media/mascots from image"
+  # Verify so we see in logs whether files are present
+  if [ -f /app/media/path_images/basicfinance.png ] && [ -f /app/media/mascots/monevo-bear.png ]; then
+    echo "[entrypoint] /app/media verified: path_images and mascots present" >&2
+  else
+    echo "[entrypoint] WARN: /app/media missing expected files after seed" >&2
+    ls -la /app/media/ 2>/dev/null || true
+    ls -la /app/media/path_images/ 2>/dev/null || true
+    ls -la /app/media/mascots/ 2>/dev/null || true
+  fi
+else
+  # Fallback: mascots only if media_seed missing (old image)
+  if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
+    mkdir -p /app/media/mascots
+    cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
+    echo "[entrypoint] Populated /app/media/mascots from image" >&2
+  fi
 fi
 
 # Railway (and similar) set PORT; bind gunicorn to it so no shell expansion is needed in start command
