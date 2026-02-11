@@ -11,6 +11,8 @@ services:
       - ./backend/.env
     environment:
       DJANGO_SETTINGS_MODULE: settings.settings
+      # Use Postgres in Docker so the DB persists in backend_db_data (avoids re-running all migrations on every rebuild)
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
     volumes:
@@ -33,7 +35,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monevo}
     volumes:
       - backend_db_data:/var/lib/postgresql/data
-    # Ports are set per-environment (dev uses MySQL:3307, prod uses Postgres:5432)
+    # Ports are set per-environment (see docker-compose.prod.yml for exposed Postgres port)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -56,11 +58,15 @@ services:
         BUILD_SRC: "."
     image: monevo-backend:latest
     restart: unless-stopped
+    profiles:
+      - celery
     env_file:
       - ./backend/.env
     environment:
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
+      SKIP_MIGRATIONS: "1"
+      SKIP_COLLECTSTATIC: "1"
     command: celery -A settings worker -l info
     depends_on:
       backend:
@@ -76,11 +82,15 @@ services:
         BUILD_SRC: "."
     image: monevo-backend:latest
     restart: unless-stopped
+    profiles:
+      - celery
     env_file:
       - ./backend/.env
     environment:
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
+      SKIP_MIGRATIONS: "1"
+      SKIP_COLLECTSTATIC: "1"
     command: celery -A settings beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       backend:

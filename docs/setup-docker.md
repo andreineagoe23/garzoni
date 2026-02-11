@@ -2,8 +2,8 @@
 
 This repo ships with:
 
-- **Production-style stack** (`docker-compose.yml`): PostgreSQL, Redis, Django + Gunicorn, Celery worker/beat.
-- **Dev stack** (`docker-compose.dev.yml`): PostgreSQL, Redis, Django runserver (no Celery; tasks run inline). Uses **Postgres only** (same as Railway).
+- **Production-style stack** (`docker-compose.yml` + `docker-compose.prod.yml`): PostgreSQL, Redis, Django + Gunicorn. Celery worker/beat are under the `celery` profile—use `make prod` or `docker compose --profile celery up` to start them.
+- **Dev stack** (`docker-compose.yml` + `docker-compose.dev.yml`): PostgreSQL, Redis, Django runserver. **No Celery by default**; tasks run inline (`CELERY_TASK_ALWAYS_EAGER=True`). To run Celery in dev (e.g. to test async tasks), use `make dev-celery` or `docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile celery up`.
 
 ### Prereqs
 
@@ -17,10 +17,12 @@ This repo ships with:
 docker compose -f docker-compose.dev.yml down -v
 ```
 
-- **Boot the dev stack** (uses `backend/.env`; see also `backend/.env.dev`):
+- **Boot the dev stack** (uses `backend/.env`; see also `backend/.env.dev`). Celery does not run; tasks execute inline.
 
 ```bash
-docker compose -f docker-compose.dev.yml up --build
+make dev
+# or
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
 
 - On first start, the entrypoint runs migrations then **seeds** exercises and ensures lesson sections (`SEED_AFTER_MIGRATE=1`), and prints a **verify_restore** summary (counts for users, lesson sections, exercises, etc.). Backend will be at **http://localhost:8000** (DEBUG=True, CORS allowed for http://localhost:3000). Run the frontend separately (e.g. `npm start` in `frontend/`) and set `REACT_APP_BACKEND_URL=http://localhost:8000/api` if needed.
@@ -28,7 +30,8 @@ docker compose -f docker-compose.dev.yml up --build
 ### Quick start (production-style stack)
 
 - Create a `.env` in the repo root with at least `POSTGRES_PASSWORD` (and `DJANGO_SECRET_KEY` if not using DEBUG).
-- Run: `docker compose up -d --build`
+- Run with Celery: `make prod` or `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile celery up -d --build`
+- Run without Celery: `docker compose up -d --build` (backend, db, redis only). The backend uses the Postgres container (`DATABASE_URL` is set by Compose), so the DB persists in the `backend_db_data` volume and migrations only run when there are new ones. If your `backend/.env` has `DATABASE_URL=sqlite:///...`, it is overridden in Docker so the DB is not recreated on every rebuild.
 
 ### Railway (production)
 
@@ -74,7 +77,7 @@ See `backend/backups/README.md` for details and the SQL restore option.
 
 ### Common tasks
 
-Use `docker compose -f docker-compose.dev.yml` for dev, or `docker compose` for the default (production-style) stack.
+Use `make dev` (or `docker compose -f docker-compose.yml -f docker-compose.dev.yml`) for dev; use `docker compose` for the default stack. Add `--profile celery` (or `make dev-celery` / `make prod`) when you need Celery worker/beat. Only the backend container runs migrations; Celery containers skip them.
 
 - **View logs**:
 

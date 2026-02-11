@@ -1,7 +1,7 @@
 """
 Export current database to JSON for loading into Postgres (e.g. Railway).
 
-Run from local env (SQLite or MySQL):
+Run from local env (SQLite or Postgres):
   python manage.py export_for_postgres -o backup.json
 
 Then load with: DJANGO_ENV=production DATABASE_PUBLIC_URL=<url> python manage.py loaddata backup.json
