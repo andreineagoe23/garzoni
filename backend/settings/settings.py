@@ -27,9 +27,9 @@ FRONTEND_BUILD_DIR = Path(
 SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        # Avoid committing any dev default that can be flagged as a "secret".
-        # In DEBUG we can safely generate an ephemeral key per process.
-        SECRET_KEY = get_random_secret_key()
+        # Stable key in dev so session/CSRF cookies work across restarts (avoids "Session data corrupted" on admin login).
+        # Production must set SECRET_KEY in env.
+        SECRET_KEY = "django-insecure-dev-only-do-not-use-in-production"  # pragma: allowlist secret
     else:
         raise ImproperlyConfigured(
             "SECRET_KEY must be set in production. "
@@ -133,14 +133,8 @@ default_db = None
 if database_url:
     default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=False)
 
-    if default_db:
-        if "OPTIONS" not in default_db:
-            default_db["OPTIONS"] = {}
-
-        if "mysql" in default_db.get("ENGINE", "").lower():
-            default_db["OPTIONS"].pop("sslmode", None)
-            default_db["OPTIONS"]["charset"] = "utf8mb4"
-            default_db["OPTIONS"]["init_command"] = "SET sql_mode='STRICT_TRANS_TABLES'"
+    if default_db and "OPTIONS" not in default_db:
+        default_db["OPTIONS"] = {}
 
 if not default_db:
     if DEBUG:

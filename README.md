@@ -37,7 +37,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
-- By default uses SQLite in DEBUG. Set DATABASE_URL for MySQL/Postgres in production.
+- By default uses SQLite in DEBUG. Set DATABASE_URL for Postgres in production (Docker/Railway use Postgres).
 - Celery/Redis are optional in local dev; enable when running scheduled tasks.
 - Environment variables are documented in backend/ENV_VARIABLES.md.
 

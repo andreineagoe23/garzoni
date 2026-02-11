@@ -1,11 +1,13 @@
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
-prod:
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Dev with Celery worker + beat (for testing async tasks). Default dev has no Celery.
+dev-celery:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile celery up --build
 
-down:
-	docker compose down -v
+prod:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile celery up -d --build
+
 .PHONY: help up down build logs backend-shell backend-migrate backend-collectstatic backend-superuser \
 	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-backup frontend-install frontend-test frontend-lint frontend-build \
 	pre-commit-install pre-commit
@@ -47,6 +49,10 @@ backend-collectstatic:
 
 backend-superuser:
 	docker compose exec backend python manage.py createsuperuser
+
+# Create or fix superuser (e.g. after DB reset). Usage: make ensure-superuser USER=andreineagoe23 EMAIL=you@example.com
+ensure-superuser:
+	docker compose exec backend python manage.py ensure_superuser $(or $(USER),andreineagoe23) --email $(or $(EMAIL),neagoe.andrei23@yahoo.com)
 
 backend-test:
 	docker compose exec backend python manage.py test
