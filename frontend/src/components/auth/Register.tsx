@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 import registerBg from "assets/register-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
+import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
-// import { useGoogleReCaptcha } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
+import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
+
 function Register() {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
@@ -21,10 +23,11 @@ function Register() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifyingModal, setShowVerifyingModal] = useState(false);
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();
-  // const { executeRecaptcha } = useGoogleReCaptcha(); // reCAPTCHA commented out
+  const { executeRecaptcha } = useRecaptcha();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -36,14 +39,28 @@ function Register() {
     setIsLoading(true);
     setErrorMessage("");
 
-    try {
-      // reCAPTCHA commented out: was getting token and adding to payload
-      const result = await registerUser(formData);
+    const runRegister = async (payload: Record<string, unknown>) => {
+      const result = await registerUser(payload);
       if (result.success) {
-        // Always send new users to onboarding first; replace so back doesn't return to register
         navigate("/onboarding", { replace: true });
       } else {
         setErrorMessage(result.error || t("auth.register.registerFailed"));
+      }
+      return result;
+    };
+
+    try {
+      if (executeRecaptcha) {
+        setShowVerifyingModal(true);
+        try {
+          const token = await executeRecaptcha("register");
+          const result = await runRegister({ ...formData, recaptcha_token: token });
+          if (result.success) return;
+        } finally {
+          setShowVerifyingModal(false);
+        }
+      } else {
+        await runRegister(formData);
       }
     } catch (registerError) {
       if (axios.isAxiosError(registerError)) {
@@ -71,6 +88,7 @@ function Register() {
 
   return (
     <>
+      <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
       <div
         className="relative flex min-h-screen flex-col overflow-hidden bg-cover bg-center bg-fixed"

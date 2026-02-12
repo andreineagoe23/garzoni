@@ -1098,6 +1098,10 @@
   "auth": {
     "signInWithGoogle": "Sign in with Google",
     "orContinueWith": "or continue with",
+    "recaptcha": {
+      "verifying": "Verifying you're human...",
+      "protectedBy": "Protected by reCAPTCHA"
+    },
     "entitlementsUnavailable": "We could not confirm your entitlements right now.",
     "login": {
       "title": "Welcome Back",
