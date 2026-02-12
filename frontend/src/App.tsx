@@ -17,6 +17,8 @@ import { ThemeProvider } from "contexts/ThemeContext";
 import { AuthProvider } from "contexts/AuthContext";
 import { AdminProvider } from "contexts/AdminContext";
 import { RecaptchaContextProvider } from "contexts/RecaptchaContext";
+import { CookieConsentProvider } from "contexts/CookieConsentContext";
+import CookieConsentBanner from "components/legal/CookieConsentBanner";
 import { queryClient } from "lib/reactQuery";
 import ProtectedRoute from "components/auth/ProtectedRoute";
 import Chatbot from "components/widgets/Chatbot";
@@ -125,11 +127,17 @@ function App() {
         {RECAPTCHA_SITE_KEY ? (
           <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
             <RecaptchaContextProvider>
-              <AppContent />
+              <CookieConsentProvider>
+                <AppContent />
+                <CookieConsentBanner />
+              </CookieConsentProvider>
             </RecaptchaContextProvider>
           </GoogleReCaptchaProvider>
         ) : (
-          <AppContent />
+          <CookieConsentProvider>
+            <AppContent />
+            <CookieConsentBanner />
+          </CookieConsentProvider>
         )}
         {ReactQueryDevtools ? (
           <Suspense fallback={null}>
@@ -202,7 +210,7 @@ const AppContent = () => {
   useEffect(() => {
     if (
       typeof window.gtag === "function" &&
-      window.Cookiebot?.consent?.statistics
+      window.__MONEVO_CONSENT__?.analytics
     ) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
