@@ -115,7 +115,7 @@ const PrivacyPolicy = () => {
           <p>{t("legal.privacy.sections.processors.body1")}</p>
           <ul>
             <li>{t("legal.privacy.sections.processors.items.stripe")}</li>
-            <li>{t("legal.privacy.sections.processors.items.cookiebot")}</li>
+            <li>{t("legal.privacy.sections.processors.items.cookieConsent")}</li>
             <li>{t("legal.privacy.sections.processors.items.google")}</li>
             <li>{t("legal.privacy.sections.processors.items.amplitude")}</li>
             <li>{t("legal.privacy.sections.processors.items.sentry")}</li>

@@ -8,7 +8,7 @@ const CHECKOUT_URL =
 const canSendAnalytics = () =>
   typeof window !== "undefined" &&
   typeof window.gtag === "function" &&
-  window.Cookiebot?.consent?.statistics;
+  window.__MONEVO_CONSENT__?.analytics;
 
 const trackPremiumEvent = (
   eventName: string,

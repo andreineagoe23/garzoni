@@ -1304,7 +1304,22 @@
     "infoDisclaimer": "Information is educational and general, not personalized financial advice.",
     "buyMeACoffee": "Buy me a coffee",
     "monevoOn": "Monevo on {{platform}}",
-    "ariaLabel": "Site footer"
+    "ariaLabel": "Site footer",
+    "cookieSettings": "Cookie settings"
+  },
+  "cookieConsent": {
+    "bannerAria": "Cookie consent",
+    "message": "We use cookies on this site. We need your consent to store non-essential cookies (e.g. analytics) on your device. Necessary cookies (session, login, security) are used without consent as required to provide the service. You can accept all, reject non-essential, or choose in settings.",
+    "acceptAll": "Accept all",
+    "rejectNonEssential": "Reject non-essential",
+    "cookieSettings": "Cookie settings",
+    "settingsTitle": "Cookie preferences",
+    "settingsIntro": "We inform you about the cookies we use. Necessary cookies (session, login, security) are always on and do not require consent under UK and EU law. Choose whether to allow optional cookies below.",
+    "necessaryNote": "Necessary cookies are always on (no consent required).",
+    "analyticsLabel": "Analytics — help us understand how the site is used (e.g. Google Analytics).",
+    "marketingLabel": "Marketing — optional ads or remarketing (we do not use these currently).",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "header": {
     "premiumReady": "Premium Ready",
@@ -1693,7 +1708,7 @@
           "body1": "We use third parties to operate the service. Depending on your usage, these may include:",
           "items": {
             "stripe": "Stripe (billing and subscription processing).",
-            "cookiebot": "Cookiebot (cookie consent management).",
+            "cookieConsent": "Cookie consent (managed on our site; we do not use third-party consent tools).",
             "google": "Google Analytics / Google Ads tags (with consent).",
             "amplitude": "Amplitude (product analytics).",
             "sentry": "Sentry (error monitoring).",
@@ -1779,8 +1794,15 @@
           "title": "1. What cookies are",
           "body": "Cookies are small text files placed on your device when you visit a website. They help with login, security, analytics, and service performance."
         },
+        "sessionPersistent": {
+          "title": "2. Session and persistent cookies",
+          "sessionTitle": "Session cookies",
+          "sessionBody": "Session cookies let the site recognise and link your actions during a single browsing session. They are typically used for purposes such as remembering what you put in a basket while you browse. Session cookies often store an identifier so you can move from page to page without re-entering your username, password, etc. They last only for that session and are deleted when you close the browser or app.",
+          "persistentTitle": "Persistent cookies",
+          "persistentBody": "Persistent cookies are stored across sessions and can remember your preferences or actions on a site (or across sites)—for example language, theme, menu preferences, or favourite pages. We use them only where you have consented or where they are strictly necessary for the service you requested."
+        },
         "categories": {
-          "title": "2. Cookie categories we use",
+          "title": "3. Cookie categories we use",
           "items": {
             "necessary": {
               "label": "Strictly necessary cookies:",
@@ -1800,20 +1822,28 @@
             }
           }
         },
+        "consentRequirement": {
+          "title": "4. Consent for cookies",
+          "body": "Any site that sets cookies must inform you about their purpose and, where required, obtain your consent. Consent must be informed, express, and unambiguous. There is an exception for cookies that are strictly necessary to provide an online service you have requested (e.g. session and login cookies, security). We do not set non-essential cookies until you have given your consent."
+        },
         "consent": {
-          "title": "3. Managing your consent",
-          "body": "You can change cookie preferences at any time via the cookie banner controls or your browser settings. Disabling some cookies may impact certain features."
+          "title": "5. Managing your consent",
+          "body": "You can change your cookie preferences at any time via the cookie banner or your browser settings. Disabling some cookies may impact certain features.",
+          "manageHint": "to update your choices."
         },
         "thirdParty": {
-          "title": "4. Third-party technologies",
-          "body": "We may use third-party tools such as Cookiebot, analytics tools, and advertising tags. These services may set their own cookies according to your consent choices."
+          "title": "6. Third-party technologies",
+          "body": "We may use third-party tools such as Google Analytics when you consent. These services may set their own cookies according to your choices in our cookie settings."
         },
         "declaration": {
-          "title": "5. Cookie declaration",
-          "body": "The live cookie declaration below lists cookies detected on this property and their durations/providers."
+          "title": "7. Cookie declaration",
+          "body": "Summary of categories we use:",
+          "necessary": "Necessary: session, auth, security (always on).",
+          "analytics": "Analytics: e.g. Google Analytics (optional, with your consent).",
+          "marketing": "Marketing: not used at present; optional if we add it later."
         },
         "contact": {
-          "title": "6. Contact",
+          "title": "8. Contact",
           "body": "For cookie questions:",
           "related": "Related pages: <privacy>Privacy Policy</privacy> and <terms>Terms of Service</terms>"
         }

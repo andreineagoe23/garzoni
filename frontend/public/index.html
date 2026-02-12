@@ -74,24 +74,6 @@
     />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Conditionally Load Cookiebot/Usercentrics (frontend only) -->
-    <script>
-      if (window.location.hostname.includes("monevo.tech")) {
-        const autoblocker = document.createElement("script");
-        autoblocker.src =
-          "https://web.cmp.usercentrics.eu/modules/autoblocker.js";
-        autoblocker.async = true;
-        document.head.appendChild(autoblocker);
-
-        const ucScript = document.createElement("script");
-        ucScript.id = "usercentrics-cmp";
-        ucScript.src = "https://web.cmp.usercentrics.eu/ui/loader.js";
-        ucScript.setAttribute("data-settings-id", "o3gY1UKzmzy6yw");
-        ucScript.async = true;
-        document.head.appendChild(ucScript);
-      }
-    </script>
-
     <!-- Google Consent Mode (Always runs) -->
     <script data-cookieconsent="ignore">
       window.dataLayer = window.dataLayer || [];
@@ -127,28 +109,50 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
     />
 
-    <!-- Dynamic Google Analytics Loader (only if consented) -->
-    <script data-cookieconsent="ignore">
-      window.addEventListener("CookiebotOnAccept", function () {
-        if (window.Cookiebot?.consent?.statistics) {
-          const gaScript = document.createElement("script");
+    <!-- Load Google Analytics only when user consents (our cookie banner) -->
+    <script>
+      (function () {
+        function loadGA() {
+          if (window.__MONEVO_GA_LOADED__) return;
+          window.__MONEVO_GA_LOADED__ = true;
+          var gaScript = document.createElement("script");
           gaScript.async = true;
-          gaScript.src =
-            "https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8";
+          gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8";
           document.head.appendChild(gaScript);
-
           window.dataLayer = window.dataLayer || [];
-          function gtag() {
-            dataLayer.push(arguments);
-          }
+          function gtag() { dataLayer.push(arguments); }
           gtag("js", new Date());
+          gtag("consent", "update", {
+            analytics_storage: "granted",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
           gtag("config", "G-0H3QCDXCE8", {
             anonymize_ip: true,
             allow_google_signals: false,
             debug_mode: false,
           });
         }
-      });
+        function maybeLoadGA() {
+          try {
+            var raw = localStorage.getItem("monevo_cookie_consent");
+            if (raw) {
+              var c = JSON.parse(raw);
+              if (c && c.analytics) {
+                loadGA();
+                return true;
+              }
+            }
+          } catch (e) {}
+          return false;
+        }
+        if (maybeLoadGA()) return;
+        window.addEventListener("MonevoCookieConsent", function (ev) {
+          var detail = ev.detail;
+          if (detail && detail.analytics) loadGA();
+        });
+      })();
     </script>
   </head>
   <body>

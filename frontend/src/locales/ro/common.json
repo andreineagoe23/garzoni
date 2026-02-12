@@ -1304,7 +1304,22 @@
     "infoDisclaimer": "Informațiile sunt educaționale și generale, nu sfaturi financiare personalizate.",
     "buyMeACoffee": "Cumpără-mi o cafea",
     "monevoOn": "Monevo pe {{platform}}",
-    "ariaLabel": "Subsolul site-ului"
+    "ariaLabel": "Subsolul site-ului",
+    "cookieSettings": "Setări cookie-uri"
+  },
+  "cookieConsent": {
+    "bannerAria": "Consimțământ cookie-uri",
+    "message": "Folosim cookie-uri pe acest site. Avem nevoie de consimțământul tău pentru a stoca cookie-uri non-esențiale (ex. analiză) pe dispozitivul tău. Cookie-urile necesare (sesiune, login, securitate) sunt folosite fără consimțământ, conform cerințelor serviciului. Poți accepta toate, respinge non-esențiale sau alege în setări.",
+    "acceptAll": "Accept toate",
+    "rejectNonEssential": "Resping non-esențiale",
+    "cookieSettings": "Setări cookie-uri",
+    "settingsTitle": "Preferințe cookie-uri",
+    "settingsIntro": "Te informăm despre cookie-urile pe care le folosim. Cookie-urile necesare (sesiune, login, securitate) sunt mereu active și nu necesită consimțământ conform legislației din UK și UE. Alege mai jos dacă permiți cookie-uri opționale.",
+    "necessaryNote": "Cookie-urile necesare sunt mereu active (fără consimțământ).",
+    "analyticsLabel": "Analiză — ne ajută să înțelegem cum e folosit site-ul (ex. Google Analytics).",
+    "marketingLabel": "Marketing — reclame sau remarketing opțional (momentan nu le folosim).",
+    "save": "Salvează",
+    "cancel": "Anulează"
   },
   "header": {
     "premiumReady": "Premium gata",
@@ -1693,7 +1708,7 @@
           "body1": "Folosim terți pentru a opera serviciul. În funcție de utilizare, acestea pot include:",
           "items": {
             "stripe": "Stripe (facturare și procesare a abonamentelor).",
-            "cookiebot": "Cookiebot (gestionarea consimțământului pentru cookie-uri).",
+            "cookieConsent": "Consimțământ pentru cookie-uri (gestionat pe site-ul nostru; nu folosim instrumente terțe de consimțământ).",
             "google": "Google Analytics / taguri Google Ads (cu consimțământ).",
             "amplitude": "Amplitude (analiză de produs).",
             "sentry": "Sentry (monitorizare erori).",
@@ -1779,8 +1794,15 @@
           "title": "1. Ce sunt cookie-urile",
           "body": "Cookie-urile sunt fișiere text mici plasate pe dispozitivul tău când vizitezi un site. Ele ajută la autentificare, securitate, analiză și performanță."
         },
+        "sessionPersistent": {
+          "title": "2. Cookie-uri de sesiune și cookie-uri persistente",
+          "sessionTitle": "Cookie-uri de sesiune",
+          "sessionBody": "Cookie-urile pentru sesiuni permit site-urilor să recunoască și să lege acțiunile unui utilizator în timpul unei sesiuni de navigare. Pot fi folosite pentru scopuri precum reținerea conținutului coșului de cumpărături. Cookie-urile de sesiune stochează de regulă un identificator astfel încât să poți trece de la o pagină la alta fără să reintroduci datele de autentificare. Sunt valabile doar pentru sesiunea respectivă și se șterg la închiderea browserului sau a aplicației.",
+          "persistentTitle": "Cookie-uri persistente",
+          "persistentBody": "Cookie-urile persistente sunt stocate între sesiunile de navigare și pot reține preferințele sau acțiunile utilizatorului pe un site (sau pe site-uri diferite)—de exemplu limba, tema, preferințe de meniu sau pagini favorite. Le folosim doar unde ai dat consimțământul sau unde sunt strict necesare pentru serviciul solicitat."
+        },
         "categories": {
-          "title": "2. Categorii de cookie-uri pe care le folosim",
+          "title": "3. Categorii de cookie-uri pe care le folosim",
           "items": {
             "necessary": {
               "label": "Cookie-uri strict necesare:",
@@ -1800,20 +1822,28 @@
             }
           }
         },
+        "consentRequirement": {
+          "title": "4. Consimțământul pentru cookie-uri",
+          "body": "Orice site care setează cookie-uri trebuie să te informeze cu privire la scopul acestora și, unde este cazul, să obțină consimțământul tău. Consimțământul trebuie să fie informat, expres și neechivoc. Există excepții pentru cookie-urile strict necesare pentru furnizarea unui serviciu online la cererea ta (ex. sesiune, login, securitate). Nu setăm cookie-uri non-esențiale până nu ne-ai acordat consimțământul."
+        },
         "consent": {
-          "title": "3. Gestionarea consimțământului",
-          "body": "Poți schimba preferințele de cookie-uri oricând prin controalele bannerului sau setările browserului. Dezactivarea unor cookie-uri poate afecta anumite funcții."
+          "title": "5. Gestionarea consimțământului",
+          "body": "Poți schimba preferințele de cookie-uri oricând prin banner sau setările browserului. Dezactivarea unor cookie-uri poate afecta anumite funcții.",
+          "manageHint": "pentru a-ți actualiza opțiunile."
         },
         "thirdParty": {
-          "title": "4. Tehnologii terțe",
-          "body": "Putem folosi instrumente terțe precum Cookiebot, instrumente de analiză și taguri de publicitate. Aceste servicii pot seta propriile cookie-uri în funcție de opțiunile tale de consimțământ."
+          "title": "6. Tehnologii terțe",
+          "body": "Putem folosi instrumente terțe precum Google Analytics, cu consimțământul tău. Aceste servicii pot seta propriile cookie-uri în funcție de opțiunile din setările noastre de cookie-uri."
         },
         "declaration": {
-          "title": "5. Declarația de cookie-uri",
-          "body": "Declarația de cookie-uri de mai jos listează cookie-urile detectate pe această proprietate și duratele/furnizorii."
+          "title": "7. Declarația de cookie-uri",
+          "body": "Rezumat al categoriilor pe care le folosim:",
+          "necessary": "Necesare: sesiune, autentificare, securitate (mereu active).",
+          "analytics": "Analiză: ex. Google Analytics (opțional, cu consimțământul tău).",
+          "marketing": "Marketing: momentan nefolosit; opțional dacă îl adăugăm ulterior."
         },
         "contact": {
-          "title": "6. Contact",
+          "title": "8. Contact",
           "body": "Pentru întrebări despre cookie-uri:",
           "related": "Pagini conexe: <privacy>Politica de confidențialitate</privacy> și <terms>Termenii de serviciu</terms>"
         }

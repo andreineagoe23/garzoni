@@ -26,10 +26,12 @@ declare global {
 
   interface Window {
     gtag?: (...args: any[]) => void;
-    Cookiebot?: {
-      consent?: {
-        statistics?: boolean;
-      };
+    /** Set by our cookie consent (CookieConsentContext). Use for analytics gating. */
+    __MONEVO_CONSENT__?: {
+      necessary: true;
+      analytics: boolean;
+      marketing: boolean;
+      timestamp?: number;
     };
     RemoteCalc?: (...args: any[]) => void;
     UC_UI?: {

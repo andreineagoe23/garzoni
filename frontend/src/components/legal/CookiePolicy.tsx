@@ -1,45 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import { Trans, useTranslation } from "react-i18next";
-
-const COOKIEBOT_ID = "12b9cf17-1f30-4bd3-8327-7a29ec5d4ee1";
+import { OPEN_SETTINGS_EVENT } from "contexts/CookieConsentContext";
 
 const mutedClass =
   "text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]";
 const contentClass =
   "prose prose-slate max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--accent,#111827)] prose-a:text-[color:var(--primary,#2563eb)] hover:prose-a:text-[color:var(--accent,#2563eb)]";
 
+const openCookieSettings = () =>
+  window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+
 const CookiePolicy = () => {
   const { t } = useTranslation();
-  const declarationRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const container = declarationRef.current;
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const existingScript = document.getElementById("CookieDeclaration");
-    if (existingScript) {
-      existingScript.remove();
-    }
-
-    const script = document.createElement("script");
-    script.id = "CookieDeclaration";
-    script.src = `https://consent.cookiebot.com/${COOKIEBOT_ID}/cd.js`;
-    script.async = true;
-    script.dataset.cbid = COOKIEBOT_ID;
-
-    container.appendChild(script);
-
-    return () => {
-      container.innerHTML = "";
-      document
-        .querySelectorAll("[data-cookieconsent], .CookiebotAlert")
-        .forEach((element) => element.remove());
-    };
-  }, []);
 
   return (
     <section className="bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
@@ -59,6 +33,12 @@ const CookiePolicy = () => {
         <div className={contentClass}>
           <h2>{t("legal.cookiePolicy.sections.what.title")}</h2>
           <p>{t("legal.cookiePolicy.sections.what.body")}</p>
+
+          <h2>{t("legal.cookiePolicy.sections.sessionPersistent.title")}</h2>
+          <h3 className="text-lg font-medium mt-4">{t("legal.cookiePolicy.sections.sessionPersistent.sessionTitle")}</h3>
+          <p>{t("legal.cookiePolicy.sections.sessionPersistent.sessionBody")}</p>
+          <h3 className="text-lg font-medium mt-4">{t("legal.cookiePolicy.sections.sessionPersistent.persistentTitle")}</h3>
+          <p>{t("legal.cookiePolicy.sections.sessionPersistent.persistentBody")}</p>
 
           <h2>{t("legal.cookiePolicy.sections.categories.title")}</h2>
           <ul>
@@ -80,24 +60,32 @@ const CookiePolicy = () => {
             </li>
           </ul>
 
+          <h2>{t("legal.cookiePolicy.sections.consentRequirement.title")}</h2>
+          <p>{t("legal.cookiePolicy.sections.consentRequirement.body")}</p>
+
           <h2>{t("legal.cookiePolicy.sections.consent.title")}</h2>
           <p>{t("legal.cookiePolicy.sections.consent.body")}</p>
+          <p>
+            <button
+              type="button"
+              onClick={openCookieSettings}
+              className="font-medium text-[color:var(--primary,#2563eb)] underline hover:no-underline"
+            >
+              {t("cookieConsent.cookieSettings")}
+            </button>{" "}
+            {t("legal.cookiePolicy.sections.consent.manageHint")}
+          </p>
 
           <h2>{t("legal.cookiePolicy.sections.thirdParty.title")}</h2>
           <p>{t("legal.cookiePolicy.sections.thirdParty.body")}</p>
 
           <h2>{t("legal.cookiePolicy.sections.declaration.title")}</h2>
           <p>{t("legal.cookiePolicy.sections.declaration.body")}</p>
-        </div>
-
-        <div
-          ref={declarationRef}
-          id="cookie-declaration"
-          className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-sm text-[color:var(--text-color,#111827)] shadow-inner shadow-black/5"
-        >
-          <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
-            {t("legal.cookiePolicy.declaration.loading")}
-          </p>
+          <ul className="list-inside list-disc space-y-1 text-sm">
+            <li>{t("legal.cookiePolicy.sections.declaration.necessary")}</li>
+            <li>{t("legal.cookiePolicy.sections.declaration.analytics")}</li>
+            <li>{t("legal.cookiePolicy.sections.declaration.marketing")}</li>
+          </ul>
         </div>
 
         <div className={contentClass}>
