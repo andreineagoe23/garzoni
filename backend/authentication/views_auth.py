@@ -2,6 +2,7 @@ import logging
 import os
 
 from rest_framework import generics, status
+from rest_framework.serializers import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -85,7 +86,7 @@ def clear_refresh_cookie(response):
 
 
 def verify_recaptcha(token):
-    """Verify the reCAPTCHA token with Google's API"""
+    """Verify the reCAPTCHA token with Google's API. Logs reason on failure for debugging."""
     try:
         url = "https://www.google.com/recaptcha/api/siteverify"
         data = {"secret": settings.RECAPTCHA_PRIVATE_KEY, "response": token}
@@ -97,16 +98,30 @@ def verify_recaptcha(token):
             max_attempts=1,
         )
         response = result.response
-        result = response.json()
-        return (
-            result.get("success", False)
-            and result.get("score", 0) >= settings.RECAPTCHA_REQUIRED_SCORE
-        )
+        body = response.json()
+        success = body.get("success", False)
+        score = body.get("score")
+        required = getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.5)
+
+        if not success:
+            logger.warning(
+                "reCAPTCHA verify failed: success=False error-codes=%s",
+                body.get("error-codes", []),
+            )
+            return False
+        if score is not None and score < required:
+            logger.warning(
+                "reCAPTCHA score too low: score=%.2f required=%.2f",
+                score,
+                required,
+            )
+            return False
+        return True
     except requests.Timeout:
         logger.warning("reCAPTCHA verification timed out")
         return False
     except Exception as exc:
-        logger.error("reCAPTCHA verification error: %s", exc)
+        logger.error("reCAPTCHA verification error: %s", exc, exc_info=True)
         return False
 
 
@@ -219,10 +234,17 @@ class RegisterSecureView(generics.CreateAPIView):
     throttle_classes = [RegisterRateThrottle]
 
     def create(self, request, *args, **kwargs):
+        email = (request.data.get("email") or "").strip()
+        username = (request.data.get("username") or "").strip()
+        logger.info(
+            "Register attempt email=%s username=%s", email or "(empty)", username or "(empty)"
+        )
+
         # reCAPTCHA v3: when configured, require valid token (popup verification on frontend)
         if getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip():
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
+                logger.warning("Register rejected: recaptcha_token missing")
                 return Response(
                     {
                         "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
@@ -231,17 +253,44 @@ class RegisterSecureView(generics.CreateAPIView):
                     status=400,
                 )
             if not verify_recaptcha(token):
+                logger.warning("Register rejected: recaptcha verification failed")
                 return Response(
                     {"detail": "Security verification failed. Please try again."},
                     status=400,
                 )
 
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError:
+            errs = serializer.errors
+            logger.warning("Register validation failed: %s", errs)
+            for _field, msgs in errs.items():
+                if msgs and isinstance(msgs, (list, tuple)):
+                    msg = msgs[0] if isinstance(msgs[0], str) else str(msgs[0])
+                    return Response(
+                        {"detail": msg, "errors": errs},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            return Response(
+                {"detail": "Invalid registration data.", "errors": errs},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = serializer.save()
+        except Exception as exc:
+            logger.exception("Register save failed: %s", exc)
+            return Response(
+                {
+                    "detail": "Account could not be created. Please try again or use Sign in with Google."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+        logger.info("Register success user_id=%s username=%s", user.id, user.username)
 
         response = Response(
             {
