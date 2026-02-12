@@ -1,7 +1,7 @@
 """
 Google OAuth 2.0 flow for login and register.
 - GET /api/auth/google/ redirects to Google consent.
-- GET /api/auth/google/callback/ exchanges code, creates or gets user, issues JWT, redirects to frontend.
+- GET /api/auth/google/callback exchanges code, creates or gets user, issues JWT, redirects to frontend.
 """
 
 import logging
@@ -80,7 +80,7 @@ class GoogleOAuthInitView(APIView):
             frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback/")
+        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
         state = request.GET.get("state", "")
         params = {
             "client_id": client_id,
@@ -120,7 +120,7 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google OAuth not configured")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback/")
+        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
 
         # Exchange code for tokens
         token_data = {
