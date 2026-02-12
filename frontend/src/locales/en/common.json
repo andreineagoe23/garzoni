@@ -1096,6 +1096,8 @@
     }
   },
   "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "orContinueWith": "or continue with",
     "entitlementsUnavailable": "We could not confirm your entitlements right now.",
     "login": {
       "title": "Welcome Back",
