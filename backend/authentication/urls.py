@@ -2,6 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
+from .views_google_oauth import GoogleOAuthInitView, GoogleOAuthCallbackView
 from .views import (
     LoginSecureView,
     RegisterSecureView,
@@ -36,6 +37,8 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("login-secure/", LoginSecureView.as_view(), name="login-secure"),
     path("register-secure/", RegisterSecureView.as_view(), name="register-secure"),
+    path("auth/google/", GoogleOAuthInitView.as_view(), name="google-oauth-init"),
+    path("auth/google/callback/", GoogleOAuthCallbackView.as_view(), name="google-oauth-callback"),
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh"),
     path("verify-auth/", VerifyAuthView.as_view(), name="verify-auth"),
     path("logout/", LogoutView.as_view(), name="logout"),

@@ -44,6 +44,7 @@ type AuthContextValue = {
     next?: string;
   }>;
   logoutUser: () => Promise<void>;
+  completeOAuthLogin: (accessToken: string) => Promise<{ success: boolean; error?: string }>;
   getAccessToken: () => string | null;
   isInitialized: boolean;
   loadProfile: (options?: { force?: boolean }) => Promise<UserProfile | null>;
@@ -450,6 +451,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const completeOAuthLogin = useCallback(
+    async (accessToken: string): Promise<{ success: boolean; error?: string }> => {
+      if (!accessToken?.trim()) {
+        return { success: false, error: "Missing access token" };
+      }
+      inMemoryToken = accessToken.trim();
+      persistAccessToken(inMemoryToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${inMemoryToken}`;
+      attachToken(inMemoryToken);
+      try {
+        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${inMemoryToken}` } });
+        if (userResponse.data?.isAuthenticated && userResponse.data?.user) {
+          setUser(userResponse.data.user);
+          setIsAuthenticated(true);
+          refreshAttempts = 0;
+          return { success: true };
+        }
+        return { success: false, error: "Invalid auth response" };
+      } catch (err) {
+        const msg = (err as ApiErrorResponse)?.response?.data?.detail ?? (err as Error)?.message ?? "Verify failed";
+        authError("OAuth complete verify failed:", msg);
+        return { success: false, error: String(msg) };
+      }
+    },
+    [persistAccessToken]
+  );
+
   const cacheRequest = useCallback(
     (
       key: string,
@@ -776,6 +806,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loginUser,
         registerUser,
         logoutUser,
+        completeOAuthLogin,
         getAccessToken,
         isInitialized,
         loadProfile,

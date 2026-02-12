@@ -23,6 +23,7 @@ import ErrorBoundary from "components/common/ErrorBoundary";
 import { useOnlineSync } from "hooks/useOnlineSync";
 import Login from "components/auth/Login";
 import Register from "components/auth/Register";
+import AuthCallback from "components/auth/AuthCallback";
 import ForgotPassword from "components/auth/ForgotPassword";
 import ResetPassword from "components/auth/ResetPassword";
 import SubscriptionPlans from "./SubscriptionPlansPage";
@@ -355,6 +356,7 @@ const AppContent = () => {
                 <Route path="/subscriptions" element={<SubscriptionPlans />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route
                   path="/all-topics"
                   element={
