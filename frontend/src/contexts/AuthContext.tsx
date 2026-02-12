@@ -15,14 +15,16 @@ import type { Entitlements, FinancialProfile, UserProfile } from "types/api";
 
 type ApiErrorResponse = {
   response?: {
+    status?: number;
     data?: {
       detail?: string;
       error?: string;
+      code?: string;
+      errors?: Record<string, unknown>;
     };
-    detail?: string;
-    error?: string;
   };
   message?: string;
+  config?: { url?: string; baseURL?: string };
 };
 
 // Always send cookies (refresh token) on cross-site requests
@@ -36,10 +38,11 @@ type AuthContextValue = {
   settings: Record<string, unknown> | null;
   loginUser: (
     credentials: Record<string, unknown>
-  ) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
+  ) => Promise<{ success: boolean; error?: string; code?: string; user?: UserProfile }>;
   registerUser: (userData: Record<string, unknown>) => Promise<{
     success: boolean;
     error?: string;
+    code?: string;
     user?: UserProfile;
     next?: string;
   }>;
@@ -378,14 +381,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { success: true, user: response.data.user as UserProfile };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
-      authError("Login failed:", errorObj.response?.data || errorObj.message);
-      return {
-        success: false,
-        error:
-          errorObj.response?.data?.detail ||
-          errorObj.response?.data?.error ||
+      const status = errorObj.response?.status;
+      const data = errorObj.response?.data;
+      const code = data?.code;
+      const url = errorObj.config?.url ?? errorObj.config?.baseURL ?? BACKEND_URL;
+      authError(
+        "[auth] Login failed:",
+        { status, code, detail: data?.detail, errors: data?.errors, url }
+      );
+      let message: string;
+      if (!errorObj.response) {
+        message =
+          t("auth.login.networkError") ||
+          "Could not reach server. Check that the backend is running and CORS is configured.";
+      } else {
+        message =
+          (typeof data?.detail === "string" ? data.detail : null) ||
+          (typeof data?.error === "string" ? data.error : null) ||
           errorObj.message ||
-          t("auth.login.loginFailed") };
+          t("auth.login.loginFailed");
+      }
+      return { success: false, error: message, code };
     }
   };
 
@@ -418,22 +434,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         next: response.data.next };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
-      authError(
-        "Registration failed:",
-        errorObj.response?.data || errorObj.message
-      );
+      const status = errorObj.response?.status;
       const data = errorObj.response?.data;
-      let detail: string | undefined;
-      if (typeof data?.detail === "string") detail = data.detail;
-      else if (typeof data?.error === "string") detail = data.error;
-      else if (data && typeof data === "object" && !Array.isArray(data)) {
-        const first = Object.values(data)[0];
-        detail = Array.isArray(first) ? (first[0] as string) : typeof first === "string" ? first : undefined;
+      const code = data?.code;
+      const url = errorObj.config?.url ?? errorObj.config?.baseURL ?? BACKEND_URL;
+      authError(
+        "[auth] Registration failed:",
+        { status, code, detail: data?.detail, errors: data?.errors, url }
+      );
+      let message: string;
+      if (!errorObj.response) {
+        message =
+          t("auth.register.networkError") ||
+          "Could not reach server. Check that the backend is running and CORS is configured.";
+      } else {
+        if (typeof data?.detail === "string") message = data.detail;
+        else if (typeof data?.error === "string") message = data.error;
+        else if (data && typeof data === "object" && !Array.isArray(data)) {
+          const first = Object.values(data)[0];
+          message = Array.isArray(first)
+            ? (first[0] as string)
+            : typeof first === "string"
+              ? first
+              : errorObj.message || t("auth.register.registerFailed");
+        } else {
+          message = errorObj.message || t("auth.register.registerFailed");
+        }
       }
-      return {
-        success: false,
-        error: detail || errorObj.message || t("auth.register.registerFailed"),
-      };
+      return { success: false, error: message, code };
     }
   };
 

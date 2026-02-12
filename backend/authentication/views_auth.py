@@ -130,9 +130,10 @@ def verify_recaptcha_enterprise(token, expected_action, request):
         resp = result.response
         if resp.status_code != 200:
             logger.warning(
-                "reCAPTCHA Enterprise API error: status=%s body=%s",
+                "reCAPTCHA Enterprise API error: status=%s url=%s body=%s",
                 resp.status_code,
-                resp.text[:500],
+                url,
+                resp.text[:800],
             )
             return False
         body = resp.json()
@@ -140,8 +141,9 @@ def verify_recaptcha_enterprise(token, expected_action, request):
         risk = body.get("riskAnalysis") or {}
         if not token_props.get("valid", False):
             logger.warning(
-                "reCAPTCHA Enterprise token invalid: %s",
+                "reCAPTCHA Enterprise token invalid: invalidReason=%s full_token_props=%s",
                 token_props.get("invalidReason", "unknown"),
+                token_props,
             )
             return False
         if token_props.get("action") != expected_action:
@@ -253,6 +255,7 @@ class LoginSecureView(APIView):
         if _recaptcha_required():
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
+                logger.warning("Login rejected: recaptcha_token missing")
                 return Response(
                     {
                         "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
@@ -262,13 +265,21 @@ class LoginSecureView(APIView):
                 )
             if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
                 if not verify_recaptcha_enterprise(token, "login", request):
+                    logger.warning("Login rejected: recaptcha Enterprise verification failed")
                     return Response(
-                        {"detail": "Security verification failed. Please try again."},
+                        {
+                            "detail": "Security verification failed. Please try again.",
+                            "code": "recaptcha_failed",
+                        },
                         status=400,
                     )
             elif not verify_recaptcha(token):
+                logger.warning("Login rejected: recaptcha verification failed")
                 return Response(
-                    {"detail": "Security verification failed. Please try again."},
+                    {
+                        "detail": "Security verification failed. Please try again.",
+                        "code": "recaptcha_failed",
+                    },
                     status=400,
                 )
 
@@ -276,7 +287,10 @@ class LoginSecureView(APIView):
 
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
-            return Response({"detail": "Username and password are required."}, status=400)
+            return Response(
+                {"detail": "Username and password are required.", "code": "missing_credentials"},
+                status=400,
+            )
 
         try:
             user = User.objects.get(username=username)
@@ -310,10 +324,16 @@ class LoginSecureView(APIView):
 
         except User.DoesNotExist:
             logger.warning("Login attempt for non-existent user: %s", username)
-            return Response({"detail": "Invalid username or password."}, status=401)
+            return Response(
+                {"detail": "Invalid username or password.", "code": "invalid_credentials"},
+                status=401,
+            )
         except Exception as exc:
-            logger.error("Login error: %s", exc)
-            return Response({"detail": "An error occurred during login."}, status=500)
+            logger.exception("Login error: %s", exc)
+            return Response(
+                {"detail": "An error occurred during login.", "code": "server_error"},
+                status=500,
+            )
 
 
 class RegisterSecureView(generics.CreateAPIView):
@@ -346,13 +366,19 @@ class RegisterSecureView(generics.CreateAPIView):
                 if not verify_recaptcha_enterprise(token, "register", request):
                     logger.warning("Register rejected: recaptcha Enterprise verification failed")
                     return Response(
-                        {"detail": "Security verification failed. Please try again."},
+                        {
+                            "detail": "Security verification failed. Please try again.",
+                            "code": "recaptcha_failed",
+                        },
                         status=400,
                     )
             elif not verify_recaptcha(token):
                 logger.warning("Register rejected: recaptcha verification failed")
                 return Response(
-                    {"detail": "Security verification failed. Please try again."},
+                    {
+                        "detail": "Security verification failed. Please try again.",
+                        "code": "recaptcha_failed",
+                    },
                     status=400,
                 )
 
@@ -366,11 +392,15 @@ class RegisterSecureView(generics.CreateAPIView):
                 if msgs and isinstance(msgs, (list, tuple)):
                     msg = msgs[0] if isinstance(msgs[0], str) else str(msgs[0])
                     return Response(
-                        {"detail": msg, "errors": errs},
+                        {"detail": msg, "errors": errs, "code": "validation_error"},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
             return Response(
-                {"detail": "Invalid registration data.", "errors": errs},
+                {
+                    "detail": "Invalid registration data.",
+                    "errors": errs,
+                    "code": "validation_error",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -380,7 +410,8 @@ class RegisterSecureView(generics.CreateAPIView):
             logger.exception("Register save failed: %s", exc)
             return Response(
                 {
-                    "detail": "Account could not be created. Please try again or use Sign in with Google."
+                    "detail": "Account could not be created. Please try again or use Sign in with Google.",
+                    "code": "server_error",
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

@@ -21,6 +21,7 @@ function Register() {
     last_name: "",
     referral_code: "" });
   const [errorMessage, setErrorMessage] = useState("");
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showVerifyingModal, setShowVerifyingModal] = useState(false);
@@ -38,6 +39,7 @@ function Register() {
     event.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
+    setErrorCode(undefined);
 
     const runRegister = async (payload: Record<string, unknown>) => {
       const result = await registerUser(payload);
@@ -45,6 +47,7 @@ function Register() {
         navigate("/onboarding", { replace: true });
       } else {
         setErrorMessage(result.error || t("auth.register.registerFailed"));
+        setErrorCode(result.code);
       }
       return result;
     };
@@ -70,8 +73,11 @@ function Register() {
             ? data.detail
             : typeof data?.error === "string"
               ? data.error
-              : registerError.message;
+              : registerError.response
+                ? registerError.message
+                : (t("auth.register.networkError") || undefined);
         setErrorMessage(detail || t("auth.register.registerFailed"));
+        setErrorCode(data?.code);
       } else {
         const msg =
           registerError instanceof Error
@@ -124,9 +130,14 @@ function Register() {
                 className="mt-6 space-y-2 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
               >
                 <p>{errorMessage}</p>
+                {errorCode && (
+                  <p className="text-xs opacity-80">Error code: {errorCode}</p>
+                )}
                 {(errorMessage.includes("Security verification") ||
                   errorMessage.includes("recaptcha") ||
-                  errorMessage.includes("Verification")) && (
+                  errorMessage.includes("Verification") ||
+                  errorCode === "recaptcha_missing" ||
+                  errorCode === "recaptcha_failed") && (
                   <p className="text-xs opacity-90">
                     {t("auth.register.tryGoogleHint")}
                   </p>
