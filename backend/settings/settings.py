@@ -324,6 +324,8 @@ STRIPE_PRICE_PRO_MONTHLY = os.getenv("STRIPE_PRICE_PRO_MONTHLY", "")
 STRIPE_DEFAULT_PRICE_ID = os.getenv(
     "STRIPE_DEFAULT_PRICE_ID", ""
 )  # fallback if plan-specific not set
+# Optional: pre-apply a promotion code at checkout (e.g. for testing in prod)
+STRIPE_DEFAULT_PROMOTION_CODE = os.getenv("STRIPE_DEFAULT_PROMOTION_CODE", "")
 
 RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "")
 RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")

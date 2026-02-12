@@ -1099,18 +1099,24 @@ class SubscriptionCreateView(APIView):
                 status=503,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
+        promotion_code = request.data.get("promotion_code") or getattr(
+            settings, "STRIPE_DEFAULT_PROMOTION_CODE", None
+        )
+        create_params = {
+            "payment_method_types": ["card"],
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "mode": "subscription",
+            "allow_promotion_codes": True,
+            "success_url": (f"{frontend_url}/payment-success?" "session_id={CHECKOUT_SESSION_ID}"),
+            "cancel_url": f"{frontend_url}/subscriptions",
+            "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
+            "client_reference_id": str(request.user.id),
+        }
+        if promotion_code:
+            create_params["discounts"] = [{"promotion_code": promotion_code.strip()}]
         try:
             stripe.api_key = stripe_key
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                line_items=[{"price": price_id, "quantity": 1}],
-                mode="subscription",
-                allow_promotion_codes=True,
-                success_url=(f"{frontend_url}/payment-success?" "session_id={CHECKOUT_SESSION_ID}"),
-                cancel_url=f"{frontend_url}/subscriptions",
-                metadata={"user_id": str(request.user.id), "plan_id": plan_id},
-                client_reference_id=str(request.user.id),
-            )
+            checkout_session = stripe.checkout.Session.create(**create_params)
             record_funnel_event(
                 "checkout_created",
                 user=request.user,
