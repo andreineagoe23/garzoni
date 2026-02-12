@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
+import { OPEN_SETTINGS_EVENT } from "contexts/CookieConsentContext";
 import {
   FaFacebookF,
   FaInstagram,
@@ -28,12 +29,16 @@ function Footer() {
   const location = useLocation();
   const year = new Date().getFullYear();
 
+  const openCookieSettings = () =>
+    window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+
   const sections = [
     {
       heading: t("footer.legal"),
       links: [
         { label: t("footer.privacyPolicy"), to: "/privacy-policy" },
         { label: t("footer.cookiePolicy"), to: "/cookie-policy" },
+        { label: t("footer.cookieSettings"), openCookieSettings: true },
         { label: t("footer.termsConditions"), to: "/terms-of-service" },
         { label: t("footer.financialDisclaimer"), to: "/financial-disclaimer" },
         { label: t("footer.noFinancialAdviceNotice"), to: "/no-financial-advice" },
@@ -171,13 +176,23 @@ function Footer() {
                 </p>
                 <ul className="space-y-2 text-sm">
                   {section.links.map((link) => (
-                    <li key={link.to}>
-                      <Link
-                        to={link.to}
-                        className="text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
-                      >
-                        {link.label}
-                      </Link>
+                    <li key={"openCookieSettings" in link ? link.label : link.to}>
+                      {"openCookieSettings" in link && link.openCookieSettings ? (
+                        <button
+                          type="button"
+                          onClick={openCookieSettings}
+                          className="text-left text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <Link
+                          to={"to" in link ? link.to : "/"}
+                          className="text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
