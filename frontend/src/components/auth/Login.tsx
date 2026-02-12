@@ -27,6 +27,14 @@ function Login() {
   const { executeRecaptcha } = useRecaptcha();
 
   useEffect(() => {
+    // Error from AuthCallback (e.g. after Google OAuth redirect)
+    const stateError = (location.state as { oauthError?: string } | undefined)?.oauthError;
+    if (stateError) {
+      setError(stateError);
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
     const params = new URLSearchParams(location.search);
     const reason = params.get("reason");
     const oauthError = params.get("error");
