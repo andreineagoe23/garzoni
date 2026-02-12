@@ -1118,6 +1118,7 @@
       "signUpNow": "Sign up now",
       "sessionExpired": "Your session has expired. Please log in again.",
       "loginFailed": "Login failed. Please try again.",
+      "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
       "unexpectedError": "An unexpected error occurred. Please try again.",
       "showPassword": "Show password",
       "hidePassword": "Hide password"
@@ -1143,6 +1144,7 @@
       "hasAccount": "Already have an account?",
       "loginHere": "Login here",
       "registerFailed": "Registration failed. Please try again.",
+      "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
       "verificationFailedHint": "Security verification could not be completed. Refresh the page and try again, or use Sign in with Google.",
       "tryGoogleHint": "You can also sign in with Google below."
     },
