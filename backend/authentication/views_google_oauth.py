@@ -5,6 +5,7 @@ Google OAuth 2.0 flow for login and register.
 """
 
 import logging
+import os
 import urllib.parse
 
 import requests
@@ -16,10 +17,44 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from authentication.user_display import user_display_dict
-from authentication.views_auth import set_refresh_cookie
+from core.utils import env_bool
 
 logger = logging.getLogger(__name__)
+
+REFRESH_COOKIE_NAME = "refresh_token"
+
+
+def _get_refresh_cookie_kwargs():
+    """Build keyword arguments for setting the refresh token cookie (mirrors views_auth)."""
+    secure = env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
+    default_samesite = "None" if secure else "Lax"
+    samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
+    max_age_setting = os.getenv("REFRESH_TOKEN_MAX_AGE")
+    max_age = 0
+    if max_age_setting is not None:
+        cleaned = max_age_setting.strip().lower()
+        if cleaned not in {"session", "none", ""}:
+            try:
+                max_age = int(max_age_setting)
+            except ValueError:
+                pass
+    cookie_kwargs = {
+        "httponly": True,
+        "secure": secure,
+        "samesite": samesite,
+        "path": "/",
+    }
+    if max_age > 0:
+        cookie_kwargs["max_age"] = max_age
+    if os.getenv("REFRESH_COOKIE_DOMAIN"):
+        cookie_kwargs["domain"] = os.getenv("REFRESH_COOKIE_DOMAIN")
+    return cookie_kwargs
+
+
+def _set_refresh_cookie(response, token: str):
+    """Attach the refresh token cookie to the response."""
+    response.set_cookie(REFRESH_COOKIE_NAME, token, **_get_refresh_cookie_kwargs())
+
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -182,5 +217,5 @@ class GoogleOAuthCallbackView(APIView):
         redirect_to = f"{frontend_url}/auth/callback#{fragment}"
 
         response = redirect(redirect_to)
-        set_refresh_cookie(response, str(refresh))
+        _set_refresh_cookie(response, str(refresh))
         return response
