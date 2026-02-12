@@ -85,8 +85,92 @@ def clear_refresh_cookie(response):
     response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
 
 
+def _recaptcha_required():
+    """True if any reCAPTCHA backend is configured (Enterprise or legacy v3)."""
+    if (
+        getattr(settings, "RECAPTCHA_SITE_KEY", "").strip()
+        and getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
+        and getattr(settings, "RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
+    ):
+        return True
+    return bool(getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip())
+
+
+def verify_recaptcha_enterprise(token, expected_action, request):
+    """Verify reCAPTCHA Enterprise token via createAssessment API. Returns True if valid and score OK."""
+    project_id = getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
+    api_key = getattr(settings, "RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
+    site_key = getattr(settings, "RECAPTCHA_SITE_KEY", "").strip()
+    if not project_id or not api_key or not site_key:
+        return False
+    try:
+        url = f"https://recaptchaenterprise.googleapis.com/v1/projects/{project_id}/assessments"
+        user_agent = request.META.get("HTTP_USER_AGENT", "") or ""
+        xff = request.META.get("HTTP_X_FORWARDED_FOR")
+        user_ip = (xff.split(",")[0].strip() if xff else None) or request.META.get(
+            "REMOTE_ADDR", ""
+        )
+        payload = {
+            "event": {
+                "token": token,
+                "siteKey": site_key,
+                "expectedAction": expected_action,
+                "userAgent": user_agent,
+                "userIpAddress": user_ip,
+            }
+        }
+        result = request_with_backoff(
+            method="POST",
+            url=url,
+            params={"key": api_key},
+            json=payload,
+            allow_retry=False,
+            max_attempts=1,
+        )
+        resp = result.response
+        if resp.status_code != 200:
+            logger.warning(
+                "reCAPTCHA Enterprise API error: status=%s body=%s",
+                resp.status_code,
+                resp.text[:500],
+            )
+            return False
+        body = resp.json()
+        token_props = body.get("tokenProperties") or {}
+        risk = body.get("riskAnalysis") or {}
+        if not token_props.get("valid", False):
+            logger.warning(
+                "reCAPTCHA Enterprise token invalid: %s",
+                token_props.get("invalidReason", "unknown"),
+            )
+            return False
+        if token_props.get("action") != expected_action:
+            logger.warning(
+                "reCAPTCHA Enterprise action mismatch: got %s expected %s",
+                token_props.get("action"),
+                expected_action,
+            )
+            return False
+        score = risk.get("score")
+        required = getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.3)
+        if score is not None and score < required:
+            logger.warning(
+                "reCAPTCHA Enterprise score too low: score=%.2f required=%.2f",
+                score,
+                required,
+            )
+            return False
+        return True
+    except requests.Timeout:
+        logger.warning("reCAPTCHA Enterprise verification timed out")
+        return False
+    except Exception as exc:
+        logger.error("reCAPTCHA Enterprise verification error: %s", exc, exc_info=True)
+        return False
+
+
 def verify_recaptcha(token):
-    """Verify the reCAPTCHA token with Google's API. Logs reason on failure for debugging."""
+    """Verify the reCAPTCHA v3 token with Google's siteverify API (legacy)."""
     try:
         url = "https://www.google.com/recaptcha/api/siteverify"
         data = {"secret": settings.RECAPTCHA_PRIVATE_KEY, "response": token}
@@ -165,8 +249,8 @@ class LoginSecureView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        # reCAPTCHA v3: when configured, require valid token (popup verification on frontend)
-        if getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip():
+        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token
+        if _recaptcha_required():
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 return Response(
@@ -176,7 +260,13 @@ class LoginSecureView(APIView):
                     },
                     status=400,
                 )
-            if not verify_recaptcha(token):
+            if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
+                if not verify_recaptcha_enterprise(token, "login", request):
+                    return Response(
+                        {"detail": "Security verification failed. Please try again."},
+                        status=400,
+                    )
+            elif not verify_recaptcha(token):
                 return Response(
                     {"detail": "Security verification failed. Please try again."},
                     status=400,
@@ -240,8 +330,8 @@ class RegisterSecureView(generics.CreateAPIView):
             "Register attempt email=%s username=%s", email or "(empty)", username or "(empty)"
         )
 
-        # reCAPTCHA v3: when configured, require valid token (popup verification on frontend)
-        if getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip():
+        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token
+        if _recaptcha_required():
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 logger.warning("Register rejected: recaptcha_token missing")
@@ -252,7 +342,14 @@ class RegisterSecureView(generics.CreateAPIView):
                     },
                     status=400,
                 )
-            if not verify_recaptcha(token):
+            if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
+                if not verify_recaptcha_enterprise(token, "register", request):
+                    logger.warning("Register rejected: recaptcha Enterprise verification failed")
+                    return Response(
+                        {"detail": "Security verification failed. Please try again."},
+                        status=400,
+                    )
+            elif not verify_recaptcha(token):
                 logger.warning("Register rejected: recaptcha verification failed")
                 return Response(
                     {"detail": "Security verification failed. Please try again."},

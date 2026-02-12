@@ -5,9 +5,9 @@
 - Your **frontend** runs with `npm start` and loads `frontend/.env`.
 - That file contains `REACT_APP_RECAPTCHA_SITE_KEY=...`.
 - So at runtime `process.env.REACT_APP_RECAPTCHA_SITE_KEY` is set.
-- In `App.tsx`, `RECAPTCHA_SITE_KEY` is non-empty, so the app is wrapped with `GoogleReCaptchaProvider`.
+- In `App.tsx`, `RECAPTCHA_SITE_KEY` is non-empty, so the app is wrapped with `RecaptchaEnterpriseProvider` (loads enterprise.js).
 - On Login/Register, `executeRecaptcha` is available → the "Verifying you're human..." modal runs → a token is sent to the backend.
-- The **backend** has `RECAPTCHA_PRIVATE_KEY` and verifies the token. Everything works.
+- The **backend** has `RECAPTCHA_SITE_KEY`, `RECAPTCHA_ENTERPRISE_PROJECT_ID`, and `RECAPTCHA_ENTERPRISE_API_KEY` and verifies via the createAssessment API. Everything works.
 
 ## Why it fails in production (two common causes)
 
@@ -16,14 +16,14 @@
 In production the frontend is **built** on Vercel (or similar). Create React App bakes `REACT_APP_*` into the JavaScript **at build time**. So:
 
 - If `REACT_APP_RECAPTCHA_SITE_KEY` was **not** set in Vercel when that build ran, it is **empty** in the production bundle.
-- Then `RECAPTCHA_SITE_KEY` is `""` → the app is **not** wrapped with `GoogleReCaptchaProvider` → `executeRecaptcha` is always `null` → no token is ever sent → backend returns "Security verification is required".
+- Then `RECAPTCHA_SITE_KEY` is `""` → the app is **not** wrapped with `RecaptchaEnterpriseProvider` → `executeRecaptcha` is always `null` → no token is ever sent → backend returns "Security verification is required".
 
 Adding the variable in Vercel **after** a build does not change an already-built deployment. You must **trigger a new build** so the new value is embedded.
 
 **Fix:**
 
 1. **Vercel** → your project → **Settings** → **Environment Variables**.
-2. Add **`REACT_APP_RECAPTCHA_SITE_KEY`** with the value of your reCAPTCHA v3 **site key** (the same as `RECAPTCHA_PUBLIC_KEY` on the backend).
+2. Add **`REACT_APP_RECAPTCHA_SITE_KEY`** with your reCAPTCHA **key ID** (same as backend `RECAPTCHA_SITE_KEY`).
    - No quotes, no spaces.
    - Apply to **Production** (and Preview if you want it there too).
 3. **Redeploy** so a new build runs with this variable:
@@ -40,6 +40,28 @@ We use our **own cookie banner** (see `docs/cookie-consent-legal.md`). reCAPTCHA
 - [ ] `REACT_APP_RECAPTCHA_SITE_KEY` is set in Vercel (same value as backend’s public/site key).
 - [ ] A **new build** was run **after** adding that variable (redeploy or new commit).
 - [ ] If you use a third-party CMP, reCAPTCHA scripts are allowed to load (e.g. necessary); our own banner does not block them.
-- [ ] Backend has `RECAPTCHA_PRIVATE_KEY` set (secret key from the **same** reCAPTCHA v3 key pair).
+- [ ] Backend has `RECAPTCHA_SITE_KEY`, `RECAPTCHA_ENTERPRISE_PROJECT_ID`, and `RECAPTCHA_ENTERPRISE_API_KEY` set (see `docs/recaptcha-enterprise-config.md`).
 
 After that, production should behave like dev: the verification popup appears and reCAPTCHA works.
+
+---
+
+## Registration / account creation not working: full checklist
+
+If registration still fails in production after fixing reCAPTCHA, check the following.
+
+### Frontend (e.g. Vercel)
+
+1. **`REACT_APP_RECAPTCHA_SITE_KEY`** – Set to your reCAPTCHA v3 **site** key. A **new build** must run after adding or changing it (redeploy).
+2. **`REACT_APP_BACKEND_URL`** – Must point to your real API (e.g. `https://your-api.railway.app/api` or `https://api.yourdomain.com/api`). If unset, the app uses the same host as the frontend (e.g. `https://monevo.tech/api`), which often 404s when the backend is on another host.
+
+### Backend
+
+3. **`RECAPTCHA_PRIVATE_KEY`** – Set to the **secret** key of the same reCAPTCHA v3 key pair.
+4. **CORS** – Backend must allow your frontend origin (e.g. `https://monevo.tech`) in `CORS_ALLOWED_ORIGINS` (or equivalent). Otherwise the browser blocks the register request.
+5. **Cookies (if frontend and backend are on different domains/subdomains)** – After a successful register, the backend sets a refresh cookie. If the frontend is `https://monevo.tech` and the backend is `https://api.monevo.tech`, set **`REFRESH_COOKIE_DOMAIN=.monevo.tech`** and use **`SameSite=Lax`** (or `None` with **`Secure=true`** if you need cross-site). Otherwise the cookie may not be stored and the user may appear logged out after register.
+
+### What you’ll see when it’s fixed
+
+- On Register submit, the “Verifying you’re human…” modal appears, then the request succeeds and you’re redirected to onboarding.
+- If reCAPTCHA still isn’t available (e.g. site key missing in build), the UI shows: “Security verification is required. Please refresh the page and try again, or sign in with Google.” and suggests using **Sign in with Google**.

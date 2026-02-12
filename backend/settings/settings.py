@@ -327,10 +327,16 @@ STRIPE_DEFAULT_PRICE_ID = os.getenv(
 # Optional: pre-apply a promotion code at checkout (e.g. for testing in prod)
 STRIPE_DEFAULT_PROMOTION_CODE = os.getenv("STRIPE_DEFAULT_PROMOTION_CODE", "")
 
+# reCAPTCHA Enterprise (single key from monevo.educational@gmail.com console)
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
+RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
+RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
+# Score threshold (0.0–1.0). Lower = more permissive. 0.3 is often used in production.
+RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.3"))
+
+# Legacy v3 (only used if Enterprise not configured)
 RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "")
 RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
-# reCAPTCHA v3 score threshold (0.0–1.0). Lower = more permissive. 0.3 is often used in production.
-RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.3"))
 
 # Google OAuth (login/register with Google)
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
