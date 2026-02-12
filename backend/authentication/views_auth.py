@@ -155,7 +155,10 @@ class LoginSecureView(APIView):
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 return Response(
-                    {"detail": "Security verification is required. Please try again."},
+                    {
+                        "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
+                        "code": "recaptcha_missing",
+                    },
                     status=400,
                 )
             if not verify_recaptcha(token):
@@ -221,7 +224,10 @@ class RegisterSecureView(generics.CreateAPIView):
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 return Response(
-                    {"detail": "Security verification is required. Please try again."},
+                    {
+                        "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
+                        "code": "recaptcha_missing",
+                    },
                     status=400,
                 )
             if not verify_recaptcha(token):
