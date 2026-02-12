@@ -1142,7 +1142,9 @@
       "submitting": "Se creează contul...",
       "hasAccount": "Ai deja cont?",
       "loginHere": "Conectează-te aici",
-      "registerFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou."
+      "registerFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou.",
+      "verificationFailedHint": "Verificarea de securitate nu a putut fi finalizată. Reîncarcă pagina și încearcă din nou, sau folosește Conectare cu Google.",
+      "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos."
     },
     "forgotPassword": {
       "title": "Ai uitat parola",
