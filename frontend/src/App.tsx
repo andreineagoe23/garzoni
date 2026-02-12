@@ -12,11 +12,10 @@ import {
   useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { ThemeProvider } from "contexts/ThemeContext";
 import { AuthProvider } from "contexts/AuthContext";
 import { AdminProvider } from "contexts/AdminContext";
-import { RecaptchaContextProvider } from "contexts/RecaptchaContext";
+import { RecaptchaEnterpriseProvider } from "contexts/RecaptchaContext";
 import { CookieConsentProvider } from "contexts/CookieConsentContext";
 import CookieConsentBanner from "components/legal/CookieConsentBanner";
 import { queryClient } from "lib/reactQuery";
@@ -125,14 +124,12 @@ function App() {
     <Router>
       <QueryClientProvider client={queryClient}>
         {RECAPTCHA_SITE_KEY ? (
-          <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
-            <RecaptchaContextProvider>
-              <CookieConsentProvider>
-                <AppContent />
-                <CookieConsentBanner />
-              </CookieConsentProvider>
-            </RecaptchaContextProvider>
-          </GoogleReCaptchaProvider>
+          <RecaptchaEnterpriseProvider siteKey={RECAPTCHA_SITE_KEY}>
+            <CookieConsentProvider>
+              <AppContent />
+              <CookieConsentBanner />
+            </CookieConsentProvider>
+          </RecaptchaEnterpriseProvider>
         ) : (
           <CookieConsentProvider>
             <AppContent />

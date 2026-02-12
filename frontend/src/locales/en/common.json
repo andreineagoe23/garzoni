@@ -1142,7 +1142,9 @@
       "submitting": "Creating account...",
       "hasAccount": "Already have an account?",
       "loginHere": "Login here",
-      "registerFailed": "Registration failed. Please try again."
+      "registerFailed": "Registration failed. Please try again.",
+      "verificationFailedHint": "Security verification could not be completed. Refresh the page and try again, or use Sign in with Google.",
+      "tryGoogleHint": "You can also sign in with Google below."
     },
     "forgotPassword": {
       "title": "Forgot Password",

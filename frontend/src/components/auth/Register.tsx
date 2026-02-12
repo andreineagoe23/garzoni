@@ -64,13 +64,24 @@ function Register() {
       }
     } catch (registerError) {
       if (axios.isAxiosError(registerError)) {
-        setErrorMessage(
-          registerError.response?.data?.error ||
-            registerError.message ||
-            t("auth.register.registerFailed")
-        );
+        const data = registerError.response?.data;
+        const detail =
+          typeof data?.detail === "string"
+            ? data.detail
+            : typeof data?.error === "string"
+              ? data.error
+              : registerError.message;
+        setErrorMessage(detail || t("auth.register.registerFailed"));
       } else {
-        setErrorMessage(t("auth.register.registerFailed"));
+        const msg =
+          registerError instanceof Error
+            ? registerError.message
+            : t("auth.register.registerFailed");
+        setErrorMessage(
+          /recaptcha|verification|security/i.test(msg)
+            ? t("auth.register.verificationFailedHint")
+            : msg
+        );
       }
     } finally {
       setIsLoading(false);
@@ -110,9 +121,16 @@ function Register() {
             {errorMessage && (
               <div
                 role="alert"
-                className="mt-6 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
+                className="mt-6 space-y-2 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
               >
-                {errorMessage}
+                <p>{errorMessage}</p>
+                {(errorMessage.includes("Security verification") ||
+                  errorMessage.includes("recaptcha") ||
+                  errorMessage.includes("Verification")) && (
+                  <p className="text-xs opacity-90">
+                    {t("auth.register.tryGoogleHint")}
+                  </p>
+                )}
               </div>
             )}
 
