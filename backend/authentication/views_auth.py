@@ -150,6 +150,20 @@ class LoginSecureView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
+        # reCAPTCHA v3: when configured, require valid token (popup verification on frontend)
+        if getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip():
+            token = (request.data.get("recaptcha_token") or "").strip()
+            if not token:
+                return Response(
+                    {"detail": "Security verification is required. Please try again."},
+                    status=400,
+                )
+            if not verify_recaptcha(token):
+                return Response(
+                    {"detail": "Security verification failed. Please try again."},
+                    status=400,
+                )
+
         logger.info("Login attempt for username: %s", username)
 
         if not username or not password:
@@ -202,6 +216,20 @@ class RegisterSecureView(generics.CreateAPIView):
     throttle_classes = [RegisterRateThrottle]
 
     def create(self, request, *args, **kwargs):
+        # reCAPTCHA v3: when configured, require valid token (popup verification on frontend)
+        if getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip():
+            token = (request.data.get("recaptcha_token") or "").strip()
+            if not token:
+                return Response(
+                    {"detail": "Security verification is required. Please try again."},
+                    status=400,
+                )
+            if not verify_recaptcha(token):
+                return Response(
+                    {"detail": "Security verification failed. Please try again."},
+                    status=400,
+                )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()

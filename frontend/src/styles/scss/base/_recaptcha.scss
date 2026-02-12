@@ -1,0 +1,4 @@
+// reCAPTCHA v3: hide the default badge; we show "Protected by reCAPTCHA" in the verifying modal (per Google terms).
+.grecaptcha-badge {
+  visibility: hidden !important;
+}

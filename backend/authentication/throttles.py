@@ -14,3 +14,21 @@ class LoginRateThrottle(AnonRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "LOGIN_THROTTLE_RATE", "10/min")
+
+
+class RefreshRateThrottle(AnonRateThrottle):
+    """Throttle token refresh requests per IP."""
+
+    scope = "refresh"
+
+    def get_rate(self):
+        return getattr(settings, "REFRESH_THROTTLE_RATE", "20/min")
+
+
+class RegisterRateThrottle(AnonRateThrottle):
+    """Throttle registration attempts per IP."""
+
+    scope = "register"
+
+    def get_rate(self):
+        return getattr(settings, "REGISTER_THROTTLE_RATE", "5/min")
