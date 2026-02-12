@@ -6,9 +6,11 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import loginBg from "assets/login-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
+import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
 import { BACKEND_URL } from "services/backendUrl";
-// import { useGoogleReCaptcha } from "react-google-recaptcha-v3"; // reCAPTCHA commented out
+import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
+
 function Login() {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
@@ -18,10 +20,11 @@ function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerifyingModal, setShowVerifyingModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
-  // const { executeRecaptcha } = useGoogleReCaptcha(); // reCAPTCHA commented out
+  const { executeRecaptcha } = useRecaptcha();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -93,11 +96,26 @@ function Login() {
     setIsLoading(true);
     setError("");
 
-    try {
-      // reCAPTCHA commented out: was getting token and adding to payload
-      const result = await loginUser(formData);
+    const runLogin = async (payload: Record<string, unknown>) => {
+      const result = await loginUser(payload);
       if (!result.success) {
         setError(result.error || t("auth.login.loginFailed"));
+      }
+      return result;
+    };
+
+    try {
+      if (executeRecaptcha) {
+        setShowVerifyingModal(true);
+        try {
+          const token = await executeRecaptcha("login");
+          const result = await runLogin({ ...formData, recaptcha_token: token });
+          if (result.success) return;
+        } finally {
+          setShowVerifyingModal(false);
+        }
+      } else {
+        await runLogin(formData);
       }
     } catch (loginError) {
       if (axios.isAxiosError(loginError)) {
@@ -116,6 +134,7 @@ function Login() {
 
   return (
     <>
+      <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
       <div
         className="relative flex min-h-screen flex-col overflow-hidden bg-cover bg-center bg-fixed"

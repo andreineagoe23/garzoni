@@ -1098,6 +1098,10 @@
   "auth": {
     "signInWithGoogle": "Conectare cu Google",
     "orContinueWith": "sau continuă cu",
+    "recaptcha": {
+      "verifying": "Verificăm că ești om...",
+      "protectedBy": "Protejat de reCAPTCHA"
+    },
     "entitlementsUnavailable": "Nu am putut confirma drepturile tale în acest moment.",
     "login": {
       "title": "Bine ai revenit",
