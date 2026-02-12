@@ -1118,6 +1118,7 @@
       "signUpNow": "Înscrie-te acum",
       "sessionExpired": "Sesiunea a expirat. Te rugăm să te conectezi din nou.",
       "loginFailed": "Conectarea a eșuat. Te rugăm să încerci din nou.",
+      "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
       "unexpectedError": "A apărut o eroare neașteptată. Te rugăm să încerci din nou.",
       "showPassword": "Arată parola",
       "hidePassword": "Ascunde parola"
@@ -1143,6 +1144,7 @@
       "hasAccount": "Ai deja cont?",
       "loginHere": "Conectează-te aici",
       "registerFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou.",
+      "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
       "verificationFailedHint": "Verificarea de securitate nu a putut fi finalizată. Reîncarcă pagina și încearcă din nou, sau folosește Conectare cu Google.",
       "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos."
     },

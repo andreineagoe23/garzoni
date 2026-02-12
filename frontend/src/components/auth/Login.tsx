@@ -18,6 +18,7 @@ function Login() {
     password: "",
     remember_me: false });
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showVerifyingModal, setShowVerifyingModal] = useState(false);
@@ -103,11 +104,13 @@ function Login() {
 
     setIsLoading(true);
     setError("");
+    setErrorCode(undefined);
 
     const runLogin = async (payload: Record<string, unknown>) => {
       const result = await loginUser(payload);
       if (!result.success) {
         setError(result.error || t("auth.login.loginFailed"));
+        setErrorCode(result.code);
       }
       return result;
     };
@@ -127,13 +130,16 @@ function Login() {
       }
     } catch (loginError) {
       if (axios.isAxiosError(loginError)) {
-        setError(
-          loginError.response?.data?.detail ||
-            loginError.response?.data?.error ||
-            t("auth.login.unexpectedError")
-        );
+        const data = loginError.response?.data;
+        const msg =
+          (typeof data?.detail === "string" ? data.detail : null) ||
+          (typeof data?.error === "string" ? data.error : null) ||
+          (loginError.response ? t("auth.login.unexpectedError") : t("auth.login.networkError"));
+        setError(msg);
+        setErrorCode(data?.code);
       } else {
         setError(t("auth.login.unexpectedError"));
+        setErrorCode(undefined);
       }
     } finally {
       setIsLoading(false);
@@ -164,9 +170,12 @@ function Login() {
             {error && (
               <div
                 role="alert"
-                className="mt-6 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
+                className="mt-6 space-y-1 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
               >
-                {error}
+                <p>{error}</p>
+                {errorCode && (
+                  <p className="text-xs opacity-80">Error code: {errorCode}</p>
+                )}
               </div>
             )}
 
