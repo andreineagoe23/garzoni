@@ -422,13 +422,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         "Registration failed:",
         errorObj.response?.data || errorObj.message
       );
+      const data = errorObj.response?.data;
+      let detail: string | undefined;
+      if (typeof data?.detail === "string") detail = data.detail;
+      else if (typeof data?.error === "string") detail = data.error;
+      else if (data && typeof data === "object" && !Array.isArray(data)) {
+        const first = Object.values(data)[0];
+        detail = Array.isArray(first) ? (first[0] as string) : typeof first === "string" ? first : undefined;
+      }
       return {
         success: false,
-        error:
-          errorObj.response?.data?.error ||
-          errorObj.response?.data?.detail ||
-          errorObj.message ||
-          t("auth.register.registerFailed") };
+        error: detail || errorObj.message || t("auth.register.registerFailed"),
+      };
     }
   };
 
