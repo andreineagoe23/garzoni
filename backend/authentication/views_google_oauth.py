@@ -2,6 +2,8 @@
 Google OAuth 2.0 flow for login and register.
 - GET /api/auth/google/ redirects to Google consent.
 - GET /api/auth/google/callback exchanges code, creates or gets user, issues JWT, redirects to frontend.
+- POST /api/auth/google/verify-credential/ accepts Google One Tap / Sign-in button ID token,
+  verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
 
 import logging
@@ -14,12 +16,17 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.utils import timezone
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from authentication.user_display import user_display_dict
 from core.utils import env_bool
 
 logger = logging.getLogger(__name__)
+
+GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
 REFRESH_COOKIE_NAME = "refresh_token"
 
@@ -170,39 +177,7 @@ class GoogleOAuthCallbackView(APIView):
         family_name = (userinfo.get("family_name") or "").strip()
         picture = (userinfo.get("picture") or "").strip()
 
-        # Get or create Django User (username must be unique; use email as base)
-        user = User.objects.filter(email__iexact=email).first()
-        is_new_user = False
-        if user:
-            # Login: update last_login
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login"])
-            # Optionally update profile picture
-            if picture and hasattr(user, "profile"):
-                if user.profile.profile_avatar != picture:
-                    user.profile.profile_avatar = picture
-                    user.profile.save(update_fields=["profile_avatar"])
-        else:
-            is_new_user = True
-            # Register: create user with unusable password
-            base_username = email.split("@")[0].replace(".", "_")[:25]
-            username = base_username
-            suffix = 0
-            while User.objects.filter(username=username).exists():
-                suffix += 1
-                username = f"{base_username}_{suffix}"[:30]
-            user = User(
-                username=username,
-                email=email,
-                first_name=given_name,
-                last_name=family_name,
-            )
-            user.set_unusable_password()
-            user.save()
-            # Profile is created by post_save signal; set avatar if we have one
-            if picture and hasattr(user, "profile"):
-                user.profile.profile_avatar = picture
-                user.profile.save(update_fields=["profile_avatar"])
+        user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
@@ -217,5 +192,125 @@ class GoogleOAuthCallbackView(APIView):
         redirect_to = f"{frontend_url}/auth/callback#{fragment}"
 
         response = redirect(redirect_to)
+        _set_refresh_cookie(response, str(refresh))
+        return response
+
+
+def _get_or_create_google_user(email: str, given_name: str, family_name: str, picture: str):
+    """
+    Get existing user by email or create one. Returns (user, is_new_user).
+    Used by both OAuth callback and One Tap / credential verification.
+    """
+    user = User.objects.filter(email__iexact=email).first()
+    is_new_user = False
+    if user:
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+        if picture and hasattr(user, "profile"):
+            if user.profile.profile_avatar != picture:
+                user.profile.profile_avatar = picture
+                user.profile.save(update_fields=["profile_avatar"])
+    else:
+        is_new_user = True
+        base_username = email.split("@")[0].replace(".", "_")[:25]
+        username = base_username
+        suffix = 0
+        while User.objects.filter(username=username).exists():
+            suffix += 1
+            username = f"{base_username}_{suffix}"[:30]
+        user = User(
+            username=username,
+            email=email,
+            first_name=given_name,
+            last_name=family_name,
+        )
+        user.set_unusable_password()
+        user.save()
+        if picture and hasattr(user, "profile"):
+            user.profile.profile_avatar = picture
+            user.profile.save(update_fields=["profile_avatar"])
+    return user, is_new_user
+
+
+class GoogleCredentialAuthView(APIView):
+    """
+    Verify Google One Tap / Sign-in button ID token and issue our JWT.
+    POST body: { "credential": "<id_token>", "state": "all-topics" (optional) }
+    Returns: { "access": "<jwt>", "user": {...}, "next": "all-topics" } and sets refresh cookie.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        credential = (request.data.get("credential") or "").strip()
+        state = (request.data.get("state") or "").strip() or "all-topics"
+
+        if not credential:
+            return Response(
+                {"detail": "Missing credential.", "code": "missing_credential"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        client_id, _ = _get_google_config()
+        if not client_id:
+            logger.warning("Google OAuth not configured")
+            return Response(
+                {"detail": "Google sign-in is not configured.", "code": "oauth_not_configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        # Verify ID token with Google tokeninfo
+        try:
+            token_resp = requests.get(
+                GOOGLE_TOKENINFO_URL,
+                params={"id_token": credential},
+                timeout=10,
+            )
+            token_resp.raise_for_status()
+            payload = token_resp.json()
+        except requests.RequestException as e:
+            logger.exception("Google tokeninfo failed: %s", e)
+            return Response(
+                {"detail": "Invalid or expired Google credential.", "code": "invalid_credential"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Audience must match our client ID
+        aud = payload.get("aud") or payload.get("azp")
+        if aud != client_id:
+            logger.warning("Google token audience mismatch: got %s", aud)
+            return Response(
+                {"detail": "Invalid credential audience.", "code": "invalid_credential"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        email = (payload.get("email") or "").strip()
+        if not email:
+            return Response(
+                {"detail": "Google account has no email we can use.", "code": "oauth_no_email"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        given_name = (payload.get("given_name") or "").strip()
+        family_name = (payload.get("family_name") or "").strip()
+        picture = (payload.get("picture") or "").strip()
+
+        user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
+
+        refresh = RefreshToken.for_user(user)
+        access_jwt = str(refresh.access_token)
+        next_path = "onboarding" if is_new_user else (state or "all-topics")
+        next_path = next_path.lstrip("/")
+
+        response = Response(
+            {
+                "access": access_jwt,
+                "user": user_display_dict(
+                    user, include_id=True, include_email=True, include_staff=True
+                ),
+                "next": next_path,
+            },
+            status=status.HTTP_200_OK,
+        )
         _set_refresh_cookie(response, str(refresh))
         return response

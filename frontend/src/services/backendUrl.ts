@@ -20,3 +20,7 @@ const getBackendUrl = () => {
 };
 
 export const BACKEND_URL = getBackendUrl();
+
+/** Google OAuth client ID for One Tap / Sign-in button (same as backend GOOGLE_OAUTH_CLIENT_ID). */
+export const GOOGLE_OAUTH_CLIENT_ID =
+  process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID || "";

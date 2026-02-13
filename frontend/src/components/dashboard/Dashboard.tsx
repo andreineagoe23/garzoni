@@ -271,19 +271,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     reloadEntitlements?.();
   }, [queryClient, reloadEntitlements]);
 
-  // Redirect to onboarding only when we have a definitive "not completed" from the questionnaire API.
-  // Do not redirect while questionnaire progress is still loading/refetching, so users aren't bounced
-  // away when landing on /all-topics (e.g. after login or subscription).
+  // Redirect to onboarding only when questionnaire is in_progress (started but not completed).
+  // Do not redirect when status is "abandoned" (user chose "Save and finish later") so they stay on dashboard.
+  // Do not redirect while questionnaire progress is still loading/refetching.
   useEffect(() => {
     if (!authInitialized) return;
     if (hasPlusAccess) return;
-    // Wait until we have a settled fetch (not loading, not refetching after invalidation)
     if (!isQuestionnaireProgressFetched || isQuestionnaireProgressLoading || isQuestionnaireProgressFetching)
       return;
-    // Only redirect when we have progress data and it says not completed (don't redirect on API error)
     if (!questionnaireProgress) return;
     const progress = questionnaireProgress as { status?: string };
     if (progress.status === "completed") return;
+    if (progress.status === "abandoned") return; // User chose "Save and finish later" – stay on dashboard
     navigate("/onboarding", { replace: true });
   }, [
     authInitialized,

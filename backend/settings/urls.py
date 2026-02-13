@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from authentication.views import CustomTokenRefreshView, FinancialProfileView
+from authentication.views_google_oauth import GoogleCredentialAuthView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -28,6 +29,17 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    # Google One Tap / Sign-in button: direct route so it always resolves (avoids include order / cached image)
+    path(
+        "api/auth/google/verify-credential/",
+        GoogleCredentialAuthView.as_view(),
+        name="google-verify-credential",
+    ),
+    path(
+        "api/auth/google/verify-credential",
+        GoogleCredentialAuthView.as_view(),
+        name="google-verify-credential-no-slash",
+    ),
     # Onboarding first so /api/questionnaire/* is matched before other app catch-alls
     path("api/", include("onboarding.urls")),
     path("api/", include("authentication.urls")),
