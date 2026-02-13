@@ -124,13 +124,19 @@ const OnboardingQuestionnaire: React.FC = () => {
       toast.error(error.response?.data?.error || t("onboarding.failedToComplete"));
     } });
 
-  // Abandon questionnaire mutation
+  // Abandon questionnaire mutation – update cache so Dashboard sees "abandoned" and doesn't redirect back
   const abandonMutation = useMutation({
     mutationFn: abandonQuestionnaire,
-    onSuccess: () => {
-      navigate("/all-topics");
+    onSuccess: (data) => {
+      queryClient.setQueryData(["questionnaire-progress"], data);
+      navigate("/all-topics", { replace: true });
       toast.success(t("onboarding.progressSaved"));
-    } });
+    },
+    onError: () => {
+      toast.error(t("onboarding.failedToSave"));
+      navigate("/all-topics", { replace: true });
+    },
+  });
 
   const handleSaveAndFinishLater = useCallback(async () => {
     if (currentQuestion && currentAnswer !== null) {

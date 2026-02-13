@@ -61,6 +61,12 @@ function visitRulesForLoaderNormalize(rules) {
 }
 
 module.exports = {
+  devServer: {
+    headers: {
+      // Allow Google Sign-In iframe/popup to communicate (avoids "COOP would block postMessage" console errors)
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    },
+  },
   webpack: {
     configure: (webpackConfig) => {
       // Disable persistent cache so dev server never serves stale chunks (e.g. deleted PaymentRequired.tsx)
