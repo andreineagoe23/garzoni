@@ -74,7 +74,7 @@
     />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Google Consent Mode (Always runs) -->
+    <!-- Google Consent Mode v2 (default before any config; EEA-ready). -->
     <script data-cookieconsent="ignore">
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -91,7 +91,7 @@
         wait_for_update: 500,
       });
       gtag("set", "ads_data_redaction", true);
-      gtag("set", "url_passthrough", false);
+      gtag("set", "url_passthrough", true);
     </script>
 
     <!-- Preconnect to Critical Origins -->
@@ -109,15 +109,25 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
     />
 
-    <!-- Load Google Analytics only when user consents (our cookie banner) -->
+    <!-- Load Google Analytics only when user consents; update/revoke consent on same page (Consent Mode v2). -->
     <script>
       (function () {
+        var MEASUREMENT_ID = "G-99E61ZXSV9";
+        function deniedUpdate() {
+          if (typeof window.gtag !== "function") return;
+          window.gtag("consent", "update", {
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
+        }
         function loadGA() {
           if (window.__MONEVO_GA_LOADED__) return;
           window.__MONEVO_GA_LOADED__ = true;
           var gaScript = document.createElement("script");
           gaScript.async = true;
-          gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-0H3QCDXCE8";
+          gaScript.src = "https://www.googletagmanager.com/gtag/js?id=" + MEASUREMENT_ID;
           document.head.appendChild(gaScript);
           window.dataLayer = window.dataLayer || [];
           function gtag() { dataLayer.push(arguments); }
@@ -128,7 +138,7 @@
             ad_user_data: "denied",
             ad_personalization: "denied",
           });
-          gtag("config", "G-0H3QCDXCE8", {
+          gtag("config", MEASUREMENT_ID, {
             anonymize_ip: true,
             allow_google_signals: false,
             debug_mode: false,
@@ -147,10 +157,14 @@
           } catch (e) {}
           return false;
         }
-        if (maybeLoadGA()) return;
+        maybeLoadGA();
         window.addEventListener("MonevoCookieConsent", function (ev) {
           var detail = ev.detail;
-          if (detail && detail.analytics) loadGA();
+          if (detail && detail.analytics) {
+            loadGA();
+          } else {
+            deniedUpdate();
+          }
         });
       })();
     </script>

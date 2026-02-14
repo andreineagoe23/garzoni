@@ -211,7 +211,7 @@ const AppContent = () => {
     ) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
-        send_to: "G-0H3QCDXCE8" });
+        send_to: "G-99E61ZXSV9" });
     }
   }, [location.pathname, location.search]);
 
