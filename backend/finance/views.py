@@ -1099,9 +1099,31 @@ class SubscriptionCreateView(APIView):
                 status=503,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
-        promotion_code = request.data.get("promotion_code") or getattr(
+        promotion_code_raw = request.data.get("promotion_code") or getattr(
             settings, "STRIPE_DEFAULT_PROMOTION_CODE", None
         )
+        promotion_code_id = None
+        if promotion_code_raw:
+            promotion_code_raw = promotion_code_raw.strip()
+            if promotion_code_raw.startswith("promo_"):
+                promotion_code_id = promotion_code_raw
+            else:
+                try:
+                    stripe.api_key = stripe_key
+                    promos = stripe.PromotionCode.list(
+                        code=promotion_code_raw,
+                        active=True,
+                        limit=1,
+                    )
+                    if promos.data:
+                        promotion_code_id = promos.data[0].id
+                    else:
+                        logger.warning(
+                            "Stripe promotion code not found or inactive: %s",
+                            promotion_code_raw[:8] + "...",
+                        )
+                except stripe.error.StripeError as e:
+                    logger.warning("Stripe error resolving promotion code: %s", e)
         create_params = {
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
@@ -1112,8 +1134,8 @@ class SubscriptionCreateView(APIView):
             "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
             "client_reference_id": str(request.user.id),
         }
-        if promotion_code:
-            create_params["discounts"] = [{"promotion_code": promotion_code.strip()}]
+        if promotion_code_id:
+            create_params["discounts"] = [{"promotion_code": promotion_code_id}]
         try:
             stripe.api_key = stripe_key
             checkout_session = stripe.checkout.Session.create(**create_params)
