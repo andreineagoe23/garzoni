@@ -68,7 +68,7 @@ COPY ${BUILD_SRC}/ /app/
 COPY ${BUILD_SRC}/media/ /app/media/
 
 # Verify media is present (build fails if path_images or mascots are missing)
-RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png && test -f /app/media/mascots/Bear-Mascot.mov || (echo "ERROR: /app/media missing required files. Check .dockerignore and build context." && exit 1)
+RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png && test -f /app/media/mascots/Bear-Mascot.mp4 || (echo "ERROR: /app/media missing required files. Check .dockerignore and build context." && exit 1)
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \

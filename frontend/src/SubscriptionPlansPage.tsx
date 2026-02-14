@@ -57,6 +57,7 @@ const SubscriptionPlansPage = () => {
   const [subscriptionInfo, setSubscriptionInfo] = useState({
     hasPaid: false });
   const [selectionError, setSelectionError] = useState("");
+  const [promotionCode, setPromotionCode] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const locale = getLocale();
@@ -153,9 +154,14 @@ const SubscriptionPlansPage = () => {
         return;
       }
       try {
+        const payload: { plan_id: string; billing_interval: string; promotion_code?: string } = {
+          plan_id: plan.plan_id,
+          billing_interval: plan.billing_interval,
+        };
+        if (promotionCode.trim()) payload.promotion_code = promotionCode.trim();
         const r = await axios.post(
           `${BACKEND_URL}/subscriptions/create/`,
-          { plan_id: plan.plan_id, billing_interval: plan.billing_interval },
+          payload,
           { headers: { Authorization: `Bearer ${getAccessToken?.() ?? ""}` } }
         );
         if (r.data?.redirect_url) {
@@ -172,7 +178,7 @@ const SubscriptionPlansPage = () => {
         }
       }
     },
-    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken, t]
+    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken, promotionCode, t]
   );
 
   useEffect(() => {
@@ -236,6 +242,24 @@ const SubscriptionPlansPage = () => {
               <p className="text-sm text-[color:var(--error,#dc2626)]">{entitlementError}</p>
             )}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <label htmlFor="subscription-promo-code" className="text-sm font-medium text-[color:var(--text-color,#111827)]">
+            {t("subscriptions.promotionCodeLabel")}
+          </label>
+          <input
+            id="subscription-promo-code"
+            type="text"
+            value={promotionCode}
+            onChange={(e) => setPromotionCode(e.target.value.toUpperCase())}
+            placeholder={t("subscriptions.promotionCodePlaceholder")}
+            className="max-w-xs rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#fff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] placeholder:text-[color:var(--muted-text,#9ca3af)] focus:border-[color:var(--primary,#2563eb)] focus:outline-none focus:ring-1 focus:ring-[color:var(--primary,#2563eb)]"
+            aria-label={t("subscriptions.promotionCodeLabel")}
+          />
+          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            {t("subscriptions.promotionCodeHint")}
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

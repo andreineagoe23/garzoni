@@ -1221,7 +1221,10 @@
     "notIncluded": "Not Included",
     "unlimited": "Unlimited",
     "perDay": "{{count}} / day",
-    "included": "Included"
+    "included": "Included",
+    "promotionCodeLabel": "Promotion code",
+    "promotionCodePlaceholder": "e.g. MONEVO30",
+    "promotionCodeHint": "Optional. You can also add a code on the checkout page."
   },
   "onboarding": {
     "loading": "Loading onboarding...",

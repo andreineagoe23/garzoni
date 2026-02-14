@@ -1221,7 +1221,10 @@
     "notIncluded": "Nu este inclus",
     "unlimited": "Nelimitat",
     "perDay": "{{count}} / zi",
-    "included": "Inclus"
+    "included": "Inclus",
+    "promotionCodeLabel": "Cod promoțional",
+    "promotionCodePlaceholder": "ex. MONEVO30",
+    "promotionCodeHint": "Opțional. Poți adăuga un cod și pe pagina de plată."
   },
   "onboarding": {
     "loading": "Se încarcă onboardingul...",

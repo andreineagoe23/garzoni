@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCookieConsent } from "contexts/CookieConsentContext";
-import { GlassCard } from "components/ui";
+import { GlassButton, GlassCard } from "components/ui";
 
 export default function CookieConsentBanner() {
   const { t } = useTranslation();
@@ -36,63 +36,68 @@ export default function CookieConsentBanner() {
   if (settingsOpen) {
     return (
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-3 sm:p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cookie-settings-title"
       >
-        <GlassCard padding="xl" className="w-full max-w-md space-y-6">
-          <h2
-            id="cookie-settings-title"
-            className="text-xl font-semibold text-[color:var(--accent,#111827)]"
-          >
-            {t("cookieConsent.settingsTitle")}
-          </h2>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("cookieConsent.settingsIntro")}
-          </p>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-            {t("cookieConsent.necessaryNote")}
-          </p>
-          <div className="space-y-4">
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={analytics}
-                onChange={(e) => setAnalytics(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
-              />
-              <span className="text-sm text-[color:var(--text-color,#111827)]">
-                {t("cookieConsent.analyticsLabel")}
-              </span>
-            </label>
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={marketing}
-                onChange={(e) => setMarketing(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
-              />
-              <span className="text-sm text-[color:var(--text-color,#111827)]">
-                {t("cookieConsent.marketingLabel")}
-              </span>
-            </label>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={handleSavePreferences}
-              className="rounded-lg bg-[color:var(--primary,#2563eb)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/50"
+        <GlassCard
+          padding="xl"
+          className="w-full max-w-md max-h-[min(90vh,calc(100vh-2rem))] overflow-y-auto"
+        >
+          <div className="space-y-4 sm:space-y-6">
+            <h2
+              id="cookie-settings-title"
+              className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl"
             >
-              {t("cookieConsent.save")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(false)}
-              className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-transparent px-4 py-2 text-sm font-medium text-[color:var(--text-color,#111827)] hover:bg-[color:var(--card-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--border-color,#d1d5db)]"
-            >
-              {t("cookieConsent.cancel")}
-            </button>
+              {t("cookieConsent.settingsTitle")}
+            </h2>
+            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              {t("cookieConsent.settingsIntro")}
+            </p>
+            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+              {t("cookieConsent.necessaryNote")}
+            </p>
+            <div className="space-y-4">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={analytics}
+                  onChange={(e) => setAnalytics(e.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                />
+                <span className="min-w-0 text-sm text-[color:var(--text-color,#111827)]">
+                  {t("cookieConsent.analyticsLabel")}
+                </span>
+              </label>
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={marketing}
+                  onChange={(e) => setMarketing(e.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                />
+                <span className="min-w-0 text-sm text-[color:var(--text-color,#111827)]">
+                  {t("cookieConsent.marketingLabel")}
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
+              <GlassButton
+                variant="active"
+                size="md"
+                onClick={handleSavePreferences}
+              >
+                {t("cookieConsent.save")}
+              </GlassButton>
+              <GlassButton
+                variant="ghost"
+                size="md"
+                onClick={() => setSettingsOpen(false)}
+              >
+                {t("cookieConsent.cancel")}
+              </GlassButton>
+            </div>
           </div>
         </GlassCard>
       </div>
@@ -102,36 +107,39 @@ export default function CookieConsentBanner() {
   // First-layer banner: Accept and Reject with equal prominence (GDPR)
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[9998] border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm"
+      className="fixed bottom-0 left-0 right-0 z-[9998] border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:p-4 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]"
       role="region"
       aria-label={t("cookieConsent.bannerAria")}
     >
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-[color:var(--text-color,#111827)]">
+      <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+        <p className="min-w-0 flex-1 text-sm leading-snug text-[color:var(--text-color,#111827)]">
           {t("cookieConsent.message")}
         </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
+        <div className="flex min-h-[44px] flex-row flex-wrap items-center gap-2 sm:gap-3">
+          <GlassButton
+            variant="active"
+            size="sm"
+            className="min-h-[44px] touch-manipulation sm:min-h-0"
             onClick={acceptAll}
-            className="rounded-lg bg-[color:var(--primary,#2563eb)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/50"
           >
             {t("cookieConsent.acceptAll")}
-          </button>
-          <button
-            type="button"
+          </GlassButton>
+          <GlassButton
+            variant="ghost"
+            size="sm"
+            className="min-h-[44px] touch-manipulation sm:min-h-0"
             onClick={rejectNonEssential}
-            className="rounded-lg border-2 border-[color:var(--border-color,#374151)] bg-transparent px-4 py-2 text-sm font-medium text-[color:var(--text-color,#111827)] hover:bg-[color:var(--card-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--muted-text,#6b7280)]/30"
           >
             {t("cookieConsent.rejectNonEssential")}
-          </button>
-          <button
-            type="button"
+          </GlassButton>
+          <GlassButton
+            variant="ghost"
+            size="sm"
+            className="min-h-[44px] touch-manipulation sm:min-h-0"
             onClick={openSettings}
-            className="text-sm font-medium text-[color:var(--muted-text,#6b7280)] underline hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/30 focus:ring-offset-2"
           >
             {t("cookieConsent.cookieSettings")}
-          </button>
+          </GlassButton>
         </div>
       </div>
     </div>

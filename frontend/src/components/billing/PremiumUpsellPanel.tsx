@@ -16,7 +16,7 @@ const trackPremiumEvent = (
 ) => {
   if (!canSendAnalytics() || !window.gtag) return;
   window.gtag("event", eventName, {
-    send_to: "G-0H3QCDXCE8",
+    send_to: "G-99E61ZXSV9",
     event_category: "premium",
     ...payload });
 };
