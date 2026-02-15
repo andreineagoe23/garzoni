@@ -12,6 +12,11 @@ const VISIBLE_PATHS = new Set([
   "/register",
   "/login",
   "/subscriptions",
+  "/privacy-policy",
+  "/cookie-policy",
+  "/terms-of-service",
+  "/financial-disclaimer",
+  "/no-financial-advice",
 ]);
 
 function Header() {
@@ -65,7 +70,7 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {isWelcome ? <LanguageSelector /> : null}
+          <LanguageSelector />
           <button
             type="button"
             onClick={handleDarkModeToggle}

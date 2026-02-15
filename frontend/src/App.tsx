@@ -23,6 +23,8 @@ import ProtectedRoute from "components/auth/ProtectedRoute";
 import Chatbot from "components/widgets/Chatbot";
 import ErrorBoundary from "components/common/ErrorBoundary";
 import { useOnlineSync } from "hooks/useOnlineSync";
+import { useAuth } from "contexts/AuthContext";
+import LegalPageWrapper from "components/legal/LegalPageWrapper";
 import Login from "components/auth/Login";
 import Register from "components/auth/Register";
 import AuthCallback from "components/auth/AuthCallback";
@@ -119,6 +121,304 @@ const ReactQueryDevtools =
 
 const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
 
+const LEGAL_PATHS = [
+  "/privacy-policy",
+  "/cookie-policy",
+  "/terms-of-service",
+  "/financial-disclaimer",
+  "/no-financial-advice",
+];
+
+type AuthAwareLayoutProps = {
+  noNavbarPaths: string[];
+  noFooterPaths: string[];
+  noChatbotPaths: string[];
+  isCourseFlowPath: boolean;
+  fallbackNavbar: string;
+  fallbackPage: string;
+};
+
+function AuthAwareLayout({
+  noNavbarPaths,
+  noFooterPaths,
+  noChatbotPaths,
+  isCourseFlowPath,
+  fallbackNavbar,
+  fallbackPage,
+}: AuthAwareLayoutProps) {
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+  const isLegalPath = LEGAL_PATHS.includes(location.pathname);
+  const isLegalAndUnauth = isLegalPath && !isAuthenticated;
+  const hasNavbar =
+    !isCourseFlowPath &&
+    !isLegalAndUnauth &&
+    ((isLegalPath && isAuthenticated) ||
+      !noNavbarPaths.includes(location.pathname));
+  const hasFooter =
+    !noFooterPaths.some(
+      (p) =>
+        location.pathname === p || location.pathname.startsWith(`${p}/`)
+    ) &&
+    !isCourseFlowPath &&
+    !isLegalAndUnauth;
+
+  return (
+    <div
+      className={[
+        "app-container",
+        "min-h-screen flex flex-col",
+        noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
+      ]
+        .join(" ")
+        .trim()}
+    >
+      {hasNavbar && (
+        <Suspense fallback={<div className="p-4">{fallbackNavbar}</div>}>
+          <Navbar />
+        </Suspense>
+      )}
+      <div className="app-layout w-full flex-1 flex flex-col p-0">
+        <main
+          className="content flex-1"
+          style={hasNavbar ? { paddingTop: "88px" } : undefined}
+        >
+          <Suspense
+            fallback={
+              <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                {fallbackPage}
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<Welcome />} />
+              <Route
+                path="/privacy-policy"
+                element={
+                  <LegalPageWrapper>
+                    <PrivacyPolicy />
+                  </LegalPageWrapper>
+                }
+              />
+              <Route
+                path="/cookie-policy"
+                element={
+                  <LegalPageWrapper>
+                    <CookiePolicy />
+                  </LegalPageWrapper>
+                }
+              />
+              <Route
+                path="/terms-of-service"
+                element={
+                  <LegalPageWrapper>
+                    <TermsOfService />
+                  </LegalPageWrapper>
+                }
+              />
+              <Route
+                path="/financial-disclaimer"
+                element={
+                  <LegalPageWrapper>
+                    <FinancialDisclaimer />
+                  </LegalPageWrapper>
+                }
+              />
+              <Route
+                path="/no-financial-advice"
+                element={
+                  <LegalPageWrapper>
+                    <NoFinancialAdvice />
+                  </LegalPageWrapper>
+                }
+              />
+              <Route
+                path="/pricing"
+                element={<Navigate to="/subscriptions" replace />}
+              />
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <OnboardingQuestionnaire />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/upgrade" element={<UpgradePage />} />
+              <Route path="/subscriptions" element={<SubscriptionPlans />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route
+                path="/all-topics"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard key="all-topics" activePage="all-topics" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/personalized-path"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard
+                      key="personalized-path"
+                      activePage="personalized-path"
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/payment-required" element={<UpgradePage />} />
+              <Route
+                path="/payment-success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccessPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionManager />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rewards"
+                element={
+                  <ProtectedRoute>
+                    <RewardsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:pathId"
+                element={
+                  <ProtectedRoute>
+                    <CoursePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/:courseId/flow"
+                element={
+                  <ProtectedRoute>
+                    <CourseFlowPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:pathId/lessons/:courseId/flow"
+                element={
+                  <ProtectedRoute>
+                    <CourseFlowPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/quiz/:courseId"
+                element={
+                  <ProtectedRoute>
+                    <QuizPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/leaderboards"
+                element={
+                  <ProtectedRoute>
+                    <Leaderboards />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/missions"
+                element={
+                  <ProtectedRoute>
+                    <Missions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pricing-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <PricingFunnelDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tools/*"
+                element={
+                  <ProtectedRoute>
+                    <ToolsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route
+                path="/password-reset/:uidb64/:token"
+                element={<ResetPassword />}
+              />
+              <Route
+                path="/exercises"
+                element={
+                  <ProtectedRoute>
+                    <ExercisePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/exercise/:exerciseId"
+                element={
+                  <ProtectedRoute>
+                    <ExercisePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/faq"
+                element={
+                  <ProtectedRoute>
+                    <FAQPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </main>
+        {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && (
+          <Chatbot />
+        )}
+        {hasFooter && (
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
@@ -192,7 +492,6 @@ const AppContent = () => {
 
   const noNavbarPaths = [...publicPaths, "/onboarding", "/payment-success"];
   const noChatbotPaths = [...publicPaths, "/onboarding", "/payment-success"];
-  // Pages that render a standalone marketing/auth layout (they render their own Footer)
   const noFooterPaths = [
     "/",
     "/welcome",
@@ -203,7 +502,6 @@ const AppContent = () => {
     "/password-reset",
     "/onboarding",
   ];
-
   useEffect(() => {
     if (
       typeof window.gtag === "function" &&
@@ -306,241 +604,16 @@ const AppContent = () => {
     };
   }, []);
 
-  const hasNavbar =
-    !noNavbarPaths.includes(location.pathname) && !isCourseFlowPath;
-  const hasFooter =
-    !noFooterPaths.some(
-      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
-    ) && !isCourseFlowPath;
-
   const content = (
     <ThemeProvider>
-      <div
-        className={[
-          "app-container",
-          "min-h-screen flex flex-col",
-          noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
-        ]
-          .join(" ")
-          .trim()}
-      >
-        {hasNavbar && (
-          <Suspense fallback={<div className="p-4">{t("shared.loadingNav")}</div>}>
-            <Navbar />
-          </Suspense>
-        )}
-
-        <div className="app-layout w-full flex-1 flex flex-col p-0">
-          <main
-            className="content flex-1"
-            style={hasNavbar ? { paddingTop: "88px" } : undefined}
-          >
-            <Suspense
-              fallback={
-                <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                  {t("shared.loadingPage")}
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<Welcome />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/cookie-policy" element={<CookiePolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route
-                  path="/financial-disclaimer"
-                  element={<FinancialDisclaimer />}
-                />
-                <Route
-                  path="/no-financial-advice"
-                  element={<NoFinancialAdvice />}
-                />
-                <Route
-                  path="/pricing"
-                  element={<Navigate to="/subscriptions" replace />}
-                />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <OnboardingQuestionnaire />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/upgrade" element={<UpgradePage />} />
-                <Route path="/subscriptions" element={<SubscriptionPlans />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route
-                  path="/all-topics"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard key="all-topics" activePage="all-topics" />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/personalized-path"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard
-                        key="personalized-path"
-                        activePage="personalized-path"
-                      />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/payment-required" element={<UpgradePage />} />
-                <Route
-                  path="/payment-success"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentSuccessPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing"
-                  element={
-                    <ProtectedRoute>
-                      <SubscriptionManager />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/rewards"
-                  element={
-                    <ProtectedRoute>
-                      <RewardsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/courses/:pathId"
-                  element={
-                    <ProtectedRoute>
-                      <CoursePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/lessons/:courseId/flow"
-                  element={
-                    <ProtectedRoute>
-                      <CourseFlowPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/courses/:pathId/lessons/:courseId/flow"
-                  element={
-                    <ProtectedRoute>
-                      <CourseFlowPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/quiz/:courseId"
-                  element={
-                    <ProtectedRoute>
-                      <QuizPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leaderboards"
-                  element={
-                    <ProtectedRoute>
-                      <Leaderboards />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/missions"
-                  element={
-                    <ProtectedRoute>
-                      <Missions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pricing-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <PricingFunnelDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/*"
-                  element={
-                    <ProtectedRoute>
-                      <ToolsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/welcome" element={<Welcome />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route
-                  path="/password-reset/:uidb64/:token"
-                  element={<ResetPassword />}
-                />
-                <Route
-                  path="/exercises"
-                  element={
-                    <ProtectedRoute>
-                      <ExercisePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/exercise/:exerciseId"
-                  element={
-                    <ProtectedRoute>
-                      <ExercisePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/faq"
-                  element={
-                    <ProtectedRoute>
-                      <FAQPage />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </Suspense>
-          </main>
-
-          {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && (
-            <Chatbot />
-          )}
-
-          {hasFooter && (
-            <Suspense fallback={null}>
-              <Footer />
-            </Suspense>
-          )}
-        </div>
-      </div>
+      <AuthAwareLayout
+        noNavbarPaths={noNavbarPaths}
+        noFooterPaths={noFooterPaths}
+        noChatbotPaths={noChatbotPaths}
+        isCourseFlowPath={isCourseFlowPath}
+        fallbackNavbar={t("shared.loadingNav")}
+        fallbackPage={t("shared.loadingPage")}
+      />
       <Toaster position="top-right" />
     </ThemeProvider>
   );
