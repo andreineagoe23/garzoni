@@ -1221,10 +1221,7 @@
     "notIncluded": "Not Included",
     "unlimited": "Unlimited",
     "perDay": "{{count}} / day",
-    "included": "Included",
-    "promotionCodeLabel": "Promotion code",
-    "promotionCodePlaceholder": "e.g. MONEVO30",
-    "promotionCodeHint": "Optional. You can also add a code on the checkout page."
+    "included": "Included"
   },
   "onboarding": {
     "loading": "Loading onboarding...",
@@ -1312,7 +1309,8 @@
     "buyMeACoffee": "Buy me a coffee",
     "monevoOn": "Monevo on {{platform}}",
     "ariaLabel": "Site footer",
-    "cookieSettings": "Cookie settings"
+    "cookieSettings": "Cookie settings",
+    "backToWelcome": "Back to Welcome"
   },
   "cookieConsent": {
     "bannerAria": "Cookie consent",
@@ -1618,17 +1616,18 @@
     }
   },
   "legal": {
+    "related": "Related",
     "lastUpdated": "Last updated: {{date}}",
     "dates": {
       "feb7_2026": "February 7, 2026"
     },
     "privacy": {
       "title": "Privacy Policy",
-      "intro": "Monevo is an educational platform. This page explains what personal data we collect, why we collect it, and your rights under UK GDPR and EU GDPR.",
+      "intro": "Monevo is an educational platform. This policy explains what personal data we collect, why we collect it, and your rights. It is written to comply with the UK General Data Protection Regulation (UK GDPR), the UK Data Protection Act 2018, and where applicable the EU General Data Protection Regulation (Regulation (EU) 2016/679) for users in the European Economic Area.",
       "sections": {
         "who": {
           "title": "1. Who we are",
-          "body": "This policy applies to the Monevo web app and related services (\"Service\"). For data protection purposes, the data controller is Monevo, United Kingdom."
+          "body": "This policy applies to the Monevo web app and related services (\"Service\"). For data protection purposes, the data controller is Monevo, United Kingdom. If you are in the European Economic Area (EEA), we may act as controller for personal data processed in connection with the Service."
         },
         "data": {
           "title": "2. Data we collect",
@@ -1726,7 +1725,7 @@
         },
         "transfers": {
           "title": "7. International transfers",
-          "body": "Some providers process data outside the UK/EEA. Where this happens, we use appropriate safeguards (such as adequacy decisions or standard contractual clauses)."
+          "body": "Some of our service providers process data outside the UK or the European Economic Area (EEA). Where we do so, we rely on appropriate safeguards: for example UK adequacy regulations, EU adequacy decisions, or standard contractual clauses approved by the UK Secretary of State or the European Commission."
         },
         "retention": {
           "title": "8. Data retention",
@@ -1734,7 +1733,7 @@
         },
         "rights": {
           "title": "9. Your rights",
-          "body": "Subject to applicable law, you can request to:",
+          "body": "Subject to applicable law (including UK GDPR and, for EEA users, EU GDPR), you may request to:",
           "items": {
             "access": "Access your personal data.",
             "correct": "Correct inaccurate data.",
@@ -1742,7 +1741,7 @@
             "restrict": "Restrict or object to certain processing.",
             "withdraw": "Withdraw consent (where processing is based on consent).",
             "portable": "Receive a portable copy of data you provided.",
-            "complaint": "Lodge a complaint with your data protection authority."
+            "complaint": "Lodge a complaint with a supervisory authority: in the UK, the Information Commissioner's Office (ICO); in the EEA, the data protection authority of your country of residence or place of work."
           }
         },
         "security": {
@@ -1767,7 +1766,7 @@
     },
     "financialDisclaimer": {
       "title": "Financial Disclaimer",
-      "intro": "Monevo content is for <strong>educational and informational</strong> purposes only.",
+      "intro": "Monevo content is for <strong>educational and informational</strong> purposes only. This disclaimer applies to users in the United Kingdom and the European Union / European Economic Area.",
       "sections": {
         "meaning": {
           "title": "What this means",
@@ -1795,7 +1794,7 @@
     },
     "cookiePolicy": {
       "title": "Cookie Policy",
-      "intro": "This policy explains what cookies and similar technologies we use, and how you can manage your preferences.",
+      "intro": "This policy explains what cookies and similar technologies we use and how you can manage your preferences. It is written to comply with UK rules (including the Privacy and Electronic Communications Regulations 2003 as amended, and UK GDPR where personal data is processed) and with EU rules on cookies and similar technologies (the ePrivacy Directive and the General Data Protection Regulation where applicable).",
       "sections": {
         "what": {
           "title": "1. What cookies are",
@@ -1831,7 +1830,7 @@
         },
         "consentRequirement": {
           "title": "4. Consent for cookies",
-          "body": "Any site that sets cookies must inform you about their purpose and, where required, obtain your consent. Consent must be informed, express, and unambiguous. There is an exception for cookies that are strictly necessary to provide an online service you have requested (e.g. session and login cookies, security). We do not set non-essential cookies until you have given your consent."
+          "body": "In the UK, the Privacy and Electronic Communications Regulations (PECR) require that we inform you about cookies and, except for those strictly necessary for a service you have requested (e.g. session and login cookies, security), obtain your consent before storing or accessing information on your device. In the EEA, the ePrivacy rules and national implementations impose similar requirements. Consent must be informed, specific, and freely given. We do not set non-essential cookies until you have given your consent."
         },
         "consent": {
           "title": "5. Managing your consent",
@@ -1923,7 +1922,7 @@
         },
         "law": {
           "title": "14. Governing law and jurisdiction",
-          "body": "These terms are governed by the laws of England and Wales. Courts of England and Wales will have exclusive jurisdiction, unless mandatory consumer law requires otherwise."
+          "body": "These terms are governed by the laws of England and Wales. The courts of England and Wales will have non-exclusive jurisdiction, except where mandatory consumer law in your country of residence gives you the right to bring proceedings in your local courts. Nothing in these terms affects your statutory rights as a consumer: in the UK, under the Consumer Rights Act 2015 and related legislation; in the European Union and EEA, under the Consumer Rights Directive and applicable national laws."
         },
         "contact": {
           "title": "15. Contact",
@@ -1933,13 +1932,14 @@
     },
     "noAdvice": {
       "title": "No Financial Advice Notice",
-      "intro": "Monevo does not provide financial, investment, tax, or legal advice.",
+      "intro": "Monevo does not provide financial, investment, tax, or legal advice. This notice applies to users in the United Kingdom and the European Union / European Economic Area.",
       "sections": {
         "regulatory": {
           "title": "Regulatory position",
           "items": {
             "position": "Monevo is positioned as a financial education platform and information tool.",
-            "fca": "Monevo is not authorised by the UK Financial Conduct Authority (FCA) to provide regulated investment advice.",
+            "fca": "In the UK: Monevo is not authorised by the Financial Conduct Authority (FCA) to provide regulated investment advice.",
+            "euRegulation": "In the EU/EEA: Monevo does not provide investment advice as defined under Directive 2014/65/EU (MiFID II) or equivalent national law.",
             "noAdvisor": "Monevo does not act as your financial adviser, investment adviser, broker, or fiduciary.",
             "noRelationship": "Use of Monevo does not create an adviser-client or fiduciary relationship."
           }
