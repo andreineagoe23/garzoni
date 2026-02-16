@@ -52,7 +52,7 @@ const OnboardingQuestionnaire = React.lazy(
 );
 const ToolsPage = React.lazy(() => import("./components/tools/ToolsPage"));
 const RewardsPage = React.lazy(() => import("./components/rewards/RewardsPage"));
-const FAQPage = React.lazy(() => import("./components/support/FAQPage"));
+const SupportPage = React.lazy(() => import("./components/support/SupportPage"));
 const ExercisePage = React.lazy(
   () => import("./components/exercises/ExercisePage")
 );
@@ -396,10 +396,10 @@ function AuthAwareLayout({
                 }
               />
               <Route
-                path="/faq"
+                path="/support"
                 element={
                   <ProtectedRoute>
-                    <FAQPage />
+                    <SupportPage />
                   </ProtectedRoute>
                 }
               />

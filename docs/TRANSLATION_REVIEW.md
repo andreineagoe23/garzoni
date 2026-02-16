@@ -34,7 +34,7 @@
 ### 2. Backend – other apps (optional)
 
 - **Missions:** If mission titles/descriptions/reasons live in the DB, add translation models and return by `get_request_language`. Frontend already sends language.
-- **FAQ:** Same idea if FAQ entries are in the DB (category, question, answer).
+- **Support:** Same idea if support entries are in the DB (category, question, answer).
 - **Rewards/shop/donate:** If item names/descriptions come from the API, add language-aware fields or translation and return by request language.
 
 ### 3. Frontend – one possible test false positive
@@ -55,7 +55,7 @@
 ## Checklist (what’s left)
 
 - [ ] Backend: Run `migrate education` and `backfill_translations`; fill real RO content in admin.
-- [ ] Backend (optional): Add translation for missions / FAQ / rewards if they’re in DB and should be localized.
+- [ ] Backend (optional): Add translation for missions / support / rewards if they’re in DB and should be localized.
 - [ ] CI: Run backend tests (with Django env) so `test_i18n` is executed.
 - [ ] Optional: Fix “Romana” → “Română”; light RO copy review.
 
@@ -65,4 +65,4 @@
 
 **Frontend translation:** Effectively complete for EN/RO: all UI, landing, tools, and legal use i18n; keys are aligned and tested; no defaultValues in `t()`; tools read from locale files; dates use app locale.
 
-**Backend translation:** Education pipeline is in place (language detection, models, serializers, admin, backfill). What’s left is running migration/backfill and filling Romanian content; missions/FAQ/rewards are optional next steps if those features are stored in the DB and should be translated.
+**Backend translation:** Education pipeline is in place (language detection, models, serializers, admin, backfill). What’s left is running migration/backfill and filling Romanian content; missions/support/rewards are optional next steps if those features are stored in the DB and should be translated.

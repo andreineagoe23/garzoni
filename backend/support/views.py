@@ -16,8 +16,8 @@ import hashlib
 import json
 import time
 
-from support.models import FAQ, FAQFeedback, ContactMessage
-from support.serializers import FAQSerializer
+from support.models import SupportEntry, SupportFeedback, ContactMessage
+from support.serializers import SupportEntrySerializer
 from authentication.models import UserProfile
 from authentication.entitlements import check_and_consume_entitlement
 from education.models import Path, UserProgress
@@ -28,9 +28,9 @@ from core.http_client import request_with_backoff
 logger = logging.getLogger(__name__)
 
 
-class FAQListView(generics.ListAPIView):
-    queryset = FAQ.objects.filter(is_active=True).order_by("category", "question")
-    serializer_class = FAQSerializer
+class SupportListView(generics.ListAPIView):
+    queryset = SupportEntry.objects.filter(is_active=True).order_by("category", "question")
+    serializer_class = SupportEntrySerializer
     permission_classes = [AllowAny]
 
     def get_serializer_context(self):
@@ -41,8 +41,8 @@ class FAQListView(generics.ListAPIView):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def vote_faq(request, faq_id):
-    """Handle voting on FAQ helpfulness."""
+def vote_support(request, support_id):
+    """Handle voting on support entry helpfulness."""
     request_id = getattr(request, "request_id", None)
     vote = request.data.get("vote")
     if vote not in {"helpful", "not_helpful"}:
@@ -53,21 +53,28 @@ def vote_faq(request, faq_id):
         # Anonymous votes: update counters atomically, but do not store per-user feedback.
         if user is None:
             if vote == "helpful":
-                updated = FAQ.objects.filter(id=faq_id).update(helpful_count=F("helpful_count") + 1)
+                updated = SupportEntry.objects.filter(id=support_id).update(
+                    helpful_count=F("helpful_count") + 1
+                )
             else:
-                updated = FAQ.objects.filter(id=faq_id).update(
+                updated = SupportEntry.objects.filter(id=support_id).update(
                     not_helpful_count=F("not_helpful_count") + 1
                 )
 
             if updated == 0:
-                return Response({"error": "FAQ not found", "request_id": request_id}, status=404)
+                return Response(
+                    {"error": "Support entry not found", "request_id": request_id},
+                    status=404,
+                )
             return Response({"message": "Thanks for your feedback!"})
 
         with transaction.atomic():
-            faq = FAQ.objects.select_for_update().get(id=faq_id)
+            entry = SupportEntry.objects.select_for_update().get(id=support_id)
 
             existing_feedback = (
-                FAQFeedback.objects.select_for_update().filter(faq=faq, user=user).first()
+                SupportFeedback.objects.select_for_update()
+                .filter(support_entry=entry, user=user)
+                .first()
             )
 
             if existing_feedback:
@@ -76,7 +83,7 @@ def vote_faq(request, faq_id):
 
                 # Switching vote: decrement previous bucket (clamped at 0), increment new bucket.
                 if existing_feedback.vote == "helpful" and vote == "not_helpful":
-                    FAQ.objects.filter(id=faq_id).update(
+                    SupportEntry.objects.filter(id=support_id).update(
                         helpful_count=Case(
                             When(helpful_count__gt=0, then=F("helpful_count") - 1),
                             default=Value(0),
@@ -85,9 +92,12 @@ def vote_faq(request, faq_id):
                         not_helpful_count=F("not_helpful_count") + 1,
                     )
                 elif existing_feedback.vote == "not_helpful" and vote == "helpful":
-                    FAQ.objects.filter(id=faq_id).update(
+                    SupportEntry.objects.filter(id=support_id).update(
                         not_helpful_count=Case(
-                            When(not_helpful_count__gt=0, then=F("not_helpful_count") - 1),
+                            When(
+                                not_helpful_count__gt=0,
+                                then=F("not_helpful_count") - 1,
+                            ),
                             default=Value(0),
                             output_field=IntegerField(),
                         ),
@@ -99,15 +109,22 @@ def vote_faq(request, faq_id):
                 return Response({"message": "Thanks for your feedback!"})
 
             # New vote: create feedback + increment the correct counter atomically.
-            FAQFeedback.objects.create(faq=faq, user=user, vote=vote)
+            SupportFeedback.objects.create(support_entry=entry, user=user, vote=vote)
             if vote == "helpful":
-                FAQ.objects.filter(id=faq_id).update(helpful_count=F("helpful_count") + 1)
+                SupportEntry.objects.filter(id=support_id).update(
+                    helpful_count=F("helpful_count") + 1
+                )
             else:
-                FAQ.objects.filter(id=faq_id).update(not_helpful_count=F("not_helpful_count") + 1)
+                SupportEntry.objects.filter(id=support_id).update(
+                    not_helpful_count=F("not_helpful_count") + 1
+                )
 
             return Response({"message": "Thanks for your feedback!"})
-    except FAQ.DoesNotExist:
-        return Response({"error": "FAQ not found", "request_id": request_id}, status=404)
+    except SupportEntry.DoesNotExist:
+        return Response(
+            {"error": "Support entry not found", "request_id": request_id},
+            status=404,
+        )
 
 
 @api_view(["POST"])

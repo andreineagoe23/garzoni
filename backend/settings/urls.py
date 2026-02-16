@@ -12,7 +12,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from django.views.static import serve as static_serve
-from core.views import root_view, robots_txt_view
+from core.views import root_view, robots_txt_view, serve_mascot_media
 
 urlpatterns = [
     path("", root_view),
@@ -48,6 +48,8 @@ urlpatterns = [
     path("api/", include("finance.urls")),
     path("api/", include("support.urls")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
+    # Mascot media: no-cache so replaced files are picked up without cache-busting URLs
+    re_path(r"^media/mascots/(?P<path>.*)$", serve_mascot_media),
 ]
 
 # Serve uploaded/media files (mascots, path_images, course_images) in all environments

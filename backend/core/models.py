@@ -4,4 +4,4 @@
 # - education: Path, Course, Lesson, UserProgress, etc.
 # - finance: FinanceFact, Reward, StripePayment, etc.
 # - gamification: Badge, Mission, etc.
-# - support: FAQ, ContactMessage
+# - support: SupportEntry, ContactMessage

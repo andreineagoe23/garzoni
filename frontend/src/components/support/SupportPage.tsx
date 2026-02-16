@@ -28,7 +28,7 @@ const highlightText = (text, query) => {
   );
 };
 
-function FAQPage() {
+function SupportPage() {
   const { getAccessToken } = useAuth();
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
@@ -39,41 +39,41 @@ function FAQPage() {
     message: "" });
   const [submitMessage, setSubmitMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedFaq, setSelectedFaq] = useState(null);
-  const [faqs, setFaqs] = useState([]);
+  const [selectedEntryIndex, setSelectedEntryIndex] = useState(null);
+  const [entries, setEntries] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFaqs = async () => {
+    const fetchEntries = async () => {
       try {
-        const response = await apiClient.get("/faq/");
-        setFaqs(response.data);
+        const response = await apiClient.get("/support/");
+        setEntries(response.data);
         setCategories([
-          ...new Set(response.data.map((faq) => faq.category).filter(Boolean)),
+          ...new Set(response.data.map((entry) => entry.category).filter(Boolean)),
         ]);
       } catch (error) {
-        console.error("Error fetching FAQs:", error);
+        console.error("Error fetching support:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFaqs();
+    fetchEntries();
   }, []);
 
-  const filteredFAQs = useMemo(() => {
+  const filteredEntries = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
-    return faqs.filter((faq) => {
+    return entries.filter((entry) => {
       const matchesSearch =
         !normalizedSearch ||
-        faq.question.toLowerCase().includes(normalizedSearch) ||
-        faq.answer.toLowerCase().includes(normalizedSearch);
+        entry.question.toLowerCase().includes(normalizedSearch) ||
+        entry.answer.toLowerCase().includes(normalizedSearch);
       const matchesCategory =
-        activeCategory === "all" || faq.category === activeCategory;
+        activeCategory === "all" || entry.category === activeCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [faqs, search, activeCategory]);
+  }, [entries, search, activeCategory]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -85,40 +85,40 @@ function FAQPage() {
 
       setSubmitMessage(
         response.data.message ||
-          t("faq.contact.success")
+          t("support.contact.success")
       );
       setContactData({ email: "", topic: "", message: "" });
     } catch (submitError) {
       console.error("Contact form error:", submitError);
       setErrorMessage(
-        t("faq.contact.error")
+        t("support.contact.error")
       );
     }
   };
 
-  const toggleFaq = (index) => {
-    setSelectedFaq((prev) => (prev === index ? null : index));
+  const toggleEntry = (index) => {
+    setSelectedEntryIndex((prev) => (prev === index ? null : index));
   };
 
-  const submitVote = async (faqId, vote) => {
+  const submitVote = async (entryId, vote) => {
     try {
-      await apiClient.post(`/faq/${faqId}/vote/`, { vote });
+      await apiClient.post(`/support/${entryId}/vote/`, { vote });
 
-      setFaqs((prevFaqs) =>
-        prevFaqs.map((faq) =>
-          faq.id === faqId
+      setEntries((prevEntries) =>
+        prevEntries.map((entry) =>
+          entry.id === entryId
             ? {
-                ...faq,
+                ...entry,
                 user_vote: vote,
                 helpful_count:
                   vote === "helpful"
-                    ? faq.helpful_count + 1
-                    : faq.helpful_count,
+                    ? entry.helpful_count + 1
+                    : entry.helpful_count,
                 not_helpful_count:
                   vote === "not_helpful"
-                    ? faq.not_helpful_count + 1
-                    : faq.not_helpful_count }
-            : faq
+                    ? entry.not_helpful_count + 1
+                    : entry.not_helpful_count }
+            : entry
         )
       );
     } catch (voteError) {
@@ -134,13 +134,13 @@ function FAQPage() {
     >
       <header className="space-y-3 text-center lg:text-left">
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {t("faq.header.kicker")}
+          {t("support.header.kicker")}
         </p>
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-          {t("faq.header.title")}
+          {t("support.header.title")}
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("faq.header.subtitle")}
+          {t("support.header.subtitle")}
         </p>
       </header>
 
@@ -151,7 +151,7 @@ function FAQPage() {
         <div className="relative w-full md:max-w-xl">
           <input
             type="text"
-            placeholder={t("faq.search.placeholder")}
+            placeholder={t("support.search.placeholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
@@ -162,26 +162,26 @@ function FAQPage() {
               onClick={() => setSearch("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#2563eb)]"
             >
-              {t("faq.search.clear")}
+              {t("support.search.clear")}
             </button>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label
-            htmlFor="faq-filter-select"
+            htmlFor="support-filter-select"
             className="text-sm font-medium text-[color:var(--text-color,#111827)]"
           >
-            {t("faq.filter.label")}
+            {t("support.filter.label")}
           </label>
           <select
-            id="faq-filter-select"
+            id="support-filter-select"
             value={activeCategory}
             onChange={(event) => setActiveCategory(event.target.value)}
             className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 md:w-auto"
-            aria-label={t("faq.filter.aria")}
+            aria-label={t("support.filter.aria")}
           >
             <option value="all">
-              {t("faq.filter.all")}
+              {t("support.filter.all")}
             </option>
             {categories.map((category) => (
               <option key={category} value={category}>
@@ -196,32 +196,32 @@ function FAQPage() {
         <GlassCard padding="lg">
           {loading ? (
             <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("faq.loading")}
+              {t("support.loading")}
             </div>
-          ) : filteredFAQs.length === 0 ? (
+          ) : filteredEntries.length === 0 ? (
             <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("faq.empty")}
+              {t("support.empty")}
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredFAQs.map((faq, index) => {
-                const isActive = selectedFaq === index;
+              {filteredEntries.map((entry, index) => {
+                const isActive = selectedEntryIndex === index;
                 return (
                   <article
-                    key={faq.id}
+                    key={entry.id}
                     className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]"
                   >
                     <button
                       type="button"
-                      onClick={() => toggleFaq(index)}
+                      onClick={() => toggleEntry(index)}
                       className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-[color:var(--card-bg,#ffffff)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#2563eb)]/40"
                     >
                       <div className="space-y-2">
                         <span className="inline-flex items-center rounded-full bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#2563eb)]">
-                          {faq.category}
+                          {entry.category}
                         </span>
                         <p className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                          {highlightText(faq.question, search)}
+                          {highlightText(entry.question, search)}
                         </p>
                       </div>
                       <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -230,36 +230,36 @@ function FAQPage() {
                     </button>
                     {isActive && (
                       <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-[color:var(--text-color,#111827)]">
-                        <div>{highlightText(faq.answer, search)}</div>
+                        <div>{highlightText(entry.answer, search)}</div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
                           <span>
-                            {t("faq.vote.prompt")}
+                            {t("support.vote.prompt")}
                           </span>
-                          {faq.user_vote === "helpful" ? (
+                          {entry.user_vote === "helpful" ? (
                             <span className="font-semibold text-emerald-500">
-                              {t("faq.vote.thanksHelpful")}
+                              {t("support.vote.thanksHelpful")}
                             </span>
-                          ) : faq.user_vote === "not_helpful" ? (
+                          ) : entry.user_vote === "not_helpful" ? (
                             <span className="font-semibold text-[color:var(--error,#dc2626)]">
-                              {t("faq.vote.thanksNotHelpful")}
+                              {t("support.vote.thanksNotHelpful")}
                             </span>
                           ) : (
                             <>
                               <button
                                 type="button"
-                                onClick={() => submitVote(faq.id, "helpful")}
+                                onClick={() => submitVote(entry.id, "helpful")}
                                 className="inline-flex items-center justify-center rounded-full border border-emerald-500 px-3 py-1 font-semibold text-emerald-500 transition hover:bg-emerald-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                               >
-                                {t("faq.vote.helpful")}
+                                {t("support.vote.helpful")}
                               </button>
                               <button
                                 type="button"
                                 onClick={() =>
-                                  submitVote(faq.id, "not_helpful")
+                                  submitVote(entry.id, "not_helpful")
                                 }
                                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--error,#dc2626)]/40"
                               >
-                                {t("faq.vote.notHelpful")}
+                                {t("support.vote.notHelpful")}
                               </button>
                             </>
                           )}
@@ -276,10 +276,10 @@ function FAQPage() {
         <GlassCard padding="lg">
           <header className="space-y-2 text-center">
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-              {t("faq.contact.title")}
+              {t("support.contact.title")}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("faq.contact.subtitle")}
+              {t("support.contact.subtitle")}
             </p>
           </header>
 
@@ -297,7 +297,7 @@ function FAQPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              {t("faq.contact.email")}
+              {t("support.contact.email")}
               <input
                 type="email"
                 required
@@ -312,7 +312,7 @@ function FAQPage() {
             </label>
 
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              {t("faq.contact.topic")}
+              {t("support.contact.topic")}
               <select
                 required
                 value={contactData.topic}
@@ -324,31 +324,31 @@ function FAQPage() {
                 className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
                 <option value="">
-                  {t("faq.contact.selectTopic")}
+                  {t("support.contact.selectTopic")}
                 </option>
                 <option value="Billing">
-                  {t("faq.contact.topics.billing")}
+                  {t("support.contact.topics.billing")}
                 </option>
                 <option value="Technical Issue">
-                  {t("faq.contact.topics.technical")}
+                  {t("support.contact.topics.technical")}
                 </option>
                 <option value="Account">
-                  {t("faq.contact.topics.account")}
+                  {t("support.contact.topics.account")}
                 </option>
                 <option value="Content">
-                  {t("faq.contact.topics.content")}
+                  {t("support.contact.topics.content")}
                 </option>
                 <option value="Feedback">
-                  {t("faq.contact.topics.feedback")}
+                  {t("support.contact.topics.feedback")}
                 </option>
                 <option value="Other">
-                  {t("faq.contact.topics.other")}
+                  {t("support.contact.topics.other")}
                 </option>
               </select>
             </label>
 
             <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
-              {t("faq.contact.message")}
+              {t("support.contact.message")}
               <textarea
                 rows={5}
                 required
@@ -367,7 +367,7 @@ function FAQPage() {
                 type="submit"
                 className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                {t("faq.contact.send")}
+                {t("support.contact.send")}
               </button>
             </div>
           </form>
@@ -377,4 +377,4 @@ function FAQPage() {
   );
 }
 
-export default FAQPage;
+export default SupportPage;
