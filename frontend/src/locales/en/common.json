@@ -6,7 +6,7 @@
     "missions": "Missions",
     "leaderboards": "Leaderboards",
     "rewards": "Rewards",
-    "faq": "FAQ",
+    "support": "Support",
     "profile": "Profile",
     "settings": "Settings",
     "conversions": "Analytics",
@@ -816,23 +816,23 @@
     "downloadLimit": "Download limit reached",
     "shareButton": "Share achievement card"
   },
-  "faq": {
+  "support": {
     "header": {
       "kicker": "Help Center",
       "title": "Frequently Asked Questions",
       "subtitle": "Search for topics, browse categories, or reach out to our support team directly."
     },
     "search": {
-      "placeholder": "Search FAQs...",
+      "placeholder": "Search support...",
       "clear": "Clear"
     },
     "filter": {
       "label": "Filter:",
-      "aria": "Filter FAQs by category",
+      "aria": "Filter by category",
       "all": "All"
     },
-    "loading": "Loading FAQs...",
-    "empty": "No FAQs match your search. Try different keywords or clear your filters.",
+    "loading": "Loading...",
+    "empty": "No results match your search. Try different keywords or clear your filters.",
     "vote": {
       "prompt": "Was this helpful?",
       "thanksHelpful": "Thanks for your feedback! 👍",
@@ -1297,7 +1297,7 @@
     "noFinancialAdviceNotice": "No Financial Advice Notice",
     "about": "About",
     "subscriptions": "Subscriptions",
-    "faq": "FAQ",
+    "support": "Support",
     "dashboard": "Dashboard",
     "exercises": "Exercises",
     "missions": "Missions",

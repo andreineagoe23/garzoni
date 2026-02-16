@@ -11,10 +11,11 @@ This repo ships with:
 
 ### Quick start (dev, recommended for local)
 
-- **From the repo root** (`monevo/`), ensure Postgres credentials are shared between the db container and the backend. Either create a `.env` in the repo root with `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (used by compose for the db service and for backend’s `DATABASE_URL`), or use the defaults (monevo/monevo). If you get "password authentication failed", remove the old volume and try again:
+- **From the repo root** (`monevo/`), ensure Postgres credentials are shared between the db container and the backend. Either create a `.env` in the **repo root** (not only `backend/.env`) with `POSTGRES_PASSWORD=yourpassword` so both the `db` service and the backend’s `DATABASE_URL` (injected by Compose) use the same value, or use the defaults (user/password `monevo`). **If you see "password authentication failed for user monevo"**: the backend is using a different password than the one Postgres was initialized with (stored in the volume). Fix: use the same `POSTGRES_PASSWORD` everywhere and reset the DB volume so Postgres re-initializes with that password:
 
 ```bash
-docker compose -f docker-compose.dev.yml down -v
+docker compose down -v
+docker compose up -d
 ```
 
 - **Boot the dev stack** (uses `backend/.env`; see also `backend/.env.dev`). Celery does not run; tasks execute inline.

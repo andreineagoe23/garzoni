@@ -6,7 +6,7 @@
     "missions": "Misiuni",
     "leaderboards": "Clasamente",
     "rewards": "Recompense",
-    "faq": "Întrebări frecvente",
+    "support": "Suport",
     "profile": "Profil",
     "settings": "Setări",
     "conversions": "Analitice",
@@ -816,22 +816,22 @@
     "downloadLimit": "Limita de descărcări atinsă",
     "shareButton": "Partajează cardul de realizare"
   },
-  "faq": {
+  "support": {
     "header": {
       "kicker": "Centru de ajutor",
       "title": "Întrebări frecvente",
       "subtitle": "Caută subiecte, răsfoiește categorii sau contactează echipa de suport."
     },
     "search": {
-      "placeholder": "Caută în FAQ...",
+      "placeholder": "Caută în suport...",
       "clear": "Șterge"
     },
     "filter": {
       "label": "Filtru:",
-      "aria": "Filtrează FAQ după categorie",
+      "aria": "Filtrează după categorie",
       "all": "Toate"
     },
-    "loading": "Se încarcă întrebările...",
+    "loading": "Se încarcă...",
     "empty": "Nu există rezultate. Încearcă alte cuvinte cheie sau șterge filtrele.",
     "vote": {
       "prompt": "Ți-a fost de ajutor?",
@@ -1297,7 +1297,7 @@
     "noFinancialAdviceNotice": "Fără sfaturi financiare",
     "about": "Despre",
     "subscriptions": "Abonamente",
-    "faq": "Întrebări frecvente",
+    "support": "Suport",
     "dashboard": "Acasă",
     "exercises": "Exerciții",
     "missions": "Misiuni",

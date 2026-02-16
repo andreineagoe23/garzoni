@@ -1,0 +1,13 @@
+@use "sass:map";
+@use "../abstracts/variables" as *;
+
+// Green underline under headings – same in light and dark (color comes from theme)
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  border-bottom: 1px solid var(--primary);
+  padding-bottom: map.get($spacers, 2);
+}

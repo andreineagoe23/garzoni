@@ -15,7 +15,7 @@
 | **Backfill command** | `education/management/commands/backfill_translations.py`: Creates EN rows from canonical content, then RO rows (copy from EN or canonical). Run: `python manage.py backfill_translations` (optionally `--dry-run` first). |
 | **CORS** | `settings/settings.py`: `x-app-language` and `accept-language` added to `CORS_ALLOW_HEADERS` so the browser allows the frontend to send them. |
 
-**Not translated on backend (yet):** Missions, FAQ, rewards/shop/donate item names, subscription plan copy – these endpoints do not use `get_request_language()` or translation tables.
+**Not translated on backend (yet):** Missions, support entries, rewards/shop/donate item names, subscription plan copy – these endpoints do not use `get_request_language()` or translation tables.
 
 ---
 
@@ -28,7 +28,7 @@
 | **Locale files** | `src/locales/en/` and `src/locales/ro/`: `common.json`, `courses.json`, `shared.json`, `index.ts`. |
 | **Language selector** | Navbar (and any existing selector) – user can switch EN/RO. |
 | **API language headers** | `src/services/httpClient.ts`: every request sends `Accept-Language` and `X-App-Language` from `i18n.language`. |
-| **Content APIs use apiClient** | So backend receives language: AllTopics (paths), PersonalizedPath, ExercisePage, Missions, FAQPage, QuizPage, ShopItems, DonationCauses. |
+| **Content APIs use apiClient** | So backend receives language: AllTopics (paths), PersonalizedPath, ExercisePage, Missions, SupportPage, QuizPage, ShopItems, DonationCauses. |
 | **Profile balance** | Shown as number + “coins”/“monede” (no USD). |
 | **Referral block** | ReferralLink: all copy via `t("profile.referral.*")`. |
 | **Shop / Donate** | ShopItems & DonationCauses: titles, subtitles, empty states, “Buy Now”, “X coins” use `t()` and `rewards.coins` / `rewards.shop.*` / `rewards.donate.*`. |
@@ -57,11 +57,11 @@
   - In the missions API, use `get_request_language(request)` and return the corresponding translation.
 - **If** they’re fixed in code, either move them to DB + translations or keep frontend-only translation (see 5 below).
 
-### 3. Backend – FAQ
+### 3. Backend – Support
 
-- **If** FAQ entries (category, question, answer) are in the DB (e.g. in `support`):
-  - Add FAQ translation model(s) or language-aware fields.
-  - In the FAQ API, use `get_request_language(request)` and return translated category/question/answer.
+- **If** support entries (category, question, answer) are in the DB (e.g. in `support`):
+  - Add support translation model(s) or language-aware fields.
+  - In the support API, use `get_request_language(request)` and return translated category/question/answer.
 - Frontend already sends language via apiClient.
 
 ### 4. Backend – rewards/shop/donate
@@ -104,7 +104,7 @@
 - [ ] Backend: `migrate education` and `backfill_translations` run.
 - [ ] Backend: Romanian content filled (or updated) in admin for paths/courses/lessons/sections/quizzes/exercises.
 - [ ] Backend: Decide and implement translation for missions (if in DB).
-- [ ] Backend: Decide and implement translation for FAQ (if in DB).
+- [ ] Backend: Decide and implement translation for support entries (if in DB).
 - [ ] Backend: Decide and implement translation for rewards/shop items (if from API).
 - [ ] Frontend: Subscription plans page – all strings via `t()` and in EN/RO.
 - [ ] Frontend: Auth, onboarding, dashboard, missions UI – audit and add missing keys/RO.

@@ -17,3 +17,6 @@
 
 // Theme overrides
 @use "themes/dark-mode";
+
+// Component overrides (theme-aware)
+@use "components/legal-pages";

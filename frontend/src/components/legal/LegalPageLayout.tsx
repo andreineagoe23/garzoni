@@ -22,7 +22,7 @@ export default function LegalPageLayout({
   children,
 }: LegalPageLayoutProps) {
   return (
-    <section className="min-h-[60vh] bg-[color:var(--bg-color,#f8fafc)] px-4 py-8 sm:px-6 sm:py-10">
+    <section className="legal-page-section min-h-[60vh] bg-[color:var(--bg-color,#f8fafc)] px-4 py-8 sm:px-6 sm:py-10">
       <GlassCard
         padding="xl"
         className="mx-auto w-full max-w-4xl border-[color:var(--border-color,rgba(0,0,0,0.1))]"
@@ -32,7 +32,7 @@ export default function LegalPageLayout({
           <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted-text,#6b7280)]">
             {lastUpdated}
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--accent,#111827)] sm:text-4xl">
+          <h1 className="legal-page-title text-3xl font-bold tracking-tight text-[color:var(--accent)] sm:text-4xl">
             {title}
           </h1>
           {intro && (
@@ -44,9 +44,8 @@ export default function LegalPageLayout({
 
         <div
           className={[
-            "prose prose-slate max-w-none pt-8",
+            "legal-page-prose prose prose-slate max-w-none pt-8",
             "text-[color:var(--text-color,#111827)]",
-            "prose-headings:font-semibold prose-headings:text-[color:var(--accent,#111827)]",
             "prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-xl prose-h2:first:mt-0",
             "prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-lg",
             "prose-p:mb-4 prose-p:leading-relaxed",

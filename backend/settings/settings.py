@@ -123,31 +123,23 @@ if SERVE_FRONTEND:
 
 WSGI_APPLICATION = "settings.wsgi.application"
 
+# Use PostgreSQL in both dev and prod. Set DATABASE_URL (or DATABASE_PUBLIC_URL on Railway).
 # Prefer public URL on Railway so the host resolves (private *.railway.internal can be unreachable at deploy time)
 database_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
 # Convert postgres:// to postgresql:// for compatibility
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-default_db = None
-if database_url:
-    default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=False)
+if not database_url:
+    raise ImproperlyConfigured(
+        "DATABASE_URL (or DATABASE_PUBLIC_URL) must be set. "
+        "Use PostgreSQL in dev and prod: e.g. postgresql://user:pass@localhost:5432/monevo for local, "  # pragma: allowlist secret
+        "or on Railway add a PostgreSQL service (DATABASE_URL is set automatically)."
+    )
 
-    if default_db and "OPTIONS" not in default_db:
-        default_db["OPTIONS"] = {}
-
-if not default_db:
-    if DEBUG:
-        default_db = {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    else:
-        raise ImproperlyConfigured(
-            "DATABASE_URL must be set in production. "
-            "On Railway: add a PostgreSQL service and link it to your backend (Railway sets DATABASE_URL automatically), "
-            "or set DATABASE_URL manually, e.g. postgresql://user:pass@host:5432/dbname"  # pragma: allowlist secret
-        )
+default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=False)
+if "OPTIONS" not in default_db:
+    default_db["OPTIONS"] = {}
 
 DATABASES = {"default": default_db}
 
@@ -597,10 +589,5 @@ MIGRATION_MODULES = {
 #     )
 
 if "test" in sys.argv:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": ":memory:",
-        }
-    }
+    # Use same PostgreSQL as dev/prod (DATABASE_URL). No SQLite override.
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

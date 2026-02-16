@@ -77,10 +77,12 @@ backend/db.sqlite3
 
 # Database backups
 *.sql
+*.pgdump
 monevo_mysql_backup.sql
 *_backup.sql
 *_mysql_backup.sql
 backend/backups/
+backups/
 
 # Flask stuff:
 instance/
