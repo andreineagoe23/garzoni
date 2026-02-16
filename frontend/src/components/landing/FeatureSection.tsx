@@ -102,10 +102,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                         {feature.icon}
                       </span>
                       <div className="min-w-0 text-left">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                          {t("landing.features.featureLabel", { count: index + 1 })}
-                        </p>
-                        <h3 className="mt-1 text-xl font-bold text-white">
+                        <h3 className="text-xl font-bold text-white">
                           {feature.title}
                         </h3>
                         <p className="mt-2 text-sm text-white/70">

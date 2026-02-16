@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { path: "/missions", key: "nav.missions", icon: "🎯", label: "Missions" },
   { path: "/leaderboards", key: "nav.leaderboards", icon: "🏆", label: "Leaderboards" },
   { path: "/rewards", key: "nav.rewards", icon: "🎁", label: "Rewards" },
-  { path: "/faq", key: "nav.faq", icon: "❓", label: "FAQ" },
+  { path: "/support", key: "nav.support", icon: "❓", label: "Support" },
   { path: "/profile", key: "nav.profile", icon: "👤", label: "Profile" },
   { path: "/settings", key: "nav.settings", icon: "⚙️", label: "Settings" },
 ];

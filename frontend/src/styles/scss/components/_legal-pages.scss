@@ -1,0 +1,17 @@
+// Legal pages: force theme accent (gold) for titles and headings in both light and dark mode.
+// Overrides Tailwind prose-slate so legal content uses Monevo branding.
+
+.legal-page-title {
+  color: var(--accent) !important;
+}
+
+.legal-page-prose {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--accent) !important;
+  }
+}

@@ -48,7 +48,7 @@ function Footer() {
       links: [
         { label: t("footer.about"), to: "/welcome" },
         { label: t("footer.subscriptions"), to: "/subscriptions" },
-        { label: t("footer.faq"), to: "/faq" },
+        { label: t("footer.support"), to: "/support" },
       ] },
     {
       heading: t("footer.product"),
