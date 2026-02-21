@@ -159,13 +159,14 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
 }
 
 # Year plans first (sort_order 0–1), then Starter, then monthly. 7-day trial only on yearly Pro/Plus.
+# Prices must match Stripe (Plus: £69/year, £7.99/month; Pro: £79/year, £11.99/month).
 PLAN_CATALOG = [
     {
         "plan_id": "plus",
         "name": "Plus",
         "billing_interval": "yearly",
-        "price_amount": 99,
-        "currency": "USD",
+        "price_amount": 69,
+        "currency": "GBP",
         "trial_days": 7,
         "sort_order": 0,
         "entitlements_plan": "plus",
@@ -176,8 +177,8 @@ PLAN_CATALOG = [
         "plan_id": "pro",
         "name": "Pro",
         "billing_interval": "yearly",
-        "price_amount": 199,
-        "currency": "USD",
+        "price_amount": 79,
+        "currency": "GBP",
         "trial_days": 7,
         "sort_order": 1,
         "entitlements_plan": "pro",
@@ -191,7 +192,7 @@ PLAN_CATALOG = [
         "name": "Starter",
         "billing_interval": "monthly",
         "price_amount": 0,
-        "currency": "USD",
+        "currency": "GBP",
         "trial_days": 0,
         "sort_order": 2,
         "entitlements_plan": "starter",
@@ -202,8 +203,8 @@ PLAN_CATALOG = [
         "plan_id": "plus",
         "name": "Plus",
         "billing_interval": "monthly",
-        "price_amount": 12,
-        "currency": "USD",
+        "price_amount": 7.99,
+        "currency": "GBP",
         "trial_days": 0,
         "sort_order": 3,
         "entitlements_plan": "plus",
@@ -214,8 +215,8 @@ PLAN_CATALOG = [
         "plan_id": "pro",
         "name": "Pro",
         "billing_interval": "monthly",
-        "price_amount": 24,
-        "currency": "USD",
+        "price_amount": 11.99,
+        "currency": "GBP",
         "trial_days": 0,
         "sort_order": 4,
         "entitlements_plan": "pro",

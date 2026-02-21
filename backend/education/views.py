@@ -603,39 +603,49 @@ class UserProgressViewSet(viewsets.ModelViewSet):
     def progress_summary(self, request):
         """Retrieve a summary of the user's progress across all courses and paths.
         Progress is section-based: percent = (completed_sections / total_sections_in_course) * 100.
+        Includes all courses in allowed paths (0%% for not started) so overall progress is meaningful.
         """
         user = request.user
-        progress_data = []
-
-        user_progress = (
-            UserProgress.objects.filter(user=user)
-            .select_related("course", "course__path")
-            .prefetch_related("completed_sections")
-        )
-        course_ids = list(user_progress.values_list("course_id", flat=True).distinct())
-        section_counts = dict(
-            LessonSection.objects.filter(lesson__course_id__in=course_ids)
-            .values("lesson__course_id")
-            .annotate(c=Count("id"))
-            .values_list("lesson__course_id", "c")
-        )
-
-        for progress in user_progress:
-            total_sections = section_counts.get(progress.course_id, 0)
-            completed_sections = progress.completed_sections.count()
-            percent_complete = (
-                (completed_sections / total_sections) * 100 if total_sections > 0 else 0
+        allowed_ids = list(_allowed_path_ids(user))
+        if not allowed_ids:
+            progress_data = []
+        else:
+            courses = (
+                Course.objects.filter(path_id__in=allowed_ids)
+                .select_related("path")
+                .order_by("path__sort_order", "path_id", "order", "id")
             )
-
-            progress_data.append(
-                {
-                    "path": (progress.course.path.title if progress.course.path else None),
-                    "path_id": progress.course.path_id,
-                    "course": progress.course.title,
-                    "course_id": progress.course_id,
-                    "percent_complete": percent_complete,
-                }
+            course_ids = list(courses.values_list("id", flat=True))
+            section_counts = dict(
+                LessonSection.objects.filter(lesson__course_id__in=course_ids)
+                .values("lesson__course_id")
+                .annotate(c=Count("id"))
+                .values_list("lesson__course_id", "c")
             )
+            progress_by_course = {
+                p.course_id: p
+                for p in UserProgress.objects.filter(
+                    user=user, course_id__in=course_ids
+                ).prefetch_related("completed_sections")
+            }
+
+            progress_data = []
+            for course in courses:
+                total_sections = section_counts.get(course.id, 0)
+                progress = progress_by_course.get(course.id)
+                completed_sections = progress.completed_sections.count() if progress else 0
+                percent_complete = (
+                    (completed_sections / total_sections) * 100 if total_sections > 0 else 0
+                )
+                progress_data.append(
+                    {
+                        "path": course.path.title if course.path else None,
+                        "path_id": course.path_id,
+                        "course": course.title,
+                        "course_id": course.id,
+                        "percent_complete": percent_complete,
+                    }
+                )
 
         # Resume: last place in the flow (most recently updated flow position)
         resume = None

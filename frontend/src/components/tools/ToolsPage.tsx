@@ -211,25 +211,6 @@ const ToolView = ({
 
   return (
     <div className="space-y-5 min-w-0">
-      <div className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/80 px-3 py-2">
-        <p className="text-xs font-medium text-[color:var(--muted-text)]">
-          {t("tools.disclaimer.educationalOnly")}
-        </p>
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wide">
-          <Link
-            to="/financial-disclaimer"
-            className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
-          >
-            {t("tools.disclaimer.financialDisclaimer")}
-          </Link>
-          <Link
-            to="/no-financial-advice"
-            className="text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
-          >
-            {t("tools.disclaimer.noFinancialAdvice")}
-          </Link>
-        </div>
-      </div>
       <div className="flex flex-col gap-3 rounded-2xl border border-white/30 bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between sm:px-6 min-w-0">
         <div className="space-y-2 min-w-0 flex-1">
           <div>
