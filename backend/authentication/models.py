@@ -14,8 +14,8 @@ class UserProfile(models.Model):
 
     REMINDER_CHOICES = [
         ("none", "No Reminders"),
-        ("daily", "Daily"),
         ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -40,10 +40,22 @@ class UserProfile(models.Model):
         help_text="Subscription tier identifier (starter, plus, pro).",
     )
     stripe_payment_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    stripe_subscription_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Stripe subscription ID for webhook updates (e.g. trial ended).",
+    )
     subscription_status = models.CharField(
         max_length=50,
         default="inactive",
         help_text="Tracks the latest status returned by Stripe for this user's checkout session.",
+    )
+    trial_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the subscription trial ends (from Stripe); used for day-5 reminder.",
     )
     email_reminder_preference = models.CharField(
         max_length=10, choices=REMINDER_CHOICES, default="none"

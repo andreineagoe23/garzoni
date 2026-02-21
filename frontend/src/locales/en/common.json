@@ -240,7 +240,9 @@
       "suggestedTitle": "Suggested learning tools",
       "suggestedSubtitle": "Based on your learning activity. These are educational prompts, not investment recommendations.",
       "openTool": "Open tool →",
-      "open": "Open →"
+      "open": "Open →",
+      "browseAll": "All tools",
+      "browseAllSubtitle": "Pick a tool below to get started."
     },
     "disclaimer": {
       "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
@@ -1060,8 +1062,8 @@
       "emailReminders": "Email Reminders",
       "reminders": {
         "none": "No Reminders",
-        "daily": "Daily",
-        "weekly": "Weekly"
+        "weekly": "Weekly",
+        "monthly": "Monthly"
       },
       "lessonSounds": "Lesson Sounds",
       "soundsHint": "Play subtle chimes for answers",

@@ -311,6 +311,13 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 # Stripe Price IDs for subscription plans (create in Stripe Dashboard → Products → Prices)
+# Yearly plans first; 7-day free trial only on yearly Pro/Plus.
+STRIPE_PRICE_PLUS_YEARLY = os.getenv("STRIPE_PRICE_PLUS_YEARLY") or os.getenv(
+    "STRIPE_PRICE_PLUS_ANNUAL", ""
+)
+STRIPE_PRICE_PRO_YEARLY = os.getenv("STRIPE_PRICE_PRO_YEARLY") or os.getenv(
+    "STRIPE_PRICE_PRO_ANNUAL", ""
+)
 STRIPE_PRICE_PLUS_MONTHLY = os.getenv("STRIPE_PRICE_PLUS_MONTHLY", "")
 STRIPE_PRICE_PRO_MONTHLY = os.getenv("STRIPE_PRICE_PRO_MONTHLY", "")
 STRIPE_DEFAULT_PRICE_ID = os.getenv(
@@ -342,17 +349,19 @@ ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "")
 FREE_CURRENCY_API_KEY = os.getenv("FREE_CURRENCY_API_KEY", "")
 EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or (os.getenv("REDIS_URL") if DEBUG else None)
+# Use Redis as broker when REDIS_URL or CELERY_BROKER_URL is set (dev and production, e.g. Railway)
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
 if not DEBUG and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
     raise ImproperlyConfigured(
         "Celery eager mode is not allowed in production when CELERY_BROKER_URL/REDIS_URL is set. "
-        "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker."
+        "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker + beat."
     )
 if not DEBUG and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
     print(
-        "[settings] Production with no broker: Celery tasks run inline (eager). Add REDIS_URL + Celery worker for async tasks."
+        "[settings] Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
+        "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
     )
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = "django-db"
