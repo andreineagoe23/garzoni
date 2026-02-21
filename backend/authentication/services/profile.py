@@ -54,6 +54,7 @@ def build_profile_payload(user, profile: UserProfile):
     display = user_display_dict(user)
     payload = {
         "user_data": {
+            "username": display["username"],
             "first_name": display["first_name"],
             "last_name": display["last_name"],
             "email": user.email,
