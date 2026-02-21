@@ -240,7 +240,9 @@
       "suggestedTitle": "Instrumente de învățare sugerate",
       "suggestedSubtitle": "Pe baza activității tale de învățare. Acestea sunt sugestii educaționale, nu recomandări de investiții.",
       "openTool": "Deschide instrumentul →",
-      "open": "Deschide →"
+      "open": "Deschide →",
+      "browseAll": "Toate instrumentele",
+      "browseAllSubtitle": "Alege un instrument mai jos pentru a începe."
     },
     "disclaimer": {
       "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
@@ -1060,8 +1062,8 @@
       "emailReminders": "Memento-uri email",
       "reminders": {
         "none": "Fără memento-uri",
-        "daily": "Zilnic",
-        "weekly": "Săptămânal"
+        "weekly": "Săptămânal",
+        "monthly": "Lunar"
       },
       "lessonSounds": "Sunete lecție",
       "soundsHint": "Redă clopoței discreți pentru răspunsuri",

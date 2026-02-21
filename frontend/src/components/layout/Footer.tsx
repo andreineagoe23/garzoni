@@ -181,7 +181,7 @@ function Footer() {
                         <button
                           type="button"
                           onClick={openCookieSettings}
-                          className="text-left text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#2563eb)]"
+                          className="text-left text-[color:var(--accent)] transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
                         >
                           {link.label}
                         </button>

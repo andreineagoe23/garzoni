@@ -28,4 +28,8 @@ app.conf.beat_schedule = {
         "task": "education.tasks.reset_inactive_streaks",
         "schedule": crontab(hour=0, minute=0),
     },
+    "send-trial-ending-reminder": {
+        "task": "authentication.tasks.send_trial_ending_reminder",
+        "schedule": crontab(hour=10, minute=0),
+    },
 }

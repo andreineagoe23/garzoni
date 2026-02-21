@@ -18,7 +18,6 @@ import { recordToolEvent } from "services/toolsAnalytics";
 import {
   TOOL_STORAGE_KEYS,
   toolByRoute,
-  toolGroups,
   toolsRegistry,
   type ToolDefinition } from "./toolsRegistry";
 
@@ -145,47 +144,41 @@ const ToolsHub = ({
         </section>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3 min-w-0">
-        {toolGroups.map((group) => (
-          <section key={group.id} className="space-y-4 min-w-0">
-            <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] shadow-lg min-w-0">
-              <img
-                src={group.image}
-                alt={t(`tools.groups.${group.id}.imageAlt`)}
-                className="h-28 w-full object-cover"
-              />
-              <h3 className="px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                {t(`tools.groups.${group.id}.title`)}
-              </h3>
-            </div>
-            <div className="space-y-3">
-              {group.tools.map((tool) => (
-                <GlassCard
-                  key={tool.id}
-                  padding="md"
-                  className="group transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  <Link
-                    to={`${TOOL_BASE_PATH}/${tool.route}`}
-                    onClick={() => onNavigate("hub_card")}
-                    className="block"
-                  >
-                    <h4 className="text-sm font-semibold text-[color:var(--accent)]">
-                    {getToolText(tool, "title")}
-                    </h4>
-                    <p className="mt-1 text-xs text-[color:var(--muted-text)] line-clamp-2">
-                      {getToolText(tool, "promise")}
-                    </p>
-                    <span className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary)]">
-                      {t("tools.hub.open")}
-                    </span>
-                  </Link>
-                </GlassCard>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      <section className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            {t("tools.hub.browseAll")}
+          </p>
+          <p className="mt-0.5 text-sm text-[color:var(--muted-text,#6b7280)]">
+            {t("tools.hub.browseAllSubtitle")}
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 min-w-0">
+          {toolsRegistry.map((tool) => (
+            <GlassCard
+              key={tool.id}
+              padding="md"
+              className="transition-all duration-200 hover:shadow-md focus-within:ring-2 focus-within:ring-[color:var(--primary)]/30"
+            >
+              <Link
+                to={`${TOOL_BASE_PATH}/${tool.route}`}
+                onClick={() => onNavigate("hub_card")}
+                className="block outline-none"
+              >
+                <h4 className="text-sm font-semibold text-[color:var(--accent)]">
+                  {getToolText(tool, "title")}
+                </h4>
+                <p className="mt-1.5 text-xs text-[color:var(--muted-text)] line-clamp-2">
+                  {getToolText(tool, "promise")}
+                </p>
+                <span className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary)]">
+                  {t("tools.hub.open")}
+                </span>
+              </Link>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
       {showAnalytics && <ToolsAnalyticsPanel />}
     </div>
   );
@@ -525,54 +518,45 @@ const ToolsPage = () => {
         aria-label={t("tools.nav.ariaLabel")}
         className="w-full"
       >
-        <GlassCard padding="md" className="w-full overflow-hidden">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+        <GlassCard padding="lg" className="w-full overflow-hidden">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
             {t("tools.nav.browse")}
           </p>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-5 min-w-0">
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("tools.nav.hub")}
-              </span>
-              <Link
-                to={TOOL_BASE_PATH}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 min-w-0">
+            <NavLink
+              to={TOOL_BASE_PATH}
+              onClick={() => setNavSource("sidebar")}
+              className={({ isActive }) =>
+                [
+                  "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition",
+                  isActive
+                    ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
+                    : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-[color:var(--muted-text)] hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+              }
+            >
+              {t("tools.nav.hubLink")}
+            </NavLink>
+            {toolsRegistry.map((tool) => (
+              <NavLink
+                key={tool.id}
+                to={`${TOOL_BASE_PATH}/${tool.route}`}
                 onClick={() => setNavSource("sidebar")}
-                className={
-                  activeSlug === "hub"
-                    ? "w-fit rounded-lg px-2 py-1 text-xs font-medium transition bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]"
-                    : "w-fit rounded-lg px-2 py-1 text-xs font-medium transition text-[color:var(--muted-text,#6b7280)] hover:bg-[color:var(--primary,#2563eb)]/5 hover:text-[color:var(--primary,#2563eb)]"
+                className={({ isActive }) =>
+                  [
+                    "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition line-clamp-1",
+                    isActive
+                      ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
+                      : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-[color:var(--muted-text)] hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
                 }
               >
-                {t("tools.nav.hubLink")}
-              </Link>
-            </div>
-            {toolGroups.map((group) => (
-              <div key={group.id} className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t(`tools.groups.${group.id}.title`)}
-                </span>
-                <div className="flex flex-col gap-1">
-                  {group.tools.map((tool) => (
-                    <NavLink
-                      key={tool.id}
-                      to={`${TOOL_BASE_PATH}/${tool.route}`}
-                      onClick={() => setNavSource("sidebar")}
-                      className={({ isActive }) =>
-                        [
-                          "w-fit rounded-lg px-2 py-1 text-xs font-medium transition",
-                          isActive
-                            ? "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]"
-                            : "text-[color:var(--muted-text,#6b7280)] hover:bg-[color:var(--primary,#2563eb)]/5 hover:text-[color:var(--primary,#2563eb)]",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")
-                      }
-                    >
-                      {t(`tools.entries.${tool.id}.title`)}
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
+                {t(`tools.entries.${tool.id}.title`)}
+              </NavLink>
             ))}
           </div>
         </GlassCard>

@@ -466,6 +466,14 @@ const OnboardingQuestionnaire: React.FC = () => {
     );
   }
 
+  if (!currentQuestion) {
+    return (
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+        <Loader message={t("onboarding.loading")} />
+      </div>
+    );
+  }
+
   return (
     <>
       <section
@@ -544,9 +552,9 @@ const OnboardingQuestionnaire: React.FC = () => {
           <GlassCard padding="lg" className="relative z-10 space-y-6 md:px-10">
             <div className="space-y-3">
               <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-                {currentQuestion.text}
+                {currentQuestion?.text ?? t("onboarding.noQuestionLoaded")}
               </h2>
-              {currentQuestion.description && (
+              {currentQuestion?.description && (
                 <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                   {currentQuestion.description}
                 </p>

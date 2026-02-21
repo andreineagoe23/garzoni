@@ -7,8 +7,8 @@ from education.models import Lesson, LessonSection
 
 class Command(BaseCommand):
     help = (
-        "Ensure every lesson has at least two text sections, two exercises, and one video section. "
-        "Existing sections are preserved and new ones are appended in order."
+        "Ensure every lesson has at least two text sections and one video section. "
+        "Existing sections are preserved and new ones are appended in order. No filler exercises are added."
     )
 
     def add_arguments(self, parser):
@@ -45,16 +45,6 @@ class Command(BaseCommand):
                     missing_builders.append(
                         lambda order, l=lesson: self._build_video_section(l, order)
                     )
-
-                # Exercise sections
-                exercise_sections = [s for s in existing_sections if s.content_type == "exercise"]
-                for _ in range(2 - len(exercise_sections)):
-                    missing_builders.append(
-                        lambda order, l=lesson, existing=len(
-                            exercise_sections
-                        ): self._build_exercise_section(l, order, existing + 1)
-                    )
-                    exercise_sections.append(None)
 
                 for builder in missing_builders:
                     section_payload = builder(next_order)
@@ -126,56 +116,6 @@ class Command(BaseCommand):
                 f"Focus on how the presenter links the idea back to {summary}. "
                 "Pause to note specific steps or visual cues that clarify the topic."
             ),
-            "is_published": True,
-        }
-
-    def _build_exercise_section(self, lesson, order, index):
-        course_title = lesson.course.title if lesson.course else "this course"
-        summary = self._lesson_summary(lesson, course_title)
-        if index == 1:
-            question = (
-                f"Which statement best captures the goal of '{lesson.title}' in {course_title}?"
-            )
-            options = [
-                f"It clarifies: {summary}",
-                "It introduces unrelated facts",
-                "It only lists generic study tips",
-                "I'm still unsure how it fits",
-            ]
-            correct_answer = 0
-            explanation = (
-                "The lesson is designed to make its core promise clear and show why it matters. "
-                "The other options don't align with the summary."
-            )
-        else:
-            question = f"What's the first practical step to apply '{lesson.title}' after this course section?"
-            options = [
-                "Identify one scenario from your work or study where it fits",
-                "Skip to the next lesson without reflection",
-                "Rewatch without taking notes",
-                "Ignore the course context and experiment randomly",
-            ]
-            correct_answer = 0
-            explanation = (
-                "Choosing a real scenario cements the concept and keeps it tied to your goals. "
-                "The other options miss intentional practice."
-            )
-
-        return {
-            "lesson": lesson,
-            "order": order,
-            "title": f"Practice #{index}",
-            "content_type": "exercise",
-            "exercise_type": "multiple-choice",
-            "exercise_data": {
-                "question": question,
-                "options": options,
-                "correctAnswer": correct_answer,
-                "explanation": explanation,
-                "prompt": (
-                    "Use what you just watched and read. If you're unsure, revisit the takeaways and try again."
-                ),
-            },
             "is_published": True,
         }
 

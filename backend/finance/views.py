@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.utils import timezone
 from django.db import transaction
@@ -852,6 +852,23 @@ class StripeWebhookView(APIView):
                                 if payment_status == "paid"
                                 else (payment_status or session_status or "completed")
                             )
+                            trial_end_dt = None
+                            sub_id = session.get("subscription")
+                            if sub_id:
+                                try:
+                                    sub = stripe.Subscription.retrieve(sub_id)
+                                    subscription_status = sub.status  # trialing or active
+                                    if getattr(sub, "trial_end", None):
+                                        trial_end_dt = timezone.make_aware(
+                                            datetime.utcfromtimestamp(sub.trial_end),
+                                            timezone.utc,
+                                        )
+                                except stripe.error.StripeError as e:
+                                    logger.warning(
+                                        "Stripe webhook: could not retrieve subscription %s: %s",
+                                        sub_id,
+                                        e,
+                                    )
                             with transaction.atomic():
                                 (
                                     user_profile,
@@ -875,15 +892,22 @@ class StripeWebhookView(APIView):
                                 )
                                 if plan_id:
                                     user_profile.subscription_plan_id = plan_id
-                                user_profile.save(
-                                    update_fields=[
-                                        "has_paid",
-                                        "is_premium",
-                                        "subscription_status",
-                                        "stripe_payment_id",
-                                        "subscription_plan_id",
-                                    ]
-                                )
+                                if trial_end_dt is not None:
+                                    user_profile.trial_end = trial_end_dt
+                                if sub_id:
+                                    user_profile.stripe_subscription_id = sub_id
+                                update_fields = [
+                                    "has_paid",
+                                    "is_premium",
+                                    "subscription_status",
+                                    "stripe_payment_id",
+                                    "subscription_plan_id",
+                                ]
+                                if trial_end_dt is not None:
+                                    update_fields.append("trial_end")
+                                if sub_id:
+                                    update_fields.append("stripe_subscription_id")
+                                user_profile.save(update_fields=update_fields)
                                 cache.delete_many(
                                     [
                                         f"user_payment_status_{user_id}",
@@ -937,6 +961,28 @@ class StripeWebhookView(APIView):
                                         "currency": session.get("currency"),
                                     },
                                 )
+
+            elif event["type"] == "customer.subscription.updated":
+                sub = event["data"]["object"]
+                sub_id = sub.get("id")
+                status = sub.get("status")
+                if sub_id and status == "active":
+                    with transaction.atomic():
+                        profile = (
+                            UserProfile.objects.select_for_update()
+                            .filter(stripe_subscription_id=sub_id)
+                            .first()
+                        )
+                        if profile:
+                            profile.subscription_status = "active"
+                            profile.trial_end = None
+                            profile.save(update_fields=["subscription_status", "trial_end"])
+                            cache.delete_many(
+                                [
+                                    f"user_payment_status_{profile.user_id}",
+                                    f"user_profile_{profile.user_id}",
+                                ]
+                            )
 
         except stripe.error.SignatureVerificationError as exc:
             logger.warning("Stripe signature verification failed: %s", exc)
@@ -1078,17 +1124,23 @@ class SubscriptionCreateView(APIView):
                 {"error": "Payment is not configured. Please try again later."},
                 status=503,
             )
-        # Resolve Stripe price by plan: Plus and Pro each have their own price ID
+        # Resolve Stripe price by plan and billing interval (yearly first; trial only on yearly)
         price_id = None
-        if plan_id == "plus":
-            price_id = getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None) or getattr(
-                settings, "STRIPE_DEFAULT_PRICE_ID", None
-            )
-        elif plan_id == "pro":
-            price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
+        if billing_interval == "yearly":
+            if plan_id == "plus":
+                price_id = getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
+            elif plan_id == "pro":
+                price_id = getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None)
+        else:
+            if plan_id == "plus":
+                price_id = getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
+            elif plan_id == "pro":
+                price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
         if not price_id:
-            price_id = getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None) or getattr(
-                settings, "STRIPE_PRICE_PLUS_MONTHLY", None
+            price_id = (
+                getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
+                or getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
+                or getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
             )
         if not price_id:
             logger.error("No Stripe price configured for plan_id=%s", plan_id)
@@ -1124,6 +1176,8 @@ class SubscriptionCreateView(APIView):
                         )
                 except stripe.error.StripeError as e:
                     logger.warning("Stripe error resolving promotion code: %s", e)
+        # 7-day free trial only on yearly Pro/Plus; day 7 = charge full yearly amount
+        trial_days = 7 if billing_interval == "yearly" and plan_id in ("plus", "pro") else 0
         create_params = {
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
@@ -1134,6 +1188,8 @@ class SubscriptionCreateView(APIView):
             "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
             "client_reference_id": str(request.user.id),
         }
+        if trial_days:
+            create_params["subscription_data"] = {"trial_period_days": trial_days}
         if promotion_code_id:
             create_params["discounts"] = [{"promotion_code": promotion_code_id}]
         try:
@@ -1176,11 +1232,13 @@ class EntitlementStatusView(APIView):
             profile = UserProfile.objects.get(user=request.user)
             plan = get_user_plan(request.user)
             entitlements = get_entitlements_for_user(request.user)
+            trial_end = getattr(profile, "trial_end", None)
             subscription = {
                 "is_premium": bool(getattr(profile, "is_premium", False)),
                 "status": getattr(profile, "subscription_status", "inactive"),
                 "has_paid": bool(profile.has_paid),
                 "plan_id": plan,
+                "trial_end": trial_end.isoformat() if trial_end else None,
             }
             payload = {
                 "entitled": plan != "starter",
