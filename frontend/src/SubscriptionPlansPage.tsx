@@ -59,6 +59,7 @@ const SubscriptionPlansPage = () => {
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">("yearly");
   const locale = getLocale();
 
   const { data: questionnaireProgress } = useQuery({
@@ -181,10 +182,21 @@ const SubscriptionPlansPage = () => {
     }
   }, []);
 
-  const planCards = useMemo(
-    () => [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-    [plans]
-  );
+  const planCards = useMemo(() => {
+    const sorted = [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const starter = sorted.find((p) => p.plan_id === "starter");
+    const plus = sorted.find(
+      (p) => p.plan_id === "plus" && p.billing_interval === billingInterval
+    );
+    const pro = sorted.find(
+      (p) => p.plan_id === "pro" && p.billing_interval === billingInterval
+    );
+    const out: Plan[] = [];
+    if (starter) out.push(starter);
+    if (plus) out.push(plus);
+    if (pro) out.push(pro);
+    return out;
+  }, [plans, billingInterval]);
 
   const comparisonRows = useMemo(() => {
     if (!plans.length) return [];
@@ -212,9 +224,6 @@ const SubscriptionPlansPage = () => {
     <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
       <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--accent,#2563eb)]/10 text-3xl">
-            🔒
-          </div>
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-[color:var(--accent,#111827)]">
               {t("subscriptions.choosePlan")}
@@ -238,6 +247,37 @@ const SubscriptionPlansPage = () => {
           </div>
         </div>
 
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-1"
+            role="group"
+            aria-label={t("subscriptions.choosePlan")}
+          >
+            <button
+              type="button"
+              onClick={() => setBillingInterval("yearly")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                billingInterval === "yearly"
+                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
+                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+              }`}
+            >
+              {t("subscriptions.billingYearly")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("monthly")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                billingInterval === "monthly"
+                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
+                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+              }`}
+            >
+              {t("subscriptions.billingMonthly")}
+            </button>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           {loadingPlans && (
             <div className="text-sm text-[color:var(--muted-text,#6b7280)]">{t("subscriptions.loadingPlans")}</div>
@@ -258,7 +298,7 @@ const SubscriptionPlansPage = () => {
               const paidPlan = !isStarter;
               return (
                 <div
-                  key={`${plan.plan_id}-${plan.billing_interval}`}
+                  key={plan.plan_id}
                   className={`flex flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
                     isHighlight
                       ? "border-[color:var(--primary,#2563eb)] shadow-lg shadow-[color:var(--primary,#2563eb)]/20"
@@ -298,11 +338,6 @@ const SubscriptionPlansPage = () => {
                       <li key={fe}>• {fe}</li>
                     ))}
                   </ul>
-                  {paidPlan && (
-                    <p className="text-xs text-[color:var(--primary,#2563eb)] font-medium">
-                      {t("subscriptions.unlocksPath")}
-                    </p>
-                  )}
                   <GlassButton
                     variant={isHighlight ? "primary" : "ghost"}
                     className="w-full"
@@ -320,25 +355,6 @@ const SubscriptionPlansPage = () => {
         {selectionError && (
           <p className="text-sm text-[color:var(--error,#dc2626)]">{selectionError}</p>
         )}
-
-        <div className="flex flex-wrap items-center justify-center gap-3 text-center">
-          <GlassButton
-            variant="ghost"
-            onClick={() => reloadEntitlements()}
-            className="text-sm"
-            icon="🔄"
-          >
-            {t("subscriptions.retryEntitlements")}
-          </GlassButton>
-          {entitlementSupportLink && (
-            <a
-              href={entitlementSupportLink}
-              className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
-            >
-              {t("subscriptions.contactSupport")}
-            </a>
-          )}
-        </div>
 
         <div
           className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
@@ -415,6 +431,24 @@ const SubscriptionPlansPage = () => {
             </div>
           </GlassCard>
         )}
+
+        <div className="flex flex-wrap items-center justify-center gap-3 text-center pt-2">
+          <GlassButton
+            variant="ghost"
+            onClick={() => reloadEntitlements()}
+            className="text-sm"
+          >
+            {t("subscriptions.retryEntitlements")}
+          </GlassButton>
+          {entitlementSupportLink && (
+            <a
+              href={entitlementSupportLink}
+              className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
+            >
+              {t("subscriptions.contactSupport")}
+            </a>
+          )}
+        </div>
       </GlassCard>
     </section>
   );
