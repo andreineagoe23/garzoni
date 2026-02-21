@@ -40,11 +40,12 @@ function Settings() {
         if (!isMounted || !data) return;
 
         const profile = (data as { profile?: UserProfile }).profile || {};
+        const pref = String(
+          (data as { email_reminder_preference?: unknown })
+            .email_reminder_preference || "none"
+        );
         setEmailReminderPreference(
-          String(
-            (data as { email_reminder_preference?: unknown })
-              .email_reminder_preference || "none"
-          )
+          pref === "daily" ? "weekly" : pref
         );
         setSoundEnabled(
           Boolean((data as { sound_enabled?: boolean }).sound_enabled ?? true)
@@ -321,11 +322,11 @@ function Settings() {
                     <option value="none">
                       {t("settings.preferences.reminders.none")}
                     </option>
-                    <option value="daily">
-                      {t("settings.preferences.reminders.daily")}
-                    </option>
                     <option value="weekly">
                       {t("settings.preferences.reminders.weekly")}
+                    </option>
+                    <option value="monthly">
+                      {t("settings.preferences.reminders.monthly")}
                     </option>
                   </select>
                 </div>

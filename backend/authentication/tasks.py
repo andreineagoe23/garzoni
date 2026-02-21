@@ -1,6 +1,7 @@
 # authentication/tasks.py
 from celery import shared_task
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
@@ -14,62 +15,55 @@ from authentication.user_display import normalize_display_string
 logger = logging.getLogger(__name__)
 
 
+def _email_configured():
+    """Return True if SMTP is configured (needed for reminders and trial emails)."""
+    return bool(
+        getattr(settings, "EMAIL_HOST_USER", None)
+        and getattr(settings, "EMAIL_HOST_PASSWORD", None)
+    )
+
+
 @shared_task
 def send_email_reminders():
     """
     Send email reminders to users based on their preferences.
-    Daily reminders are sent to users who haven't logged in for 24 hours.
-    Weekly reminders are sent to users who haven't logged in for 7 days.
+    Weekly: users who want weekly and haven't logged in for 7 days (uses User.last_login).
+    Monthly: users who want monthly and haven't logged in for 28 days.
     """
+    if not _email_configured():
+        logger.warning("Email reminders skipped: EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set")
+        return "Skipped (email not configured)"
     now = timezone.now()
+    weekly_cutoff = now - timedelta(days=7)
+    monthly_cutoff = now - timedelta(days=28)
 
-    # Get users who want daily reminders and haven't logged in for 24 hours
-    daily_users = UserProfile.objects.filter(
-        email_reminder_preference="daily",
-        last_login_date__lt=now.date() - timedelta(days=1),
-    ).exclude(
-        last_reminder_sent__gt=now
-        - timedelta(hours=23)  # Don't send if reminder was sent in last 23 hours
-    )
-
-    # Get users who want weekly reminders and haven't logged in for 7 days
-    weekly_users = UserProfile.objects.filter(
-        email_reminder_preference="weekly",
-        last_login_date__lt=now.date() - timedelta(days=7),
-    ).exclude(
-        last_reminder_sent__gt=now
-        - timedelta(days=6)  # Don't send if reminder was sent in last 6 days
-    )
-
-    # Send daily reminders
-    for profile in daily_users:
-        send_mail(
-            "Daily Reminder: Continue Your Financial Learning Journey",
-            f"""Hi {normalize_display_string(profile.user.username)},
-
-We noticed you haven't logged in for a while. Don't forget to continue your financial learning journey!
-
-Your current progress:
-- Balance: {profile.earned_money} coins
-- Points: {profile.points}
-- Streak: {profile.streak} days
-
-Keep up the great work and maintain your streak!
-
-Best regards,
-The Monevo Team""",
-            settings.DEFAULT_FROM_EMAIL,
-            [profile.user.email],
-            fail_silently=False,
+    # Use User.last_login (set on every login); avoid relying on UserProfile.last_login_date which may not be synced
+    weekly_users = (
+        UserProfile.objects.filter(
+            email_reminder_preference="weekly",
+            user__email__isnull=False,
         )
-        profile.last_reminder_sent = now
-        profile.save()
+        .exclude(last_reminder_sent__gt=now - timedelta(days=6))
+        .filter(Q(user__last_login__isnull=True) | Q(user__last_login__lt=weekly_cutoff))
+        .select_related("user")
+    )
 
-    # Send weekly reminders
+    monthly_users = (
+        UserProfile.objects.filter(
+            email_reminder_preference="monthly",
+            user__email__isnull=False,
+        )
+        .exclude(last_reminder_sent__gt=now - timedelta(days=27))
+        .filter(Q(user__last_login__isnull=True) | Q(user__last_login__lt=monthly_cutoff))
+        .select_related("user")
+    )
+
+    sent_weekly, sent_monthly = 0, 0
     for profile in weekly_users:
-        send_mail(
-            "Weekly Reminder: Your Financial Learning Journey Awaits",
-            f"""Hi {normalize_display_string(profile.user.username)},
+        try:
+            send_mail(
+                "Weekly Reminder: Your Financial Learning Journey Awaits",
+                f"""Hi {normalize_display_string(profile.user.username)},
 
 It's been a week since your last login. Your financial learning journey is waiting for you!
 
@@ -82,14 +76,86 @@ Don't let your streak break! Come back and continue learning.
 
 Best regards,
 The Monevo Team""",
-            settings.DEFAULT_FROM_EMAIL,
-            [profile.user.email],
-            fail_silently=False,
-        )
-        profile.last_reminder_sent = now
-        profile.save()
+                settings.DEFAULT_FROM_EMAIL,
+                [profile.user.email],
+                fail_silently=True,
+            )
+            profile.last_reminder_sent = now
+            profile.save(update_fields=["last_reminder_sent"])
+            sent_weekly += 1
+        except Exception as e:
+            logger.warning("Weekly reminder send failed for %s: %s", profile.user.email, e)
 
-    return f"Sent {daily_users.count()} daily and {weekly_users.count()} weekly reminders"
+    for profile in monthly_users:
+        try:
+            send_mail(
+                "Monthly Reminder: Continue Your Financial Learning",
+                f"""Hi {normalize_display_string(profile.user.username)},
+
+It's been a while since your last visit. Your progress is saved and we'd love to see you back!
+
+Your current progress:
+- Balance: {profile.earned_money} coins
+- Points: {profile.points}
+- Streak: {profile.streak} days
+
+Pick up where you left off and keep building your financial knowledge.
+
+Best regards,
+The Monevo Team""",
+                settings.DEFAULT_FROM_EMAIL,
+                [profile.user.email],
+                fail_silently=True,
+            )
+            profile.last_reminder_sent = now
+            profile.save(update_fields=["last_reminder_sent"])
+            sent_monthly += 1
+        except Exception as e:
+            logger.warning("Monthly reminder send failed for %s: %s", profile.user.email, e)
+
+    return f"Sent {sent_weekly} weekly and {sent_monthly} monthly reminders"
+
+
+@shared_task
+def send_trial_ending_reminder():
+    """
+    On day 5 of a 7-day trial, send a reminder: "Your trial ends in 2 days."
+    Runs daily; sends to users whose trial_end is in 2 days (date).
+    """
+    if not _email_configured():
+        logger.warning(
+            "Trial ending reminder skipped: EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set"
+        )
+        return "Skipped (email not configured)"
+    now = timezone.now()
+    in_two_days = (now + timedelta(days=2)).date()
+    profiles = UserProfile.objects.filter(
+        subscription_status="trialing",
+        trial_end__isnull=False,
+        trial_end__date=in_two_days,
+    )
+    sent = 0
+    for profile in profiles:
+        try:
+            send_mail(
+                "Your free trial ends in 2 days",
+                f"""Hi {normalize_display_string(profile.user.first_name or profile.user.username)},
+
+Your Monevo free trial ends in 2 days. On the trial end date you'll be charged the full yearly amount for your plan.
+
+If you have any questions, visit your subscription settings or contact support.
+
+Best regards,
+The Monevo Team""",
+                settings.DEFAULT_FROM_EMAIL,
+                [profile.user.email],
+                fail_silently=True,
+            )
+            sent += 1
+            logger.info("Sent trial ending reminder to %s", profile.user.email)
+        except Exception as e:
+            logger.error("Trial reminder send failed for %s: %s", profile.user.email, e)
+    return f"Sent {sent} trial ending reminders"
 
 
 def send_emails(profiles, frequency):
@@ -97,7 +163,7 @@ def send_emails(profiles, frequency):
     Send reminder emails to a list of user profiles.
 
     - Generates an email context for each user, including an unsubscribe link.
-    - Sends an email with the appropriate frequency (daily, weekly, or monthly).
+    - Sends an email with the appropriate frequency (weekly or monthly).
     - Logs success or failure for each email sent.
     """
     for profile in profiles:

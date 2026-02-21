@@ -158,7 +158,34 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
     },
 }
 
+# Year plans first (sort_order 0–1), then Starter, then monthly. 7-day trial only on yearly Pro/Plus.
 PLAN_CATALOG = [
+    {
+        "plan_id": "plus",
+        "name": "Plus",
+        "billing_interval": "yearly",
+        "price_amount": 99,
+        "currency": "USD",
+        "trial_days": 7,
+        "sort_order": 0,
+        "entitlements_plan": "plus",
+        "stripe_price_setting": "STRIPE_PRICE_PLUS_YEARLY",
+        "feature_overrides": {},
+    },
+    {
+        "plan_id": "pro",
+        "name": "Pro",
+        "billing_interval": "yearly",
+        "price_amount": 199,
+        "currency": "USD",
+        "trial_days": 7,
+        "sort_order": 1,
+        "entitlements_plan": "pro",
+        "stripe_price_setting": "STRIPE_PRICE_PRO_YEARLY",
+        "feature_overrides": {
+            "ai_tutor": {"daily_quota": 200},
+        },
+    },
     {
         "plan_id": "starter",
         "name": "Starter",
@@ -166,7 +193,7 @@ PLAN_CATALOG = [
         "price_amount": 0,
         "currency": "USD",
         "trial_days": 0,
-        "sort_order": 1,
+        "sort_order": 2,
         "entitlements_plan": "starter",
         "stripe_price_setting": "STRIPE_PRICE_STARTER_MONTHLY",
         "feature_overrides": {},
@@ -177,8 +204,8 @@ PLAN_CATALOG = [
         "billing_interval": "monthly",
         "price_amount": 12,
         "currency": "USD",
-        "trial_days": 7,
-        "sort_order": 2,
+        "trial_days": 0,
+        "sort_order": 3,
         "entitlements_plan": "plus",
         "stripe_price_setting": "STRIPE_PRICE_PLUS_MONTHLY",
         "feature_overrides": {},
@@ -189,8 +216,8 @@ PLAN_CATALOG = [
         "billing_interval": "monthly",
         "price_amount": 24,
         "currency": "USD",
-        "trial_days": 7,
-        "sort_order": 3,
+        "trial_days": 0,
+        "sort_order": 4,
         "entitlements_plan": "pro",
         "stripe_price_setting": "STRIPE_PRICE_PRO_MONTHLY",
         "feature_overrides": {
