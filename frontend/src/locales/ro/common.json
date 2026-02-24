@@ -475,7 +475,29 @@
     "portfolio": {
       "stock": "Acțiune",
       "crypto": "Crypto",
-      "symbolPlaceholder": "ex.: AAPL, BTC",
+      "etf": "ETF",
+      "bond": "Obligațiune",
+      "fund": "Fond",
+      "commodity": "Comoditate",
+      "real_estate": "Imobil",
+      "other": "Altele",
+      "assetType": {
+        "stock": "Acțiune",
+        "crypto": "Crypto",
+        "etf": "ETF",
+        "bond": "Obligațiune",
+        "fund": "Fond",
+        "commodity": "Comoditate",
+        "real_estate": "Imobil",
+        "other": "Altele"
+      },
+      "symbolPlaceholder": "ex.: AAPL, BTC, SPY",
+      "livePriceNotAvailable": "Preț în timp real indisponibil pentru acest tip de activ.",
+      "getPrice": "Preț actual",
+      "lookupLoading": "…",
+      "currentPrice": "Preț actual",
+      "symbolRequired": "Introdu un simbol pentru căutare.",
+      "priceNotFound": "Preț negăsit. Verifică simbolul sau încearcă din nou.",
       "loadError": "Nu s-a putut încărca portofoliul. Te rugăm să încerci din nou.",
       "exportEmpty": "Nu există intrări în portofoliu de exportat.",
       "exportReady": "Exportul portofoliului este gata.",
@@ -1225,7 +1247,8 @@
     "notIncluded": "Nu este inclus",
     "unlimited": "Nelimitat",
     "perDay": "{{count}} / zi",
-    "included": "Inclus"
+    "included": "Inclus",
+    "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>."
   },
   "onboarding": {
     "loading": "Se încarcă onboardingul...",
@@ -1894,7 +1917,7 @@
         },
         "subscriptions": {
           "title": "6. Abonamente, facturare și plăți",
-          "body": "Planurile plătite, intervalele de facturare și funcțiile incluse sunt afișate în prețurile produsului. Plățile sunt procesate de furnizori terți. Dacă nu se menționează altfel, abonamentele se pot reînnoi automat până la anulare."
+          "body": "Planurile plătite, intervalele de facturare și funcțiile incluse sunt afișate pe pagina de abonamente. Plățile sunt procesate în siguranță prin Stripe. Abonamentele se reînnoiesc automat până când le anulezi. Poți anula oricând înainte de următoarea dată de facturare; accesul continuă până la sfârșitul perioadei curente. Rambursările se acordă doar acolo unde legea aplicabilă o prevede (de ex. în UK, Consumer Rights Act 2015)."
         },
         "thirdParty": {
           "title": "7. Servicii și linkuri terțe",

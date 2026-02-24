@@ -22,6 +22,8 @@ export type ToolDefinition = {
   exportable?: boolean;
   keywords?: string[];
   activityStorageKey?: string;
+  /** Optional image URL for the tools landing card. Falls back to group image. */
+  cardImage?: string;
 };
 
 export const TOOL_STORAGE_KEYS = {
@@ -37,6 +39,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: PortfolioAnalyzer,
     learnPath: "/all-topics?topic=investing",
     exportable: true,
+    cardImage: "tools/portfolio_analyzer.png",
     keywords: ["stocks", "allocation", "diversification", "returns"],
     activityStorageKey: "monevo:tools:activity:portfolio" },
   {
@@ -45,6 +48,7 @@ export const toolsRegistry: ToolDefinition[] = [
     route: "reality-check",
     component: GoalsRealityCheck,
     learnPath: "/all-topics?topic=saving",
+    cardImage: "tools/savings_goals.png",
     keywords: ["savings", "goals", "budget", "reality check"],
     activityStorageKey: "monevo:tools:activity:reality-check" },
   {
@@ -53,6 +57,7 @@ export const toolsRegistry: ToolDefinition[] = [
     route: "calendar",
     component: EconomicCalendar,
     learnPath: "/all-topics?topic=macro",
+    cardImage: "tools/economic_calendar.png",
     keywords: ["calendar", "macro", "events", "inflation", "rates"],
     activityStorageKey: "monevo:tools:activity:calendar" },
   {
@@ -61,6 +66,7 @@ export const toolsRegistry: ToolDefinition[] = [
     route: "economic-map",
     component: EconomicMap,
     learnPath: "/all-topics?topic=macro",
+    cardImage: "tools/economic_map.png",
     keywords: ["macro", "economy", "map", "global"],
     activityStorageKey: "monevo:tools:activity:economic-map" },
   {
@@ -69,6 +75,7 @@ export const toolsRegistry: ToolDefinition[] = [
     route: "news-context",
     component: NewsMarketContext,
     learnPath: "/all-topics?topic=markets",
+    cardImage: "tools/news_market.png",
     keywords: ["news", "markets", "macro", "context"],
     activityStorageKey: "monevo:tools:activity:news-context" },
   {
@@ -77,6 +84,7 @@ export const toolsRegistry: ToolDefinition[] = [
     route: "market-explorer",
     component: MarketExplorer,
     learnPath: "/all-topics?topic=investing",
+    cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],
     activityStorageKey: "monevo:tools:activity:market-explorer" },
   {

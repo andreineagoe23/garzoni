@@ -3,8 +3,8 @@
  * Imported statically in App so it stays in the main bundle (avoids chunk resolution issues).
  */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { GlassButton, GlassCard } from "components/ui";
@@ -351,6 +351,16 @@ const SubscriptionPlansPage = () => {
               );
             })}
         </div>
+
+        <p className="text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+          <Trans
+            i18nKey="subscriptions.agreeToTerms"
+            components={{
+              terms: <Link to="/terms-of-service" className="text-[color:var(--primary,#2563eb)] hover:underline" />,
+              privacy: <Link to="/privacy-policy" className="text-[color:var(--primary,#2563eb)] hover:underline" />,
+            }}
+          />
+        </p>
 
         {selectionError && (
           <p className="text-sm text-[color:var(--error,#dc2626)]">{selectionError}</p>
