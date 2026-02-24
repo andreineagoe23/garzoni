@@ -32,4 +32,12 @@ app.conf.beat_schedule = {
         "task": "authentication.tasks.send_trial_ending_reminder",
         "schedule": crontab(hour=10, minute=0),
     },
+    "reset-daily-missions": {
+        "task": "gamification.models.reset_daily_missions",
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "reset-weekly-missions": {
+        "task": "gamification.models.reset_weekly_missions",
+        "schedule": crontab(hour=0, minute=0, day_of_week=1),
+    },
 }
