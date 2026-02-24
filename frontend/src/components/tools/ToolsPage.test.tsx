@@ -72,23 +72,11 @@ describe("ToolsPage", () => {
     (global as any).__TEST_LOCATION_PATHNAME__ = "/tools";
   });
 
-  test("renders the tools hub with categories", () => {
+  test("renders the tools landing with tool cards", () => {
     render(<ToolsPage />);
-    expect(
-      screen.getAllByText(i18n.t("tools.groups.understand-world.title")).length
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText(i18n.t("tools.groups.understand-myself.title")).length
-    ).toBeGreaterThan(0);
-  });
-
-  test("shows continue tile when last tool exists", () => {
-    sessionStorage.setItem("monevo:tools:last-tool", "portfolio");
-    render(<ToolsPage />);
-    expect(screen.getByText(i18n.t("tools.hub.continueTitle"))).toBeInTheDocument();
-    expect(
-      screen.getAllByText(i18n.t("tools.entries.portfolio.title")).length
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(i18n.t("tools.entries.calendar.title")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(i18n.t("tools.entries.portfolio.title")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(i18n.t("tools.hub.openTool")).length).toBeGreaterThan(0);
   });
 
   test("redirects unknown tool routes to hub", () => {

@@ -111,14 +111,6 @@ const prefetchOnIdle = (preload: () => Promise<unknown>) => {
   }
 };
 
-const ReactQueryDevtools =
-  process.env.NODE_ENV === "development"
-    ? React.lazy(() =>
-        import("@tanstack/react-query-devtools").then((m) => ({
-          default: m.ReactQueryDevtools }))
-      )
-    : null;
-
 const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
 
 const LEGAL_PATHS = [
@@ -436,11 +428,6 @@ function App() {
             <CookieConsentBanner />
           </CookieConsentProvider>
         )}
-        {ReactQueryDevtools ? (
-          <Suspense fallback={null}>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </Suspense>
-        ) : null}
       </QueryClientProvider>
     </Router>
   );

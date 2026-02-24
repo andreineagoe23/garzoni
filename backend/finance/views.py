@@ -52,6 +52,9 @@ from authentication.entitlements import get_entitlements_for_user, get_user_plan
 
 logger = logging.getLogger(__name__)
 
+# Avoid logging the same missing-config message on every request
+_logged_missing_config = set()
+
 # Trusted sources chosen for RSS feeds that provide thumbnails (media:content, media:thumbnail, enclosure, or img in description).
 # Fallback: per-source logo URLs (publisher-owned, used only when item has no image).
 NEWS_FEEDS = [
@@ -375,7 +378,11 @@ class StockPriceView(APIView):
 
         api_key = settings.ALPHA_VANTAGE_API_KEY
         if not api_key:
-            logger.error("ALPHA_VANTAGE_API_KEY is not configured.")
+            if "alpha_vantage" not in _logged_missing_config:
+                _logged_missing_config.add("alpha_vantage")
+                logger.warning(
+                    "ALPHA_VANTAGE_API_KEY is not configured. Set it in .env for live stock/ETF prices."
+                )
             return Response(
                 {"error": "Price feed unavailable.", "request_id": request_id},
                 status=503,

@@ -20,6 +20,18 @@ const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
 const EXPORT_EVENT = "monevo:tools:export";
 
+const CRYPTO_SYMBOLS = new Set([
+  "btc", "bitcoin", "eth", "ethereum", "sol", "solana", "xrp", "ripple",
+  "ada", "cardano", "doge", "dogecoin", "bnb", "binancecoin", "matic",
+  "dot", "polkadot", "avax", "avalanche", "link", "chainlink", "uni", "uniswap",
+  "atom", "cosmos", "ltc", "litecoin", "near", "fil", "filecoin", "apt", "aptos",
+  "arb", "arbitrum", "op", "optimism", "sui", "stx", "stacks", "ftm", "fantom",
+]);
+function inferAssetType(symbol: string): "stock" | "crypto" {
+  const s = (symbol || "").trim().toLowerCase();
+  return s && CRYPTO_SYMBOLS.has(s) ? "crypto" : "stock";
+}
+
 type PortfolioEntry = {
   id?: string | number;
   asset_type: string;
@@ -52,6 +64,9 @@ function PortfolioAnalyzer() {
     quantity: "",
     purchase_price: "",
     purchase_date: new Date().toISOString().split("T")[0] });
+  const [lookupPrice, setLookupPrice] = useState<number | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
   const { getAccessToken, financialProfile } = useAuth();
   const formRef = useRef<HTMLDivElement | null>(null);
 
@@ -111,7 +126,7 @@ function PortfolioAnalyzer() {
       const entriesWithPrices = await Promise.all(
         fetchedEntries.map(async (entry) => {
           let currentPrice = null;
-          if (entry.asset_type === "stock") {
+          if (entry.asset_type === "stock" || entry.asset_type === "etf") {
             currentPrice = await fetchStockPrice(entry.symbol);
           } else if (entry.asset_type === "crypto") {
             currentPrice = await fetchCryptoPrice(entry.symbol);
@@ -252,12 +267,57 @@ function PortfolioAnalyzer() {
     };
   }, [entries]);
 
-  const handleInputChange = (event) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    setNewEntry((prev) => ({
-      ...prev,
-      [name]: value }));
+    setNewEntry((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "symbol") {
+        setLookupPrice(null);
+        setLookupError(null);
+        if (prev.asset_type === "stock" || prev.asset_type === "crypto") {
+          next.asset_type = inferAssetType(value);
+        }
+      }
+      return next;
+    });
   };
+
+  const handleLookupPrice = useCallback(async () => {
+    const symbol = (newEntry.symbol || "").trim();
+    if (!symbol) {
+      setLookupError(t("tools.portfolio.symbolRequired"));
+      return;
+    }
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupPrice(null);
+    const assetType = newEntry.asset_type || inferAssetType(symbol);
+    try {
+      if (assetType === "crypto") {
+        const price = await fetchCryptoPrice(symbol);
+        if (price != null) {
+          setLookupPrice(price);
+          setNewEntry((prev) => ({ ...prev, purchase_price: String(price), asset_type: "crypto" }));
+        } else {
+          setLookupError(t("tools.portfolio.priceNotFound"));
+        }
+      } else if (assetType === "stock" || assetType === "etf") {
+        const price = await fetchStockPrice(symbol.toUpperCase());
+        if (price != null) {
+          setLookupPrice(price);
+          setNewEntry((prev) => ({ ...prev, purchase_price: String(price), asset_type: assetType }));
+        } else {
+          setLookupError(t("tools.portfolio.priceNotFound"));
+        }
+      } else {
+        setLookupError(t("tools.portfolio.livePriceNotAvailable"));
+      }
+    } catch {
+      setLookupError(t("tools.portfolio.priceNotFound"));
+    } finally {
+      setLookupLoading(false);
+    }
+  }, [newEntry.symbol, newEntry.asset_type, fetchCryptoPrice, fetchStockPrice, t]);
 
   const handleDemoEntry = (entry: {
     asset_type: string;
@@ -317,10 +377,10 @@ function PortfolioAnalyzer() {
 
   const chartData = useMemo(() => {
     if (!summary?.allocation) return [];
-    return Object.entries(summary.allocation).map(([name, value]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
+    return Object.entries(summary.allocation).map(([key, value]) => ({
+      name: t(`tools.portfolio.assetType.${key}`),
       value: Number(value) }));
-  }, [summary]);
+  }, [summary, t]);
 
   const totalGainLossPercentage = useMemo(() => {
     if (!summary || !summary.total_value || summary.total_value === 0) return 0;
@@ -842,7 +902,7 @@ function PortfolioAnalyzer() {
             </div>
           )}
 
-          {chartData.length > 0 && (
+          {chartData.length > 0 && summary?.allocation && (
             <div
               className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
@@ -850,89 +910,88 @@ function PortfolioAnalyzer() {
                 WebkitBackdropFilter: "blur(12px)" }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-                Asset Allocation
+                Asset Allocation & Portfolio Breakdown
               </h4>
-              <div className="h-56 sm:h-64 w-full min-h-0">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label={({ name, percent }) =>
-                        `${name}: ${formatNumber(percent * 100, locale, {
-                          maximumFractionDigits: 1 })}%`
-                      }
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-3">
+                    Allocation
+                  </p>
+                  <div className="h-56 sm:h-64 w-full min-h-0">
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie
+                          data={chartData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          label={({ name, percent }) =>
+                            `${name}: ${formatNumber(percent * 100, locale, {
+                              maximumFractionDigits: 1 })}%`
+                          }
+                        >
+                          {chartData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) =>
+                            formatCurrency(Number(value || 0), "USD", locale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2 })
+                          }
                         />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) =>
-                        formatCurrency(Number(value || 0), "USD", locale, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2 })
-                      }
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-3">
+                    Breakdown
+                  </p>
+                  <div className="space-y-3">
+                    {Object.entries(summary.allocation).map(([type, value]) => {
+                      const percentage =
+                        summary.total_value > 0
+                          ? (Number(value) / summary.total_value) * 100
+                          : 0;
+                      const percentageLabel = formatNumber(percentage, locale, {
+                        maximumFractionDigits: 1 });
+                      return (
+                        <div key={type} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-[color:var(--text-color,#111827)]">
+                              {t(`tools.portfolio.assetType.${type}`)}
+                            </span>
+                            <span className="text-[color:var(--muted-text,#6b7280)]">
+                              {percentageLabel}%
+                            </span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                            <div
+                              className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                            {formatCurrency(Number(value || 0), "USD", locale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
-
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 min-w-0">
-            <div
-              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
-              style={{
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
-            >
-              <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
-                Portfolio Breakdown
-              </h4>
-              <div className="space-y-3">
-                {Object.entries(summary.allocation).map(([type, value]) => {
-                  const percentage =
-                    summary.total_value > 0
-                      ? (Number(value) / summary.total_value) * 100
-                      : 0;
-                  const percentageLabel = formatNumber(percentage, locale, {
-                    maximumFractionDigits: 1 });
-                  return (
-                    <div key={type} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-[color:var(--text-color,#111827)] capitalize">
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </span>
-                        <span className="text-[color:var(--muted-text,#6b7280)]">
-                          {percentageLabel}%
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                        <div
-                          className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                        {formatCurrency(Number(value || 0), "USD", locale, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         </>
       )}
 
@@ -962,20 +1021,44 @@ function PortfolioAnalyzer() {
               >
                 <option value="stock">{t("tools.portfolio.stock")}</option>
                 <option value="crypto">{t("tools.portfolio.crypto")}</option>
+                <option value="etf">{t("tools.portfolio.etf")}</option>
+                <option value="bond">{t("tools.portfolio.bond")}</option>
+                <option value="fund">{t("tools.portfolio.fund")}</option>
+                <option value="commodity">{t("tools.portfolio.commodity")}</option>
+                <option value="real_estate">{t("tools.portfolio.real_estate")}</option>
+                <option value="other">{t("tools.portfolio.other")}</option>
               </select>
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
               Symbol
-              <input
-                type="text"
-                name="symbol"
-                value={newEntry.symbol}
-                onChange={handleInputChange}
-                placeholder={t("tools.portfolio.symbolPlaceholder")}
-                required
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="symbol"
+                  value={newEntry.symbol}
+                  onChange={handleInputChange}
+                  placeholder={t("tools.portfolio.symbolPlaceholder")}
+                  required
+                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                />
+                <button
+                  type="button"
+                  onClick={handleLookupPrice}
+                  disabled={lookupLoading || !newEntry.symbol.trim()}
+                  className="shrink-0 rounded-full border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#2563eb)] transition hover:bg-[color:var(--primary,#2563eb)]/20 disabled:opacity-50"
+                >
+                  {lookupLoading ? t("tools.portfolio.lookupLoading") : t("tools.portfolio.getPrice")}
+                </button>
+              </div>
+              {lookupError && (
+                <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">{lookupError}</p>
+              )}
+              {lookupPrice != null && !lookupError && (
+                <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  {t("tools.portfolio.currentPrice")}: {formatCurrency(lookupPrice, "USD", locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              )}
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -1079,8 +1162,8 @@ function PortfolioAnalyzer() {
                         className="text-[color:var(--text-color,#111827)] hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors"
                       >
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium capitalize text-[color:var(--text-color,#111827)]">
-                            {entry.asset_type.charAt(0).toUpperCase() + entry.asset_type.slice(1)}
+                          <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--text-color,#111827)]">
+                            {t(`tools.portfolio.assetType.${entry.asset_type}`)}
                           </span>
                         </td>
                         <td className="px-4 py-3 font-semibold">

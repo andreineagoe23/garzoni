@@ -1,4 +1,5 @@
 # finance/serializers.py
+from decimal import InvalidOperation
 from rest_framework import serializers
 from finance.models import (
     FinanceFact,
@@ -7,6 +8,7 @@ from finance.models import (
     UserPurchase,
     PortfolioEntry,
     FinancialGoal,
+    ASSET_TYPE_CHOICES,
 )
 from django.utils import timezone
 
@@ -63,6 +65,59 @@ class UserPurchaseSerializer(serializers.ModelSerializer):
         return UserPurchase.objects.create(user=self.context["request"].user, reward=reward)
 
 
+# Known crypto symbols (CoinGecko-style). Used to infer asset_type when saving.
+CRYPTO_SYMBOLS = frozenset(
+    {
+        "btc",
+        "bitcoin",
+        "eth",
+        "ethereum",
+        "sol",
+        "solana",
+        "xrp",
+        "ripple",
+        "ada",
+        "cardano",
+        "doge",
+        "dogecoin",
+        "bnb",
+        "binancecoin",
+        "matic",
+        "polynomial",
+        "dot",
+        "polkadot",
+        "avax",
+        "avalanche",
+        "link",
+        "chainlink",
+        "uni",
+        "uniswap",
+        "atom",
+        "cosmos",
+        "ltc",
+        "litecoin",
+        "near",
+        "fil",
+        "filecoin",
+        "apt",
+        "aptos",
+        "arb",
+        "arbitrum",
+        "op",
+        "optimism",
+        "inj",
+        "injective",
+        "sui",
+        "stx",
+        "stacks",
+        "rune",
+        "thorchain",
+        "ftm",
+        "fantom",
+    }
+)
+
+
 class PortfolioEntrySerializer(serializers.ModelSerializer):
     current_value = serializers.SerializerMethodField()
     gain_loss = serializers.SerializerMethodField()
@@ -84,6 +139,55 @@ class PortfolioEntrySerializer(serializers.ModelSerializer):
             "gain_loss_percentage",
         ]
         read_only_fields = ["current_price", "last_updated"]
+
+    def validate_asset_type(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Asset type is required.")
+        raw = value.strip().lower()
+        valid = {choice[0] for choice in ASSET_TYPE_CHOICES}
+        if raw not in valid:
+            raise serializers.ValidationError(
+                f"Asset type must be one of: {', '.join(sorted(valid))}."
+            )
+        return raw
+
+    def validate_symbol(self, value):
+        if not value or not str(value).strip():
+            raise serializers.ValidationError("Symbol is required.")
+        return str(value).strip()[:32]
+
+    def validate_quantity(self, value):
+        if value is None:
+            raise serializers.ValidationError("Quantity is required.")
+        try:
+            q = float(value)
+        except (TypeError, ValueError, InvalidOperation):
+            raise serializers.ValidationError("Quantity must be a positive number.")
+        if q <= 0:
+            raise serializers.ValidationError("Quantity must be greater than zero.")
+        return value
+
+    def validate_purchase_price(self, value):
+        if value is None:
+            raise serializers.ValidationError("Purchase price is required.")
+        try:
+            p = float(value)
+        except (TypeError, ValueError, InvalidOperation):
+            raise serializers.ValidationError("Purchase price must be a number.")
+        if p < 0:
+            raise serializers.ValidationError("Purchase price cannot be negative.")
+        return value
+
+    def validate(self, attrs):
+        symbol = (attrs.get("symbol") or "").strip().lower()
+        asset_type = (attrs.get("asset_type") or "stock").strip().lower()
+        # Only infer stock vs crypto from symbol when user picked one of those
+        if symbol and asset_type in ("stock", "crypto"):
+            if symbol in CRYPTO_SYMBOLS:
+                attrs["asset_type"] = "crypto"
+            else:
+                attrs["asset_type"] = "stock"
+        return attrs
 
     def get_current_value(self, obj):
         return obj.calculate_value()
