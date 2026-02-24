@@ -646,7 +646,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         )
 
         if not refresh_token:
-            logger.error("No refresh token provided for refresh endpoint")
+            logger.warning("No refresh token provided for refresh endpoint")
             return Response({"detail": "No refresh token provided."}, status=400)
 
         serializer = self.get_serializer(data={"refresh": refresh_token})

@@ -14,12 +14,16 @@ import { GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import ToolsAnalyticsPanel from "./ToolsAnalyticsPanel";
+import { BACKEND_URL } from "services/backendUrl";
 import { recordToolEvent } from "services/toolsAnalytics";
 import {
   TOOL_STORAGE_KEYS,
   toolByRoute,
+  toolGroups,
   toolsRegistry,
   type ToolDefinition } from "./toolsRegistry";
+
+const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
 
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
@@ -71,112 +75,72 @@ const UnknownToolRedirect = () => {
   return null;
 };
 
-const ToolsHub = ({
-  lastTool,
-  onNavigate,
-  recommendedTools }: {
-  lastTool: ToolDefinition | null;
-  onNavigate: (source: ToolNavSource) => void;
-  recommendedTools: ToolDefinition[];
-}) => {
+/** Tool card image: backend media path or group fallback. */
+const getToolCardImage = (tool: ToolDefinition): string => {
+  if (tool.cardImage) return `${MEDIA_BASE}/media/${tool.cardImage}`;
+  const group = toolGroups.find((g) => g.id === tool.group);
+  return group?.image ?? "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=240&fit=crop";
+};
+
+/**
+ * Landing view when user first opens /tools: cards only, no nav bar.
+ * Each card shows image, title, description; clicking opens the tool (nav appears there).
+ */
+const ToolsLanding = ({ onNavigate }: { onNavigate: (source: ToolNavSource) => void }) => {
   const { t } = useTranslation();
   const getToolText = (tool: ToolDefinition, field: string) =>
     t(`tools.entries.${tool.id}.${field}`);
   const showAnalytics =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("analytics") === "1";
+
   return (
     <div className="space-y-8 min-w-0">
-      {lastTool && (
-        <GlassCard padding="lg" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between min-w-0">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.continueTitle")}
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-[color:var(--accent,#111827)]">
-              {getToolText(lastTool, "title")}
-            </h2>
-            <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.continueSubtitle")}
-            </p>
-          </div>
-          <Link
-            to={`${TOOL_BASE_PATH}/${lastTool.route}`}
-            onClick={() => onNavigate("hub_card")}
-            className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
-          >
-            {t("tools.hub.resumeTool")}
-          </Link>
-        </GlassCard>
-      )}
-
-      {recommendedTools.length > 0 && (
-        <section className="space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.suggestedTitle")}
-            </p>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {t("tools.hub.suggestedSubtitle")}
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {recommendedTools.map((tool) => (
-              <GlassCard key={tool.id} padding="lg">
+      <section className="space-y-4">
+        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          {t("tools.hub.browseAllSubtitle")}
+        </p>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 min-w-0">
+          {toolsRegistry
+            .filter((tool) => tool.id !== "next-steps")
+            .map((tool) => {
+            const img = getToolCardImage(tool);
+            const title = getToolText(tool, "title");
+            const group = toolGroups.find((g) => g.id === tool.group);
+            const imgAlt = group ? t(`tools.groups.${group.id}.imageAlt`) : title;
+            return (
+              <GlassCard
+                key={tool.id}
+                padding="none"
+                className="overflow-hidden transition-all duration-200 hover:shadow-lg focus-within:ring-2 focus-within:ring-[color:var(--primary)]/30"
+              >
                 <Link
                   to={`${TOOL_BASE_PATH}/${tool.route}`}
                   onClick={() => onNavigate("hub_card")}
-                  className="block"
+                  className="block outline-none"
                 >
-                  <h3 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    {getToolText(tool, "title")}
-                  </h3>
-                  <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-                    {getToolText(tool, "promise")}
-                  </p>
-                  <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-                    {t("tools.hub.openTool")}
-                  </span>
+                  <div className="aspect-[16/10] w-full overflow-hidden bg-[color:var(--muted-text,#6b7280)]/10">
+                    <img
+                      src={img}
+                      alt={imgAlt}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)] line-clamp-3">
+                      {getToolText(tool, "whatItDoes")}
+                    </p>
+                    <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+                      {t("tools.hub.openTool")}
+                    </span>
+                  </div>
                 </Link>
               </GlassCard>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            {t("tools.hub.browseAll")}
-          </p>
-          <p className="mt-0.5 text-sm text-[color:var(--muted-text,#6b7280)]">
-            {t("tools.hub.browseAllSubtitle")}
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 min-w-0">
-          {toolsRegistry.map((tool) => (
-            <GlassCard
-              key={tool.id}
-              padding="md"
-              className="transition-all duration-200 hover:shadow-md focus-within:ring-2 focus-within:ring-[color:var(--primary)]/30"
-            >
-              <Link
-                to={`${TOOL_BASE_PATH}/${tool.route}`}
-                onClick={() => onNavigate("hub_card")}
-                className="block outline-none"
-              >
-                <h4 className="text-sm font-semibold text-[color:var(--accent)]">
-                  {getToolText(tool, "title")}
-                </h4>
-                <p className="mt-1.5 text-xs text-[color:var(--muted-text)] line-clamp-2">
-                  {getToolText(tool, "promise")}
-                </p>
-                <span className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary)]">
-                  {t("tools.hub.open")}
-                </span>
-              </Link>
-            </GlassCard>
-          ))}
+            );
+          })}
         </div>
       </section>
       {showAnalytics && <ToolsAnalyticsPanel />}
@@ -495,39 +459,22 @@ const ToolsPage = () => {
         </p>
       </header>
 
-      <nav
-        aria-label={t("tools.nav.ariaLabel")}
-        className="w-full"
-      >
-        <GlassCard padding="lg" className="w-full overflow-hidden">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-            {t("tools.nav.browse")}
-          </p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 min-w-0">
-            <NavLink
-              to={TOOL_BASE_PATH}
-              onClick={() => setNavSource("sidebar")}
-              className={({ isActive }) =>
-                [
-                  "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition",
-                  isActive
-                    ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
-                    : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-[color:var(--muted-text)] hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
-                ]
-                  .filter(Boolean)
-                  .join(" ")
-              }
-            >
-              {t("tools.nav.hubLink")}
-            </NavLink>
-            {toolsRegistry.map((tool) => (
+      {activeTool !== null && (
+        <nav
+          aria-label={t("tools.nav.ariaLabel")}
+          className="w-full"
+        >
+          <GlassCard padding="lg" className="w-full overflow-hidden">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+              {t("tools.nav.browse")}
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 min-w-0">
               <NavLink
-                key={tool.id}
-                to={`${TOOL_BASE_PATH}/${tool.route}`}
+                to={TOOL_BASE_PATH}
                 onClick={() => setNavSource("sidebar")}
                 className={({ isActive }) =>
                   [
-                    "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition line-clamp-1",
+                    "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition",
                     isActive
                       ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
                       : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-[color:var(--muted-text)] hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
@@ -536,25 +483,38 @@ const ToolsPage = () => {
                     .join(" ")
                 }
               >
-                {t(`tools.entries.${tool.id}.title`)}
+                {t("tools.nav.hubLink")}
               </NavLink>
-            ))}
-          </div>
-        </GlassCard>
-      </nav>
+              {toolsRegistry.map((tool) => (
+                <NavLink
+                  key={tool.id}
+                  to={`${TOOL_BASE_PATH}/${tool.route}`}
+                  onClick={() => setNavSource("sidebar")}
+                  className={({ isActive }) =>
+                    [
+                      "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition line-clamp-1",
+                      isActive
+                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
+                        : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-[color:var(--muted-text)] hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")
+                  }
+                >
+                  {t(`tools.entries.${tool.id}.title`)}
+                </NavLink>
+              ))}
+            </div>
+          </GlassCard>
+        </nav>
+      )}
 
       <div className="w-full space-y-6">
           <section style={{ minHeight: minViewportHeight }} className="w-full">
             <Routes>
               <Route
                 index
-                element={
-                  <ToolsHub
-                    lastTool={lastTool}
-                    onNavigate={setNavSource}
-                    recommendedTools={recommendedTools}
-                  />
-                }
+                element={<ToolsLanding onNavigate={setNavSource} />}
               />
               {toolsRegistry.map((tool) => (
                 <Route

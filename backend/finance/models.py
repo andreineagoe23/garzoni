@@ -153,10 +153,22 @@ class StripePayment(models.Model):
         db_table = "core_stripepayment"
 
 
+ASSET_TYPE_CHOICES = [
+    ("stock", "Stock"),
+    ("crypto", "Crypto"),
+    ("etf", "ETF"),
+    ("bond", "Bond"),
+    ("fund", "Fund"),
+    ("commodity", "Commodity"),
+    ("real_estate", "Real estate"),
+    ("other", "Other"),
+]
+
+
 class PortfolioEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    asset_type = models.CharField(max_length=20, choices=[("stock", "Stock"), ("crypto", "Crypto")])
-    symbol = models.CharField(max_length=10)  # e.g., AAPL, BTC
+    asset_type = models.CharField(max_length=20, choices=ASSET_TYPE_CHOICES)
+    symbol = models.CharField(max_length=32)  # e.g., AAPL, BTC, fund name
     quantity = models.DecimalField(max_digits=20, decimal_places=8)
     purchase_price = models.DecimalField(max_digits=20, decimal_places=8)
     purchase_date = models.DateField()

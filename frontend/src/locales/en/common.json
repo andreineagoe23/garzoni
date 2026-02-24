@@ -475,7 +475,29 @@
     "portfolio": {
       "stock": "Stock",
       "crypto": "Crypto",
-      "symbolPlaceholder": "e.g., AAPL, BTC",
+      "etf": "ETF",
+      "bond": "Bond",
+      "fund": "Fund",
+      "commodity": "Commodity",
+      "real_estate": "Real estate",
+      "other": "Other",
+      "assetType": {
+        "stock": "Stock",
+        "crypto": "Crypto",
+        "etf": "ETF",
+        "bond": "Bond",
+        "fund": "Fund",
+        "commodity": "Commodity",
+        "real_estate": "Real estate",
+        "other": "Other"
+      },
+      "symbolPlaceholder": "e.g., AAPL, BTC, SPY",
+      "livePriceNotAvailable": "Live price not available for this asset type.",
+      "getPrice": "Get price",
+      "lookupLoading": "…",
+      "currentPrice": "Current price",
+      "symbolRequired": "Enter a symbol to look up.",
+      "priceNotFound": "Price not found. Check symbol or try again.",
       "loadError": "Failed to load portfolio. Please try again.",
       "exportEmpty": "No portfolio entries to export yet.",
       "exportReady": "Portfolio export ready.",
@@ -1225,7 +1247,8 @@
     "notIncluded": "Not Included",
     "unlimited": "Unlimited",
     "perDay": "{{count}} / day",
-    "included": "Included"
+    "included": "Included",
+    "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   },
   "onboarding": {
     "loading": "Loading onboarding...",
@@ -1894,7 +1917,7 @@
         },
         "subscriptions": {
           "title": "6. Subscriptions, billing, and payments",
-          "body": "Paid plans, billing intervals, and included features are displayed in product pricing. Payments are processed by third-party providers. Unless stated otherwise, subscriptions may renew automatically until cancelled."
+          "body": "Paid plans, billing intervals, and included features are displayed on the subscriptions page. Payments are processed securely by Stripe. Subscriptions renew automatically until you cancel. You may cancel at any time before the next billing date; access continues until the end of the current period. Refunds are given only where required by applicable law (for example UK Consumer Rights Act 2015)."
         },
         "thirdParty": {
           "title": "7. Third-party services and links",
