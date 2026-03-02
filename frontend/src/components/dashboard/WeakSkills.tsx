@@ -31,7 +31,8 @@ const WeakSkills = ({
   locale,
   prefersReducedMotion,
   onSkillClick,
-  onPracticeClick }: WeakSkillsProps) => {
+  onPracticeClick,
+}: WeakSkillsProps) => {
   const { t } = useTranslation();
   if (!show) return null;
 
@@ -94,7 +95,9 @@ const WeakSkills = ({
                 type="button"
                 onClick={() => onSkillClick?.(skill)}
                 className="w-full rounded text-left focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
-                aria-label={t("dashboard.weakSkills.practiceSkillAria", { skill: skill.skill })}
+                aria-label={t("dashboard.weakSkills.practiceSkillAria", {
+                  skill: skill.skill,
+                })}
               >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -117,7 +120,9 @@ const WeakSkills = ({
                   />
                 </div>
                 <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)] transition group-hover:text-[color:var(--error,#dc2626)]">
-                  {t("dashboard.weakSkills.lowMasteryIn", { skill: skill.skill })}
+                  {t("dashboard.weakSkills.lowMasteryIn", {
+                    skill: skill.skill,
+                  })}
                 </p>
               </button>
               <div className="mt-2 flex items-center justify-end">
@@ -128,7 +133,10 @@ const WeakSkills = ({
                     onPracticeClick?.(skill);
                   }}
                   className="rounded bg-transparent p-0 text-[10px] text-[color:var(--muted-text,#6b7280)] underline hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
-                  aria-label={t("dashboard.weakSkills.practiceRecommendationAria", { skill: skill.skill })}
+                  aria-label={t(
+                    "dashboard.weakSkills.practiceRecommendationAria",
+                    { skill: skill.skill }
+                  )}
                 >
                   {t("dashboard.weakSkills.practice")}
                 </button>

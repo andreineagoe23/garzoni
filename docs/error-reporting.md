@@ -2,6 +2,15 @@
 
 We use Sentry so **you see errors before users complain**. Environment-based sampling: higher in production.
 
+## When Sentry is disabled
+
+Both frontend and backend have Sentry **init commented out** by default (Sentry is a paid product in production). If you do **not** set `REACT_APP_SENTRY_DSN` (frontend) or `SENTRY_DSN` (backend):
+
+- **Frontend**: No events are sent; `reportToolError` and related helpers no-op. Rely on browser console, user reports, and any server-side logging of API errors.
+- **Backend**: No events are sent. Rely on **application logs** (e.g. Django logging, Gunicorn logs, Railway/hosting logs) and **alerts** you configure on your host (e.g. log-based alerts, health checks).
+
+To re-enable: set the DSN env vars and uncomment the Sentry init in `frontend/src/sentry.ts` and `backend/settings/settings.py` (see those files for the exact blocks). Keep PII scrubbing and sampling as documented in this file.
+
 ## What we track (minimum)
 
 ### Frontend

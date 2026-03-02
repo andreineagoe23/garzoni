@@ -4,10 +4,11 @@ import React, {
   useState,
   useRef,
   useCallback,
-  useEffect } from "react";
+  useEffect,
+} from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { EntitlementFeature } from "types/api";
 import { attachToken } from "services/httpClient";
 import { queryClient, queryKeys } from "lib/reactQuery";
@@ -27,18 +28,18 @@ type ApiErrorResponse = {
   config?: { url?: string; baseURL?: string };
 };
 
-// Always send cookies (refresh token) on cross-site requests
-axios.defaults.withCredentials = true;
-
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserProfile | null;
   profile: UserProfile | null;
   financialProfile: FinancialProfile | null;
   settings: Record<string, unknown> | null;
-  loginUser: (
-    credentials: Record<string, unknown>
-  ) => Promise<{ success: boolean; error?: string; code?: string; user?: UserProfile }>;
+  loginUser: (credentials: Record<string, unknown>) => Promise<{
+    success: boolean;
+    error?: string;
+    code?: string;
+    user?: UserProfile;
+  }>;
   registerUser: (userData: Record<string, unknown>) => Promise<{
     success: boolean;
     error?: string;
@@ -47,7 +48,9 @@ type AuthContextValue = {
     next?: string;
   }>;
   logoutUser: () => Promise<void>;
-  completeOAuthLogin: (accessToken: string) => Promise<{ success: boolean; error?: string }>;
+  completeOAuthLogin: (
+    accessToken: string
+  ) => Promise<{ success: boolean; error?: string }>;
   getAccessToken: () => string | null;
   isInitialized: boolean;
   loadProfile: (options?: { force?: boolean }) => Promise<UserProfile | null>;
@@ -119,7 +122,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     trialEnd: null,
     features: {},
     subscription: null,
-    fallback: false });
+    fallback: false,
+  });
   const [entitlementError, setEntitlementError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -149,14 +153,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       trialEnd: null,
       features: {},
       subscription: null,
-      fallback: false });
+      fallback: false,
+    });
     setEntitlementError(null);
     profileRef.current = null;
     financialProfileRef.current = null;
     settingsRef.current = null;
     entitlementsRef.current = null;
     refreshAttempts = 0;
-    delete axios.defaults.headers.common["Authorization"];
+    attachToken(null);
     inFlightRequestsRef.current.clear();
     queryClient.removeQueries({ queryKey: queryKeys.profile() });
     queryClient.removeQueries({ queryKey: queryKeys.entitlements() });
@@ -175,7 +180,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const stored = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
     if (stored) {
       inMemoryToken = stored;
-      axios.defaults.headers.common["Authorization"] = `Bearer ${stored}`;
       attachToken(stored);
       return stored;
     }
@@ -196,10 +200,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authLog("[auth] fetchUserWithToken using token");
 
       try {
-        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}` } });
+        const userResponse = await apiClient.get("/verify-auth/", {
+          headers: { Authorization: `Bearer ${token}` },
+          skipAuthRedirect: true,
+        });
 
         if (userResponse.data.isAuthenticated) {
           setUser(userResponse.data.user);
@@ -239,10 +243,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
-      const response = await axios.post(
-        `${BACKEND_URL}/token/refresh/`,
+      const response = await apiClient.post(
+        "/token/refresh/",
         {},
-        { withCredentials: true }
+        {
+          skipAuthRedirect: true,
+        }
       );
 
       if (!response.data.access) {
@@ -252,8 +258,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       inMemoryToken = response.data.access;
       persistAccessToken(inMemoryToken);
       authLog("[auth] new access token received");
-      axios.defaults.headers.common["Authorization"] =
-        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
       authLog("[auth] refresh success");
 
@@ -357,11 +361,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loginUser = async (credentials: Record<string, unknown>) => {
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/login-secure/`,
-        credentials,
-        { withCredentials: true }
-      );
+      const response = await apiClient.post("/login-secure/", credentials, {
+        skipAuthRedirect: true,
+      });
 
       if (!response.data.access) {
         authError("No access token in login response");
@@ -373,9 +375,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(true);
       setUser(response.data.user);
 
-      // Set the authorization header
-      axios.defaults.headers.common["Authorization"] =
-        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
 
       return { success: true, user: response.data.user as UserProfile };
@@ -384,11 +383,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const status = errorObj.response?.status;
       const data = errorObj.response?.data;
       const code = data?.code;
-      const url = errorObj.config?.url ?? errorObj.config?.baseURL ?? BACKEND_URL;
-      authError(
-        "[auth] Login failed:",
-        { status, code, detail: data?.detail, errors: data?.errors, url }
-      );
+      const url =
+        errorObj.config?.url ?? errorObj.config?.baseURL ?? "/login-secure/";
+      authError("[auth] Login failed:", {
+        status,
+        code,
+        detail: data?.detail,
+        errors: data?.errors,
+        url,
+      });
       let message: string;
       if (!errorObj.response) {
         message =
@@ -407,11 +410,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const registerUser = async (userData: Record<string, unknown>) => {
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/register-secure/`,
-        userData,
-        { withCredentials: true }
-      );
+      const response = await apiClient.post("/register-secure/", userData, {
+        skipAuthRedirect: true,
+      });
 
       if (!response.data.access) {
         authError("No access token in registration response");
@@ -423,25 +424,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(true);
       setUser(response.data.user);
 
-      // Set the authorization header
-      axios.defaults.headers.common["Authorization"] =
-        `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
 
       return {
         success: true,
         user: response.data.user as UserProfile,
-        next: response.data.next };
+        next: response.data.next,
+      };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
       const status = errorObj.response?.status;
       const data = errorObj.response?.data;
       const code = data?.code;
-      const url = errorObj.config?.url ?? errorObj.config?.baseURL ?? BACKEND_URL;
-      authError(
-        "[auth] Registration failed:",
-        { status, code, detail: data?.detail, errors: data?.errors, url }
-      );
+      const url =
+        errorObj.config?.url ?? errorObj.config?.baseURL ?? "/register-secure/";
+      authError("[auth] Registration failed:", {
+        status,
+        code,
+        detail: data?.detail,
+        errors: data?.errors,
+        url,
+      });
       let message: string;
       if (!errorObj.response) {
         message =
@@ -468,12 +471,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logoutUser = async () => {
     try {
       if (inMemoryToken) {
-        await axios.post(
-          `${BACKEND_URL}/logout/`,
+        await apiClient.post(
+          "/logout/",
           {},
           {
-            withCredentials: true,
-            headers: { Authorization: `Bearer ${inMemoryToken}` } }
+            headers: { Authorization: `Bearer ${inMemoryToken}` },
+            skipAuthRedirect: true,
+          }
         );
       }
     } catch (error) {
@@ -485,18 +489,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const completeOAuthLogin = useCallback(
-    async (accessToken: string): Promise<{ success: boolean; error?: string }> => {
+    async (
+      accessToken: string
+    ): Promise<{ success: boolean; error?: string }> => {
       if (!accessToken?.trim()) {
         return { success: false, error: "Missing access token" };
       }
       inMemoryToken = accessToken.trim();
       persistAccessToken(inMemoryToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${inMemoryToken}`;
       attachToken(inMemoryToken);
       try {
-        const userResponse = await axios.get(`${BACKEND_URL}/verify-auth/`, {
-          withCredentials: true,
-          headers: { Authorization: `Bearer ${inMemoryToken}` } });
+        const userResponse = await apiClient.get("/verify-auth/", {
+          headers: { Authorization: `Bearer ${inMemoryToken}` },
+          skipAuthRedirect: true,
+        });
         if (userResponse.data?.isAuthenticated && userResponse.data?.user) {
           setUser(userResponse.data.user);
           setIsAuthenticated(true);
@@ -505,7 +511,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         return { success: false, error: "Invalid auth response" };
       } catch (err) {
-        const msg = (err as ApiErrorResponse)?.response?.data?.detail ?? (err as Error)?.message ?? "Verify failed";
+        const msg =
+          (err as ApiErrorResponse)?.response?.data?.detail ??
+          (err as Error)?.message ??
+          "Verify failed";
         authError("OAuth complete verify failed:", msg);
         return { success: false, error: String(msg) };
       }
@@ -561,9 +570,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await cacheRequest(
         "profile",
         async () => {
-          const response = await axios.get(`${BACKEND_URL}/userprofile/`, {
-            headers: {
-              Authorization: `Bearer ${inMemoryToken}` } });
+          const response = await apiClient.get("/userprofile/");
           return response.data;
         },
         { force }
@@ -573,8 +580,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       profileRef.current = profileData;
       setProfile(profileData);
       const embeddedFinancial =
-        (profileData?.user_data as { financial_profile?: FinancialProfile } | undefined)
-          ?.financial_profile ?? null;
+        (
+          profileData?.user_data as
+            | { financial_profile?: FinancialProfile }
+            | undefined
+        )?.financial_profile ?? null;
       if (embeddedFinancial && !financialProfileRef.current) {
         financialProfileRef.current = embeddedFinancial;
         setFinancialProfile(embeddedFinancial);
@@ -594,8 +604,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await cacheRequest(
         "financial-profile",
         async () => {
-          const response = await axios.get(`${BACKEND_URL}/me/profile/`, {
-            headers: { Authorization: `Bearer ${inMemoryToken}` } });
+          const response = await apiClient.get("/me/profile/");
           return response.data;
         },
         { force }
@@ -610,8 +619,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateFinancialProfile = useCallback(
     async (data: Partial<FinancialProfile>) => {
       if (!isAuthenticated) return null;
-      const response = await axios.put(`${BACKEND_URL}/me/profile/`, data, {
-        headers: { Authorization: `Bearer ${inMemoryToken}` } });
+      const response = await apiClient.put("/me/profile/", data);
       financialProfileRef.current = response.data;
       setFinancialProfile(response.data);
       return response.data;
@@ -630,9 +638,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await cacheRequest(
         "settings",
         async () => {
-          const response = await axios.get(`${BACKEND_URL}/user/settings/`, {
-            headers: {
-              Authorization: `Bearer ${inMemoryToken}` } });
+          const response = await apiClient.get("/user/settings/");
           return response.data;
         },
         { force }
@@ -649,7 +655,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadEntitlements = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
       if (!isAuthenticated) {
-      const fallbackEntitlements = {
+        const fallbackEntitlements = {
           plan: "starter",
           label: null,
           entitled: false,
@@ -657,7 +663,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           trialEnd: null,
           features: {},
           subscription: null,
-          fallback: false };
+          fallback: false,
+        };
         entitlementsRef.current = fallbackEntitlements;
         setEntitlements(fallbackEntitlements);
         setEntitlementError(null);
@@ -672,12 +679,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const data = await cacheRequest(
           "entitlements",
           async () => {
-            const response = await axios.get(
-              `${BACKEND_URL}/finance/entitlements/`,
-              {
-                headers: {
-                  Authorization: `Bearer ${inMemoryToken}` } }
-            );
+            const response = await apiClient.get("/finance/entitlements/");
             return response.data;
           },
           { force }
@@ -701,13 +703,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription:
             (dataObj?.subscription as Record<string, unknown>) || null,
           fallback: false,
-          checked_at: dataObj?.checked_at };
+          checked_at: dataObj?.checked_at,
+        };
 
         entitlementsRef.current = normalized;
         setEntitlements(normalized);
         setEntitlementError(null);
         queryClient.setQueryData(queryKeys.entitlements(), {
-          data: normalized });
+          data: normalized,
+        });
         return normalized;
       } catch (error) {
         const fallbackEntitlements: Entitlements = {
@@ -718,15 +722,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           trialEnd: null,
           features: {},
           subscription: null,
-          fallback: true };
+          fallback: true,
+        };
         entitlementsRef.current = fallbackEntitlements;
         setEntitlements(fallbackEntitlements);
         setEntitlementError(
-          error.response?.data?.error ||
-            t("auth.entitlementsUnavailable")
+          error.response?.data?.error || t("auth.entitlementsUnavailable")
         );
         queryClient.setQueryData(queryKeys.entitlements(), {
-          data: fallbackEntitlements });
+          data: fallbackEntitlements,
+        });
         return fallbackEntitlements;
       }
     },
@@ -745,7 +750,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [loadFinancialProfile, loadProfile]);
 
   useEffect(() => {
-    const requestId = axios.interceptors.request.use(
+    const requestId = apiClient.interceptors.request.use(
       (config) => {
         if (inMemoryToken) {
           config.headers.Authorization = `Bearer ${inMemoryToken}`;
@@ -755,7 +760,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (error) => Promise.reject(error)
     );
 
-    const responseId = axios.interceptors.response.use(
+    const responseId = apiClient.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
@@ -767,12 +772,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const refreshed = await refreshToken();
             if (refreshed.ok) {
               originalRequest.headers.Authorization = `Bearer ${refreshed.token}`;
-              return axios(originalRequest);
+              return apiClient(originalRequest);
             }
           } catch (refreshError) {
             authError(
               "Token refresh failed in interceptor:",
-              refreshError.response?.data || refreshError.message
+              (
+                refreshError as {
+                  response?: { data?: unknown };
+                  message?: string;
+                }
+              )?.response?.data || (refreshError as Error)?.message
             );
           }
 
@@ -784,8 +794,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     return () => {
-      axios.interceptors.request.eject(requestId);
-      axios.interceptors.response.eject(responseId);
+      apiClient.interceptors.request.eject(requestId);
+      apiClient.interceptors.response.eject(responseId);
     };
   }, [clearAuthState, refreshToken]);
 
@@ -808,7 +818,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         trialEnd: null,
         features: {},
         subscription: null,
-        fallback: false });
+        fallback: false,
+      });
       setEntitlementError(null);
       entitlementsRef.current = null;
       financialProfileRef.current = null;
@@ -851,7 +862,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         reloadEntitlements,
         entitlements,
         entitlementError,
-        entitlementSupportLink: ENTITLEMENT_SUPPORT_URL }}
+        entitlementSupportLink: ENTITLEMENT_SUPPORT_URL,
+      }}
     >
       {children}
     </AuthContext.Provider>

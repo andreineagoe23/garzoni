@@ -11,7 +11,8 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
     downloads: "subscriptions.perDay",
     analytics: "billing.notAvailable",
     ai_tutor: "subscriptions.perDay",
-    personalized_path: "subscriptions.notIncluded" },
+    personalized_path: "subscriptions.notIncluded",
+  },
   plus: {
     daily_limits: "subscriptions.unlimited",
     hints: "subscriptions.unlimited",
@@ -19,7 +20,8 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
     downloads: "subscriptions.unlimited",
     analytics: "subscriptions.included",
     ai_tutor: "subscriptions.perDay",
-    personalized_path: "subscriptions.included" },
+    personalized_path: "subscriptions.included",
+  },
   pro: {
     daily_limits: "subscriptions.unlimited",
     hints: "subscriptions.unlimited",
@@ -27,11 +29,14 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
     downloads: "subscriptions.unlimited",
     analytics: "subscriptions.included",
     ai_tutor: "subscriptions.perDay",
-    personalized_path: "subscriptions.included" } };
+    personalized_path: "subscriptions.included",
+  },
+};
 const PLAN_COUNTS: Record<string, Record<string, number>> = {
   starter: { daily_limits: 3, hints: 2, downloads: 1, ai_tutor: 5 },
   plus: { streak_repair: 1, ai_tutor: 50 },
-  pro: { streak_repair: 1, ai_tutor: 200 } };
+  pro: { streak_repair: 1, ai_tutor: 200 },
+};
 
 type EntitlementsPayload = {
   plan?: string;
@@ -57,7 +62,8 @@ function getPlanDisplayValue(
 
 const FeatureRow = ({
   featureKey,
-  entitlements }: {
+  entitlements,
+}: {
   featureKey: FeatureKey;
   entitlements?: EntitlementsPayload;
 }) => {
@@ -120,11 +126,15 @@ const FeatureRow = ({
 };
 
 const EntitlementMatrix = ({
-  entitlements }: {
+  entitlements,
+}: {
   entitlements?: EntitlementsPayload;
 }) => {
   const { t } = useTranslation();
-  const planLabel = entitlements?.label || (entitlements?.plan || "starter").charAt(0).toUpperCase() + (entitlements?.plan || "starter").slice(1);
+  const planLabel =
+    entitlements?.label ||
+    (entitlements?.plan || "starter").charAt(0).toUpperCase() +
+      (entitlements?.plan || "starter").slice(1);
   return (
     <GlassCard padding="xl" className="space-y-4">
       <header className="space-y-2">

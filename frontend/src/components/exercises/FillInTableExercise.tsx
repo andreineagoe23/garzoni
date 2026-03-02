@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { playFeedbackChime } from "utils/sound";
@@ -38,11 +37,13 @@ const FillInTableExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false }: FillInTableExerciseProps) => {
+  disabled = false,
+}: FillInTableExerciseProps) => {
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const { t } = useTranslation();
-  const { question, table, correctAnswer, learn_more_url, explanation } = data || {};
+  const { question, table, correctAnswer, learn_more_url, explanation } =
+    data || {};
   const columns = table?.columns || [];
   const rows = table?.rows || [];
 
@@ -56,9 +57,8 @@ const FillInTableExercise = ({
     );
   }, [rows, columns.length]);
 
-  const [answers, setAnswers] = useState<Record<string | number, string[]>>(
-    emptyAnswers
-  );
+  const [answers, setAnswers] =
+    useState<Record<string | number, string[]>>(emptyAnswers);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
     null
@@ -70,7 +70,11 @@ const FillInTableExercise = ({
     setFeedbackType(null);
   }, [emptyAnswers, isCompleted]);
 
-  const handleChange = (rowId: string | number, colIndex: number, value: string) => {
+  const handleChange = (
+    rowId: string | number,
+    colIndex: number,
+    value: string
+  ) => {
     if (disabled) return;
     setAnswers((prev) => {
       const next = { ...prev };
@@ -90,8 +94,12 @@ const FillInTableExercise = ({
     const expectedRow = correctAnswer[rowId];
     if (!expectedRow) return null;
     return (
-      String(expectedRow[colIndex] ?? "").trim().toLowerCase() ===
-      String(value ?? "").trim().toLowerCase()
+      String(expectedRow[colIndex] ?? "")
+        .trim()
+        .toLowerCase() ===
+      String(value ?? "")
+        .trim()
+        .toLowerCase()
     );
   };
 
@@ -111,8 +119,12 @@ const FillInTableExercise = ({
       Object.entries(correctAnswer).every(([rowId, rowValues]) =>
         rowValues.every(
           (expected, colIndex) =>
-            String(expected ?? "").trim().toLowerCase() ===
-            String(answers[rowId]?.[colIndex] ?? "").trim().toLowerCase()
+            String(expected ?? "")
+              .trim()
+              .toLowerCase() ===
+            String(answers[rowId]?.[colIndex] ?? "")
+              .trim()
+              .toLowerCase()
         )
       );
 
@@ -124,7 +136,10 @@ const FillInTableExercise = ({
       setFeedbackType("error");
     }
 
-    playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: Boolean(isCorrect) });
+    playFeedbackChime({
+      enabled: Boolean(soundEnabled ?? true),
+      correct: Boolean(isCorrect),
+    });
     onAttempt?.({ correct: Boolean(isCorrect) });
 
     if (isCorrect) {
@@ -141,12 +156,7 @@ const FillInTableExercise = ({
     try {
       const sectionId = exerciseId;
       if (!sectionId) return;
-      await axios.post(
-        `${BACKEND_URL}/exercises/reset/`,
-        { section_id: sectionId },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/exercises/reset/", { section_id: sectionId });
       setAnswers(emptyAnswers);
       setFeedback("");
       setFeedbackType(null);

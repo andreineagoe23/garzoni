@@ -14,7 +14,8 @@ type AnalyticsState = {
 
 const getEmptyState = (): AnalyticsState => ({
   counts: {},
-  events: [] });
+  events: [],
+});
 
 export const recordToolEvent = (
   type: string,
@@ -29,7 +30,8 @@ export const recordToolEvent = (
       type,
       toolId,
       meta,
-      timestamp: new Date().toISOString() };
+      timestamp: new Date().toISOString(),
+    };
     state.events = [event, ...state.events].slice(0, 200);
     if (!state.counts[type]) {
       state.counts[type] = { total: 0, byTool: {} };

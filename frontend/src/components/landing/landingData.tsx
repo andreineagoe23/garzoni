@@ -5,7 +5,8 @@ import {
   Trophy,
   BookHalf,
   LightningCharge,
-  GraphUpArrow } from "react-bootstrap-icons";
+  GraphUpArrow,
+} from "react-bootstrap-icons";
 
 type FeatureCopy = {
   title: string;
@@ -55,13 +56,15 @@ export const useLandingData = () => {
       t(`landing.features.items.${id}.bullets.1`),
       t(`landing.features.items.${id}.bullets.2`),
     ],
-    icon: FEATURE_ICONS[index] }));
+    icon: FEATURE_ICONS[index],
+  }));
 
   const reviews: ReviewCopy[] = REVIEW_SEEDS.map((review) => ({
     id: review.id,
     name: review.name,
     title: t(`landing.reviews.items.${review.id}.title`),
-    quote: t(`landing.reviews.items.${review.id}.quote`) }));
+    quote: t(`landing.reviews.items.${review.id}.quote`),
+  }));
 
   return { features, reviews };
 };

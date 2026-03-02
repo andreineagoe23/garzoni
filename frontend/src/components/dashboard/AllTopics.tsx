@@ -35,7 +35,8 @@ type LearningPath = {
 
 const AllTopics = ({
   onCourseClick,
-  navigationControls = null }: {
+  navigationControls = null,
+}: {
   onCourseClick?: (courseId: number, pathId: number) => void;
   navigationControls?: React.ReactNode;
 }) => {
@@ -77,8 +78,11 @@ const AllTopics = ({
               image: p.image ? String(p.image) : undefined,
               access_tier: p.access_tier ? String(p.access_tier) : undefined,
               sort_order:
-                typeof p.sort_order === "number" ? Number(p.sort_order) : undefined,
-              is_locked: typeof p.is_locked === "boolean" ? p.is_locked : undefined,
+                typeof p.sort_order === "number"
+                  ? Number(p.sort_order)
+                  : undefined,
+              is_locked:
+                typeof p.is_locked === "boolean" ? p.is_locked : undefined,
               courses: Array.isArray(p.courses)
                 ? p.courses.map((course: unknown): LearningPathCourse => {
                     const c = course as Partial<LearningPathCourse>;
@@ -98,13 +102,15 @@ const AllTopics = ({
                       totalLessons: c.totalLessons
                         ? Number(c.totalLessons)
                         : undefined,
-                      lessons: Array.isArray(c.lessons) ? c.lessons : undefined };
+                      lessons: Array.isArray(c.lessons) ? c.lessons : undefined,
+                    };
                   })
                 : undefined,
               progress: p.progress ? Number(p.progress) : undefined,
               courseProgresses: Array.isArray(p.courseProgresses)
                 ? p.courseProgresses.map(Number)
-                : undefined };
+                : undefined,
+            };
           })
         );
 
@@ -130,9 +136,7 @@ const AllTopics = ({
         }
       } catch (err) {
         console.error("Error fetching learning paths:", err);
-        setError(
-          t("allTopics.error")
-        );
+        setError(t("allTopics.error"));
       } finally {
         setLoading(false);
       }
@@ -152,7 +156,8 @@ const AllTopics = ({
       const isLocked =
         typeof path.is_locked === "boolean"
           ? path.is_locked
-          : planRank(entitlements?.plan) < planRank(path.access_tier || "starter");
+          : planRank(entitlements?.plan) <
+            planRank(path.access_tier || "starter");
       const coursesInPath = path.courses || [];
       const courseProgresses = coursesInPath.map((course) =>
         getCourseProgress(course)
@@ -163,7 +168,8 @@ const AllTopics = ({
         ...path,
         is_locked: isLocked,
         progress: pathProgress,
-        courseProgresses: courseProgresses };
+        courseProgresses: courseProgresses,
+      };
     });
 
     // Apply filters
@@ -191,7 +197,14 @@ const AllTopics = ({
     }
 
     return paths;
-  }, [deferredPaths, entitlements?.plan, getCourseProgress, getPathProgress, sortBy, filterBy]);
+  }, [
+    deferredPaths,
+    entitlements?.plan,
+    getCourseProgress,
+    getPathProgress,
+    sortBy,
+    filterBy,
+  ]);
 
   if (loading) {
     return (
@@ -237,18 +250,10 @@ const AllTopics = ({
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             aria-label={t("allTopics.sortByAria")}
           >
-            <option value="default">
-              {t("allTopics.sort.default")}
-            </option>
-            <option value="name">
-              {t("allTopics.sort.name")}
-            </option>
-            <option value="easiest">
-              {t("allTopics.sort.easiest")}
-            </option>
-            <option value="hardest">
-              {t("allTopics.sort.hardest")}
-            </option>
+            <option value="default">{t("allTopics.sort.default")}</option>
+            <option value="name">{t("allTopics.sort.name")}</option>
+            <option value="easiest">{t("allTopics.sort.easiest")}</option>
+            <option value="hardest">{t("allTopics.sort.hardest")}</option>
             <option value="progress-asc">
               {t("allTopics.sort.progressAsc")}
             </option>
@@ -280,18 +285,14 @@ const AllTopics = ({
             className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             aria-label={t("allTopics.filterAria")}
           >
-            <option value="all">
-              {t("allTopics.filter.all")}
-            </option>
+            <option value="all">{t("allTopics.filter.all")}</option>
             <option value="not-started">
               {t("allTopics.filter.notStarted")}
             </option>
             <option value="in-progress">
               {t("allTopics.filter.inProgress")}
             </option>
-            <option value="completed">
-              {t("allTopics.filter.completed")}
-            </option>
+            <option value="completed">{t("allTopics.filter.completed")}</option>
           </select>
         </div>
       </GlassCard>
@@ -307,111 +308,119 @@ const AllTopics = ({
             className="group"
             padding="lg"
           >
-          <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
-          <div className="relative">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                {path.image && (
-                  <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f3f4f6)] shadow-md sm:block">
-                    <img
-                      src={path.image}
-                      alt={path.title}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-                    {path.title}
-                  </h3>
-                  {path.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
-                      {path.description}
-                    </p>
-                  )}
-                  {/* Progress indicator per path */}
-                  {path.progress !== undefined && (
-                    <div className="mt-3 space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
-                          {t("allTopics.pathProgress")}
-                        </span>
-                        <span className="font-semibold text-[color:var(--text-color,#111827)]">
-                          {formatNumber(path.progress ?? 0, locale, {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0 })}
-                          %
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-500"
-                          style={{ width: `${path.progress}%` }}
-                          role="progressbar"
-                          aria-valuenow={path.progress}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-label={t("allTopics.progressAria", {
-                            value: formatNumber(path.progress ?? 0, locale, {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0 }) })}
-                        />
-                      </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+            <div className="relative">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  {path.image && (
+                    <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f3f4f6)] shadow-md sm:block">
+                      <img
+                        src={path.image}
+                        alt={path.title}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
                     </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                      {path.title}
+                    </h3>
+                    {path.description && (
+                      <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                        {path.description}
+                      </p>
+                    )}
+                    {/* Progress indicator per path */}
+                    {path.progress !== undefined && (
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
+                            {t("allTopics.pathProgress")}
+                          </span>
+                          <span className="font-semibold text-[color:var(--text-color,#111827)]">
+                            {formatNumber(path.progress ?? 0, locale, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
+                            %
+                          </span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-500"
+                            style={{ width: `${path.progress}%` }}
+                            role="progressbar"
+                            aria-valuenow={path.progress}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={t("allTopics.progressAria", {
+                              value: formatNumber(path.progress ?? 0, locale, {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              }),
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {!isLocked && (
+                    <GlassButton
+                      variant={activePathId === path.id ? "primary" : "success"}
+                      onClick={() => handleTogglePath(path.id, false)}
+                      icon={activePathId === path.id ? "▼" : "▶"}
+                      aria-expanded={activePathId === path.id}
+                      aria-controls={`path-${path.id}-courses`}
+                    >
+                      {activePathId === path.id
+                        ? t("allTopics.hideCourses")
+                        : t("allTopics.viewCourses")}
+                    </GlassButton>
+                  )}
+                  {isLocked && (
+                    <GlassButton
+                      variant="primary"
+                      icon="⚡"
+                      onClick={() => {
+                        trackEvent("upgrade_click", {
+                          source: "path_lock",
+                          path: path.title,
+                        });
+                        navigate("/subscriptions");
+                      }}
+                    >
+                      {t("allTopics.upgradeTo", {
+                        plan: requiredPlan,
+                      })}
+                    </GlassButton>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {!isLocked && (
-                  <GlassButton
-                    variant={activePathId === path.id ? "primary" : "success"}
-                    onClick={() => handleTogglePath(path.id, false)}
-                    icon={activePathId === path.id ? "▼" : "▶"}
-                    aria-expanded={activePathId === path.id}
-                    aria-controls={`path-${path.id}-courses`}
-                  >
-                    {activePathId === path.id
-                      ? t("allTopics.hideCourses")
-                      : t("allTopics.viewCourses")}
-                  </GlassButton>
-                )}
-                {isLocked && (
-                  <GlassButton
-                    variant="primary"
-                    icon="⚡"
-                    onClick={() => {
-                      trackEvent("upgrade_click", { source: "path_lock", path: path.title });
-                      navigate("/subscriptions");
-                    }}
-                  >
-                    {t("allTopics.upgradeTo", {
-                      plan: requiredPlan })}
-                  </GlassButton>
-                )}
-              </div>
+              {activePathId === path.id && (
+                <div
+                  id={`path-${path.id}-courses`}
+                  className="mt-6"
+                  role="region"
+                  aria-label={t("allTopics.coursesIn", {
+                    title: path.title,
+                  })}
+                >
+                  <LearningPathList
+                    learningPaths={[path]}
+                    onCourseClick={onCourseClick}
+                    showCourseImages={false}
+                  />
+                </div>
+              )}
             </div>
-
-            {activePathId === path.id && (
-              <div
-                id={`path-${path.id}-courses`}
-                className="mt-6"
-                role="region"
-                aria-label={t("allTopics.coursesIn", {
-                  title: path.title })}
-              >
-                <LearningPathList
-                  learningPaths={[path]}
-                  onCourseClick={onCourseClick}
-                  showCourseImages={false}
-                />
-              </div>
-            )}
-          </div>
-        </GlassCard>
+          </GlassCard>
         );
       })}
     </div>

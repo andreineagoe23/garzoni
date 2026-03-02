@@ -38,7 +38,10 @@ const findUsedKeys = () => {
       const full = path.join(dir, entry);
       const stat = fs.statSync(full);
       if (stat.isDirectory()) {
-        if (full.includes(`${path.sep}__tests__`) || full.includes(`${path.sep}test-utils`)) {
+        if (
+          full.includes(`${path.sep}__tests__`) ||
+          full.includes(`${path.sep}test-utils`)
+        ) {
           return;
         }
         walk(full);
@@ -91,7 +94,10 @@ describe("i18n coverage", () => {
         const full = path.join(dir, entry);
         const stat = fs.statSync(full);
         if (stat.isDirectory()) {
-          if (full.includes(`${path.sep}__tests__`) || full.includes(`${path.sep}test-utils`)) {
+          if (
+            full.includes(`${path.sep}__tests__`) ||
+            full.includes(`${path.sep}test-utils`)
+          ) {
             return;
           }
           walk(full);

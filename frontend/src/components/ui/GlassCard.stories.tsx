@@ -3,7 +3,8 @@ import GlassCard from "./GlassCard";
 
 const config = {
   title: "UI/GlassCard",
-  component: GlassCard };
+  component: GlassCard,
+};
 
 export default config;
 

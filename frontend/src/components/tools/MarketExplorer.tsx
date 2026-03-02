@@ -53,7 +53,8 @@ function TradingViewMarketExplorer() {
       withdateranges: false,
       compareSymbols: [],
       studies: [],
-      autosize: true });
+      autosize: true,
+    });
 
     script.onload = () => {
       const key = "monevo:tools:completed:market-explorer";
@@ -62,10 +63,12 @@ function TradingViewMarketExplorer() {
       if (typeof window.gtag === "function") {
         window.gtag("event", "tool_completed", {
           tool_id: "market-explorer",
-          detail: "advanced_chart_loaded" });
+          detail: "advanced_chart_loaded",
+        });
       }
       recordToolEvent("tool_complete", "market-explorer", {
-        detail: "advanced_chart_loaded" });
+        detail: "advanced_chart_loaded",
+      });
     };
 
     currentContainer.appendChild(script);
@@ -78,9 +81,17 @@ function TradingViewMarketExplorer() {
       <div
         className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         ref={container}
-        style={{ height: MARKET_EXPLORER_HEIGHT, minHeight: "min(600px, 70vh)", width: "100%", colorScheme: darkMode ? "dark" : "light" }}
+        style={{
+          height: MARKET_EXPLORER_HEIGHT,
+          minHeight: "min(600px, 70vh)",
+          width: "100%",
+          colorScheme: darkMode ? "dark" : "light",
+        }}
       >
-        <div className="tradingview-widget-container__widget" style={{ width: "100%" }} />
+        <div
+          className="tradingview-widget-container__widget"
+          style={{ width: "100%" }}
+        />
         <div className="tradingview-widget-copyright text-center text-xs">
           <a
             href="https://www.tradingview.com/symbols/NASDAQ-AAPL/"

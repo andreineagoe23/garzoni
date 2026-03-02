@@ -16,7 +16,8 @@ class ErrorBoundary extends React.Component<
   state: ErrorBoundaryState = {
     hasError: false,
     error: null,
-    isChunkLoadError: false };
+    isChunkLoadError: false,
+  };
 
   static getDerivedStateFromError(error: Error) {
     const message = String(error?.message || "");
@@ -25,8 +26,12 @@ class ErrorBoundary extends React.Component<
     const isThirdParty =
       message === "Script error." ||
       message === "script error" ||
-      /invalid environment|couldn't load support|support portal|dataproblemmodel|queryselector/i.test(message) ||
-      /tradingview|embed-widget|embed_events|embed_timeline|snowplow|support-portal/i.test(stack);
+      /invalid environment|couldn't load support|support portal|dataproblemmodel|queryselector/i.test(
+        message
+      ) ||
+      /tradingview|embed-widget|embed_events|embed_timeline|snowplow|support-portal/i.test(
+        stack
+      );
     if (isThirdParty) {
       return { hasError: false, error: null, isChunkLoadError: false };
     }
@@ -41,7 +46,8 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     captureException(error, {
-      contexts: { react: { componentStack: info.componentStack } } });
+      contexts: { react: { componentStack: info.componentStack } },
+    });
 
     // Auto-recover from deploy/cache mismatch (hashed chunk file missing).
     // We do this only once per tab to avoid reload loops (e.g. flaky network).
@@ -90,9 +96,7 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <section className="rounded-3xl border border-[color:var(--warning,#f59e0b)]/40 bg-[color:var(--warning,#f59e0b)]/10 px-4 py-4 text-sm text-[color:var(--warning,#b45309)] shadow-inner shadow-[color:var(--warning,#f59e0b)]/20">
-          <p className="font-semibold">
-            {i18n.t("errorBoundary.title")}
-          </p>
+          <p className="font-semibold">{i18n.t("errorBoundary.title")}</p>
           <p className="mt-1 text-[color:var(--muted-text,#6b7280)]">
             {this.state.isChunkLoadError
               ? i18n.t("errorBoundary.chunkLoadMessage")

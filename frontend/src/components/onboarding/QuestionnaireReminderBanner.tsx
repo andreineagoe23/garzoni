@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchQuestionnaireProgress,
-  type QuestionnaireProgress } from "services/questionnaireService";
+  type QuestionnaireProgress,
+} from "services/questionnaireService";
 import { GlassButton, GlassCard } from "components/ui";
 
 type QuestionnaireReminderBannerProps = {
@@ -13,9 +14,9 @@ type QuestionnaireReminderBannerProps = {
   authReady?: boolean;
 };
 
-const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = ({
-  hasPaid,
-  authReady = true }) => {
+const QuestionnaireReminderBanner: React.FC<
+  QuestionnaireReminderBannerProps
+> = ({ hasPaid, authReady = true }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -24,7 +25,8 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     isLoading,
     isError,
     refetch,
-    isRefetching } = useQuery<QuestionnaireProgress>({
+    isRefetching,
+  } = useQuery<QuestionnaireProgress>({
     queryKey: ["questionnaire-progress"],
     queryFn: () => fetchQuestionnaireProgress(),
     retry: 2,
@@ -32,7 +34,8 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     refetchOnWindowFocus: false,
     staleTime: 0,
     refetchOnMount: true,
-    enabled: authReady });
+    enabled: authReady,
+  });
 
   if (!authReady || (isLoading && !progress)) {
     return (
@@ -64,7 +67,9 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
             onClick={() => refetch()}
             disabled={isRefetching}
           >
-            {isRefetching ? t("onboarding.reminderBanner.retrying") : t("onboarding.reminderBanner.tryAgain")}
+            {isRefetching
+              ? t("onboarding.reminderBanner.retrying")
+              : t("onboarding.reminderBanner.tryAgain")}
           </GlassButton>
         </div>
       </GlassCard>
@@ -85,7 +90,9 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
     return null;
   }
   const primaryCtaLabel =
-    completedSections > 0 ? t("onboarding.reminderBanner.resume") : t("onboarding.reminderBanner.start");
+    completedSections > 0
+      ? t("onboarding.reminderBanner.resume")
+      : t("onboarding.reminderBanner.start");
   const primaryCtaTarget = "/onboarding";
 
   return (
@@ -102,8 +109,16 @@ const QuestionnaireReminderBanner: React.FC<QuestionnaireReminderBannerProps> = 
             {isCompleted
               ? t("onboarding.reminderBanner.allSet")
               : totalQuestions > 0
-                ? t("onboarding.reminderBanner.questionsComplete", { done: Math.max(currentQuestionNumber - 1, 0), total: totalQuestions, percent: progress.progress_percentage ?? 0 })
-                : t("onboarding.reminderBanner.sectionsComplete", { done: completedSections, total: totalSections, percent: progress.progress_percentage ?? 0 })}
+                ? t("onboarding.reminderBanner.questionsComplete", {
+                    done: Math.max(currentQuestionNumber - 1, 0),
+                    total: totalQuestions,
+                    percent: progress.progress_percentage ?? 0,
+                  })
+                : t("onboarding.reminderBanner.sectionsComplete", {
+                    done: completedSections,
+                    total: totalSections,
+                    percent: progress.progress_percentage ?? 0,
+                  })}
           </p>
           {!isCompleted && (
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">

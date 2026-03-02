@@ -47,7 +47,8 @@ function ForgotPassword() {
           className="flex flex-col items-center rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#ffffff)] px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur transition-colors"
           style={{
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)" }}
+            WebkitBackdropFilter: "blur(8px)",
+          }}
         >
           <img
             src={logo}
@@ -109,7 +110,9 @@ function ForgotPassword() {
               disabled={isLoading}
               className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? t("auth.forgotPassword.submitting") : t("auth.forgotPassword.submit")}
+              {isLoading
+                ? t("auth.forgotPassword.submitting")
+                : t("auth.forgotPassword.submit")}
             </button>
           </form>
 

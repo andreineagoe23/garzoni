@@ -14,7 +14,10 @@ const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
 /** Bump when you replace mascot videos in backend/media/mascots/ so browsers load the new files. */
 const MASCOT_VIDEO_VERSION = 2;
 
-const MASCOT_MEDIA: Record<MascotType, { video: string; image: string; alt: string }> = {
+const MASCOT_MEDIA: Record<
+  MascotType,
+  { video: string; image: string; alt: string }
+> = {
   owl: {
     video: `${MEDIA_BASE}/media/mascots/Owl-Mascot-${MASCOT_VIDEO_VERSION}.mp4`,
     image: `${MEDIA_BASE}/media/mascots/monevo-owl.png`,

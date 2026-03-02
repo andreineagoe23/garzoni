@@ -32,7 +32,8 @@ type Exercise = {
 
 const RichTextEditor = ({
   value,
-  onChange }: {
+  onChange,
+}: {
   value?: string;
   onChange?: (nextValue: string) => void;
 }) => {
@@ -148,7 +149,8 @@ const LessonSectionEditorPanel = ({
   loadingExercises = false,
   onExerciseAttach,
   onCloseRequest,
-  currentSectionTitle }: {
+  currentSectionTitle,
+}: {
   section: LessonSection | null;
   onChange: (updates: Partial<LessonSection>) => void;
   onDelete: () => void;
@@ -237,7 +239,10 @@ const LessonSectionEditorPanel = ({
       setJsonError(
         "message" in details
           ? details.message
-          : t("courses.editor.invalidJsonAt", { line: details.line, column: details.column })
+          : t("courses.editor.invalidJsonAt", {
+              line: details.line,
+              column: details.column,
+            })
       );
     }
   };
@@ -263,7 +268,8 @@ const LessonSectionEditorPanel = ({
         {currentSectionTitle && (
           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
             {t("courses.editor.currentSelection", {
-              title: currentSectionTitle })}
+              title: currentSectionTitle,
+            })}
           </p>
         )}
         <GlassButton variant="ghost" size="sm" onClick={onCloseRequest}>
@@ -354,9 +360,15 @@ const LessonSectionEditorPanel = ({
               onChange={(event) => handleContentTypeChange(event.target.value)}
               className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
-              <option value="text">{t("courses.editor.contentTypeText")}</option>
-              <option value="video">{t("courses.editor.contentTypeVideo")}</option>
-              <option value="exercise">{t("courses.editor.contentTypeExercise")}</option>
+              <option value="text">
+                {t("courses.editor.contentTypeText")}
+              </option>
+              <option value="video">
+                {t("courses.editor.contentTypeVideo")}
+              </option>
+              <option value="exercise">
+                {t("courses.editor.contentTypeExercise")}
+              </option>
             </select>
           </div>
           <div className="space-y-1">
@@ -459,7 +471,8 @@ const LessonSectionEditorPanel = ({
             <div
               className="prose max-w-none text-[color:var(--text-color,#111827)] dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: sanitizedPreviewHtml }}
+                __html: sanitizedPreviewHtml,
+              }}
             />
           </div>
         )}

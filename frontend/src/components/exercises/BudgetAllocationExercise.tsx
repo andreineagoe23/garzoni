@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { playFeedbackChime } from "utils/sound";
@@ -28,9 +27,16 @@ const BudgetAllocationExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false }: BudgetAllocationExerciseProps) => {
-  const { question, categories = [], total = 0, id, learn_more_url, explanation } =
-    data || {};
+  disabled = false,
+}: BudgetAllocationExerciseProps) => {
+  const {
+    question,
+    categories = [],
+    total = 0,
+    id,
+    learn_more_url,
+    explanation,
+  } = data || {};
   const { t } = useTranslation();
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
@@ -65,7 +71,8 @@ const BudgetAllocationExercise = ({
     const sanitized = value.replace(/[^0-9]/g, "");
     setAllocations((prev) => ({
       ...prev,
-      [category]: sanitized }));
+      [category]: sanitized,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -73,7 +80,10 @@ const BudgetAllocationExercise = ({
     if (currentTotal === total) {
       setFeedback(t("exercises.budget.correct"));
       setFeedbackType("success");
-      playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: true });
+      playFeedbackChime({
+        enabled: Boolean(soundEnabled ?? true),
+        correct: true,
+      });
       onAttempt?.({ correct: true });
       try {
         await onComplete?.();
@@ -86,7 +96,10 @@ const BudgetAllocationExercise = ({
         t("exercises.budget.totalMismatch", { total, current: currentTotal })
       );
       setFeedbackType("error");
-      playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: false });
+      playFeedbackChime({
+        enabled: Boolean(soundEnabled ?? true),
+        correct: false,
+      });
       onAttempt?.({ correct: false });
     }
   };
@@ -95,13 +108,7 @@ const BudgetAllocationExercise = ({
     try {
       const sectionId = exerciseId || id;
       if (!sectionId) return;
-      await axios.post(
-        `${BACKEND_URL}/exercises/reset/`,
-        { section_id: sectionId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/exercises/reset/", { section_id: sectionId });
       setAllocations(initialAllocations);
       setFeedback("");
       setFeedbackType(null);

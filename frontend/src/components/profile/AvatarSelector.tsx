@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { PencilSquare, X } from "react-bootstrap-icons";
 import { useAuth } from "contexts/AuthContext";
 import { queryKeys } from "lib/reactQuery";
@@ -104,7 +103,8 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
       const randomSeed = Math.random().toString(36).slice(2, 8);
       return {
         seed: randomSeed,
-        url: getAvatarUrl(selectedStyle, randomSeed) };
+        url: getAvatarUrl(selectedStyle, randomSeed),
+      };
     });
   }, [isOpen, selectedStyle]);
 
@@ -117,13 +117,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
     if (!previewAvatar) return;
     setLoading(true);
     try {
-      await axios.post(
-        `${BACKEND_URL}/update-avatar/`,
-        { profile_avatar: previewAvatar },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/update-avatar/", {
+        profile_avatar: previewAvatar,
+      });
       onAvatarChange(previewAvatar);
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       await queryClient.refetchQueries({ queryKey: queryKeys.profile() });
@@ -216,7 +212,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                     type="text"
                     value={seed}
                     onChange={(event) => setSeed(event.target.value)}
-                    placeholder={t("profile.avatarSelector.customizePlaceholder")}
+                    placeholder={t(
+                      "profile.avatarSelector.customizePlaceholder"
+                    )}
                     className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                   />
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -282,7 +280,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
               disabled={loading || !previewAvatar}
               className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? t("profile.avatarSelector.saving") : t("profile.avatarSelector.save")}
+              {loading
+                ? t("profile.avatarSelector.saving")
+                : t("profile.avatarSelector.save")}
             </button>
           </div>
         </div>

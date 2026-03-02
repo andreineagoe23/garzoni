@@ -7,13 +7,15 @@ type PrimaryCtaInput = {
 
 export const selectPrimaryCTA = ({
   reviewsDue,
-  activeMissions }: PrimaryCtaInput) => {
+  activeMissions,
+}: PrimaryCtaInput) => {
   if (reviewsDue > 0) {
     return {
       type: "reviews_due",
       icon: "📚",
       reasonKey: "cta.reviewsDue",
-      reasonCount: reviewsDue };
+      reasonCount: reviewsDue,
+    };
   }
 
   if (activeMissions.length > 0) {
@@ -25,17 +27,20 @@ export const selectPrimaryCTA = ({
         type: "continue_lesson",
         icon: "📖",
         reasonKey: "cta.activeLesson",
-        mission: lessonMission };
+        mission: lessonMission,
+      };
     }
     return {
       type: "start_mission",
       icon: "🎯",
       reasonKey: "cta.activeMissions",
-      reasonCount: activeMissions.length };
+      reasonCount: activeMissions.length,
+    };
   }
 
   return {
     type: "continue_learning",
     icon: "🚀",
-    reasonKey: "cta.keepMomentum" };
+    reasonKey: "cta.keepMomentum",
+  };
 };

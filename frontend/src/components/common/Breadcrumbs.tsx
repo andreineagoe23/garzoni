@@ -10,7 +10,8 @@ type BreadcrumbItem = {
 
 const Breadcrumbs = ({
   items = [],
-  className }: {
+  className,
+}: {
   items?: BreadcrumbItem[];
   className?: string;
 }) => {

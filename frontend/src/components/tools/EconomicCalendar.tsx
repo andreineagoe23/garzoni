@@ -64,7 +64,11 @@ const EconomicCalendar = () => {
     setLoaded(false);
 
     const calendarHeight =
-      typeof window !== "undefined" && window.innerWidth < 640 ? 400 : window.innerWidth < 1024 ? 560 : 760;
+      typeof window !== "undefined" && window.innerWidth < 640
+        ? 400
+        : window.innerWidth < 1024
+          ? 560
+          : 760;
     const script = document.createElement("script");
     script.src =
       "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
@@ -80,17 +84,26 @@ const EconomicCalendar = () => {
       theme: theme,
       isTransparent: false,
       importanceFilter: showAllEvents ? "-1,0,1" : "1",
-      currencyFilter: "USD,EUR,GBP,JPY,CAD,AUD" });
+      currencyFilter: "USD,EUR,GBP,JPY,CAD,AUD",
+    });
     script.onload = () => setLoaded(true);
     script.onerror = () => {
-      reportWidgetLoadError(new Error("Calendar widget script failed to load"), "calendar", { tool_id: "calendar" });
+      reportWidgetLoadError(
+        new Error("Calendar widget script failed to load"),
+        "calendar",
+        { tool_id: "calendar" }
+      );
       setLoadError(true);
     };
 
     const timeoutId = window.setTimeout(() => {
       setLoaded((prev) => {
         if (!prev) {
-          reportWidgetLoadError(new Error("Calendar widget load timeout"), "calendar", { tool_id: "calendar" });
+          reportWidgetLoadError(
+            new Error("Calendar widget load timeout"),
+            "calendar",
+            { tool_id: "calendar" }
+          );
           setLoadError(true);
         }
         return prev;
@@ -115,7 +128,8 @@ const EconomicCalendar = () => {
     if (typeof window.gtag === "function") {
       window.gtag("event", "tool_completed", {
         tool_id: "calendar",
-        detail: "calendar_loaded" });
+        detail: "calendar_loaded",
+      });
     }
     recordToolEvent("tool_complete", "calendar", { detail: "calendar_loaded" });
   }, [loaded]);
@@ -145,7 +159,9 @@ const EconomicCalendar = () => {
         {/* Theme (dark/light) is set at first load from app theme; script embed cannot update on toggle. */}
         {loadError && (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
-            <p className="font-semibold">{t("tools.calendar.errors.loadFailed")}</p>
+            <p className="font-semibold">
+              {t("tools.calendar.errors.loadFailed")}
+            </p>
             <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
               {t("tools.calendar.errors.loadFailedHelp")}
             </p>
@@ -167,7 +183,14 @@ const EconomicCalendar = () => {
         <div
           ref={containerRef}
           className={`min-w-0 w-full ${loadError ? "hidden" : ""} ${darkMode ? "bg-[#131722]" : ""}`}
-          style={!loadError ? { minHeight: "clamp(380px, 55vh, 760px)", colorScheme: darkMode ? "dark" : "light" } : undefined}
+          style={
+            !loadError
+              ? {
+                  minHeight: "clamp(380px, 55vh, 760px)",
+                  colorScheme: darkMode ? "dark" : "light",
+                }
+              : undefined
+          }
         />
         <p className="mt-2 text-center text-xs text-[color:var(--muted-text,#6b7280)]">
           <Trans
@@ -188,7 +211,8 @@ const EconomicCalendar = () => {
                   target="_blank"
                   className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
                 />
-              ) }}
+              ),
+            }}
           />
         </p>
       </div>
@@ -200,66 +224,69 @@ const EconomicCalendar = () => {
             difficulty: t(`tools.calendar.explainers.${event.id}.difficulty`),
             why: t(`tools.calendar.explainers.${event.id}.why`),
             who: t(`tools.calendar.explainers.${event.id}.who`),
-            affects: t(`tools.calendar.explainers.${event.id}.affects`) };
+            affects: t(`tools.calendar.explainers.${event.id}.affects`),
+          };
           const isRelevant =
             relevanceTags.size > 0 &&
             event.tags?.some((tag) => relevanceTags.has(tag));
           return (
-          <div
-            key={event.id}
-            className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
-                {eventCopy.label}
-              </h4>
-              <div className="flex items-center gap-2">
-                {isRelevant && (
-                  <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-                    {t("tools.calendar.relevant")}
-                  </span>
-                )}
-                <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {eventCopy.difficulty}
-                </span>
-              </div>
-            </div>
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {t("tools.calendar.why")}
-              </span>{" "}
-              {eventCopy.why}
-            </p>
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {t("tools.calendar.who")}
-              </span>{" "}
-              {eventCopy.who}
-            </p>
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
-                {t("tools.calendar.affects")}
-              </span>{" "}
-              {eventCopy.affects}
-            </p>
-            <a
-              href={event.learnPath}
-              onClick={() => {
-                recordToolEvent("tool_to_lesson_click", "calendar", {
-                  href: event.learnPath,
-                  event_label: eventCopy.label });
-                if (typeof window.gtag === "function") {
-                  window.gtag("event", "lesson_started_from_tool", {
-                    tool_id: "calendar",
-                    link: event.learnPath });
-                }
-              }}
-              className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+            <div
+              key={event.id}
+              className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
             >
-              {t("tools.calendar.learnMore")}
-            </a>
-          </div>
-        );
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  {eventCopy.label}
+                </h4>
+                <div className="flex items-center gap-2">
+                  {isRelevant && (
+                    <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+                      {t("tools.calendar.relevant")}
+                    </span>
+                  )}
+                  <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    {eventCopy.difficulty}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  {t("tools.calendar.why")}
+                </span>{" "}
+                {eventCopy.why}
+              </p>
+              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  {t("tools.calendar.who")}
+                </span>{" "}
+                {eventCopy.who}
+              </p>
+              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  {t("tools.calendar.affects")}
+                </span>{" "}
+                {eventCopy.affects}
+              </p>
+              <a
+                href={event.learnPath}
+                onClick={() => {
+                  recordToolEvent("tool_to_lesson_click", "calendar", {
+                    href: event.learnPath,
+                    event_label: eventCopy.label,
+                  });
+                  if (typeof window.gtag === "function") {
+                    window.gtag("event", "lesson_started_from_tool", {
+                      tool_id: "calendar",
+                      link: event.learnPath,
+                    });
+                  }
+                }}
+                className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+              >
+                {t("tools.calendar.learnMore")}
+              </a>
+            </div>
+          );
         })}
       </div>
     </section>
