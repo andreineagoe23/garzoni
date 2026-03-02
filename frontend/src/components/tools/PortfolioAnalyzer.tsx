@@ -1,6 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
 import {
   PieChart,
@@ -8,10 +13,11 @@ import {
   Cell,
   ResponsiveContainer,
   Legend,
-  Tooltip } from "recharts";
+  Tooltip,
+} from "recharts";
 import toast from "react-hot-toast";
 import { useAuth } from "contexts/AuthContext";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
 import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
@@ -21,11 +27,47 @@ const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
 const EXPORT_EVENT = "monevo:tools:export";
 
 const CRYPTO_SYMBOLS = new Set([
-  "btc", "bitcoin", "eth", "ethereum", "sol", "solana", "xrp", "ripple",
-  "ada", "cardano", "doge", "dogecoin", "bnb", "binancecoin", "matic",
-  "dot", "polkadot", "avax", "avalanche", "link", "chainlink", "uni", "uniswap",
-  "atom", "cosmos", "ltc", "litecoin", "near", "fil", "filecoin", "apt", "aptos",
-  "arb", "arbitrum", "op", "optimism", "sui", "stx", "stacks", "ftm", "fantom",
+  "btc",
+  "bitcoin",
+  "eth",
+  "ethereum",
+  "sol",
+  "solana",
+  "xrp",
+  "ripple",
+  "ada",
+  "cardano",
+  "doge",
+  "dogecoin",
+  "bnb",
+  "binancecoin",
+  "matic",
+  "dot",
+  "polkadot",
+  "avax",
+  "avalanche",
+  "link",
+  "chainlink",
+  "uni",
+  "uniswap",
+  "atom",
+  "cosmos",
+  "ltc",
+  "litecoin",
+  "near",
+  "fil",
+  "filecoin",
+  "apt",
+  "aptos",
+  "arb",
+  "arbitrum",
+  "op",
+  "optimism",
+  "sui",
+  "stx",
+  "stacks",
+  "ftm",
+  "fantom",
 ]);
 function inferAssetType(symbol: string): "stock" | "crypto" {
   const s = (symbol || "").trim().toLowerCase();
@@ -63,7 +105,8 @@ function PortfolioAnalyzer() {
     symbol: "",
     quantity: "",
     purchase_price: "",
-    purchase_date: new Date().toISOString().split("T")[0] });
+    purchase_date: new Date().toISOString().split("T")[0],
+  });
   const [lookupPrice, setLookupPrice] = useState<number | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
@@ -73,10 +116,9 @@ function PortfolioAnalyzer() {
   const fetchStockPrice = useCallback(
     async (symbol) => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
+        const response = await apiClient.get("/stock-price/", {
           params: { symbol },
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-          withCredentials: true });
+        });
 
         return response.data?.price ?? null;
       } catch (err) {
@@ -90,7 +132,9 @@ function PortfolioAnalyzer() {
   const fetchCryptoPrice = useCallback(
     async (symbol) => {
       try {
-        const normalized = String(symbol || "").trim().toLowerCase();
+        const normalized = String(symbol || "")
+          .trim()
+          .toLowerCase();
         const COINGECKO_ID_MAP: Record<string, string> = {
           btc: "bitcoin",
           bitcoin: "bitcoin",
@@ -101,12 +145,12 @@ function PortfolioAnalyzer() {
           xrp: "ripple",
           ada: "cardano",
           doge: "dogecoin",
-          bnb: "binancecoin" };
+          bnb: "binancecoin",
+        };
         const cryptoId = COINGECKO_ID_MAP[normalized] || normalized;
-        const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
+        const response = await apiClient.get("/crypto-price/", {
           params: { id: cryptoId },
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-          withCredentials: true });
+        });
         return response.data?.price ?? null;
       } catch (err) {
         console.error("Error fetching crypto price:", err);
@@ -119,8 +163,7 @@ function PortfolioAnalyzer() {
   const fetchPortfolio = useCallback(async () => {
     try {
       setLoading(true);
-      const entriesRes = await axios.get(`${BACKEND_URL}/portfolio/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      const entriesRes = await apiClient.get("/portfolio/");
 
       const fetchedEntries = (entriesRes.data || []) as PortfolioEntry[];
       const entriesWithPrices = await Promise.all(
@@ -144,7 +187,8 @@ function PortfolioAnalyzer() {
               current_price: currentPrice,
               current_value: currentValue,
               gain_loss: gainLoss,
-              gain_loss_percentage: gainLossPercentage };
+              gain_loss_percentage: gainLossPercentage,
+            };
           }
           return entry;
         })
@@ -173,7 +217,8 @@ function PortfolioAnalyzer() {
       setSummary({
         total_value: totalValue,
         total_gain_loss: totalGainLoss,
-        allocation });
+        allocation,
+      });
 
       setError(null);
     } catch (err) {
@@ -199,17 +244,20 @@ function PortfolioAnalyzer() {
   }, [entries.length]);
 
   useEffect(() => {
-    if (!summary || entries.length === 0 || typeof window === "undefined") return;
+    if (!summary || entries.length === 0 || typeof window === "undefined")
+      return;
     const key = "monevo:tools:completed:portfolio";
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "true");
     if (typeof window.gtag === "function") {
       window.gtag("event", "tool_completed", {
         tool_id: "portfolio",
-        detail: "portfolio_summary_ready" });
+        detail: "portfolio_summary_ready",
+      });
     }
     recordToolEvent("tool_complete", "portfolio", {
-      detail: "portfolio_summary_ready" });
+      detail: "portfolio_summary_ready",
+    });
   }, [summary, entries.length]);
 
   useEffect(() => {
@@ -245,9 +293,7 @@ function PortfolioAnalyzer() {
       const csv = [header, ...rows]
         .map((row) =>
           row
-            .map((value) =>
-              `"${String(value ?? "").replace(/"/g, '""')}"`
-            )
+            .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
             .join(",")
         )
         .join("\n");
@@ -267,7 +313,9 @@ function PortfolioAnalyzer() {
     };
   }, [entries]);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = event.target;
     setNewEntry((prev) => {
       const next = { ...prev, [name]: value };
@@ -297,7 +345,11 @@ function PortfolioAnalyzer() {
         const price = await fetchCryptoPrice(symbol);
         if (price != null) {
           setLookupPrice(price);
-          setNewEntry((prev) => ({ ...prev, purchase_price: String(price), asset_type: "crypto" }));
+          setNewEntry((prev) => ({
+            ...prev,
+            purchase_price: String(price),
+            asset_type: "crypto",
+          }));
         } else {
           setLookupError(t("tools.portfolio.priceNotFound"));
         }
@@ -305,7 +357,11 @@ function PortfolioAnalyzer() {
         const price = await fetchStockPrice(symbol.toUpperCase());
         if (price != null) {
           setLookupPrice(price);
-          setNewEntry((prev) => ({ ...prev, purchase_price: String(price), asset_type: assetType }));
+          setNewEntry((prev) => ({
+            ...prev,
+            purchase_price: String(price),
+            asset_type: assetType,
+          }));
         } else {
           setLookupError(t("tools.portfolio.priceNotFound"));
         }
@@ -317,7 +373,13 @@ function PortfolioAnalyzer() {
     } finally {
       setLookupLoading(false);
     }
-  }, [newEntry.symbol, newEntry.asset_type, fetchCryptoPrice, fetchStockPrice, t]);
+  }, [
+    newEntry.symbol,
+    newEntry.asset_type,
+    fetchCryptoPrice,
+    fetchStockPrice,
+    t,
+  ]);
 
   const handleDemoEntry = (entry: {
     asset_type: string;
@@ -328,7 +390,8 @@ function PortfolioAnalyzer() {
     setNewEntry((prev) => ({
       ...prev,
       ...entry,
-      purchase_date: new Date().toISOString().split("T")[0] }));
+      purchase_date: new Date().toISOString().split("T")[0],
+    }));
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -337,18 +400,19 @@ function PortfolioAnalyzer() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await axios.post(`${BACKEND_URL}/portfolio/`, newEntry, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      await apiClient.post("/portfolio/", newEntry);
       setNewEntry({
         asset_type: "stock",
         symbol: "",
         quantity: "",
         purchase_price: "",
-        purchase_date: new Date().toISOString().split("T")[0] });
+        purchase_date: new Date().toISOString().split("T")[0],
+      });
       fetchPortfolio();
       if (typeof window.gtag === "function") {
         window.gtag("event", "portfolio_entry_added", {
-          tool_id: "portfolio" });
+          tool_id: "portfolio",
+        });
       }
     } catch (err) {
       const apiMessage =
@@ -360,12 +424,12 @@ function PortfolioAnalyzer() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${BACKEND_URL}/portfolio/${id}/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      await apiClient.delete(`/portfolio/${id}/`);
       fetchPortfolio();
       if (typeof window.gtag === "function") {
         window.gtag("event", "portfolio_entry_deleted", {
-          tool_id: "portfolio" });
+          tool_id: "portfolio",
+        });
       }
     } catch (err) {
       const apiMessage =
@@ -379,7 +443,8 @@ function PortfolioAnalyzer() {
     if (!summary?.allocation) return [];
     return Object.entries(summary.allocation).map(([key, value]) => ({
       name: t(`tools.portfolio.assetType.${key}`),
-      value: Number(value) }));
+      value: Number(value),
+    }));
   }, [summary, t]);
 
   const totalGainLossPercentage = useMemo(() => {
@@ -408,9 +473,7 @@ function PortfolioAnalyzer() {
     const bullets: string[] = [];
 
     const maxSinglePct = Math.max(
-      ...entries.map(
-        (e) => ((e.current_value ?? 0) / total) * 100
-      ),
+      ...entries.map((e) => ((e.current_value ?? 0) / total) * 100),
       0
     );
 
@@ -419,12 +482,16 @@ function PortfolioAnalyzer() {
       riskLevel = "high";
     } else if (maxSinglePct >= 60) {
       problems.push(
-        t("tools.portfolio.problems.largestHolding", { pct: Math.round(maxSinglePct) })
+        t("tools.portfolio.problems.largestHolding", {
+          pct: Math.round(maxSinglePct),
+        })
       );
       riskLevel = "high";
     } else if (maxSinglePct >= 40) {
       problems.push(
-        t("tools.portfolio.problems.largestHoldingModerate", { pct: Math.round(maxSinglePct) })
+        t("tools.portfolio.problems.largestHoldingModerate", {
+          pct: Math.round(maxSinglePct),
+        })
       );
       riskLevel = "moderate";
     }
@@ -438,7 +505,10 @@ function PortfolioAnalyzer() {
       bullets.push(t("tools.portfolio.problems.downOnPaper"));
     }
 
-    if (entries.length >= 2 && Object.keys(summary.allocation || {}).length >= 2) {
+    if (
+      entries.length >= 2 &&
+      Object.keys(summary.allocation || {}).length >= 2
+    ) {
       bullets.push(t("tools.portfolio.problems.spreadAcross"));
     }
     if (total > 0 && stockValue > 0) {
@@ -451,15 +521,27 @@ function PortfolioAnalyzer() {
     }
     bullets.push(
       t("tools.portfolio.problems.totalValueBullet", {
-        value: formatCurrency(total, "USD", locale, { maximumFractionDigits: 0 }),
-        gainOrLoss: totalGainLossPercentage >= 0 ? t("tools.portfolio.problems.gain") : t("tools.portfolio.problems.loss"),
-        pct: formatNumber(Math.abs(totalGainLossPercentage), locale, { maximumFractionDigits: 1 }) })
+        value: formatCurrency(total, "USD", locale, {
+          maximumFractionDigits: 0,
+        }),
+        gainOrLoss:
+          totalGainLossPercentage >= 0
+            ? t("tools.portfolio.problems.gain")
+            : t("tools.portfolio.problems.loss"),
+        pct: formatNumber(Math.abs(totalGainLossPercentage), locale, {
+          maximumFractionDigits: 1,
+        }),
+      })
     );
 
     const riskComfort = financialProfile?.risk_comfort || "";
     const timeframe = financialProfile?.timeframe || "";
     let goalAlignment: "good_fit" | "risky" | "misaligned" =
-      riskLevel === "high" ? "misaligned" : riskLevel === "moderate" ? "risky" : "good_fit";
+      riskLevel === "high"
+        ? "misaligned"
+        : riskLevel === "moderate"
+          ? "risky"
+          : "good_fit";
 
     if (riskComfort === "low" && riskLevel !== "low") {
       goalAlignment = "misaligned";
@@ -489,7 +571,9 @@ function PortfolioAnalyzer() {
       insightCards.push({
         id: "concentration",
         title: t("tools.portfolio.insights.concentrationTitle"),
-        meaning: t("tools.portfolio.insights.concentrationMeaning", { pct: Math.round(maxSinglePct) }),
+        meaning: t("tools.portfolio.insights.concentrationMeaning", {
+          pct: Math.round(maxSinglePct),
+        }),
         why: t("tools.portfolio.insights.concentrationWhy"),
         nextSteps: [
           t("tools.portfolio.insights.concentrationStep1"),
@@ -497,7 +581,8 @@ function PortfolioAnalyzer() {
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.concentration,
         actionLink: "/tools/portfolio",
-        confidence: "high" });
+        confidence: "high",
+      });
     }
 
     if (entries.length < 3) {
@@ -512,14 +597,17 @@ function PortfolioAnalyzer() {
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.diversification,
         actionLink: "/tools/market-explorer",
-        confidence: "medium" });
+        confidence: "medium",
+      });
     }
 
     if (cryptoPct >= 30 && total > 0) {
       insightCards.push({
         id: "volatility",
         title: t("tools.portfolio.insights.volatilityTitle"),
-        meaning: t("tools.portfolio.insights.volatilityMeaning", { pct: Math.round(cryptoPct) }),
+        meaning: t("tools.portfolio.insights.volatilityMeaning", {
+          pct: Math.round(cryptoPct),
+        }),
         why: t("tools.portfolio.insights.volatilityWhy"),
         nextSteps: [
           t("tools.portfolio.insights.volatilityStep1"),
@@ -527,7 +615,8 @@ function PortfolioAnalyzer() {
         ],
         lessonLink: PORTFOLIO_INSIGHT_LESSONS.volatility,
         actionLink: "/tools/market-explorer",
-        confidence: "high" });
+        confidence: "high",
+      });
     }
 
     if (totalGainLossPercentage < -10) {
@@ -542,7 +631,8 @@ function PortfolioAnalyzer() {
         ],
         lessonLink: "/all-topics?topic=investing",
         actionLink: "/tools/reality-check",
-        confidence: "medium" });
+        confidence: "medium",
+      });
     }
 
     if (insightCards.length === 0) {
@@ -557,7 +647,8 @@ function PortfolioAnalyzer() {
         ],
         lessonLink: "/all-topics?topic=investing",
         actionLink: "/tools/market-explorer",
-        confidence: "medium" });
+        confidence: "medium",
+      });
     }
 
     let nextAction: {
@@ -569,17 +660,23 @@ function PortfolioAnalyzer() {
       nextAction = {
         type: "learn",
         label: t("tools.portfolio.learnDiversification"),
-        href: "/all-topics?topic=investing" };
-    } else if (riskLevel === "moderate" || (biggestProblem && maxSinglePct >= 40)) {
+        href: "/all-topics?topic=investing",
+      };
+    } else if (
+      riskLevel === "moderate" ||
+      (biggestProblem && maxSinglePct >= 40)
+    ) {
       nextAction = {
         type: "adjust",
         label: t("tools.portfolio.considerRebalancing"),
-        href: "/tools/portfolio" };
+        href: "/tools/portfolio",
+      };
     } else {
       nextAction = {
         type: "explore",
         label: t("tools.portfolio.exploreMarket"),
-        href: "/tools/market-explorer" };
+        href: "/tools/market-explorer",
+      };
     }
 
     return {
@@ -589,12 +686,16 @@ function PortfolioAnalyzer() {
       summaryBullets: bullets.slice(0, 5),
       nextAction,
       insightCards: insightCards.slice(0, 5),
-      confidence: financialProfile ? "medium" : "low" };
+      confidence: financialProfile ? "medium" : "low",
+    };
   }, [summary, entries, totalGainLossPercentage, locale, financialProfile, t]);
 
   useEffect(() => {
     if (!insight || typeof window === "undefined") return;
-    sessionStorage.setItem("monevo:tools:signal:portfolio_risk", insight.riskLevel);
+    sessionStorage.setItem(
+      "monevo:tools:signal:portfolio_risk",
+      insight.riskLevel
+    );
   }, [insight]);
 
   if (loading) {
@@ -642,7 +743,8 @@ function PortfolioAnalyzer() {
                     asset_type: "stock",
                     symbol: "AAPL",
                     quantity: "10",
-                    purchase_price: "185" })
+                    purchase_price: "185",
+                  })
                 }
                 className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
               >
@@ -655,7 +757,8 @@ function PortfolioAnalyzer() {
                     asset_type: "crypto",
                     symbol: "bitcoin",
                     quantity: "0.25",
-                    purchase_price: "34000" })
+                    purchase_price: "34000",
+                  })
                 }
                 className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
               >
@@ -683,7 +786,8 @@ function PortfolioAnalyzer() {
               className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
                 {t("tools.portfolio.totalValue")}
@@ -692,7 +796,8 @@ function PortfolioAnalyzer() {
                 <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
                   {formatCurrency(summary.total_value || 0, "USD", locale, {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 })}
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                   {t("tools.portfolio.currentValue")}
@@ -704,7 +809,8 @@ function PortfolioAnalyzer() {
               className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
                 {t("tools.portfolio.totalGainLoss")}
@@ -735,7 +841,8 @@ function PortfolioAnalyzer() {
                   {totalGainLossPercentage >= 0 ? "+" : ""}
                   {formatNumber(totalGainLossPercentage, locale, {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 })}
+                    maximumFractionDigits: 2,
+                  })}
                   %
                 </p>
               </div>
@@ -745,7 +852,8 @@ function PortfolioAnalyzer() {
               className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
               <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
                 {t("tools.portfolio.totalHoldings")}
@@ -755,7 +863,10 @@ function PortfolioAnalyzer() {
                   {entries.length}
                 </p>
                 <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {entries.length} {entries.length === 1 ? t("tools.portfolio.investment_one") : t("tools.portfolio.investment_other")}
+                  {entries.length}{" "}
+                  {entries.length === 1
+                    ? t("tools.portfolio.investment_one")
+                    : t("tools.portfolio.investment_other")}
                 </p>
               </div>
             </div>
@@ -766,7 +877,8 @@ function PortfolioAnalyzer() {
               className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
                 {t("tools.portfolio.portfolioInsight")}
@@ -788,7 +900,9 @@ function PortfolioAnalyzer() {
                       : t("tools.portfolio.misaligned")}
                 </span>
                 <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("tools.portfolio.confidence", { level: insight.confidence })}
+                  {t("tools.portfolio.confidence", {
+                    level: insight.confidence,
+                  })}
                 </span>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -809,7 +923,8 @@ function PortfolioAnalyzer() {
                     {t("tools.portfolio.biggestProblem")}
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
-                    {insight.biggestProblem ?? t("tools.portfolio.nothingMajor")}
+                    {insight.biggestProblem ??
+                      t("tools.portfolio.nothingMajor")}
                   </p>
                 </div>
               </div>
@@ -861,13 +976,23 @@ function PortfolioAnalyzer() {
                           <Link
                             to={card.lessonLink}
                             onClick={() => {
-                              recordToolEvent("tool_to_lesson_click", "portfolio", {
-                                href: card.lessonLink,
-                                card_title: card.title });
+                              recordToolEvent(
+                                "tool_to_lesson_click",
+                                "portfolio",
+                                {
+                                  href: card.lessonLink,
+                                  card_title: card.title,
+                                }
+                              );
                               if (typeof window.gtag === "function") {
-                                window.gtag("event", "lesson_started_from_tool", {
-                                  tool_id: "portfolio",
-                                  link: card.lessonLink });
+                                window.gtag(
+                                  "event",
+                                  "lesson_started_from_tool",
+                                  {
+                                    tool_id: "portfolio",
+                                    link: card.lessonLink,
+                                  }
+                                );
                               }
                             }}
                             className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
@@ -907,7 +1032,8 @@ function PortfolioAnalyzer() {
               className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)" }}
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
               <h4 className="text-base font-semibold text-[color:var(--accent,#111827)] mb-4">
                 Asset Allocation & Portfolio Breakdown
@@ -929,7 +1055,8 @@ function PortfolioAnalyzer() {
                           outerRadius={100}
                           label={({ name, percent }) =>
                             `${name}: ${formatNumber(percent * 100, locale, {
-                              maximumFractionDigits: 1 })}%`
+                              maximumFractionDigits: 1,
+                            })}%`
                           }
                         >
                           {chartData.map((entry, index) => (
@@ -943,7 +1070,8 @@ function PortfolioAnalyzer() {
                           formatter={(value) =>
                             formatCurrency(Number(value || 0), "USD", locale, {
                               minimumFractionDigits: 2,
-                              maximumFractionDigits: 2 })
+                              maximumFractionDigits: 2,
+                            })
                           }
                         />
                         <Legend />
@@ -962,7 +1090,8 @@ function PortfolioAnalyzer() {
                           ? (Number(value) / summary.total_value) * 100
                           : 0;
                       const percentageLabel = formatNumber(percentage, locale, {
-                        maximumFractionDigits: 1 });
+                        maximumFractionDigits: 1,
+                      });
                       return (
                         <div key={type} className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
@@ -982,7 +1111,8 @@ function PortfolioAnalyzer() {
                           <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                             {formatCurrency(Number(value || 0), "USD", locale, {
                               minimumFractionDigits: 2,
-                              maximumFractionDigits: 2 })}
+                              maximumFractionDigits: 2,
+                            })}
                           </p>
                         </div>
                       );
@@ -995,17 +1125,20 @@ function PortfolioAnalyzer() {
         </>
       )}
 
-          <div
-            ref={formRef}
-            className={`grid gap-4 sm:gap-6 min-w-0 ${
-              hasEntries ? "lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]" : "lg:grid-cols-1"
-            }`}
-          >
+      <div
+        ref={formRef}
+        className={`grid gap-4 sm:gap-6 min-w-0 ${
+          hasEntries
+            ? "lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]"
+            : "lg:grid-cols-1"
+        }`}
+      >
         <div
           className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)" }}
+            WebkitBackdropFilter: "blur(12px)",
+          }}
         >
           <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
             Add New Entry
@@ -1024,8 +1157,12 @@ function PortfolioAnalyzer() {
                 <option value="etf">{t("tools.portfolio.etf")}</option>
                 <option value="bond">{t("tools.portfolio.bond")}</option>
                 <option value="fund">{t("tools.portfolio.fund")}</option>
-                <option value="commodity">{t("tools.portfolio.commodity")}</option>
-                <option value="real_estate">{t("tools.portfolio.real_estate")}</option>
+                <option value="commodity">
+                  {t("tools.portfolio.commodity")}
+                </option>
+                <option value="real_estate">
+                  {t("tools.portfolio.real_estate")}
+                </option>
                 <option value="other">{t("tools.portfolio.other")}</option>
               </select>
             </label>
@@ -1048,15 +1185,23 @@ function PortfolioAnalyzer() {
                   disabled={lookupLoading || !newEntry.symbol.trim()}
                   className="shrink-0 rounded-full border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#2563eb)] transition hover:bg-[color:var(--primary,#2563eb)]/20 disabled:opacity-50"
                 >
-                  {lookupLoading ? t("tools.portfolio.lookupLoading") : t("tools.portfolio.getPrice")}
+                  {lookupLoading
+                    ? t("tools.portfolio.lookupLoading")
+                    : t("tools.portfolio.getPrice")}
                 </button>
               </div>
               {lookupError && (
-                <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">{lookupError}</p>
+                <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
+                  {lookupError}
+                </p>
               )}
               {lookupPrice != null && !lookupError && (
                 <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {t("tools.portfolio.currentPrice")}: {formatCurrency(lookupPrice, "USD", locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {t("tools.portfolio.currentPrice")}:{" "}
+                  {formatCurrency(lookupPrice, "USD", locale, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               )}
             </label>
@@ -1113,7 +1258,8 @@ function PortfolioAnalyzer() {
           className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)" }}
+            WebkitBackdropFilter: "blur(12px)",
+          }}
         >
           <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
@@ -1121,7 +1267,7 @@ function PortfolioAnalyzer() {
             </h4>
             {hasEntries && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+                {entries.length} {entries.length === 1 ? "entry" : "entries"}
               </span>
             )}
           </div>
@@ -1129,7 +1275,10 @@ function PortfolioAnalyzer() {
           {hasEntries ? (
             <div className="mt-4 overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] min-w-0">
               <div className="max-h-[400px] overflow-auto">
-                <table className="min-w-full border-collapse text-sm" style={{ minWidth: "640px" }}>
+                <table
+                  className="min-w-full border-collapse text-sm"
+                  style={{ minWidth: "640px" }}
+                >
                   <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
@@ -1177,7 +1326,8 @@ function PortfolioAnalyzer() {
                             locale,
                             {
                               minimumFractionDigits: 2,
-                              maximumFractionDigits: 2 }
+                              maximumFractionDigits: 2,
+                            }
                           )}
                         </td>
                         <td className="px-4 py-3 font-medium">
@@ -1187,7 +1337,8 @@ function PortfolioAnalyzer() {
                             locale,
                             {
                               minimumFractionDigits: 2,
-                              maximumFractionDigits: 2 }
+                              maximumFractionDigits: 2,
+                            }
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -1206,7 +1357,8 @@ function PortfolioAnalyzer() {
                                 locale,
                                 {
                                   minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2 }
+                                  maximumFractionDigits: 2,
+                                }
                               )}
                             </span>
                             <span
@@ -1222,7 +1374,8 @@ function PortfolioAnalyzer() {
                                 locale,
                                 {
                                   minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2 }
+                                  maximumFractionDigits: 2,
+                                }
                               )}
                               %
                             </span>

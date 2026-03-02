@@ -27,7 +27,9 @@ export default function AuthCallback() {
     }
 
     if (!access || !access.trim()) {
-      setError("Sign-in was interrupted. Please try again from the login page.");
+      setError(
+        "Sign-in was interrupted. Please try again from the login page."
+      );
       return;
     }
 
@@ -40,7 +42,10 @@ export default function AuthCallback() {
         navigate(path, { replace: true });
       } else {
         setError(result.error || "Login failed");
-        navigate("/login", { replace: true, state: { oauthError: result.error } });
+        navigate("/login", {
+          replace: true,
+          state: { oauthError: result.error },
+        });
       }
     })();
     return () => {

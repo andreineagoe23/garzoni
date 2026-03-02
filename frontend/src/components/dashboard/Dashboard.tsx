@@ -4,7 +4,8 @@ import React, {
   useState,
   useRef,
   useCallback,
-  startTransition } from "react";
+  startTransition,
+} from "react";
 import PropTypes from "prop-types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,8 @@ import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import {
   fetchReviewQueue,
   fetchMasterySummary,
-  fetchMissions } from "services/userService";
+  fetchMissions,
+} from "services/userService";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { UserProfile } from "types/api";
 import { attachToken } from "services/httpClient";
@@ -72,7 +74,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: authProfile,
     reloadEntitlements,
     entitlements,
-    isInitialized: authInitialized } = useAuth();
+    isInitialized: authInitialized,
+  } = useAuth();
 
   useEffect(() => {
     attachToken(getAccessToken());
@@ -82,7 +85,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   useEffect(() => {
     trackEvent("dashboard_view", {
       active_page: activePage,
-      timestamp: new Date().toISOString() });
+      timestamp: new Date().toISOString(),
+    });
   }, [activePage, trackEvent]);
 
   // Check for post-action state (returning from exercises/lessons)
@@ -105,20 +109,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 ...current,
                 user_data: {
                   ...current.user_data,
-                  points: currentPoints + xpGained } };
+                  points: currentPoints + xpGained,
+                },
+              };
             }
 
             const currentPoints = Number(current.points || 0);
             return {
               ...current,
-              points: currentPoints + xpGained };
+              points: currentPoints + xpGained,
+            };
           }
         );
 
         // Background refresh to ensure server-truth (and update other widgets)
         queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
         queryClient.invalidateQueries({
-          queryKey: queryKeys.progressSummary() });
+          queryKey: queryKeys.progressSummary(),
+        });
       }
 
       if (xpGained > 0 || skillsImproved.length > 0) {
@@ -127,13 +135,15 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             xpGained > 0 && t("dashboard.toast.xpGained", { count: xpGained }),
             skillsImproved.length > 0 &&
               t("dashboard.toast.skillsImproved", {
-                count: skillsImproved.length }),
+                count: skillsImproved.length,
+              }),
           ]
             .filter(Boolean)
             .join(" • ");
           toast.success(message, {
             icon: "🎉",
-            duration: 4000 });
+            duration: 4000,
+          });
         }, 500);
       }
       // Clear state
@@ -144,58 +154,68 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const {
     data: profilePayload,
     isFetching: isProfileFetching,
-    isInitialLoading: isProfileLoading } = useQuery({
+    isInitialLoading: isProfileLoading,
+  } = useQuery({
     queryKey: queryKeys.profile(),
     queryFn: () => loadProfile(),
     staleTime: staleTimes.profile,
     gcTime: 30_000,
     initialData: authProfile,
-    placeholderData: (previousData) => previousData ?? authProfile });
+    placeholderData: (previousData) => previousData ?? authProfile,
+  });
 
   const {
     data: questionnaireProgress,
     isLoading: isQuestionnaireProgressLoading,
     isFetching: isQuestionnaireProgressFetching,
-    isFetched: isQuestionnaireProgressFetched } = useQuery({
+    isFetched: isQuestionnaireProgressFetched,
+  } = useQuery({
     queryKey: ["questionnaire-progress"],
     queryFn: fetchQuestionnaireProgress,
     retry: 2,
     staleTime: 0,
     refetchOnMount: true,
-    enabled: authInitialized });
+    enabled: authInitialized,
+  });
 
   const { data: progressResponse, isLoading: isProgressLoading } =
     useProgressSummaryQuery({
       // Dashboard should feel responsive, but doesn't need constant refetching.
       // Invalidation is triggered after lesson/exercise completion elsewhere.
-      retry: 2 });
+      retry: 2,
+    });
 
   const {
     data: reviewQueueData,
     error: reviewError,
-    refetch: refetchReview } = useQuery({
+    refetch: refetchReview,
+  } = useQuery({
     queryKey: queryKeys.reviewQueue(),
     queryFn: fetchReviewQueue,
     select: (response) => response?.data || { due: [], count: 0 },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 60000 });
+    staleTime: 60000,
+  });
 
   const {
     data: masteryData,
     error: masteryError,
-    refetch: refetchMastery } = useQuery({
+    refetch: refetchMastery,
+  } = useQuery({
     queryKey: queryKeys.masterySummary(),
     queryFn: fetchMasterySummary,
     select: (response) => response?.data || { masteries: [] },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 120000 });
+    staleTime: 120000,
+  });
 
   const {
     data: missionsData,
     error: missionsError,
-    refetch: refetchMissions } = useQuery({
+    refetch: refetchMissions,
+  } = useQuery({
     queryKey: queryKeys.missions(),
     queryFn: fetchMissions,
     select: (response) =>
@@ -204,7 +224,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 60000,
     refetchInterval: 120000,
-    refetchIntervalInBackground: true });
+    refetchIntervalInBackground: true,
+  });
 
   const profile = useMemo(() => {
     if (profilePayload?.user_data) {
@@ -237,7 +258,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     if (plan === "pro") return 2;
     return 0;
   };
-  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+  const hasPlusAccess =
+    planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
   const hasPaid = hasPlusAccess;
 
   const isQuestionnaireCompleted = Boolean(
@@ -277,7 +299,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   useEffect(() => {
     if (!authInitialized) return;
     if (hasPlusAccess) return;
-    if (!isQuestionnaireProgressFetched || isQuestionnaireProgressLoading || isQuestionnaireProgressFetching)
+    if (
+      !isQuestionnaireProgressFetched ||
+      isQuestionnaireProgressLoading ||
+      isQuestionnaireProgressFetching
+    )
       return;
     if (!questionnaireProgress) return;
     const progress = questionnaireProgress as { status?: string };
@@ -337,13 +363,15 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     weakestSkills,
     dailyGoalProgress,
     resume,
-    startHere } = useDashboardSummary({
+    startHere,
+  } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
     missionsData,
     masteryData,
     entitlements,
-    profile: profile ?? undefined });
+    profile: profile ?? undefined,
+  });
 
   const weakSkillItems = useMemo(
     () =>
@@ -353,7 +381,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         )
         .map((skill) => ({
           skill: skill.skill,
-          proficiency: skill.proficiency ?? 0 })),
+          proficiency: skill.proficiency ?? 0,
+        })),
     [weakestSkills]
   );
 
@@ -373,13 +402,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           action: () => {
             trackEvent("cta_click", {
               reason: "reviews_due",
-              count: reviewsDue });
+              count: reviewsDue,
+            });
             navigate("/exercises");
           },
           icon: primaryCTASignal.icon,
           priority: "high",
           reason: t("dashboard.cta.reviewsDue", {
-            count: primaryCTASignal.reasonCount || 0 }) };
+            count: primaryCTASignal.reasonCount || 0,
+          }),
+        };
       case "continue_lesson": {
         const lessonMission = primaryCTASignal.mission;
         return {
@@ -387,7 +419,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           action: () => {
             trackEvent("cta_click", {
               reason: "continue_lesson",
-              mission_id: lessonMission?.id });
+              mission_id: lessonMission?.id,
+            });
             if (lessonMission?.goal_reference?.course_id) {
               navigate(
                 `/lessons/${lessonMission.goal_reference.course_id}/flow`
@@ -398,7 +431,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
-          reason: t("dashboard.cta.continueWhereLeftOff") };
+          reason: t("dashboard.cta.continueWhereLeftOff"),
+        };
       }
       case "start_mission":
         return {
@@ -406,13 +440,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           action: () => {
             trackEvent("cta_click", {
               reason: "start_mission",
-              mission_count: activeMissions.length });
+              mission_count: activeMissions.length,
+            });
             navigate("/missions");
           },
           icon: primaryCTASignal.icon,
           priority: "medium",
           reason: t("dashboard.cta.missionsAvailable", {
-            count: primaryCTASignal.reasonCount || 0 }) };
+            count: primaryCTASignal.reasonCount || 0,
+          }),
+        };
       default:
         return {
           text: t("dashboard.cta.continueLearning"),
@@ -422,7 +459,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           },
           icon: primaryCTASignal.icon,
           priority: "low",
-          reason: t("dashboard.cta.continueLearningReason") };
+          reason: t("dashboard.cta.continueLearningReason"),
+        };
     }
   }, [
     primaryCTASignal,
@@ -445,7 +483,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     (skill: WeakSkill) => {
       trackEvent("weak_skill_click", {
         skill: skill.skill,
-        proficiency: skill.proficiency });
+        proficiency: skill.proficiency,
+      });
       navigate("/exercises");
     },
     [navigate, trackEvent]
@@ -458,7 +497,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         state: {
           from: "dashboard",
           targetSkill: skill.skill,
-          reason: "improve_weak_skill" } });
+          reason: "improve_weak_skill",
+        },
+      });
     },
     [navigate, trackEvent]
   );
@@ -522,7 +563,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         }`}
         style={{
           backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)" }}
+          WebkitBackdropFilter: "blur(8px)",
+        }}
       >
         <span>🎯</span>
         {t("dashboard.nav.personalizedPath")}
@@ -585,14 +627,18 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                         </p>
                         <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                           {t("dashboard.resume.continueWith", {
-                            course: resume.course_title })}
+                            course: resume.course_title,
+                          })}
                         </p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() =>
-                        handleCourseClick(resume.course_id, resume.path_id ?? undefined)
+                        handleCourseClick(
+                          resume.course_id,
+                          resume.path_id ?? undefined
+                        )
                       }
                       className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
                       aria-label={t("dashboard.resume.continueLesson")}
@@ -620,8 +666,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     <button
                       type="button"
                       onClick={() => {
-                        if (startHere?.path_id != null && startHere?.course_id != null) {
-                          navigate(`/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`);
+                        if (
+                          startHere?.path_id != null &&
+                          startHere?.course_id != null
+                        ) {
+                          navigate(
+                            `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
+                          );
                         } else {
                           navigate("/all-topics");
                         }
@@ -653,7 +704,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               reviewQueueData={reviewQueueData}
               locale={locale}
             />
-
 
             <PrimaryCTA primaryCTA={primaryCTA} />
 
@@ -697,6 +747,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 }
 
 Dashboard.propTypes = {
-  activePage: PropTypes.string };
+  activePage: PropTypes.string,
+};
 
 export default Dashboard;

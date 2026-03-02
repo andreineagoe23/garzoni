@@ -36,7 +36,8 @@ function getLessonCount(course: LearningPathCourse) {
 function LearningPathList({
   learningPaths,
   onCourseClick,
-  showCourseImages = true }: {
+  showCourseImages = true,
+}: {
   learningPaths?: LearningPath[];
   onCourseClick?: (courseId: number, pathId: number) => void;
   showCourseImages?: boolean;
@@ -86,7 +87,9 @@ function LearningPathList({
                       key={course.id}
                       padding="none"
                       className={`group flex flex-col overflow-hidden transition ${
-                        isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:-translate-y-1"
+                        isLocked
+                          ? "cursor-not-allowed opacity-60"
+                          : "cursor-pointer hover:-translate-y-1"
                       }`}
                       onClick={() => {
                         if (isLocked) return;
@@ -123,7 +126,9 @@ function LearningPathList({
                         )}
                         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                           <span>
-                            {t("courses.learningPath.lesson", { count: lessonCount })}
+                            {t("courses.learningPath.lesson", {
+                              count: lessonCount,
+                            })}
                           </span>
                           <span className="text-[color:var(--primary,#1d5330)]">
                             {t("courses.learningPath.viewDetails")}

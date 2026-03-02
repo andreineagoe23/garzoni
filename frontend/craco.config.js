@@ -15,14 +15,19 @@ function toLoaderRequest(loaderPath) {
   const normalized = path.normalize(loaderPath).replace(/\\/g, "/");
   const nodeModules = normalized.indexOf("node_modules");
   if (nodeModules === -1) return loaderPath;
-  const after = normalized.slice(normalized.indexOf("node_modules") + "node_modules".length).replace(/^\/+/, "");
+  const after = normalized
+    .slice(normalized.indexOf("node_modules") + "node_modules".length)
+    .replace(/^\/+/, "");
   const parts = after.split("/");
   const pkg = parts[0];
   const scoped = pkg.startsWith("@") ? parts.slice(0, 2).join("/") : pkg;
   const rest = pkg.startsWith("@") ? parts.slice(2) : parts.slice(1);
   // e.g. "html-webpack-plugin/lib/loader.js" -> keep path; "babel-loader/lib/index.js" -> "babel-loader"
   const name = scoped.replace(/^@[^/]+\//, "") || scoped;
-  const isLoaderPkg = name.includes("-loader") || name === "babel-loader" || name === "source-map-loader";
+  const isLoaderPkg =
+    name.includes("-loader") ||
+    name === "babel-loader" ||
+    name === "source-map-loader";
   if (isLoaderPkg) return name;
   if (rest.length) return scoped + "/" + rest.join("/");
   return scoped;
@@ -46,7 +51,13 @@ function normalizeRuleLoaders(rule) {
       rule.loader = toLoaderRequest(rule.loader);
     }
   }
-  const uses = rule.use ? (Array.isArray(rule.use) ? rule.use : [rule.use]) : rule.loader ? [{ loader: rule.loader }] : [];
+  const uses = rule.use
+    ? Array.isArray(rule.use)
+      ? rule.use
+      : [rule.use]
+    : rule.loader
+      ? [{ loader: rule.loader }]
+      : [];
   uses.forEach(normalizeLoaderInUse);
 }
 
@@ -170,7 +181,11 @@ module.exports = {
             testStr === sassRegex.toString() ||
             testStr === sassModuleRegex.toString();
           if (!isSassRule) continue;
-          const uses = Array.isArray(rule.use) ? rule.use : rule.use ? [rule.use] : [];
+          const uses = Array.isArray(rule.use)
+            ? rule.use
+            : rule.use
+              ? [rule.use]
+              : [];
           for (let i = 0; i < uses.length; i++) {
             const u = uses[i];
             const loader = typeof u === "string" ? u : u?.loader;
@@ -178,7 +193,10 @@ module.exports = {
             if (typeof u === "object" && u !== null) {
               u.options = { ...u.options, api: "modern" };
             } else {
-              uses[i] = { loader: u, options: { sourceMap: true, api: "modern" } };
+              uses[i] = {
+                loader: u,
+                options: { sourceMap: true, api: "modern" },
+              };
             }
             break;
           }

@@ -56,7 +56,8 @@ export const formatCurrency = (
     return new Intl.NumberFormat(normalizeLocale(locale), {
       style: "currency",
       currency,
-      ...options }).format(value);
+      ...options,
+    }).format(value);
   } catch {
     return `${currency} ${value}`;
   }
@@ -71,7 +72,8 @@ export const formatPercentage = (
     return new Intl.NumberFormat(normalizeLocale(locale), {
       style: "percent",
       minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals }).format(value / 100);
+      maximumFractionDigits: decimals,
+    }).format(value / 100);
   } catch {
     return `${value.toFixed(decimals)}%`;
   }
@@ -89,7 +91,8 @@ export const formatDate = (
       year: "numeric",
       month: "short",
       day: "numeric",
-      ...options }).format(dateObj);
+      ...options,
+    }).format(dateObj);
   } catch {
     return String(date ?? "");
   }
@@ -105,7 +108,8 @@ export const formatTime = (
     return new Intl.DateTimeFormat(normalizeLocale(locale), {
       hour: "numeric",
       minute: "2-digit",
-      hour12: true }).format(dateObj);
+      hour12: true,
+    }).format(dateObj);
   } catch {
     return String(date ?? "");
   }

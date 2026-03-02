@@ -11,8 +11,24 @@ import { initAnalytics, trackAnalyticsEvent } from "./services/analyticsClient";
 
 // Suppress third-party and generic script errors so they don't trigger the dev overlay
 // or show in console. We register first so we can stop propagation.
+type ReactErrorOverlayHook = {
+  onError?: (error: unknown, info: unknown) => void;
+  onUnhandledRejection?: (reason: unknown, promise: Promise<unknown>) => void;
+  __monevo_patched?: boolean;
+};
+
+declare global {
+  interface Window {
+    __REACT_ERROR_OVERLAY_GLOBAL_HOOK__?: ReactErrorOverlayHook;
+  }
+}
+
 if (typeof window !== "undefined") {
-  const isThirdPartyOrScriptError = (message: string, source?: string, stack?: string) => {
+  const isThirdPartyOrScriptError = (
+    message: string,
+    source?: string,
+    stack?: string
+  ) => {
     const msg = (message || "").toLowerCase();
     const src = (source || "").toLowerCase();
     const stk = (stack || "").toLowerCase();
@@ -43,7 +59,13 @@ if (typeof window !== "undefined") {
     return thirdPartyMessage || thirdPartySource || thirdPartyStack;
   };
   const suppressScriptError = (event: ErrorEvent) => {
-    if (isThirdPartyOrScriptError(event.message, event.filename, event.error?.stack)) {
+    if (
+      isThirdPartyOrScriptError(
+        event.message,
+        event.filename,
+        event.error?.stack
+      )
+    ) {
       event.stopImmediatePropagation();
       event.preventDefault();
       return true;
@@ -52,23 +74,31 @@ if (typeof window !== "undefined") {
   };
   window.addEventListener("error", suppressScriptError, true);
   window.onerror = (message, source, _lineno, _colno, error) => {
-    if (isThirdPartyOrScriptError(String(message), source, error?.stack)) return true;
+    if (isThirdPartyOrScriptError(String(message), source, error?.stack))
+      return true;
     return false;
   };
-  window.addEventListener("unhandledrejection", (event) => {
-    const reason = event?.reason;
-    const msg = reason?.message != null ? String(reason.message) : "";
-    const stack = reason?.stack != null ? String(reason.stack) : "";
-    if (isThirdPartyOrScriptError(msg, undefined, stack)) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }, true);
+  window.addEventListener(
+    "unhandledrejection",
+    (event) => {
+      const reason = event?.reason;
+      const msg = reason?.message != null ? String(reason.message) : "";
+      const stack = reason?.stack != null ? String(reason.stack) : "";
+      if (isThirdPartyOrScriptError(msg, undefined, stack)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    },
+    true
+  );
   const patchOverlay = () => {
-    const hook = (window as any).__REACT_ERROR_OVERLAY_GLOBAL_HOOK__;
+    const hook = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__;
     if (!hook || hook.__monevo_patched) return;
     const isSuppressible = (value: unknown) => {
-      const msg = typeof value === "string" ? value : String((value as any)?.message ?? "");
+      const msg =
+        typeof value === "string"
+          ? value
+          : String((value as any)?.message ?? "");
       const stack = (value as any)?.stack ?? "";
       return isThirdPartyOrScriptError(msg, undefined, stack);
     };
@@ -78,7 +108,10 @@ if (typeof window !== "undefined") {
       if (isSuppressible(error)) return;
       return originalOnError?.(error, info);
     };
-    hook.onUnhandledRejection = (reason: unknown, promise: Promise<unknown>) => {
+    hook.onUnhandledRejection = (
+      reason: unknown,
+      promise: Promise<unknown>
+    ) => {
       if (isSuppressible(reason)) return;
       return originalOnRejection?.(reason, promise);
     };
@@ -123,122 +156,125 @@ if (typeof window !== "undefined") {
   const originalDebug = console.debug.bind(console);
 
   if (!enableLogs) {
-    ["log", "info", "warn", "error", "debug"].forEach((method) => {
-      (console as any)[method] = () => undefined;
-    });
+    (["log", "info", "warn", "error", "debug"] as Array<keyof Console>).forEach(
+      (method) => {
+        // eslint-disable-next-line no-console
+        (console[method] as (..._args: unknown[]) => void) = () => undefined;
+      }
+    );
   } else {
-  const suppressedPhrases = [
-    "runtime.lastError",
-    "message port closed",
-    "Content Script Bridge",
-    "Sending response back to page context",
-    "React DevTools",
-    "Download the React DevTools",
-    "react refresh",
-    "unsupported",
-    "uses an unsupported",
-    "preload",
-    "rel=preload",
-    // Extension / protection tooling (TSS, CONTENT_SHELL, SCHJK, DFP, etc.)
-    "TSS:",
-    "CONTENT_SHELL",
-    "Page is excluded",
-    "Skipping shell protection",
-    "Shell protection",
-    "SCHJK",
-    "Search Hijacking",
-    "DFP",
-    "Breach notification",
-    "feature flag is enabled",
-    "Unknown message type",
-    "MSG_CHECK_DOMAIN_ALLOW_LIST_RESPONSE",
-    "injection-tss",
-    "hosted page injected",
-    "MBTSS",
-    "webpackOk",
-    "Counted history",
-    "Caught history",
-    "Checking if repeated",
-    "excluded result",
-    "Risky TLD",
-    "aggressive protection",
-    "MBTSS_NOTIFICATION",
-    // Third-party embed noise (Investing.com streams, etc.)
-    "heartbeat",
-    "event-",
-    "open-fx",
-    "stream:",
-    // Chrome DevTools violations and network noise
-    "Violation",
-    "non-passive",
-    "Forced reflow",
-    "handler took",
-    "scroll-blocking",
-    "event listener",
-    "ERR_BLOCKED_BY_CLIENT",
-    "Caught create URL",
-    // TradingView embed noise (support portal 403, snowplow analytics)
-    "Invalid environment undefined",
-    "Invalid environment",
-    "support-portal-problems",
-    "support portal problems",
-    "Couldn't load support portal",
-    "Couldn't load support",
-    "Chart.DataProblemModel",
-    "DataProblemModel",
-    "Status 403",
-    "snowplow-embed-widget",
-    "Fetch:",
-    "19052.",
-    "66224.",
-    "tradingview-widget.com/support",
-    "_requestSupportPortalProblems",
-    "runtime-embed_events",
-    "runtime-embed_timeline",
-    "embed_events_widget",
-    "embed_timeline_widget",
-    "embed_advanced_chart",
-  ];
+    const suppressedPhrases = [
+      "runtime.lastError",
+      "message port closed",
+      "Content Script Bridge",
+      "Sending response back to page context",
+      "React DevTools",
+      "Download the React DevTools",
+      "react refresh",
+      "unsupported",
+      "uses an unsupported",
+      "preload",
+      "rel=preload",
+      // Extension / protection tooling (TSS, CONTENT_SHELL, SCHJK, DFP, etc.)
+      "TSS:",
+      "CONTENT_SHELL",
+      "Page is excluded",
+      "Skipping shell protection",
+      "Shell protection",
+      "SCHJK",
+      "Search Hijacking",
+      "DFP",
+      "Breach notification",
+      "feature flag is enabled",
+      "Unknown message type",
+      "MSG_CHECK_DOMAIN_ALLOW_LIST_RESPONSE",
+      "injection-tss",
+      "hosted page injected",
+      "MBTSS",
+      "webpackOk",
+      "Counted history",
+      "Caught history",
+      "Checking if repeated",
+      "excluded result",
+      "Risky TLD",
+      "aggressive protection",
+      "MBTSS_NOTIFICATION",
+      // Third-party embed noise (Investing.com streams, etc.)
+      "heartbeat",
+      "event-",
+      "open-fx",
+      "stream:",
+      // Chrome DevTools violations and network noise
+      "Violation",
+      "non-passive",
+      "Forced reflow",
+      "handler took",
+      "scroll-blocking",
+      "event listener",
+      "ERR_BLOCKED_BY_CLIENT",
+      "Caught create URL",
+      // TradingView embed noise (support portal 403, snowplow analytics)
+      "Invalid environment undefined",
+      "Invalid environment",
+      "support-portal-problems",
+      "support portal problems",
+      "Couldn't load support portal",
+      "Couldn't load support",
+      "Chart.DataProblemModel",
+      "DataProblemModel",
+      "Status 403",
+      "snowplow-embed-widget",
+      "Fetch:",
+      "19052.",
+      "66224.",
+      "tradingview-widget.com/support",
+      "_requestSupportPortalProblems",
+      "runtime-embed_events",
+      "runtime-embed_timeline",
+      "embed_events_widget",
+      "embed_timeline_widget",
+      "embed_advanced_chart",
+    ];
 
-  const shouldSuppress = function (): boolean {
-    const arr = Array.prototype.slice.call(arguments);
-    const full = arr
-      .map((a: unknown) => {
-        if (typeof a === "string") return a;
-        try {
-          return JSON.stringify(a);
-        } catch {
-          return String(a);
-        }
-      })
-      .join(" ");
-    return suppressedPhrases.some((phrase) => full.includes(phrase));
-  };
+    const shouldSuppress = function (): boolean {
+      const arr = Array.prototype.slice.call(arguments);
+      const full = arr
+        .map((a: unknown) => {
+          if (typeof a === "string") return a;
+          try {
+            return JSON.stringify(a);
+          } catch {
+            return String(a);
+          }
+        })
+        .join(" ");
+      return suppressedPhrases.some((phrase) => full.includes(phrase));
+    };
 
-  console.log = function () {
-    if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
-    originalLog.apply(console, arguments as unknown as unknown[]);
-  };
+    console.log = function () {
+      if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
+      originalLog.apply(console, arguments as unknown as unknown[]);
+    };
 
-  console.info = function () {
-    if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
-    originalInfo.apply(console, arguments as unknown as unknown[]);
-  };
+    console.info = function () {
+      if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
+      originalInfo.apply(console, arguments as unknown as unknown[]);
+    };
 
-  console.warn = function () {
-    if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
-    originalWarn.apply(console, arguments as unknown as unknown[]);
-  };
+    console.warn = function () {
+      if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
+      originalWarn.apply(console, arguments as unknown as unknown[]);
+    };
 
-  console.error = function () {
-    if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
-    originalError.apply(console, arguments as unknown as unknown[]);
-  };
+    console.error = function () {
+      if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
+      originalError.apply(console, arguments as unknown as unknown[]);
+    };
 
-  console.debug = function () {
-    if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
-    originalDebug.apply(console, arguments as unknown as unknown[]);
-  };
+    console.debug = function () {
+      if (shouldSuppress.apply(null, arguments as unknown as unknown[])) return;
+      originalDebug.apply(console, arguments as unknown as unknown[]);
+    };
   }
 }
 
@@ -318,6 +354,7 @@ reportWebVitals((metric) => {
   trackAnalyticsEvent("web_vital", {
     name: metric.name,
     value: metric.value,
-    id: metric.id });
+    id: metric.id,
+  });
 });
 registerServiceWorker();

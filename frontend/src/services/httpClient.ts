@@ -1,11 +1,23 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 import toast from "react-hot-toast";
 import i18n from "../i18n";
 import { BACKEND_URL } from "services/backendUrl";
 
+declare module "axios" {
+  interface AxiosRequestConfig {
+    /** When true, 401/403 do not trigger redirect to login or global error toast (e.g. for login/register/refresh). */
+    skipAuthRedirect?: boolean;
+  }
+}
+
+/**
+ * Single HTTP client for all backend API calls. Use this instead of raw axios + BACKEND_URL
+ * so that auth headers, i18n headers, 401/403 handling, and error toasts are consistent.
+ */
 const apiClient = axios.create({
   baseURL: BACKEND_URL,
-  withCredentials: true });
+  withCredentials: true,
+});
 
 const AUTH_EXPIRED_REASON = "session-expired";
 
@@ -44,19 +56,24 @@ const redirectToLoginWithReason = (reason: string) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (isAuthError(error)) {
+    const skipAuthRedirect = (
+      error.config as InternalAxiosRequestConfig & {
+        skipAuthRedirect?: boolean;
+      }
+    )?.skipAuthRedirect;
+    if (isAuthError(error) && !skipAuthRedirect) {
       clearAuthHeaders();
-      // Let the login page show the message; avoid toasts that may never be seen before redirect.
       redirectToLoginWithReason(AUTH_EXPIRED_REASON);
       return Promise.reject(error);
     }
-
-    const message =
-      error.response?.data?.detail ||
-      error.response?.data?.error ||
-      error.message ||
-      i18n.t("shared.apiError");
-    toast.error(message);
+    if (!skipAuthRedirect) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
+        error.message ||
+        i18n.t("shared.apiError");
+      toast.error(message);
+    }
     return Promise.reject(error);
   }
 );

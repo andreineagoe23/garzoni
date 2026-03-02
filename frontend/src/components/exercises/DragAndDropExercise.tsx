@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { playFeedbackChime } from "utils/sound";
@@ -36,9 +35,15 @@ const DragAndDropExercise = ({
   onComplete,
   onAttempt,
   isCompleted: isCompletedProp = false,
-  disabled = false }: DragAndDropExerciseProps) => {
+  disabled = false,
+}: DragAndDropExerciseProps) => {
   const { t } = useTranslation();
-  const { items = [], targets = [], learn_more_url, explanation } = (data || {}) as {
+  const {
+    items = [],
+    targets = [],
+    learn_more_url,
+    explanation,
+  } = (data || {}) as {
     items?: DragItem[];
     targets?: DragTarget[];
     learn_more_url?: string;
@@ -60,7 +65,8 @@ const DragAndDropExercise = ({
   const [targetStates, setTargetStates] = useState(() =>
     targetsArray.map((target) => ({
       ...target,
-      status: null as "correct" | "incorrect" | null }))
+      status: null as "correct" | "incorrect" | null,
+    }))
   );
   const [isCompleted, setIsCompleted] = useState(false);
   const [keyboardSelectedId, setKeyboardSelectedId] = useState<
@@ -87,7 +93,8 @@ const DragAndDropExercise = ({
     setTargetStates(
       targetsArray.map((target) => ({
         ...target,
-        status: null as "correct" | "incorrect" | null }))
+        status: null as "correct" | "incorrect" | null,
+      }))
     );
     setUserAnswers({});
     setFeedback("");
@@ -100,11 +107,8 @@ const DragAndDropExercise = ({
     const fetchExerciseProgress = async () => {
       if (!exerciseId) return;
       try {
-        const response = await axios.get(
-          `${BACKEND_URL}/exercises/progress/${exerciseId}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}` } }
+        const response = await apiClient.get(
+          `/exercises/progress/${exerciseId}/`
         );
 
         if (response.data.completed) {
@@ -115,7 +119,8 @@ const DragAndDropExercise = ({
             targetsArray.map((target) => ({
               ...target,
               status:
-                savedAnswers[target.id] === target.id ? "correct" : "incorrect" }))
+                savedAnswers[target.id] === target.id ? "correct" : "incorrect",
+            }))
           );
           setFeedback(t("exercises.drag.alreadyCompleted"));
           setFeedbackType("success");
@@ -132,7 +137,8 @@ const DragAndDropExercise = ({
     if (isCompleted || disabled) return;
     setUserAnswers((prev) => ({
       ...prev,
-      [target.id]: item.id }));
+      [target.id]: item.id,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -147,7 +153,10 @@ const DragAndDropExercise = ({
     ).length;
     const allCorrect = correctCount === targetsArray.length;
     onAttempt?.({ correct: allCorrect });
-    playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: allCorrect });
+    playFeedbackChime({
+      enabled: Boolean(soundEnabled ?? true),
+      correct: allCorrect,
+    });
 
     if (allCorrect) {
       setFeedback(t("exercises.drag.completed"));
@@ -164,7 +173,10 @@ const DragAndDropExercise = ({
       }
     } else {
       setFeedback(
-        t("exercises.drag.partialCorrect", { correct: correctCount, total: targetsArray.length })
+        t("exercises.drag.partialCorrect", {
+          correct: correctCount,
+          total: targetsArray.length,
+        })
       );
       setFeedbackType("error");
     }
@@ -181,18 +193,13 @@ const DragAndDropExercise = ({
   const handleRetry = async () => {
     try {
       if (!exerciseId) return;
-      await axios.post(
-        `${BACKEND_URL}/exercises/reset/`,
-        { section_id: exerciseId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/exercises/reset/", { section_id: exerciseId });
       setUserAnswers({});
       setTargetStates(
         targetsArray.map((target) => ({
           ...target,
-          status: null as "correct" | "incorrect" | null }))
+          status: null as "correct" | "incorrect" | null,
+        }))
       );
       setFeedback("");
       setFeedbackType(null);
@@ -314,18 +321,16 @@ const DragAndDropExercise = ({
   );
 };
 
-const DraggableItem = ({
-  item,
-  isDisabled,
-  isSelected,
-  onKeyboardSelect }) => {
+const DraggableItem = ({ item, isDisabled, isSelected, onKeyboardSelect }) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "EXERCISE_ITEM",
       item: { id: item.id },
       canDrag: () => !isDisabled,
       collect: (monitor) => ({
-        isDragging: monitor.isDragging() }) }),
+        isDragging: monitor.isDragging(),
+      }),
+    }),
     [item, isDisabled]
   );
 
@@ -354,7 +359,8 @@ const DraggableItem = ({
           : "border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)]"
       }`}
       style={{
-        backgroundColor: item.color || "var(--card-bg,#ffffff)" }}
+        backgroundColor: item.color || "var(--card-bg,#ffffff)",
+      }}
     >
       {item.text}
     </div>
@@ -369,7 +375,8 @@ const DroppableTarget = ({
   itemsById,
   isDisabled,
   keyboardSelectedId,
-  onKeyboardDrop }) => {
+  onKeyboardDrop,
+}) => {
   const { t } = useTranslation();
   const [{ isOver }, drop] = useDrop(
     () => ({
@@ -377,7 +384,9 @@ const DroppableTarget = ({
       canDrop: () => !isDisabled,
       drop: (item) => onDrop(target, item),
       collect: (monitor) => ({
-        isOver: monitor.isOver() && monitor.canDrop() }) }),
+        isOver: monitor.isOver() && monitor.canDrop(),
+      }),
+    }),
     [target, onDrop, isDisabled]
   );
 
@@ -412,7 +421,8 @@ const DroppableTarget = ({
       </p>
       {userAnswer && (
         <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-[color:var(--muted-text,#6b7280)] shadow-inner">
-          {t("exercises.drag.answerLabel")} {itemsById[userAnswer]?.text || userAnswer}
+          {t("exercises.drag.answerLabel")}{" "}
+          {itemsById[userAnswer]?.text || userAnswer}
         </div>
       )}
     </div>

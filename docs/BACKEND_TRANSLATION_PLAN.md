@@ -120,5 +120,81 @@ Use this only for a small set of stable strings you’re happy to keep in the fr
 - **Centralize**: Keep all backend-driven copy in the backend (canonical + translations), and use one mechanism (e.g. translation tables + `Accept-Language`).
 - **Automate**: On “add lesson/exercise”, automatically create translation rows/placeholders for every supported language; optionally auto-fill via machine translation and then review in admin.
 - **Frontend**: Only needs to send current language and keep translating its own UI with existing locale files; backend handles the rest of the copy.
-
 This keeps the frontend translation work you’ve already done for UI, and makes backend content (lessons, exercises, etc.) translatable and scalable as you add more lessons in the future.
+
+---
+
+## Appendix A: Translation implementation – status and next steps
+
+### What’s implemented
+
+#### Backend (education app only)
+
+| Area | What was done |
+|------|----------------|
+| **Language detection** | `education/utils.py`: `get_request_language(request)` reads `X-App-Language`, then `Accept-Language`, normalizes to 2-letter code, returns `en` or `ro` (else `en`). |
+| **Translation models** | `education/models.py`: `PathTranslation`, `CourseTranslation`, `LessonTranslation`, `LessonSectionTranslation`, `QuizTranslation`, `ExerciseTranslation`. Each has FK to parent, `language` (indexed), same text/JSON fields as the main model. `unique_together = [("parent", "language")]`. |
+| **Migration** | `education/migrations/0014_add_translation_models.py` – creates the six translation tables. |
+| **Serializers** | `education/serializers.py`: All path/course/lesson/section/quiz/exercise serializers use `get_request_language()` and `_get_translation()` in `to_representation()` so API responses are in the requested language. |
+| **Views** | Path, Course, Lesson (with progress), Quiz, Exercise views prefetch `translations` (and nested where needed) to avoid N+1. |
+| **Admin** | `education/admin.py`: TabularInlines for all six translation models on their parent ModelAdmins so staff can edit translations in Django admin. |
+| **Backfill command** | `education/management/commands/backfill_translations.py`: Creates EN rows from canonical content, then RO rows (copy from EN or canonical). |
+| **CORS** | `settings/settings.py`: `x-app-language` and `accept-language` added to `CORS_ALLOW_HEADERS` so the browser allows the frontend to send them. |
+
+Not yet translated on the backend: missions, support entries, rewards/shop/donate item names, and subscription plan copy – those endpoints do not use `get_request_language()` or translation tables.
+
+#### Frontend
+
+| Area | What was done |
+|------|----------------|
+| **i18n setup** | `src/i18n.ts`: i18next with `en`/`ro`, initial language from `localStorage` then browser, `document.documentElement.lang` updated, language persisted to `localStorage`. |
+| **Constants** | `src/constants/i18n.ts`: `DEFAULT_LANGUAGE`, `SUPPORTED_LANGUAGES`, `LANGUAGE_STORAGE_KEY`. |
+| **Locale files** | `src/locales/en/` and `src/locales/ro/`: `common.json`, `courses.json`, `shared.json`, `index.ts`. |
+| **Language selector** | Navbar selector wired to i18n. |
+| **API language headers** | `src/services/httpClient.ts`: every request sends `Accept-Language` and `X-App-Language` from `i18n.language`. |
+| **Content APIs use apiClient** | AllTopics, PersonalizedPath, ExercisePage, Missions, SupportPage, QuizPage, ShopItems, DonationCauses. |
+| **Tools hub** | `tools.groups.*` and `tools.entries.*` for section titles and tool title/promise; ToolsPage uses `t()` with fallback to registry. |
+| **Tests** | i18n tests verify EN/RO key parity and that all referenced keys exist. |
+
+### What’s left / next steps
+
+- **Backend – education content in Romanian**
+  - Run migrations for `education` and the `backfill_translations` command.
+  - Fill real Romanian content in admin for paths, courses, lessons, sections, quizzes, and exercises (backfill only copies EN → RO).
+- **Backend – missions / support / rewards (optional)**
+  - If these live in the DB, add translation models or language-aware fields and return translated content by `get_request_language`.
+- **Frontend – audit for missing keys**
+  - Subscription plans page, onboarding, auth, dashboard, missions UI, modals/toasts, footer/legal – ensure all user-facing copy uses `t()` with EN/RO keys.
+  - Ensure dates use locale everywhere via `getLocale()` helpers.
+- **Raw API calls**
+  - Optionally switch remaining raw `axios` calls to `apiClient` where endpoints will return translated content.
+
+Quick checklist:
+
+- [ ] Backend: migrate `education` and run `backfill_translations`.
+- [ ] Backend: decide on translation strategy for missions/support/rewards.
+- [ ] Frontend: audit remaining UI for missing translation keys and RO coverage.
+- [ ] Frontend: ensure dates and numbers respect locale.
+
+---
+
+## Appendix B: Translation review (post–merge)
+
+### Summary of what’s in good shape
+
+| Area | Status |
+|------|--------|
+| Frontend locale files | EN + RO with common, shared, courses; keys aligned; no `defaultValue` in `t()` calls. |
+| Tools | Registry is data-only; all copy from i18n. |
+| Dates | `formatDate`/`formatTime` use `getLocale()`, so RO gives Romanian month names. |
+| Backend education | `get_request_language`, translation models, serializers, admin inlines, backfill command, CORS headers. |
+| Backend tests | `education/tests/test_i18n.py` covers `get_request_language`. |
+
+### Remaining items
+
+- **Backend content in RO:** run `migrate education` and `backfill_translations`, then fill RO translations in admin.
+- **Other backend apps (optional):** missions, support, rewards/shop/donate can follow the same translation pattern if needed.
+- **CI:** ensure backend tests (including `test_i18n`) run in CI with a Django environment.
+- **Polish:** fix any remaining label issues (e.g. “Romana” → “Română”) and do a light RO copy review for tone and terminology.
+
+In short, frontend EN/RO translation is effectively complete and well-tested; backend infrastructure for translated education content is in place and mainly needs data population and optional extension to other apps.

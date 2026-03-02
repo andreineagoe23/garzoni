@@ -4,7 +4,8 @@ import {
   decrementHearts,
   fetchHearts,
   grantHearts,
-  refillHearts } from "services/userService";
+  refillHearts,
+} from "services/userService";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { createMutationOptions } from "lib/createMutation";
 import { initHeartsTabSync, useHeartsStore } from "stores/heartsStore";
@@ -18,7 +19,8 @@ type UseHeartsOptions = {
 
 export function useHearts({
   enabled = true,
-  refetchIntervalMs = 30_000 }: UseHeartsOptions = {}) {
+  refetchIntervalMs = 30_000,
+}: UseHeartsOptions = {}) {
   const queryClient = useQueryClient();
 
   // One-time: keep cross-tab timestamps in sync.
@@ -48,7 +50,8 @@ export function useHearts({
     staleTime: staleTimes.hearts,
     // Hearts are high-signal / time-sensitive. When the user returns to the tab, refresh.
     refetchOnWindowFocus: Boolean(enabled),
-    refetchInterval: enabled ? refetchIntervalMs : false });
+    refetchInterval: enabled ? refetchIntervalMs : false,
+  });
 
   useEffect(() => {
     if (heartsQuery.data) {
@@ -119,7 +122,8 @@ export function useHearts({
       invalidate: [queryKeys.hearts()],
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
-      } })
+      },
+    })
   );
 
   const grantMutation = useMutation(
@@ -130,7 +134,8 @@ export function useHearts({
       invalidate: [queryKeys.hearts()],
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
-      } })
+      },
+    })
   );
 
   const refillMutation = useMutation(
@@ -140,7 +145,8 @@ export function useHearts({
       invalidate: [queryKeys.hearts()],
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
-      } })
+      },
+    })
   );
 
   // Concurrency guardrails: prevent rapid double-spends (double taps, retries, etc.).
@@ -154,7 +160,8 @@ export function useHearts({
     decrementMutation.mutate(undefined, {
       onSettled: () => {
         decrementLockRef.current = false;
-      } });
+      },
+    });
   }, [decrementMutation]);
 
   const grantHeartsSafe = useCallback(
@@ -207,5 +214,6 @@ export function useHearts({
 
     decrementHeartsMutation: decrementMutation,
     grantHeartsMutation: grantMutation,
-    refillHeartsMutation: refillMutation };
+    refillHeartsMutation: refillMutation,
+  };
 }

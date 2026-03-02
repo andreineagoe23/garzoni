@@ -13,7 +13,8 @@ const Skeleton = ({ className, rounded = "md" }: SkeletonProps) => (
       {
         "rounded-md": rounded === "md",
         "rounded-full": rounded === "full",
-        "rounded-lg": rounded === "lg" },
+        "rounded-lg": rounded === "lg",
+      },
       className
     )}
   />

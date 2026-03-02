@@ -18,9 +18,13 @@ describe("AuthContext refresh flow", () => {
     const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
     sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
     axiosMock.post.mockResolvedValue({
-      data: { access: "access-token" } } as any);
+      data: { access: "access-token" },
+    } as { data: { access: string } });
     axiosMock.get.mockResolvedValue({
-      data: { isAuthenticated: true, user: { username: "tester" } } } as any);
+      data: { isAuthenticated: true, user: { username: "tester" } },
+    } as {
+      data: { isAuthenticated: boolean; user: { username: string } };
+    });
   });
 
   afterEach(() => {
@@ -42,13 +46,16 @@ describe("AuthContext refresh flow", () => {
     expect(axios.post).toHaveBeenCalledWith(
       expect.stringContaining("/token/refresh/"),
       {},
-      { withCredentials: true }
+      expect.objectContaining({ skipAuthRedirect: true })
     );
     expect(axios.get).toHaveBeenCalledWith(
       expect.stringContaining("/verify-auth/"),
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: expect.stringContaining("Bearer") }) })
+          Authorization: expect.stringContaining("Bearer"),
+        }),
+        skipAuthRedirect: true,
+      })
     );
   });
 });

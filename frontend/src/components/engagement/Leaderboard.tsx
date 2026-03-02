@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import PageContainer from "components/common/PageContainer";
 import FriendRequests from "components/profile/FriendRequest";
 import ReferralLink from "components/profile/ReferralLink";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
 import { useTranslation } from "react-i18next";
@@ -72,16 +71,13 @@ const Leaderboards = () => {
         setLoading(true);
         setError("");
 
-        const authHeaders = {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } };
-
         const [globalResponse, friendsResponse, rankResponse, profilePayload] =
           await Promise.all([
-            axios.get(`${BACKEND_URL}/leaderboard/`, {
-              ...authHeaders,
-              params: { time_filter: timeFilter } }),
-            axios.get(`${BACKEND_URL}/leaderboard/friends/`, authHeaders),
-            axios.get(`${BACKEND_URL}/leaderboard/rank/`, authHeaders),
+            apiClient.get("/leaderboard/", {
+              params: { time_filter: timeFilter },
+            }),
+            apiClient.get("/leaderboard/friends/"),
+            apiClient.get("/leaderboard/rank/"),
             loadProfile(),
           ]);
 
@@ -91,9 +87,8 @@ const Leaderboards = () => {
         setReferralCode(profilePayload?.referral_code || "");
 
         try {
-          const sentRes = await axios.get(
-            `${BACKEND_URL}/friend-requests/get_sent_requests/`,
-            authHeaders
+          const sentRes = await apiClient.get(
+            "/friend-requests/get_sent_requests/"
           );
           setSentRequests(sentRes.data);
         } catch (err) {
@@ -102,21 +97,19 @@ const Leaderboards = () => {
         }
 
         try {
-          const friendsRes = await axios.get(
-            `${BACKEND_URL}/friend-requests/get_friends/`,
-            authHeaders
+          const friendsRes = await apiClient.get(
+            "/friend-requests/get_friends/"
           );
           setFriends(friendsRes.data);
         } catch (err) {
           console.warn("Unable to fetch friends list", err);
           setFriends([]);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Error fetching leaderboard data:", err);
-        setError(
-          err.response?.data?.detail ||
-            t("leaderboard.errors.loadFailed")
-        );
+        const detail = (err as { response?: { data?: { detail?: string } } })
+          ?.response?.data?.detail;
+        setError(detail || t("leaderboard.errors.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -127,24 +120,21 @@ const Leaderboards = () => {
 
   const sendFriendRequest = async (receiverId: number) => {
     try {
-      await axios.post(
-        `${BACKEND_URL}/friend-requests/`,
-        { receiver: receiverId },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/friend-requests/", { receiver: receiverId });
 
-      const sentRequestsResponse = await axios.get(
-        `${BACKEND_URL}/friend-requests/get_sent_requests/`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } }
+      const sentRequestsResponse = await apiClient.get(
+        "/friend-requests/get_sent_requests/"
       );
       setSentRequests(sentRequestsResponse.data);
-    } catch (err) {
+    } catch (err: unknown) {
+      const e = err as {
+        response?: { data?: { error?: string; detail?: string } };
+        message?: string;
+      };
       const message =
-        err.response?.data?.error ||
-        err.response?.data?.detail ||
-        err.message ||
+        e?.response?.data?.error ||
+        e?.response?.data?.detail ||
+        e?.message ||
         t("leaderboard.errors.friendRequestFailed");
       alert(message);
     }
@@ -169,9 +159,7 @@ const Leaderboards = () => {
   if (loading) {
     return (
       <PageContainer layout="centered" maxWidth="4xl">
-        <Loader
-          message={t("leaderboard.loading")}
-        />
+        <Loader message={t("leaderboard.loading")} />
       </PageContainer>
     );
   }
@@ -282,11 +270,13 @@ const Leaderboards = () => {
                 <div className="text-sm">
                   <p className="font-semibold text-[color:var(--accent,#111827)]">
                     {t("leaderboard.you", {
-                      username: userRank.user.username })}
+                      username: userRank.user.username,
+                    })}
                   </p>
                   <p className="text-[color:var(--accent,#2563eb)]">
                     {t("leaderboard.points", {
-                      points: userRank.points })}
+                      points: userRank.points,
+                    })}
                   </p>
                 </div>
               </div>
@@ -323,21 +313,22 @@ const Leaderboards = () => {
                     </span>
                     <div className="flex items-center gap-3">
                       <img
-                          src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
-                          alt={`${entry.user.username}'s avatar`}
-                          className="h-12 w-12 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = DEFAULT_AVATAR_URL;
-                          }}
-                        />
+                        src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
+                        alt={`${entry.user.username}'s avatar`}
+                        className="h-12 w-12 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = DEFAULT_AVATAR_URL;
+                        }}
+                      />
                       <div>
                         <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
                           {entry.user.username}
                         </p>
                         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                           {t("leaderboard.points", {
-                            points: formatNumber(entry.points || 0, locale) })}
+                            points: formatNumber(entry.points || 0, locale),
+                          })}
                         </p>
                       </div>
                     </div>

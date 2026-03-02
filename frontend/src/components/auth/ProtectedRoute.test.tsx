@@ -4,9 +4,15 @@ import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "contexts/AuthContext";
 
 jest.mock("contexts/AuthContext", () => ({
-  useAuth: jest.fn() }));
+  useAuth: jest.fn(),
+}));
 
-const renderWithAuth = (authState: any) => {
+type MockAuthState = {
+  isAuthenticated: boolean;
+  isInitialized: boolean;
+};
+
+const renderWithAuth = (authState: MockAuthState) => {
   const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
   mockUseAuth.mockReturnValue(authState);
   return render(
@@ -19,15 +25,14 @@ const renderWithAuth = (authState: any) => {
 describe("ProtectedRoute", () => {
   it("shows loading state while auth initializes", () => {
     renderWithAuth({ isAuthenticated: false, isInitialized: false });
-    expect(
-      screen.getByText("Verifying...")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Verifying...")).toBeInTheDocument();
   });
 
   it("redirects to login when unauthenticated", () => {
     renderWithAuth({
       isAuthenticated: false,
-      isInitialized: true });
+      isInitialized: true,
+    });
     expect(screen.getByTestId("mock-navigate-/login")).toBeInTheDocument();
   });
 

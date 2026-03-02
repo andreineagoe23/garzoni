@@ -50,7 +50,8 @@ const CryptoTools = () => {
       ],
       details: true,
       calendar: false,
-      support_host: "https://www.tradingview.com" });
+      support_host: "https://www.tradingview.com",
+    });
 
     let cancelled = false;
     const timer = setTimeout(() => {
@@ -66,7 +67,9 @@ const CryptoTools = () => {
 
     const timeoutId = window.setTimeout(() => {
       if (cancelled) return;
-      const el = currentContainer?.querySelector(".tradingview-widget-container__widget");
+      const el = currentContainer?.querySelector(
+        ".tradingview-widget-container__widget"
+      );
       if (el && !el.hasChildNodes()) setLoadError(true);
     }, WIDGET_LOAD_TIMEOUT_MS);
 
@@ -98,11 +101,14 @@ const CryptoTools = () => {
         className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg shadow-lg shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)" }}
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         {loadError && (
           <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
-            <p className="font-semibold">{t("tools.crypto.errors.loadFailed")}</p>
+            <p className="font-semibold">
+              {t("tools.crypto.errors.loadFailed")}
+            </p>
             <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
               {t("tools.crypto.errors.loadFailedHelp")}
             </p>
@@ -124,7 +130,8 @@ const CryptoTools = () => {
             border: 0,
             overflow: "hidden",
             height: "clamp(340px, 55vh, 500px)",
-            colorScheme: darkMode ? "dark" : "light" }}
+            colorScheme: darkMode ? "dark" : "light",
+          }}
         >
           <div
             className="tradingview-widget-container__widget"

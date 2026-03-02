@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 
@@ -15,9 +14,7 @@ const FriendRequests = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BACKEND_URL}/friend-requests/`, {
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}` } });
+      const response = await apiClient.get("/friend-requests/");
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -34,24 +31,21 @@ const FriendRequests = () => {
 
   const respondToRequest = async (requestId, action) => {
     try {
-      await axios.put(
-        `${BACKEND_URL}/friend-requests/${requestId}/`,
-        { action },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.put(`/friend-requests/${requestId}/`, { action });
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
       setMessage(
         action === "accept"
           ? t("profile.friendRequests.accepted")
           : t("profile.friendRequests.declined")
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error updating request:`, error);
+      const e = error as {
+        response?: { data?: { error?: string; detail?: string } };
+      };
       setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.detail ||
+        e?.response?.data?.error ||
+          e?.response?.data?.detail ||
           t("profile.friendRequests.error")
       );
     }

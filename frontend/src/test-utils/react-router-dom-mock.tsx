@@ -1,8 +1,16 @@
 import React from "react";
 
 export const mockNavigate = jest.fn();
-const getSearch = () => (global as any).__TEST_LOCATION_SEARCH__ || "";
-const getPathname = () => (global as any).__TEST_LOCATION_PATHNAME__ || "/";
+
+type TestGlobal = typeof globalThis & {
+  __TEST_LOCATION_SEARCH__?: string;
+  __TEST_LOCATION_PATHNAME__?: string;
+};
+
+const getSearch = () =>
+  (globalThis as TestGlobal).__TEST_LOCATION_SEARCH__ || "";
+const getPathname = () =>
+  (globalThis as TestGlobal).__TEST_LOCATION_PATHNAME__ || "/";
 
 const reactRouterDomMock = {
   BrowserRouter: ({ children }: { children: React.ReactNode }) => (
@@ -22,14 +30,17 @@ const reactRouterDomMock = {
     to,
     children,
     className,
-    onClick }: {
+    onClick,
+  }: {
     to: string;
     children: React.ReactNode;
     className?: string | ((props: { isActive: boolean }) => string);
     onClick?: () => void;
   }) => {
     const resolvedClassName =
-      typeof className === "function" ? className({ isActive: false }) : className;
+      typeof className === "function"
+        ? className({ isActive: false })
+        : className;
     return (
       <a
         href={typeof to === "string" ? to : "#"}
@@ -49,7 +60,8 @@ const reactRouterDomMock = {
   useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: getPathname(), search: getSearch() }),
   useParams: () => ({}),
-  mockNavigate };
+  mockNavigate,
+};
 
 export default reactRouterDomMock;
 module.exports = reactRouterDomMock;

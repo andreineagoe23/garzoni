@@ -3,7 +3,8 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useState } from "react";
+  useState,
+} from "react";
 
 type ThemeContextValue = {
   darkMode: boolean;

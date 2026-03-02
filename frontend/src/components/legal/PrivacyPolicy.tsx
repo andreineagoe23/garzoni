@@ -18,27 +18,39 @@ const PrivacyPolicy = () => {
       <p>{t("legal.privacy.sections.data.intro")}</p>
       <ul>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.account.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.account.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.account.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.profile.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.profile.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.profile.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.learning.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.learning.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.learning.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.technical.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.technical.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.technical.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.cookies.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.cookies.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.cookies.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.data.items.billing.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.data.items.billing.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.data.items.billing.text")}
         </li>
         <li>
@@ -57,31 +69,45 @@ const PrivacyPolicy = () => {
       <h2>{t("legal.privacy.sections.purposes.title")}</h2>
       <ul>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.account.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.account.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.account.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.core.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.core.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.core.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.security.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.security.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.security.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.improve.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.improve.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.improve.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.comms.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.comms.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.comms.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.marketing.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.marketing.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.marketing.text")}
         </li>
         <li>
-          <strong>{t("legal.privacy.sections.purposes.items.legal.label")}</strong>{" "}
+          <strong>
+            {t("legal.privacy.sections.purposes.items.legal.label")}
+          </strong>{" "}
           {t("legal.privacy.sections.purposes.items.legal.text")}
         </li>
       </ul>
@@ -92,7 +118,8 @@ const PrivacyPolicy = () => {
         <Trans
           i18nKey="legal.privacy.sections.cookies.body2"
           components={{
-            link: <Link to="/cookie-policy" /> }}
+            link: <Link to="/cookie-policy" />,
+          }}
         />
       </p>
 

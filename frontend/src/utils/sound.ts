@@ -5,10 +5,12 @@ type FeedbackChimeOptions = {
 
 export const playFeedbackChime = ({
   enabled = true,
-  correct = true }: FeedbackChimeOptions = {}) => {
+  correct = true,
+}: FeedbackChimeOptions = {}) => {
   if (!enabled || typeof window === "undefined") return;
   const AudioContextConstructor =
-    window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext })
+    window.AudioContext ||
+    (window as Window & { webkitAudioContext?: typeof AudioContext })
       .webkitAudioContext;
   if (!AudioContextConstructor) return;
 

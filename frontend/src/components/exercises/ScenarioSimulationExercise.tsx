@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { playFeedbackChime } from "utils/sound";
@@ -34,11 +33,18 @@ const ScenarioSimulationExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false }: ScenarioSimulationExerciseProps) => {
+  disabled = false,
+}: ScenarioSimulationExerciseProps) => {
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
-  const { question, scenario, choices = [], correctAnswer, learn_more_url, explanation } =
-    data || {};
+  const {
+    question,
+    scenario,
+    choices = [],
+    correctAnswer,
+    learn_more_url,
+    explanation,
+  } = data || {};
   const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -64,9 +70,14 @@ const ScenarioSimulationExercise = ({
     const isCorrect = selectedId === correctAnswer;
     setFeedbackType(isCorrect ? "success" : "error");
     setFeedback(
-      isCorrect ? t("exercises.scenario.correct") : t("exercises.scenario.incorrect")
+      isCorrect
+        ? t("exercises.scenario.correct")
+        : t("exercises.scenario.incorrect")
     );
-    playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: isCorrect });
+    playFeedbackChime({
+      enabled: Boolean(soundEnabled ?? true),
+      correct: isCorrect,
+    });
     onAttempt?.({ correct: isCorrect });
 
     if (isCorrect) {
@@ -83,12 +94,7 @@ const ScenarioSimulationExercise = ({
     try {
       const sectionId = exerciseId;
       if (!sectionId) return;
-      await axios.post(
-        `${BACKEND_URL}/exercises/reset/`,
-        { section_id: sectionId },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/exercises/reset/", { section_id: sectionId });
       setSelectedId(null);
       setFeedback("");
       setFeedbackType(null);
@@ -103,7 +109,9 @@ const ScenarioSimulationExercise = ({
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {question}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">{scenario}</p>
+        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          {scenario}
+        </p>
       </header>
 
       <div className="mt-6 space-y-4">
@@ -135,7 +143,9 @@ const ScenarioSimulationExercise = ({
           <span className="font-semibold text-[color:var(--accent,#111827)]">
             {t("exercises.scenario.actionSlot")}
           </span>{" "}
-          {selectedChoice ? selectedChoice.label : t("exercises.scenario.dragHint")}
+          {selectedChoice
+            ? selectedChoice.label
+            : t("exercises.scenario.dragHint")}
         </div>
 
         <div className="grid gap-3">
@@ -155,7 +165,9 @@ const ScenarioSimulationExercise = ({
                 onDragStart={(event) => {
                   event.dataTransfer.setData("text/plain", String(choice.id));
                 }}
-                onClick={() => !isCompleted && !disabled && setSelectedId(choice.id)}
+                onClick={() =>
+                  !isCompleted && !disabled && setSelectedId(choice.id)
+                }
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -194,7 +206,9 @@ const ScenarioSimulationExercise = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={selectedId === null || selectedId === undefined || disabled}
+            disabled={
+              selectedId === null || selectedId === undefined || disabled
+            }
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
               selectedId === null || selectedId === undefined || disabled
                 ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"

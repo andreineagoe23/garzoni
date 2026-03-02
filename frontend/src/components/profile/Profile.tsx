@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   VerticalTimeline,
-  VerticalTimelineElement } from "react-vertical-timeline-component";
+  VerticalTimelineElement,
+} from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import AvatarSelector from "./AvatarSelector";
 import Chatbot from "components/widgets/Chatbot";
@@ -11,16 +11,22 @@ import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import EntitlementUsage from "components/dashboard/EntitlementUsage";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
-import { formatCurrency, formatDate, formatNumber, getLocale } from "utils/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatNumber,
+  getLocale,
+} from "utils/format";
 import { useTranslation } from "react-i18next";
 const activityIcons = {
   lesson: "📘",
   quiz: "🧠",
   mission: "🚀",
   course: "🎓",
-  default: "📌" };
+  default: "📌",
+};
 
 function Profile() {
   const { t } = useTranslation();
@@ -32,7 +38,8 @@ function Profile() {
     last_name: "",
     earned_money: 0,
     points: 0,
-    streak: 0 });
+    streak: 0,
+  });
   const [imageUrl, setImageUrl] = useState(DEFAULT_AVATAR_URL);
   const [recentActivity, setRecentActivity] = useState([]);
   const [badges, setBadges] = useState([]);
@@ -42,12 +49,15 @@ function Profile() {
       label: t("profile.goals.dailyLabel"),
       current: 0,
       target: 1,
-      completed: false },
+      completed: false,
+    },
     weekly: {
       label: t("profile.goals.weeklyLabel"),
       current: 0,
       target: 500,
-      completed: false } });
+      completed: false,
+    },
+  });
   const [activityCalendar, setActivityCalendar] = useState<
     Record<string, unknown>
   >({});
@@ -60,7 +70,8 @@ function Profile() {
     first_day: null,
     last_day: null,
     month_name: "",
-    year: null });
+    year: null,
+  });
   const [badgeFilter, setBadgeFilter] = useState("all"); // all | earned | locked
   const weekdayLabels = useMemo(
     () => [
@@ -77,8 +88,13 @@ function Profile() {
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [isLgUp, setIsLgUp] = useState(false);
 
-  const { getAccessToken, loadProfile, isAuthenticated, isInitialized, entitlements } =
-    useAuth();
+  const {
+    getAccessToken,
+    loadProfile,
+    isAuthenticated,
+    isInitialized,
+    entitlements,
+  } = useAuth();
   const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
 
@@ -129,7 +145,8 @@ function Profile() {
               ? profilePayload.streak
               : typeof profileUserData.streak === "number"
                 ? profileUserData.streak
-                : 0 });
+                : 0,
+        });
 
         setImageUrl(
           String(profileUserData.profile_avatar || DEFAULT_AVATAR_URL)
@@ -137,13 +154,7 @@ function Profile() {
         setActivityCalendar(profilePayload.activity_calendar || {});
         setCurrentMonth(profilePayload.current_month || {});
 
-        const token = getAccessToken();
-        const authHeaders = token
-          ? { Authorization: `Bearer ${token}` }
-          : undefined;
-
-        const missionsResponse = await axios.get(`${BACKEND_URL}/missions/`, {
-          headers: authHeaders });
+        const missionsResponse = await apiClient.get("/missions/");
 
         const dailyLessonMission = missionsResponse.data.daily_missions.find(
           (mission) => mission.goal_type === "complete_lesson"
@@ -157,7 +168,8 @@ function Profile() {
               : 0,
             completed: dailyLessonMission
               ? dailyLessonMission.status === "completed"
-              : false },
+              : false,
+          },
           weekly: {
             ...prevGoals.weekly,
             current:
@@ -167,13 +179,11 @@ function Profile() {
             completed:
               (typeof profileUserData.points === "number"
                 ? profileUserData.points
-                : 0) >= prevGoals.weekly.target } }));
+                : 0) >= prevGoals.weekly.target,
+          },
+        }));
 
-        const activityResponse = await axios.get(
-          `${BACKEND_URL}/recent-activity/`,
-          {
-            headers: authHeaders }
-        );
+        const activityResponse = await apiClient.get("/recent-activity/");
 
         const formattedActivities = activityResponse.data.recent_activities.map(
           (activity) => ({
@@ -183,8 +193,10 @@ function Profile() {
             action: activity.action,
             timestamp: formatDate(activity.timestamp, locale, {
               dateStyle: "medium",
-              timeStyle: "short" }),
-            details: activity.course ? `in ${activity.course}` : "" })
+              timeStyle: "short",
+            }),
+            details: activity.course ? `in ${activity.course}` : "",
+          })
         );
 
         if (isMounted) {
@@ -192,10 +204,8 @@ function Profile() {
         }
 
         const [userBadgesResponse, allBadgesResponse] = await Promise.all([
-          axios.get(`${BACKEND_URL}/user-badges/`, {
-            headers: authHeaders }),
-          axios.get(`${BACKEND_URL}/badges/`, {
-            headers: authHeaders }),
+          apiClient.get("/user-badges/"),
+          apiClient.get("/badges/"),
         ]);
 
         const earnedBadgesMap = {};
@@ -208,7 +218,8 @@ function Profile() {
           return {
             badge,
             earned: !!userBadge,
-            earned_at: userBadge ? userBadge.earned_at : null };
+            earned_at: userBadge ? userBadge.earned_at : null,
+          };
         });
 
         if (isMounted) {
@@ -292,7 +303,8 @@ function Profile() {
                     : "var(--input-bg,rgba(15,23,42,0.04))",
                   boxShadow: hasActivity
                     ? "0 0 0 1px rgba(var(--accent-rgb,59,130,246),0.25)"
-                    : "none" }}
+                    : "none",
+                }}
               >
                 <span className="text-sm font-semibold">{day}</span>
                 {hasActivity && (
@@ -339,7 +351,8 @@ function Profile() {
           name: feature.name,
           enabled: feature.enabled,
           used: feature.used_today,
-          remaining: feature.remaining_today })
+          remaining: feature.remaining_today,
+        })
       )
       .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
@@ -349,9 +362,7 @@ function Profile() {
       <PageContainer maxWidth="5xl" layout="centered">
         <div className="flex flex-col items-center gap-4 text-[color:var(--muted-text,#6b7280)]">
           <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
-          <p className="text-sm">
-            {t("profile.loading")}
-          </p>
+          <p className="text-sm">{t("profile.loading")}</p>
         </div>
       </PageContainer>
     );
@@ -492,11 +503,10 @@ function Profile() {
                 {t("profile.stats.balance")}
               </p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
-                {formatNumber(
-                  Number(profileData.earned_money || 0),
-                  locale,
-                  { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                )}{" "}
+                {formatNumber(Number(profileData.earned_money || 0), locale, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}{" "}
                 {t("rewards.coins")}
               </p>
             </GlassCard>
@@ -520,7 +530,8 @@ function Profile() {
               </p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
                 {t("profile.stats.streakDays", {
-                  count: profileData.streak })}
+                  count: profileData.streak,
+                })}
               </p>
               <div className="mt-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                 {profileData.streak >= 7 ? (
@@ -532,9 +543,7 @@ function Profile() {
                     {t("profile.stats.keepGoing")}
                   </span>
                 ) : (
-                  <span>
-                    {t("profile.stats.startStreak")}
-                  </span>
+                  <span>{t("profile.stats.startStreak")}</span>
                 )}
               </div>
             </GlassCard>
@@ -550,7 +559,8 @@ function Profile() {
               <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
                 {t("profile.achievements.showing", {
                   shown: Math.min(badgesToRender.length, filteredBadges.length),
-                  total: filteredBadges.length })}
+                  total: filteredBadges.length,
+                })}
               </p>
             </div>
 
@@ -625,7 +635,8 @@ function Profile() {
                   {userBadge.earned && userBadge.earned_at && (
                     <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
                       {t("profile.achievements.earnedOn", {
-                        date: formatDate(userBadge.earned_at) })}
+                        date: formatDate(userBadge.earned_at),
+                      })}
                     </p>
                   )}
                 </GlassCard>
@@ -662,9 +673,11 @@ function Profile() {
                     boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
                     border:
                       "1px solid var(--border-color, rgba(148,163,184,0.4))",
-                    padding: "18px" }}
+                    padding: "18px",
+                  }}
                   contentArrowStyle={{
-                    borderRight: "7px solid var(--card-bg, #ffffff)" }}
+                    borderRight: "7px solid var(--card-bg, #ffffff)",
+                  }}
                   date={activity.timestamp}
                   dateClassName="text-xs text-[color:var(--muted-text,#6b7280)]"
                   icon={
@@ -675,7 +688,8 @@ function Profile() {
                         justifyContent: "center",
                         alignItems: "center",
                         height: "100%",
-                        width: "100%" }}
+                        width: "100%",
+                      }}
                     >
                       {activityIcons[activity.type] || activityIcons.default}
                     </span>
@@ -685,7 +699,8 @@ function Profile() {
                     color: "#fff",
                     display: "flex",
                     justifyContent: "center",
-                    alignItems: "center" }}
+                    alignItems: "center",
+                  }}
                 >
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {activity.title}
@@ -705,7 +720,8 @@ function Profile() {
           {recentActivity.length > 3 && (
             <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
               {t("profile.activity.showing", {
-                total: recentActivity.length })}
+                total: recentActivity.length,
+              })}
             </p>
           )}
         </section>

@@ -41,7 +41,8 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
       },
       {
         threshold: 0.1,
-        rootMargin: "0px 0px -5% 0px" }
+        rootMargin: "0px 0px -5% 0px",
+      }
     );
 
     nodes.forEach((node) => observer.observe(node));

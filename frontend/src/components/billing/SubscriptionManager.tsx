@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { GlassButton, GlassCard } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 
@@ -29,7 +29,8 @@ const SubscriptionManager = () => {
     getAccessToken,
     isAuthenticated,
     reloadEntitlements,
-    loadProfile } = useAuth();
+    loadProfile,
+  } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
@@ -51,7 +52,7 @@ const SubscriptionManager = () => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/plans/`);
+        const response = await apiClient.get("/plans/");
         const apiPlans = response.data?.plans || [];
         setPlans(apiPlans);
       } catch (error) {
@@ -101,11 +102,10 @@ const SubscriptionManager = () => {
     setActionError("");
     setIsBusy(true);
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/subscriptions/create/`,
-        { plan_id: planId, billing_interval: billingInterval },
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      const response = await apiClient.post("/subscriptions/create/", {
+        plan_id: planId,
+        billing_interval: billingInterval,
+      });
       const redirectUrl = response.data?.redirect_url;
       if (redirectUrl) {
         window.location.assign(redirectUrl);
@@ -124,11 +124,10 @@ const SubscriptionManager = () => {
     setActionError("");
     setIsBusy(true);
     try {
-      await axios.post(
-        `${BACKEND_URL}/subscriptions/change/`,
-        { plan_id: planId, billing_interval: billingInterval },
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/subscriptions/change/", {
+        plan_id: planId,
+        billing_interval: billingInterval,
+      });
       await reloadEntitlements?.();
     } catch (error) {
       setActionError(getErrorMessage(error, t("billing.failedChangePlan")));
@@ -142,11 +141,7 @@ const SubscriptionManager = () => {
     setActionError("");
     setIsBusy(true);
     try {
-      await axios.post(
-        `${BACKEND_URL}/subscriptions/cancel/`,
-        {},
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/subscriptions/cancel/", {});
       await reloadEntitlements?.();
     } catch (error) {
       setActionError(getErrorMessage(error, t("billing.failedCancel")));
@@ -160,11 +155,7 @@ const SubscriptionManager = () => {
     setActionError("");
     setIsBusy(true);
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/subscriptions/portal/`,
-        {},
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      const response = await apiClient.post("/subscriptions/portal/", {});
       const portalUrl = response.data?.url;
       if (portalUrl) {
         window.location.assign(portalUrl);
@@ -191,7 +182,9 @@ const SubscriptionManager = () => {
         </div>
         <div className="rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-sm text-[color:var(--text-color,#111827)]">
           <div className="font-semibold">
-            {t("billing.currentPlan")}: {entitlements?.label || currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
+            {t("billing.currentPlan")}:{" "}
+            {entitlements?.label ||
+              currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
           </div>
           <div>
             {t("billing.status")}: {entitlements?.status || "inactive"}
@@ -227,7 +220,9 @@ const SubscriptionManager = () => {
                 : canChange
                   ? t("billing.switchPlan")
                   : t("billing.startPlan");
-              const translatedName = plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+              const translatedName =
+                plan.name ||
+                plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               const featureList = Object.values(plan.features || {})
                 .filter((feature) => feature?.enabled !== false)
                 .map((feature) => feature?.description || feature?.name)
@@ -255,7 +250,12 @@ const SubscriptionManager = () => {
                       locale,
                       { minimumFractionDigits: 0 }
                     )}{" "}
-                    / {billingLabel === "monthly" ? t("subscriptions.perMonth") : billingLabel === "yearly" ? t("subscriptions.perYear") : billingLabel}
+                    /{" "}
+                    {billingLabel === "monthly"
+                      ? t("subscriptions.perMonth")
+                      : billingLabel === "yearly"
+                        ? t("subscriptions.perYear")
+                        : billingLabel}
                   </div>
                   {featureList.length > 0 && (
                     <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">

@@ -27,7 +27,8 @@ function DonationCauses({ onDonate }) {
   const handleDonate = async (rewardId) => {
     try {
       const response = await apiClient.post("/purchases/", {
-        reward_id: rewardId });
+        reward_id: rewardId,
+      });
 
       if (response.status === 201) {
         alert("Donation successful!");

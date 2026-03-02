@@ -1,10 +1,11 @@
 # Runs on every `git commit` after you run once:  pre-commit install
-# (Requires: pip install -r backend/requirements-dev.txt)
+# (Requires: pip install pre-commit, and for Black: pip install black; for frontend hooks: node/npm in frontend/)
 
 exclude: |
   (?x)^(
     frontend/node_modules/|
     frontend/build/|
+    frontend/package-lock\.json|
     backend/staticfiles/|
     backend/media/|
     backend/db\.sqlite3
@@ -35,3 +36,16 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
+
+  - repo: local
+    hooks:
+      - id: frontend-eslint
+        name: Frontend ESLint
+        entry: bash -c 'cd frontend && args=(); for f; do args+=("${f#frontend/}"); done; [[ ${#args[@]} -gt 0 ]] && npx eslint --fix "${args[@]}"'
+        language: system
+        files: ^frontend/src/.*\.(js|jsx|ts|tsx)$
+      - id: frontend-prettier
+        name: Frontend Prettier
+        entry: bash -c 'cd frontend && args=(); for f; do args+=("${f#frontend/}"); done; [[ ${#args[@]} -gt 0 ]] && npx --yes prettier --write "${args[@]}"'
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|md)$

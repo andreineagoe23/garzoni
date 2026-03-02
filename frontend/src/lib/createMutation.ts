@@ -45,7 +45,8 @@ export function createMutationOptions({
   onMutate,
   onError,
   onSuccess,
-  onSettled }: MutationOptionsArgs) {
+  onSettled,
+}: MutationOptionsArgs) {
   if (!queryClient) {
     throw new Error("createMutationOptions requires a queryClient");
   }
@@ -88,5 +89,6 @@ export function createMutationOptions({
       if (onSettled) {
         await onSettled(data, error, variables, context);
       }
-    } };
+    },
+  };
 }

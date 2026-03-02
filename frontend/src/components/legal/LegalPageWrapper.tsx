@@ -34,9 +34,7 @@ export default function LegalPageWrapper({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="flex-1 pt-[72px] sm:pt-[88px]">
-        {children}
-      </div>
+      <div className="flex-1 pt-[72px] sm:pt-[88px]">{children}</div>
       <footer
         className="mt-auto border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] px-4 py-6"
         aria-label={t("footer.ariaLabel")}
