@@ -37,15 +37,4 @@ repos:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
 
-  - repo: local
-    hooks:
-      - id: frontend-eslint
-        name: Frontend ESLint
-        entry: bash -c 'cd frontend && args=(); for f; do args+=("${f#frontend/}"); done; [[ ${#args[@]} -gt 0 ]] && npx eslint --fix "${args[@]}"'
-        language: system
-        files: ^frontend/src/.*\.(js|jsx|ts|tsx)$
-      - id: frontend-prettier
-        name: Frontend Prettier
-        entry: bash -c 'cd frontend && args=(); for f; do args+=("${f#frontend/}"); done; [[ ${#args[@]} -gt 0 ]] && npx --yes prettier --write "${args[@]}"'
-        language: system
-        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|md)$
+  # Frontend lint/format: run in CI only. Before push: cd frontend && npm run lint && npm run format
