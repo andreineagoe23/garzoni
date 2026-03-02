@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { BACKEND_URL } from "services/backendUrl";
 
 type MascotType = "owl" | "bull" | "bear";
@@ -11,71 +11,33 @@ type MascotMediaProps = {
 
 const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
 
-/** Bump when you replace mascot videos in backend/media/mascots/ so browsers load the new files. */
-const MASCOT_VIDEO_VERSION = 2;
+const MASCOT_ASSET_VERSION = 1;
 
-const MASCOT_MEDIA: Record<
-  MascotType,
-  { video: string; image: string; alt: string }
-> = {
+const MASCOT_MEDIA: Record<MascotType, { image: string; alt: string }> = {
   owl: {
-    video: `${MEDIA_BASE}/media/mascots/Owl-Mascot-${MASCOT_VIDEO_VERSION}.mp4`,
-    image: `${MEDIA_BASE}/media/mascots/monevo-owl.png`,
+    image: `${MEDIA_BASE}/media/mascots/monevo-owl.png?v=${MASCOT_ASSET_VERSION}`,
     alt: "Owl mascot",
   },
   bull: {
-    video: `${MEDIA_BASE}/media/mascots/Bull-Mascot-${MASCOT_VIDEO_VERSION}.mp4`,
-    image: `${MEDIA_BASE}/media/mascots/monevo-bull.png`,
+    image: `${MEDIA_BASE}/media/mascots/monevo-bull.png?v=${MASCOT_ASSET_VERSION}`,
     alt: "Bull mascot",
   },
   bear: {
-    video: `${MEDIA_BASE}/media/mascots/Bear-Mascot-${MASCOT_VIDEO_VERSION}.mp4`,
-    image: `${MEDIA_BASE}/media/mascots/monevo-bear.png`,
+    image: `${MEDIA_BASE}/media/mascots/monevo-bear.png?v=${MASCOT_ASSET_VERSION}`,
     alt: "Bear mascot",
   },
 };
 
 const MascotMedia = ({ mascot, className }: MascotMediaProps) => {
-  const [useFallback, setUseFallback] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const { video, image, alt } = MASCOT_MEDIA[mascot];
-
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el || useFallback) return;
-    const play = () => el.play().catch(() => {});
-    el.addEventListener("loadeddata", play);
-    if (el.readyState >= 2) play();
-    return () => el.removeEventListener("loadeddata", play);
-  }, [video, useFallback]);
-
-  if (useFallback) {
-    return (
-      <img
-        src={image}
-        alt={alt}
-        className={className}
-        loading="lazy"
-        decoding="async"
-      />
-    );
-  }
-
+  const { image, alt } = MASCOT_MEDIA[mascot];
   return (
-    <video
-      ref={videoRef}
+    <img
+      src={image}
+      alt={alt}
       className={className}
-      src={video}
-      muted
-      loop
-      playsInline
-      autoPlay
-      aria-label={alt}
-      onError={() => setUseFallback(true)}
-      style={{ mixBlendMode: "multiply" }}
-    >
-      <source src={video} type="video/mp4" />
-    </video>
+      loading="lazy"
+      decoding="async"
+    />
   );
 };
 
