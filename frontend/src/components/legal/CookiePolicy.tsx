@@ -22,25 +22,35 @@ const CookiePolicy = () => {
       <h2>{t("legal.cookiePolicy.sections.sessionPersistent.title")}</h2>
       <h3>{t("legal.cookiePolicy.sections.sessionPersistent.sessionTitle")}</h3>
       <p>{t("legal.cookiePolicy.sections.sessionPersistent.sessionBody")}</p>
-      <h3>{t("legal.cookiePolicy.sections.sessionPersistent.persistentTitle")}</h3>
+      <h3>
+        {t("legal.cookiePolicy.sections.sessionPersistent.persistentTitle")}
+      </h3>
       <p>{t("legal.cookiePolicy.sections.sessionPersistent.persistentBody")}</p>
 
       <h2>{t("legal.cookiePolicy.sections.categories.title")}</h2>
       <ul>
         <li>
-          <strong>{t("legal.cookiePolicy.sections.categories.items.necessary.label")}</strong>{" "}
+          <strong>
+            {t("legal.cookiePolicy.sections.categories.items.necessary.label")}
+          </strong>{" "}
           {t("legal.cookiePolicy.sections.categories.items.necessary.text")}
         </li>
         <li>
-          <strong>{t("legal.cookiePolicy.sections.categories.items.preference.label")}</strong>{" "}
+          <strong>
+            {t("legal.cookiePolicy.sections.categories.items.preference.label")}
+          </strong>{" "}
           {t("legal.cookiePolicy.sections.categories.items.preference.text")}
         </li>
         <li>
-          <strong>{t("legal.cookiePolicy.sections.categories.items.analytics.label")}</strong>{" "}
+          <strong>
+            {t("legal.cookiePolicy.sections.categories.items.analytics.label")}
+          </strong>{" "}
           {t("legal.cookiePolicy.sections.categories.items.analytics.text")}
         </li>
         <li>
-          <strong>{t("legal.cookiePolicy.sections.categories.items.marketing.label")}</strong>{" "}
+          <strong>
+            {t("legal.cookiePolicy.sections.categories.items.marketing.label")}
+          </strong>{" "}
           {t("legal.cookiePolicy.sections.categories.items.marketing.text")}
         </li>
       </ul>
@@ -84,7 +94,8 @@ const CookiePolicy = () => {
           i18nKey="legal.cookiePolicy.sections.contact.related"
           components={{
             privacy: <Link to="/privacy-policy" />,
-            terms: <Link to="/terms-of-service" /> }}
+            terms: <Link to="/terms-of-service" />,
+          }}
         />
       </p>
     </LegalPageLayout>

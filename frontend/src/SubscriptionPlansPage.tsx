@@ -5,12 +5,11 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 
@@ -36,9 +35,12 @@ const formatFeatureValue = (
   feature: PlanFeature | undefined,
   t: (key: string, opts?: Record<string, unknown>) => string
 ) => {
-  if (!feature || feature.enabled === false) return t("subscriptions.notIncluded");
-  if (feature.daily_quota === null || feature.daily_quota === undefined) return t("subscriptions.unlimited");
-  if (typeof feature.daily_quota === "number") return t("subscriptions.perDay", { count: feature.daily_quota });
+  if (!feature || feature.enabled === false)
+    return t("subscriptions.notIncluded");
+  if (feature.daily_quota === null || feature.daily_quota === undefined)
+    return t("subscriptions.unlimited");
+  if (typeof feature.daily_quota === "number")
+    return t("subscriptions.perDay", { count: feature.daily_quota });
   return t("subscriptions.included");
 };
 
@@ -53,24 +55,30 @@ const SubscriptionPlansPage = () => {
     reloadEntitlements,
     loadProfile,
     isAuthenticated,
-    getAccessToken } = useAuth();
+    getAccessToken,
+  } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState({
-    hasPaid: false });
+    hasPaid: false,
+  });
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
-  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">("yearly");
+  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">(
+    "yearly"
+  );
   const locale = getLocale();
 
   const { data: questionnaireProgress } = useQuery({
     queryKey: ["questionnaire-progress"],
     queryFn: fetchQuestionnaireProgress,
     enabled: isAuthenticated ?? false,
-    staleTime: 0 });
+    staleTime: 0,
+  });
   const questionnaireComplete = questionnaireProgress?.status === "completed";
 
   const trialEndLabel = useMemo(
-    () => (entitlements?.trialEnd ? formatDate(entitlements.trialEnd, locale) : null),
+    () =>
+      entitlements?.trialEnd ? formatDate(entitlements.trialEnd, locale) : null,
     [entitlements?.trialEnd, locale]
   );
 
@@ -81,16 +89,18 @@ const SubscriptionPlansPage = () => {
       const planId =
         entitlements?.plan ||
         userData?.subscription_plan_id ||
-        (profilePayload as { subscription_plan_id?: string })?.subscription_plan_id ||
+        (profilePayload as { subscription_plan_id?: string })
+          ?.subscription_plan_id ||
         null;
       const hasPlusAccess = planId === "plus" || planId === "pro";
       setSubscriptionInfo({
         hasPaid: Boolean(
           hasPlusAccess ||
-            entitlements?.entitled ||
-            userData?.has_paid ||
-            (profilePayload as { has_paid?: boolean })?.has_paid
-        ) });
+          entitlements?.entitled ||
+          userData?.has_paid ||
+          (profilePayload as { has_paid?: boolean })?.has_paid
+        ),
+      });
     } catch (e) {
       console.error("Error fetching subscription info:", e);
     }
@@ -101,14 +111,17 @@ const SubscriptionPlansPage = () => {
   }, [fetchSubscriptionInfo]);
 
   useEffect(() => {
-    if (entitlements?.status === "active" || entitlements?.status === "trialing") {
+    if (
+      entitlements?.status === "active" ||
+      entitlements?.status === "trialing"
+    ) {
       navigate("/billing", { replace: true });
     }
   }, [entitlements?.status, navigate]);
 
   useEffect(() => {
-    axios
-      .get(`${BACKEND_URL}/plans/`)
+    apiClient
+      .get("/plans/")
       .then((r) => setPlans(r.data?.plans || []))
       .catch(() => {})
       .finally(() => setLoadingPlans(false));
@@ -127,7 +140,9 @@ const SubscriptionPlansPage = () => {
   }, [navigate, subscriptionInfo.hasPaid, questionnaireComplete]);
 
   const upgradeComplete = useMemo(
-    () => new URLSearchParams(location.search).get("redirect") === "upgradeComplete",
+    () =>
+      new URLSearchParams(location.search).get("redirect") ===
+      "upgradeComplete",
     [location.search]
   );
 
@@ -142,7 +157,8 @@ const SubscriptionPlansPage = () => {
         return;
       }
       setSelectionError("");
-      const isStarter = plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
+      const isStarter =
+        plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
       if (isStarter) {
         reloadEntitlements?.();
         navigate("/all-topics");
@@ -154,18 +170,20 @@ const SubscriptionPlansPage = () => {
         return;
       }
       try {
-        const r = await axios.post(
-          `${BACKEND_URL}/subscriptions/create/`,
-          { plan_id: plan.plan_id, billing_interval: plan.billing_interval },
-          { headers: { Authorization: `Bearer ${getAccessToken?.() ?? ""}` } }
-        );
+        const r = await apiClient.post("/subscriptions/create/", {
+          plan_id: plan.plan_id,
+          billing_interval: plan.billing_interval,
+        });
         if (r.data?.redirect_url) {
           window.location.assign(r.data.redirect_url);
           return;
         }
       } catch (err) {
-        const status = (err as { response?: { status?: number; data?: { error?: string } } })?.response?.status;
-        const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+        const status = (
+          err as { response?: { status?: number; data?: { error?: string } } }
+        )?.response?.status;
+        const message = (err as { response?: { data?: { error?: string } } })
+          ?.response?.data?.error;
         if (status === 503) {
           setSelectionError(message || t("subscriptions.paymentNotConfigured"));
         } else {
@@ -173,7 +191,14 @@ const SubscriptionPlansPage = () => {
         }
       }
     },
-    [isAuthenticated, navigate, questionnaireComplete, reloadEntitlements, getAccessToken, t]
+    [
+      isAuthenticated,
+      navigate,
+      questionnaireComplete,
+      reloadEntitlements,
+      getAccessToken,
+      t,
+    ]
   );
 
   useEffect(() => {
@@ -183,7 +208,9 @@ const SubscriptionPlansPage = () => {
   }, []);
 
   const planCards = useMemo(() => {
-    const sorted = [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const sorted = [...plans].sort(
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    );
     const starter = sorted.find((p) => p.plan_id === "starter");
     const plus = sorted.find(
       (p) => p.plan_id === "plus" && p.billing_interval === billingInterval
@@ -206,7 +233,9 @@ const SubscriptionPlansPage = () => {
       return acc;
     }, {});
     const keys = new Set<string>();
-    Object.values(byId).forEach((p) => Object.keys(p?.features || {}).forEach((k) => keys.add(k)));
+    Object.values(byId).forEach((p) =>
+      Object.keys(p?.features || {}).forEach((k) => keys.add(k))
+    );
     return Array.from(keys).map((key) => {
       const s = byId.starter?.features?.[key];
       const pl = byId.plus?.features?.[key];
@@ -216,7 +245,8 @@ const SubscriptionPlansPage = () => {
         feature: label,
         starter: formatFeatureValue(s, t),
         plus: formatFeatureValue(pl, t),
-        pro: formatFeatureValue(pr, t) };
+        pro: formatFeatureValue(pr, t),
+      };
     });
   }, [plans, t]);
 
@@ -242,7 +272,9 @@ const SubscriptionPlansPage = () => {
               </p>
             )}
             {entitlementError && (
-              <p className="text-sm text-[color:var(--error,#dc2626)]">{entitlementError}</p>
+              <p className="text-sm text-[color:var(--error,#dc2626)]">
+                {entitlementError}
+              </p>
             )}
           </div>
         </div>
@@ -280,7 +312,9 @@ const SubscriptionPlansPage = () => {
 
         <div className="grid gap-4 md:grid-cols-3">
           {loadingPlans && (
-            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">{t("subscriptions.loadingPlans")}</div>
+            <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              {t("subscriptions.loadingPlans")}
+            </div>
           )}
           {!loadingPlans &&
             planCards.map((plan) => {
@@ -288,13 +322,15 @@ const SubscriptionPlansPage = () => {
                 .map((f) => f?.description || f?.name)
                 .filter(Boolean);
               const isStarter =
-                plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
+                plan.plan_id === "starter" ||
+                Number(plan.price_amount || 0) === 0;
               const isHighlight = plan.plan_id === "plus";
               const trialLabel = plan.trial_days
                 ? t("subscriptions.trialDays", { count: plan.trial_days })
                 : null;
               const name =
-                plan.name || plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+                plan.name ||
+                plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
               const paidPlan = !isStarter;
               return (
                 <div
@@ -334,7 +370,10 @@ const SubscriptionPlansPage = () => {
                     </div>
                   </div>
                   <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
-                    {(features.length ? features : [t("subscriptions.premiumLearningAccess")]).map((fe) => (
+                    {(features.length
+                      ? features
+                      : [t("subscriptions.premiumLearningAccess")]
+                    ).map((fe) => (
                       <li key={fe}>• {fe}</li>
                     ))}
                   </ul>
@@ -356,19 +395,34 @@ const SubscriptionPlansPage = () => {
           <Trans
             i18nKey="subscriptions.agreeToTerms"
             components={{
-              terms: <Link to="/terms-of-service" className="text-[color:var(--primary,#2563eb)] hover:underline" />,
-              privacy: <Link to="/privacy-policy" className="text-[color:var(--primary,#2563eb)] hover:underline" />,
+              terms: (
+                <Link
+                  to="/terms-of-service"
+                  className="text-[color:var(--primary,#2563eb)] hover:underline"
+                />
+              ),
+              privacy: (
+                <Link
+                  to="/privacy-policy"
+                  className="text-[color:var(--primary,#2563eb)] hover:underline"
+                />
+              ),
             }}
           />
         </p>
 
         {selectionError && (
-          <p className="text-sm text-[color:var(--error,#dc2626)]">{selectionError}</p>
+          <p className="text-sm text-[color:var(--error,#dc2626)]">
+            {selectionError}
+          </p>
         )}
 
         <div
           className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-          style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+          style={{
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
         >
           <div className="space-y-1">
             <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -414,10 +468,18 @@ const SubscriptionPlansPage = () => {
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">{t("subscriptions.feature")}</th>
-                    <th className="px-4 py-3 font-semibold">{t("subscriptions.starter")}</th>
-                    <th className="px-4 py-3 font-semibold">{t("subscriptions.plus")}</th>
-                    <th className="px-4 py-3 font-semibold">{t("subscriptions.pro")}</th>
+                    <th className="px-4 py-3 font-semibold">
+                      {t("subscriptions.feature")}
+                    </th>
+                    <th className="px-4 py-3 font-semibold">
+                      {t("subscriptions.starter")}
+                    </th>
+                    <th className="px-4 py-3 font-semibold">
+                      {t("subscriptions.plus")}
+                    </th>
+                    <th className="px-4 py-3 font-semibold">
+                      {t("subscriptions.pro")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

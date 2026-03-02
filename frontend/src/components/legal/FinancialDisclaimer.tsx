@@ -20,10 +20,22 @@ const FinancialDisclaimer = () => {
       <h2>{t("legal.financialDisclaimer.sections.meaning.title")}</h2>
       <ul>
         <li>{t("legal.financialDisclaimer.sections.meaning.items.general")}</li>
-        <li>{t("legal.financialDisclaimer.sections.meaning.items.noProfile")}</li>
-        <li>{t("legal.financialDisclaimer.sections.meaning.items.noRecommendation")}</li>
-        <li>{t("legal.financialDisclaimer.sections.meaning.items.examples")}</li>
-        <li>{t("legal.financialDisclaimer.sections.meaning.items.pastPerformance")}</li>
+        <li>
+          {t("legal.financialDisclaimer.sections.meaning.items.noProfile")}
+        </li>
+        <li>
+          {t(
+            "legal.financialDisclaimer.sections.meaning.items.noRecommendation"
+          )}
+        </li>
+        <li>
+          {t("legal.financialDisclaimer.sections.meaning.items.examples")}
+        </li>
+        <li>
+          {t(
+            "legal.financialDisclaimer.sections.meaning.items.pastPerformance"
+          )}
+        </li>
       </ul>
 
       <h2>{t("legal.financialDisclaimer.sections.responsibility.title")}</h2>
@@ -39,7 +51,8 @@ const FinancialDisclaimer = () => {
           components={{
             noAdvice: <Link to="/no-financial-advice" />,
             terms: <Link to="/terms-of-service" />,
-            privacy: <Link to="/privacy-policy" /> }}
+            privacy: <Link to="/privacy-policy" />,
+          }}
         />
       </p>
     </LegalPageLayout>

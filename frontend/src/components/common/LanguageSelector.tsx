@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  DEFAULT_LANGUAGE,
-  SUPPORTED_LANGUAGES } from "constants/i18n";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "constants/i18n";
 
-const LANGUAGE_FLAGS: Record<(typeof SUPPORTED_LANGUAGES)[number]["code"], string> = {
+const LANGUAGE_FLAGS: Record<
+  (typeof SUPPORTED_LANGUAGES)[number]["code"],
+  string
+> = {
   en: "🇬🇧",
   ro: "🇷🇴",
-  es: "🇪🇸" };
+  es: "🇪🇸",
+};
 
 const LanguageSelector = () => {
   const { i18n, t } = useTranslation();
@@ -82,7 +84,9 @@ const LanguageSelector = () => {
         >
           {SUPPORTED_LANGUAGES.map((language) => {
             const label = t(`language.option.${language.code}`);
-            const isComingSoon = Boolean("comingSoon" in language && language.comingSoon);
+            const isComingSoon = Boolean(
+              "comingSoon" in language && language.comingSoon
+            );
             const isActive = language.code === currentLanguage;
             return (
               <button

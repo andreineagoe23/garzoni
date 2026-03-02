@@ -38,7 +38,8 @@ const NewsCalendars = () => {
         className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)" }}
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         <div className="relative">
           <iframe
@@ -69,7 +70,8 @@ const NewsCalendars = () => {
                       target="_blank"
                       className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
                     />
-                  ) }}
+                  ),
+                }}
               />
             </p>
           </div>

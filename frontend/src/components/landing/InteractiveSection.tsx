@@ -33,7 +33,8 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
       className="space-y-6 rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-6 py-8 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-colors sm:px-8"
       style={{
         backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)" }}
+        WebkitBackdropFilter: "blur(12px)",
+      }}
       aria-labelledby={`section-${section.id}-title`}
     >
       {section.content_type === "text" && (
@@ -41,7 +42,8 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
           id={`section-${section.id}-title`}
           className="prose max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
           dangerouslySetInnerHTML={{
-            __html: sanitizedContent }}
+            __html: sanitizedContent,
+          }}
           aria-label={t("lessonSection.textAria")}
         />
       )}
@@ -94,7 +96,8 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-lg hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               onClick={onComplete}
               aria-label={t("lessonSection.completeAria", {
-                title: section.title })}
+                title: section.title,
+              })}
             >
               {t("lessonSection.completeExercise")}
             </button>

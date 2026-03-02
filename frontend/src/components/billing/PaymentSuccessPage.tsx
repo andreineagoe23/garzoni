@@ -8,7 +8,10 @@ import { useTranslation } from "react-i18next";
 
 const STEPS: { percent: number; messageKey: string }[] = [
   { percent: 25, messageKey: "subscriptions.paymentSuccess.fetchingAnswers" },
-  { percent: 50, messageKey: "subscriptions.paymentSuccess.syncingSubscription" },
+  {
+    percent: 50,
+    messageKey: "subscriptions.paymentSuccess.syncingSubscription",
+  },
   { percent: 70, messageKey: "subscriptions.paymentSuccess.buildingPaths" },
   { percent: 100, messageKey: "subscriptions.paymentSuccess.ready" },
 ];
@@ -31,7 +34,10 @@ const PaymentSuccessPage = () => {
 
     const step = STEPS[stepIndex];
     if (!step) {
-      navigate(`/personalized-path?session_id=${encodeURIComponent(sessionId)}&redirect=upgradeComplete`, { replace: true });
+      navigate(
+        `/personalized-path?session_id=${encodeURIComponent(sessionId)}&redirect=upgradeComplete`,
+        { replace: true }
+      );
       return;
     }
 
@@ -39,12 +45,18 @@ const PaymentSuccessPage = () => {
 
     if (stepIndex === STEPS.length - 1) {
       const timeout = setTimeout(() => {
-        navigate(`/personalized-path?session_id=${encodeURIComponent(sessionId)}&redirect=upgradeComplete`, { replace: true });
+        navigate(
+          `/personalized-path?session_id=${encodeURIComponent(sessionId)}&redirect=upgradeComplete`,
+          { replace: true }
+        );
       }, 800);
       return () => clearTimeout(timeout);
     }
 
-    const timeout = setTimeout(() => setStepIndex((i) => i + 1), STEP_DURATION_MS);
+    const timeout = setTimeout(
+      () => setStepIndex((i) => i + 1),
+      STEP_DURATION_MS
+    );
     return () => clearTimeout(timeout);
   }, [sessionId, stepIndex, navigate]);
 

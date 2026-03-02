@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { playFeedbackChime } from "utils/sound";
@@ -12,9 +11,15 @@ const MultipleChoiceExercise = ({
   onComplete,
   onAttempt,
   isCompleted,
-  disabled = false }) => {
-  const { question, options = [], correctAnswer, explanation, learn_more_url } =
-    data || {};
+  disabled = false,
+}) => {
+  const {
+    question,
+    options = [],
+    correctAnswer,
+    explanation,
+    learn_more_url,
+  } = data || {};
   const { t } = useTranslation();
   const { getAccessToken, settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
@@ -35,7 +40,10 @@ const MultipleChoiceExercise = ({
     if (selectedAnswer === correctAnswer) {
       setFeedback(t("exercises.mc.correct"));
       setFeedbackType("success");
-      playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: true });
+      playFeedbackChime({
+        enabled: Boolean(soundEnabled ?? true),
+        correct: true,
+      });
       onAttempt?.({ correct: true });
       try {
         await onComplete?.();
@@ -46,7 +54,10 @@ const MultipleChoiceExercise = ({
     } else {
       setFeedback(t("exercises.mc.incorrect"));
       setFeedbackType("error");
-      playFeedbackChime({ enabled: Boolean(soundEnabled ?? true), correct: false });
+      playFeedbackChime({
+        enabled: Boolean(soundEnabled ?? true),
+        correct: false,
+      });
       onAttempt?.({ correct: false });
     }
   };
@@ -54,13 +65,7 @@ const MultipleChoiceExercise = ({
   const handleRetry = async () => {
     try {
       if (!exerciseId) return;
-      await axios.post(
-        `${BACKEND_URL}/exercises/reset/`,
-        { section_id: exerciseId },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/exercises/reset/", { section_id: exerciseId });
       setSelectedAnswer(null);
       setFeedback("");
       setFeedbackType(null);

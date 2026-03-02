@@ -7,7 +7,7 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
@@ -51,7 +51,8 @@ const Chatbot = () => {
     queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
     staleTime: staleTimes.entitlements,
-    enabled: isAuthenticated });
+    enabled: isAuthenticated,
+  });
 
   const quickReplies = [
     t("chatbot.quickReplies.compoundInterest"),
@@ -68,9 +69,8 @@ const Chatbot = () => {
       ...prevMessages,
       {
         sender: "bot",
-        text:
-          message ||
-          t("chatbot.aiTutorLimited") },
+        text: message || t("chatbot.aiTutorLimited"),
+      },
     ]);
     setLockedFeature("ai_tutor");
     setShowUpsell(true);
@@ -93,7 +93,8 @@ const Chatbot = () => {
       setMessages([
         {
           sender: "bot",
-          text: t("chatbot.greeting") },
+          text: t("chatbot.greeting"),
+        },
       ]);
       setHasGreeted(true);
     }
@@ -205,7 +206,8 @@ const Chatbot = () => {
         ...prevMessages,
         {
           sender: "bot",
-          text: t("chatbot.loginRequired") },
+          text: t("chatbot.loginRequired"),
+        },
       ]);
       navigate("/login");
       return;
@@ -225,16 +227,12 @@ const Chatbot = () => {
 
     if (aiTutorFeature) {
       if (!aiTutorFeature.enabled) {
-        blockAiTutor(
-          t("chatbot.aiTutorPremiumOnly")
-        );
+        blockAiTutor(t("chatbot.aiTutorPremiumOnly"));
         return;
       }
 
       if (aiTutorFeature.remaining_today === 0) {
-        blockAiTutor(
-          t("chatbot.aiTutorDailyLimit")
-        );
+        blockAiTutor(t("chatbot.aiTutorDailyLimit"));
         return;
       }
     }
@@ -269,10 +267,12 @@ const Chatbot = () => {
         if (stockData.price > 0) {
           const priceLabel = formatCurrency(stockData.price, "USD", locale, {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2 });
+            maximumFractionDigits: 2,
+          });
           const changeLabel = formatNumber(Math.abs(stockData.change), locale, {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2 });
+            maximumFractionDigits: 2,
+          });
           botResponse = t("chatbot.responses.stockPrice", {
             symbol: stockSymbol,
             price: priceLabel,
@@ -280,10 +280,12 @@ const Chatbot = () => {
               stockData.change >= 0
                 ? t("chatbot.responses.increased")
                 : t("chatbot.responses.decreased"),
-            change: changeLabel });
+            change: changeLabel,
+          });
         } else {
           botResponse = t("chatbot.responses.stockNotFound", {
-            symbol: stockSymbol });
+            symbol: stockSymbol,
+          });
         }
       } else if (forexPairMatch || forexMatch) {
         let fromCurrency;
@@ -313,24 +315,29 @@ const Chatbot = () => {
         if (forexData.rate > 0) {
           const rateLabel = formatNumber(forexData.rate, locale, {
             minimumFractionDigits: 4,
-            maximumFractionDigits: 4 });
+            maximumFractionDigits: 4,
+          });
           botResponse = t("chatbot.responses.forexRate", {
             from: fromCurrency,
             to: toCurrency,
-            rate: rateLabel });
+            rate: rateLabel,
+          });
 
           if (Math.abs(forexData.change) > 0.0001) {
             const changeLabel = formatNumber(forexData.change, locale, {
               minimumFractionDigits: 4,
-              maximumFractionDigits: 4 });
+              maximumFractionDigits: 4,
+            });
             botResponse += ` ${t("chatbot.responses.forexChanged", {
               sign: forexData.change >= 0 ? "+" : "",
-              change: changeLabel })}`;
+              change: changeLabel,
+            })}`;
           }
         } else {
           botResponse = t("chatbot.responses.forexNotFound", {
             from: fromCurrency,
-            to: toCurrency });
+            to: toCurrency,
+          });
         }
       } else if (cryptoMatch) {
         const cryptoName = (cryptoMatch[1] || cryptoMatch[3])
@@ -363,7 +370,8 @@ const Chatbot = () => {
           avalanche: "avalanche-2",
           avax: "avalanche-2",
           polygon: "matic-network",
-          matic: "matic-network" };
+          matic: "matic-network",
+        };
 
         let cryptoId = null;
         for (const [key, value] of Object.entries(cryptoMap)) {
@@ -382,13 +390,15 @@ const Chatbot = () => {
               cryptoId.split("-")[0].slice(1);
             const priceLabel = formatCurrency(cryptoData.price, "USD", locale, {
               minimumFractionDigits: 2,
-              maximumFractionDigits: 2 });
+              maximumFractionDigits: 2,
+            });
             const changeLabel = formatNumber(
               Math.abs(cryptoData.change),
               locale,
               {
                 minimumFractionDigits: 2,
-                maximumFractionDigits: 2 }
+                maximumFractionDigits: 2,
+              }
             );
             botResponse = t("chatbot.responses.cryptoPrice", {
               name: displayName,
@@ -397,43 +407,37 @@ const Chatbot = () => {
                 cryptoData.change >= 0
                   ? t("chatbot.responses.up")
                   : t("chatbot.responses.down"),
-              change: changeLabel });
+              change: changeLabel,
+            });
 
             if (cryptoData.marketCap) {
               botResponse += ` ${t("chatbot.responses.marketCap", {
-                marketCap: cryptoData.marketCap })}`;
+                marketCap: cryptoData.marketCap,
+              })}`;
             }
           } else {
             const displayName =
               cryptoId.split("-")[0].charAt(0).toUpperCase() +
               cryptoId.split("-")[0].slice(1);
             botResponse = t("chatbot.responses.cryptoNotFound", {
-              name: displayName });
+              name: displayName,
+            });
           }
         } else {
           botResponse = t("chatbot.responses.cryptoUnrecognized");
         }
       } else {
-        const apiUrl = BACKEND_URL;
         const token = getAccessToken();
 
         if (!token) {
-          throw new Error(
-            t("chatbot.authTokenMissing")
-          );
+          throw new Error(t("chatbot.authTokenMissing"));
         }
 
-        const response = await axios.post(
-          `${apiUrl}/proxy/openrouter/`,
-          {
-            inputs: userMessage,
-            chatHistory: updatedHistory.slice(-10),
-            parameters: { temperature: 0.7 } },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}` } }
-        );
+        const response = await apiClient.post("/proxy/openrouter/", {
+          inputs: userMessage,
+          chatHistory: updatedHistory.slice(-10),
+          parameters: { temperature: 0.7 },
+        });
 
         botResponse = response.data.response;
 
@@ -450,7 +454,8 @@ const Chatbot = () => {
         sender: "bot",
         text: botResponse,
         link: responseLink,
-        links: responseLinks };
+        links: responseLinks,
+      };
       setMessages((prevMessages) => [...prevMessages, botChatObj]);
 
       const botHistoryObj = { role: "assistant", content: botResponse };
@@ -461,8 +466,7 @@ const Chatbot = () => {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      let errorMessage =
-        t("chatbot.genericError");
+      let errorMessage = t("chatbot.genericError");
 
       if (error.response) {
         if (error.response.status === 401) {
@@ -472,13 +476,11 @@ const Chatbot = () => {
           error.response.data?.flag === "feature.ai.tutor"
         ) {
           errorMessage =
-            error.response.data?.error ||
-              t("chatbot.aiTutorDailyLimit");
+            error.response.data?.error || t("chatbot.aiTutorDailyLimit");
           blockAiTutor(errorMessage);
           return;
         } else if (error.response.status === 429) {
-          errorMessage =
-            t("chatbot.rateLimit");
+          errorMessage = t("chatbot.rateLimit");
         } else if (error.response.data && error.response.data.error) {
           errorMessage = error.response.data.error;
         }
@@ -496,17 +498,19 @@ const Chatbot = () => {
     }
   };
 
-  const fetchForexRate = async (from, to) => {
+  const fetchForexRate = async (
+    from: string,
+    to: string
+  ): Promise<{ rate: number; change: number }> => {
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error("Authentication token is missing");
       }
 
-      const response = await axios.get(`${BACKEND_URL}/forex-rate/`, {
+      const response = await apiClient.get("/forex-rate/", {
         params: { from, to },
-        withCredentials: true,
-        headers: { Authorization: `Bearer ${token}` } });
+      });
 
       const { rate = 0, change = 0 } = response.data || {};
       return { rate, change };
@@ -516,33 +520,37 @@ const Chatbot = () => {
     }
   };
 
-  const fetchStockPrice = async (symbol) => {
+  const fetchStockPrice = async (
+    symbol: string
+  ): Promise<{ price: number; change: number; changePercent: string }> => {
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error("Authentication token is missing");
       }
 
-      const response = await axios.get(`${BACKEND_URL}/stock-price/`, {
+      const response = await apiClient.get("/stock-price/", {
         params: { symbol },
-        withCredentials: true,
-        headers: { Authorization: `Bearer ${token}` } });
+      });
 
       const {
         price = 0,
         change = 0,
-        changePercent = "0.00%" } = response.data || {};
+        changePercent = "0.00%",
+      } = response.data || {};
 
       return {
         price,
         change,
-        changePercent };
+        changePercent,
+      };
     } catch (error) {
       console.error("Error fetching stock price:", error);
       return {
         price: 0,
         change: 0,
-        changePercent: "0.00%" };
+        changePercent: "0.00%",
+      };
     }
   };
 
@@ -553,10 +561,9 @@ const Chatbot = () => {
         throw new Error("Authentication token is missing");
       }
 
-      const response = await axios.get(`${BACKEND_URL}/crypto-price/`, {
+      const response = await apiClient.get("/crypto-price/", {
         params: { id: cryptoId },
-        withCredentials: true,
-        headers: { Authorization: `Bearer ${token}` } });
+      });
 
       const { price = 0, change = 0, marketCap = 0 } = response.data || {};
 
@@ -579,7 +586,8 @@ const Chatbot = () => {
         } else {
           formattedMarketCap = formatCurrency(marketCap, "USD", locale, {
             minimumFractionDigits: 0,
-            maximumFractionDigits: 0 });
+            maximumFractionDigits: 0,
+          });
         }
       }
 
@@ -624,7 +632,8 @@ const Chatbot = () => {
         style={{
           WebkitTapHighlightColor: "transparent",
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)" }}
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         <span className="transition group-hover:-translate-y-1">💬</span>
       </button>
@@ -634,7 +643,8 @@ const Chatbot = () => {
           className="fixed bottom-24 right-6 z-[1100] flex max-h-[70vh] w-[min(90vw,420px)] flex-col overflow-hidden rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg"
           style={{
             backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)" }}
+            WebkitBackdropFilter: "blur(12px)",
+          }}
         >
           <header className="flex items-center justify-between border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-5 py-4">
             <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">

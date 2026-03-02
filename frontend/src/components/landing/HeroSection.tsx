@@ -6,7 +6,8 @@ import { GlassButton } from "components/ui";
 import ParticleStage from "./ParticleStage";
 import { useTranslation } from "react-i18next";
 export default function HeroSection({
-  scrollToFeatures }: {
+  scrollToFeatures,
+}: {
   scrollToFeatures: () => void;
 }) {
   const { t } = useTranslation();
@@ -62,8 +63,12 @@ export default function HeroSection({
                 size="md"
                 className="group whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
               >
-                <span className="sm:hidden">{t("landing.hero.ctaStartShort")}</span>
-                <span className="hidden sm:inline">{t("landing.hero.ctaStart")}</span>
+                <span className="sm:hidden">
+                  {t("landing.hero.ctaStartShort")}
+                </span>
+                <span className="hidden sm:inline">
+                  {t("landing.hero.ctaStart")}
+                </span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </GlassButton>
 
@@ -74,8 +79,12 @@ export default function HeroSection({
                 className="whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
               >
                 <PlayCircle className="h-4 w-4" />
-                <span className="sm:hidden">{t("landing.hero.ctaDemoShort")}</span>
-                <span className="hidden sm:inline">{t("landing.hero.ctaDemo")}</span>
+                <span className="sm:hidden">
+                  {t("landing.hero.ctaDemoShort")}
+                </span>
+                <span className="hidden sm:inline">
+                  {t("landing.hero.ctaDemo")}
+                </span>
               </GlassButton>
 
               <button
@@ -84,8 +93,12 @@ export default function HeroSection({
                 className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/85 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-3 sm:text-sm"
                 aria-label={t("landing.hero.ctaExploreAria")}
               >
-                <span className="sm:hidden">{t("landing.hero.ctaExploreShort")}</span>
-                <span className="hidden sm:inline">{t("landing.hero.ctaExplore")}</span>
+                <span className="sm:hidden">
+                  {t("landing.hero.ctaExploreShort")}
+                </span>
+                <span className="hidden sm:inline">
+                  {t("landing.hero.ctaExplore")}
+                </span>
                 <ChevronDown
                   size={16}
                   className="transition-transform duration-200 group-hover:translate-y-0.5 sm:hidden"

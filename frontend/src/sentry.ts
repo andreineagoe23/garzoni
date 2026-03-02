@@ -16,11 +16,22 @@ export type SafeProfileContext = {
  * beforeSend: scrub PII, never send every click/render/personal data.
  * Add allowed context: tool name, anonymous user, safe profile snapshot.
  */
-function beforeSend(event: Sentry.Event, hint: Sentry.EventHint): Sentry.Event | null {
+function beforeSend(
+  event: Sentry.Event,
+  hint: Sentry.EventHint
+): Sentry.Event | null {
   // Scrub known PII from extra/contexts
   if (event.extra) {
     const safe: Record<string, unknown> = {};
-    const blocklist = ["email", "password", "token", "firstName", "lastName", "username", "name"];
+    const blocklist = [
+      "email",
+      "password",
+      "token",
+      "firstName",
+      "lastName",
+      "username",
+      "name",
+    ];
     for (const [k, v] of Object.entries(event.extra)) {
       const lower = k.toLowerCase();
       if (blocklist.some((b) => lower.includes(b))) continue;

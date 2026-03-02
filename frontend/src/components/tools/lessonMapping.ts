@@ -7,7 +7,8 @@ export const CALENDAR_EXPLAINERS = [
     who: "Savers, borrowers, and anyone with a budget.",
     affects: "Savings rates, loan costs, everyday prices.",
     learnPath: "/all-topics?topic=inflation",
-    tags: ["saver", "borrower"] },
+    tags: ["saver", "borrower"],
+  },
   {
     id: "rates",
     label: "Central Bank Rates",
@@ -16,7 +17,8 @@ export const CALENDAR_EXPLAINERS = [
     who: "Anyone with loans, mortgages, or savings accounts.",
     affects: "Mortgages, credit cards, savings yields.",
     learnPath: "/all-topics?topic=interest-rates",
-    tags: ["saver", "borrower", "investor"] },
+    tags: ["saver", "borrower", "investor"],
+  },
   {
     id: "jobs",
     label: "Jobs Report",
@@ -25,7 +27,8 @@ export const CALENDAR_EXPLAINERS = [
     who: "Workers, job seekers, investors.",
     affects: "Wages, consumer demand, rate decisions.",
     learnPath: "/all-topics?topic=employment",
-    tags: ["investor"] },
+    tags: ["investor"],
+  },
   {
     id: "gdp",
     label: "GDP Growth",
@@ -34,7 +37,8 @@ export const CALENDAR_EXPLAINERS = [
     who: "Investors and business owners.",
     affects: "Market sentiment, hiring, investment plans.",
     learnPath: "/all-topics?topic=gdp",
-    tags: ["investor"] },
+    tags: ["investor"],
+  },
   {
     id: "retail",
     label: "Retail Sales",
@@ -43,7 +47,8 @@ export const CALENDAR_EXPLAINERS = [
     who: "Budgeters and market observers.",
     affects: "Company earnings, inflation outlook.",
     learnPath: "/all-topics?topic=consumer-spending",
-    tags: ["saver", "investor"] },
+    tags: ["saver", "investor"],
+  },
   {
     id: "housing",
     label: "Housing Data",
@@ -52,21 +57,25 @@ export const CALENDAR_EXPLAINERS = [
     who: "Home buyers, renters, and lenders.",
     affects: "Mortgage rates, rents, construction jobs.",
     learnPath: "/all-topics?topic=housing",
-    tags: ["borrower"] },
+    tags: ["borrower"],
+  },
 ];
 
 export const NEWS_CATEGORY_LESSONS: Record<string, string> = {
   "Macro economy": "/all-topics?topic=inflation",
   "Personal finance": "/all-topics?topic=budgeting",
   Markets: "/all-topics?topic=investing",
-  Crypto: "/all-topics?topic=crypto" };
+  Crypto: "/all-topics?topic=crypto",
+};
 
 export const PORTFOLIO_INSIGHT_LESSONS: Record<string, string> = {
   concentration: "/all-topics?topic=diversification",
   volatility: "/all-topics?topic=risk",
-  diversification: "/all-topics?topic=investing" };
+  diversification: "/all-topics?topic=investing",
+};
 
 export const GOALS_LEVER_LESSONS: Record<string, string> = {
   expenses: "/all-topics?topic=budgeting",
   savings_rate: "/all-topics?topic=saving",
-  income: "/all-topics?topic=career" };
+  income: "/all-topics?topic=career",
+};

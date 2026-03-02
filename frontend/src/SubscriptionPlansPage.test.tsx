@@ -7,23 +7,22 @@ import { formatCurrency, getLocale } from "utils/format";
 import SubscriptionPlansPage from "./SubscriptionPlansPage";
 
 jest.mock("services/analyticsService", () => ({
-  recordFunnelEvent: jest.fn() }));
+  recordFunnelEvent: jest.fn(),
+}));
 
 jest.mock("axios", () => {
+  const get = jest.fn();
+  const post = jest.fn();
   const mock = {
-    get: jest.fn(),
-    post: jest.fn(),
-    create: () => ({
-      get: jest.fn(),
-      post: jest.fn(),
-      defaults: { headers: { common: {} } },
-      interceptors: {
-        request: { use: jest.fn(), eject: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn() } } }),
+    get,
+    post,
+    create: () => mock,
     defaults: { headers: { common: {} } },
     interceptors: {
       request: { use: jest.fn(), eject: jest.fn() },
-      response: { use: jest.fn(), eject: jest.fn() } } };
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  };
   return { __esModule: true, default: mock };
 });
 const mockNavigate = jest.fn();
@@ -36,7 +35,8 @@ jest.mock("react-router-dom", () => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-    useLocation: () => ({ search: "" }) };
+    useLocation: () => ({ search: "" }),
+  };
 });
 
 jest.mock("contexts/AuthContext", () => ({
@@ -46,9 +46,12 @@ jest.mock("contexts/AuthContext", () => ({
     entitlementSupportLink: null,
     reloadEntitlements: jest.fn(),
     loadProfile: jest.fn().mockResolvedValue({
-      user_data: { has_paid: false, is_questionnaire_completed: false } }),
+      user_data: { has_paid: false, is_questionnaire_completed: false },
+    }),
     isAuthenticated: true,
-    getAccessToken: jest.fn(() => "token") }) }));
+    getAccessToken: jest.fn(() => "token"),
+  }),
+}));
 
 jest.mock("@tanstack/react-query", () => {
   const actual = jest.requireActual("@tanstack/react-query");
@@ -60,10 +63,12 @@ jest.mock("@tanstack/react-query", () => {
           data: { status: mockQuestionnaireStatus },
           isLoading: false,
           isFetching: false,
-          isFetched: true };
+          isFetched: true,
+        };
       }
       return actual.useQuery(opts);
-    } };
+    },
+  };
 });
 
 const plansResponse = {
@@ -81,12 +86,15 @@ const plansResponse = {
           name: "Daily lessons",
           enabled: true,
           daily_quota: 3,
-          description: "3 core learning actions per day" } } },
+          description: "3 core learning actions per day",
+        },
+      },
+    },
     {
       plan_id: "plus",
       name: "Plus",
-      billing_interval: "monthly",
-      stripe_price_id: "price_plus",
+      billing_interval: "yearly",
+      stripe_price_id: "price_plus_yearly",
       price_amount: 12,
       currency: "USD",
       trial_days: 7,
@@ -95,12 +103,15 @@ const plansResponse = {
           name: "AI tutor",
           enabled: true,
           daily_quota: 50,
-          description: "50 AI tutor prompts per day" } } },
+          description: "50 AI tutor prompts per day",
+        },
+      },
+    },
     {
       plan_id: "pro",
       name: "Pro",
-      billing_interval: "monthly",
-      stripe_price_id: "price_pro",
+      billing_interval: "yearly",
+      stripe_price_id: "price_pro_yearly",
       price_amount: 24,
       currency: "USD",
       trial_days: 7,
@@ -109,15 +120,20 @@ const plansResponse = {
           name: "AI tutor",
           enabled: true,
           daily_quota: 200,
-          description: "200 AI tutor prompts per day" } } },
-  ] };
+          description: "200 AI tutor prompts per day",
+        },
+      },
+    },
+  ],
+};
 
 describe("SubscriptionPlansPage", () => {
   beforeEach(async () => {
     axiosMock.get.mockResolvedValue({ data: plansResponse });
     Object.defineProperty(window, "location", {
       value: { assign: jest.fn() },
-      writable: true });
+      writable: true,
+    });
     mockNavigate.mockClear();
   });
 
@@ -132,7 +148,8 @@ describe("SubscriptionPlansPage", () => {
     const choosePlus = "Choose Plus";
     const priceLabel = formatCurrency(12, "USD", getLocale(), {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0 });
+      maximumFractionDigits: 0,
+    });
 
     const plusLabels = await screen.findAllByText(plusLabel);
     expect(plusLabels.length).toBeGreaterThan(0);
@@ -173,7 +190,8 @@ describe("SubscriptionPlansPage", () => {
     );
 
     const starterButton = await screen.findByRole("button", {
-      name: "Start with Starter (Free)" });
+      name: "Start with Starter (Free)",
+    });
     fireEvent.click(starterButton);
 
     await waitFor(() => {
@@ -187,9 +205,11 @@ describe("SubscriptionPlansPage", () => {
     const mockAssign = jest.fn();
     Object.defineProperty(window, "location", {
       value: { assign: mockAssign },
-      writable: true });
+      writable: true,
+    });
     axiosMock.post.mockResolvedValue({
-      data: { redirect_url: "https://checkout.stripe.com/session/xxx" } });
+      data: { redirect_url: "https://checkout.stripe.com/session/xxx" },
+    });
 
     render(
       <MemoryRouter initialEntries={["/subscriptions"]}>
@@ -204,12 +224,13 @@ describe("SubscriptionPlansPage", () => {
     await waitFor(() => {
       expect(axiosMock.post).toHaveBeenCalledWith(
         expect.stringContaining("/subscriptions/create/"),
-        { plan_id: "plus", billing_interval: "monthly" },
-        expect.objectContaining({})
+        { plan_id: "plus", billing_interval: "yearly" }
       );
     });
     await waitFor(() => {
-      expect(mockAssign).toHaveBeenCalledWith("https://checkout.stripe.com/session/xxx");
+      expect(mockAssign).toHaveBeenCalledWith(
+        "https://checkout.stripe.com/session/xxx"
+      );
     });
   });
 });

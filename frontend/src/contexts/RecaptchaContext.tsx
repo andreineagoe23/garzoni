@@ -25,7 +25,10 @@ declare global {
     grecaptcha?: {
       enterprise?: {
         ready: (cb: () => void) => void;
-        execute: (siteKey: string, options: { action: string }) => Promise<string>;
+        execute: (
+          siteKey: string,
+          options: { action: string }
+        ) => Promise<string>;
       };
     };
   }

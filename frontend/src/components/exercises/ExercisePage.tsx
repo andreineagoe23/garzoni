@@ -3,7 +3,8 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useRef } from "react";
+  useRef,
+} from "react";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -28,10 +29,16 @@ const ExercisePage = () => {
   const [filters, setFilters] = useState({
     type: "",
     category: "",
-    difficulty: "" });
+    difficulty: "",
+  });
   const [categories, setCategories] = useState([]);
-  const { getAccessToken, isInitialized, isAuthenticated, entitlements, settings } =
-    useAuth();
+  const {
+    getAccessToken,
+    isInitialized,
+    isAuthenticated,
+    entitlements,
+    settings,
+  } = useAuth();
   const navigate = useNavigate();
   const [streak, setStreak] = useState(0);
   const [showStats, setShowStats] = useState(false);
@@ -41,7 +48,8 @@ const ExercisePage = () => {
     averageAccuracy: 0,
     averageAttempts: 0,
     totalTimeSpent: 0,
-    firstTryAccuracy: 0 });
+    firstTryAccuracy: 0,
+  });
   const [startTime, setStartTime] = useState(Date.now());
   const [isTimedMode, setIsTimedMode] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -68,9 +76,9 @@ const ExercisePage = () => {
   const inlineHintTimeoutRef = useRef(null);
   const isDevelopment = process.env.NODE_ENV === "development";
   const mascotTimeoutRef = useRef(null);
-  const [mascotMood, setMascotMood] = useState<"neutral" | "celebrate" | "encourage">(
-    "neutral"
-  );
+  const [mascotMood, setMascotMood] = useState<
+    "neutral" | "celebrate" | "encourage"
+  >("neutral");
   const logError = useCallback(
     (...args) => {
       if (isDevelopment) {
@@ -137,9 +145,7 @@ const ExercisePage = () => {
       }
       setLoading(false);
     } catch (err) {
-      setError(
-        t("exercises.errors.loadFailed")
-      );
+      setError(t("exercises.errors.loadFailed"));
       setLoading(false);
     }
   }, [filters, getAccessToken, mode, t]);
@@ -202,7 +208,8 @@ const ExercisePage = () => {
       const lastExercise = exercises[currentExerciseIndex];
       const response = await apiClient.post("/next/", {
         last_exercise_id: lastExercise?.id,
-        last_correct: progress[currentExerciseIndex]?.correct });
+        last_correct: progress[currentExerciseIndex]?.correct,
+      });
 
       if (response.data?.exercise_id) {
         const detail = await apiClient.get(
@@ -342,7 +349,8 @@ const ExercisePage = () => {
       exerciseId: currentExercise.id,
       correct: false,
       attempts: 0,
-      status: "not_started" };
+      status: "not_started",
+    };
     setProgress(updatedProgress);
 
     setUserAnswer(
@@ -376,9 +384,7 @@ const ExercisePage = () => {
             return value === null || String(value).trim() === "";
           }))
       ) {
-        setSubmissionFeedback(
-          t("exercises.errors.submitAnswer")
-        );
+        setSubmissionFeedback(t("exercises.errors.submitAnswer"));
         setShowCorrection(true);
         return;
       }
@@ -388,7 +394,8 @@ const ExercisePage = () => {
 
       setSavedAnswers((prev) => ({
         ...prev,
-        [currentExercise.id]: userAnswer }));
+        [currentExercise.id]: userAnswer,
+      }));
 
       const response = await apiClient.post(
         `/exercises/${currentExercise.id}/submit/`,
@@ -400,14 +407,16 @@ const ExercisePage = () => {
         exerciseId: currentExercise.id,
         correct: response.data.correct,
         attempts: response.data.attempts,
-        status: response.data.correct ? "completed" : "attempted" };
+        status: response.data.correct ? "completed" : "attempted",
+      };
 
       setProgress(updated);
       setExplanation(response.data.explanation || "");
       setSubmissionFeedback(response.data.feedback || "");
       playFeedbackChime({
         enabled: Boolean(soundEnabled ?? true),
-        correct: Boolean(response.data.correct) });
+        correct: Boolean(response.data.correct),
+      });
       pulseMascot(response.data.correct ? "celebrate" : "encourage");
       setXpTotal((prev) => prev + (response.data.xp_delta || 0));
       if (typeof response.data.coins_delta === "number") {
@@ -447,16 +456,15 @@ const ExercisePage = () => {
         setStreakMultiplier(1);
       }
 
-      const skill =
-        currentExercise.category ||
-        t("exercises.skillFallback");
+      const skill = currentExercise.category || t("exercises.skillFallback");
       const before = skillProficiency[skill] || 0;
       const after = response.data.proficiency ?? before;
       setSkillProficiency((prev) => ({ ...prev, [skill]: after }));
       if (after - before > 0) {
         setSkillGains((prev) => ({
           ...prev,
-          [skill]: (prev[skill] || 0) + (after - before) }));
+          [skill]: (prev[skill] || 0) + (after - before),
+        }));
       }
 
       const correctAnswers = updated.filter((p) => p.correct).length;
@@ -475,7 +483,8 @@ const ExercisePage = () => {
         totalTimeSpent: timeSpent,
         firstTryAccuracy: exercises.length
           ? (projectedFirstTry / exercises.length) * 100
-          : 0 });
+          : 0,
+      });
 
       if (correctAnswers === exercises.length) {
         if (timerRef.current) {
@@ -484,9 +493,7 @@ const ExercisePage = () => {
         setShowStats(true);
       }
     } catch (err) {
-      setError(
-        t("exercises.errors.submissionFailed")
-      );
+      setError(t("exercises.errors.submissionFailed"));
     }
   };
 
@@ -504,15 +511,11 @@ const ExercisePage = () => {
     const currentExercise = exercises[currentExerciseIndex];
     const hints = currentExercise?.exercise_data?.hints || [];
     if (!hintEnabled) {
-      setHintError(
-        t("exercises.hints.unavailable")
-      );
+      setHintError(t("exercises.hints.unavailable"));
       return;
     }
     if (hintDepleted) {
-      setHintError(
-        t("exercises.hints.depleted")
-      );
+      setHintError(t("exercises.hints.depleted"));
       return;
     }
     if (hintIndex < hints.length) {
@@ -651,9 +654,7 @@ const ExercisePage = () => {
 
     const result = stack.pop();
     if (stack.length || !Number.isFinite(result)) {
-      setCalculatorValue(
-        t("exercises.calculator.checkExpression")
-      );
+      setCalculatorValue(t("exercises.calculator.checkExpression"));
       return;
     }
     setCalculatorValue(String(result));
@@ -765,7 +766,10 @@ const ExercisePage = () => {
                       event.dataTransfer.setData("text/plain", String(index))
                     }
                     onKeyDown={(event) => {
-                      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                      if (
+                        event.key === "ArrowLeft" ||
+                        event.key === "ArrowUp"
+                      ) {
                         event.preventDefault();
                         if (index === 0) return;
                         const newOrder = [...userAnswer];
@@ -894,7 +898,8 @@ const ExercisePage = () => {
                         [category]:
                           value === ""
                             ? ""
-                            : Math.max(0, parseFloat(value) || 0) }));
+                            : Math.max(0, parseFloat(value) || 0),
+                      }));
                     }}
                     className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                   />
@@ -936,7 +941,8 @@ const ExercisePage = () => {
                       <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
                         {row.label ||
                           t("exercises.table.rowWithId", {
-                            id: row.id })}
+                            id: row.id,
+                          })}
                       </td>
                       {columns.map((column, colIndex) => {
                         const value = userAnswer?.[row.id]?.[colIndex] ?? "";
@@ -956,7 +962,8 @@ const ExercisePage = () => {
                                 setUserAnswer((prev) => {
                                   const next = { ...(prev || {}) };
                                   const rowValues = [
-                                    ...(next[row.id] || Array(columns.length).fill("")),
+                                    ...(next[row.id] ||
+                                      Array(columns.length).fill("")),
                                   ];
                                   rowValues[colIndex] = nextValue;
                                   next[row.id] = rowValues;
@@ -986,7 +993,9 @@ const ExercisePage = () => {
 
       case "scenario-simulation": {
         const choices = exercise.exercise_data?.choices || [];
-        const selectedChoice = choices.find((choice) => choice.id === userAnswer);
+        const selectedChoice = choices.find(
+          (choice) => choice.id === userAnswer
+        );
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
@@ -1013,8 +1022,7 @@ const ExercisePage = () => {
               <span className="font-semibold text-[color:var(--accent,#111827)]">
                 {t("exercises.scenario.actionSlot")}
               </span>{" "}
-              {selectedChoice?.label ||
-                t("exercises.scenario.dragHint")}
+              {selectedChoice?.label || t("exercises.scenario.dragHint")}
             </div>
             <div className="grid gap-3">
               {choices.map((choice, index) => {
@@ -1025,7 +1033,10 @@ const ExercisePage = () => {
                     type="button"
                     draggable
                     onDragStart={(event) =>
-                      event.dataTransfer.setData("text/plain", String(choice.id))
+                      event.dataTransfer.setData(
+                        "text/plain",
+                        String(choice.id)
+                      )
                     }
                     onClick={() => setUserAnswer(choice.id)}
                     className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
@@ -1135,14 +1146,16 @@ const ExercisePage = () => {
               {t("exercises.reviewQueue.title")}
               <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
                 {t("exercises.reviewQueue.due", {
-                  count: reviewQueue.count || 0 })}
+                  count: reviewQueue.count || 0,
+                })}
               </span>
             </span>
             {reviewQueue.due?.length > 0 && (
               <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
                 {t("exercises.reviewQueue.nextUp", {
                   skill: reviewQueue.due[0].skill,
-                  question: reviewQueue.due[0].question })}
+                  question: reviewQueue.due[0].question,
+                })}
               </span>
             )}
             <button
@@ -1213,13 +1226,12 @@ const ExercisePage = () => {
                   onChange={(event) =>
                     setFilters((prev) => ({
                       ...prev,
-                      type: event.target.value }))
+                      type: event.target.value,
+                    }))
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="">
-                    {t("exercises.filters.allTypes")}
-                  </option>
+                  <option value="">{t("exercises.filters.allTypes")}</option>
                   <option value="multiple-choice">
                     {t("exercises.filters.multipleChoice")}
                   </option>
@@ -1250,7 +1262,8 @@ const ExercisePage = () => {
                   onChange={(event) =>
                     setFilters((prev) => ({
                       ...prev,
-                      category: event.target.value }))
+                      category: event.target.value,
+                    }))
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
@@ -1274,7 +1287,8 @@ const ExercisePage = () => {
                   onChange={(event) =>
                     setFilters((prev) => ({
                       ...prev,
-                      difficulty: event.target.value }))
+                      difficulty: event.target.value,
+                    }))
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
@@ -1299,7 +1313,8 @@ const ExercisePage = () => {
                 <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
                   {t("exercises.progress.label", {
                     current: currentExerciseIndex + 1,
-                    total: exercises.length })}
+                    total: exercises.length,
+                  })}
                 </p>
                 <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                   <div
@@ -1310,9 +1325,7 @@ const ExercisePage = () => {
               </div>
 
               <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-                <span>
-                  {t("exercises.timedMode")}
-                </span>
+                <span>{t("exercises.timedMode")}</span>
                 <div className="relative inline-flex h-6 w-11 items-center">
                   <input
                     type="checkbox"
@@ -1334,7 +1347,8 @@ const ExercisePage = () => {
             {streak > 0 && (
               <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
                 {t("exercises.streak", {
-                  count: streak })}
+                  count: streak,
+                })}
               </div>
             )}
 
@@ -1366,7 +1380,8 @@ const ExercisePage = () => {
                     }`}
                   >
                     {t("exercises.hints.showNext", {
-                      cost: hintCoinCost })}
+                      cost: hintCoinCost,
+                    })}
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -1402,9 +1417,7 @@ const ExercisePage = () => {
                       </div>
                     ))}
                   {hintIndex === 0 && (
-                    <p className="italic">
-                      {t("exercises.hints.helper")}
-                    </p>
+                    <p className="italic">{t("exercises.hints.helper")}</p>
                   )}
                 </div>
               </div>
@@ -1436,8 +1449,7 @@ const ExercisePage = () => {
                         setCalculatorValue(event.target.value)
                       }
                       className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
-                      placeholder={t(
-                        "exercises.assist.calculatorPlaceholder")}
+                      placeholder={t("exercises.assist.calculatorPlaceholder")}
                     />
                     <button
                       type="button"
@@ -1500,15 +1512,11 @@ const ExercisePage = () => {
                   onChange={(event) => setConfidence(event.target.value)}
                   className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 >
-                  <option value="low">
-                    {t("exercises.confidence.low")}
-                  </option>
+                  <option value="low">{t("exercises.confidence.low")}</option>
                   <option value="medium">
                     {t("exercises.confidence.medium")}
                   </option>
-                  <option value="high">
-                    {t("exercises.confidence.high")}
-                  </option>
+                  <option value="high">{t("exercises.confidence.high")}</option>
                 </select>
                 <span className="text-xs">
                   {t("exercises.confidence.helper")}
@@ -1611,7 +1619,8 @@ const ExercisePage = () => {
                   .map((exercise, index) => ({
                     exercise,
                     index,
-                    progress: progress[index] }))
+                    progress: progress[index],
+                  }))
                   .filter(
                     ({ progress: prog }) => prog !== undefined && prog !== null
                   )
@@ -1626,7 +1635,8 @@ const ExercisePage = () => {
                     >
                       <span className="font-medium">
                         {t("exercises.progress.exercise", {
-                          index: index + 1 })}
+                          index: index + 1,
+                        })}
                       </span>
                       <span className="text-xs uppercase tracking-wide">
                         {prog?.status === "completed"
@@ -1640,9 +1650,7 @@ const ExercisePage = () => {
                     progress[index] !== undefined && progress[index] !== null
                 ).length === 0 && (
                   <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                    <p>
-                      {t("exercises.progress.empty")}
-                    </p>
+                    <p>{t("exercises.progress.empty")}</p>
                   </div>
                 )}
               </div>
@@ -1656,7 +1664,8 @@ const ExercisePage = () => {
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
           style={{
             backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)" }}
+            WebkitBackdropFilter: "blur(4px)",
+          }}
         >
           <GlassCard
             padding="lg"
@@ -1678,7 +1687,8 @@ const ExercisePage = () => {
                         "#f472b6",
                         "#f97316",
                       ][index % 5],
-                      animationDelay: `${index * 0.08}s` }}
+                      animationDelay: `${index * 0.08}s`,
+                    }}
                   />
                 ))}
               </div>
@@ -1704,13 +1714,13 @@ const ExercisePage = () => {
                     animationsEnabled ? "animate-bounce" : ""
                   }`}
                 />
-                <p className="font-semibold">
-                  {t("exercises.streakCongrats")}
-                </p>
+                <p className="font-semibold">{t("exercises.streakCongrats")}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-4 text-center text-sm text-emerald-500">
-                  <h4 className="text-base font-semibold">{t("exercises.progress.totalCompleted")}</h4>
+                  <h4 className="text-base font-semibold">
+                    {t("exercises.progress.totalCompleted")}
+                  </h4>
                   <p>
                     {stats.totalCompleted} of {stats.totalExercises}
                   </p>
@@ -1722,7 +1732,8 @@ const ExercisePage = () => {
                   <p>
                     {formatNumber(stats.averageAccuracy, locale, {
                       minimumFractionDigits: 1,
-                      maximumFractionDigits: 1 })}
+                      maximumFractionDigits: 1,
+                    })}
                     %
                   </p>
                 </div>
@@ -1733,7 +1744,8 @@ const ExercisePage = () => {
                   <p>
                     {formatNumber(stats.firstTryAccuracy || 0, locale, {
                       minimumFractionDigits: 1,
-                      maximumFractionDigits: 1 })}
+                      maximumFractionDigits: 1,
+                    })}
                     %
                   </p>
                 </div>
@@ -1749,7 +1761,8 @@ const ExercisePage = () => {
                     {streakMultiplier > 1
                       ? `x${formatNumber(streakMultiplier, locale, {
                           minimumFractionDigits: 1,
-                          maximumFractionDigits: 1 })}`
+                          maximumFractionDigits: 1,
+                        })}`
                       : "none"}
                   </p>
                 </div>
@@ -1771,7 +1784,8 @@ const ExercisePage = () => {
                   <p>
                     {formatNumber(stats.averageAttempts, locale, {
                       minimumFractionDigits: 1,
-                      maximumFractionDigits: 1 })}{" "}
+                      maximumFractionDigits: 1,
+                    })}{" "}
                     per question
                   </p>
                 </div>

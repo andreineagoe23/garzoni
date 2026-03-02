@@ -13,7 +13,8 @@ import {
   getCourseProgressFromIndex,
   getPathProgressById,
   getPathProgressByTitle,
-  getPathProgressFromIndex } from "utils/progress";
+  getPathProgressFromIndex,
+} from "utils/progress";
 
 export function useProgressMetrics(options = {}) {
   const query = useProgressSummaryQuery(options);
@@ -83,5 +84,6 @@ export function useProgressMetrics(options = {}) {
     getCourseProgressTitle,
     getPathProgress,
     getPathProgressId,
-    getPathProgressTitle };
+    getPathProgressTitle,
+  };
 }

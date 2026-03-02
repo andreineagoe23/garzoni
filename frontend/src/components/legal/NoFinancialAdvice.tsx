@@ -40,7 +40,8 @@ const NoFinancialAdvice = () => {
           components={{
             financial: <Link to="/financial-disclaimer" />,
             terms: <Link to="/terms-of-service" />,
-            privacy: <Link to="/privacy-policy" /> }}
+            privacy: <Link to="/privacy-policy" />,
+          }}
         />
       </p>
     </LegalPageLayout>

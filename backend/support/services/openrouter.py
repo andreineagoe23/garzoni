@@ -1,7 +1,6 @@
 import hashlib
 import json
 import logging
-import os
 import re
 
 import requests
@@ -435,8 +434,9 @@ class OpenRouterService:
             if user_context:
                 prompt = f"{user_context}\n\n{prompt}"
 
+            api_key = settings.OPENROUTER_API_KEY
             headers = {
-                "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}",
+                "Authorization": f"Bearer {api_key}" if api_key else "",
                 "HTTP-Referer": "https://monevo.com",
                 "X-Title": "Monevo Financial Assistant",
                 "Content-Type": "application/json",

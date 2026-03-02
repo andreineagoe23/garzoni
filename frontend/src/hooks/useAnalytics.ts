@@ -23,12 +23,15 @@ export const useAnalytics = () => {
       try {
         trackAnalyticsEvent(eventType, {
           ...metadata,
-          path: window.location.pathname });
+          path: window.location.pathname,
+        });
         recordFunnelEvent(eventType, {
           metadata: {
             ...metadata,
             timestamp: new Date().toISOString(),
-            path: window.location.pathname } }).catch(() => undefined);
+            path: window.location.pathname,
+          },
+        }).catch(() => undefined);
       } catch (error: unknown) {
         // Silently fail analytics
       }

@@ -7,7 +7,8 @@ type FeatureKey = keyof typeof FEATURE_COPY;
 const UpsellModal = ({
   open,
   onClose,
-  feature }: {
+  feature,
+}: {
   open: boolean;
   onClose: () => void;
   feature?: FeatureKey;

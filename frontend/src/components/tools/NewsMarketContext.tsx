@@ -38,7 +38,8 @@ function TradingViewNewsWidget() {
       width: "100%",
       height: "100%",
       colorTheme: darkMode ? "dark" : "light",
-      locale: "en" });
+      locale: "en",
+    });
 
     script.onload = () => {
       const key = "monevo:tools:completed:news-context";
@@ -47,13 +48,19 @@ function TradingViewNewsWidget() {
       if (typeof window.gtag === "function") {
         window.gtag("event", "tool_completed", {
           tool_id: "news-context",
-          detail: "tradingview_news_loaded" });
+          detail: "tradingview_news_loaded",
+        });
       }
       recordToolEvent("tool_complete", "news-context", {
-        detail: "tradingview_news_loaded" });
+        detail: "tradingview_news_loaded",
+      });
     };
     script.onerror = () => {
-      reportWidgetLoadError(new Error("News (TradingView) widget script failed to load"), "news-context", { tool_id: "news-context" });
+      reportWidgetLoadError(
+        new Error("News (TradingView) widget script failed to load"),
+        "news-context",
+        { tool_id: "news-context" }
+      );
     };
 
     currentContainer.appendChild(script);
@@ -66,9 +73,17 @@ function TradingViewNewsWidget() {
       <div
         className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         ref={container}
-        style={{ height: WIDGET_HEIGHT, minHeight: "min(460px, 60vh)", width: "100%", colorScheme: darkMode ? "dark" : "light" }}
+        style={{
+          height: WIDGET_HEIGHT,
+          minHeight: "min(460px, 60vh)",
+          width: "100%",
+          colorScheme: darkMode ? "dark" : "light",
+        }}
       >
-        <div className="tradingview-widget-container__widget" style={{ width: "100%" }} />
+        <div
+          className="tradingview-widget-container__widget"
+          style={{ width: "100%" }}
+        />
         <div className="tradingview-widget-copyright text-center text-xs">
           <a
             href="https://www.tradingview.com/"

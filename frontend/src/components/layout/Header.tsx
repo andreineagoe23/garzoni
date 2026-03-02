@@ -52,7 +52,8 @@ function Header() {
         ].join(" ")}
         style={{
           backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)" }}
+          WebkitBackdropFilter: "blur(14px)",
+        }}
       >
         <div className="flex items-center gap-3">
           <Link

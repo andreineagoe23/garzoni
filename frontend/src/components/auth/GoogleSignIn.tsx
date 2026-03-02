@@ -7,7 +7,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { BACKEND_URL, GOOGLE_OAUTH_CLIENT_ID } from "services/backendUrl";
+import apiClient from "services/httpClient";
+import { GOOGLE_OAUTH_CLIENT_ID } from "services/backendUrl";
 import { useTheme } from "contexts/ThemeContext";
 
 declare global {
@@ -21,10 +22,20 @@ declare global {
             auto_select?: boolean;
             cancel_on_tap_outside?: boolean;
           }) => void;
-          prompt: (momentListener?: (moment: { getDismissedReason: () => string }) => void) => void;
+          prompt: (
+            momentListener?: (moment: {
+              getDismissedReason: () => string;
+            }) => void
+          ) => void;
           renderButton: (
             parent: HTMLElement,
-            options: { theme?: string; size?: string; type?: string; text?: string; width?: number }
+            options: {
+              theme?: string;
+              size?: string;
+              type?: string;
+              text?: string;
+              width?: number;
+            }
           ) => void;
         };
       };
@@ -90,15 +101,11 @@ export default function GoogleSignIn({
       if (handlingRef.current) return;
       handlingRef.current = true;
       try {
-        const { data } = await axios.post<{
+        const { data } = await apiClient.post<{
           access: string;
           user: unknown;
           next: string;
-        }>(
-          `${BACKEND_URL}/auth/google/verify-credential/`,
-          { credential, state },
-          { withCredentials: true }
-        );
+        }>("/auth/google/verify-credential/", { credential, state });
         if (data?.access && data?.next != null) {
           onSuccess(data.access, data.next);
         } else {
@@ -106,9 +113,10 @@ export default function GoogleSignIn({
         }
       } catch (err: unknown) {
         const msg =
-          (axios.isAxiosError(err) && typeof err.response?.data?.detail === "string")
+          axios.isAxiosError(err) &&
+          typeof err.response?.data?.detail === "string"
             ? err.response.data.detail
-            : (err as Error)?.message ?? "Google sign-in failed.";
+            : ((err as Error)?.message ?? "Google sign-in failed.");
         onError(msg);
       } finally {
         handlingRef.current = false;
@@ -159,7 +167,13 @@ export default function GoogleSignIn({
   }, [showOneTap, initialized, buttonOnly]);
 
   useEffect(() => {
-    if (!scriptReady || !initialized || !buttonRef.current || !GOOGLE_OAUTH_CLIENT_ID) return;
+    if (
+      !scriptReady ||
+      !initialized ||
+      !buttonRef.current ||
+      !GOOGLE_OAUTH_CLIENT_ID
+    )
+      return;
     // Clear previous button content so renderButton doesn't duplicate; re-render when theme changes
     buttonRef.current.innerHTML = "";
     window.google?.accounts?.id?.renderButton(buttonRef.current, {
@@ -183,7 +197,11 @@ export default function GoogleSignIn({
         <div
           ref={buttonRef}
           className="flex justify-center [&>div]:!w-full [&>div]:!flex [&>div]:!justify-center"
-          style={{ minHeight: 44, opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? "none" : "auto" }}
+          style={{
+            minHeight: 44,
+            opacity: disabled ? 0.6 : 1,
+            pointerEvents: disabled ? "none" : "auto",
+          }}
           role="presentation"
         />
       ) : (

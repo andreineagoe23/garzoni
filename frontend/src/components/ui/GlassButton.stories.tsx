@@ -3,7 +3,8 @@ import GlassButton from "./GlassButton";
 
 const config = {
   title: "UI/GlassButton",
-  component: GlassButton };
+  component: GlassButton,
+};
 
 export default config;
 

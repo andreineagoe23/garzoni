@@ -3,7 +3,8 @@ import { Trans, useTranslation } from "react-i18next";
 
 // Investing.com pip calculator - iframe embed. No third-party script, no gtag/POST 404.
 const INVESTING_PIP_CALC_BASE = "https://ssltools.investing.com/pip-calculator";
-const FOREX_CALC_OPEN_URL = "https://www.investing.com/tools/forex-pip-calculator";
+const FOREX_CALC_OPEN_URL =
+  "https://www.investing.com/tools/forex-pip-calculator";
 
 const ForexTools = () => {
   const { t } = useTranslation();
@@ -58,7 +59,8 @@ const ForexTools = () => {
                   target="_blank"
                   className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
                 />
-              ) }}
+              ),
+            }}
           />
         </p>
       </div>

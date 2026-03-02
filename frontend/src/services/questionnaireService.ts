@@ -72,19 +72,32 @@ export interface CompletionResponse {
 }
 
 export const fetchQuestionnaireProgress = (): Promise<QuestionnaireProgress> =>
-  apiClient.get<QuestionnaireProgress>("/questionnaire/progress/").then((r) => r.data);
+  apiClient
+    .get<QuestionnaireProgress>("/questionnaire/progress/")
+    .then((r) => r.data);
 
 export const fetchNextQuestion = (): Promise<NextQuestionResponse> =>
-  apiClient.get<NextQuestionResponse>("/questionnaire/next-question/").then((r) => r.data);
+  apiClient
+    .get<NextQuestionResponse>("/questionnaire/next-question/")
+    .then((r) => r.data);
 
-export const saveAnswer = (data: SaveAnswerRequest): Promise<QuestionnaireProgress> =>
-  apiClient.post<QuestionnaireProgress>("/questionnaire/save-answer/", data).then((r) => r.data);
+export const saveAnswer = (
+  data: SaveAnswerRequest
+): Promise<QuestionnaireProgress> =>
+  apiClient
+    .post<QuestionnaireProgress>("/questionnaire/save-answer/", data)
+    .then((r) => r.data);
 
-export const completeQuestionnaire = (idempotencyKey?: string): Promise<CompletionResponse> =>
+export const completeQuestionnaire = (
+  idempotencyKey?: string
+): Promise<CompletionResponse> =>
   apiClient
     .post<CompletionResponse>("/questionnaire/complete/", {
-      idempotency_key: idempotencyKey })
+      idempotency_key: idempotencyKey,
+    })
     .then((r) => r.data);
 
 export const abandonQuestionnaire = (): Promise<QuestionnaireProgress> =>
-  apiClient.post<QuestionnaireProgress>("/questionnaire/abandon/").then((r) => r.data);
+  apiClient
+    .post<QuestionnaireProgress>("/questionnaire/abandon/")
+    .then((r) => r.data);

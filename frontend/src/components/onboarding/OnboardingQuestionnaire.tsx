@@ -13,7 +13,8 @@ import {
   abandonQuestionnaire,
   type QuestionnaireProgress,
   type NextQuestionResponse,
-  type QuestionnaireQuestion } from "services/questionnaireService";
+  type QuestionnaireQuestion,
+} from "services/questionnaireService";
 import QuestionnaireCompletionModal from "./QuestionnaireCompletionModal";
 import toast from "react-hot-toast";
 import { calculatePercent } from "utils/progress";
@@ -28,13 +29,19 @@ const OnboardingQuestionnaire: React.FC = () => {
   const queryClient = useQueryClient();
   const questionStartTimeRef = useRef<number>(Date.now());
 
-  const [currentQuestion, setCurrentQuestion] = useState<QuestionnaireQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] =
+    useState<QuestionnaireQuestion | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<unknown>(null);
   const [sectionIndex, setSectionIndex] = useState(0);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [completionRewards, setCompletionRewards] = useState<{ xp: number; coins: number } | null>(null);
-  const [sectionSummary, setSectionSummary] = useState<NextQuestionResponse["section_summary"] | null>(null);
+  const [completionRewards, setCompletionRewards] = useState<{
+    xp: number;
+    coins: number;
+  } | null>(null);
+  const [sectionSummary, setSectionSummary] = useState<
+    NextQuestionResponse["section_summary"] | null
+  >(null);
 
   // Fetch progress
   const {
@@ -42,10 +49,12 @@ const OnboardingQuestionnaire: React.FC = () => {
     isLoading: isLoadingProgress,
     isError: isProgressError,
     error: progressError,
-    refetch: refetchProgress } = useQuery<QuestionnaireProgress>({
+    refetch: refetchProgress,
+  } = useQuery<QuestionnaireProgress>({
     queryKey: ["questionnaire-progress"],
     queryFn: () => fetchQuestionnaireProgress(),
-    retry: 1 });
+    retry: 1,
+  });
 
   // Fetch next question (also when "abandoned" so user can resume)
   const isProgressActive =
@@ -56,19 +65,32 @@ const OnboardingQuestionnaire: React.FC = () => {
     isLoading: isLoadingQuestion,
     isError: isNextQuestionError,
     error: nextQuestionError,
-    refetch: refetchNextQuestion } = useQuery<NextQuestionResponse>({
+    refetch: refetchNextQuestion,
+  } = useQuery<NextQuestionResponse>({
     queryKey: ["questionnaire-next-question"],
     queryFn: () => fetchNextQuestion(),
     enabled: isProgressActive,
-    retry: 1 });
+    retry: 1,
+  });
 
   // Progress bar: same pattern as CourseFlowPage - completed count / total (from answers count)
   const totalQuestionsDisplay =
-    (progress?.total_questions ?? nextQuestionData?.total_questions) || DEFAULT_TOTAL_QUESTIONS;
-  const answersCount = progress?.answers ? Object.keys(progress.answers).length : 0;
-  const currentQuestionNumberDisplay = Math.min(answersCount + 1, totalQuestionsDisplay);
-  const computedProgressPercentage = calculatePercent(answersCount, totalQuestionsDisplay, { round: true });
-  const computedIsLastQuestion = currentQuestionNumberDisplay >= totalQuestionsDisplay;
+    (progress?.total_questions ?? nextQuestionData?.total_questions) ||
+    DEFAULT_TOTAL_QUESTIONS;
+  const answersCount = progress?.answers
+    ? Object.keys(progress.answers).length
+    : 0;
+  const currentQuestionNumberDisplay = Math.min(
+    answersCount + 1,
+    totalQuestionsDisplay
+  );
+  const computedProgressPercentage = calculatePercent(
+    answersCount,
+    totalQuestionsDisplay,
+    { round: true }
+  );
+  const computedIsLastQuestion =
+    currentQuestionNumberDisplay >= totalQuestionsDisplay;
 
   // Update state when next question data arrives
   useEffect(() => {
@@ -82,7 +104,8 @@ const OnboardingQuestionnaire: React.FC = () => {
       trackEvent("questionnaire_step_view", {
         section_index: nextQuestionData.section_index,
         question_index: nextQuestionData.question_index,
-        question_id: nextQuestionData.question?.id ?? "" });
+        question_id: nextQuestionData.question?.id ?? "",
+      });
     }
   }, [nextQuestionData, trackEvent]);
 
@@ -103,7 +126,8 @@ const OnboardingQuestionnaire: React.FC = () => {
     mutationFn: saveAnswer,
     onSuccess: (updatedProgress: QuestionnaireProgress) => {
       queryClient.setQueryData(["questionnaire-progress"], updatedProgress);
-    } });
+    },
+  });
 
   // Complete questionnaire mutation - redirect with window.location so it always works
   const completeMutation = useMutation({
@@ -116,8 +140,11 @@ const OnboardingQuestionnaire: React.FC = () => {
       window.location.href = "/subscriptions";
     },
     onError: (error: { response?: { data?: { error?: string } } }) => {
-      toast.error(error.response?.data?.error || t("onboarding.failedToComplete"));
-    } });
+      toast.error(
+        error.response?.data?.error || t("onboarding.failedToComplete")
+      );
+    },
+  });
 
   // Abandon questionnaire mutation – update cache so Dashboard sees "abandoned" and doesn't redirect back
   const abandonMutation = useMutation({
@@ -142,10 +169,18 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent });
+        time_spent_seconds: timeSpent,
+      });
     }
     await abandonMutation.mutateAsync();
-  }, [currentQuestion, currentAnswer, sectionIndex, questionIndex, saveAnswerMutation, abandonMutation]);
+  }, [
+    currentQuestion,
+    currentAnswer,
+    sectionIndex,
+    questionIndex,
+    saveAnswerMutation,
+    abandonMutation,
+  ]);
 
   const handleNext = useCallback(async () => {
     if (!currentQuestion || currentAnswer === null) {
@@ -162,15 +197,19 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent });
+        time_spent_seconds: timeSpent,
+      });
 
       trackEvent("questionnaire_answer_submitted", {
         question_id: qId,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent });
+        time_spent_seconds: timeSpent,
+      });
 
-      queryClient.invalidateQueries({ queryKey: ["questionnaire-next-question"] });
+      queryClient.invalidateQueries({
+        queryKey: ["questionnaire-next-question"],
+      });
       await refetchNextQuestion();
       setCurrentAnswer(null);
     } catch (error) {
@@ -204,7 +243,8 @@ const OnboardingQuestionnaire: React.FC = () => {
         answer: currentAnswer,
         section_index: sectionIndex,
         question_index: questionIndex,
-        time_spent_seconds: timeSpent });
+        time_spent_seconds: timeSpent,
+      });
       try {
         await completeMutation.mutateAsync(undefined);
       } catch {
@@ -244,13 +284,15 @@ const OnboardingQuestionnaire: React.FC = () => {
           answer: value,
           section_index: sectionIndex,
           question_index: questionIndex,
-          time_spent_seconds: timeSpent });
+          time_spent_seconds: timeSpent,
+        });
 
         trackEvent("questionnaire_answer_submitted", {
           question_id: currentQuestion.id,
           section_index: sectionIndex,
           question_index: questionIndex,
-          time_spent_seconds: timeSpent });
+          time_spent_seconds: timeSpent,
+        });
 
         if (computedIsLastQuestion) {
           try {
@@ -261,7 +303,9 @@ const OnboardingQuestionnaire: React.FC = () => {
           window.location.href = "/subscriptions";
           return;
         }
-        queryClient.invalidateQueries({ queryKey: ["questionnaire-next-question"] });
+        queryClient.invalidateQueries({
+          queryKey: ["questionnaire-next-question"],
+        });
         await refetchNextQuestion();
         setCurrentAnswer(null);
       } catch (error) {
@@ -288,7 +332,8 @@ const OnboardingQuestionnaire: React.FC = () => {
     switch (question.type) {
       case "multiple_choice": {
         const options = question.options || [];
-        const isSaving = saveAnswerMutation.isPending || completeMutation.isPending;
+        const isSaving =
+          saveAnswerMutation.isPending || completeMutation.isPending;
         return (
           <div className="relative z-10 grid gap-3 sm:grid-cols-2">
             {options.map((option, index) => {
@@ -318,12 +363,15 @@ const OnboardingQuestionnaire: React.FC = () => {
       case "multiple_select": {
         // One tap = pick this option and advance (same as multiple_choice; save as [value])
         const options = question.options || [];
-        const isSaving = saveAnswerMutation.isPending || completeMutation.isPending;
+        const isSaving =
+          saveAnswerMutation.isPending || completeMutation.isPending;
         return (
           <div className="relative z-10 grid gap-3 sm:grid-cols-2">
             {options.map((option, index) => {
-              const isSelected = currentAnswer === option.value ||
-                (Array.isArray(currentAnswer) && currentAnswer.includes(option.value));
+              const isSelected =
+                currentAnswer === option.value ||
+                (Array.isArray(currentAnswer) &&
+                  currentAnswer.includes(option.value));
               return (
                 <button
                   key={index}
@@ -365,7 +413,8 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   if (isProgressError) {
     const message =
-      (progressError as { response?: { status?: number } })?.response?.status === 503
+      (progressError as { response?: { status?: number } })?.response
+        ?.status === 503
         ? t("onboarding.errorSetup")
         : t("onboarding.errorLoad");
     return (
@@ -374,12 +423,17 @@ const OnboardingQuestionnaire: React.FC = () => {
           <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
             {t("onboarding.somethingWentWrong")}
           </h2>
-          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">{message}</p>
+          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
+            {message}
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <GlassButton onClick={() => refetchProgress()} variant="primary">
               {t("onboarding.tryAgain")}
             </GlassButton>
-            <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
+            <GlassButton
+              onClick={() => navigate("/all-topics")}
+              variant="ghost"
+            >
               {t("onboarding.goToDashboard")}
             </GlassButton>
           </div>
@@ -399,10 +453,16 @@ const OnboardingQuestionnaire: React.FC = () => {
             {t("onboarding.completeSubtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <GlassButton onClick={() => navigate("/subscriptions")} variant="primary">
+            <GlassButton
+              onClick={() => navigate("/subscriptions")}
+              variant="primary"
+            >
               {t("onboarding.viewPlans")}
             </GlassButton>
-            <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
+            <GlassButton
+              onClick={() => navigate("/all-topics")}
+              variant="ghost"
+            >
               {t("onboarding.goToAllTopics")}
             </GlassButton>
           </div>
@@ -413,7 +473,8 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   if (isProgressActive && isNextQuestionError) {
     const message =
-      (nextQuestionError as { response?: { status?: number } })?.response?.status === 503
+      (nextQuestionError as { response?: { status?: number } })?.response
+        ?.status === 503
         ? t("onboarding.errorNextQuestionSetup")
         : t("onboarding.errorNextQuestion");
     return (
@@ -422,12 +483,20 @@ const OnboardingQuestionnaire: React.FC = () => {
           <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
             {t("onboarding.somethingWentWrong")}
           </h2>
-          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">{message}</p>
+          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
+            {message}
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <GlassButton onClick={() => refetchNextQuestion()} variant="primary">
+            <GlassButton
+              onClick={() => refetchNextQuestion()}
+              variant="primary"
+            >
               {t("onboarding.tryAgain")}
             </GlassButton>
-            <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
+            <GlassButton
+              onClick={() => navigate("/all-topics")}
+              variant="ghost"
+            >
               {t("onboarding.goToDashboard")}
             </GlassButton>
           </div>
@@ -448,16 +517,22 @@ const OnboardingQuestionnaire: React.FC = () => {
               {t("onboarding.errorNextQuestion")}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <GlassButton onClick={() => refetchNextQuestion()} variant="primary">
+              <GlassButton
+                onClick={() => refetchNextQuestion()}
+                variant="primary"
+              >
                 {t("onboarding.tryAgain")}
               </GlassButton>
-              <GlassButton onClick={() => navigate("/all-topics")} variant="ghost">
+              <GlassButton
+                onClick={() => navigate("/all-topics")}
+                variant="ghost"
+              >
                 {t("onboarding.goToDashboard")}
               </GlassButton>
             </div>
-        </GlassCard>
-      </div>
-    );
+          </GlassCard>
+        </div>
+      );
     }
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
@@ -485,7 +560,10 @@ const OnboardingQuestionnaire: React.FC = () => {
           <header className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("onboarding.questionOf", { current: currentQuestionNumberDisplay, total: totalQuestionsDisplay })}
+                {t("onboarding.questionOf", {
+                  current: currentQuestionNumberDisplay,
+                  total: totalQuestionsDisplay,
+                })}
               </p>
               <div className="flex items-center gap-2">
                 <GlassButton
@@ -506,9 +584,9 @@ const OnboardingQuestionnaire: React.FC = () => {
                 </GlassButton>
               </div>
             </div>
-          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
-            {t("onboarding.tellUsAboutYourself")}
-          </h1>
+            <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+              {t("onboarding.tellUsAboutYourself")}
+            </h1>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {t("onboarding.answerFewQuestions")}
             </p>
@@ -534,14 +612,21 @@ const OnboardingQuestionnaire: React.FC = () => {
 
           {/* Section Summary Card (if available) */}
           {sectionSummary && (
-            <GlassCard padding="md" className="border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5">
+            <GlassCard
+              padding="md"
+              className="border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5"
+            >
               <h3 className="mb-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
                 {sectionSummary.section_title} {t("onboarding.summary")}
               </h3>
               <div className="space-y-2">
                 {sectionSummary.answers.map((item, idx) => (
-                  <div key={idx} className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    <span className="font-medium">{item.question}:</span> {item.answer}
+                  <div
+                    key={idx}
+                    className="text-xs text-[color:var(--muted-text,#6b7280)]"
+                  >
+                    <span className="font-medium">{item.question}:</span>{" "}
+                    {item.answer}
                   </div>
                 ))}
               </div>
@@ -580,17 +665,25 @@ const OnboardingQuestionnaire: React.FC = () => {
                   <GlassButton
                     variant="primary"
                     onClick={handleNext}
-                    disabled={currentAnswer === null || saveAnswerMutation.isPending}
+                    disabled={
+                      currentAnswer === null || saveAnswerMutation.isPending
+                    }
                   >
-                    {saveAnswerMutation.isPending ? t("onboarding.saving") : t("onboarding.next")}
+                    {saveAnswerMutation.isPending
+                      ? t("onboarding.saving")
+                      : t("onboarding.next")}
                   </GlassButton>
                 ) : (
                   <GlassButton
                     variant="primary"
                     onClick={handleComplete}
-                    disabled={currentAnswer === null || completeMutation.isPending}
+                    disabled={
+                      currentAnswer === null || completeMutation.isPending
+                    }
                   >
-                    {completeMutation.isPending ? t("onboarding.completing") : t("onboarding.complete")}
+                    {completeMutation.isPending
+                      ? t("onboarding.completing")
+                      : t("onboarding.complete")}
                   </GlassButton>
                 )}
               </div>

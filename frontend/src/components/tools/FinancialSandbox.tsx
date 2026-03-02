@@ -31,7 +31,9 @@ const FinancialSandbox = () => {
       JSON.stringify({
         label: t("tools.sandbox.activityLabel", {
           years,
-          rate: averageReturn }) })
+          rate: averageReturn,
+        }),
+      })
     );
   }, [averageReturn, t, years]);
 
@@ -109,7 +111,8 @@ const FinancialSandbox = () => {
           <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatCurrency(projection, "USD", locale, {
               minimumFractionDigits: 0,
-              maximumFractionDigits: 0 })}
+              maximumFractionDigits: 0,
+            })}
           </p>
         )}
       </div>

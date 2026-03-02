@@ -42,7 +42,8 @@ function loadConsent(): ConsentState | null {
       necessary: true,
       analytics: Boolean(parsed.analytics),
       marketing: Boolean(parsed.marketing),
-      timestamp: typeof parsed.timestamp === "number" ? parsed.timestamp : undefined,
+      timestamp:
+        typeof parsed.timestamp === "number" ? parsed.timestamp : undefined,
     };
   } catch {
     return null;
@@ -54,11 +55,10 @@ function saveConsent(state: ConsentState) {
   try {
     const toSave = { ...state, timestamp: Date.now() };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    (window as Window & { __MONEVO_CONSENT__?: ConsentState }).__MONEVO_CONSENT__ =
-      toSave;
-    window.dispatchEvent(
-      new CustomEvent(CONSENT_EVENT, { detail: toSave })
-    );
+    (
+      window as Window & { __MONEVO_CONSENT__?: ConsentState }
+    ).__MONEVO_CONSENT__ = toSave;
+    window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: toSave }));
   } catch (_) {
     // ignore
   }
@@ -78,20 +78,27 @@ type CookieConsentContextValue = {
   setSettingsOpen: (open: boolean) => void;
 };
 
-const CookieConsentContext = createContext<CookieConsentContextValue | undefined>(
-  undefined
-);
+const CookieConsentContext = createContext<
+  CookieConsentContextValue | undefined
+>(undefined);
 
-export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
-  const [consent, setConsentState] = useState<ConsentState | null>(() => loadConsent());
+export function CookieConsentProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [consent, setConsentState] = useState<ConsentState | null>(() =>
+    loadConsent()
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const hasAnswered = consent !== null;
 
   useEffect(() => {
     if (consent) {
-      (window as Window & { __MONEVO_CONSENT__?: ConsentState }).__MONEVO_CONSENT__ =
-        consent;
+      (
+        window as Window & { __MONEVO_CONSENT__?: ConsentState }
+      ).__MONEVO_CONSENT__ = consent;
     }
   }, [consent]);
 
@@ -170,7 +177,9 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
 export function useCookieConsent() {
   const ctx = useContext(CookieConsentContext);
   if (ctx === undefined) {
-    throw new Error("useCookieConsent must be used within CookieConsentProvider");
+    throw new Error(
+      "useCookieConsent must be used within CookieConsentProvider"
+    );
   }
   return ctx;
 }

@@ -23,7 +23,8 @@ function UserProgressBox({ progressData }) {
         setUserProfile({
           points: profileData.points || 0,
           streak: profilePayload?.streak || 0,
-          username: profileData.username || t("profile.fallbackUser") });
+          username: profileData.username || t("profile.fallbackUser"),
+        });
       } catch (error) {
         console.error("Error fetching user profile:", error);
       } finally {
@@ -102,7 +103,9 @@ function UserProgressBox({ progressData }) {
                   {userProfile?.streak}
                 </span>
                 <span className="mt-1 block text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("widgets.userProgress.streak", { count: userProfile?.streak || 0 })}
+                  {t("widgets.userProgress.streak", {
+                    count: userProfile?.streak || 0,
+                  })}
                 </span>
               </div>
             </div>
@@ -114,7 +117,8 @@ function UserProgressBox({ progressData }) {
         className="relative shrink-0 border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 px-5 py-4 backdrop-blur-sm"
         style={{
           backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)" }}
+          WebkitBackdropFilter: "blur(8px)",
+        }}
       >
         <h3 className="flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
           <span>{t("widgets.userProgress.learningProgress")}</span>
@@ -126,7 +130,8 @@ function UserProgressBox({ progressData }) {
         style={{
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          maxHeight: "100%" }}
+          maxHeight: "100%",
+        }}
       >
         <div className="space-y-5">
           <div className="space-y-3">
@@ -137,7 +142,8 @@ function UserProgressBox({ progressData }) {
               <span className="font-bold text-[color:var(--accent,#111827)]">
                 {formatNumber(overallProgress, locale, {
                   minimumFractionDigits: 1,
-                  maximumFractionDigits: 1 })}
+                  maximumFractionDigits: 1,
+                })}
                 %
               </span>
             </div>
@@ -161,7 +167,8 @@ function UserProgressBox({ progressData }) {
                     className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-md"
                     style={{
                       backdropFilter: "blur(8px)",
-                      WebkitBackdropFilter: "blur(8px)" }}
+                      WebkitBackdropFilter: "blur(8px)",
+                    }}
                   >
                     <div className="flex items-center justify-between text-xs mb-2">
                       <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
@@ -170,7 +177,8 @@ function UserProgressBox({ progressData }) {
                       <span className="font-bold text-[color:var(--text-color,#111827)]">
                         {formatNumber(path.percent_complete, locale, {
                           minimumFractionDigits: 1,
-                          maximumFractionDigits: 1 })}
+                          maximumFractionDigits: 1,
+                        })}
                         %
                       </span>
                     </div>

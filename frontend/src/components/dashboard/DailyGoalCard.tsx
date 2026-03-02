@@ -11,7 +11,8 @@ type DailyGoalCardProps = {
 const DailyGoalCard = ({
   dailyGoalProgress,
   locale,
-  prefersReducedMotion }: DailyGoalCardProps) => {
+  prefersReducedMotion,
+}: DailyGoalCardProps) => {
   const { t } = useTranslation();
   return (
     <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">

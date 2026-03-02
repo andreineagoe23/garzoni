@@ -13,7 +13,7 @@ Monevo delivers interactive personal finance education with gamified progression
 ## Tech Stack
 
 - Frontend: React (CRA + CRACO), SCSS.
-- Backend: Django REST Framework, Celery, Redis, PostgreSQL (Docker) / SQLite (tests).
+- Backend: Django REST Framework, Celery, Redis, PostgreSQL (dev, production, and CI tests).
 - Auth: JWT via djangorestframework-simplejwt.
 - Background work: Celery beat/results for scheduled tasks.
 
@@ -37,9 +37,25 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
-- By default uses SQLite in DEBUG. Set DATABASE_URL for Postgres in production (Docker/Railway use Postgres).
+- Set DATABASE_URL (PostgreSQL) for local and production. CI uses a Postgres service container for backend tests.
 - Celery/Redis are optional in local dev; enable when running scheduled tasks.
-- Environment variables are documented in backend/ENV_VARIABLES.md.
+- Environment variables: see backend/.env.example and backend/ENV_VARIABLES.md.
+
+#### Backend tests
+
+- When using Docker (recommended), run backend tests via:
+
+  ```bash
+  make backend-test      # runs Django tests inside the backend container
+  make test-all          # backend lint + backend tests + frontend tests (requires dev stack up)
+  ```
+
+- When running the backend directly on your machine (no Docker), run tests from `backend/` with a configured `DATABASE_URL` pointing at a Postgres instance:
+
+  ```bash
+  cd backend
+  python manage.py test
+  ```
 
 ### Frontend (Web)
 
@@ -60,6 +76,7 @@ npm start
 ## Security & Operations
 
 - Keep secrets in environment variables; do not commit credentials. Rotate any previously committed keys.
+- For production backups: use `scripts/backup_postgres.sh` (see the script for usage and restore instructions).
 - Use HTTPS and restrict CORS_ALLOWED_ORIGINS/CSRF_TRUSTED_ORIGINS to trusted domains.
 - JWTs: access tokens via Authorization header; configure lifetimes in SIMPLE_JWT.
 - Run dependency checks regularly (pip-audit, npm audit) and keep requirements.txt/package-lock.json updated.

@@ -14,7 +14,8 @@ const demoPreset = {
   incomeLow: "2800",
   incomeHigh: "3200",
   expenseLow: "1900",
-  expenseHigh: "2200" };
+  expenseHigh: "2200",
+};
 
 const GoalsRealityCheck = () => {
   const { t } = useTranslation();
@@ -27,7 +28,8 @@ const GoalsRealityCheck = () => {
     incomeLow: "",
     incomeHigh: "",
     expenseLow: "",
-    expenseHigh: "" });
+    expenseHigh: "",
+  });
   const localizedDemoPreset = useMemo(
     () => ({ ...demoPreset, goalName: t("tools.realityCheck.demoGoalName") }),
     [t]
@@ -48,7 +50,8 @@ const GoalsRealityCheck = () => {
     worstMonths,
     warnings,
     levers,
-    hasInputs } = useMemo(() => {
+    hasInputs,
+  } = useMemo(() => {
     const goal = Number(form.goalAmount || 0);
     const months = Number(form.months || 0);
     const current = Number(form.currentSaved || 0);
@@ -62,24 +65,30 @@ const GoalsRealityCheck = () => {
     const surplusHigh = incomeHigh - expenseLow;
     const progress = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
     const warn: string[] = [];
-    const leverList: Array<{ label: string; key: keyof typeof GOALS_LEVER_LESSONS }> = [];
+    const leverList: Array<{
+      label: string;
+      key: keyof typeof GOALS_LEVER_LESSONS;
+    }> = [];
 
     if (goal > 0 && months > 0 && surplusHigh < required) {
       warn.push(t("tools.realityCheck.warningLowSurplus"));
       leverList.push({
         label: t("tools.realityCheck.leverIncome"),
-        key: "income" });
+        key: "income",
+      });
     } else if (goal > 0 && months > 0 && surplusLow < required) {
       warn.push(t("tools.realityCheck.warningReduceExpenses"));
       leverList.push({
         label: t("tools.realityCheck.leverExpenses"),
-        key: "expenses" });
+        key: "expenses",
+      });
     }
     if (surplusLow < 0) {
       warn.push(t("tools.realityCheck.warningExpensesHigher"));
       leverList.push({
         label: t("tools.realityCheck.leverFixedCosts"),
-        key: "expenses" });
+        key: "expenses",
+      });
     }
 
     const avgSurplus = (surplusLow + surplusHigh) / 2;
@@ -89,9 +98,13 @@ const GoalsRealityCheck = () => {
         ? Math.ceil(remaining / surplusHigh)
         : null;
     const expected =
-      remaining > 0 && avgSurplus > 0 ? Math.ceil(remaining / avgSurplus) : null;
+      remaining > 0 && avgSurplus > 0
+        ? Math.ceil(remaining / avgSurplus)
+        : null;
     const worst =
-      remaining > 0 && surplusLow > 0 ? Math.ceil(remaining / surplusLow) : null;
+      remaining > 0 && surplusLow > 0
+        ? Math.ceil(remaining / surplusLow)
+        : null;
 
     return {
       requiredMonthly: required,
@@ -103,7 +116,8 @@ const GoalsRealityCheck = () => {
       worstMonths: worst,
       warnings: warn,
       levers: leverList.slice(0, 2),
-      hasInputs: Boolean(goal || months || incomeLow || incomeHigh) };
+      hasInputs: Boolean(goal || months || incomeLow || incomeHigh),
+    };
   }, [form, t]);
 
   React.useEffect(() => {
@@ -122,10 +136,12 @@ const GoalsRealityCheck = () => {
     if (typeof window.gtag === "function") {
       window.gtag("event", "tool_completed", {
         tool_id: "reality-check",
-        detail: "inputs_entered" });
+        detail: "inputs_entered",
+      });
     }
     recordToolEvent("tool_complete", "reality-check", {
-      detail: "inputs_entered" });
+      detail: "inputs_entered",
+    });
   }, [hasInputs]);
 
   React.useEffect(() => {
@@ -168,7 +184,8 @@ const GoalsRealityCheck = () => {
                   incomeLow: "",
                   incomeHigh: "",
                   expenseLow: "",
-                  expenseHigh: "" })
+                  expenseHigh: "",
+                })
               }
               className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
             >
@@ -369,7 +386,10 @@ const GoalsRealityCheck = () => {
           </p>
           <div className="mt-2 grid gap-3 md:grid-cols-2">
             {levers.map((lever) => (
-              <div key={lever.label} className="rounded-xl border border-white/40 px-3 py-3">
+              <div
+                key={lever.label}
+                className="rounded-xl border border-white/40 px-3 py-3"
+              >
                 <p className="text-sm text-[color:var(--text-color,#111827)]">
                   {lever.label}
                 </p>

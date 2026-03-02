@@ -197,3 +197,6 @@ backend/db.sqlite3
 frontend/.env
 frontend/.env
 frontend/.env
+
+# Cursor IDE metadata
+.cursor/

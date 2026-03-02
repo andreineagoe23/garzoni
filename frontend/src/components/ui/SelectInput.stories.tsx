@@ -8,7 +8,11 @@ const config = {
     docs: {
       description: {
         story:
-          "Accessible select input with label association and helper/error text. Keyboard: Tab to focus, Up/Down to change selection." } } } };
+          "Accessible select input with label association and helper/error text. Keyboard: Tab to focus, Up/Down to change selection.",
+      },
+    },
+  },
+};
 
 export default config;
 

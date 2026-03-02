@@ -16,7 +16,8 @@ const TermsOfService = () => {
           i18nKey="legal.terms.sections.agreement.body"
           components={{
             privacy: <Link to="/privacy-policy" />,
-            cookie: <Link to="/cookie-policy" /> }}
+            cookie: <Link to="/cookie-policy" />,
+          }}
         />
       </p>
 
@@ -27,7 +28,8 @@ const TermsOfService = () => {
           i18nKey="legal.terms.sections.about.body2"
           components={{
             financial: <Link to="/financial-disclaimer" />,
-            noAdvice: <Link to="/no-financial-advice" /> }}
+            noAdvice: <Link to="/no-financial-advice" />,
+          }}
         />
       </p>
 

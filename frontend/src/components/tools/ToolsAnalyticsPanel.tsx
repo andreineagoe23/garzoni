@@ -14,7 +14,8 @@ const ToolsAnalyticsPanel = () => {
   const toolOpen = analytics.counts?.tool_open?.total || 0;
   const toolComplete = analytics.counts?.tool_complete?.total || 0;
   const toolReturn = analytics.counts?.tool_return?.total || 0;
-  const recommendationClick = analytics.counts?.recommendation_click?.total || 0;
+  const recommendationClick =
+    analytics.counts?.recommendation_click?.total || 0;
 
   const completionRate = toolOpen > 0 ? toolComplete / toolOpen : 0;
   const returnRate = toolOpen > 0 ? toolReturn / toolOpen : 0;

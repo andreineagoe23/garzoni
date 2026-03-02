@@ -16,7 +16,9 @@ export const fetchLessonsWithProgress = (
   apiClient.get(`/lessons/with_progress/`, {
     params: {
       course: courseId,
-      include_unpublished: includeUnpublished } });
+      include_unpublished: includeUnpublished,
+    },
+  });
 
 export const fetchCourseById = (courseId: string | number) =>
   apiClient.get(`/courses/${courseId}/`);
@@ -73,4 +75,5 @@ export const saveCourseFlowState = (
 ) =>
   apiClient.post("/userprogress/flow_state/", {
     course: courseId,
-    current_index: currentIndex });
+    current_index: currentIndex,
+  });

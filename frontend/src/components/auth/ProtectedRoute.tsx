@@ -2,7 +2,8 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "contexts/AuthContext";
 const ProtectedRoute = ({
-  children }: {
+  children,
+}: {
   children: React.ReactNode;
 }): JSX.Element | null => {
   const { isAuthenticated, isInitialized } = useAuth();
@@ -15,13 +16,12 @@ const ProtectedRoute = ({
           className="flex flex-col items-center gap-4 rounded-2xl bg-slate-900/80 px-8 py-10 text-center shadow-2xl shadow-black/40 backdrop-blur"
           style={{
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)" }}
+            WebkitBackdropFilter: "blur(8px)",
+          }}
         >
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary,#2563eb)] border-t-transparent" />
           <div>
-            <p className="text-base font-semibold text-white">
-              Verifying...
-            </p>
+            <p className="text-base font-semibold text-white">Verifying...</p>
             <p className="mt-1 text-sm text-slate-300">
               Please hold on while we prepare your experience.
             </p>

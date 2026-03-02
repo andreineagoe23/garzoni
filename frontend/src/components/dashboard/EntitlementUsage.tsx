@@ -10,7 +10,8 @@ type EntitlementUsageItem = {
 };
 
 const EntitlementUsage = ({
-  entitlementUsage = [] }: {
+  entitlementUsage = [],
+}: {
   entitlementUsage?: EntitlementUsageItem[];
 }) => {
   const { t } = useTranslation();
@@ -47,7 +48,12 @@ const EntitlementUsage = ({
                 </div>
               ) : (
                 <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {remaining === "∞" ? `${used} used, ${t("dashboard.entitlementUsage.unlimited")}` : t("dashboard.entitlementUsage.usedRemaining", { used, remaining })}
+                  {remaining === "∞"
+                    ? `${used} used, ${t("dashboard.entitlementUsage.unlimited")}`
+                    : t("dashboard.entitlementUsage.usedRemaining", {
+                        used,
+                        remaining,
+                      })}
                 </div>
               )}
             </div>

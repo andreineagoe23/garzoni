@@ -9,7 +9,8 @@ function LessonPageRedirect() {
     if (!courseId) return;
     if (pathId) {
       navigate(`/courses/${pathId}/lessons/${courseId}/flow`, {
-        replace: true });
+        replace: true,
+      });
       return;
     }
     navigate(`/lessons/${courseId}/flow`, { replace: true });

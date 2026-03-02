@@ -45,7 +45,8 @@ const PricingFunnelDashboard = () => {
     queryFn: async () => {
       const response = await fetchFunnelMetrics();
       return response.data;
-    } });
+    },
+  });
 
   const summary = data?.summary || {};
   const dailyBreakdown = useMemo<DailyBreakdownRow[]>(
@@ -106,17 +107,23 @@ const PricingFunnelDashboard = () => {
             <MetricCard
               label={t("analytics.checkoutsCreated")}
               value={summary.checkouts_created ?? 0}
-              footer={t("analytics.conversion", { percent: summary.pricing_to_checkout_rate ?? 0 })}
+              footer={t("analytics.conversion", {
+                percent: summary.pricing_to_checkout_rate ?? 0,
+              })}
             />
             <MetricCard
               label={t("analytics.successfulPayments")}
               value={summary.checkouts_completed ?? 0}
-              footer={t("analytics.conversion", { percent: summary.checkout_to_paid_rate ?? 0 })}
+              footer={t("analytics.conversion", {
+                percent: summary.checkout_to_paid_rate ?? 0,
+              })}
             />
             <MetricCard
               label={t("analytics.entitlementsConfirmed")}
               value={summary.entitlement_success ?? 0}
-              footer={t("analytics.successRate", { percent: summary.entitlement_success_rate ?? 0 })}
+              footer={t("analytics.successRate", {
+                percent: summary.entitlement_success_rate ?? 0,
+              })}
             />
             <MetricCard
               label={t("analytics.entitlementFailures")}
@@ -150,7 +157,9 @@ const PricingFunnelDashboard = () => {
                   <tr className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                     <th className="px-3 py-2">{t("analytics.date")}</th>
                     <th className="px-3 py-2">{t("analytics.eventType")}</th>
-                    <th className="px-3 py-2 text-right">{t("analytics.count")}</th>
+                    <th className="px-3 py-2 text-right">
+                      {t("analytics.count")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

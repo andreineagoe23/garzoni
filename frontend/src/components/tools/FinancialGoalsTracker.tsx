@@ -1,20 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "contexts/AuthContext";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import {
   formatCurrency,
   formatDate,
   formatNumber,
-  getLocale } from "utils/format";
+  getLocale,
+} from "utils/format";
 
 const STATUS_COLORS = {
   not_started:
     "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
   in_progress:
     "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]",
-  completed: "bg-emerald-500/10 text-emerald-400" };
+  completed: "bg-emerald-500/10 text-emerald-400",
+};
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:goals";
 
@@ -27,7 +28,8 @@ const FinancialGoalsTracker = () => {
     name: "",
     target_amount: "",
     current_amount: "",
-    target_date: "" });
+    target_date: "",
+  });
   const { getAccessToken } = useAuth();
   const locale = getLocale();
   const presets = useMemo(
@@ -42,26 +44,27 @@ const FinancialGoalsTracker = () => {
             new Date().setFullYear(new Date().getFullYear() + 1)
           )
             .toISOString()
-            .split("T")[0] } },
+            .split("T")[0],
+        },
+      },
       {
         label: t("tools.goalsTracker.presetVacation"),
         values: {
           name: "Vacation Trip",
           target_amount: "3000",
           current_amount: "500",
-          target_date: new Date(
-            new Date().setMonth(new Date().getMonth() + 6)
-          )
+          target_date: new Date(new Date().setMonth(new Date().getMonth() + 6))
             .toISOString()
-            .split("T")[0] } },
+            .split("T")[0],
+        },
+      },
     ],
     [t]
   );
 
   const fetchGoals = useCallback(async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/financial-goals/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      const response = await apiClient.get("/financial-goals/");
       setGoals(response.data);
       setError(null);
     } catch (err) {
@@ -81,7 +84,8 @@ const FinancialGoalsTracker = () => {
     sessionStorage.setItem(
       ACTIVITY_STORAGE_KEY,
       JSON.stringify({
-        label: t("tools.goalsTracker.activityLabel", { count: goals.length }) })
+        label: t("tools.goalsTracker.activityLabel", { count: goals.length }),
+      })
     );
   }, [goals.length, t]);
 
@@ -93,17 +97,14 @@ const FinancialGoalsTracker = () => {
   const handleAddGoal = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/financial-goals/`,
-        newGoal,
-        { headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      const response = await apiClient.post("/financial-goals/", newGoal);
       setGoals((prev) => [...prev, response.data]);
       setNewGoal({
         name: "",
         target_amount: "",
         current_amount: "",
-        target_date: "" });
+        target_date: "",
+      });
       setError(null);
     } catch (err) {
       console.error("Error adding new goal:", err);
@@ -113,8 +114,7 @@ const FinancialGoalsTracker = () => {
 
   const handleDeleteGoal = async (goalId) => {
     try {
-      await axios.delete(`${BACKEND_URL}/financial-goals/${goalId}/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` } });
+      await apiClient.delete(`/financial-goals/${goalId}/`);
       setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
     } catch (err) {
       console.error("Error deleting goal:", err);
@@ -137,7 +137,8 @@ const FinancialGoalsTracker = () => {
         className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)" }}
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -244,9 +245,7 @@ const FinancialGoalsTracker = () => {
             <p className="font-semibold text-[color:var(--accent,#111827)]">
               {t("tools.goalsTracker.emptyTitle")}
             </p>
-            <p className="mt-1">
-              {t("tools.goalsTracker.emptySubtitle")}
-            </p>
+            <p className="mt-1">{t("tools.goalsTracker.emptySubtitle")}</p>
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
@@ -278,25 +277,31 @@ const FinancialGoalsTracker = () => {
                           STATUS_COLORS["not_started"],
                       ].join(" ")}
                     >
-                      {goal.status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                      {goal.status
+                        .replace("_", " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
                     </span>
                   </div>
 
                   <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                    {t("tools.goalsTracker.target")}: {formatCurrency(
-                        Number(goal.target_amount || 0),
-                        "USD",
-                        locale,
-                        { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                      )} | {t("tools.goalsTracker.current")}: {formatCurrency(
-                        Number(goal.current_amount || 0),
-                        "USD",
-                        locale,
-                        { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                      )}
+                    {t("tools.goalsTracker.target")}:{" "}
+                    {formatCurrency(
+                      Number(goal.target_amount || 0),
+                      "USD",
+                      locale,
+                      { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+                    )}{" "}
+                    | {t("tools.goalsTracker.current")}:{" "}
+                    {formatCurrency(
+                      Number(goal.current_amount || 0),
+                      "USD",
+                      locale,
+                      { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+                    )}
                   </p>
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                    {t("tools.goalsTracker.targetDateLabel")}: {goal.target_date
+                    {t("tools.goalsTracker.targetDateLabel")}:{" "}
+                    {goal.target_date
                       ? formatDate(goal.target_date, locale)
                       : t("tools.goalsTracker.notSet")}
                   </p>
@@ -307,7 +312,8 @@ const FinancialGoalsTracker = () => {
                       <span className="text-[color:var(--accent,#111827)]">
                         {formatNumber(progress, locale, {
                           minimumFractionDigits: 1,
-                          maximumFractionDigits: 1 })}
+                          maximumFractionDigits: 1,
+                        })}
                         %
                       </span>
                     </div>
@@ -321,12 +327,13 @@ const FinancialGoalsTracker = () => {
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
                     <span>
-                      {t("tools.goalsTracker.remaining")}: {formatCurrency(
-                          Number(remainingAmount || 0),
-                          "USD",
-                          locale,
-                          { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                        )}
+                      {t("tools.goalsTracker.remaining")}:{" "}
+                      {formatCurrency(
+                        Number(remainingAmount || 0),
+                        "USD",
+                        locale,
+                        { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+                      )}
                     </span>
                     <button
                       type="button"

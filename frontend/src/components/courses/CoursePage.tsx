@@ -31,18 +31,25 @@ function CoursePage() {
     attachToken(getAccessToken());
   }, [getAccessToken]);
 
-  const { data, isLoading, error } = useQuery<LearningPathCoursesResponse, unknown>({
+  const { data, isLoading, error } = useQuery<
+    LearningPathCoursesResponse,
+    unknown
+  >({
     queryKey: queryKeys.learningPathCourses(Number(pathId)),
     queryFn: () => fetchLearningPathCourses(pathId ?? ""),
     staleTime: staleTimes.content,
-    enabled: Boolean(pathId) });
+    enabled: Boolean(pathId),
+  });
 
   const accessDenied =
     axios.isAxiosError(error) && error.response?.status === 403;
-  const requiredPlan =
-    axios.isAxiosError(error) ? error.response?.data?.required_plan : null;
+  const requiredPlan = axios.isAxiosError(error)
+    ? error.response?.data?.required_plan
+    : null;
   const errorMessage = accessDenied
-    ? t("courses.coursePage.upgradeToAccess", { plan: requiredPlan === "pro" ? "Pro" : "Plus" })
+    ? t("courses.coursePage.upgradeToAccess", {
+        plan: requiredPlan === "pro" ? "Pro" : "Plus",
+      })
     : error instanceof Error
       ? error.message
       : t("courses.coursePage.loadError");

@@ -4,7 +4,8 @@ import React, {
   useReducer,
   useCallback,
   useMemo,
-  useRef } from "react";
+  useRef,
+} from "react";
 import apiClient from "services/httpClient";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
@@ -14,7 +15,8 @@ import toast from "react-hot-toast";
 import {
   getOfflineQueue,
   removeFromQueue,
-  isOnline } from "services/offlineQueue";
+  isOnline,
+} from "services/offlineQueue";
 import { useTranslation } from "react-i18next";
 
 const initialState = {
@@ -22,7 +24,8 @@ const initialState = {
   weeklyMissions: [],
   virtualBalance: 0,
   loading: true,
-  error: null };
+  error: null,
+};
 
 function reducer(state, action) {
   switch (action.type) {
@@ -63,7 +66,8 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
                   : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--muted-text,#6b7280)]"
               }`}
             >
-              {"\u00A3"}{amount}
+              {"\u00A3"}
+              {amount}
               <span className="coin-label mt-1 text-xs font-medium">
                 {unlocked
                   ? t("missions.savings.unlocked")
@@ -76,7 +80,8 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
       {balance < target && (
         <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#2563eb)]">
           {t("missions.savings.nextCoin", {
-            amount: coinUnit - (balance % coinUnit) })}
+            amount: coinUnit - (balance % coinUnit),
+          })}
         </div>
       )}
     </GlassCard>
@@ -139,11 +144,10 @@ function Missions() {
       const response = await apiClient.get("/missions/");
       dispatch({
         type: "setDailyMissions",
-        payload: response.data.daily_missions || [] });
+        payload: response.data.daily_missions || [],
+      });
     } catch (error) {
-      setErrorMessage(
-        t("missions.errors.refreshLesson")
-      );
+      setErrorMessage(t("missions.errors.refreshLesson"));
     }
   }, [getAccessToken, t]);
 
@@ -153,10 +157,12 @@ function Missions() {
       const response = await apiClient.get("/missions/");
       dispatch({
         type: "setDailyMissions",
-        payload: response.data.daily_missions || [] });
+        payload: response.data.daily_missions || [],
+      });
       dispatch({
         type: "setWeeklyMissions",
-        payload: response.data.weekly_missions || [] });
+        payload: response.data.weekly_missions || [],
+      });
 
       const allMissions = [
         ...(response.data.daily_missions || []),
@@ -183,11 +189,13 @@ function Missions() {
           if (isNowCompleted && !wasPreviouslyCompleted) {
             const announcement = t("missions.toast.completed", {
               name: mission.name,
-              xp: mission.points_reward });
+              xp: mission.points_reward,
+            });
             setCelebrationMessage(announcement);
             toast.success(announcement, {
               icon: "🎉",
-              duration: 3000 });
+              duration: 3000,
+            });
             completedMissionsRef.current.add(mission.id);
           }
 
@@ -205,9 +213,7 @@ function Missions() {
         }
       });
     } catch (error) {
-      setErrorMessage(
-        t("missions.errors.loadMissions")
-      );
+      setErrorMessage(t("missions.errors.loadMissions"));
     } finally {
       dispatch({ type: "setLoading", payload: false });
     }
@@ -218,9 +224,7 @@ function Missions() {
       const response = await apiClient.get("/savings-account/");
       dispatch({ type: "setVirtualBalance", payload: response.data.balance });
     } catch (error) {
-      setErrorMessage(
-        t("missions.errors.loadSavings")
-      );
+      setErrorMessage(t("missions.errors.loadSavings"));
     }
   }, [getAccessToken, t]);
 
@@ -257,14 +261,14 @@ function Missions() {
           hints_used: item.hints_used,
           attempts: item.attempts,
           mastery_bonus: item.mastery_bonus,
-          completion_time_seconds: item.completion_time_seconds });
+          completion_time_seconds: item.completion_time_seconds,
+        });
 
         removeFromQueue(item.idempotency_key);
         toast.success(
           t("missions.toast.synced", {
-            name:
-              item.mission_name ||
-              t("missions.missionFallback") })
+            name: item.mission_name || t("missions.missionFallback"),
+          })
         );
       } catch (error) {
         // Keep in queue if sync fails
@@ -278,11 +282,11 @@ function Missions() {
     async (missionId) => {
       try {
         const response = await apiClient.post("/missions/swap/", {
-          mission_id: missionId });
+          mission_id: missionId,
+        });
 
         toast.success(
-          response.data?.message ||
-            t("missions.toast.swapSuccess")
+          response.data?.message || t("missions.toast.swapSuccess")
         );
         setCanSwap(false);
         await fetchMissions();
@@ -295,7 +299,8 @@ function Missions() {
           t("missions.errors.swapFailed");
 
         toast.error(errorMessage, {
-          duration: 4000 });
+          duration: 4000,
+        });
 
         // If user has already swapped today, disable the swap button
         if (
@@ -334,11 +339,10 @@ function Missions() {
           level,
           suggestedSavingsTarget:
             level === "advanced" ? 50 : level === "intermediate" ? 25 : 10,
-          learningStyle });
+          learningStyle,
+        });
       } catch (error) {
-        setErrorMessage(
-          t("missions.errors.loadInsights")
-        );
+        setErrorMessage(t("missions.errors.loadInsights"));
       }
     };
 
@@ -388,13 +392,12 @@ function Missions() {
     if (!currentFact) return;
     try {
       await apiClient.post("/finance-fact/", {
-        fact_id: currentFact.id });
+        fact_id: currentFact.id,
+      });
       await loadNewFact();
       await fetchMissions();
     } catch (error) {
-      setErrorMessage(
-        t("missions.errors.markFact")
-      );
+      setErrorMessage(t("missions.errors.markFact"));
     }
   };
 
@@ -402,9 +405,7 @@ function Missions() {
     event.preventDefault();
     const amount = parseFloat(savingsAmount);
     if (Number.isNaN(amount) || amount <= 0) {
-      alert(
-        t("missions.errors.validAmount")
-      );
+      alert(t("missions.errors.validAmount"));
       return;
     }
     try {
@@ -413,9 +414,7 @@ function Missions() {
       await fetchSavingsBalance();
       await fetchMissions();
     } catch (error) {
-      setErrorMessage(
-        t("missions.errors.addSavings")
-      );
+      setErrorMessage(t("missions.errors.addSavings"));
     }
   };
 
@@ -492,22 +491,27 @@ function Missions() {
     const progressLabel =
       mission.goal_type === "read_fact" && !isDaily
         ? t("missions.progress.factsCount", {
-            count: Math.floor(mission.progress / 20) })
+            count: Math.floor(mission.progress / 20),
+          })
         : t("missions.progress.percent", {
-            value: progressPercent });
+            value: progressPercent,
+          });
 
     const progressDetail =
       mission.goal_type === "read_fact" && isDaily
         ? t("missions.progress.readOneFact")
         : mission.goal_type === "read_fact"
           ? t("missions.progress.factsRemaining", {
-              count: 5 - Math.floor(mission.progress / 20) })
+              count: 5 - Math.floor(mission.progress / 20),
+            })
           : mission.goal_type === "complete_lesson"
             ? t("missions.progress.lessonTarget", {
                 value: progressPercent,
-                lessons: getLessonRequirement(mission) })
+                lessons: getLessonRequirement(mission),
+              })
             : t("missions.progress.complete", {
-                value: progressPercent });
+                value: progressPercent,
+              });
 
     const completedLessons =
       mission.goal_type === "complete_lesson"
@@ -547,14 +551,11 @@ function Missions() {
               {mission.description}
             </p>
             <p className="text-xs font-semibold text-[color:var(--accent,#2563eb)]">
-              {t("missions.why")}{" "}
-              {purposeStatement(mission)}
+              {t("missions.why")} {purposeStatement(mission)}
             </p>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                <span>
-                  {t("missions.progress.label")}
-                </span>
+                <span>{t("missions.progress.label")}</span>
                 <span className="text-[color:var(--accent,#111827)]">
                   {progressLabel}
                 </span>
@@ -566,7 +567,8 @@ function Missions() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={t("missions.progress.aria", {
-                  value: progressPercent })}
+                  value: progressPercent,
+                })}
               >
                 <div
                   className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width] duration-500 ease-out"
@@ -583,7 +585,8 @@ function Missions() {
                   {t("missions.progress.levelTarget", {
                     lessons: getLessonRequirement(mission),
                     plural: getLessonRequirement(mission) !== 1 ? "s" : "",
-                    completed: completedLessons })}
+                    completed: completedLessons,
+                  })}
                 </p>
               )}
             </div>
@@ -592,9 +595,7 @@ function Missions() {
           {isCompleted ? (
             <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-700 shadow-inner shadow-emerald-500/20">
               <div className="flex items-center justify-between font-semibold">
-                <span>
-                  {t("missions.complete.title")}
-                </span>
+                <span>{t("missions.complete.title")}</span>
                 <span>+{mission.points_reward} XP</span>
               </div>
               <p className="text-[color:var(--muted-text,#047857)]">
@@ -609,7 +610,8 @@ function Missions() {
                   onClick={() => handleMissionSwap(mission.id)}
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                   aria-label={t("missions.swap.aria", {
-                    name: mission.name })}
+                    name: mission.name,
+                  })}
                 >
                   {t("missions.swap.label")}
                 </button>
@@ -716,12 +718,14 @@ function Missions() {
               <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {t("missions.summary.remaining", {
                   count: missionsRemaining,
-                  plural: missionsRemaining === 1 ? "" : "s" })}
+                  plural: missionsRemaining === 1 ? "" : "s",
+                })}
               </p>
               <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                 {t("missions.summary.xp", {
                   earned: dailyXpEarned,
-                  remaining: dailyXpRemaining })}
+                  remaining: dailyXpRemaining,
+                })}
               </p>
               {isOffline && (
                 <p
@@ -736,7 +740,8 @@ function Missions() {
                 <p className="mt-2 text-xs text-[color:var(--accent,#2563eb)]">
                   {t("missions.summary.suggestedSavings", {
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
-                    level: adaptiveSuggestions.level })}
+                    level: adaptiveSuggestions.level,
+                  })}
                 </p>
               )}
             </div>
@@ -747,7 +752,8 @@ function Missions() {
                 </p>
                 <p className="text-base font-semibold">
                   {t("missions.summary.streakDays", {
-                    count: streakCount })}
+                    count: streakCount,
+                  })}
                 </p>
               </div>
               <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
@@ -769,7 +775,8 @@ function Missions() {
                   role="status"
                   aria-label={t("missions.streakItemAria", {
                     type: item.type,
-                    quantity: item.quantity })}
+                    quantity: item.quantity,
+                  })}
                 >
                   {item.type === "streak_freeze" ? "❄️" : "⚡"} {item.quantity}x
                 </div>
@@ -792,9 +799,7 @@ function Missions() {
 
         {state.loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader
-              message={t("missions.loading")}
-            />
+            <Loader message={t("missions.loading")} />
           </div>
         ) : (
           <>
@@ -818,13 +823,15 @@ function Missions() {
                     </p>
                     <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
                       {t("missions.wrapup.earned", {
-                        xp: dailyXpEarned })}
+                        xp: dailyXpEarned,
+                      })}
                     </p>
                     <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
                       {t("missions.wrapup.streakReview", {
                         days: streakCount,
                         plural: streakCount === 1 ? "" : "s",
-                        review: reviewDue })}
+                        review: reviewDue,
+                      })}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)] shadow-[color:var(--accent,#2563eb)]/20">

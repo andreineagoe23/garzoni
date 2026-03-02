@@ -15,7 +15,12 @@ const NAV_ITEMS = [
   { path: "/exercises", key: "nav.exercises", icon: "💪", label: "Exercises" },
   { path: "/tools", key: "nav.tools", icon: "🛠️", label: "Tools" },
   { path: "/missions", key: "nav.missions", icon: "🎯", label: "Missions" },
-  { path: "/leaderboards", key: "nav.leaderboards", icon: "🏆", label: "Leaderboards" },
+  {
+    path: "/leaderboards",
+    key: "nav.leaderboards",
+    icon: "🏆",
+    label: "Leaderboards",
+  },
   { path: "/rewards", key: "nav.rewards", icon: "🎁", label: "Rewards" },
   { path: "/support", key: "nav.support", icon: "❓", label: "Support" },
   { path: "/profile", key: "nav.profile", icon: "👤", label: "Profile" },
@@ -32,7 +37,8 @@ function Navbar() {
     loadProfile,
     logoutUser,
     isAuthenticated,
-    isInitialized } = useAuth();
+    isInitialized,
+  } = useAuth();
   const { adminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
 
@@ -45,7 +51,8 @@ function Navbar() {
               path: "/pricing-dashboard",
               key: "nav.conversions",
               icon: "📈",
-              label: "Analytics" },
+              label: "Analytics",
+            },
           ]
         : NAV_ITEMS,
     [adminMode, canAdminister]
@@ -126,7 +133,8 @@ function Navbar() {
       style={{
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        pointerEvents: "auto" }}
+        pointerEvents: "auto",
+      }}
     >
       <div className="w-full pt-2 sm:pt-3">
         <GlassContainer
@@ -160,9 +168,7 @@ function Navbar() {
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <span aria-hidden="true">{item.icon}</span>
-                  <span className="hidden lg:inline">
-                    {t(item.key)}
-                  </span>
+                  <span className="hidden lg:inline">{t(item.key)}</span>
                 </NavLink>
               ))}
             </div>

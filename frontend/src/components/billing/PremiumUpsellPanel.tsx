@@ -18,7 +18,8 @@ const trackPremiumEvent = (
   window.gtag("event", eventName, {
     send_to: "G-99E61ZXSV9",
     event_category: "premium",
-    ...payload });
+    ...payload,
+  });
 };
 
 const PremiumUpsellPanel = () => {
@@ -44,14 +45,16 @@ const PremiumUpsellPanel = () => {
   const buildCheckoutLink = (context: string) => {
     const params = new URLSearchParams({
       context,
-      source: "dashboard-upsell" });
+      source: "dashboard-upsell",
+    });
     return `${CHECKOUT_URL}?${params.toString()}`;
   };
 
   const handleTrialClick = () => {
     trackPremiumEvent("premium_trial_click", {
       context: "short-trial",
-      location: "dashboard_upsell" });
+      location: "dashboard_upsell",
+    });
 
     const link = buildCheckoutLink("short-trial");
     window.open(link, "_blank", "noopener,noreferrer");
@@ -60,7 +63,8 @@ const PremiumUpsellPanel = () => {
   const handleReferralClick = async () => {
     trackPremiumEvent("premium_referral_share", {
       context: "referral",
-      location: "dashboard_upsell" });
+      location: "dashboard_upsell",
+    });
 
     try {
       await navigator.clipboard?.writeText(referralLink);

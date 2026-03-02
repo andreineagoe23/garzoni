@@ -13,11 +13,9 @@ interface QuestionnaireCompletionModalProps {
   onStartLearning: () => void;
 }
 
-const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> = ({
-  isOpen,
-  rewards,
-  onClose,
-  onStartLearning }) => {
+const QuestionnaireCompletionModal: React.FC<
+  QuestionnaireCompletionModalProps
+> = ({ isOpen, rewards, onClose, onStartLearning }) => {
   const { t } = useTranslation();
   const confettiFiredRef = useRef(false);
 
@@ -41,7 +39,8 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
+          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+        });
 
         // Right side
         confetti({
@@ -49,7 +48,8 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
+          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+        });
 
         // Center burst
         if (Math.random() > 0.7) {
@@ -57,7 +57,8 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
             particleCount: 5,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"] });
+            colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+          });
         }
       }, 100);
     }
@@ -120,13 +121,17 @@ const QuestionnaireCompletionModal: React.FC<QuestionnaireCompletionModalProps> 
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
               +{rewards.xp}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">{t("onboarding.completionModal.xpPoints")}</div>
+            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+              {t("onboarding.completionModal.xpPoints")}
+            </div>
           </div>
           <div className="rounded-2xl border border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5 p-4">
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
               +{rewards.coins}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">{t("onboarding.completionModal.coins")}</div>
+            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+              {t("onboarding.completionModal.coins")}
+            </div>
           </div>
         </div>
 

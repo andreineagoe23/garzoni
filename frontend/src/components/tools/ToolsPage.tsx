@@ -5,7 +5,8 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate } from "react-router-dom";
+  useNavigate,
+} from "react-router-dom";
 import toast from "react-hot-toast";
 import PageContainer from "components/common/PageContainer";
 import ErrorBoundary from "components/common/ErrorBoundary";
@@ -21,18 +22,15 @@ import {
   toolByRoute,
   toolGroups,
   toolsRegistry,
-  type ToolDefinition } from "./toolsRegistry";
+  type ToolDefinition,
+} from "./toolsRegistry";
 
 const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
 
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
 
-type ToolNavSource =
-  | "hub_card"
-  | "sidebar"
-  | "mobile_dropdown"
-  | "deep_link";
+type ToolNavSource = "hub_card" | "sidebar" | "mobile_dropdown" | "deep_link";
 
 const getSessionId = () => {
   if (typeof window === "undefined") return "server-session";
@@ -67,9 +65,7 @@ const UnknownToolRedirect = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   useEffect(() => {
-    toast.error(
-      t("tools.errors.toolNotFound")
-    );
+    toast.error(t("tools.errors.toolNotFound"));
     navigate(TOOL_BASE_PATH, { replace: true });
   }, [navigate, t]);
   return null;
@@ -79,14 +75,21 @@ const UnknownToolRedirect = () => {
 const getToolCardImage = (tool: ToolDefinition): string => {
   if (tool.cardImage) return `${MEDIA_BASE}/media/${tool.cardImage}`;
   const group = toolGroups.find((g) => g.id === tool.group);
-  return group?.image ?? "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=240&fit=crop";
+  return (
+    group?.image ??
+    "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=240&fit=crop"
+  );
 };
 
 /**
  * Landing view when user first opens /tools: cards only, no nav bar.
  * Each card shows image, title, description; clicking opens the tool (nav appears there).
  */
-const ToolsLanding = ({ onNavigate }: { onNavigate: (source: ToolNavSource) => void }) => {
+const ToolsLanding = ({
+  onNavigate,
+}: {
+  onNavigate: (source: ToolNavSource) => void;
+}) => {
   const { t } = useTranslation();
   const getToolText = (tool: ToolDefinition, field: string) =>
     t(`tools.entries.${tool.id}.${field}`);
@@ -104,43 +107,45 @@ const ToolsLanding = ({ onNavigate }: { onNavigate: (source: ToolNavSource) => v
           {toolsRegistry
             .filter((tool) => tool.id !== "next-steps")
             .map((tool) => {
-            const img = getToolCardImage(tool);
-            const title = getToolText(tool, "title");
-            const group = toolGroups.find((g) => g.id === tool.group);
-            const imgAlt = group ? t(`tools.groups.${group.id}.imageAlt`) : title;
-            return (
-              <GlassCard
-                key={tool.id}
-                padding="none"
-                className="overflow-hidden transition-all duration-200 hover:shadow-lg focus-within:ring-2 focus-within:ring-[color:var(--primary)]/30"
-              >
-                <Link
-                  to={`${TOOL_BASE_PATH}/${tool.route}`}
-                  onClick={() => onNavigate("hub_card")}
-                  className="block outline-none"
+              const img = getToolCardImage(tool);
+              const title = getToolText(tool, "title");
+              const group = toolGroups.find((g) => g.id === tool.group);
+              const imgAlt = group
+                ? t(`tools.groups.${group.id}.imageAlt`)
+                : title;
+              return (
+                <GlassCard
+                  key={tool.id}
+                  padding="none"
+                  className="overflow-hidden transition-all duration-200 hover:shadow-lg focus-within:ring-2 focus-within:ring-[color:var(--primary)]/30"
                 >
-                  <div className="aspect-[16/10] w-full overflow-hidden bg-[color:var(--muted-text,#6b7280)]/10">
-                    <img
-                      src={img}
-                      alt={imgAlt}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                      {title}
-                    </h3>
-                    <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)] line-clamp-3">
-                      {getToolText(tool, "whatItDoes")}
-                    </p>
-                    <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
-                      {t("tools.hub.openTool")}
-                    </span>
-                  </div>
-                </Link>
-              </GlassCard>
-            );
-          })}
+                  <Link
+                    to={`${TOOL_BASE_PATH}/${tool.route}`}
+                    onClick={() => onNavigate("hub_card")}
+                    className="block outline-none"
+                  >
+                    <div className="aspect-[16/10] w-full overflow-hidden bg-[color:var(--muted-text,#6b7280)]/10">
+                      <img
+                        src={img}
+                        alt={imgAlt}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                        {title}
+                      </h3>
+                      <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)] line-clamp-3">
+                        {getToolText(tool, "whatItDoes")}
+                      </p>
+                      <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+                        {t("tools.hub.openTool")}
+                      </span>
+                    </div>
+                  </Link>
+                </GlassCard>
+              );
+            })}
         </div>
       </section>
       {showAnalytics && <ToolsAnalyticsPanel />}
@@ -151,7 +156,8 @@ const ToolsLanding = ({ onNavigate }: { onNavigate: (source: ToolNavSource) => v
 const ToolView = ({
   tool,
   onReset,
-  onExport }: {
+  onExport,
+}: {
   tool: ToolDefinition;
   onReset: () => void;
   onExport: () => void;
@@ -165,9 +171,11 @@ const ToolView = ({
   const Component = tool.component;
   const feedbackHref = useMemo(() => {
     const subject = t("tools.detail.feedbackSubject", {
-      tool: toolTitle });
+      tool: toolTitle,
+    });
     const body = t("tools.detail.feedbackBody", {
-      url: typeof window !== "undefined" ? window.location.href : "" });
+      url: typeof window !== "undefined" ? window.location.href : "",
+    });
     return `mailto:${TOOL_FEEDBACK_EMAIL}?subject=${encodeURIComponent(
       subject
     )}&body=${encodeURIComponent(body)}`;
@@ -209,11 +217,13 @@ const ToolView = ({
               onClick={() => {
                 recordToolEvent("tool_to_lesson_click", tool.id, {
                   href: tool.learnPath,
-                  source: "tool_header" });
+                  source: "tool_header",
+                });
                 if (typeof window.gtag === "function") {
                   window.gtag("event", "lesson_started_from_tool", {
                     tool_id: tool.id,
-                    link: tool.learnPath });
+                    link: tool.learnPath,
+                  });
                 }
               }}
               className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
@@ -270,7 +280,8 @@ const ToolsPage = () => {
   const navSourceRef = useRef<ToolNavSource>("deep_link");
   const analyticsRef = useRef<{ toolId: string | null; startedAt: number }>({
     toolId: null,
-    startedAt: Date.now() });
+    startedAt: Date.now(),
+  });
   const [resetNonceByTool, setResetNonceByTool] = useState<
     Record<string, number>
   >({});
@@ -339,14 +350,16 @@ const ToolsPage = () => {
   const handleReset = (toolId: string) => {
     setResetNonceByTool((prev) => ({
       ...prev,
-      [toolId]: (prev[toolId] ?? 0) + 1 }));
+      [toolId]: (prev[toolId] ?? 0) + 1,
+    }));
     toast.success(t("tools.toast.reset"));
   };
 
   const handleExport = (toolId: string) => {
     window.dispatchEvent(
       new CustomEvent("monevo:tools:export", {
-        detail: { toolId } })
+        detail: { toolId },
+      })
     );
   };
 
@@ -376,7 +389,8 @@ const ToolsPage = () => {
         window.gtag("event", "tool_duration", {
           tool_id: previousToolId,
           duration_seconds: durationSeconds,
-          session_id: sessionIdRef.current });
+          session_id: sessionIdRef.current,
+        });
       }
 
       const source =
@@ -387,7 +401,8 @@ const ToolsPage = () => {
         tool_id: currentToolId,
         tool_title: currentTitle,
         source,
-        session_id: sessionIdRef.current });
+        session_id: sessionIdRef.current,
+      });
       recordToolEvent("tool_open", currentToolId, { source });
 
       if (activeTool?.id && lastToolStored === activeTool.id) {
@@ -396,7 +411,8 @@ const ToolsPage = () => {
           sessionStorage.setItem(returnKey, "true");
           window.gtag("event", "tool_return", {
             tool_id: activeTool.id,
-            session_id: sessionIdRef.current });
+            session_id: sessionIdRef.current,
+          });
           recordToolEvent("tool_return", activeTool.id);
         }
       }
@@ -418,7 +434,8 @@ const ToolsPage = () => {
       window.gtag("event", "tool_duration", {
         tool_id: currentToolId,
         duration_seconds: durationSeconds,
-        session_id: sessionId });
+        session_id: sessionId,
+      });
     };
   }, []);
 
@@ -460,10 +477,7 @@ const ToolsPage = () => {
       </header>
 
       {activeTool !== null && (
-        <nav
-          aria-label={t("tools.nav.ariaLabel")}
-          className="w-full"
-        >
+        <nav aria-label={t("tools.nav.ariaLabel")} className="w-full">
           <GlassCard padding="lg" className="w-full overflow-hidden">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
               {t("tools.nav.browse")}
@@ -510,29 +524,26 @@ const ToolsPage = () => {
       )}
 
       <div className="w-full space-y-6">
-          <section style={{ minHeight: minViewportHeight }} className="w-full">
-            <Routes>
+        <section style={{ minHeight: minViewportHeight }} className="w-full">
+          <Routes>
+            <Route index element={<ToolsLanding onNavigate={setNavSource} />} />
+            {toolsRegistry.map((tool) => (
               <Route
-                index
-                element={<ToolsLanding onNavigate={setNavSource} />}
+                key={tool.id}
+                path={tool.route}
+                element={
+                  <ToolView
+                    tool={tool}
+                    onReset={() => handleReset(tool.id)}
+                    onExport={() => handleExport(tool.id)}
+                    key={`${tool.id}-${resetNonceByTool[tool.id] ?? 0}`}
+                  />
+                }
               />
-              {toolsRegistry.map((tool) => (
-                <Route
-                  key={tool.id}
-                  path={tool.route}
-                  element={
-                    <ToolView
-                      tool={tool}
-                      onReset={() => handleReset(tool.id)}
-                      onExport={() => handleExport(tool.id)}
-                      key={`${tool.id}-${resetNonceByTool[tool.id] ?? 0}`}
-                    />
-                  }
-                />
-              ))}
-              <Route path="*" element={<UnknownToolRedirect />} />
-            </Routes>
-          </section>
+            ))}
+            <Route path="*" element={<UnknownToolRedirect />} />
+          </Routes>
+        </section>
       </div>
     </PageContainer>
   );

@@ -22,7 +22,8 @@ type PersonalizedCourse = {
 };
 
 function PersonalizedPath({
-  onCourseClick }: {
+  onCourseClick,
+}: {
   onCourseClick?: (courseId: number, pathId?: number) => void;
 }) {
   const [personalizedCourses, setPersonalizedCourses] = useState<
@@ -40,7 +41,8 @@ function PersonalizedPath({
     isAuthenticated,
     loadProfile,
     reloadEntitlements,
-    entitlements } = useAuth();
+    entitlements,
+  } = useAuth();
 
   const { sessionId, redirectIntent } = useMemo(() => {
     const searchQuery = new URLSearchParams(location.search || "");
@@ -62,14 +64,14 @@ function PersonalizedPath({
           ...course,
           image: course.image || "/fallback-course.png",
           progress: course.completed_lessons || 0,
-          totalLessons: course.total_lessons || 0 }))
+          totalLessons: course.total_lessons || 0,
+        }))
       );
       setIsLoading(false);
     } catch (err) {
       const status = err.response?.status;
       const errorMessage =
-        err.response?.data?.error ||
-        t("personalizedPath.errors.accessDenied");
+        err.response?.data?.error || t("personalizedPath.errors.accessDenied");
       const redirectPath = err.response?.data?.redirect;
 
       if (status === 400 || status === 403) {
@@ -83,14 +85,10 @@ function PersonalizedPath({
         } else if (errorMessage.toLowerCase().includes("payment")) {
           navigate("/subscriptions");
         } else {
-          setError(
-            t("personalizedPath.errors.recommendationsFailed")
-          );
+          setError(t("personalizedPath.errors.recommendationsFailed"));
         }
       } else {
-        setError(
-          t("personalizedPath.errors.recommendationsFailed")
-        );
+        setError(t("personalizedPath.errors.recommendationsFailed"));
       }
       setIsLoading(false);
     }
@@ -133,10 +131,10 @@ function PersonalizedPath({
           profilePayload = await loadProfile({ force: true });
           const pollPaymentStatus = async (attempt = 0): Promise<void> => {
             try {
-              const verificationRes = await apiClient.post(
-                "/verify-session/",
-                { session_id: sessionId, force_check: true }
-              );
+              const verificationRes = await apiClient.post("/verify-session/", {
+                session_id: sessionId,
+                force_check: true,
+              });
 
               if (verificationRes.data.status === "verified") {
                 window.history.replaceState(
@@ -145,7 +143,8 @@ function PersonalizedPath({
                   "/personalized-path"
                 );
                 queryClient.invalidateQueries({
-                  queryKey: queryKeys.profile() });
+                  queryKey: queryKeys.profile(),
+                });
                 await loadProfile({ force: true });
                 reloadEntitlements?.();
                 setPaymentVerified(true);
@@ -235,8 +234,7 @@ function PersonalizedPath({
         className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
       >
         <h2 className="mb-3 text-lg font-semibold">
-          ⚠️{" "}
-          {t("personalizedPath.errorTitle")}
+          ⚠️ {t("personalizedPath.errorTitle")}
         </h2>
         <p className="mb-4 text-sm">{error}</p>
         <button
@@ -318,7 +316,8 @@ function PersonalizedPath({
                   role="button"
                   tabIndex={0}
                   aria-label={t("personalizedPath.courseAria", {
-                    title: course.title })}
+                    title: course.title,
+                  })}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
@@ -332,8 +331,11 @@ function PersonalizedPath({
                       <span className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                         {t("personalizedPath.courseMeta", {
                           hours:
-                            (course as PersonalizedCourse).estimated_duration || 4,
-                          exercises: (course as PersonalizedCourse).exercises || 3 })}
+                            (course as PersonalizedCourse).estimated_duration ||
+                            4,
+                          exercises:
+                            (course as PersonalizedCourse).exercises || 3,
+                        })}
                       </span>
                     </div>
                     <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
@@ -348,7 +350,8 @@ function PersonalizedPath({
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
                           {t("personalizedPath.lessonCount", {
                             completed: course.progress ?? 0,
-                            total: course.totalLessons ?? 0 })}
+                            total: course.totalLessons ?? 0,
+                          })}
                         </span>
                       </div>
 
@@ -362,7 +365,8 @@ function PersonalizedPath({
                                     (course.totalLessons ?? 1)) *
                                   100
                                 : 0
-                            }%` }}
+                            }%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -380,8 +384,7 @@ function PersonalizedPath({
 
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          🔁{" "}
-          {t("personalizedPath.basedOnOnboarding")}{" "}
+          🔁 {t("personalizedPath.basedOnOnboarding")}{" "}
           <button
             type="button"
             onClick={() => navigate("/onboarding")}

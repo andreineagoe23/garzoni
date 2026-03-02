@@ -1,11 +1,7 @@
 # support/urls.py
 from django.urls import path
-from .views import (
-    SupportListView,
-    vote_support,
-    contact_us,
-    OpenRouterProxyView,
-)
+from .views import SupportListView, vote_support, contact_us
+from .views_openrouter import OpenRouterProxyView
 
 urlpatterns = [
     path("support/", SupportListView.as_view(), name="support-list"),

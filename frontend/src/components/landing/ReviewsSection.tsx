@@ -25,7 +25,8 @@ export default function ReviewsSection() {
         className="landing-review-marquee mt-10"
         style={
           {
-            "--landing-review-duration": marqueeDuration } as React.CSSProperties
+            "--landing-review-duration": marqueeDuration,
+          } as React.CSSProperties
         }
         aria-label={t("landing.reviews.aria")}
       >

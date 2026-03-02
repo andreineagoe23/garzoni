@@ -10,7 +10,7 @@ prod:
 
 .PHONY: help up down build logs backend-shell backend-migrate backend-collectstatic backend-superuser \
 	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-backup frontend-install frontend-test frontend-lint frontend-build \
-	pre-commit-install pre-commit
+	test-all pre-commit-install pre-commit
 
 help:
 	@echo "Common commands:"
@@ -25,6 +25,7 @@ help:
 	@echo "  make pre-commit          Run pre-commit on all files"
 	@echo "  make seed-exercises      Seed example exercises"
 	@echo "  make frontend-test       Run frontend tests (requires node env)"
+	@echo "  make test-all            Run backend lint + backend tests + frontend tests (backend requires docker stack up)"
 
 up:
 	docker compose up -d --build
@@ -85,6 +86,9 @@ frontend-lint:
 
 frontend-build:
 	cd frontend && npm run build
+
+# Run backend lint, backend tests, and frontend tests. Backend tests require the docker stack to be up (e.g. make dev).
+test-all: backend-lint backend-test frontend-test
 
 pre-commit-install:
 	python -m pip install -r backend/requirements-dev.txt

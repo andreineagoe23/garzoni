@@ -36,7 +36,8 @@ function SupportPage() {
   const [contactData, setContactData] = useState({
     email: "",
     topic: "",
-    message: "" });
+    message: "",
+  });
   const [submitMessage, setSubmitMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedEntryIndex, setSelectedEntryIndex] = useState(null);
@@ -50,7 +51,9 @@ function SupportPage() {
         const response = await apiClient.get("/support/");
         setEntries(response.data);
         setCategories([
-          ...new Set(response.data.map((entry) => entry.category).filter(Boolean)),
+          ...new Set(
+            response.data.map((entry) => entry.category).filter(Boolean)
+          ),
         ]);
       } catch (error) {
         console.error("Error fetching support:", error);
@@ -83,16 +86,11 @@ function SupportPage() {
     try {
       const response = await apiClient.post("/contact/", contactData);
 
-      setSubmitMessage(
-        response.data.message ||
-          t("support.contact.success")
-      );
+      setSubmitMessage(response.data.message || t("support.contact.success"));
       setContactData({ email: "", topic: "", message: "" });
     } catch (submitError) {
       console.error("Contact form error:", submitError);
-      setErrorMessage(
-        t("support.contact.error")
-      );
+      setErrorMessage(t("support.contact.error"));
     }
   };
 
@@ -117,7 +115,8 @@ function SupportPage() {
                 not_helpful_count:
                   vote === "not_helpful"
                     ? entry.not_helpful_count + 1
-                    : entry.not_helpful_count }
+                    : entry.not_helpful_count,
+              }
             : entry
         )
       );
@@ -180,9 +179,7 @@ function SupportPage() {
             className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 md:w-auto"
             aria-label={t("support.filter.aria")}
           >
-            <option value="all">
-              {t("support.filter.all")}
-            </option>
+            <option value="all">{t("support.filter.all")}</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -232,9 +229,7 @@ function SupportPage() {
                       <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-[color:var(--text-color,#111827)]">
                         <div>{highlightText(entry.answer, search)}</div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
-                          <span>
-                            {t("support.vote.prompt")}
-                          </span>
+                          <span>{t("support.vote.prompt")}</span>
                           {entry.user_vote === "helpful" ? (
                             <span className="font-semibold text-emerald-500">
                               {t("support.vote.thanksHelpful")}
@@ -305,7 +300,8 @@ function SupportPage() {
                 onChange={(event) =>
                   setContactData((prev) => ({
                     ...prev,
-                    email: event.target.value }))
+                    email: event.target.value,
+                  }))
                 }
                 className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               />
@@ -319,13 +315,12 @@ function SupportPage() {
                 onChange={(event) =>
                   setContactData((prev) => ({
                     ...prev,
-                    topic: event.target.value }))
+                    topic: event.target.value,
+                  }))
                 }
                 className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               >
-                <option value="">
-                  {t("support.contact.selectTopic")}
-                </option>
+                <option value="">{t("support.contact.selectTopic")}</option>
                 <option value="Billing">
                   {t("support.contact.topics.billing")}
                 </option>
@@ -356,7 +351,8 @@ function SupportPage() {
                 onChange={(event) =>
                   setContactData((prev) => ({
                     ...prev,
-                    message: event.target.value }))
+                    message: event.target.value,
+                  }))
                 }
                 className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
               />

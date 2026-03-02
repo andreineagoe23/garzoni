@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import apiClient from "services/httpClient";
 import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
@@ -19,7 +18,8 @@ function Settings() {
     username: "",
     email: "",
     first_name: "",
-    last_name: "" });
+    last_name: "",
+  });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -44,27 +44,25 @@ function Settings() {
           (data as { email_reminder_preference?: unknown })
             .email_reminder_preference || "none"
         );
-        setEmailReminderPreference(
-          pref === "daily" ? "weekly" : pref
-        );
+        setEmailReminderPreference(pref === "daily" ? "weekly" : pref);
         setSoundEnabled(
           Boolean((data as { sound_enabled?: boolean }).sound_enabled ?? true)
         );
         setAnimationsEnabled(
           Boolean(
-            (data as { animations_enabled?: boolean }).animations_enabled ?? true
+            (data as { animations_enabled?: boolean }).animations_enabled ??
+            true
           )
         );
         setProfileData({
           username: String((profile as UserProfile).username || ""),
           email: String((profile as UserProfile).email || ""),
           first_name: String((profile as UserProfile).first_name || ""),
-          last_name: String((profile as UserProfile).last_name || "") });
+          last_name: String((profile as UserProfile).last_name || ""),
+        });
       } catch (error) {
         console.error("Error fetching settings:", error);
-        setErrorMessage(
-          t("settings.errors.loadSettings")
-        );
+        setErrorMessage(t("settings.errors.loadSettings"));
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -80,34 +78,25 @@ function Settings() {
   const handleSaveSettings = async () => {
     try {
       setErrorMessage("");
-      await axios.patch(
-        `${BACKEND_URL}/user/settings/`,
-        {
-          profile: {
-            username: profileData.username,
-            email: profileData.email,
-            first_name: profileData.first_name,
-            last_name: profileData.last_name },
-          email_reminder_preference: emailReminderPreference,
-          sound_enabled: soundEnabled,
-          animations_enabled: animationsEnabled },
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-            "Content-Type": "application/json" } }
-      );
+      await apiClient.patch("/user/settings/", {
+        profile: {
+          username: profileData.username,
+          email: profileData.email,
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+        },
+        email_reminder_preference: emailReminderPreference,
+        sound_enabled: soundEnabled,
+        animations_enabled: animationsEnabled,
+      });
 
-      setSuccessMessage(
-        t("settings.success.updated")
-      );
+      setSuccessMessage(t("settings.success.updated"));
       setTimeout(() => setSuccessMessage(""), 3000);
 
       await loadSettings({ force: true });
     } catch (error) {
       console.error("Error updating settings:", error);
-      setErrorMessage(
-        t("settings.errors.saveSettings")
-      );
+      setErrorMessage(t("settings.errors.saveSettings"));
     }
   };
 
@@ -121,48 +110,39 @@ function Settings() {
     setErrorMessage("");
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setErrorMessage(
-        t("settings.errors.passwordFields")
-      );
+      setErrorMessage(t("settings.errors.passwordFields"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage(
-        t("settings.errors.passwordMismatch")
-      );
+      setErrorMessage(t("settings.errors.passwordMismatch"));
       return;
     }
 
     if (newPassword.length < 8) {
-      setErrorMessage(
-        t("settings.errors.passwordLength")
-      );
+      setErrorMessage(t("settings.errors.passwordLength"));
       return;
     }
 
     try {
-      await axios.post(
-        `${BACKEND_URL}/change-password/`,
-        {
-          current_password: currentPassword,
-          new_password: newPassword,
-          confirm_password: confirmPassword },
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` } }
-      );
+      await apiClient.post("/change-password/", {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
 
-      setSuccessMessage(
-        t("settings.success.passwordUpdated")
-      );
+      setSuccessMessage(t("settings.success.passwordUpdated"));
       setTimeout(() => setSuccessMessage(""), 3000);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error) {
+    } catch (error: unknown) {
+      const e = error as {
+        response?: { data?: { error?: string; detail?: string } };
+      };
       const message =
-        error.response?.data?.error ||
-        error.response?.data?.detail ||
+        e?.response?.data?.error ||
+        e?.response?.data?.detail ||
         t("settings.errors.passwordUpdate");
       setErrorMessage(message);
     }
@@ -176,29 +156,24 @@ function Settings() {
     }
 
     if (!deletePassword) {
-      setErrorMessage(
-        t("settings.errors.deletePassword")
-      );
+      setErrorMessage(t("settings.errors.deletePassword"));
       return;
     }
 
     try {
-      await axios.delete(`${BACKEND_URL}/delete-account/`, {
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        withCredentials: true,
-        data: { password: deletePassword } });
+      await apiClient.delete("/delete-account/", {
+        data: { password: deletePassword },
+      });
 
       logoutUser();
       navigate("/");
-    } catch (error) {
-      if (error.response?.status === 400) {
-        setErrorMessage(
-          t("settings.errors.incorrectPassword")
-        );
+    } catch (error: unknown) {
+      if (
+        (error as { response?: { status?: number } })?.response?.status === 400
+      ) {
+        setErrorMessage(t("settings.errors.incorrectPassword"));
       } else {
-        setErrorMessage(
-          t("settings.errors.deleteAccount")
-        );
+        setErrorMessage(t("settings.errors.deleteAccount"));
       }
       setIsConfirmingDelete(false);
       setDeletePassword("");
@@ -338,7 +313,9 @@ function Settings() {
                     <input
                       type="checkbox"
                       checked={soundEnabled}
-                      onChange={(event) => setSoundEnabled(event.target.checked)}
+                      onChange={(event) =>
+                        setSoundEnabled(event.target.checked)
+                      }
                       className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
                     />
                     <span className="text-sm text-[color:var(--muted-text,#6b7280)]">

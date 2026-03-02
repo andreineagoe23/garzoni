@@ -9,7 +9,8 @@ import { GlassCard, GlassButton } from "components/ui";
 import UpsellModal from "components/billing/UpsellModal";
 import {
   consumeEntitlement,
-  fetchEntitlements } from "services/entitlementsService";
+  fetchEntitlements,
+} from "services/entitlementsService";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { formatNumber, getLocale } from "utils/format";
 import { UserProfile } from "types/api";
@@ -30,7 +31,8 @@ function RewardsPage() {
   const { data: entitlementsData } = useQuery({
     queryKey: queryKeys.entitlements(),
     queryFn: fetchEntitlements,
-    staleTime: staleTimes.entitlements });
+    staleTime: staleTimes.entitlements,
+  });
 
   const downloadsFeature = entitlementsData?.data?.features?.downloads;
 
@@ -83,8 +85,7 @@ function RewardsPage() {
       setLockedFeature("downloads");
       setShowUpsell(true);
       toast.error(
-        error.response?.data?.error ||
-          t("rewards.errors.downloadAllowance")
+        error.response?.data?.error || t("rewards.errors.downloadAllowance")
       );
       return false;
     }
@@ -112,31 +113,30 @@ function RewardsPage() {
       // Use the Web Share API with files when possible; otherwise fall back to download
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "monevo-achievement.png", {
-        type: "image/png" });
+        type: "image/png",
+      });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: t("rewards.share.title"),
           text: t("rewards.share.text"),
-          files: [file] });
+          files: [file],
+        });
       } else if (navigator.share) {
         await navigator.share({
           title: t("rewards.share.title"),
-          text: t("rewards.share.text") });
+          text: t("rewards.share.text"),
+        });
       } else {
         const link = document.createElement("a");
         link.href = dataUrl;
         link.download = "monevo-achievement.png";
         link.click();
-        toast.success(
-          t("rewards.share.downloaded")
-        );
+        toast.success(t("rewards.share.downloaded"));
       }
     } catch (error) {
       console.error("Share failed", error);
-      toast.error(
-        t("rewards.share.unavailable")
-      );
+      toast.error(t("rewards.share.unavailable"));
     }
   }, [guardDownloads, t]);
 
@@ -163,7 +163,8 @@ function RewardsPage() {
           className="rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--bg-color,#f8fafc)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]"
           style={{
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)" }}
+            WebkitBackdropFilter: "blur(8px)",
+          }}
         >
           <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
             {t("rewards.balanceLabel")}
@@ -171,7 +172,8 @@ function RewardsPage() {
           <p className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
             {formatNumber(balance, locale, {
               minimumFractionDigits: 2,
-              maximumFractionDigits: 2 })}{" "}
+              maximumFractionDigits: 2,
+            })}{" "}
             {t("rewards.coins")}
           </p>
         </div>

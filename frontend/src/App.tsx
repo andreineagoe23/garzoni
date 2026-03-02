@@ -9,7 +9,8 @@ import {
   Navigate,
   Route,
   Routes,
-  useLocation } from "react-router-dom";
+  useLocation,
+} from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "contexts/ThemeContext";
@@ -31,7 +32,6 @@ import AuthCallback from "components/auth/AuthCallback";
 import ForgotPassword from "components/auth/ForgotPassword";
 import ResetPassword from "components/auth/ResetPassword";
 import SubscriptionPlans from "./SubscriptionPlansPage";
-import "./styles/scss/main.scss";
 const Welcome = React.lazy(() => import("./components/landing/Welcome"));
 const CoursePage = React.lazy(() => import("./components/courses/CoursePage"));
 const CourseFlowPage = React.lazy(
@@ -51,8 +51,12 @@ const OnboardingQuestionnaire = React.lazy(
   () => import("./components/onboarding/OnboardingQuestionnaire")
 );
 const ToolsPage = React.lazy(() => import("./components/tools/ToolsPage"));
-const RewardsPage = React.lazy(() => import("./components/rewards/RewardsPage"));
-const SupportPage = React.lazy(() => import("./components/support/SupportPage"));
+const RewardsPage = React.lazy(
+  () => import("./components/rewards/RewardsPage")
+);
+const SupportPage = React.lazy(
+  () => import("./components/support/SupportPage")
+);
 const ExercisePage = React.lazy(
   () => import("./components/exercises/ExercisePage")
 );
@@ -66,7 +70,9 @@ const PaymentSuccessPage = React.lazy(
 const PrivacyPolicy = React.lazy(
   () => import("./components/legal/PrivacyPolicy")
 );
-const CookiePolicy = React.lazy(() => import("./components/legal/CookiePolicy"));
+const CookiePolicy = React.lazy(
+  () => import("./components/legal/CookiePolicy")
+);
 const TermsOfService = React.lazy(
   () => import("./components/legal/TermsOfService")
 );
@@ -149,8 +155,7 @@ function AuthAwareLayout({
       !noNavbarPaths.includes(location.pathname));
   const hasFooter =
     !noFooterPaths.some(
-      (p) =>
-        location.pathname === p || location.pathname.startsWith(`${p}/`)
+      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
     ) &&
     !isCourseFlowPath &&
     !isLegalAndUnauth;
@@ -232,12 +237,21 @@ function AuthAwareLayout({
                 path="/onboarding"
                 element={
                   <ProtectedRoute>
-                    <OnboardingQuestionnaire />
+                    <ErrorBoundary>
+                      <OnboardingQuestionnaire />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
               <Route path="/upgrade" element={<UpgradePage />} />
-              <Route path="/subscriptions" element={<SubscriptionPlans />} />
+              <Route
+                path="/subscriptions"
+                element={
+                  <ErrorBoundary>
+                    <SubscriptionPlans />
+                  </ErrorBoundary>
+                }
+              />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -245,7 +259,9 @@ function AuthAwareLayout({
                 path="/all-topics"
                 element={
                   <ProtectedRoute>
-                    <Dashboard key="all-topics" activePage="all-topics" />
+                    <ErrorBoundary>
+                      <Dashboard key="all-topics" activePage="all-topics" />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -253,10 +269,12 @@ function AuthAwareLayout({
                 path="/personalized-path"
                 element={
                   <ProtectedRoute>
-                    <Dashboard
-                      key="personalized-path"
-                      activePage="personalized-path"
-                    />
+                    <ErrorBoundary>
+                      <Dashboard
+                        key="personalized-path"
+                        activePage="personalized-path"
+                      />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -265,7 +283,9 @@ function AuthAwareLayout({
                 path="/payment-success"
                 element={
                   <ProtectedRoute>
-                    <PaymentSuccessPage />
+                    <ErrorBoundary>
+                      <PaymentSuccessPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -273,7 +293,9 @@ function AuthAwareLayout({
                 path="/profile"
                 element={
                   <ProtectedRoute>
-                    <Profile />
+                    <ErrorBoundary>
+                      <Profile />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -281,7 +303,9 @@ function AuthAwareLayout({
                 path="/settings"
                 element={
                   <ProtectedRoute>
-                    <Settings />
+                    <ErrorBoundary>
+                      <Settings />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -289,7 +313,9 @@ function AuthAwareLayout({
                 path="/billing"
                 element={
                   <ProtectedRoute>
-                    <SubscriptionManager />
+                    <ErrorBoundary>
+                      <SubscriptionManager />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -297,7 +323,9 @@ function AuthAwareLayout({
                 path="/rewards"
                 element={
                   <ProtectedRoute>
-                    <RewardsPage />
+                    <ErrorBoundary>
+                      <RewardsPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -305,7 +333,9 @@ function AuthAwareLayout({
                 path="/courses/:pathId"
                 element={
                   <ProtectedRoute>
-                    <CoursePage />
+                    <ErrorBoundary>
+                      <CoursePage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -313,7 +343,9 @@ function AuthAwareLayout({
                 path="/lessons/:courseId/flow"
                 element={
                   <ProtectedRoute>
-                    <CourseFlowPage />
+                    <ErrorBoundary>
+                      <CourseFlowPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -321,7 +353,9 @@ function AuthAwareLayout({
                 path="/courses/:pathId/lessons/:courseId/flow"
                 element={
                   <ProtectedRoute>
-                    <CourseFlowPage />
+                    <ErrorBoundary>
+                      <CourseFlowPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -329,7 +363,9 @@ function AuthAwareLayout({
                 path="/quiz/:courseId"
                 element={
                   <ProtectedRoute>
-                    <QuizPage />
+                    <ErrorBoundary>
+                      <QuizPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -337,7 +373,9 @@ function AuthAwareLayout({
                 path="/leaderboards"
                 element={
                   <ProtectedRoute>
-                    <Leaderboards />
+                    <ErrorBoundary>
+                      <Leaderboards />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -345,7 +383,9 @@ function AuthAwareLayout({
                 path="/missions"
                 element={
                   <ProtectedRoute>
-                    <Missions />
+                    <ErrorBoundary>
+                      <Missions />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -353,7 +393,9 @@ function AuthAwareLayout({
                 path="/pricing-dashboard"
                 element={
                   <ProtectedRoute>
-                    <PricingFunnelDashboard />
+                    <ErrorBoundary>
+                      <PricingFunnelDashboard />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -361,7 +403,9 @@ function AuthAwareLayout({
                 path="/tools/*"
                 element={
                   <ProtectedRoute>
-                    <ToolsPage />
+                    <ErrorBoundary>
+                      <ToolsPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -375,7 +419,9 @@ function AuthAwareLayout({
                 path="/exercises"
                 element={
                   <ProtectedRoute>
-                    <ExercisePage />
+                    <ErrorBoundary>
+                      <ExercisePage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -383,7 +429,9 @@ function AuthAwareLayout({
                 path="/exercise/:exerciseId"
                 element={
                   <ProtectedRoute>
-                    <ExercisePage />
+                    <ErrorBoundary>
+                      <ExercisePage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -391,7 +439,9 @@ function AuthAwareLayout({
                 path="/support"
                 element={
                   <ProtectedRoute>
-                    <SupportPage />
+                    <ErrorBoundary>
+                      <SupportPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -451,7 +501,8 @@ const AppContent = () => {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: prefersReducedMotion ? "auto" : "smooth" });
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -496,7 +547,8 @@ const AppContent = () => {
     ) {
       window.gtag("event", "page_view", {
         page_path: location.pathname + location.search,
-        send_to: "G-99E61ZXSV9" });
+        send_to: "G-99E61ZXSV9",
+      });
     }
   }, [location.pathname, location.search]);
 

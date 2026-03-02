@@ -29,7 +29,8 @@ export type ToolDefinition = {
 export const TOOL_STORAGE_KEYS = {
   lastTool: "monevo:tools:last-tool",
   sessionId: "monevo:tools:session-id",
-  navSource: "monevo:tools:last-source" };
+  navSource: "monevo:tools:last-source",
+};
 
 export const toolsRegistry: ToolDefinition[] = [
   {
@@ -41,7 +42,8 @@ export const toolsRegistry: ToolDefinition[] = [
     exportable: true,
     cardImage: "tools/portfolio_analyzer.png",
     keywords: ["stocks", "allocation", "diversification", "returns"],
-    activityStorageKey: "monevo:tools:activity:portfolio" },
+    activityStorageKey: "monevo:tools:activity:portfolio",
+  },
   {
     id: "reality-check",
     group: "understand-myself",
@@ -50,7 +52,8 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=saving",
     cardImage: "tools/savings_goals.png",
     keywords: ["savings", "goals", "budget", "reality check"],
-    activityStorageKey: "monevo:tools:activity:reality-check" },
+    activityStorageKey: "monevo:tools:activity:reality-check",
+  },
   {
     id: "calendar",
     group: "understand-world",
@@ -59,7 +62,8 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_calendar.png",
     keywords: ["calendar", "macro", "events", "inflation", "rates"],
-    activityStorageKey: "monevo:tools:activity:calendar" },
+    activityStorageKey: "monevo:tools:activity:calendar",
+  },
   {
     id: "economic-map",
     group: "understand-world",
@@ -68,7 +72,8 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_map.png",
     keywords: ["macro", "economy", "map", "global"],
-    activityStorageKey: "monevo:tools:activity:economic-map" },
+    activityStorageKey: "monevo:tools:activity:economic-map",
+  },
   {
     id: "news-context",
     group: "understand-world",
@@ -77,7 +82,8 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=markets",
     cardImage: "tools/news_market.png",
     keywords: ["news", "markets", "macro", "context"],
-    activityStorageKey: "monevo:tools:activity:news-context" },
+    activityStorageKey: "monevo:tools:activity:news-context",
+  },
   {
     id: "market-explorer",
     group: "decide-next",
@@ -86,7 +92,8 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=investing",
     cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],
-    activityStorageKey: "monevo:tools:activity:market-explorer" },
+    activityStorageKey: "monevo:tools:activity:market-explorer",
+  },
   {
     id: "next-steps",
     group: "decide-next",
@@ -94,25 +101,30 @@ export const toolsRegistry: ToolDefinition[] = [
     component: NextStepsEngine,
     learnPath: "/all-topics?topic=planning",
     keywords: ["recommendations", "next steps", "plan"],
-    activityStorageKey: "monevo:tools:activity:next-steps" },
+    activityStorageKey: "monevo:tools:activity:next-steps",
+  },
 ];
 
 export const toolGroups = [
   {
     id: "understand-world" as const,
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=180&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=180&fit=crop",
   },
   {
     id: "understand-myself" as const,
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=180&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=180&fit=crop",
   },
   {
     id: "decide-next" as const,
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=180&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=180&fit=crop",
   },
 ].map((group) => ({
   ...group,
-  tools: toolsRegistry.filter((tool) => tool.group === group.id) }));
+  tools: toolsRegistry.filter((tool) => tool.group === group.id),
+}));
 
 export const toolByRoute = new Map(
   toolsRegistry.map((tool) => [tool.route, tool])

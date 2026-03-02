@@ -10,14 +10,19 @@ jest.mock("react-hot-toast", () => ({
   __esModule: true,
   default: {
     error: (...args: unknown[]) => mockToastError(...args),
-    success: jest.fn() } }));
+    success: jest.fn(),
+  },
+}));
 
 jest.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
     isAuthenticated: true,
     financialProfile: null,
     profile: {
-      user_data: { primary_goal: "saving" } } }) }));
+      user_data: { primary_goal: "saving" },
+    },
+  }),
+}));
 
 jest.mock("./toolsRegistry", () => {
   const React = require("react");
@@ -29,7 +34,8 @@ jest.mock("./toolsRegistry", () => {
       component: () => React.createElement("div", null, "Calendar Tool"),
       learnPath: "/all-topics?topic=macro",
       exportable: false,
-      keywords: ["calendar"] },
+      keywords: ["calendar"],
+    },
     {
       id: "portfolio",
       group: "understand-myself",
@@ -37,31 +43,34 @@ jest.mock("./toolsRegistry", () => {
       component: () => React.createElement("div", null, "Portfolio Tool"),
       learnPath: "/all-topics?topic=investing",
       exportable: true,
-      keywords: ["portfolio"] },
+      keywords: ["portfolio"],
+    },
   ];
   const toolGroups = [
     {
       id: "understand-world",
       image: "https://example.com/world.jpg",
-      tools: [toolsRegistry[0]] },
+      tools: [toolsRegistry[0]],
+    },
     {
       id: "understand-myself",
       image: "https://example.com/myself.jpg",
-      tools: [toolsRegistry[1]] },
+      tools: [toolsRegistry[1]],
+    },
   ];
-  const toolByRoute = new Map(
-    toolsRegistry.map((tool) => [tool.route, tool])
-  );
+  const toolByRoute = new Map(toolsRegistry.map((tool) => [tool.route, tool]));
   const TOOL_STORAGE_KEYS = {
     lastTool: "monevo:tools:last-tool",
     sessionId: "monevo:tools:session-id",
-    navSource: "monevo:tools:last-source" };
+    navSource: "monevo:tools:last-source",
+  };
 
   return {
     toolsRegistry,
     toolGroups,
     toolByRoute,
-    TOOL_STORAGE_KEYS };
+    TOOL_STORAGE_KEYS,
+  };
 });
 
 describe("ToolsPage", () => {
@@ -69,18 +78,28 @@ describe("ToolsPage", () => {
     sessionStorage.clear();
     mockNavigate.mockReset();
     mockToastError.mockReset();
-    (global as any).__TEST_LOCATION_PATHNAME__ = "/tools";
+    (
+      globalThis as typeof globalThis & { __TEST_LOCATION_PATHNAME__?: string }
+    ).__TEST_LOCATION_PATHNAME__ = "/tools";
   });
 
   test("renders the tools landing with tool cards", () => {
     render(<ToolsPage />);
-    expect(screen.getAllByText(i18n.t("tools.entries.calendar.title")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(i18n.t("tools.entries.portfolio.title")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(i18n.t("tools.hub.openTool")).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(i18n.t("tools.entries.calendar.title")).length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(i18n.t("tools.entries.portfolio.title")).length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(i18n.t("tools.hub.openTool")).length
+    ).toBeGreaterThan(0);
   });
 
   test("redirects unknown tool routes to hub", () => {
-    (global as any).__TEST_LOCATION_PATHNAME__ = "/tools/unknown";
+    (
+      globalThis as typeof globalThis & { __TEST_LOCATION_PATHNAME__?: string }
+    ).__TEST_LOCATION_PATHNAME__ = "/tools/unknown";
     render(<ToolsPage />);
     expect(mockToastError).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/tools", { replace: true });
