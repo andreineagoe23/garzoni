@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
+import MascotMedia from "components/common/MascotMedia";
 import { GlassCard } from "components/ui";
 import { formatCurrency, getLocale } from "utils/format";
 
@@ -27,6 +28,7 @@ function QuizPage() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [feedbackCorrect, setFeedbackCorrect] = useState<boolean | null>(null);
   const [earnedMoney, setEarnedMoney] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,7 @@ function QuizPage() {
       });
 
       setFeedback(response.data.message);
+      setFeedbackCorrect(response.data.correct ?? false);
       setEarnedMoney(response.data.earned_money || 0);
 
       // If answer is incorrect, don't treat it as an error
@@ -88,6 +91,7 @@ function QuizPage() {
       }
     } catch (err) {
       console.error("Error submitting answer:", err);
+      setFeedbackCorrect(false);
       if (axios.isAxiosError(err)) {
         setFeedback(
           err.response?.data?.message || t("shared.somethingWentWrong")
@@ -183,7 +187,7 @@ function QuizPage() {
 
         {feedback && (
           <div
-            className={`rounded-2xl border px-5 py-4 text-sm shadow-inner ${
+            className={`flex flex-col gap-4 sm:flex-row sm:items-start rounded-2xl border px-5 py-4 text-sm shadow-inner ${
               earnedMoney > 0
                 ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-300"
                 : feedback.includes("Incorrect")
@@ -191,17 +195,30 @@ function QuizPage() {
                   : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
             }`}
           >
-            <p>{feedback}</p>
-            {earnedMoney > 0 && (
-              <p className="mt-1 font-semibold">
-                {t("courses.quiz.youEarned", {
-                  amount: formatCurrency(earnedMoney, "GBP", locale, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }),
-                })}
+            <div className="flex shrink-0 flex-col items-center gap-2 sm:items-start">
+              <MascotMedia
+                mascot={feedbackCorrect ? "owl" : "bull"}
+                className="h-16 w-16 object-contain"
+              />
+              <p className="text-xs font-medium opacity-90">
+                {feedbackCorrect
+                  ? t("courses.quiz.mascotCorrect")
+                  : t("courses.quiz.mascotIncorrect")}
               </p>
-            )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p>{feedback}</p>
+              {earnedMoney > 0 && (
+                <p className="mt-1 font-semibold">
+                  {t("courses.quiz.youEarned", {
+                    amount: formatCurrency(earnedMoney, "GBP", locale, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }),
+                  })}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </GlassCard>

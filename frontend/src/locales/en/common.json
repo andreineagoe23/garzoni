@@ -768,7 +768,8 @@
       "title": "Daily mission wrap-up",
       "earned": "You banked {{xp}} XP today",
       "streakReview": "Streak: {{days}} day{{plural}} · Review due: {{review}}",
-      "cta": "Keep going! Weekly missions and reviews will boost mastery next."
+      "cta": "Keep going! Weekly missions and reviews will boost mastery next.",
+      "mascotMessage": "Steady progress wins. Great work today!"
     },
     "weekly": {
       "title": "Weekly Missions"
@@ -1304,6 +1305,7 @@
     "completionModal": {
       "title": "🎉 Congratulations!",
       "subtitle": "You've completed onboarding. Here are your rewards:",
+      "mascotMessage": "Your personalized learning path is ready. Let's go!",
       "xpPoints": "XP Points",
       "coins": "Coins",
       "choosePlan": "Choose a Plan →",
@@ -1998,5 +2000,22 @@
     "completed": "Completed",
     "completeAria": "Complete {{title}} exercise",
     "completeExercise": "Complete Exercise"
+  },
+  "mascotPools": {
+    "owl": {
+      "celebrate_0": "Great job! You got it right.",
+      "celebrate_1": "You nailed it!",
+      "celebrate_2": "Well done!"
+    },
+    "bull": {
+      "encourage_0": "Keep the optimism. Try again.",
+      "encourage_1": "Mistakes happen. Keep going!",
+      "encourage_2": "You've got this. Try again!"
+    },
+    "bear": {
+      "neutral_0": "Calm and steady progress wins.",
+      "neutral_1": "Steady progress is the goal.",
+      "neutral_2": "One step at a time."
+    }
   }
 }

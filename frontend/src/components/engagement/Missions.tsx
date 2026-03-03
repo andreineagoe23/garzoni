@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import apiClient from "services/httpClient";
 import Loader from "components/common/Loader";
+import MascotMedia from "components/common/MascotMedia";
 import { useAuth } from "contexts/AuthContext";
 import type { UserProfile } from "types/api";
 import { GlassCard } from "components/ui";
@@ -817,22 +818,33 @@ function Missions() {
                 className="bg-[color:var(--card-bg,#ffffff)]/80"
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                      {t("missions.wrapup.title")}
-                    </p>
-                    <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-                      {t("missions.wrapup.earned", {
-                        xp: dailyXpEarned,
-                      })}
-                    </p>
-                    <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      {t("missions.wrapup.streakReview", {
-                        days: streakCount,
-                        plural: streakCount === 1 ? "" : "s",
-                        review: reviewDue,
-                      })}
-                    </p>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="flex shrink-0 flex-col items-center gap-2">
+                      <MascotMedia
+                        mascot="bear"
+                        className="h-20 w-20 object-contain"
+                      />
+                      <p className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                        {t("missions.wrapup.mascotMessage")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                        {t("missions.wrapup.title")}
+                      </p>
+                      <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                        {t("missions.wrapup.earned", {
+                          xp: dailyXpEarned,
+                        })}
+                      </p>
+                      <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                        {t("missions.wrapup.streakReview", {
+                          days: streakCount,
+                          plural: streakCount === 1 ? "" : "s",
+                          review: reviewDue,
+                        })}
+                      </p>
+                    </div>
                   </div>
                   <div className="rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)] shadow-[color:var(--accent,#2563eb)]/20">
                     {t("missions.wrapup.cta")}
