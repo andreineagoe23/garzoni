@@ -768,7 +768,8 @@
       "title": "Rezumat misiuni zilnice",
       "earned": "Ai acumulat {{xp}} XP azi",
       "streakReview": "Serie: {{days}} zi{{plural}} · Recapitulări restante: {{review}}",
-      "cta": "Continuă! Misiunile săptămânale și recapitulările vor crește stăpânirea."
+      "cta": "Continuă! Misiunile săptămânale și recapitulările vor crește stăpânirea.",
+      "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!"
     },
     "weekly": {
       "title": "Misiuni săptămânale"
@@ -1304,6 +1305,7 @@
     "completionModal": {
       "title": "🎉 Felicitări!",
       "subtitle": "Ai finalizat onboardingul. Iată recompensele:",
+      "mascotMessage": "Traseul tău personalizat e gata. Hai să începem!",
       "xpPoints": "Puncte XP",
       "coins": "Monede",
       "choosePlan": "Alege un plan →",
@@ -1998,5 +2000,22 @@
     "completed": "Finalizat",
     "completeAria": "Finalizează exercițiul {{title}}",
     "completeExercise": "Finalizează exercițiul"
+  },
+  "mascotPools": {
+    "owl": {
+      "celebrate_0": "Felicitări! Ai răspuns corect.",
+      "celebrate_1": "Ai reușit!",
+      "celebrate_2": "Foarte bine!"
+    },
+    "bull": {
+      "encourage_0": "Păstrează optimismul. Încearcă din nou.",
+      "encourage_1": "Greșelile se întâmplă. Continuă!",
+      "encourage_2": "Poți face asta. Încearcă din nou!"
+    },
+    "bear": {
+      "neutral_0": "Progresul constant câștigă.",
+      "neutral_1": "Progresul constant este obiectivul.",
+      "neutral_2": "Pas cu pas."
+    }
   }
 }

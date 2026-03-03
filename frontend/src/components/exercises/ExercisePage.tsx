@@ -10,6 +10,7 @@ import { useAuth } from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
+import MascotWithMessage from "components/common/MascotWithMessage";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
@@ -76,6 +77,7 @@ const ExercisePage = () => {
   const inlineHintTimeoutRef = useRef(null);
   const isDevelopment = process.env.NODE_ENV === "development";
   const mascotTimeoutRef = useRef(null);
+  const mascotInteractionCountRef = useRef(0);
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
@@ -91,6 +93,7 @@ const ExercisePage = () => {
     if (mascotTimeoutRef.current) {
       clearTimeout(mascotTimeoutRef.current);
     }
+    mascotInteractionCountRef.current += 1;
     setMascotMood(nextMood);
     mascotTimeoutRef.current = setTimeout(() => {
       setMascotMood("neutral");
@@ -1118,18 +1121,6 @@ const ExercisePage = () => {
     currentExercise?.exercise_data?.learn_more_url ||
     currentExercise?.exercise_data?.learn_more_link ||
     "";
-  const mascotType =
-    mascotMood === "celebrate"
-      ? "owl"
-      : mascotMood === "encourage"
-        ? "bull"
-        : "bear";
-  const mascotMessage =
-    mascotMood === "celebrate"
-      ? t("exercises.mascot.correct")
-      : mascotMood === "encourage"
-        ? t("exercises.mascot.encourage")
-        : t("exercises.mascot.neutral");
 
   return (
     <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
@@ -1594,22 +1585,12 @@ const ExercisePage = () => {
           </GlassCard>
 
           <div className="w-full lg:w-80 space-y-6">
-            <div className="flex flex-col items-center text-center gap-3">
-              <MascotMedia
-                mascot={mascotType}
-                animated={animationsEnabled}
-                className={`h-24 w-24 object-contain ${
-                  animationsEnabled && mascotMood === "celebrate"
-                    ? "animate-bounce"
-                    : animationsEnabled && mascotMood === "encourage"
-                      ? "animate-pulse"
-                      : ""
-                }`}
-              />
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {mascotMessage}
-              </p>
-            </div>
+            <MascotWithMessage
+              mood={mascotMood}
+              rotateMessages
+              rotationKey={mascotInteractionCountRef.current}
+              mascotClassName="h-24 w-24 object-contain"
+            />
             <GlassCard padding="lg">
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {t("exercises.progress.title")}
@@ -1709,10 +1690,7 @@ const ExercisePage = () => {
               <div className="flex flex-col items-center gap-3 text-center text-sm text-emerald-700">
                 <MascotMedia
                   mascot="owl"
-                  animated={animationsEnabled}
-                  className={`h-24 w-24 object-contain ${
-                    animationsEnabled ? "animate-bounce" : ""
-                  }`}
+                  className="h-24 w-24 object-contain"
                 />
                 <p className="font-semibold">{t("exercises.streakCongrats")}</p>
               </div>

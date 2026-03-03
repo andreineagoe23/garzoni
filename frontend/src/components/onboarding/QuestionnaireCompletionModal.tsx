@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import confetti from "canvas-confetti";
 import { GlassButton } from "components/ui";
+import MascotMedia from "components/common/MascotMedia";
 
 interface QuestionnaireCompletionModalProps {
   isOpen: boolean;
@@ -85,22 +86,15 @@ const QuestionnaireCompletionModal: React.FC<
       }}
     >
       <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#2563eb)]/10 p-8 text-center shadow-2xl">
-        {/* Success Icon */}
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[color:var(--primary,#2563eb)] to-[color:var(--primary,#2563eb)]/80 shadow-lg">
-          <svg
-            className="h-12 w-12 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={3}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+        {/* Mascot */}
+        <div className="mx-auto mb-4 flex flex-col items-center gap-2">
+          <MascotMedia
+            mascot="owl"
+            className="h-20 w-20 object-contain"
+          />
+          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            {t("onboarding.completionModal.mascotMessage")}
+          </p>
         </div>
 
         {/* Title */}

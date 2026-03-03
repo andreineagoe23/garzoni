@@ -10,6 +10,7 @@
     "heartsLow": "Careful - hearts low",
     "courseComplete": "Course complete",
     "courseCompleteSubtitle": "You've completed all sections. Ready for the quiz?",
+    "courseCompleteMascot": "You did it! Ready for the quiz?",
     "nextCourse": "Next course",
     "takeQuiz": "Take the course quiz",
     "draftHidden": "Draft - hidden from learners",
@@ -60,7 +61,9 @@
     "answerToEarn": "Answer correctly to earn rewards and boost your progress.",
     "submitAnswer": "Submit Answer",
     "noQuizData": "No quiz data available.",
-    "youEarned": "You earned {{amount}}!"
+    "youEarned": "You earned {{amount}}!",
+    "mascotCorrect": "Great job! You got it right.",
+    "mascotIncorrect": "Keep the optimism. Try again."
   },
   "coursePage": {
     "title": "Courses",

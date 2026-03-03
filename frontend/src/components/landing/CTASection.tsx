@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import MascotMedia from "components/common/MascotMedia";
 import { GlassCard, GlassButton } from "components/ui";
 
 export default function CTASection() {
@@ -9,8 +10,12 @@ export default function CTASection() {
     <section className="relative pb-8">
       <GlassCard
         padding="xl"
-        className="p-8 text-center sm:p-10 bg-[color:var(--card-bg,#15191E)]/70 border-white/10"
+        className="relative p-8 text-center sm:p-10 bg-[color:var(--card-bg,#15191E)]/70 border-white/10"
       >
+        <MascotMedia
+          mascot="owl"
+          className="absolute right-4 top-1/2 h-14 w-14 -translate-y-1/2 object-contain opacity-70 sm:right-6 sm:h-16 sm:w-16"
+        />
         <h3 className="text-2xl font-bold text-white sm:text-3xl">
           Ready to start your money journey?
         </h3>
