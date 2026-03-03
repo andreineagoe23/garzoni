@@ -10,6 +10,7 @@
     "heartsLow": "Atenție - puține inimi",
     "courseComplete": "Curs finalizat",
     "courseCompleteSubtitle": "Ai completat toate secțiunile. Ești gata pentru quiz?",
+    "courseCompleteMascot": "Ai reușit! Ești gata pentru quiz?",
     "nextCourse": "Următorul curs",
     "takeQuiz": "Fă quiz-ul cursului",
     "draftHidden": "Ciornă - ascuns de la elevi",
@@ -60,7 +61,9 @@
     "answerToEarn": "Răspunde corect pentru recompense și progres.",
     "submitAnswer": "Trimite răspunsul",
     "noQuizData": "Nu există date de quiz.",
-    "youEarned": "Ai câștigat {{amount}}!"
+    "youEarned": "Ai câștigat {{amount}}!",
+    "mascotCorrect": "Felicitări! Ai răspuns corect.",
+    "mascotIncorrect": "Păstrează optimismul. Încearcă din nou."
   },
   "coursePage": {
     "title": "Cursuri",

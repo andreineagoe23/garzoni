@@ -72,6 +72,8 @@ class LessonSectionSerializer(serializers.ModelSerializer):
             "video_url",
             "exercise_type",
             "exercise_data",
+            "source_label",
+            "source_url",
             "is_published",
             "updated_at",
             "updated_by",
@@ -107,6 +109,8 @@ class LessonSectionWriteSerializer(serializers.ModelSerializer):
             "video_url",
             "exercise_type",
             "exercise_data",
+            "source_label",
+            "source_url",
             "is_published",
         ]
         read_only_fields = ["id", "lesson"]

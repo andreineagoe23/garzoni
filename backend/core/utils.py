@@ -43,6 +43,8 @@ def normalize_text_encoding(text: str | None) -> str | None:
         ("\u00e2\u20ac\u0153", '"'),  # mojibake for left double quote
         ("\u00e2\u20ac\u201d", '"'),  # mojibake for right double quote
         ("\u00c2\u00a3", "\u00a3"),  # Â£ (UTF-8 £ read as Latin-1) -> £
+        ("\u00e2\u0080\u2014", "-"),  # em dash mojibake (e2 80 94) -> -
+        ("\u00e2\u0080\u2013", "-"),  # en dash mojibake (e2 80 93) -> -
         # Romanian ș (U+0219) UTF-8 C8 99 -> È™ when read as Windows-1252
         ("\u00c8\u2122", "\u0219"),  # ș
         # Romanian ț (U+021B) UTF-8 C8 9B -> È› when read as Windows-1252

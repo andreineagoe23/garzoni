@@ -58,6 +58,8 @@ class LessonSectionInlineForm(forms.ModelForm):
             "video_url",
             "exercise_type",
             "exercise_data",
+            "source_label",
+            "source_url",
         )
         widgets = {
             "exercise_data": PrettyJSONWidget(attrs={"rows": 6, "style": "font-family:monospace"}),
@@ -66,6 +68,8 @@ class LessonSectionInlineForm(forms.ModelForm):
             "text_content": "Rich text content (uses CKEditor, matches learner view).",
             "video_url": "Public video URL (e.g. YouTube share link) shown to learners.",
             "exercise_data": "JSON payload for the selected exercise type; keep keys aligned with front-end schema.",
+            "source_label": "Optional short attribution or source name (e.g. FCA, SEC, OECD).",
+            "source_url": "Optional link to the primary source or reference used for this section.",
         }
 
 
@@ -133,6 +137,13 @@ class LessonSectionInline(admin.StackedInline):
             "Editorial Metadata",
             {
                 "fields": ("updated_at", "updated_by"),
+            },
+        ),
+        (
+            "Attribution",
+            {
+                "fields": ("source_label", "source_url"),
+                "classes": ("collapse",),
             },
         ),
     ]
@@ -546,6 +557,7 @@ class LessonSectionAdmin(EducationAuditMixin, admin.ModelAdmin):
         "title",
         "lesson",
         "content_type",
+        "source_label",
         "order",
         "is_published",
         "updated_at",

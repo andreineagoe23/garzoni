@@ -37,6 +37,7 @@ import BudgetAllocationExercise from "components/exercises/BudgetAllocationExerc
 import FillInTableExercise from "components/exercises/FillInTableExercise";
 import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationExercise";
 import MascotMedia from "components/common/MascotMedia";
+import MascotWithMessage from "components/common/MascotWithMessage";
 import LessonSectionEditorPanel, {
   type LessonSection,
 } from "./LessonSectionEditorPanel";
@@ -162,8 +163,7 @@ function CourseFlowPage() {
   );
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { getAccessToken, settings } = useAuth();
-  const animationsEnabled = Boolean(settings?.animations_enabled ?? true);
+  const { getAccessToken } = useAuth();
   const { preferences } = usePreferences();
   const { adminMode } = useAdmin();
   const { setCourseFlowProgress, resetCourseFlowProgress } = useProgress();
@@ -930,6 +930,7 @@ function CourseFlowPage() {
   );
 
   const mascotTimeoutRef = useRef<number | null>(null);
+  const mascotInteractionCountRef = useRef(0);
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
@@ -937,6 +938,7 @@ function CourseFlowPage() {
     if (mascotTimeoutRef.current) {
       window.clearTimeout(mascotTimeoutRef.current);
     }
+    mascotInteractionCountRef.current += 1;
     setMascotMood(nextMood);
     mascotTimeoutRef.current = window.setTimeout(() => {
       setMascotMood("neutral");
@@ -1342,7 +1344,16 @@ function CourseFlowPage() {
         <div className="mx-auto w-full max-w-5xl px-6 pb-24 pt-10">
           {courseComplete && (
             <div className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-8 text-center shadow-xl shadow-emerald-500/10">
-              <h1 className="text-3xl font-bold text-emerald-900">
+              <div className="flex flex-col items-center gap-3">
+                <MascotMedia
+                  mascot="owl"
+                  className="h-24 w-24 object-contain"
+                />
+                <p className="text-sm text-emerald-900/80">
+                  {t("courses.flow.courseCompleteMascot")}
+                </p>
+              </div>
+              <h1 className="mt-4 text-3xl font-bold text-emerald-900">
                 {t("courses.flow.courseComplete")}
               </h1>
               <p className="mt-2 text-sm text-emerald-900/70">
@@ -1467,31 +1478,13 @@ function CourseFlowPage() {
             <div className="flex flex-col gap-8 lg:flex-row">
               <div className="flex-1 space-y-8">{renderSectionBody()}</div>
               <aside className="w-full lg:w-64">
-                <div className="sticky top-6 flex flex-col items-center text-center gap-3">
-                  <MascotMedia
-                    mascot={
-                      mascotMood === "celebrate"
-                        ? "owl"
-                        : mascotMood === "encourage"
-                          ? "bull"
-                          : "bear"
-                    }
-                    animated={animationsEnabled}
-                    className={`h-28 w-28 object-contain ${
-                      animationsEnabled && mascotMood === "celebrate"
-                        ? "animate-bounce"
-                        : animationsEnabled && mascotMood === "encourage"
-                          ? "animate-pulse"
-                          : ""
-                    }`}
+                <div className="sticky top-6">
+                  <MascotWithMessage
+                    mood={mascotMood}
+                    rotateMessages
+                    rotationKey={mascotInteractionCountRef.current}
+                    mascotClassName="h-28 w-28 object-contain"
                   />
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    {mascotMood === "celebrate"
-                      ? t("courses.flow.mascotCelebrate")
-                      : mascotMood === "encourage"
-                        ? t("courses.flow.mascotEncourage")
-                        : t("courses.flow.mascotSteady")}
-                  </p>
                 </div>
               </aside>
             </div>

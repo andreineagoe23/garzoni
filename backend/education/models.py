@@ -116,6 +116,16 @@ class LessonSection(models.Model):
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_TYPES, blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)
+    source_label = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional short attribution or source name for this section's content.",
+    )
+    source_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Optional link to the primary source or reference for this section.",
+    )
     is_published = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
