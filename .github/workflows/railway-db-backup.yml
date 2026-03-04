@@ -9,14 +9,25 @@ jobs:
   backup:
     name: Backup Railway Postgres
     runs-on: ubuntu-latest
-    if: ${{ secrets.RAILWAY_DB_URL != '' }}
     steps:
+      - name: Check for DB URL
+        id: check
+        run: |
+          if [ -z "${{ secrets.RAILWAY_DB_URL }}" ]; then
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            echo "RAILWAY_DB_URL not set in repo secrets; backup skipped. Add it under Settings > Secrets to enable backups."
+          else
+            echo "skipped=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install pg_dump client
+        if: steps.check.outputs.skipped != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
       - name: Create backup
+        if: steps.check.outputs.skipped != 'true'
         env:
           RAILWAY_DB_URL: ${{ secrets.RAILWAY_DB_URL }}
         run: |
@@ -26,6 +37,7 @@ jobs:
           echo "BACKUP_FILE=$OUT" >> "$GITHUB_ENV"
 
       - name: Upload backup artifact
+        if: steps.check.outputs.skipped != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: railway-db-backup
