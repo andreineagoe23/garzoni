@@ -19,16 +19,11 @@ sh /app/scripts/railway_predeploy.sh
 /bin/sh /app/docker/entrypoint.sh gunicorn settings.wsgi:application --workers 2 --timeout 300
 ```
 
-## One-time Lesson Rebuild Switch
+## Content Sync Model
 
-- Default: `RUN_CONTENT_REBUILD=0`
-- For one controlled rollout only:
-  - set `RUN_CONTENT_REBUILD=1`
-  - deploy once
-  - verify content + lessons
-  - set `RUN_CONTENT_REBUILD=0` again
-
-Keep `RUN_CONTENT_REBUILD_ON_START=0` unless explicitly needed.
+- Lesson and video updates are applied in-place by `sync_content_release`.
+- Sync is versioned and idempotent using DB state (`education_content_release_state`).
+- No manual DB push or deploy-time env toggles are required for normal releases.
 
 ## Backup Policy
 
@@ -38,6 +33,11 @@ Keep `RUN_CONTENT_REBUILD_ON_START=0` unless explicitly needed.
   2. record release SHA + backup timestamp
 
 Track this in release notes or your internal deployment log.
+
+### Optional automated backup
+
+Configure a scheduled GitHub Action (every 3 days) with secret `RAILWAY_DB_URL`.
+The workflow stores encrypted DB dumps as build artifacts for recovery.
 
 ## Post-deploy Smoke Checks
 
