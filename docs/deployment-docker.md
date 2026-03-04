@@ -46,3 +46,24 @@ The Dockerfile is written for **build context = repository root** (Railway’s d
 
 3. **Redeploy and clear build cache**
    After pulling the updated Dockerfile, in Railway use **Redeploy** and enable **Clear build cache** so the new image is built and media is included.
+
+### Railway: pre-deploy command (no shell access required)
+
+If you cannot open a Railway shell, run operational gates through **Pre-deploy Command**:
+
+```bash
+sh /app/scripts/railway_predeploy.sh
+```
+
+This script runs, in order:
+
+1. `python manage.py migrate --noinput`
+2. Optional lesson rebuild (`RUN_CONTENT_REBUILD=1`)
+3. `python manage.py verify_lesson_video_embeds --check-live --fix`
+4. `python manage.py validate_lesson_quality_gates` (hard fail on errors)
+5. `python manage.py collectstatic --noinput`
+
+Recommended backend service variables:
+
+- `RUN_CONTENT_REBUILD=0` (default; set to `1` only for a one-time content rebuild)
+- `RUN_CONTENT_REBUILD_ON_START=0` (keep `0` unless you intentionally want rebuild in start phase)
