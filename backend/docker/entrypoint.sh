@@ -26,6 +26,16 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
   done
 fi
 
+# Optional: one-time content rebuild when explicitly enabled.
+# Use this only for controlled rollouts, then set RUN_CONTENT_REBUILD=0.
+if [ "${RUN_CONTENT_REBUILD:-0}" = "1" ] && [ "${RUN_CONTENT_REBUILD_ON_START:-0}" = "1" ]; then
+  echo "[entrypoint] RUN_CONTENT_REBUILD_ON_START=1 -> rebuilding lessons..."
+  python manage.py rebuild_lessons_professional_flow || {
+    echo "[entrypoint] ERROR: lesson rebuild failed" >&2
+    exit 1
+  }
+fi
+
 # Optional: seed exercises and lesson sections (dev only; set SEED_AFTER_MIGRATE=1)
 if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   echo "[entrypoint] Running seed_exercises and ensure_lesson_sections..."
