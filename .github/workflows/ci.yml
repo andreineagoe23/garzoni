@@ -57,6 +57,14 @@ jobs:
         run: |
           cd backend && python manage.py test
 
+      - name: Content sync + quality gates
+        run: |
+          cd backend
+          python manage.py migrate --noinput
+          python manage.py sync_content_release
+          python manage.py verify_lesson_video_embeds --fix
+          python manage.py validate_lesson_quality_gates
+
       - name: Security (pip-audit)
         continue-on-error: true
         run: |

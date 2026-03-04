@@ -257,6 +257,22 @@ class EducationAuditLog(models.Model):
         return f"{self.action} on {self.target_type} {self.target_id} by {self.user or 'system'}"
 
 
+class ContentReleaseState(models.Model):
+    """
+    Tracks idempotent, versioned education-content rollouts applied in-place.
+    """
+
+    key = models.CharField(max_length=64, unique=True)
+    version = models.CharField(max_length=64)
+    applied_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "education_content_release_state"
+
+    def __str__(self):
+        return f"{self.key}:{self.version}"
+
+
 class Quiz(models.Model):
     """
     The Quiz model represents a quiz associated with a course.
