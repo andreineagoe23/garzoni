@@ -1,0 +1,33 @@
+name: Railway DB Backup
+
+on:
+  schedule:
+    - cron: "0 2 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Backup Railway Postgres
+    runs-on: ubuntu-latest
+    if: ${{ secrets.RAILWAY_DB_URL != '' }}
+    steps:
+      - name: Install pg_dump client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup
+        env:
+          RAILWAY_DB_URL: ${{ secrets.RAILWAY_DB_URL }}
+        run: |
+          TS="$(date +%Y-%m-%d_%H%M%S)"
+          OUT="railway_backup_${TS}.dump"
+          pg_dump --format=custom "$RAILWAY_DB_URL" > "$OUT"
+          echo "BACKUP_FILE=$OUT" >> "$GITHUB_ENV"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-db-backup
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 14

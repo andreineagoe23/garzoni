@@ -26,16 +26,6 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
   done
 fi
 
-# Optional: one-time content rebuild when explicitly enabled.
-# Use this only for controlled rollouts, then set RUN_CONTENT_REBUILD=0.
-if [ "${RUN_CONTENT_REBUILD:-0}" = "1" ] && [ "${RUN_CONTENT_REBUILD_ON_START:-0}" = "1" ]; then
-  echo "[entrypoint] RUN_CONTENT_REBUILD_ON_START=1 -> rebuilding lessons..."
-  python manage.py rebuild_lessons_professional_flow || {
-    echo "[entrypoint] ERROR: lesson rebuild failed" >&2
-    exit 1
-  }
-fi
-
 # Optional: seed exercises and lesson sections (dev only; set SEED_AFTER_MIGRATE=1)
 if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   echo "[entrypoint] Running seed_exercises and ensure_lesson_sections..."
@@ -69,6 +59,11 @@ if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
     ls -la /app/media/path_images/ 2>/dev/null || true
     ls -la /app/media/mascots/ 2>/dev/null || true
   fi
+  # Always refresh shipped static media assets that should match the app release.
+  # This keeps mascots/path images in sync even when volume already has older files.
+  mkdir -p /app/media/mascots /app/media/path_images
+  cp -f /app/media_seed/mascots/monevo-*.png /app/media/mascots/ 2>/dev/null || true
+  cp -f /app/media_seed/path_images/*.png /app/media/path_images/ 2>/dev/null || true
 else
   # Fallback: mascots only if media_seed missing (old image)
   if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then

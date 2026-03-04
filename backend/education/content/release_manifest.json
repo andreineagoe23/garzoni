@@ -1,0 +1,17 @@
+{
+  "version": "2026.03.04.1",
+  "content_key": "education_content",
+  "video_course_fallbacks": {
+    "4": "https://www.youtube.com/embed/hVPGvWH0q_o",
+    "5": "https://www.youtube.com/embed/S5n-PgG-AFE",
+    "6": "https://www.youtube.com/embed/S5n-PgG-AFE",
+    "9": "https://www.youtube.com/embed/yg-rGHsWP-E",
+    "11": "https://www.youtube.com/embed/hnq-TGXFoZw",
+    "12": "https://www.youtube.com/embed/hnq-TGXFoZw",
+    "13": "https://www.youtube.com/embed/hnq-TGXFoZw",
+    "14": "https://www.youtube.com/embed/bqlJvE21fd4",
+    "19": "https://www.youtube.com/embed/K6ACdXZAuco",
+    "20": "https://www.youtube.com/embed/K6ACdXZAuco",
+    "21": "https://www.youtube.com/embed/K6ACdXZAuco"
+  }
+}
