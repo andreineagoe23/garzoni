@@ -605,6 +605,12 @@ class PathTranslation(models.Model):
     language = models.CharField(max_length=10, db_index=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
+    source_hash = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Hash of the English source at translation time, used for staleness detection.",
+    )
 
     class Meta:
         db_table = "education_path_translation"
@@ -616,6 +622,12 @@ class CourseTranslation(models.Model):
     language = models.CharField(max_length=10, db_index=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
+    source_hash = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Hash of the English source at translation time, used for staleness detection.",
+    )
 
     class Meta:
         db_table = "education_course_translation"
@@ -628,6 +640,12 @@ class LessonTranslation(models.Model):
     title = models.CharField(max_length=200)
     short_description = models.TextField(blank=True)
     detailed_content = models.TextField(blank=True)
+    source_hash = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Hash of the English source at translation time, used for staleness detection.",
+    )
 
     class Meta:
         db_table = "education_lesson_translation"
@@ -642,6 +660,12 @@ class LessonSectionTranslation(models.Model):
     title = models.CharField(max_length=200)
     text_content = models.TextField(blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)
+    source_hash = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Hash of the English source at translation time, used for staleness detection.",
+    )
 
     class Meta:
         db_table = "education_lessonsection_translation"

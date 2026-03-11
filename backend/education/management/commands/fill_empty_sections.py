@@ -131,20 +131,7 @@ class Command(BaseCommand):
             updated = True
 
         elif section.content_type == "exercise" and is_exercise_data_empty(section.exercise_data):
-            section.exercise_type = section.exercise_type or "multiple-choice"
-            section.exercise_data = {
-                "question": f"What is the main takeaway from '{lesson.title}'?",
-                "options": [
-                    f"The lesson explains: {summary}",
-                    "It covers unrelated topics",
-                    "It only lists definitions",
-                    "I'm not sure yet",
-                ],
-                "correctAnswer": 0,
-                "explanation": "Review the lesson content and try again if needed.",
-                "prompt": "Choose the option that best matches what you learned.",
-            }
-            updated = True
+            pass
 
         if updated:
             section.save()

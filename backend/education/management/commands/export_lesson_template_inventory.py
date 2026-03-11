@@ -7,13 +7,13 @@ from django.utils.html import strip_tags
 from education.models import Lesson
 
 
-TARGET_TEMPLATE = ["text", "exercise", "text", "video", "text", "exercise", "text"]
+TARGET_TEMPLATE = ["text", "text", "exercise", "text", "text", "exercise", "text", "text", "video"]
 
 
 class Command(BaseCommand):
     help = (
         "Export a full lesson inventory and target template mapping for every lesson "
-        "(used before rebuilding to the 7-section professional flow)."
+        "(used before rebuilding to the 9-section professional flow)."
     )
 
     def add_arguments(self, parser):

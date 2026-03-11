@@ -230,6 +230,15 @@ OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
     default=["mistralai/mistral-7b-instruct"],
 )
 
+# Content translation settings
+CONTENT_TRANSLATION_PROVIDER = os.getenv("CONTENT_TRANSLATION_PROVIDER", "openrouter")
+CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "google/gemini-2.5-flash")
+CONTENT_TRANSLATION_ENABLED = os.getenv("CONTENT_TRANSLATION_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
 # Security headers (Django 4.2 SecurityMiddleware)
 SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
 

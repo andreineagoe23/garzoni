@@ -7,21 +7,14 @@ from django.utils.html import strip_tags
 from django.utils.text import Truncator
 
 from education.models import Lesson, LessonSection, LessonSectionTranslation
-
+from education.lesson_section_structure import SECTION_TEMPLATE_9
 
 YOUTUBE_ID_RE = re.compile(
     r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{11})"
 )
 
-TEMPLATE = [
-    ("Overview", "text"),
-    ("Knowledge Check 1", "exercise"),
-    ("Core Concept", "text"),
-    ("Watch & Learn", "video"),
-    ("Applied Insight", "text"),
-    ("Knowledge Check 2", "exercise"),
-    ("Key Takeaways", "text"),
-]
+# (title, content_type) for rebuild
+TEMPLATE = [(title, ctype) for _order, title, ctype, _role in SECTION_TEMPLATE_9]
 
 
 def normalize_whitespace(text: str) -> str:
@@ -55,8 +48,8 @@ def html_paragraphs(*paragraphs: str) -> str:
 
 class Command(BaseCommand):
     help = (
-        "Rebuild all lessons into a professional 7-section flow: "
-        "text, exercise, text, video, text, exercise, text."
+        "Rebuild all lessons into a professional 9-section flow: "
+        "text, text, exercise, text, text, exercise, text, text, video."
     )
 
     def add_arguments(self, parser):
@@ -109,13 +102,13 @@ class Command(BaseCommand):
                 )
                 exercise_1 = self._build_exercise(
                     lesson_title=lesson.title,
-                    source_html=chunks["overview"],
+                    source_html=chunks["core"],
                     variant=1,
                     profile=profile,
                 )
                 exercise_2 = self._build_exercise(
                     lesson_title=lesson.title,
-                    source_html=chunks["applied"],
+                    source_html=chunks["practical"],
                     variant=2,
                     profile=profile,
                 )
@@ -127,10 +120,10 @@ class Command(BaseCommand):
 
                 if dry_run:
                     self.stdout.write(
-                        f"Would rebuild lesson {lesson.id} ({lesson.title}) -> 7 sections"
+                        f"Would rebuild lesson {lesson.id} ({lesson.title}) -> 9 sections"
                     )
                     updated_lessons += 1
-                    created_sections += 7
+                    created_sections += 9
                     continue
 
                 # Full rebuild requested: remove all existing sections, recreate exact template.
@@ -149,15 +142,6 @@ class Command(BaseCommand):
                     {
                         "order": 2,
                         "title": TEMPLATE[1][0],
-                        "content_type": "exercise",
-                        "text_content": "",
-                        "exercise_type": "multiple-choice",
-                        "exercise_data": exercise_1,
-                        "video_url": "",
-                    },
-                    {
-                        "order": 3,
-                        "title": TEMPLATE[2][0],
                         "content_type": "text",
                         "text_content": chunks["core"],
                         "exercise_type": None,
@@ -165,19 +149,28 @@ class Command(BaseCommand):
                         "video_url": "",
                     },
                     {
+                        "order": 3,
+                        "title": TEMPLATE[2][0],
+                        "content_type": "exercise",
+                        "text_content": "",
+                        "exercise_type": "multiple-choice",
+                        "exercise_data": exercise_1,
+                        "video_url": "",
+                    },
+                    {
                         "order": 4,
                         "title": TEMPLATE[3][0],
-                        "content_type": "video",
-                        "text_content": chunks["video_intro"],
+                        "content_type": "text",
+                        "text_content": chunks["applied"],
                         "exercise_type": None,
                         "exercise_data": None,
-                        "video_url": video_url,
+                        "video_url": "",
                     },
                     {
                         "order": 5,
                         "title": TEMPLATE[4][0],
                         "content_type": "text",
-                        "text_content": chunks["applied"],
+                        "text_content": chunks["practical"],
                         "exercise_type": None,
                         "exercise_data": None,
                         "video_url": "",
@@ -199,6 +192,24 @@ class Command(BaseCommand):
                         "exercise_type": None,
                         "exercise_data": None,
                         "video_url": "",
+                    },
+                    {
+                        "order": 8,
+                        "title": TEMPLATE[7][0],
+                        "content_type": "text",
+                        "text_content": chunks["next_steps"],
+                        "exercise_type": None,
+                        "exercise_data": None,
+                        "video_url": "",
+                    },
+                    {
+                        "order": 9,
+                        "title": TEMPLATE[8][0],
+                        "content_type": "video",
+                        "text_content": chunks["video_intro"],
+                        "exercise_type": None,
+                        "exercise_data": None,
+                        "video_url": video_url,
                     },
                 ]
 
@@ -440,45 +451,64 @@ class Command(BaseCommand):
             f"Before moving on, verify you can explain the core concept, describe the main risk in this domain, and justify one decision using explicit assumptions.",
             f"As you continue in {course_title}, reuse this structure so each lesson builds professional judgment and reduces avoidable mistakes over time.",
         )
+        practical = html_paragraphs(
+            f"Translate {lesson_title} into a repeatable weekly routine with one clear objective and one review checkpoint.",
+            f"Track {profile['exercise_context']} outcomes against your assumptions and adjust only one variable at a time.",
+            f"Use this cycle to reduce avoidable mistakes and improve decision quality with evidence.",
+        )
+        next_steps = html_paragraphs(
+            f"Set one concrete action for {lesson_title} this week and schedule a short follow-up review.",
+            f"Keep the process simple: define the objective, execute, review outcome, and document one improvement.",
+            f"This turns knowledge from {course_title} into consistent behavior over time.",
+        )
         return {
             "overview": overview,
             "core": core,
             "video_intro": video_intro,
             "applied": applied,
+            "practical": practical,
             "takeaways": takeaways,
+            "next_steps": next_steps,
         }
+
+    def _first_sentence(self, text: str, max_chars: int = 120) -> str:
+        text = normalize_whitespace(text)
+        if not text:
+            return ""
+        if len(text) <= max_chars:
+            return text
+        chunk = text[: max_chars + 1].rstrip()
+        last_stop = max(
+            (i + 1 for i, c in enumerate(chunk) if c in ".!?"),
+            default=0,
+        )
+        if last_stop > 0:
+            return chunk[:last_stop].strip()
+        return Truncator(text).chars(max_chars)
 
     def _build_exercise(
         self, lesson_title: str, source_html: str, variant: int, profile: dict[str, str]
     ) -> dict:
         source_text = normalize_whitespace(strip_tags(source_html))
-        concise = Truncator(source_text).chars(140)
+        takeaway = self._first_sentence(source_text) or f"Key ideas from {lesson_title}."
         if variant == 1:
-            question = (
-                f"When applying {lesson_title} to {profile['exercise_context']}, which choice best reflects professional decision quality "
-                f"given this lesson context ({concise})?"
-            )
+            question = f"Review: {lesson_title}"
             options = [
-                profile["good_decision"],
-                profile["bad_decision_1"],
-                profile["bad_decision_2"],
-                profile["bad_decision_3"],
+                takeaway,
+                "Placeholder – run import_lesson_exercises to populate.",
+                "Option C",
+                "Option D",
             ]
-            correct = 0
         else:
-            question = (
-                f"After implementing a decision in {lesson_title}, which follow-up behaviour best demonstrates disciplined execution "
-                f"and long-term consistency ({concise})?"
-            )
+            question = f"Applied check: {lesson_title}"
             options = [
-                profile["good_execution"],
-                profile["bad_execution_1"],
-                profile["bad_execution_2"],
-                profile["bad_execution_3"],
+                takeaway,
+                "Placeholder – run import_lesson_exercises to populate.",
+                "Option C",
+                "Option D",
             ]
-            correct = 0
         return {
             "question": question,
             "options": options,
-            "correctAnswer": correct,
+            "correctAnswer": 0,
         }

@@ -621,83 +621,105 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
             {(isQuestionnaireCompleted ||
               (questionnaireProgress as { status?: string } | null)?.status ===
-                "completed") &&
-              (resume ? (
-                <div className="mt-6 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl" aria-hidden="true">
-                        📖
-                      </span>
-                      <div>
-                        <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          {t("dashboard.resume.title")}
-                        </p>
-                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          {t("dashboard.resume.continueWith", {
-                            course: resume.course_title,
-                          })}
-                        </p>
+                "completed") ? (
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {resume ? (
+                  <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl" aria-hidden="true">
+                          📖
+                        </span>
+                        <div>
+                          <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                            {t("dashboard.resume.title")}
+                          </p>
+                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                            {t("dashboard.resume.continueWith", {
+                              course: resume.course_title,
+                            })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleCourseClick(
-                          resume.course_id,
-                          resume.path_id ?? undefined
-                        )
-                      }
-                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
-                      aria-label={t("dashboard.resume.continueLesson")}
-                    >
-                      {t("dashboard.resume.continueLesson")}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-6 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl" aria-hidden="true">
-                        📖
-                      </span>
-                      <div>
-                        <p className="font-semibold text-[color:var(--text-color,#111827)]">
-                          {t("dashboard.resume.title")}
-                        </p>
-                        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          {t("dashboard.resume.startFirstLesson")}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (
-                          startHere?.path_id != null &&
-                          startHere?.course_id != null
-                        ) {
-                          navigate(
-                            `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
-                          );
-                        } else {
-                          navigate("/all-topics");
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCourseClick(
+                            resume.course_id,
+                            resume.path_id ?? undefined
+                          )
                         }
-                      }}
-                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
-                      aria-label={t("dashboard.resume.browseTopics")}
-                    >
-                      {t("dashboard.resume.browseTopics")}
-                    </button>
+                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        aria-label={t("dashboard.resume.continueLesson")}
+                      >
+                        {t("dashboard.resume.continueLesson")}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl" aria-hidden="true">
+                          📖
+                        </span>
+                        <div>
+                          <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                            {t("dashboard.resume.title")}
+                          </p>
+                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                            {t("dashboard.resume.startFirstLesson")}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            startHere?.path_id != null &&
+                            startHere?.course_id != null
+                          ) {
+                            navigate(
+                              `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
+                            );
+                          } else {
+                            navigate("/all-topics");
+                          }
+                        }}
+                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        aria-label={t("dashboard.resume.browseTopics")}
+                      >
+                        {t("dashboard.resume.browseTopics")}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-            <DailyGoalCard
-              dailyGoalProgress={dailyGoalProgress}
+                <DailyGoalCard
+                  dailyGoalProgress={dailyGoalProgress}
+                  locale={locale}
+                  prefersReducedMotion={prefersReducedMotion.current}
+                  noMarginTop
+                />
+              </div>
+            ) : (
+              <DailyGoalCard
+                dailyGoalProgress={dailyGoalProgress}
+                locale={locale}
+                prefersReducedMotion={prefersReducedMotion.current}
+              />
+            )}
+
+            <WeakSkills
+              show={preferences.showWeakSkills}
+              masteryError={masteryError}
+              weakestSkills={weakSkillItems}
+              hasAnyMasteryData={(masteryData?.masteries?.length ?? 0) > 0}
+              refetchMastery={refetchMastery}
               locale={locale}
               prefersReducedMotion={prefersReducedMotion.current}
+              onSkillClick={handleWeakSkillClick}
+              onPracticeClick={handleWeakSkillPractice}
             />
 
             <StatusSummary
@@ -714,18 +736,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             />
 
             <PrimaryCTA primaryCTA={primaryCTA} />
-
-            <WeakSkills
-              show={preferences.showWeakSkills}
-              masteryError={masteryError}
-              weakestSkills={weakSkillItems}
-              hasAnyMasteryData={(masteryData?.masteries?.length ?? 0) > 0}
-              refetchMastery={refetchMastery}
-              locale={locale}
-              prefersReducedMotion={prefersReducedMotion.current}
-              onSkillClick={handleWeakSkillClick}
-              onPracticeClick={handleWeakSkillPractice}
-            />
           </div>
         </GlassCard>
 

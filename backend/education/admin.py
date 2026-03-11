@@ -511,6 +511,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ("title", "path", "order", "is_active")
     list_filter = ("path", "is_active")
     inlines = [CourseTranslationInline]
+    ordering = ("path__sort_order", "path_id", "order")
 
 
 @admin.register(Quiz)

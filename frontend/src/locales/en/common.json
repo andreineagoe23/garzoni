@@ -59,7 +59,7 @@
     },
     "dailyGoal": {
       "label": "Daily Goal",
-      "completeDesc": "Complete your daily learning goal to maintain your streak"
+      "completeDesc": "Complete your daily goal"
     },
     "header": {
       "welcomeBack": "Welcome back",

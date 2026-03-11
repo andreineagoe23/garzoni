@@ -45,7 +45,7 @@ def oembed_ok(embed_url: str, timeout: float = 4.0) -> bool:
 
 class Command(BaseCommand):
     help = (
-        "Verify section-4 YouTube embeds for all lessons and optionally fix invalid/missing URLs."
+        "Verify section-9 YouTube embeds for all lessons and optionally fix invalid/missing URLs."
     )
 
     def add_arguments(self, parser):
@@ -77,15 +77,15 @@ class Command(BaseCommand):
         fixed = 0
 
         for lesson in lessons:
-            section4 = lesson.sections.filter(order=4).first()
-            if not section4 or section4.content_type != "video":
+            section9 = lesson.sections.filter(order=9).first()
+            if not section9 or section9.content_type != "video":
                 invalid += 1
                 self.stdout.write(
-                    self.style.WARNING(f"Lesson {lesson.id} has no video at section 4.")
+                    self.style.WARNING(f"Lesson {lesson.id} has no video at section 9.")
                 )
                 continue
 
-            current = section4.video_url or ""
+            current = section9.video_url or ""
             embed = to_embed_url(current)
             live_ok = True
             if embed and check_live:
@@ -95,8 +95,8 @@ class Command(BaseCommand):
             if is_valid:
                 # Canonicalize to embed form.
                 if current != embed and fix:
-                    section4.video_url = embed
-                    section4.save(update_fields=["video_url"])
+                    section9.video_url = embed
+                    section9.save(update_fields=["video_url"])
                     fixed += 1
                 continue
 
@@ -110,8 +110,8 @@ class Command(BaseCommand):
                 )
             )
             if fix:
-                section4.video_url = fallback
-                section4.save(update_fields=["video_url"])
+                section9.video_url = fallback
+                section9.save(update_fields=["video_url"])
                 fixed += 1
 
         self.stdout.write(

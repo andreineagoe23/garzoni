@@ -5,7 +5,7 @@ import { GlassButton, GlassCard } from "components/ui";
 import apiClient from "services/httpClient";
 import { useProgressMetrics } from "hooks/useProgressMetrics";
 import { useAnalytics } from "hooks/useAnalytics";
-import { formatNumber, getLocale } from "utils/format";
+import { formatNumber, getLocale, pathDisplayTitle } from "utils/format";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -316,7 +316,7 @@ const AllTopics = ({
                     <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f3f4f6)] shadow-md sm:block">
                       <img
                         src={path.image}
-                        alt={path.title}
+                        alt={pathDisplayTitle(path.title)}
                         className="h-full w-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
@@ -326,7 +326,7 @@ const AllTopics = ({
                   )}
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
-                      {path.title}
+                      {pathDisplayTitle(path.title)}
                     </h3>
                     {path.description && (
                       <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
@@ -390,7 +390,7 @@ const AllTopics = ({
                       onClick={() => {
                         trackEvent("upgrade_click", {
                           source: "path_lock",
-                          path: path.title,
+                          path: pathDisplayTitle(path.title),
                         });
                         navigate("/subscriptions");
                       }}
@@ -409,13 +409,14 @@ const AllTopics = ({
                   className="mt-6"
                   role="region"
                   aria-label={t("allTopics.coursesIn", {
-                    title: path.title,
+                    title: pathDisplayTitle(path.title),
                   })}
                 >
                   <LearningPathList
                     learningPaths={[path]}
                     onCourseClick={onCourseClick}
                     showCourseImages={false}
+                    hidePathHeader
                   />
                 </div>
               )}
