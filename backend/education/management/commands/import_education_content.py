@@ -1,31 +1,46 @@
 """
-Import education content from a JSON fixture exported by export_education_content.
+Import education content from a JSON fixture (from export_education_content).
 
-This command loads content safely into the target database:
-  - Updates existing records by PK (update_or_create semantics via loaddata)
-  - Inserts new records
-  - NEVER flushes user data (progress, accounts, streaks, completions)
-
-The target database is whichever DATABASE_URL the Django process is connected to
-(local Docker, Railway, etc.).
+Loads into the current DB; does not touch user data. On Railway, run
+clear_education_content first, then this command (or use railway_import_content.sh).
 
 Usage:
-    python manage.py import_education_content education_content.json
-    python manage.py import_education_content education_content.json --dry-run
+    python manage.py import_education_content path/to/fixture.json
+    python manage.py import_education_content path/to/fixture.json --dry-run
+    python manage.py import_education_content path/to/fixture.json --replace  # clear then load (local)
 """
 
 import json
 from pathlib import Path
 
+from django.apps import apps
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
+
+# Order: children first so FKs are satisfied. Only content models we own.
+DELETE_ORDER = [
+    "education.MultipleChoiceChoice",
+    "education.PathTranslation",
+    "education.CourseTranslation",
+    "education.LessonTranslation",
+    "education.LessonSectionTranslation",
+    "education.QuizTranslation",
+    "education.ExerciseTranslation",
+    "education.Exercise",
+    "education.Quiz",
+    "education.LessonSection",
+    "education.Lesson",
+    "education.Course",
+    "education.Path",
+    "education.ContentReleaseState",
+]
 
 
 class Command(BaseCommand):
     help = (
         "Import education content from a JSON fixture into the current database. "
-        "User data is never touched. Uses Django's loaddata (upsert by PK)."
+        "Clears only education content tables then loads the fixture; user data is never touched."
     )
 
     SAFE_APP_LABELS = {"education"}
@@ -66,6 +81,11 @@ class Command(BaseCommand):
             "--dry-run",
             action="store_true",
             help="Validate and preview the fixture without writing to the database.",
+        )
+        parser.add_argument(
+            "--replace",
+            action="store_true",
+            help="Clear existing education content before loading (removes related section/lesson/quiz/exercise completions). Use on fresh DB or when replacing all content.",
         )
 
     def handle(self, *args, **options):
@@ -114,6 +134,22 @@ class Command(BaseCommand):
             )
             return
 
-        self.stdout.write("\nLoading fixture (this may take a moment) ...")
+        replace = options.get("replace", False)
+        if replace:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Replace mode: clearing education content tables. "
+                    "This will also remove user progress that references that content "
+                    "(section/lesson/quiz/exercise completions, course progress). Use only on a fresh DB or when you intend to replace all content and progress."
+                )
+            )
+            self.stdout.write("Clearing education content tables ...")
+            for model_label in DELETE_ORDER:
+                model = apps.get_model(model_label)
+                n, _ = model.objects.all().delete()
+                if n:
+                    self.stdout.write(f"  Deleted {n} row(s) from {model_label}")
+
+        self.stdout.write("Loading fixture (this may take a moment) ...")
         call_command("loaddata", str(fixture_path))
         self.stdout.write(self.style.SUCCESS(f"Successfully imported {len(data)} content objects."))
