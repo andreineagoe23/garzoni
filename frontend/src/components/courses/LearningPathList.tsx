@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { GlassCard } from "components/ui";
+import { pathDisplayTitle } from "utils/format";
 
 type LearningPathCourse = {
   id: number;
@@ -37,10 +38,13 @@ function LearningPathList({
   learningPaths,
   onCourseClick,
   showCourseImages = true,
+  hidePathHeader = false,
 }: {
   learningPaths?: LearningPath[];
   onCourseClick?: (courseId: number, pathId: number) => void;
   showCourseImages?: boolean;
+  /** When true, do not show path title/description (e.g. when used as expanded content under a path card). */
+  hidePathHeader?: boolean;
 }) {
   const { t } = useTranslation();
   if (!learningPaths?.length) {
@@ -63,17 +67,19 @@ function LearningPathList({
           <GlassCard key={path.id} padding="lg" className="group space-y-5">
             <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
             <div className="relative">
-              <header className="flex items-baseline justify-between gap-3">
-                <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-                  {path.title || t("courses.learningPath.customPath")}
-                </h3>
-                {path.description && (
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                    {path.description}
-                  </p>
-                )}
-              </header>
-              <div className="space-y-4">
+              {!hidePathHeader && (
+                <header className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+                    {pathDisplayTitle(path.title) || t("courses.learningPath.customPath")}
+                  </h3>
+                  {path.description && (
+                    <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                      {path.description}
+                    </p>
+                  )}
+                </header>
+              )}
+              <div className={hidePathHeader ? "space-y-4" : "mt-4 space-y-4"}>
                 {courses.length === 0 && (
                   <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
                     {t("courses.learningPath.noCoursesInPath")}
