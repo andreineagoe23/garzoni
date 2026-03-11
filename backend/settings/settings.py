@@ -123,9 +123,10 @@ if SERVE_FRONTEND:
 
 WSGI_APPLICATION = "settings.wsgi.application"
 
-# Use PostgreSQL in both dev and prod. Set DATABASE_URL (or DATABASE_PUBLIC_URL on Railway).
-# Prefer public URL on Railway so the host resolves (private *.railway.internal can be unreachable at deploy time)
-database_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
+# Use PostgreSQL in both dev and prod.
+# Prefer DATABASE_URL (Railway injects private postgres.railway.internal) so the app connects from inside Railway.
+# Use DATABASE_PUBLIC_URL only when connecting from outside (e.g. push script from your Mac).
+database_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL")
 # Convert postgres:// to postgresql:// for compatibility
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
