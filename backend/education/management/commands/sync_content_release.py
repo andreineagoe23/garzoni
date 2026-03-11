@@ -132,7 +132,7 @@ def domain(c: str, path: str) -> tuple[str, str, str, str]:
 def build_html(
     order: int, c: str, course: str, metric: str, scenario: str, pitfall: str, correction: str
 ) -> str:
-    if order == 1:
+    if order in (1, 2):
         paragraphs = [
             (
                 f"This section introduces {c} with practical rules you can apply in real life. "
@@ -150,7 +150,7 @@ def build_html(
                 f"Then improve one part of {c} at a time using evidence from your own results."
             ),
         ]
-    elif order == 3:
+    elif order in (4, 5):
         paragraphs = [
             (
                 f"The core concept in {c} is linking each decision to a measurable result. "
@@ -168,7 +168,7 @@ def build_html(
                 f"This prevents the common error of {pitfall}."
             ),
         ]
-    elif order == 5:
+    elif order in (7, 8):
         paragraphs = [
             (
                 f"Apply {c} to one decision you will make this week. "
@@ -261,7 +261,7 @@ class Command(BaseCommand):
             course = lesson.course.title if lesson.course else "this course"
 
             for section in lesson.sections.filter(
-                content_type="text", order__in=[1, 3, 5, 7]
+                content_type="text", order__in=[1, 2, 4, 5, 7, 8]
             ).order_by("order"):
                 new_html = build_html(
                     section.order, c, course, metric, scenario, pitfall, correction
@@ -275,7 +275,7 @@ class Command(BaseCommand):
                         )
                     touched_sections += 1
 
-            video_section = lesson.sections.filter(content_type="video", order=4).first()
+            video_section = lesson.sections.filter(content_type="video", order=9).first()
             if video_section:
                 current = (video_section.video_url or "").strip()
                 broken = extract_embed_id(current) in BROKEN_VIDEO_IDS

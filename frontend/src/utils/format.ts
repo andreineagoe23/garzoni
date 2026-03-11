@@ -122,3 +122,11 @@ export const getTimezone = () => {
     return "UTC";
   }
 };
+
+/** Strip (Starter), (Plus), (Pro) from path titles for display on dashboard. */
+export const pathDisplayTitle = (title: string | undefined | null): string => {
+  if (!title || typeof title !== "string") return "";
+  return title
+    .replace(/\s*\((?:Starter|Plus|Pro)\)\s*$/i, "")
+    .trim();
+};

@@ -6,16 +6,21 @@ type DailyGoalCardProps = {
   dailyGoalProgress: number;
   locale?: string;
   prefersReducedMotion?: boolean;
+  /** When true, omit top margin (e.g. when embedded in a shared container). */
+  noMarginTop?: boolean;
 };
 
 const DailyGoalCard = ({
   dailyGoalProgress,
   locale,
   prefersReducedMotion,
+  noMarginTop,
 }: DailyGoalCardProps) => {
   const { t } = useTranslation();
   return (
-    <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
+    <div
+      className={`rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm ${noMarginTop ? "" : "mt-6"}`}
+    >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-lg" aria-hidden="true">

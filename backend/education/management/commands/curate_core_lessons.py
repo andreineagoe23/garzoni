@@ -1,6 +1,6 @@
 """
 Manual curation pass for 10 high-impact lessons.
-Keeps the existing 7-section structure and updates wording quality in place.
+Keeps the existing lesson structure and updates wording quality in place.
 """
 
 from django.core.management.base import BaseCommand
