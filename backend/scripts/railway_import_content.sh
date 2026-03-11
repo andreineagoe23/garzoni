@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 #
-# Push education content to Railway **without** deploying new code.
-# Clears education content on Railway via a Django shell one-liner (uses existing
-# models), then runs import_education_content (no --replace flag needed on server).
+# Push education content to Railway: clear then import fixture via railway ssh.
 #
-# Prereqs: fixture in repo and deployed (git add -f backend/backups/railway_education_content.json, push),
-# and Railway CLI linked to the backend service.
+# Prereqs: fixture committed and deployed (see backend/backups/README.md),
+# Railway CLI linked to backend service.
 #
-# Usage (from repo root):
-#   ./backend/scripts/railway_import_content.sh
-# Or from backend/:
-#   ./scripts/railway_import_content.sh
+# Usage (from repo root):  ./backend/scripts/railway_import_content.sh
 #
 set -e
 
