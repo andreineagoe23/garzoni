@@ -26,6 +26,8 @@ export type UseMascotMessageOptions = {
   rotateMessages?: boolean;
   /** Key for deterministic rotation: index % poolLength. Omit for first message only. */
   rotationKey?: number;
+  /** Force a specific mascot (prevents mood-based mascot switching). */
+  mascotOverride?: MascotType;
 };
 
 /**
@@ -37,9 +39,9 @@ export function useMascotMessage(
   options: UseMascotMessageOptions = {}
 ): { mascot: MascotType; message: string } {
   const { t } = useTranslation("common");
-  const { rotateMessages = false, rotationKey = 0 } = options;
+  const { rotateMessages = false, rotationKey = 0, mascotOverride } = options;
 
-  const mascot = MOOD_TO_MASCOT[mood];
+  const mascot = mascotOverride ?? MOOD_TO_MASCOT[mood];
   const moodKey = mood as keyof typeof MOOD_TO_MASCOT;
   const pool = POOL_KEYS[mascot]?.[moodKey];
 

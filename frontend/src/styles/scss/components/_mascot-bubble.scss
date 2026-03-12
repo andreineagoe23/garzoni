@@ -1,0 +1,58 @@
+/* Mascot speech bubble – based on provided `.tooltip` tail shape,
+   with glassy colors instead of solid gold. */
+
+.tooltip {
+  color: var(--text-color, #111827);
+  font-size: 0.75rem;
+  max-width: 22ch;
+  text-align: center;
+
+  --b: 1.6em; /* tail dimension */
+  --p: 50%; /* main position (0%:top 100%:bottom) */
+  --r: 0.9em; /* radius */
+
+  padding: 0.4em 0.6em;
+  border-radius: var(--r) /
+    min(var(--r), var(--p) - var(--b) / 4) var(--r) var(--r)
+    min(var(--r), 100% - var(--p) - var(--b) / 4);
+
+  background: rgba(255, 255, 255, 0.8); /* glass light */
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: clamp(0%, var(--p) - var(--b) / 4, 100% - var(--b) / 2);
+  width: var(--b);
+  aspect-ratio: 1;
+  background: inherit;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  --g: #000 calc(100% - 1px), #0000;
+  -webkit-mask:
+    radial-gradient(circle closest-side at 12% 88%, var(--g)),
+    radial-gradient(20% 20% at 45% 48%, var(--g)),
+    radial-gradient(25% 25% at 100% 25%, var(--g));
+  mask:
+    radial-gradient(circle closest-side at 12% 88%, var(--g)),
+    radial-gradient(20% 20% at 45% 48%, var(--g)),
+    radial-gradient(25% 25% at 100% 25%, var(--g));
+}
+
+@media (max-width: 640px) {
+  .tooltip {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
+    max-width: 22ch;
+    --b: 1.3em;
+  }
+}
+
+[data-theme="dark"] .tooltip {
+  background: rgba(24, 24, 27, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+}
