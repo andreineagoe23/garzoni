@@ -934,6 +934,15 @@ function CourseFlowPage() {
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
+
+  // Keep mascot stable per lesson (avoid switching owl/bull/bear when mood changes).
+  const stableLessonMascot = useMemo<"owl" | "bull" | "bear">(() => {
+    const lessonId = currentItem?.lessonId;
+    if (!lessonId) return "owl";
+    const n = Math.abs(Math.floor(Number(lessonId)));
+    const idx = n % 3;
+    return idx === 0 ? "owl" : idx === 1 ? "bull" : "bear";
+  }, [currentItem?.lessonId]);
   const pulseMascot = useCallback((nextMood: "celebrate" | "encourage") => {
     if (mascotTimeoutRef.current) {
       window.clearTimeout(mascotTimeoutRef.current);
@@ -1478,13 +1487,14 @@ function CourseFlowPage() {
             <div className="flex flex-col gap-8 lg:flex-row">
               <div className="flex-1 space-y-8">{renderSectionBody()}</div>
               <aside className="w-full lg:w-64">
-                <div className="sticky top-6">
-                  <MascotWithMessage
-                    mood={mascotMood}
-                    rotateMessages
-                    rotationKey={mascotInteractionCountRef.current}
-                    mascotClassName="h-28 w-28 object-contain"
-                  />
+                <div className="relative">
+                  <div className="pointer-events-none sticky bottom-6">
+                    <MascotWithMessage
+                      mood={mascotMood}
+                      fixedMascot={stableLessonMascot}
+                      mascotClassName="h-28 w-28 object-contain"
+                    />
+                  </div>
                 </div>
               </aside>
             </div>
