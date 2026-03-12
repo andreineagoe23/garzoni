@@ -79,9 +79,6 @@ const TermsOfService = React.lazy(
 const FinancialDisclaimer = React.lazy(
   () => import("./components/legal/FinancialDisclaimer")
 );
-const NoFinancialAdvice = React.lazy(
-  () => import("./components/legal/NoFinancialAdvice")
-);
 const PricingFunnelDashboard = React.lazy(
   () => import("./components/analytics/PricingFunnelDashboard")
 );
@@ -124,7 +121,6 @@ const LEGAL_PATHS = [
   "/cookie-policy",
   "/terms-of-service",
   "/financial-disclaimer",
-  "/no-financial-advice",
 ];
 
 type AuthAwareLayoutProps = {
@@ -223,11 +219,7 @@ function AuthAwareLayout({
               />
               <Route
                 path="/no-financial-advice"
-                element={
-                  <LegalPageWrapper>
-                    <NoFinancialAdvice />
-                  </LegalPageWrapper>
-                }
+                element={<Navigate to="/financial-disclaimer#no-advice" replace />}
               />
               <Route
                 path="/pricing"
@@ -524,7 +516,6 @@ const AppContent = () => {
     "/cookie-policy",
     "/terms-of-service",
     "/financial-disclaimer",
-    "/no-financial-advice",
     "/subscriptions",
   ];
 
@@ -653,7 +644,33 @@ const AppContent = () => {
         fallbackNavbar={t("shared.loadingNav")}
         fallbackPage={t("shared.loadingPage")}
       />
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "var(--card-bg,#ffffff)",
+            color: "var(--text-color,#111827)",
+            borderRadius: "9999px",
+            border: "1px solid var(--border-color,rgba(0,0,0,0.08))",
+            boxShadow:
+              "0 18px 45px rgba(15,23,42,0.28), 0 0 0 1px rgba(15,23,42,0.05)",
+          },
+          success: {
+            style: {
+              background: "rgba(var(--primary-rgb,37,99,235),0.14)",
+              color: "var(--text-color,#111827)",
+              borderColor: "rgba(var(--primary-rgb,37,99,235),0.45)",
+            },
+          },
+          error: {
+            style: {
+              background: "rgba(220,38,38,0.12)",
+              color: "var(--text-color,#111827)",
+              borderColor: "rgba(220,38,38,0.55)",
+            },
+          },
+        }}
+      />
     </ThemeProvider>
   );
 

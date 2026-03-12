@@ -5,7 +5,14 @@ type DashboardSummaryArgs = {
   progressResponse?: { data?: ProgressSummary };
   reviewQueueData?: { count?: number };
   missionsData?: MissionBuckets;
-  masteryData?: { masteries?: Array<{ proficiency?: number; skill?: string }> };
+  masteryData?: {
+    masteries?: Array<{
+      proficiency?: number;
+      skill?: string;
+      level_band?: string;
+      level_label?: string;
+    }>;
+  };
   entitlements?: { features?: Record<string, unknown> };
   profile?: { points?: number };
 };
@@ -69,14 +76,28 @@ export const useDashboardSummary = ({
       .slice(0, 3);
   }, [masteryData]);
 
-  const dailyGoalProgress = useMemo(() => {
+  const {
+    dailyGoalProgress,
+    dailyGoalCurrentXP,
+    dailyGoalTargetXP,
+  } = useMemo(() => {
     const targetXP = 30;
-    const currentXP = profile?.points || 0;
-    return Math.min(100, ((currentXP % targetXP) / targetXP) * 100);
+    const totalXP = profile?.points || 0;
+    const currentXP = totalXP % targetXP;
+    const progress = Math.min(100, (currentXP / targetXP) * 100);
+    return {
+      dailyGoalProgress: progress,
+      dailyGoalCurrentXP: currentXP,
+      dailyGoalTargetXP: targetXP,
+    };
   }, [profile?.points]);
 
   const resume = progressData.resume ?? null;
   const startHere = progressData.start_here ?? null;
+  const completedSections = progressData.completed_sections ?? 0;
+  const totalSections = progressData.total_sections ?? 0;
+  const completedLessons = progressData.completed_lessons ?? 0;
+  const totalLessons = progressData.total_lessons ?? 0;
 
   return {
     coursesCompleted,
@@ -86,7 +107,13 @@ export const useDashboardSummary = ({
     entitlementUsage,
     weakestSkills,
     dailyGoalProgress,
+    dailyGoalCurrentXP,
+    dailyGoalTargetXP,
     resume,
     startHere,
+    completedSections,
+    totalSections,
+    completedLessons,
+    totalLessons,
   };
 };

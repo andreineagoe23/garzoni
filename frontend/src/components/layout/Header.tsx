@@ -16,7 +16,6 @@ const VISIBLE_PATHS = new Set([
   "/cookie-policy",
   "/terms-of-service",
   "/financial-disclaimer",
-  "/no-financial-advice",
 ]);
 
 function Header() {

@@ -52,7 +52,11 @@
     "noSectionContent": "Nu există conținut pentru această secțiune.",
     "legacyExerciseFormat": "Această lecție folosește un format vechi de exercițiu la nivel de lecție.",
     "unsupportedExerciseType": "Tipul de exercițiu {{type}} nu este suportat în fluxul nou încă.",
-    "videoNotSupported": "Browserul tău nu suportă redarea video."
+    "videoNotSupported": "Browserul tău nu suportă redarea video.",
+    "skillInsightSection": "Foarte bine. Tocmai ai consolidat {{section}}.",
+    "skillInsightLesson": "Progres bun. {{lesson}} ți-a împins abilitățile înainte.",
+    "thisSection": "această secțiune",
+    "thisLesson": "această lecție"
   },
   "quiz": {
     "loading": "Se încarcă quiz-ul...",

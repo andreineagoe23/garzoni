@@ -211,8 +211,12 @@ const SubscriptionManager = () => {
         )}
         {!loading && (
           <div className="grid gap-4 md:grid-cols-3">
-            {sortedPlans.map((plan) => {
-              const isCurrent = plan.plan_id === currentPlanId;
+            {sortedPlans.map((plan, index) => {
+              const firstCurrentIndex = sortedPlans.findIndex(
+                (p) => p.plan_id === currentPlanId
+              );
+              const isCurrent =
+                firstCurrentIndex >= 0 && index === firstCurrentIndex;
               const canChange = Boolean(stripeSubscriptionId);
               const billingLabel = plan.billing_interval || "monthly";
               const buttonLabel = isCurrent

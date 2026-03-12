@@ -58,8 +58,9 @@
       "browseTopics": "Răsfoiește subiectele"
     },
     "dailyGoal": {
-      "label": "Obiectiv zilnic",
-      "completeDesc": "Finalizează obiectivul zilnic"
+      "label": "Obiectiv zilnic · {{xp}} XP",
+      "completeDesc": "Finalizează obiectivul zilnic",
+      "xpProgress": "{{current}} / {{target}} XP azi"
     },
     "header": {
       "welcomeBack": "Bine ai revenit",
@@ -91,6 +92,34 @@
       "practiceRecommendationAria": "Exersează {{skill}} pentru a îmbunătăți recomandarea",
       "failedLoadSkills": "Nu s-au putut încărca abilitățile",
       "couldNotFetchSkills": "Nu am putut încărca datele de stăpânire."
+    },
+    "skillInsights": {
+      "title": "Insights timpurii",
+      "justUnlocked": "Tocmai deblocat",
+      "foundation": "Progres de bază",
+      "firstMilestone": "Primul prag este atins",
+      "completeFirstSection": "Finalizează prima secțiune pentru a debloca insights.",
+      "currentFocus": "Focus curent",
+      "learningFoundations": "Fundamente de învățare",
+      "beginnerLevel": "Începător",
+      "momentum": "Ritm",
+      "reviewsDue_one": "{{count}} recapitulare restantă",
+      "reviewsDue_other": "{{count}} recapitulări restante",
+      "missionsActive_one": "{{count}} misiune activă",
+      "missionsActive_other": "{{count}} misiuni active",
+      "sectionsAndLessons": "Secțiuni {{sections}} · Lecții {{lessons}}",
+      "nextStep": {
+        "doReviews": "Fă recapitulări",
+        "startMission": "Începe misiunea",
+        "continueLesson": "Continuă lecția",
+        "startLearning": "Începe să înveți"
+      },
+      "nextStepHint": {
+        "reviews": "Recapitulările spațiate consolidează cel mai rapid reținerea.",
+        "mission": "Misiunile îți cresc XP-ul și mențin seria activă.",
+        "continue": "Continuă de unde ai rămas pentru a aprofunda abilitatea.",
+        "start": "Începe prima lecție pentru insights personalizate."
+      }
     },
     "entitlementUsage": {
       "dailyUsage": "Utilizare zilnică",
@@ -746,7 +775,7 @@
     },
     "swap": {
       "aria": "Schimbă misiunea: {{name}}",
-      "label": "🔄 Schimbă misiunea"
+      "label": "Schimbă misiunea"
     },
     "header": {
       "title": "Misiuni zilnice",
@@ -1522,6 +1551,12 @@
       "correct": "Bravo! Continuă.",
       "incorrect": "Indiciu: revino la cerință și încearcă din nou."
     },
+    "skillInsight": {
+      "firstUnlock": "Abilitate nouă deblocată: {{skill}}",
+      "levelUp": "{{skill}} a urcat la nivelul {{level}}",
+      "keepBuilding": "Continuă să construiești {{skill}}",
+      "building": "În dezvoltare"
+    },
     "loading": "Se încarcă exercițiile...",
     "retry": "Reîncearcă",
     "skillFallback": "General",
@@ -1817,7 +1852,7 @@
         },
         "related": {
           "title": "Notificări conexe",
-          "body": "Te rugăm să consulți și <noAdvice>Notificarea privind lipsa sfaturilor financiare</noAdvice>, <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+          "body": "Te rugăm să consulți și <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
         }
       }
     },
@@ -1897,7 +1932,7 @@
         "about": {
           "title": "2. Ce este Monevo (și ce nu este)",
           "body1": "Monevo este o platformă de educație financiară și suport decizional. Monevo nu este consultant financiar, consilier de investiții, broker sau fiduciary.",
-          "body2": "Vezi <financial>Declinarea de responsabilitate financiară</financial> și <noAdvice>Notificarea privind lipsa sfaturilor financiare</noAdvice>."
+          "body2": "Vezi <financial>Declinarea de responsabilitate financiară</financial>."
         },
         "security": {
           "title": "3. Eligibilitate și securitatea contului",

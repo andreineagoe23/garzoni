@@ -87,8 +87,10 @@ const getToolCardImage = (tool: ToolDefinition): string => {
  */
 const ToolsLanding = ({
   onNavigate,
+  hasPlusAccess,
 }: {
   onNavigate: (source: ToolNavSource) => void;
+  hasPlusAccess: boolean;
 }) => {
   const { t } = useTranslation();
   const getToolText = (tool: ToolDefinition, field: string) =>
@@ -106,6 +108,9 @@ const ToolsLanding = ({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 min-w-0">
           {toolsRegistry
             .filter((tool) => tool.id !== "next-steps")
+            .filter((tool) =>
+              tool.requiredPlan === "plus_or_pro" ? hasPlusAccess : true
+            )
             .map((tool) => {
               const img = getToolCardImage(tool);
               const title = getToolText(tool, "title");
@@ -273,7 +278,13 @@ const ToolView = ({
 };
 
 const ToolsPage = () => {
-  const { isAuthenticated, financialProfile } = useAuth();
+  const { isAuthenticated, financialProfile, entitlements } = useAuth();
+  const resolvedPlan =
+    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ?? "starter";
+  const hasPlusAccess =
+    resolvedPlan === "plus" ||
+    resolvedPlan === "pro" ||
+    Boolean(entitlements?.entitled);
   const { t } = useTranslation();
   const location = useLocation();
   const sessionIdRef = useRef(getSessionId());
@@ -526,7 +537,15 @@ const ToolsPage = () => {
       <div className="w-full space-y-6">
         <section style={{ minHeight: minViewportHeight }} className="w-full">
           <Routes>
-            <Route index element={<ToolsLanding onNavigate={setNavSource} />} />
+            <Route
+              index
+              element={
+                <ToolsLanding
+                  onNavigate={setNavSource}
+                  hasPlusAccess={hasPlusAccess}
+                />
+              }
+            />
             {toolsRegistry.map((tool) => (
               <Route
                 key={tool.id}

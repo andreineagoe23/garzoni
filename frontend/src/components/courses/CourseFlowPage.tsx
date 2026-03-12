@@ -934,6 +934,7 @@ function CourseFlowPage() {
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
+  const [sectionInsight, setSectionInsight] = useState<string>("");
 
   // Keep mascot stable per lesson (avoid switching owl/bull/bear when mood changes).
   const stableLessonMascot = useMemo<"owl" | "bull" | "bear">(() => {
@@ -999,11 +1000,21 @@ function CourseFlowPage() {
       const sectionId = currentItem.section?.id;
       if (typeof sectionId === "number") {
         await completeSectionMutation.mutateAsync(sectionId);
+        setSectionInsight(
+          t("courses.flow.skillInsightSection", {
+            section: currentItem.section?.title || t("courses.flow.thisSection"),
+          })
+        );
       }
     } else {
       const lessonId = currentItem.lessonId;
       if (typeof lessonId === "number") {
         await completeLessonMutation.mutateAsync(lessonId);
+        setSectionInsight(
+          t("courses.flow.skillInsightLesson", {
+            lesson: currentItem.lessonTitle || t("courses.flow.thisLesson"),
+          })
+        );
       }
     }
 
@@ -1016,6 +1027,7 @@ function CourseFlowPage() {
     handleNavigateForward,
     isBlocked,
     pulseMascot,
+    t,
   ]);
 
   const heartCountdownMs = useMemo(() => {
@@ -1494,6 +1506,11 @@ function CourseFlowPage() {
                       fixedMascot={stableLessonMascot}
                       mascotClassName="h-28 w-28 object-contain"
                     />
+                    {sectionInsight && (
+                      <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-[color:var(--text-color,#111827)] shadow-sm backdrop-blur-sm">
+                        {sectionInsight}
+                      </div>
+                    )}
                   </div>
                 </div>
               </aside>

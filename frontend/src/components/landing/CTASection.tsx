@@ -46,9 +46,6 @@ export default function CTASection() {
           <Link to="/financial-disclaimer" className="hover:text-white">
             Financial Disclaimer
           </Link>
-          <Link to="/no-financial-advice" className="hover:text-white">
-            No Financial Advice
-          </Link>
           <Link to="/privacy-policy" className="hover:text-white">
             Privacy
           </Link>

@@ -58,8 +58,9 @@
       "browseTopics": "Browse topics"
     },
     "dailyGoal": {
-      "label": "Daily Goal",
-      "completeDesc": "Complete your daily goal"
+      "label": "Daily goal · {{xp}} XP",
+      "completeDesc": "Complete your daily goal",
+      "xpProgress": "{{current}} / {{target}} XP today"
     },
     "header": {
       "welcomeBack": "Welcome back",
@@ -91,6 +92,34 @@
       "practiceRecommendationAria": "Practice {{skill}} to improve this recommendation",
       "failedLoadSkills": "Failed to load skills",
       "couldNotFetchSkills": "We couldn't fetch your skill mastery data."
+    },
+    "skillInsights": {
+      "title": "Early skill insights",
+      "justUnlocked": "Just unlocked",
+      "foundation": "Foundation progress",
+      "firstMilestone": "First milestone complete",
+      "completeFirstSection": "Complete your first section to unlock insights.",
+      "currentFocus": "Current focus",
+      "learningFoundations": "Learning foundations",
+      "beginnerLevel": "Beginner",
+      "momentum": "Momentum",
+      "reviewsDue_one": "{{count}} review due",
+      "reviewsDue_other": "{{count}} reviews due",
+      "missionsActive_one": "{{count}} active mission",
+      "missionsActive_other": "{{count}} active missions",
+      "sectionsAndLessons": "Sections {{sections}} · Lessons {{lessons}}",
+      "nextStep": {
+        "doReviews": "Do reviews",
+        "startMission": "Start mission",
+        "continueLesson": "Continue lesson",
+        "startLearning": "Start learning"
+      },
+      "nextStepHint": {
+        "reviews": "Spaced reviews will strengthen retention fastest.",
+        "mission": "Missions can boost XP and keep your streak active.",
+        "continue": "Continue where you left off to deepen this skill.",
+        "start": "Start your first lesson to unlock personalized insights."
+      }
     },
     "entitlementUsage": {
       "dailyUsage": "Daily Usage",
@@ -746,7 +775,7 @@
     },
     "swap": {
       "aria": "Swap mission: {{name}}",
-      "label": "🔄 Swap Mission"
+      "label": "Swap mission"
     },
     "header": {
       "title": "Daily Missions",
@@ -1522,6 +1551,12 @@
       "correct": "Nice work! Keep going.",
       "incorrect": "Hint: revisit the prompt and try again."
     },
+    "skillInsight": {
+      "firstUnlock": "New skill unlocked: {{skill}}",
+      "levelUp": "{{skill}} moved up to {{level}}",
+      "keepBuilding": "Keep building {{skill}}",
+      "building": "Building"
+    },
     "loading": "Loading exercises...",
     "retry": "Retry",
     "skillFallback": "General",
@@ -1817,7 +1852,7 @@
         },
         "related": {
           "title": "Related notices",
-          "body": "Please also review our <noAdvice>No Financial Advice Notice</noAdvice>, <terms>Terms of Service</terms>, and <privacy>Privacy Policy</privacy>."
+          "body": "Please also review our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
         }
       }
     },
@@ -1897,7 +1932,7 @@
         "about": {
           "title": "2. What Monevo is (and is not)",
           "body1": "Monevo is a financial education and decision-support platform. Monevo is not a financial adviser, investment adviser, broker, or fiduciary.",
-          "body2": "See our <financial>Financial Disclaimer</financial> and <noAdvice>No Financial Advice Notice</noAdvice>."
+          "body2": "See our <financial>Financial Disclaimer</financial>."
         },
         "security": {
           "title": "3. Eligibility and account security",
