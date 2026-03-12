@@ -10,7 +10,6 @@ const LEGAL_PATHS = [
   { path: "/cookie-policy", labelKey: "footer.cookiePolicy" },
   { path: "/terms-of-service", labelKey: "footer.termsConditions" },
   { path: "/financial-disclaimer", labelKey: "footer.financialDisclaimer" },
-  { path: "/no-financial-advice", labelKey: "footer.noFinancialAdviceNotice" },
 ];
 
 /**

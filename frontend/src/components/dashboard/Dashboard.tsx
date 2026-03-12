@@ -31,6 +31,7 @@ import DailyGoalCard from "./DailyGoalCard";
 import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
+import EarlySkillInsights from "./EarlySkillInsights";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
 import { selectPrimaryCTA } from "./primaryCtaSelector";
 import { getLocale } from "utils/format";
@@ -42,6 +43,7 @@ import { useTranslation } from "react-i18next";
 type WeakSkill = {
   skill: string;
   proficiency: number;
+  level_label?: string;
 };
 
 type PrimaryCtaData = {
@@ -362,8 +364,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     activeMissions,
     weakestSkills,
     dailyGoalProgress,
+    dailyGoalCurrentXP,
+    dailyGoalTargetXP,
     resume,
     startHere,
+    completedSections,
+    totalSections,
+    completedLessons,
+    totalLessons,
   } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
@@ -382,9 +390,76 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         .map((skill) => ({
           skill: skill.skill,
           proficiency: skill.proficiency ?? 0,
+          level_label: (skill as { level_label?: string }).level_label,
         })),
     [weakestSkills]
   );
+
+  useEffect(() => {
+    trackEvent("cta_click", {
+      reason: "skill_insight_view",
+      completed_lessons: completedLessons,
+      completed_sections: completedSections,
+      has_mastery: (masteryData?.masteries?.length ?? 0) > 0,
+    });
+    // Track first render only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const nextSkillInsightStep = useMemo(() => {
+    if (reviewsDue > 0) {
+      return {
+        label: t("dashboard.skillInsights.nextStep.doReviews"),
+        hint: t("dashboard.skillInsights.nextStepHint.reviews"),
+        action: () => {
+          trackEvent("cta_click", { reason: "skill_insight_reviews" });
+          navigate("/exercises");
+        },
+      };
+    }
+    if (activeMissions.length > 0) {
+      return {
+        label: t("dashboard.skillInsights.nextStep.startMission"),
+        hint: t("dashboard.skillInsights.nextStepHint.mission"),
+        action: () => {
+          trackEvent("cta_click", { reason: "skill_insight_mission" });
+          navigate("/missions");
+        },
+      };
+    }
+    if (resume?.course_id) {
+      return {
+        label: t("dashboard.skillInsights.nextStep.continueLesson"),
+        hint: t("dashboard.skillInsights.nextStepHint.continue"),
+        action: () => {
+          trackEvent("cta_click", { reason: "skill_insight_resume" });
+          handleCourseClick(resume.course_id, resume.path_id ?? undefined);
+        },
+      };
+    }
+    return {
+      label: t("dashboard.skillInsights.nextStep.startLearning"),
+      hint: t("dashboard.skillInsights.nextStepHint.start"),
+      action: () => {
+        trackEvent("cta_click", { reason: "skill_insight_start" });
+        if (startHere?.path_id != null && startHere?.course_id != null) {
+          navigate(`/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`);
+        } else {
+          navigate("/all-topics");
+        }
+      },
+    };
+  }, [
+    activeMissions.length,
+    handleCourseClick,
+    navigate,
+    resume,
+    reviewsDue,
+    startHere?.course_id,
+    startHere?.path_id,
+    t,
+    trackEvent,
+  ]);
 
   // Determine CTA based on priority (memoized) - must be before early return
   const primaryCTASignal = useMemo(
@@ -625,16 +700,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {resume ? (
                   <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl" aria-hidden="true">
+                        <span className="text-xl sm:text-2xl" aria-hidden="true">
                           📖
                         </span>
                         <div>
-                          <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                          <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          <p className="text-[11px] sm:text-xs text-[color:var(--muted-text,#6b7280)]">
                             {t("dashboard.resume.continueWith", {
                               course: resume.course_title,
                             })}
@@ -649,7 +724,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             resume.path_id ?? undefined
                           )
                         }
-                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
                         aria-label={t("dashboard.resume.continueLesson")}
                       >
                         {t("dashboard.resume.continueLesson")}
@@ -658,16 +733,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl" aria-hidden="true">
+                        <span className="text-xl sm:text-2xl" aria-hidden="true">
                           📖
                         </span>
                         <div>
-                          <p className="font-semibold text-[color:var(--text-color,#111827)]">
+                          <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          <p className="text-[11px] sm:text-xs text-[color:var(--muted-text,#6b7280)]">
                             {t("dashboard.resume.startFirstLesson")}
                           </p>
                         </div>
@@ -686,7 +761,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             navigate("/all-topics");
                           }
                         }}
-                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
                         aria-label={t("dashboard.resume.browseTopics")}
                       >
                         {t("dashboard.resume.browseTopics")}
@@ -695,16 +770,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   </div>
                 )}
 
-                <DailyGoalCard
-                  dailyGoalProgress={dailyGoalProgress}
-                  locale={locale}
-                  prefersReducedMotion={prefersReducedMotion.current}
-                  noMarginTop
-                />
+              <DailyGoalCard
+                dailyGoalProgress={dailyGoalProgress}
+                dailyGoalCurrentXP={dailyGoalCurrentXP}
+                dailyGoalTargetXP={dailyGoalTargetXP}
+                locale={locale}
+                prefersReducedMotion={prefersReducedMotion.current}
+                noMarginTop
+              />
               </div>
             ) : (
               <DailyGoalCard
                 dailyGoalProgress={dailyGoalProgress}
+                dailyGoalCurrentXP={dailyGoalCurrentXP}
+                dailyGoalTargetXP={dailyGoalTargetXP}
                 locale={locale}
                 prefersReducedMotion={prefersReducedMotion.current}
               />
@@ -720,6 +799,21 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               prefersReducedMotion={prefersReducedMotion.current}
               onSkillClick={handleWeakSkillClick}
               onPracticeClick={handleWeakSkillPractice}
+            />
+
+            <EarlySkillInsights
+              overallProgress={overallProgress}
+              completedLessons={completedLessons}
+              totalLessons={totalLessons}
+              completedSections={completedSections}
+              totalSections={totalSections}
+              weakestSkills={weakSkillItems}
+              reviewsDue={reviewsDue}
+              activeMissionsCount={activeMissions.length}
+              locale={locale}
+              nextStepLabel={nextSkillInsightStep.label}
+              nextStepHint={nextSkillInsightStep.hint}
+              onNextStepClick={nextSkillInsightStep.action}
             />
 
             <StatusSummary

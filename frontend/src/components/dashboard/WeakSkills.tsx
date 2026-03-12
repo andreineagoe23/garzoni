@@ -7,6 +7,7 @@ import { ErrorState } from "./ErrorState";
 type WeakSkill = {
   skill: string;
   proficiency: number;
+  level_label?: string;
 };
 
 type WeakSkillsProps = {
@@ -103,9 +104,16 @@ const WeakSkills = ({
                   <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
                     {skill.skill}
                   </span>
-                  <span className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-                    {formatPercentage(skill.proficiency, locale, 0)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {skill.proficiency <= 20 && (
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-600">
+                        {t("dashboard.skillInsights.justUnlocked")}
+                      </span>
+                    )}
+                    <span className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                      {formatPercentage(skill.proficiency, locale, 0)}
+                    </span>
+                  </div>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                   <div
@@ -124,6 +132,11 @@ const WeakSkills = ({
                     skill: skill.skill,
                   })}
                 </p>
+                {skill.level_label && (
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    {skill.level_label}
+                  </p>
+                )}
               </button>
               <div className="mt-2 flex items-center justify-end">
                 <button

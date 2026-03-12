@@ -4,6 +4,8 @@ import { formatPercentage } from "utils/format";
 
 type DailyGoalCardProps = {
   dailyGoalProgress: number;
+  dailyGoalCurrentXP: number;
+  dailyGoalTargetXP: number;
   locale?: string;
   prefersReducedMotion?: boolean;
   /** When true, omit top margin (e.g. when embedded in a shared container). */
@@ -12,6 +14,8 @@ type DailyGoalCardProps = {
 
 const DailyGoalCard = ({
   dailyGoalProgress,
+  dailyGoalCurrentXP,
+  dailyGoalTargetXP,
   locale,
   prefersReducedMotion,
   noMarginTop,
@@ -27,7 +31,9 @@ const DailyGoalCard = ({
             🎯
           </span>
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
-            {t("dashboard.dailyGoal.label")}
+            {t("dashboard.dailyGoal.label", {
+              xp: dailyGoalTargetXP,
+            })}
           </span>
         </div>
         <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -44,16 +50,11 @@ const DailyGoalCard = ({
           aria-valuenow={dailyGoalProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${t("dashboard.dailyGoal.label")}: ${formatPercentage(
-            dailyGoalProgress,
-            locale,
-            0
-          )} complete`}
+          aria-label={`${t("dashboard.dailyGoal.label", {
+            xp: dailyGoalTargetXP,
+          })}: ${formatPercentage(dailyGoalProgress, locale, 0)} complete`}
         />
       </div>
-      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-        {t("dashboard.dailyGoal.completeDesc")}
-      </p>
     </div>
   );
 };

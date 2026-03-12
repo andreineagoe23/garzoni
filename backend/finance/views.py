@@ -1229,6 +1229,115 @@ class SubscriptionCreateView(APIView):
             )
 
 
+class SubscriptionPortalView(APIView):
+    """Create a Stripe Customer Portal session so the user can manage or cancel their subscription."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        if not stripe_key:
+            logger.error("STRIPE_SECRET_KEY is not configured.")
+            return Response(
+                {"error": "Payment is not configured. Please try again later."},
+                status=503,
+            )
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {"error": "Profile not found."},
+                status=404,
+            )
+        sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+        if not sub_id:
+            return Response(
+                {"error": "No active subscription found. You can subscribe from the plans below."},
+                status=400,
+            )
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
+        return_url = f"{frontend_url.rstrip('/')}/subscriptions"
+        try:
+            stripe.api_key = stripe_key
+            sub = stripe.Subscription.retrieve(sub_id)
+            customer_id = (
+                sub.customer if isinstance(sub.customer, str) else getattr(sub.customer, "id", None)
+            )
+            if not customer_id:
+                return Response(
+                    {
+                        "error": "Could not resolve subscription. Please try again or contact support."
+                    },
+                    status=400,
+                )
+            session = stripe.billing_portal.Session.create(
+                customer=customer_id,
+                return_url=return_url,
+            )
+            return Response({"url": session.url}, status=200)
+        except stripe.error.StripeError as e:
+            logger.error("Stripe portal error: %s", e)
+            return Response(
+                {"error": "Could not open customer portal. Please try again or contact support."},
+                status=400,
+            )
+        except Exception as e:
+            logger.error("Subscription portal error: %s", e, exc_info=True)
+            return Response(
+                {"error": "Server error. Please try again later."},
+                status=500,
+            )
+
+
+class SubscriptionCancelView(APIView):
+    """Cancel the user's active Stripe subscription at period end."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        if not stripe_key:
+            logger.error("STRIPE_SECRET_KEY is not configured.")
+            return Response(
+                {"error": "Payment is not configured. Please try again later."},
+                status=503,
+            )
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=404)
+
+        sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+        if not sub_id:
+            return Response(
+                {"error": "No active subscription found. You can subscribe from the plans below."},
+                status=400,
+            )
+
+        try:
+            stripe.api_key = stripe_key
+            # Set cancel_at_period_end instead of immediate cancellation
+            subscription = stripe.Subscription.modify(
+                sub_id,
+                cancel_at_period_end=True,
+            )
+            profile.subscription_status = getattr(subscription, "status", "canceled")
+            profile.save(update_fields=["subscription_status"])
+            return Response({"success": True}, status=200)
+        except stripe.error.StripeError as e:
+            logger.error("Stripe cancel error: %s", e)
+            return Response(
+                {"error": "Failed to cancel subscription. Please try again."},
+                status=400,
+            )
+        except Exception as e:
+            logger.error("Subscription cancel error: %s", e, exc_info=True)
+            return Response(
+                {"error": "Server error. Please try again later."},
+                status=500,
+            )
+
+
 class EntitlementStatusView(APIView):
     """Expose entitlement information for authenticated users."""
 
