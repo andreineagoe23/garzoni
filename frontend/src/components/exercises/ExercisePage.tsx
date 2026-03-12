@@ -1585,12 +1585,14 @@ const ExercisePage = () => {
           </GlassCard>
 
           <div className="w-full lg:w-80 space-y-6">
-            <MascotWithMessage
-              mood={mascotMood}
-              rotateMessages
-              rotationKey={mascotInteractionCountRef.current}
-              mascotClassName="h-24 w-24 object-contain"
-            />
+            <div className="relative">
+              <div className="pointer-events-none sticky bottom-6">
+                <MascotWithMessage
+                  mood={mascotMood}
+                  mascotClassName="h-24 w-24 object-contain"
+                />
+              </div>
+            </div>
             <GlassCard padding="lg">
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {t("exercises.progress.title")}
