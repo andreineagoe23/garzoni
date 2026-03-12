@@ -28,7 +28,6 @@ const TermsOfService = () => {
           i18nKey="legal.terms.sections.about.body2"
           components={{
             financial: <Link to="/financial-disclaimer" />,
-            noAdvice: <Link to="/no-financial-advice" />,
           }}
         />
       </p>

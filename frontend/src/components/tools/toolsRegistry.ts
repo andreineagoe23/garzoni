@@ -24,6 +24,8 @@ export type ToolDefinition = {
   activityStorageKey?: string;
   /** Optional image URL for the tools landing card. Falls back to group image. */
   cardImage?: string;
+  /** Optional plan requirement (e.g. plus_or_pro for paid-only tools). */
+  requiredPlan?: "plus_or_pro";
 };
 
 export const TOOL_STORAGE_KEYS = {
@@ -69,6 +71,7 @@ export const toolsRegistry: ToolDefinition[] = [
     group: "understand-world",
     route: "economic-map",
     component: EconomicMap,
+    requiredPlan: "plus_or_pro",
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_map.png",
     keywords: ["macro", "economy", "map", "global"],
@@ -79,6 +82,7 @@ export const toolsRegistry: ToolDefinition[] = [
     group: "understand-world",
     route: "news-context",
     component: NewsMarketContext,
+    requiredPlan: "plus_or_pro",
     learnPath: "/all-topics?topic=markets",
     cardImage: "tools/news_market.png",
     keywords: ["news", "markets", "macro", "context"],
@@ -89,6 +93,7 @@ export const toolsRegistry: ToolDefinition[] = [
     group: "decide-next",
     route: "market-explorer",
     component: MarketExplorer,
+    requiredPlan: "plus_or_pro",
     learnPath: "/all-topics?topic=investing",
     cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],

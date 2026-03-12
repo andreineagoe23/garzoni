@@ -42,10 +42,6 @@ function Footer() {
         { label: t("footer.cookieSettings"), openCookieSettings: true },
         { label: t("footer.termsConditions"), to: "/terms-of-service" },
         { label: t("footer.financialDisclaimer"), to: "/financial-disclaimer" },
-        {
-          label: t("footer.noFinancialAdviceNotice"),
-          to: "/no-financial-advice",
-        },
       ],
     },
     {
@@ -85,9 +81,9 @@ function Footer() {
         className="w-full px-5 py-8 sm:px-8 sm:py-10 lg:px-10"
       >
         <div className="mx-auto w-full max-w-6xl space-y-10">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 lg:grid-cols-5">
-            {/* Brand & tagline: full-width row on sm so the 3 link columns sit on one row below */}
-            <div className="space-y-4 sm:col-span-3 lg:col-span-2">
+          <div className="grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 lg:grid-cols-5">
+            {/* Brand & tagline: full-width on mobile, then 3 cols on sm, 2 cols on lg */}
+            <div className="col-span-3 space-y-4 sm:col-span-3 lg:col-span-2">
               <span className="text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#111827)]">
                 monevo
               </span>

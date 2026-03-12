@@ -539,6 +539,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             )
 
             user_progress.completed_lessons.add(lesson)
+            lesson_sections = list(lesson.sections.all())
+            if lesson_sections:
+                user_progress.completed_sections.add(*lesson_sections)
+                for section in lesson_sections[:3]:
+                    _grant_initial_mastery(request.user, _extract_section_skill(section))
             user_profile.add_money(Decimal("5.00"))
             user_profile.save()
 
@@ -622,21 +627,41 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 .annotate(c=Count("id"))
                 .values_list("lesson__course_id", "c")
             )
+            lesson_counts = dict(
+                Lesson.objects.filter(course_id__in=course_ids)
+                .values("course_id")
+                .annotate(c=Count("id"))
+                .values_list("course_id", "c")
+            )
             progress_by_course = {
                 p.course_id: p
                 for p in UserProgress.objects.filter(
                     user=user, course_id__in=course_ids
-                ).prefetch_related("completed_sections")
+                ).prefetch_related("completed_sections", "completed_lessons")
             }
 
             progress_data = []
+            total_completed_sections = 0
+            total_sections_all = 0
+            total_completed_lessons = 0
+            total_lessons_all = 0
             for course in courses:
                 total_sections = section_counts.get(course.id, 0)
+                total_lessons = lesson_counts.get(course.id, 0)
                 progress = progress_by_course.get(course.id)
                 completed_sections = progress.completed_sections.count() if progress else 0
-                percent_complete = (
+                completed_lessons = progress.completed_lessons.count() if progress else 0
+                section_percent = (
                     (completed_sections / total_sections) * 100 if total_sections > 0 else 0
                 )
+                lesson_percent = (
+                    (completed_lessons / total_lessons) * 100 if total_lessons > 0 else 0
+                )
+                percent_complete = max(section_percent, lesson_percent)
+                total_completed_sections += completed_sections
+                total_sections_all += total_sections
+                total_completed_lessons += completed_lessons
+                total_lessons_all += total_lessons
                 progress_data.append(
                     {
                         "path": course.path.title if course.path else None,
@@ -644,6 +669,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                         "course": course.title,
                         "course_id": course.id,
                         "percent_complete": percent_complete,
+                        "completed_sections": completed_sections,
+                        "total_sections": total_sections,
+                        "completed_lessons": completed_lessons,
+                        "total_lessons": total_lessons,
                     }
                 )
 
@@ -699,6 +728,10 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                     if progress_data
                     else 0
                 ),
+                "completed_sections": total_completed_sections if progress_data else 0,
+                "total_sections": total_sections_all if progress_data else 0,
+                "completed_lessons": total_completed_lessons if progress_data else 0,
+                "total_lessons": total_lessons_all if progress_data else 0,
                 "paths": progress_data,
                 "resume": resume,
                 "start_here": start_here,
@@ -721,6 +754,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 user=user, course=section.lesson.course
             )
             progress.completed_sections.add(section)
+            _grant_initial_mastery(user, _extract_section_skill(section))
             progress.save()
             return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
@@ -836,6 +870,55 @@ def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
     elif confidence == "high" and not is_correct:
         base -= 2
     return base
+
+
+def _mastery_level_band(proficiency: int) -> str:
+    if proficiency >= 80:
+        return "pro"
+    if proficiency >= 50:
+        return "confident"
+    if proficiency >= 20:
+        return "building"
+    return "beginner"
+
+
+def _mastery_level_label(proficiency: int) -> str:
+    band = _mastery_level_band(proficiency)
+    if band == "pro":
+        return "Pro"
+    if band == "confident":
+        return "Confident"
+    if band == "building":
+        return "Building"
+    return "Beginner"
+
+
+def _extract_section_skill(section: LessonSection) -> str:
+    exercise_data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
+    section_category = exercise_data.get("category")
+    if section_category:
+        return str(section_category)
+
+    lesson_exercise_data = (
+        section.lesson.exercise_data if isinstance(section.lesson.exercise_data, dict) else {}
+    )
+    lesson_category = lesson_exercise_data.get("category")
+    if lesson_category:
+        return str(lesson_category)
+
+    if section.title:
+        return str(section.title).strip()
+    return str(section.lesson.title).strip() or "General"
+
+
+def _grant_initial_mastery(user, skill: str, baseline: int = 12):
+    mastery = _get_or_create_mastery(user, skill)
+    baseline = max(1, min(100, int(baseline)))
+    if mastery.proficiency < baseline:
+        mastery.proficiency = baseline
+        mastery.due_at = timezone.now()
+        mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
+    return mastery
 
 
 def _evaluate_numeric(exercise, user_answer):
@@ -1061,6 +1144,10 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 "xp_delta": xp_delta,
                 "due_at": mastery.due_at,
                 "proficiency": mastery.proficiency,
+                "level_band": _mastery_level_band(mastery.proficiency),
+                "level_label": _mastery_level_label(mastery.proficiency),
+                "skill": _select_skill(exercise),
+                "first_unlock": mastery_before == 0 and mastery.proficiency > 0,
             }
         )
 
@@ -1144,6 +1231,8 @@ def review_queue(request):
                 "type": exercise.type,
                 "due_at": mastery.due_at,
                 "proficiency": mastery.proficiency,
+                "level_band": _mastery_level_band(mastery.proficiency),
+                "level_label": _mastery_level_label(mastery.proficiency),
             }
         )
     logger.info(
@@ -1167,6 +1256,8 @@ def mastery_summary(request):
             "proficiency": mastery.proficiency,
             "due_at": mastery.due_at,
             "last_reviewed": mastery.last_reviewed,
+            "level_band": _mastery_level_band(mastery.proficiency),
+            "level_label": _mastery_level_label(mastery.proficiency),
         }
         for mastery in masteries
     ]

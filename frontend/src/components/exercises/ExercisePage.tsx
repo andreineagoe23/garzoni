@@ -74,7 +74,9 @@ const ExercisePage = () => {
   const [streakMultiplier, setStreakMultiplier] = useState(1);
   const [inlineHint, setInlineHint] = useState("");
   const [coinsEarned, setCoinsEarned] = useState(0);
+  const [recentSkillInsight, setRecentSkillInsight] = useState("");
   const inlineHintTimeoutRef = useRef(null);
+  const skillInsightTimeoutRef = useRef(null);
   const isDevelopment = process.env.NODE_ENV === "development";
   const mascotTimeoutRef = useRef(null);
   const mascotInteractionCountRef = useRef(0);
@@ -338,6 +340,9 @@ const ExercisePage = () => {
       if (inlineHintTimeoutRef.current) {
         clearTimeout(inlineHintTimeoutRef.current);
       }
+      if (skillInsightTimeoutRef.current) {
+        clearTimeout(skillInsightTimeoutRef.current);
+      }
       if (mascotTimeoutRef.current) {
         clearTimeout(mascotTimeoutRef.current);
       }
@@ -462,12 +467,33 @@ const ExercisePage = () => {
       const skill = currentExercise.category || t("exercises.skillFallback");
       const before = skillProficiency[skill] || 0;
       const after = response.data.proficiency ?? before;
+      const skillDelta = after - before;
       setSkillProficiency((prev) => ({ ...prev, [skill]: after }));
-      if (after - before > 0) {
+      if (skillDelta > 0) {
         setSkillGains((prev) => ({
           ...prev,
-          [skill]: (prev[skill] || 0) + (after - before),
+          [skill]: (prev[skill] || 0) + skillDelta,
         }));
+      }
+
+      const skillInsightMessage = response.data.first_unlock
+        ? t("exercises.skillInsight.firstUnlock", { skill })
+        : skillDelta > 0
+          ? t("exercises.skillInsight.levelUp", {
+              skill,
+              level: response.data.level_label || t("exercises.skillInsight.building"),
+            })
+          : response.data.correct
+            ? t("exercises.skillInsight.keepBuilding", { skill })
+            : "";
+      if (skillInsightMessage) {
+        setRecentSkillInsight(skillInsightMessage);
+        if (skillInsightTimeoutRef.current) {
+          clearTimeout(skillInsightTimeoutRef.current);
+        }
+        skillInsightTimeoutRef.current = setTimeout(() => {
+          setRecentSkillInsight("");
+        }, 4500);
       }
 
       const correctAnswers = updated.filter((p) => p.correct).length;
@@ -1591,6 +1617,11 @@ const ExercisePage = () => {
                   mood={mascotMood}
                   mascotClassName="h-24 w-24 object-contain"
                 />
+                {recentSkillInsight && (
+                  <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-[color:var(--text-color,#111827)] shadow-sm backdrop-blur-sm animate-pulse">
+                    {recentSkillInsight}
+                  </div>
+                )}
               </div>
             </div>
             <GlassCard padding="lg">
