@@ -904,6 +904,11 @@
       "helpful": "👍 Helpful",
       "notHelpful": "👎 Not really"
     },
+    "feedbackSection": {
+      "title": "Did you see a bug or something not to your liking?",
+      "description": "Report a bug or send feedback so we can improve.",
+      "cta": "Report bug or send feedback"
+    },
     "contact": {
       "title": "Still need help? Contact us",
       "subtitle": "Share a brief description of the issue and we'll be in touch.",
@@ -923,6 +928,22 @@
       "success": "Your message has been received! Thank you for contacting us.",
       "error": "Failed to send message. Please try again later."
     }
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Report a bug or tell us what you'd like to see improved.",
+    "typeLabel": "Type",
+    "typeBug": "Bug report",
+    "typeSuggestion": "Suggestion / improvement",
+    "typeOther": "Something else",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Describe what happened or what you'd like to see changed...",
+    "whereLabel": "Where did this happen? (optional)",
+    "wherePlaceholder": "e.g. /tools, Dashboard, or a short description",
+    "send": "Send feedback",
+    "success": "Thanks! We've received your feedback.",
+    "error": "Failed to send feedback. Please try again.",
+    "backToSupport": "Back to Support"
   },
   "profile": {
     "weekdays": {
