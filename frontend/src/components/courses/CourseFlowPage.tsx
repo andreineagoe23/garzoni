@@ -334,7 +334,7 @@ function CourseFlowPage() {
     enabled: Number.isFinite(courseIdNumber),
   });
 
-  const { data: pathCourses, isLoading: isPathCoursesLoading } = useQuery({
+  const { data: pathCourses } = useQuery({
     queryKey: queryKeys.learningPathCourses(pathIdNumber),
     queryFn: () =>
       fetchLearningPathCourses(pathIdNumber).then(
@@ -894,11 +894,6 @@ function CourseFlowPage() {
     }
   };
 
-  const otherCourses = useMemo(() => {
-    const list = Array.isArray(pathCourses) ? pathCourses : [];
-    return list.filter((c) => c?.id && c.id !== courseIdNumber);
-  }, [courseIdNumber, pathCourses]);
-
   const nextCourseIdInPath = useMemo(() => {
     if (!Number.isFinite(pathIdNumber)) return null;
     const list = Array.isArray(pathCourses) ? pathCourses : [];
@@ -930,11 +925,30 @@ function CourseFlowPage() {
   );
 
   const mascotTimeoutRef = useRef<number | null>(null);
+  const mascotHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mascotInteractionCountRef = useRef(0);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
   const [sectionInsight, setSectionInsight] = useState<string>("");
+
+  // Hide mascot after a few seconds (only shown when user completes a section)
+  const MASCOT_VISIBLE_MS = 5000;
+  useEffect(() => {
+    if (!sectionInsight) return;
+    if (mascotHideTimeoutRef.current) clearTimeout(mascotHideTimeoutRef.current);
+    mascotHideTimeoutRef.current = setTimeout(() => {
+      setSectionInsight("");
+      mascotHideTimeoutRef.current = null;
+    }, MASCOT_VISIBLE_MS);
+    return () => {
+      if (mascotHideTimeoutRef.current) {
+        clearTimeout(mascotHideTimeoutRef.current);
+        mascotHideTimeoutRef.current = null;
+      }
+    };
+  }, [sectionInsight]);
 
   // Keep mascot stable per lesson (avoid switching owl/bull/bear when mood changes).
   const stableLessonMascot = useMemo<"owl" | "bull" | "bear">(() => {
@@ -967,13 +981,26 @@ function CourseFlowPage() {
 
   useEffect(() => {
     return () => {
-      if (mascotTimeoutRef.current) {
-        window.clearTimeout(mascotTimeoutRef.current);
+      if (mascotTimeoutRef.current) window.clearTimeout(mascotTimeoutRef.current);
+      if (mascotHideTimeoutRef.current) {
+        clearTimeout(mascotHideTimeoutRef.current);
+        mascotHideTimeoutRef.current = null;
       }
     };
   }, []);
 
+  const scrollToTop = useCallback(() => {
+    const el = contentScrollRef.current;
+    if (el) {
+      el.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const handleNavigateForward = useCallback(() => {
+    scrollToTop();
     if (isLast) {
       if (nextCourseIdInPath) {
         handleGoToCourse(nextCourseIdInPath, flowSections.length);
@@ -989,6 +1016,7 @@ function CourseFlowPage() {
     isLast,
     nextCourseIdInPath,
     flowSections.length,
+    scrollToTop,
     setCourseComplete,
   ]);
 
@@ -1403,8 +1431,11 @@ function CourseFlowPage() {
       </div>
 
       {/* Content (scrolls internally; page stays fixed) */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-        <div className="mx-auto w-full max-w-5xl px-6 pb-24 pt-10">
+      <div
+        ref={contentScrollRef}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+      >
+        <div className="mx-auto w-full max-w-5xl px-4 pb-28 pt-6 sm:px-6 sm:pt-10 lg:pb-24">
           {courseComplete && (
             <div className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-8 text-center shadow-xl shadow-emerald-500/10">
               <div className="flex flex-col items-center gap-3">
@@ -1538,27 +1569,29 @@ function CourseFlowPage() {
           )}
 
           {!courseComplete && (
-            <div className="flex flex-col gap-8 lg:flex-row">
-              <div className="flex-1 space-y-8">{renderSectionBody()}</div>
-              <aside className="w-full lg:w-64">
-                <div className="relative">
-                  <div className="pointer-events-none sticky bottom-6">
-                    <MascotWithMessage
-                      mood={mascotMood}
-                      fixedMascot={stableLessonMascot}
-                      customMessage={sectionInsight || undefined}
-                      mascotClassName="h-28 w-28 object-contain"
-                    />
+            <div className="flex flex-col gap-3 lg:flex-row lg:gap-8">
+              <div className="flex-1 space-y-6 lg:space-y-8">{renderSectionBody()}</div>
+              {sectionInsight && (
+                <aside className="w-full shrink-0 lg:w-64">
+                  <div className="relative">
+                    <div className="pointer-events-none sticky bottom-6 lg:bottom-6">
+                      <MascotWithMessage
+                        mood={mascotMood}
+                        fixedMascot={stableLessonMascot}
+                        customMessage={sectionInsight}
+                        mascotClassName="h-28 w-28 object-contain"
+                      />
+                    </div>
                   </div>
-                </div>
-              </aside>
+                </aside>
+              )}
             </div>
           )}
 
           {!courseComplete && currentItem && (
-            <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-6 hidden flex-wrap items-center justify-between gap-3 sm:mt-10 lg:flex">
               <GlassButton
-                variant="ghost"
+                variant="active"
                 size="lg"
                 onClick={() => {
                   if (currentIndex <= 0) {
@@ -1575,17 +1608,35 @@ function CourseFlowPage() {
                   : t("shared.back")}
               </GlassButton>
 
+              <div className="flex flex-1 justify-center gap-2 px-2">
+                <GlassButton
+                  variant="ghost"
+                  size="lg"
+                  onClick={handleGoToAllTopicsPath}
+                >
+                  {t("courses.flow.backToPath")}
+                </GlassButton>
+                <GlassButton
+                  variant="ghost"
+                  size="lg"
+                  onClick={handleGoToPathCourses}
+                  disabled={!Number.isFinite(pathIdNumber)}
+                  aria-disabled={!Number.isFinite(pathIdNumber)}
+                >
+                  {t("courses.flow.otherCourses")}
+                </GlassButton>
+              </div>
+
               {!isBlocked && (
                 <GlassButton
                   variant="active"
-                  size="xl"
+                  size="lg"
                   disabled={
                     isHeartsMutating ||
                     completeLessonMutation.isPending ||
                     completeSectionMutation.isPending
                   }
                   onClick={() => {
-                    // For exercises, just navigate forward without marking complete
                     const isExercise =
                       currentItem.kind === "section" &&
                       currentItem.section?.content_type === "exercise";
@@ -1611,77 +1662,85 @@ function CourseFlowPage() {
               {t("courses.flow.outOfHearts")}
             </div>
           )}
-
-          {/* Progress + navigation (bottom of main section) */}
-          {!courseComplete && (
-            <section className="mt-12 rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-6 py-5 shadow-sm">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    {t("courses.flow.yourProgress")}
-                  </p>
-                  <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
-                    {t("courses.flow.sectionsCompleted", {
-                      completed: completedSteps,
-                      total: totalSteps,
-                      percent: progressPercent,
-                    })}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleGoToAllTopicsPath}
-                    className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
-                  >
-                    {t("courses.flow.backToPath")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGoToPathCourses}
-                    className="rounded-full border border-[color:var(--primary,#1d5330)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
-                    disabled={!Number.isFinite(pathIdNumber)}
-                    aria-disabled={!Number.isFinite(pathIdNumber)}
-                  >
-                    {t("courses.flow.otherCourses")}
-                  </button>
-                </div>
-              </div>
-
-              {Number.isFinite(pathIdNumber) && (
-                <div className="mt-5">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    {t("courses.flow.jumpToCourse")}
-                  </p>
-                  {isPathCoursesLoading ? (
-                    <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      {t("courses.flow.loadingCourses")}
-                    </div>
-                  ) : otherCourses.length ? (
-                    <div className="flex flex-wrap gap-2">
-                      {otherCourses.slice(0, 8).map((course) => (
-                        <button
-                          key={course.id}
-                          type="button"
-                          onClick={() => handleGoToCourse(course.id)}
-                          className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-xs font-semibold text-[color:var(--text-color,#111827)] hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)]"
-                          title={course.title}
-                        >
-                          {course.title}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                      {t("courses.flow.noOtherCourses")}
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
         </div>
       </div>
+
+      {/* Mobile: bottom navbar (Back, Paths, Courses, Continue) – same size, sticky to bottom */}
+      {!courseComplete && currentItem && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between gap-2 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-3 py-3 backdrop-blur-sm lg:hidden"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <GlassButton
+            variant="active"
+            size="lg"
+            onClick={() => {
+              if (currentIndex <= 0) {
+                handleGoToPathCourses();
+                return;
+              }
+              setCurrentIndex((prev) => Math.max(0, prev - 1));
+            }}
+          >
+            {currentIndex <= 0
+              ? Number.isFinite(pathIdNumber)
+                ? t("courses.flow.backToCourses")
+                : t("courses.flow.backToDashboard")
+              : t("shared.back")}
+          </GlassButton>
+
+          <div className="flex flex-1 justify-center gap-1.5 px-1">
+            <GlassButton
+              variant="ghost"
+              size="lg"
+              onClick={handleGoToAllTopicsPath}
+            >
+              {t("courses.flow.backToPath")}
+            </GlassButton>
+            <GlassButton
+              variant="ghost"
+              size="lg"
+              onClick={handleGoToPathCourses}
+              disabled={!Number.isFinite(pathIdNumber)}
+              aria-disabled={!Number.isFinite(pathIdNumber)}
+            >
+              {t("courses.flow.otherCourses")}
+            </GlassButton>
+          </div>
+
+          {!isBlocked ? (
+            <GlassButton
+              variant="active"
+              size="lg"
+              disabled={
+                isHeartsMutating ||
+                completeLessonMutation.isPending ||
+                completeSectionMutation.isPending
+              }
+              onClick={() => {
+                const isExercise =
+                  currentItem.kind === "section" &&
+                  currentItem.section?.content_type === "exercise";
+                if (isExercise) {
+                  handleNavigateForward();
+                } else {
+                  handleCompleteCurrent();
+                }
+              }}
+            >
+              {isLast
+                ? nextCourseIdInPath
+                  ? t("courses.flow.nextCourse")
+                  : t("shared.finish")
+                : t("shared.continue")}
+            </GlassButton>
+          ) : (
+            <span className="text-xs font-semibold text-rose-600">
+              {t("courses.flow.outOfHearts")}
+            </span>
+          )}
+        </div>
+      )}
 
       {adminMode && (draftSection || editingLessonId) && (
         <div
