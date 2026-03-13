@@ -52,6 +52,33 @@
   }
 }
 
+/* Inline layout: mascot left, bubble right (mobile) – containerized, centered, limited size */
+.tooltip--inline-wrapper {
+  max-width: 11rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.tooltip--inline {
+  text-align: center;
+  max-width: 100%;
+  font-size: 0.6875rem;
+  padding: 0.35em 0.5em;
+  --b: 1em;
+  --p: 50%;
+  --r: 0.6em;
+}
+
+@media (min-width: 640px) {
+  .tooltip--inline-wrapper {
+    max-width: 13rem;
+  }
+  .tooltip--inline {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
+  }
+}
+
 [data-theme="dark"] .tooltip {
   background: rgba(24, 24, 27, 0.9);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);

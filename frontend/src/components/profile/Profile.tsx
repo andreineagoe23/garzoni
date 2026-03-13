@@ -267,15 +267,12 @@ function Profile() {
             />
           ))}
           {days.map((day) => {
-            const date = new Date(
-              Number(currentMonth.year || 0),
-              new Date(
-                currentMonth.first_day as string | number | Date
-              ).getMonth(),
-              day
-            );
-            const dateStr = date.toISOString().split("T")[0];
-            const activityCount = (activityCalendar[dateStr] as number) || 0;
+            // Build YYYY-MM-DD from calendar month so it matches backend activity_calendar keys
+            // (avoids toISOString() which uses UTC and can shift the day in some timezones)
+            const firstDayStr = String(currentMonth.first_day ?? "");
+            const [y, m] = firstDayStr.split("-");
+            const dateStr = `${y}-${m}-${String(day).padStart(2, "0")}`;
+            const activityCount = (activityCalendar[dateStr] as number) ?? 0;
             const hasActivity = activityCount > 0;
 
             return (

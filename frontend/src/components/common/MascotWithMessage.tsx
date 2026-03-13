@@ -40,10 +40,29 @@ const MascotWithMessage = ({
 
   return (
     <div className={`mt-3 flex justify-center text-center ${className ?? ""}`}>
-      <div className="relative h-40 w-full max-w-[14rem]">
+      {/* Mobile: single row – small mascot left, bubble right (containerized, centered, limited width) */}
+      <div className="flex w-full max-w-full items-center justify-center gap-2 py-1 lg:hidden">
+        <MascotMedia
+          mascot={mascot}
+          className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"
+        />
+        {showMessage && message &&
+          (messageStyle === "plain" ? (
+            <p className="tooltip--inline-wrapper text-xs text-[color:var(--muted-text,#6b7280)]">
+              {message}
+            </p>
+          ) : (
+            <div className="tooltip tooltip--inline tooltip--inline-wrapper">
+              {message}
+            </div>
+          ))}
+      </div>
+
+      {/* Desktop: original layout (bubble top-right, mascot bottom-left) */}
+      <div className="relative hidden h-40 w-full max-w-[14rem] lg:block">
         {showMessage &&
           (messageStyle === "plain" ? (
-            <p className="absolute top-0 right-0 mb-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="absolute right-0 top-0 mb-2 text-xs text-[color:var(--muted-text,#6b7280)]">
               {message}
             </p>
           ) : (
