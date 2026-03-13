@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
@@ -266,6 +267,23 @@ function SupportPage() {
               })}
             </div>
           )}
+        </GlassCard>
+
+        <GlassCard padding="lg" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+              {t("support.feedbackSection.title")}
+            </h2>
+            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              {t("support.feedbackSection.description")}
+            </p>
+          </div>
+          <Link
+            to="/feedback"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+          >
+            {t("support.feedbackSection.cta")}
+          </Link>
         </GlassCard>
 
         <GlassCard padding="lg">

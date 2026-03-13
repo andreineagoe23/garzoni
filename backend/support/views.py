@@ -135,9 +135,22 @@ def contact_us(request):
     email = request.data.get("email")
     topic = request.data.get("topic", "General")
     message = request.data.get("message")
+    feedback_type = request.data.get("feedback_type")
+    context_url = (request.data.get("context_url") or "").strip()
 
     if not email or not message:
         return Response({"error": "Email and message are required."}, status=400)
+
+    # Optional: prepend feedback context for feedback hub submissions
+    if feedback_type or context_url:
+        parts = []
+        if feedback_type:
+            parts.append(f"Type: {feedback_type}")
+        if context_url:
+            parts.append(f"Where: {context_url}")
+        parts.append("")
+        parts.append(message)
+        message = "\n".join(parts)
 
     # Dedupe bursts: (email + topic + message hash + minute bucket)
     minute_bucket = int(time.time() // 60)

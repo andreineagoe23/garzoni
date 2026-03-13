@@ -57,6 +57,9 @@ const RewardsPage = React.lazy(
 const SupportPage = React.lazy(
   () => import("./components/support/SupportPage")
 );
+const FeedbackHubPage = React.lazy(
+  () => import("./components/feedback/FeedbackHubPage")
+);
 const ExercisePage = React.lazy(
   () => import("./components/exercises/ExercisePage")
 );
@@ -433,6 +436,16 @@ function AuthAwareLayout({
                   <ProtectedRoute>
                     <ErrorBoundary>
                       <SupportPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/feedback"
+                element={
+                  <ProtectedRoute>
+                    <ErrorBoundary>
+                      <FeedbackHubPage />
                     </ErrorBoundary>
                   </ProtectedRoute>
                 }
