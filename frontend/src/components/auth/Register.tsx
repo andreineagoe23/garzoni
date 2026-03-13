@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import registerBg from "assets/register-bg.jpg";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
@@ -13,13 +13,18 @@ import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 
 function Register() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const initialReferral = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("ref") || "";
+  }, [location.search]);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     email: "",
     first_name: "",
     last_name: "",
-    referral_code: "",
+    referral_code: initialReferral,
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);

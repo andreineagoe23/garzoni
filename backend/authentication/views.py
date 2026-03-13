@@ -158,6 +158,10 @@ class UserProfileView(APIView):
     def get(self, request):
         """Retrieve and return the user's profile data."""
         user_profile = UserProfile.objects.get(user=request.user)
+        # Ensure every profile has a referral_code (for invites/referrals).
+        # This covers older accounts created before referral codes existed.
+        if not user_profile.referral_code:
+            user_profile.save()
 
         # Get the current month's activity data
         today = timezone.now().date()

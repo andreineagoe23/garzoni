@@ -31,7 +31,6 @@ import DailyGoalCard from "./DailyGoalCard";
 import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
-import EarlySkillInsights from "./EarlySkillInsights";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
 import { selectPrimaryCTA } from "./primaryCtaSelector";
 import { getLocale } from "utils/format";
@@ -797,23 +796,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               refetchMastery={refetchMastery}
               locale={locale}
               prefersReducedMotion={prefersReducedMotion.current}
-              onSkillClick={handleWeakSkillClick}
-              onPracticeClick={handleWeakSkillPractice}
-            />
-
-            <EarlySkillInsights
-              overallProgress={overallProgress}
-              completedLessons={completedLessons}
-              totalLessons={totalLessons}
               completedSections={completedSections}
               totalSections={totalSections}
-              weakestSkills={weakSkillItems}
-              reviewsDue={reviewsDue}
-              activeMissionsCount={activeMissions.length}
-              locale={locale}
-              nextStepLabel={nextSkillInsightStep.label}
-              nextStepHint={nextSkillInsightStep.hint}
-              onNextStepClick={nextSkillInsightStep.action}
+              completedLessons={completedLessons}
+              totalLessons={totalLessons}
+              onSkillClick={handleWeakSkillClick}
+              onPracticeClick={handleWeakSkillPractice}
             />
 
             <StatusSummary
