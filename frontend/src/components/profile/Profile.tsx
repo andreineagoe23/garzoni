@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  VerticalTimeline,
-  VerticalTimelineElement,
-} from "react-vertical-timeline-component";
-import "react-vertical-timeline-component/style.min.css";
 import AvatarSelector from "./AvatarSelector";
 import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
@@ -17,17 +12,10 @@ import {
   formatCurrency,
   formatDate,
   formatNumber,
+  formatRelativeDateTime,
   getLocale,
 } from "utils/format";
 import { useTranslation } from "react-i18next";
-const activityIcons = {
-  lesson: "📘",
-  quiz: "🧠",
-  mission: "🚀",
-  course: "🎓",
-  default: "📌",
-};
-
 function Profile() {
   const { t } = useTranslation();
   const locale = getLocale();
@@ -191,10 +179,7 @@ function Profile() {
             type: activity.type,
             title: activity.title || activity.name,
             action: activity.action,
-            timestamp: formatDate(activity.timestamp, locale, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }),
+            timestamp: formatRelativeDateTime(activity.timestamp, locale),
             details: activity.course ? `in ${activity.course}` : "",
           })
         );
@@ -657,60 +642,29 @@ function Profile() {
           </header>
 
           {recentActivity.length > 0 ? (
-            <VerticalTimeline
-              layout="1-column-left"
-              lineColor="var(--border-color, rgba(148,163,184,0.4))"
-              className="!pt-0"
-            >
+            <div className="space-y-3">
               {recentActivity.slice(0, 3).map((activity) => (
-                <VerticalTimelineElement
+                <GlassCard
                   key={activity.id}
-                  className="vertical-timeline-element"
-                  contentStyle={{
-                    background: "var(--card-bg, #ffffff)",
-                    color: "var(--text-color, #111827)",
-                    borderRadius: "16px",
-                    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
-                    border:
-                      "1px solid var(--border-color, rgba(148,163,184,0.4))",
-                    padding: "18px",
-                  }}
-                  contentArrowStyle={{
-                    borderRight: "7px solid var(--card-bg, #ffffff)",
-                  }}
-                  date={activity.timestamp}
-                  dateClassName="text-xs text-[color:var(--muted-text,#6b7280)]"
-                  icon={
-                    <span
-                      style={{
-                        fontSize: "1.25rem",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "100%",
-                        width: "100%",
-                      }}
-                    >
-                      {activityIcons[activity.type] || activityIcons.default}
-                    </span>
-                  }
-                  iconStyle={{
-                    background: "var(--primary, #2563eb)",
-                    color: "#fff",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                  padding="sm"
+                  className="flex flex-wrap items-center justify-between gap-2 bg-[color:var(--card-bg,#ffffff)]/60"
                 >
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    {activity.title}
-                  </h4>
-                  <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
-                    {activity.details}
-                  </p>
-                </VerticalTimelineElement>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[color:var(--accent,#111827)]">
+                      {activity.title}
+                    </p>
+                    {activity.details ? (
+                      <p className="truncate text-xs text-[color:var(--muted-text,#6b7280)]">
+                        {activity.details}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 text-xs text-[color:var(--muted-text,#6b7280)]">
+                    {activity.timestamp}
+                  </span>
+                </GlassCard>
               ))}
-            </VerticalTimeline>
+            </div>
           ) : (
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {t("profile.activity.empty")}

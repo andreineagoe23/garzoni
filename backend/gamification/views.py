@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.throttling import UserRateThrottle
 import logging
+import random
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
@@ -41,6 +42,17 @@ from education.models import (
 
 logger = logging.getLogger(__name__)
 
+# How many missions to show per section (randomized from pool each day/week)
+MISSIONS_DAILY_DISPLAY = 4
+MISSIONS_WEEKLY_DISPLAY = 4
+
+
+def _deterministic_shuffle(items, seed_str):
+    """Shuffle list in place using a deterministic seed. Returns the same order for same seed_str."""
+    rng = random.Random(hash(seed_str) % (2**32))
+    rng.shuffle(items)
+    return items
+
 
 class MissionCompletionThrottle(UserRateThrottle):
     """Rate limit mission completions to prevent abuse."""
@@ -54,51 +66,73 @@ class MissionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Handle GET requests to fetch the user's daily and weekly missions."""
+        """Handle GET requests to fetch the user's daily and weekly missions.
+        Returns up to 4 daily and 4 weekly, chosen by deterministic shuffle per day/week.
+        """
         user = request.user
         try:
-            daily_completions = MissionCompletion.objects.filter(
-                user=user, mission__mission_type="daily"
+            daily_completions = list(
+                MissionCompletion.objects.filter(
+                    user=user, mission__mission_type="daily"
+                ).select_related("mission")
             )
-            weekly_completions = MissionCompletion.objects.filter(
-                user=user, mission__mission_type="weekly"
+            weekly_completions = list(
+                MissionCompletion.objects.filter(
+                    user=user, mission__mission_type="weekly"
+                ).select_related("mission")
             )
 
-            daily_missions = []
-            weekly_missions = []
+            def _build_payload(completion):
+                return {
+                    "id": completion.mission.id,
+                    "name": normalize_text_encoding(completion.mission.name),
+                    "description": normalize_text_encoding(completion.mission.description),
+                    "points_reward": completion.mission.points_reward,
+                    "progress": completion.progress,
+                    "status": completion.status,
+                    "goal_type": completion.mission.goal_type,
+                    "goal_reference": completion.mission.goal_reference or {},
+                    "purpose_statement": normalize_text_encoding(
+                        completion.mission.purpose_statement or ""
+                    ),
+                }
 
+            # One entry per mission (keep highest progress if duplicate MissionCompletion rows exist)
+            daily_by_mission = {}
             for completion in daily_completions:
-                daily_missions.append(
-                    {
-                        "id": completion.mission.id,
-                        "name": normalize_text_encoding(completion.mission.name),
-                        "description": normalize_text_encoding(completion.mission.description),
-                        "points_reward": completion.mission.points_reward,
-                        "progress": completion.progress,
-                        "status": completion.status,
-                        "goal_type": completion.mission.goal_type,
-                        "goal_reference": completion.mission.goal_reference or {},
-                    }
-                )
+                mid = completion.mission.id
+                if (
+                    mid not in daily_by_mission
+                    or completion.progress >= daily_by_mission[mid]["progress"]
+                ):
+                    daily_by_mission[mid] = _build_payload(completion)
+            daily_missions = list(daily_by_mission.values())
 
+            weekly_by_mission = {}
             for completion in weekly_completions:
-                weekly_missions.append(
-                    {
-                        "id": completion.mission.id,
-                        "name": normalize_text_encoding(completion.mission.name),
-                        "description": normalize_text_encoding(completion.mission.description),
-                        "points_reward": completion.mission.points_reward,
-                        "progress": completion.progress,
-                        "status": completion.status,
-                        "goal_type": completion.mission.goal_type,
-                        "goal_reference": completion.mission.goal_reference or {},
-                    }
-                )
+                mid = completion.mission.id
+                if (
+                    mid not in weekly_by_mission
+                    or completion.progress >= weekly_by_mission[mid]["progress"]
+                ):
+                    weekly_by_mission[mid] = _build_payload(completion)
+            weekly_missions = list(weekly_by_mission.values())
+
+            now = timezone.now()
+            today_str = now.date().isoformat()
+            # Week start (Monday)
+            week_start = now.date() - timedelta(days=now.weekday())
+            week_str = week_start.isoformat()
+
+            seed_daily = f"{user.id}-daily-{today_str}"
+            seed_weekly = f"{user.id}-weekly-{week_str}"
+            _deterministic_shuffle(daily_missions, seed_daily)
+            _deterministic_shuffle(weekly_missions, seed_weekly)
 
             return Response(
                 {
-                    "daily_missions": daily_missions,
-                    "weekly_missions": weekly_missions,
+                    "daily_missions": daily_missions[:MISSIONS_DAILY_DISPLAY],
+                    "weekly_missions": weekly_missions[:MISSIONS_WEEKLY_DISPLAY],
                 },
                 status=200,
             )
