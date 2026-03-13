@@ -38,7 +38,7 @@ const PremiumUpsellPanel = () => {
     return "MONEVO-FRIEND";
   }, [user?.email, user?.username]);
 
-  const referralLink = `${appOrigin}/register?ref=${encodeURIComponent(
+  const referralLink = `${appOrigin}/welcome?ref=${encodeURIComponent(
     referralCode
   )}`;
 

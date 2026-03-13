@@ -1080,10 +1080,29 @@ function CourseFlowPage() {
   const currentSection =
     currentItem?.kind === "section" ? currentItem.section : null;
 
-  const sanitizedSectionHtml = useMemo(() => {
-    if (!currentItem || currentItem.kind !== "section") return null;
-    const content = currentItem.section?.text_content;
-    return content ? DOMPurify.sanitize(content) : null;
+  const { sanitizedSectionHtml, recommendedVideoUrl } = useMemo(() => {
+    if (!currentItem || currentItem.kind !== "section") {
+      return { sanitizedSectionHtml: null as string | null, recommendedVideoUrl: "" };
+    }
+    const raw = currentItem.section?.text_content || "";
+    if (!raw) {
+      return { sanitizedSectionHtml: null as string | null, recommendedVideoUrl: "" };
+    }
+    // If author pasted a "Recommended Video" block into the text section, split it out
+    const match = raw.match(/Recommended Video:?[\s\S]*$/i);
+    let body = raw;
+    let videoUrl = "";
+    if (match) {
+      body = raw.slice(0, match.index).trimEnd();
+      const block = match[0];
+      // Grab the first HTTP(S) URL in the block (typically a YouTube link)
+      const urlMatch = block.match(/https?:\/\/\S+/i);
+      if (urlMatch) {
+        videoUrl = urlMatch[1];
+      }
+    }
+    const html = body ? DOMPurify.sanitize(body) : null;
+    return { sanitizedSectionHtml: html, recommendedVideoUrl: videoUrl };
   }, [currentItem]);
 
   const sanitizedLessonDetailHtml = useMemo(() => {
@@ -1110,12 +1129,35 @@ function CourseFlowPage() {
 
       if (section.content_type === "text" && section.text_content) {
         return (
-          <div
-            className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
-            dangerouslySetInnerHTML={{
-              __html: sanitizedSectionHtml || "",
-            }}
-          />
+          <div className="space-y-4">
+            <div
+              className="prose max-w-none whitespace-pre-line text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
+              dangerouslySetInnerHTML={{
+                __html: sanitizedSectionHtml || "",
+              }}
+            />
+            {recommendedVideoUrl && (
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 p-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  {t("courses.flow.recommendedVideo")}
+                </p>
+                <div className="mt-2 overflow-hidden rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
+                  <div className="aspect-video">
+                    <iframe
+                      src={recommendedVideoUrl.replace(
+                        /watch\\?v=/,
+                        "embed/"
+                      )}
+                      title={section.title}
+                      allowFullScreen
+                      loading="lazy"
+                      className="h-full w-full border-0"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         );
       }
 
@@ -1504,13 +1546,9 @@ function CourseFlowPage() {
                     <MascotWithMessage
                       mood={mascotMood}
                       fixedMascot={stableLessonMascot}
+                      customMessage={sectionInsight || undefined}
                       mascotClassName="h-28 w-28 object-contain"
                     />
-                    {sectionInsight && (
-                      <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-[color:var(--text-color,#111827)] shadow-sm backdrop-blur-sm">
-                        {sectionInsight}
-                      </div>
-                    )}
                   </div>
                 </div>
               </aside>

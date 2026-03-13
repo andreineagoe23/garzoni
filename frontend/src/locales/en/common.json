@@ -107,6 +107,8 @@
       "reviewsDue_other": "{{count}} reviews due",
       "missionsActive_one": "{{count}} active mission",
       "missionsActive_other": "{{count}} active missions",
+      "reviewsDue": "{{count}} review(s) due",
+      "missionsActive": "{{count}} active mission(s)",
       "sectionsAndLessons": "Sections {{sections}} · Lessons {{lessons}}",
       "nextStep": {
         "doReviews": "Do reviews",
@@ -138,6 +140,14 @@
     "primaryCta": {
       "getStarted": "Get Started",
       "continueReason": "Continue your learning journey"
+    }
+  },
+  "welcome": {
+    "referral": {
+      "title": "You were invited to Monevo",
+      "body": "After you complete your first learning path, you and your friend will both receive 40% off the Plus plan by email.",
+      "cta": "Start with your invite",
+      "dismiss": "Maybe later"
     }
   },
   "analytics": {
@@ -946,7 +956,7 @@
     },
     "referral": {
       "title": "Invite Friends",
-      "subtitle": "Share your link and earn rewards when friends join.",
+      "subtitle": "Share your link—when a friend completes their first learning path, you’ll both get 40% off Plus by email.",
       "linkLabel": "Your unique referral link",
       "copied": "Copied!",
       "copyLink": "Copy Link",
@@ -987,7 +997,7 @@
       "declined": "Friend request declined.",
       "error": "Something went wrong. Please try again.",
       "title": "Friend Requests",
-      "subtitle": "Manage people who want to connect with you.",
+      "subtitle": "Manage people who want to connect.",
       "empty": "No pending requests",
       "wantsToConnect": "wants to connect with you",
       "accept": "Accept",

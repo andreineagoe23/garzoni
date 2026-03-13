@@ -107,6 +107,8 @@
       "reviewsDue_other": "{{count}} recapitulări restante",
       "missionsActive_one": "{{count}} misiune activă",
       "missionsActive_other": "{{count}} misiuni active",
+      "reviewsDue": "{{count}} recapitulare(e) restantă(e)",
+      "missionsActive": "{{count}} misiune(i) activă(e)",
       "sectionsAndLessons": "Secțiuni {{sections}} · Lecții {{lessons}}",
       "nextStep": {
         "doReviews": "Fă recapitulări",
@@ -138,6 +140,14 @@
     "primaryCta": {
       "getStarted": "Începe",
       "continueReason": "Continuă-ți călătoria de învățare"
+    }
+  },
+  "welcome": {
+    "referral": {
+      "title": "Ai fost invitat(ă) la Monevo",
+      "body": "După ce finalizezi primul tău traseu de învățare, tu și prietenul tău veți primi fiecare 40% reducere la Plus prin email.",
+      "cta": "Începe cu invitația ta",
+      "dismiss": "Poate mai târziu"
     }
   },
   "analytics": {
@@ -946,7 +956,7 @@
     },
     "referral": {
       "title": "Invită prieteni",
-      "subtitle": "Partajează linkul tău și câștigă recompense când prietenii se alătură.",
+      "subtitle": "Partajează linkul tău — când un prieten finalizează primul traseu de învățare, primiți amândoi 40% reducere la Plus prin email.",
       "linkLabel": "Linkul tău unic de recomandare",
       "copied": "Copiat!",
       "copyLink": "Copiază link",

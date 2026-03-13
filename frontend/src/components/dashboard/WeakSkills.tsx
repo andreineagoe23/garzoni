@@ -21,6 +21,10 @@ type WeakSkillsProps = {
   prefersReducedMotion?: boolean;
   onSkillClick?: (skill: WeakSkill) => void;
   onPracticeClick?: (skill: WeakSkill) => void;
+  completedSections?: number;
+  totalSections?: number;
+  completedLessons?: number;
+  totalLessons?: number;
 };
 
 const WeakSkills = ({
@@ -33,6 +37,10 @@ const WeakSkills = ({
   prefersReducedMotion,
   onSkillClick,
   onPracticeClick,
+  completedSections,
+  totalSections,
+  completedLessons,
+  totalLessons,
 }: WeakSkillsProps) => {
   const { t } = useTranslation();
   if (!show) return null;
@@ -72,6 +80,11 @@ const WeakSkills = ({
     );
   }
 
+  const safeCompletedSections = completedSections ?? 0;
+  const safeTotalSections = totalSections ?? 0;
+  const safeCompletedLessons = completedLessons ?? 0;
+  const safeTotalLessons = totalLessons ?? 0;
+
   return (
     <div className="mt-6">
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
@@ -83,8 +96,14 @@ const WeakSkills = ({
             {t("dashboard.weakSkills.areasToImprove")}
           </span>
         </div>
-        <p className="mb-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="mb-2 text-sm text-[color:var(--muted-text,#6b7280)]">
           {t("dashboard.weakSkills.focusOnSkills")}
+        </p>
+        <p className="mb-4 text-[11px] text-[color:var(--muted-text,#6b7280)]">
+          {t("dashboard.skillInsights.sectionsAndLessons", {
+            sections: `${safeCompletedSections}/${Math.max(1, safeTotalSections)}`,
+            lessons: `${safeCompletedLessons}/${Math.max(1, safeTotalLessons)}`,
+          })}
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {weakestSkills.map((skill) => (

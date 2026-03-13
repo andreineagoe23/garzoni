@@ -16,6 +16,8 @@ type MascotWithMessageProps = {
   showMessage?: boolean;
   /** Speech bubble vs plain text */
   messageStyle?: "bubble" | "plain";
+  /** Optional override for the default pooled message (e.g. lesson/section insight). */
+  customMessage?: string;
 };
 
 const MascotWithMessage = ({
@@ -27,12 +29,14 @@ const MascotWithMessage = ({
   mascotClassName = "h-32 w-32 object-contain",
   showMessage = true,
   messageStyle = "bubble",
+  customMessage,
 }: MascotWithMessageProps) => {
-  const { mascot, message } = useMascotMessage(mood, {
+  const { mascot, message: pooledMessage } = useMascotMessage(mood, {
     rotateMessages,
     rotationKey,
     mascotOverride: fixedMascot,
   });
+  const message = customMessage || pooledMessage;
 
   return (
     <div className={`mt-3 flex justify-center text-center ${className ?? ""}`}>

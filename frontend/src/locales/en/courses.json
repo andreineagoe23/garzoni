@@ -53,8 +53,9 @@
     "legacyExerciseFormat": "This lesson uses a legacy \"lesson-level\" exercise format.",
     "unsupportedExerciseType": "Exercise type {{type}} isn't supported in the new flow yet.",
     "videoNotSupported": "Your browser does not support the video tag.",
-    "skillInsightSection": "Nice work. You just strengthened {{section}}.",
-    "skillInsightLesson": "Solid progress. {{lesson}} moved your skills forward.",
+    "recommendedVideo": "Recommended video",
+    "skillInsightSection": "Strengthened {{section}}.",
+    "skillInsightLesson": "Progress in {{lesson}}.",
     "thisSection": "this section",
     "thisLesson": "this lesson"
   },
