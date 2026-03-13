@@ -33,4 +33,17 @@ class SupportFeedbackAdmin(admin.ModelAdmin):
     support_entry_preview.short_description = "Entry"
 
 
-admin.site.register(ContactMessage)
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    """Contact form and feedback hub submissions (not FAQ votes)."""
+
+    list_display = ("id", "email", "topic", "message_preview", "created_at")
+    list_filter = ("topic",)
+    search_fields = ("email", "topic", "message")
+    ordering = ("-created_at",)
+    readonly_fields = ("email", "topic", "message", "created_at")
+
+    def message_preview(self, obj):
+        return (obj.message[:80] + "…") if len(obj.message) > 80 else obj.message
+
+    message_preview.short_description = "Message"

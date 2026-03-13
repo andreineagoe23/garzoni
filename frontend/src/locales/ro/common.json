@@ -904,6 +904,11 @@
       "helpful": "👍 Util",
       "notHelpful": "👎 Nu prea"
     },
+    "feedbackSection": {
+      "title": "Ai observat un bug sau ceva care nu ți se potrivește?",
+      "description": "Raportează un bug sau trimite-ne feedback ca să ne îmbunătățim.",
+      "cta": "Raportează bug sau trimite feedback"
+    },
     "contact": {
       "title": "Ai nevoie de ajutor? Contactează-ne",
       "subtitle": "Descrie pe scurt problema și revenim cu un răspuns.",
@@ -923,6 +928,22 @@
       "success": "Mesajul tău a fost primit! Îți mulțumim că ne-ai contactat.",
       "error": "Nu s-a putut trimite mesajul. Te rugăm să încerci mai târziu."
     }
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Raportează un bug sau spune-ne ce ai vrea să îmbunătățim.",
+    "typeLabel": "Tip",
+    "typeBug": "Raportare bug",
+    "typeSuggestion": "Sugestie / îmbunătățire",
+    "typeOther": "Altele",
+    "messageLabel": "Mesaj",
+    "messagePlaceholder": "Descrie ce s-a întâmplat sau ce ai vrea să se schimbe...",
+    "whereLabel": "Unde s-a întâmplat? (opțional)",
+    "wherePlaceholder": "ex. /tools, Acasă sau o scurtă descriere",
+    "send": "Trimite feedback",
+    "success": "Mulțumim! Am primit feedback-ul tău.",
+    "error": "Nu s-a putut trimite feedback-ul. Te rugăm să încerci din nou.",
+    "backToSupport": "Înapoi la Suport"
   },
   "profile": {
     "weekdays": {
