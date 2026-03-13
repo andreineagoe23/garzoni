@@ -1,0 +1,326 @@
+[
+  {
+    "name": "Save £5 Today",
+    "description": "Add £5 to your savings today to build a daily habit.",
+    "purpose_statement": "Small, consistent deposits are the key to building an emergency fund without feeling the pinch.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 5 },
+    "points_reward": 15
+  },
+  {
+    "name": "Save £20 Today",
+    "description": "Challenge yourself to set aside £20 in your savings before the day ends.",
+    "purpose_statement": "Stepping up your daily saving amount accelerates your progress towards bigger financial goals.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 20 },
+    "points_reward": 40
+  },
+  {
+    "name": "Save £1 Today",
+    "description": "Add £1 to your savings right now.",
+    "purpose_statement": "Micro-saving proves that you can always find a little bit of money to pay your future self.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 1 },
+    "points_reward": 10
+  },
+  {
+    "name": "Complete 2 Lessons",
+    "description": "Make strong progress by finishing two lessons today.",
+    "purpose_statement": "Tackling multiple lessons in one sitting helps you connect financial concepts faster.",
+    "mission_type": "daily",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 2 },
+    "points_reward": 40
+  },
+  {
+    "name": "Clear 5 Reviews",
+    "description": "Complete 5 items in your exercise review queue.",
+    "purpose_statement": "Reviewing past material ensures you actually retain the financial strategies you've learned.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 5 },
+    "points_reward": 20
+  },
+  {
+    "name": "Clear 10 Reviews",
+    "description": "Knock out 10 items from your review queue today.",
+    "purpose_statement": "Spaced repetition is the best way to master complex topics like investing and crypto.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 10 },
+    "points_reward": 35
+  },
+  {
+    "name": "Save £50 This Week",
+    "description": "Stash away a total of £50 in your savings before the week ends.",
+    "purpose_statement": "Setting an achievable weekly savings target keeps you accountable and builds a predictable wealth trajectory.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 50 },
+    "points_reward": 80
+  },
+  {
+    "name": "Save £200 This Week",
+    "description": "Push your limits and save £200 over the course of the week.",
+    "purpose_statement": "Aggressive savings weeks give your investment portfolios more capital to grow over time.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 200 },
+    "points_reward": 135
+  },
+  {
+    "name": "Complete 3 Lessons",
+    "description": "Finish 3 lessons in your personalized learning path this week.",
+    "purpose_statement": "Steady, weekly educational progress is the foundation of long-term financial literacy.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 3 },
+    "points_reward": 60
+  },
+  {
+    "name": "Complete 5 Lessons",
+    "description": "Power through 5 lessons across any of your active courses.",
+    "purpose_statement": "Immersing yourself in the material helps you conquer challenging subjects like Forex or Real Estate.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 5 },
+    "points_reward": 90
+  },
+  {
+    "name": "Clear 10 Weekly Reviews",
+    "description": "Complete 10 exercise reviews this week to keep your skills sharp.",
+    "purpose_statement": "Regularly clearing your review queue stops you from forgetting critical budgeting and investing rules.",
+    "mission_type": "weekly",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 10 },
+    "points_reward": 50
+  },
+  {
+    "name": "Clear 20 Weekly Reviews",
+    "description": "Master your past material by clearing 20 review items this week.",
+    "purpose_statement": "Extensive retrieval practice transforms short-term knowledge into lifelong financial intuition.",
+    "mission_type": "weekly",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 20 },
+    "points_reward": 85
+  },
+  {
+    "name": "Save £2 Today",
+    "description": "Add £2 to your savings today.",
+    "purpose_statement": "Building the muscle memory of saving is more important than the amount when you are first starting out.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 2 },
+    "points_reward": 10
+  },
+  {
+    "name": "Clear 3 Reviews",
+    "description": "Refresh your memory by answering 3 quick review questions.",
+    "purpose_statement": "A tiny bit of daily review prevents you from forgetting important financial concepts without taking up your whole day.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 3 },
+    "points_reward": 15
+  },
+  {
+    "name": "Save £8 Today",
+    "description": "Set aside £8 in your savings before you go to sleep.",
+    "purpose_statement": "Swapping out a small daily impulse purchase for savings helps your emergency fund grow effortlessly.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 8 },
+    "points_reward": 20
+  },
+  {
+    "name": "Finish 1 Lesson",
+    "description": "Dive into your personalized path and complete a single lesson.",
+    "purpose_statement": "Spending just 5 minutes a day on financial education compounds your knowledge immensely over a year.",
+    "mission_type": "daily",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 1 },
+    "points_reward": 25
+  },
+  {
+    "name": "Clear 7 Reviews",
+    "description": "Tackle 7 questions from your review queue to solidify your learning.",
+    "purpose_statement": "Consistent practice ensures your new skills in budgeting and investing become second nature.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 7 },
+    "points_reward": 25
+  },
+  {
+    "name": "Save £15 Today",
+    "description": "Add £15 to your savings today.",
+    "purpose_statement": "Regular mid-sized contributions create a strong buffer against unexpected life events.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 15 },
+    "points_reward": 30
+  },
+  {
+    "name": "Save £25 This Week",
+    "description": "Add £25 to your savings over the next seven days.",
+    "purpose_statement": "Setting a highly achievable weekly goal builds your confidence as an active saver.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 25 },
+    "points_reward": 65
+  },
+  {
+    "name": "Complete 2 Lessons",
+    "description": "Find time this week to finish at least two lessons.",
+    "purpose_statement": "Maintaining a relaxed but steady pace prevents burnout while you learn to manage your money.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 2 },
+    "points_reward": 55
+  },
+  {
+    "name": "Clear 15 Reviews",
+    "description": "Answer 15 review items correctly by the end of the week.",
+    "purpose_statement": "Spreading your practice throughout the week leads to deeper long-term retention of financial rules.",
+    "mission_type": "weekly",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 15 },
+    "points_reward": 70
+  },
+  {
+    "name": "Save £75 This Week",
+    "description": "Add £75 to your savings this week.",
+    "purpose_statement": "Scaling up your weekly savings rate brings you substantially closer to your major life goals.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 75 },
+    "points_reward": 100
+  },
+  {
+    "name": "Complete 4 Lessons",
+    "description": "Work through four lessons in your learning paths this week.",
+    "purpose_statement": "Dedicating a few days a week to learning dramatically improves your financial decision-making.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 4 },
+    "points_reward": 85
+  },
+  {
+    "name": "Conquer 1 Path",
+    "description": "Complete one full learning path this week.",
+    "purpose_statement": "Finishing a comprehensive topic gives you a holistic understanding of how that specific financial system works.",
+    "mission_type": "weekly",
+    "goal_type": "complete_path",
+    "goal_reference": {},
+    "points_reward": 120
+  },
+  {
+    "name": "Skip a Treat, Save £3",
+    "description": "Add £3 to your savings instead of buying a small daily luxury.",
+    "purpose_statement": "Redirecting minor everyday expenses into your savings builds wealth effortlessly over time.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 3 },
+    "points_reward": 15
+  },
+  {
+    "name": "Quick Brain Teaser",
+    "description": "Answer just 2 review questions to keep your mind sharp today.",
+    "purpose_statement": "Micro-learning sessions prevent the forgetting curve from wiping out your hard-earned progress.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 2 },
+    "points_reward": 10
+  },
+  {
+    "name": "Level Up Today",
+    "description": "Complete a single lesson in your personalized learning path.",
+    "purpose_statement": "Expanding your financial vocabulary one step at a time makes complex topics highly manageable.",
+    "mission_type": "daily",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 1 },
+    "points_reward": 25
+  },
+  {
+    "name": "Daily Wealth Wisdom",
+    "description": "Read today's featured finance fact on the dashboard.",
+    "purpose_statement": "Discovering a new piece of trivia daily broadens your perspective on the broader economic world.",
+    "mission_type": "daily",
+    "goal_type": "read_fact",
+    "goal_reference": {},
+    "points_reward": 10
+  },
+  {
+    "name": "Stash a Tenner",
+    "description": "Add £10 to your savings before midnight.",
+    "purpose_statement": "Hitting a double-digit daily goal creates a tangible, reliable safety net by the end of the month.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 10 },
+    "points_reward": 25
+  },
+  {
+    "name": "Memory Polish",
+    "description": "Complete 4 pending exercises from your review queue.",
+    "purpose_statement": "Learning from past mistakes in the app ensures you don't repeat them with real money.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 4 },
+    "points_reward": 20
+  },
+  {
+    "name": "Trivia Master",
+    "description": "Read 5 daily financial facts by the end of the week.",
+    "purpose_statement": "Consistent exposure to market trivia helps you spot real-world economic trends and opportunities.",
+    "mission_type": "weekly",
+    "goal_type": "read_fact",
+    "goal_reference": {},
+    "points_reward": 55
+  },
+  {
+    "name": "Weekend Saver",
+    "description": "Add £40 to your savings over the course of the week.",
+    "purpose_statement": "Trimming a bit from your weekend entertainment budget significantly boosts your long-term reserves.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 40 },
+    "points_reward": 75
+  },
+  {
+    "name": "Triple Threat",
+    "description": "Finish three different lessons this week.",
+    "purpose_statement": "Dedicating focused time to learning helps you confidently tackle your next big financial decision.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 3 },
+    "points_reward": 80
+  },
+  {
+    "name": "Journey Complete",
+    "description": "Complete an entire learning path this week.",
+    "purpose_statement": "Mastering a full topic equips you with a complete toolkit to navigate that specific asset class.",
+    "mission_type": "weekly",
+    "goal_type": "complete_path",
+    "goal_reference": {},
+    "points_reward": 135
+  },
+  {
+    "name": "Spring Cleaning",
+    "description": "Clear 12 items from your review queue this week.",
+    "purpose_statement": "A thorough review session solidifies the foundational rules of investing and saving deep in your memory.",
+    "mission_type": "weekly",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 12 },
+    "points_reward": 65
+  },
+  {
+    "name": "The £100 Milestone",
+    "description": "Save £100 this week.",
+    "purpose_statement": "Hitting major weekly milestones proves you have the discipline required for serious wealth generation.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 100 },
+    "points_reward": 125
+  }
+]
