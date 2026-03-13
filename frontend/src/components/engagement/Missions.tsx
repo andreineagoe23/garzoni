@@ -436,6 +436,9 @@ function Missions() {
   };
 
   const purposeStatement = (mission) => {
+    if (mission.purpose_statement && mission.purpose_statement.trim()) {
+      return mission.purpose_statement.trim();
+    }
     switch (mission.goal_type) {
       case "complete_lesson":
         return t("missions.purpose.completeLesson");

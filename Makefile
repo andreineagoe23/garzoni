@@ -9,7 +9,7 @@ prod:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile celery up -d --build
 
 .PHONY: help up down build logs backend-shell backend-migrate backend-collectstatic backend-superuser \
-	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-backup frontend-install frontend-test frontend-lint frontend-build \
+	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-backup load-mission-pool backfill-mission-completions frontend-install frontend-test frontend-lint frontend-build \
 	test-all pre-commit-install pre-commit
 
 help:
@@ -24,6 +24,8 @@ help:
 	@echo "  make pre-commit-install  Install git pre-commit hook (runs on every commit)"
 	@echo "  make pre-commit          Run pre-commit on all files"
 	@echo "  make seed-exercises      Seed example exercises"
+	@echo "  make load-mission-pool   Load mission pool from gamification/fixtures/mission_pool.json"
+	@echo "  make backfill-mission-completions  Assign all missions to all existing users"
 	@echo "  make frontend-test       Run frontend tests (requires node env)"
 	@echo "  make test-all            Run backend lint + backend tests + frontend tests (backend requires docker stack up)"
 
@@ -60,6 +62,13 @@ backend-test:
 
 seed-exercises:
 	docker compose exec backend python manage.py seed_exercises
+
+# Load mission pool (requires dev stack with backend volume: make dev, then make load-mission-pool)
+load-mission-pool:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend python manage.py load_mission_pool
+
+backfill-mission-completions:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend python manage.py backfill_mission_completions
 
 ensure-lesson-sections:
 	docker compose exec backend python manage.py ensure_lesson_sections

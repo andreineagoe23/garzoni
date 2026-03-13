@@ -115,6 +115,52 @@ export const formatTime = (
   }
 };
 
+/**
+ * Compact relative date + time for recent activity: "Today, 9:37 PM", "Yesterday, 2:30 PM", "12 Mar", etc.
+ */
+export const formatRelativeDateTime = (
+  date: Date | string | number | null | undefined,
+  locale: LocaleLike = getLocale()
+): string => {
+  try {
+    if (!date) return "";
+    const dateObj = date instanceof Date ? date : new Date(date);
+    const now = new Date();
+    const n = normalizeLocale(locale);
+    const timeStr = new Intl.DateTimeFormat(n, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(dateObj);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+    const diffDays = Math.round((startOfToday.getTime() - startOfDate.getTime()) / (24 * 60 * 60 * 1000));
+
+    if (diffDays === 0) {
+      const rtf = new Intl.RelativeTimeFormat(n, { numeric: "auto" });
+      return `${rtf.format(0, "day")}, ${timeStr}`;
+    }
+    if (diffDays === 1) {
+      const rtf = new Intl.RelativeTimeFormat(n, { numeric: "auto" });
+      return `${rtf.format(-1, "day")}, ${timeStr}`;
+    }
+    if (diffDays > 1 && diffDays <= 7) {
+      return new Intl.DateTimeFormat(n, {
+        weekday: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(dateObj);
+    }
+    if (dateObj.getFullYear() === now.getFullYear()) {
+      return new Intl.DateTimeFormat(n, { month: "short", day: "numeric" }).format(dateObj);
+    }
+    return new Intl.DateTimeFormat(n, { month: "short", day: "numeric", year: "numeric" }).format(dateObj);
+  } catch {
+    return typeof date === "string" || typeof date === "number" ? String(date) : "";
+  }
+};
+
 export const getTimezone = () => {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;

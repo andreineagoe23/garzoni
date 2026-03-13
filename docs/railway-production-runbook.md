@@ -25,6 +25,20 @@ sh /app/scripts/railway_predeploy.sh
 - Sync is versioned and idempotent using DB state (`education_content_release_state`).
 - No manual DB push or deploy-time env toggles are required for normal releases.
 
+## Pushing missions to Railway
+
+After deploying backend code that includes `gamification/fixtures/mission_pool.json` and the `load_mission_pool` / `backfill_mission_completions` commands:
+
+1. From repo root, with [Railway CLI](https://docs.railway.app/develop/cli) installed and linked to the backend service (`railway link`):
+   ```bash
+   ./backend/scripts/railway_push_missions.sh
+   ```
+2. The script runs inside the Railway backend container:
+   - `load_mission_pool` — loads or updates missions from `/app/gamification/fixtures/mission_pool.json`.
+   - `backfill_mission_completions` — creates missing `MissionCompletion` rows so all existing users see the full pool.
+
+Run this whenever you add or change missions in the fixture and want production to match.
+
 ## Backup Policy
 
 - Minimum cadence: **every 3 days**.
