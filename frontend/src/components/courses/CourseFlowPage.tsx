@@ -616,7 +616,7 @@ function CourseFlowPage() {
         });
       }
     },
-    [normalizeSection, updateLessonSections]
+    [normalizeSection, t, updateLessonSections]
   );
 
   const handleAddSection = async (lessonId: number) => {
@@ -1138,7 +1138,7 @@ function CourseFlowPage() {
     return DOMPurify.sanitize(
       currentItem.lessonDetailedContent || t("courses.flow.noLessonContent")
     );
-  }, [currentItem]);
+  }, [currentItem, t]);
 
   const headerText = useMemo(() => {
     if (!currentItem) return null;
@@ -1146,7 +1146,7 @@ function CourseFlowPage() {
       title: currentItem.lessonTitle || t("courses.flow.lessonFallback"),
       subtitle: currentItem.lessonShortDescription || "",
     };
-  }, [currentItem]);
+  }, [currentItem, t]);
 
   const renderSectionBody = () => {
     if (!currentItem) return null;
