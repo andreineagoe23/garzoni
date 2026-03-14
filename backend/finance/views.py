@@ -1189,7 +1189,6 @@ class SubscriptionCreateView(APIView):
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
             "mode": "subscription",
-            "allow_promotion_codes": True,
             "success_url": (f"{frontend_url}/payment-success?" "session_id={CHECKOUT_SESSION_ID}"),
             "cancel_url": f"{frontend_url}/subscriptions",
             "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
@@ -1197,8 +1196,11 @@ class SubscriptionCreateView(APIView):
         }
         if trial_days:
             create_params["subscription_data"] = {"trial_period_days": trial_days}
+        # Stripe allows only one of allow_promotion_codes or discounts per session
         if promotion_code_id:
             create_params["discounts"] = [{"promotion_code": promotion_code_id}]
+        else:
+            create_params["allow_promotion_codes"] = True
         try:
             stripe.api_key = stripe_key
             checkout_session = stripe.checkout.Session.create(**create_params)

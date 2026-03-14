@@ -131,6 +131,7 @@ function Missions() {
   const completedMissionsRef = useRef(new Set());
   const previousMissionsRef = useRef(new Map()); // Track previous mission states
   const isInitialLoadRef = useRef(true); // Track if this is the first load
+  const savingsMenuInitializedRef = useRef(false);
   const [streakItems, setStreakItems] = useState([]);
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -461,11 +462,17 @@ function Missions() {
     return remainder === 0 ? coinUnit : coinUnit - remainder;
   }, [showSavingsMenu, state.virtualBalance]);
 
+  // Set suggested amount only when the savings menu first opens, so the user can clear the field
   useEffect(() => {
-    if (showSavingsMenu && !savingsAmount) {
+    if (!showSavingsMenu) {
+      savingsMenuInitializedRef.current = false;
+      return;
+    }
+    if (!savingsMenuInitializedRef.current) {
+      savingsMenuInitializedRef.current = true;
       setSavingsAmount(String(suggestedSavings));
     }
-  }, [showSavingsMenu, suggestedSavings, savingsAmount]);
+  }, [showSavingsMenu, suggestedSavings]);
 
   const missionsRemaining = state.dailyMissions.filter(
     (mission) => mission.status !== "completed"
@@ -659,7 +666,7 @@ function Missions() {
                               ? t("missions.savings.placeholderDaily")
                               : t("missions.savings.placeholderWeekly")
                           }
-                          className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                          className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
                           disabled={isDaily && isCompleted}
                         />
                         <button
