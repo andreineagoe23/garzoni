@@ -79,11 +79,12 @@ const Chatbot = () => {
   const handleCourseClick = (path) => {
     setIsOpen(false);
 
-    if (path.includes("#")) {
+    if (path && path.includes("#")) {
       const [basePath, anchor] = path.split("#");
-      sessionStorage.setItem("scrollToPathId", anchor);
-      navigate(basePath);
-    } else {
+      const anchorId = (anchor || "").trim();
+      if (anchorId) sessionStorage.setItem("scrollToPathId", anchorId);
+      navigate(basePath, { state: { scrollToPathId: anchorId }, replace: false });
+    } else if (path) {
       navigate(path);
     }
   };
@@ -340,9 +341,18 @@ const Chatbot = () => {
           });
         }
       } else if (cryptoMatch) {
-        const cryptoName = (cryptoMatch[1] || cryptoMatch[3])
+        let cryptoName = (cryptoMatch[1] || cryptoMatch[3])
           .toLowerCase()
           .trim();
+        const cryptoTypos = {
+          bircoin: "bitcoin",
+          bitcon: "bitcoin",
+          "bit coin": "bitcoin",
+          bictoin: "bitcoin",
+          etherum: "ethereum",
+          ethreum: "ethereum",
+        };
+        cryptoName = cryptoTypos[cryptoName] || cryptoName;
 
         const cryptoMap = {
           bitcoin: "bitcoin",

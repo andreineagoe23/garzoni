@@ -1622,6 +1622,7 @@
       },
       "demoModal": {
         "aria": "Demo modal",
+        "videoAria": "Monevo demo video",
         "closeAria": "Close demo modal",
         "title": "Watch Demo",
         "close": "Close",
