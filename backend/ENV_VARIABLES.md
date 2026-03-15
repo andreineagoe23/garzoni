@@ -83,7 +83,7 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENROUTER_API_KEY` | (none) | API key for OpenRouter (required for chat proxy). |
-| `OPENROUTER_ALLOWED_MODELS_CSV` | `mistralai/mistral-7b-instruct` | Allowed model IDs. |
+| `OPENROUTER_ALLOWED_MODELS_CSV` | `openrouter/auto` | Allowed model IDs (comma-separated). For more reliable replies, set a specific model e.g. `google/gemini-2.0-flash-exp:free` or `meta-llama/llama-3.2-3b-instruct:free` (see https://openrouter.ai/models). |
 | `OPENROUTER_MAX_PROMPT_CHARS` | `4000` | Max prompt length. |
 | `OPENROUTER_MAX_MESSAGES` | `30` | Max message count. |
 | `OPENROUTER_MAX_MESSAGE_CHARS` | `2000` | Max chars per message. |

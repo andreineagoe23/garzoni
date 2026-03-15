@@ -225,10 +225,10 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 OPENROUTER_MAX_PROMPT_CHARS = int(os.getenv("OPENROUTER_MAX_PROMPT_CHARS", "4000"))
 OPENROUTER_MAX_MESSAGES = int(os.getenv("OPENROUTER_MAX_MESSAGES", "30"))
 OPENROUTER_MAX_MESSAGE_CHARS = int(os.getenv("OPENROUTER_MAX_MESSAGE_CHARS", "2000"))
-OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "250"))
+OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "512"))
 OPENROUTER_ALLOWED_MODELS_CSV = env_csv(
     "OPENROUTER_ALLOWED_MODELS_CSV",
-    default=["mistralai/mistral-7b-instruct"],
+    default=["openrouter/auto"],
 )
 
 # Content translation settings

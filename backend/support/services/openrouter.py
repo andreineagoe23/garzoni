@@ -243,6 +243,9 @@ class OpenRouterService:
             return None
 
     def clean_response(self, response_text):
+        if response_text is None:
+            return ""
+        response_text = str(response_text)
         if "User:" in response_text:
             response_text = response_text.split("User:", 1)[0].strip()
         if "Human:" in response_text:
@@ -451,13 +454,12 @@ class OpenRouterService:
             system_message = {
                 "role": "system",
                 "content": (
-                    "You are a helpful financial assistant specialized in personal finance education. "
-                    f"We currently offer these learning paths: {available_paths}. "
-                    "Keep all responses brief and to the point - aim for 2-3 sentences maximum. "
-                    "For financial questions, provide only the most essential information. "
-                    "Avoid lists, bullet points, or lengthy explanations. "
-                    "Never make up specific course content or paths that don't exist. "
-                    "If unsure about specific details, suggest asking about our available learning paths."
+                    "You are a friendly, helpful financial assistant. Always reply with a clear, direct answer. "
+                    "Keep responses to 2-4 short sentences. "
+                    f"When relevant, you can mention we offer these learning paths: {available_paths}. "
+                    "Answer general finance questions (compound interest, budgeting, investing, crypto, etc.) with accurate, educational info. "
+                    "Answer casual greetings (e.g. 'how are you') briefly and warmly, then offer to help with finance. "
+                    "Never refuse to answer; if unsure, give a short helpful response and suggest our learning paths for more."
                 ),
             }
             messages.append(system_message)
@@ -495,7 +497,12 @@ class OpenRouterService:
                 else:
                     messages.append({"role": "user", "content": prompt})
 
-            requested_model = str(parameters.get("model") or "mistralai/mistral-7b-instruct")
+            default_model = (
+                settings.OPENROUTER_ALLOWED_MODELS_CSV[0]
+                if settings.OPENROUTER_ALLOWED_MODELS_CSV
+                else "openrouter/auto"
+            )
+            requested_model = str(parameters.get("model") or default_model)
             if requested_model not in settings.OPENROUTER_ALLOWED_MODELS_CSV:
                 return {
                     "error": "Model not allowed.",
@@ -503,9 +510,9 @@ class OpenRouterService:
                 }, 400
 
             try:
-                max_tokens = int(parameters.get("max_new_tokens", 150))
+                max_tokens = int(parameters.get("max_new_tokens", 256))
             except Exception:
-                max_tokens = 150
+                max_tokens = 256
             max_tokens = max(1, min(max_tokens, settings.OPENROUTER_MAX_TOKENS))
 
             temperature = parameters.get("temperature", 0.7)
@@ -560,8 +567,22 @@ class OpenRouterService:
             if response.status_code == 200:
                 response_data = response.json()
                 if "choices" in response_data and len(response_data["choices"]) > 0:
-                    ai_response = response_data["choices"][0]["message"]["content"]
-                    cleaned_response = self.clean_response(ai_response)
+                    msg = response_data["choices"][0].get("message") or {}
+                    raw_content = msg.get("content")
+                    if isinstance(raw_content, list):
+                        ai_response = (
+                            " ".join(
+                                p.get("text", "") if isinstance(p, dict) else str(p)
+                                for p in raw_content
+                            ).strip()
+                            or None
+                        )
+                    else:
+                        ai_response = raw_content
+                    cleaned_response = (
+                        self.clean_response(ai_response)
+                        or "I'm sorry, I didn't get a clear answer that time. Try asking in a slightly different way, or ask about our learning paths."
+                    )
 
                     result = {"response": cleaned_response}
 

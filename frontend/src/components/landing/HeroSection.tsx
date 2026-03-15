@@ -5,6 +5,9 @@ import { ArrowRight, PlayCircle } from "lucide-react";
 import { GlassButton } from "components/ui";
 import ParticleStage from "./ParticleStage";
 import { useTranslation } from "react-i18next";
+import { BACKEND_URL } from "services/backendUrl";
+
+const DEMO_VIDEO_URL = `${BACKEND_URL.replace(/\/api\/?$/, "")}/media/welcome/monevo-demo.mp4`;
 export default function HeroSection({
   scrollToFeatures,
 }: {
@@ -280,7 +283,7 @@ export default function HeroSection({
             onClick={() => setIsDemoOpen(false)}
             aria-label={t("landing.hero.demoModal.closeAria")}
           />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#0B0F14]/85 p-6 backdrop-blur-xl shadow-2xl shadow-black/50">
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#0B0F14]/95 p-6 backdrop-blur-xl shadow-2xl shadow-black/50">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <PlayCircle className="h-5 w-5 text-[#E6C87A]" />
@@ -295,6 +298,18 @@ export default function HeroSection({
               >
                 {t("landing.hero.demoModal.close")}
               </button>
+            </div>
+            <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-black/40">
+              <video
+                src={DEMO_VIDEO_URL}
+                controls
+                className="w-full aspect-video"
+                playsInline
+                preload="metadata"
+                aria-label={t("landing.hero.demoModal.videoAria")}
+              >
+                Your browser does not support the video tag.
+              </video>
             </div>
             <div className="mt-4 flex flex-col items-center text-center">
               <p className="text-sm text-white/70">

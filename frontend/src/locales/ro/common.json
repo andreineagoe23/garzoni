@@ -1622,6 +1622,7 @@
       },
       "demoModal": {
         "aria": "Fereastră demo",
+        "videoAria": "Video demo Monevo",
         "closeAria": "Închide fereastra demo",
         "title": "Vezi demo",
         "close": "Închide",

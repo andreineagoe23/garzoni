@@ -6,7 +6,7 @@ import apiClient from "services/httpClient";
 import { useProgressMetrics } from "hooks/useProgressMetrics";
 import { useAnalytics } from "hooks/useAnalytics";
 import { formatNumber, getLocale, pathDisplayTitle } from "utils/format";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 type LearningPathCourse = {
@@ -52,6 +52,7 @@ const AllTopics = ({
   const { trackEvent } = useAnalytics();
   const locale = getLocale();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const planRank = (plan?: string | null) => {
     if (plan === "plus") return 1;
@@ -114,26 +115,6 @@ const AllTopics = ({
           })
         );
 
-        const anchor = sessionStorage.getItem("scrollToPathId");
-        if (anchor) {
-          setTimeout(() => {
-            const el = document.getElementById(anchor);
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth" });
-              el.classList.add("ring-2", "ring-[color:var(--accent,#2563eb)]");
-              setActivePathId(anchor);
-              setTimeout(
-                () =>
-                  el.classList.remove(
-                    "ring-2",
-                    "ring-[color:var(--accent,#2563eb)]"
-                  ),
-                2000
-              );
-            }
-            sessionStorage.removeItem("scrollToPathId");
-          }, 500);
-        }
       } catch (err) {
         console.error("Error fetching learning paths:", err);
         setError(t("allTopics.error"));
@@ -144,6 +125,32 @@ const AllTopics = ({
 
     fetchPaths();
   }, [getAccessToken, t]);
+
+  // Scroll to path when anchor is in navigation state, URL hash, or sessionStorage (e.g. from chatbot "View X Path" link)
+  useEffect(() => {
+    if (deferredPaths.length === 0) return;
+    const fromState = (location.state as { scrollToPathId?: string } | null)?.scrollToPathId;
+    const fromHash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    const anchor = fromState || fromHash || sessionStorage.getItem("scrollToPathId");
+    if (!anchor) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(anchor);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        el.classList.add("ring-2", "ring-[color:var(--accent,#2563eb)]");
+        setActivePathId(anchor);
+        setTimeout(
+          () => el.classList.remove("ring-2", "ring-[color:var(--accent,#2563eb)]"),
+          2000
+        );
+      }
+      sessionStorage.removeItem("scrollToPathId");
+      if (fromHash && typeof window !== "undefined") {
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [deferredPaths.length, location.pathname, location.state, location.hash]);
 
   const handleTogglePath = (pathId: number | string, isLocked?: boolean) => {
     if (isLocked) return;
