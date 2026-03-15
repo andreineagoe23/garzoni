@@ -506,7 +506,14 @@ class OpenRouterProxyView(APIView):
                     messages.append({"role": "user", "content": prompt})
 
             # Clamp parameters to safe limits.
-            requested_model = str(parameters.get("model") or "mistralai/mistral-7b-instruct")
+            requested_model = str(
+                parameters.get("model")
+                or (
+                    settings.OPENROUTER_ALLOWED_MODELS_CSV[0]
+                    if settings.OPENROUTER_ALLOWED_MODELS_CSV
+                    else "openrouter/auto"
+                )
+            )
             if requested_model not in settings.OPENROUTER_ALLOWED_MODELS_CSV:
                 return Response(
                     {
