@@ -104,6 +104,21 @@ function PersonalizedPath({
       }
 
       try {
+        // When returning from Stripe with session_id, always verify once to sync plan and subscription
+        if (sessionId) {
+          try {
+            await apiClient.post("/verify-session/", {
+              session_id: sessionId,
+              force_check: true,
+            });
+            queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+            await loadProfile({ force: true });
+            reloadEntitlements?.();
+          } catch {
+            // Continue; verification may still be pending or fail
+          }
+        }
+
         // Always force-refresh to avoid stale has_paid/questionnaire flags after checkout
         let profilePayload = await loadProfile({ force: true });
         const questionnaireCompleted = Boolean(

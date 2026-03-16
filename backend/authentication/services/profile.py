@@ -71,6 +71,8 @@ def build_profile_payload(user, profile: UserProfile):
                 profile.subscription_plan_id
                 or getattr(getattr(profile, "subscription_plan", None), "plan_id", None)
             ),
+            "stripe_customer_id": getattr(profile, "stripe_customer_id", None) or None,
+            "stripe_subscription_id": getattr(profile, "stripe_subscription_id", None) or None,
             "trial_end": profile.trial_end,
             "is_questionnaire_completed": questionnaire_completed,
             "financial_profile": {

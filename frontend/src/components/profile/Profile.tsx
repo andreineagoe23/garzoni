@@ -390,11 +390,19 @@ function Profile() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/subscriptions")}
+              onClick={() =>
+                navigate(
+                  ["active", "trialing"].includes(entitlements?.status ?? "")
+                    ? "/billing"
+                    : "/subscriptions"
+                )
+              }
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
               <span aria-hidden>💳</span>
-              {t("profile.actions.subscription")}
+              {["active", "trialing"].includes(entitlements?.status ?? "")
+                ? t("billing.manageSubscription")
+                : t("profile.actions.subscription")}
             </button>
           </div>
         </section>

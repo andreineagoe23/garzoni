@@ -158,6 +158,56 @@ The Monevo Team""",
     return f"Sent {sent} trial ending reminders"
 
 
+@shared_task
+def send_subscription_cancelled_email(
+    email: str, display_name: str, access_until_iso: str | None = None
+):
+    """
+    Send a confirmation email after the user cancels their subscription.
+    access_until_iso: ISO datetime string for current_period_end (optional).
+    """
+    if not _email_configured():
+        logger.warning(
+            "Subscription cancelled email skipped: EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set"
+        )
+        return "Skipped (email not configured)"
+    try:
+        if access_until_iso:
+            try:
+                from datetime import datetime as dt_parse
+
+                dt = dt_parse.fromisoformat(access_until_iso.replace("Z", "+00:00"))
+                access_until_str = dt.strftime("%B %d, %Y")
+            except Exception:
+                access_until_str = (
+                    access_until_iso[:10] if len(access_until_iso) >= 10 else access_until_iso
+                )
+            access_line = (
+                f"You'll keep access until {access_until_str}. You won't be charged again.\n\n"
+            )
+        else:
+            access_line = "You'll keep access until the end of your current billing period. You won't be charged again.\n\n"
+        send_mail(
+            "Your subscription has been cancelled",
+            f"""Hi {display_name},
+
+We've cancelled your Monevo subscription as requested.
+
+{access_line}If you change your mind, you can resubscribe anytime from your account.
+
+Best regards,
+The Monevo Team""",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=True,
+        )
+        logger.info("Sent subscription cancelled email to %s", email)
+        return "Sent"
+    except Exception as e:
+        logger.warning("Subscription cancelled email failed for %s: %s", email, e)
+        return f"Failed: {e}"
+
+
 def send_emails(profiles, frequency):
     """
     Send reminder emails to a list of user profiles.

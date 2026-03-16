@@ -10,6 +10,7 @@ from .views import (
     StripeWebhookView,
     VerifySessionView,
     SubscriptionCreateView,
+    SubscriptionSyncView,
     SubscriptionPortalView,
     SubscriptionCancelView,
     PortfolioViewSet,
@@ -57,6 +58,11 @@ urlpatterns = [
         "subscriptions/create/",
         SubscriptionCreateView.as_view(),
         name="subscriptions-create",
+    ),
+    path(
+        "subscriptions/sync/",
+        SubscriptionSyncView.as_view(),
+        name="subscriptions-sync",
     ),
     path(
         "subscriptions/cancel/",
