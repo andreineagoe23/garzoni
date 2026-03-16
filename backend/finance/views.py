@@ -45,6 +45,9 @@ from finance.serializers import (
     FinancialGoalSerializer,
 )
 from authentication.models import UserProfile
+from authentication.services.profile import invalidate_profile_cache
+from authentication.tasks import send_subscription_cancelled_email
+from authentication.user_display import normalize_display_string
 from gamification.models import MissionCompletion
 from finance.utils import record_funnel_event
 from django.apps import apps
@@ -861,6 +864,7 @@ class StripeWebhookView(APIView):
                             )
                             trial_end_dt = None
                             sub_id = session.get("subscription")
+                            customer_id_webhook = None
                             if sub_id:
                                 try:
                                     sub = stripe.Subscription.retrieve(sub_id)
@@ -870,6 +874,11 @@ class StripeWebhookView(APIView):
                                             datetime.utcfromtimestamp(sub.trial_end),
                                             timezone.utc,
                                         )
+                                    customer_id_webhook = (
+                                        sub.customer
+                                        if isinstance(sub.customer, str)
+                                        else getattr(sub.customer, "id", None)
+                                    )
                                 except stripe.error.StripeError as e:
                                     logger.warning(
                                         "Stripe webhook: could not retrieve subscription %s: %s",
@@ -903,6 +912,8 @@ class StripeWebhookView(APIView):
                                     user_profile.trial_end = trial_end_dt
                                 if sub_id:
                                     user_profile.stripe_subscription_id = sub_id
+                                if customer_id_webhook:
+                                    user_profile.stripe_customer_id = customer_id_webhook
                                 update_fields = [
                                     "has_paid",
                                     "is_premium",
@@ -914,6 +925,8 @@ class StripeWebhookView(APIView):
                                     update_fields.append("trial_end")
                                 if sub_id:
                                     update_fields.append("stripe_subscription_id")
+                                if customer_id_webhook:
+                                    update_fields.append("stripe_customer_id")
                                 user_profile.save(update_fields=update_fields)
                                 cache.delete_many(
                                     [
@@ -973,7 +986,9 @@ class StripeWebhookView(APIView):
                 sub = event["data"]["object"]
                 sub_id = sub.get("id")
                 status = sub.get("status")
-                if sub_id and status == "active":
+                if not sub_id:
+                    pass
+                elif status == "active":
                     with transaction.atomic():
                         profile = (
                             UserProfile.objects.select_for_update()
@@ -984,6 +999,66 @@ class StripeWebhookView(APIView):
                             profile.subscription_status = "active"
                             profile.trial_end = None
                             profile.save(update_fields=["subscription_status", "trial_end"])
+                            cache.delete_many(
+                                [
+                                    f"user_payment_status_{profile.user_id}",
+                                    f"user_profile_{profile.user_id}",
+                                ]
+                            )
+                elif status == "canceled":
+                    with transaction.atomic():
+                        profile = (
+                            UserProfile.objects.select_for_update()
+                            .filter(stripe_subscription_id=sub_id)
+                            .first()
+                        )
+                        if profile:
+                            profile.is_premium = False
+                            profile.subscription_plan_id = "starter"
+                            profile.stripe_subscription_id = None
+                            profile.subscription_status = "canceled"
+                            profile.trial_end = None
+                            profile.save(
+                                update_fields=[
+                                    "is_premium",
+                                    "subscription_plan_id",
+                                    "stripe_subscription_id",
+                                    "subscription_status",
+                                    "trial_end",
+                                ]
+                            )
+                            cache.delete_many(
+                                [
+                                    f"user_payment_status_{profile.user_id}",
+                                    f"user_profile_{profile.user_id}",
+                                ]
+                            )
+
+            elif event["type"] == "customer.subscription.deleted":
+                sub = event["data"]["object"]
+                sub_id = sub.get("id")
+                if sub_id:
+                    with transaction.atomic():
+                        profile = (
+                            UserProfile.objects.select_for_update()
+                            .filter(stripe_subscription_id=sub_id)
+                            .first()
+                        )
+                        if profile:
+                            profile.is_premium = False
+                            profile.subscription_plan_id = "starter"
+                            profile.stripe_subscription_id = None
+                            profile.subscription_status = "canceled"
+                            profile.trial_end = None
+                            profile.save(
+                                update_fields=[
+                                    "is_premium",
+                                    "subscription_plan_id",
+                                    "stripe_subscription_id",
+                                    "subscription_status",
+                                    "trial_end",
+                                ]
+                            )
                             cache.delete_many(
                                 [
                                     f"user_payment_status_{profile.user_id}",
@@ -1019,9 +1094,17 @@ class VerifySessionView(APIView):
                 return Response({"error": "Invalid session ID format"}, status=400)
 
             stripe.api_key = settings.STRIPE_SECRET_KEY
-            session = stripe.checkout.Session.retrieve(session_id, expand=["payment_intent"])
+            session = stripe.checkout.Session.retrieve(
+                session_id, expand=["payment_intent", "subscription"]
+            )
 
-            if session.payment_status != "paid":
+            # For subscription mode, accept when session is complete (trial = unpaid until trial ends)
+            session_complete = getattr(session, "status", None) == "complete"
+            payment_paid = getattr(session, "payment_status", None) == "paid"
+            if session.mode == "subscription":
+                if not session_complete:
+                    return Response({"status": "pending"}, status=202)
+            elif not payment_paid:
                 return Response({"status": "pending"}, status=202)
 
             metadata = getattr(session, "metadata", {}) or {}
@@ -1043,13 +1126,44 @@ class VerifySessionView(APIView):
             User = get_user_model()
             try:
                 stripe_payment_id = getattr(getattr(session, "payment_intent", None), "id", "")
+                sub_id = None
+                subscription_status = "active"
+                trial_end_dt = None
+                customer_id_from_sub = None
+                if getattr(session, "subscription", None):
+                    sub = session.subscription
+                    sub_id = sub if isinstance(sub, str) else getattr(sub, "id", None)
+                    if sub_id and not isinstance(sub, str):
+                        subscription_status = getattr(sub, "status", "active") or "active"
+                        te = getattr(sub, "trial_end", None)
+                        if te:
+                            trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
+                        customer_id_from_sub = (
+                            sub.customer
+                            if isinstance(sub.customer, str)
+                            else getattr(sub, "customer", None)
+                        )
+                        if customer_id_from_sub and not isinstance(customer_id_from_sub, str):
+                            customer_id_from_sub = getattr(customer_id_from_sub, "id", None)
+                    elif sub_id:
+                        sub_obj = stripe.Subscription.retrieve(sub_id)
+                        subscription_status = getattr(sub_obj, "status", "active") or "active"
+                        te = getattr(sub_obj, "trial_end", None)
+                        if te:
+                            trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
+                        customer_id_from_sub = (
+                            sub_obj.customer
+                            if isinstance(sub_obj.customer, str)
+                            else getattr(sub_obj.customer, "id", None)
+                        )
+
                 with transaction.atomic():
                     profile, _ = UserProfile.objects.select_for_update().get_or_create(
                         user_id=user_id_int,
                         defaults={
                             "has_paid": True,
                             "is_premium": True,
-                            "subscription_status": "active",
+                            "subscription_status": subscription_status,
                             "stripe_payment_id": stripe_payment_id,
                             "subscription_plan_id": plan_id or "plus",
                         },
@@ -1057,20 +1171,37 @@ class VerifySessionView(APIView):
 
                     profile.has_paid = True
                     profile.is_premium = True
-                    profile.subscription_status = "active"
+                    profile.subscription_status = subscription_status
                     profile.stripe_payment_id = stripe_payment_id
                     if plan_id:
                         profile.subscription_plan_id = plan_id
-                    profile.save(
-                        update_fields=[
-                            "has_paid",
-                            "is_premium",
-                            "subscription_status",
-                            "stripe_payment_id",
-                            "subscription_plan_id",
+                    if sub_id:
+                        profile.stripe_subscription_id = sub_id
+                    if customer_id_from_sub:
+                        profile.stripe_customer_id = customer_id_from_sub
+                    if trial_end_dt is not None:
+                        profile.trial_end = trial_end_dt
+                    update_fields = [
+                        "has_paid",
+                        "is_premium",
+                        "subscription_status",
+                        "stripe_payment_id",
+                        "subscription_plan_id",
+                    ]
+                    if sub_id:
+                        update_fields.append("stripe_subscription_id")
+                    if customer_id_from_sub:
+                        update_fields.append("stripe_customer_id")
+                    if trial_end_dt is not None:
+                        update_fields.append("trial_end")
+                    profile.save(update_fields=update_fields)
+
+                    cache.delete_many(
+                        [
+                            f"user_payment_status_{user_id_int}",
+                            f"user_profile_{user_id_int}",
                         ]
                     )
-
                     cache.set(f"user_payment_status_{user_id_int}", "paid", 300)
 
                 try:
@@ -1194,6 +1325,8 @@ class SubscriptionCreateView(APIView):
             "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
             "client_reference_id": str(request.user.id),
         }
+        if getattr(request.user, "email", None):
+            create_params["customer_email"] = request.user.email
         if trial_days:
             create_params["subscription_data"] = {"trial_period_days": trial_days}
         # Stripe allows only one of allow_promotion_codes or discounts per session
@@ -1231,6 +1364,139 @@ class SubscriptionCreateView(APIView):
             )
 
 
+def _get_or_resolve_stripe_subscription_id(profile):
+    """
+    Return profile.stripe_subscription_id if set. Otherwise, for premium users,
+    try to resolve by stripe_customer_id, then by customer email, and save on the profile.
+    """
+    sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+    if sub_id:
+        return sub_id
+    cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
+    if cid:
+        try:
+            for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
+                if getattr(sub, "status", None) in ("active", "trialing"):
+                    found_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
+                    if found_id:
+                        profile.stripe_subscription_id = found_id
+                        profile.save(update_fields=["stripe_subscription_id"])
+                        cache.delete_many(
+                            [
+                                f"user_payment_status_{profile.user_id}",
+                                f"user_profile_{profile.user_id}",
+                            ]
+                        )
+                        invalidate_profile_cache(profile.user)
+                        return found_id
+        except stripe.error.StripeError as e:
+            logger.warning(
+                "Stripe resolve: error listing subscriptions by customer_id=%s for user_profile=%s: %s",
+                cid,
+                getattr(profile, "id", None),
+                e,
+            )
+    if not getattr(profile.user, "email", None):
+        return None
+    is_premium = getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
+    status_ok = getattr(profile, "subscription_status", None) in ("active", "trialing")
+    if not (is_premium or status_ok):
+        return None
+    email = (profile.user.email or "").strip()
+    emails_to_try = [email] if email else []
+    if email and email.lower() != email:
+        emails_to_try.append(email.lower())
+    for try_email in emails_to_try:
+        if not try_email:
+            continue
+        try:
+            customers = stripe.Customer.list(email=try_email, limit=5)
+            for cust in customers.data:
+                cid = cust.id if isinstance(cust, str) else getattr(cust, "id", None)
+                if not cid:
+                    continue
+                # Persist customer id so portal can work without subscription lookup next time
+                update_fields = []
+                if not (getattr(profile, "stripe_customer_id", None) or "").strip():
+                    profile.stripe_customer_id = cid
+                    update_fields.append("stripe_customer_id")
+                subs = stripe.Subscription.list(customer=cid, status="all", limit=10)
+                for sub in subs.data:
+                    if getattr(sub, "status", None) in ("active", "trialing"):
+                        found_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
+                        if found_id:
+                            profile.stripe_subscription_id = found_id
+                            update_fields.append("stripe_subscription_id")
+                            profile.save(update_fields=update_fields)
+                            cache.delete_many(
+                                [
+                                    f"user_payment_status_{profile.user_id}",
+                                    f"user_profile_{profile.user_id}",
+                                ]
+                            )
+                            invalidate_profile_cache(profile.user)
+                            logger.info(
+                                "Resolved stripe_subscription_id for user %s by email lookup",
+                                profile.user_id,
+                            )
+                            return found_id
+                if update_fields:
+                    profile.save(update_fields=update_fields)
+                    cache.delete_many(
+                        [
+                            f"user_payment_status_{profile.user_id}",
+                            f"user_profile_{profile.user_id}",
+                        ]
+                    )
+                    invalidate_profile_cache(profile.user)
+        except stripe.error.StripeError as e:
+            logger.warning("Stripe lookup by email %s failed: %s", try_email[:8], e)
+    if email:
+        logger.info(
+            "No Stripe subscription found for user %s email %s (customer may use different email in Stripe)",
+            profile.user_id,
+            email[:8] + "...",
+        )
+    return None
+
+
+class SubscriptionSyncView(APIView):
+    """
+    Try to resolve and save stripe_subscription_id for the current user (e.g. by email lookup).
+    Call this when loading the billing page so cancel/portal work even if verify-session wasn't run.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        if not stripe_key:
+            return Response(
+                {"ok": False, "error": "Payment is not configured."},
+                status=503,
+            )
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {"ok": False, "error": "Profile not found."},
+                status=404,
+            )
+        stripe.api_key = stripe_key
+        sub_id = _get_or_resolve_stripe_subscription_id(profile)
+        if sub_id:
+            return Response({"ok": True}, status=200)
+        if getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False):
+            return Response(
+                {
+                    "ok": False,
+                    "error": "We couldn't find your subscription in Stripe. If you subscribed with a different email, contact support.",
+                },
+                status=200,
+            )
+        return Response({"ok": False, "error": "No active subscription."}, status=200)
+
+
 class SubscriptionPortalView(APIView):
     """Create a Stripe Customer Portal session so the user can manage or cancel their subscription."""
 
@@ -1251,27 +1517,38 @@ class SubscriptionPortalView(APIView):
                 {"error": "Profile not found."},
                 status=404,
             )
-        sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
-        if not sub_id:
+        stripe.api_key = stripe_key
+        customer_id = (getattr(profile, "stripe_customer_id", None) or "").strip()
+        if not customer_id:
+            sub_id = _get_or_resolve_stripe_subscription_id(profile)
+            if sub_id:
+                try:
+                    sub = stripe.Subscription.retrieve(sub_id)
+                    customer_id = (
+                        sub.customer
+                        if isinstance(sub.customer, str)
+                        else getattr(sub.customer, "id", None)
+                    )
+                    if customer_id:
+                        profile.stripe_customer_id = customer_id
+                        profile.save(update_fields=["stripe_customer_id"])
+                except stripe.error.StripeError as e:
+                    logger.warning(
+                        "Portal: error retrieving subscription %s for user_profile=%s: %s",
+                        sub_id,
+                        getattr(profile, "id", None),
+                        e,
+                    )
+        if not customer_id:
             return Response(
-                {"error": "No active subscription found. You can subscribe from the plans below."},
+                {
+                    "error": "No active subscription found. If you have a subscription, refresh the page to sync, or contact support.",
+                },
                 status=400,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
         return_url = f"{frontend_url.rstrip('/')}/subscriptions"
         try:
-            stripe.api_key = stripe_key
-            sub = stripe.Subscription.retrieve(sub_id)
-            customer_id = (
-                sub.customer if isinstance(sub.customer, str) else getattr(sub.customer, "id", None)
-            )
-            if not customer_id:
-                return Response(
-                    {
-                        "error": "Could not resolve subscription. Please try again or contact support."
-                    },
-                    status=400,
-                )
             session = stripe.billing_portal.Session.create(
                 customer=customer_id,
                 return_url=return_url,
@@ -1309,15 +1586,42 @@ class SubscriptionCancelView(APIView):
         except UserProfile.DoesNotExist:
             return Response({"error": "Profile not found."}, status=404)
 
-        sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+        stripe.api_key = stripe_key
+        sub_id = _get_or_resolve_stripe_subscription_id(profile)
+        if not sub_id:
+            cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
+            if cid:
+                try:
+                    for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
+                        if getattr(sub, "status", None) in ("active", "trialing"):
+                            sub_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
+                            if sub_id:
+                                profile.stripe_subscription_id = sub_id
+                                profile.save(update_fields=["stripe_subscription_id"])
+                                cache.delete_many(
+                                    [
+                                        f"user_payment_status_{profile.user_id}",
+                                        f"user_profile_{profile.user_id}",
+                                    ]
+                                )
+                                invalidate_profile_cache(profile.user)
+                                break
+                except stripe.error.StripeError as e:
+                    logger.warning(
+                        "Cancel: error listing subscriptions for customer_id=%s and user_profile=%s: %s",
+                        cid,
+                        getattr(profile, "id", None),
+                        e,
+                    )
         if not sub_id:
             return Response(
-                {"error": "No active subscription found. You can subscribe from the plans below."},
+                {
+                    "error": "No active subscription found. If you have a subscription, refresh the page to sync, or contact support.",
+                },
                 status=400,
             )
 
         try:
-            stripe.api_key = stripe_key
             # Set cancel_at_period_end instead of immediate cancellation
             subscription = stripe.Subscription.modify(
                 sub_id,
@@ -1325,7 +1629,29 @@ class SubscriptionCancelView(APIView):
             )
             profile.subscription_status = getattr(subscription, "status", "canceled")
             profile.save(update_fields=["subscription_status"])
-            return Response({"success": True}, status=200)
+            cancel_at_period_end = getattr(subscription, "cancel_at_period_end", True)
+            current_period_end = getattr(subscription, "current_period_end", None)
+            period_end_iso = None
+            if current_period_end:
+                period_end_iso = datetime.fromtimestamp(
+                    current_period_end, tz=timezone.utc
+                ).isoformat()
+            if request.user.email:
+                send_subscription_cancelled_email.delay(
+                    email=request.user.email,
+                    display_name=normalize_display_string(
+                        request.user.first_name or request.user.username or "there"
+                    ),
+                    access_until_iso=period_end_iso,
+                )
+            return Response(
+                {
+                    "success": True,
+                    "cancel_at_period_end": cancel_at_period_end,
+                    "current_period_end": period_end_iso,
+                },
+                status=200,
+            )
         except stripe.error.StripeError as e:
             logger.error("Stripe cancel error: %s", e)
             return Response(

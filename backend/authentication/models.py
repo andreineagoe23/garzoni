@@ -40,6 +40,13 @@ class UserProfile(models.Model):
         help_text="Subscription tier identifier (starter, plus, pro).",
     )
     stripe_payment_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    stripe_customer_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Stripe customer ID; used for portal and to resolve subscription.",
+    )
     stripe_subscription_id = models.CharField(
         max_length=255,
         blank=True,

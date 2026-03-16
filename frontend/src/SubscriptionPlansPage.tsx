@@ -111,15 +111,6 @@ const SubscriptionPlansPage = () => {
   }, [fetchSubscriptionInfo]);
 
   useEffect(() => {
-    if (
-      entitlements?.status === "active" ||
-      entitlements?.status === "trialing"
-    ) {
-      navigate("/billing", { replace: true });
-    }
-  }, [entitlements?.status, navigate]);
-
-  useEffect(() => {
     apiClient
       .get("/plans/")
       .then((r) => setPlans(r.data?.plans || []))
@@ -441,17 +432,28 @@ const SubscriptionPlansPage = () => {
               </p>
             )}
           </div>
-          <GlassButton
-            variant="ghost"
-            onClick={handleSubscriptionNavigate}
-            icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
-          >
-            {subscriptionInfo.hasPaid
-              ? t("subscriptions.viewPersonalizedPath")
-              : questionnaireComplete
-                ? t("subscriptions.goToDashboard")
-                : t("subscriptions.checkSubscriptionOptions")}
-          </GlassButton>
+          <div className="flex flex-wrap gap-2">
+            <GlassButton
+              variant="ghost"
+              onClick={handleSubscriptionNavigate}
+              icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
+            >
+              {subscriptionInfo.hasPaid
+                ? t("subscriptions.viewPersonalizedPath")
+                : questionnaireComplete
+                  ? t("subscriptions.goToDashboard")
+                  : t("subscriptions.checkSubscriptionOptions")}
+            </GlassButton>
+            {(subscriptionInfo.hasPaid ||
+              entitlements?.status === "trialing") && (
+              <GlassButton
+                variant="primary"
+                onClick={() => navigate("/billing")}
+              >
+                {t("billing.manageSubscription")}
+              </GlassButton>
+            )}
+          </div>
         </div>
 
         {comparisonRows.length > 0 && (
