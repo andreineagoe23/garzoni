@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "react-bootstrap-icons";
 import { ArrowRight, PlayCircle } from "lucide-react";
-import { GlassButton } from "components/ui";
+import { GlassButton, Modal } from "components/ui";
 import ParticleStage from "./ParticleStage";
 import { useTranslation } from "react-i18next";
 import { BACKEND_URL } from "services/backendUrl";
@@ -34,6 +34,16 @@ export default function HeroSection({
       className="welcome-hero relative isolate bg-[#0B0F14] min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]"
       aria-label={t("landing.hero.aria")}
     >
+      {/* Preload demo video as soon as the page is open so the modal opens quickly */}
+      <video
+        src={DEMO_VIDEO_URL}
+        preload="auto"
+        muted
+        autoPlay
+        role="presentation"
+        className="absolute w-0 h-0 opacity-0 pointer-events-none"
+        aria-hidden="true"
+      />
       <div className="w-full px-4 sm:pl-10 sm:pr-5 lg:pl-14 lg:pr-8 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]">
         <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)] items-stretch">
           {/* Left: copy + CTAs */}
@@ -269,63 +279,37 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* Demo modal (lightweight, self-contained) */}
-      {isDemoOpen && (
-        <div
-          className="fixed inset-0 z-[1200] flex items-center justify-center px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("landing.hero.demoModal.aria")}
-        >
+      {/* Demo modal (reuses shared Modal so it appears above all sections) */}
+      <Modal
+        isOpen={isDemoOpen}
+        title={t("landing.hero.demoModal.title")}
+        onClose={() => setIsDemoOpen(false)}
+      >
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
+          <video
+            src={DEMO_VIDEO_URL}
+            controls
+            className="w-full aspect-video"
+            playsInline
+            preload="auto"
+            aria-label={t("landing.hero.demoModal.videoAria")}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div className="mt-4 flex flex-col items-center text-center">
+          <p className="text-sm text-white/70">
+            {t("landing.hero.demoModal.subtitle")}
+          </p>
           <button
             type="button"
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setIsDemoOpen(false)}
-            aria-label={t("landing.hero.demoModal.closeAria")}
-          />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#0B0F14]/95 p-6 backdrop-blur-xl shadow-2xl shadow-black/50">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <PlayCircle className="h-5 w-5 text-[#E6C87A]" />
-                <span className="welcome-font-display text-base font-semibold text-white">
-                  {t("landing.hero.demoModal.title")}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/10"
-                onClick={() => setIsDemoOpen(false)}
-              >
-                {t("landing.hero.demoModal.close")}
-              </button>
-            </div>
-            <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-              <video
-                src={DEMO_VIDEO_URL}
-                controls
-                className="w-full aspect-video"
-                playsInline
-                preload="metadata"
-                aria-label={t("landing.hero.demoModal.videoAria")}
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-            <div className="mt-4 flex flex-col items-center text-center">
-              <p className="text-sm text-white/70">
-                {t("landing.hero.demoModal.subtitle")}
-              </p>
-              <button
-                type="button"
-                className="mt-5 rounded bg-[#E6C87A] px-5 py-2 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669]"
-                onClick={() => navigate("/register")}
-              >
-                {t("landing.hero.demoModal.startLearning")}
-              </button>
-            </div>
-          </div>
+            className="mt-5 rounded bg-[#E6C87A] px-5 py-2 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669]"
+            onClick={() => navigate("/register")}
+          >
+            {t("landing.hero.demoModal.startLearning")}
+          </button>
         </div>
-      )}
+      </Modal>
     </section>
   );
 }

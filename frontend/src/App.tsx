@@ -31,7 +31,7 @@ import Register from "components/auth/Register";
 import AuthCallback from "components/auth/AuthCallback";
 import ForgotPassword from "components/auth/ForgotPassword";
 import ResetPassword from "components/auth/ResetPassword";
-import SubscriptionPlans from "./SubscriptionPlansPage";
+import SubscriptionPlans from "components/billing/SubscriptionPlansPage";
 const Welcome = React.lazy(() => import("./components/landing/Welcome"));
 const CoursePage = React.lazy(() => import("./components/courses/CoursePage"));
 const CourseFlowPage = React.lazy(
