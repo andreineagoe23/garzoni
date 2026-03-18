@@ -61,23 +61,21 @@ def send_email_reminders():
     sent_weekly, sent_monthly = 0, 0
     for profile in weekly_users:
         try:
+            api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
+            context = {
+                "user": profile.user,
+                "frequency": "weekly",
+                "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+                "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/settings",
+                "unsubscribe_link": f"{api_base}/email/unsubscribe/?token={profile.get_unsubscribe_token()}",
+            }
+            html_message = render_to_string("emails/reminder.html", context)
             send_mail(
                 "Weekly Reminder: Your Financial Learning Journey Awaits",
-                f"""Hi {normalize_display_string(profile.user.username)},
-
-It's been a week since your last login. Your financial learning journey is waiting for you!
-
-Your current progress:
-- Balance: {profile.earned_money} coins
-- Points: {profile.points}
-- Streak: {profile.streak} days
-
-Don't let your streak break! Come back and continue learning.
-
-Best regards,
-The Monevo Team""",
+                strip_tags(html_message),
                 settings.DEFAULT_FROM_EMAIL,
                 [profile.user.email],
+                html_message=html_message,
                 fail_silently=True,
             )
             profile.last_reminder_sent = now
@@ -88,23 +86,21 @@ The Monevo Team""",
 
     for profile in monthly_users:
         try:
+            api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
+            context = {
+                "user": profile.user,
+                "frequency": "monthly",
+                "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+                "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/settings",
+                "unsubscribe_link": f"{api_base}/email/unsubscribe/?token={profile.get_unsubscribe_token()}",
+            }
+            html_message = render_to_string("emails/reminder.html", context)
             send_mail(
                 "Monthly Reminder: Continue Your Financial Learning",
-                f"""Hi {normalize_display_string(profile.user.username)},
-
-It's been a while since your last visit. Your progress is saved and we'd love to see you back!
-
-Your current progress:
-- Balance: {profile.earned_money} coins
-- Points: {profile.points}
-- Streak: {profile.streak} days
-
-Pick up where you left off and keep building your financial knowledge.
-
-Best regards,
-The Monevo Team""",
+                strip_tags(html_message),
                 settings.DEFAULT_FROM_EMAIL,
                 [profile.user.email],
+                html_message=html_message,
                 fail_silently=True,
             )
             profile.last_reminder_sent = now
@@ -137,18 +133,28 @@ def send_trial_ending_reminder():
     sent = 0
     for profile in profiles:
         try:
+            display_name = normalize_display_string(
+                profile.user.first_name or profile.user.username
+            )
+            trial_end_str = None
+            try:
+                trial_end_str = (
+                    profile.trial_end.strftime("%B %d, %Y") if profile.trial_end else None
+                )
+            except Exception:
+                trial_end_str = None
+            context = {
+                "display_name": display_name,
+                "trial_end_str": trial_end_str,
+                "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/billing",
+            }
+            html_message = render_to_string("emails/trial_ending.html", context)
             send_mail(
                 "Your free trial ends in 2 days",
-                f"""Hi {normalize_display_string(profile.user.first_name or profile.user.username)},
-
-Your Monevo free trial ends in 2 days. On the trial end date you'll be charged the full yearly amount for your plan.
-
-If you have any questions, visit your subscription settings or contact support.
-
-Best regards,
-The Monevo Team""",
+                strip_tags(html_message),
                 settings.DEFAULT_FROM_EMAIL,
                 [profile.user.email],
+                html_message=html_message,
                 fail_silently=True,
             )
             sent += 1
@@ -187,18 +193,18 @@ def send_subscription_cancelled_email(
             )
         else:
             access_line = "You'll keep access until the end of your current billing period. You won't be charged again.\n\n"
+        context = {
+            "display_name": display_name,
+            "access_until_str": access_until_str if access_until_iso else None,
+            "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/billing",
+        }
+        html_message = render_to_string("emails/subscription_cancelled.html", context)
         send_mail(
             "Your subscription has been cancelled",
-            f"""Hi {display_name},
-
-We've cancelled your Monevo subscription as requested.
-
-{access_line}If you change your mind, you can resubscribe anytime from your account.
-
-Best regards,
-The Monevo Team""",
+            strip_tags(html_message),
             settings.DEFAULT_FROM_EMAIL,
             [email],
+            html_message=html_message,
             fail_silently=True,
         )
         logger.info("Sent subscription cancelled email to %s", email)
@@ -218,10 +224,12 @@ def send_emails(profiles, frequency):
     """
     for profile in profiles:
         try:
+            api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
             context = {
                 "user": profile.user,
                 "frequency": frequency,
-                "unsubscribe_link": f"https://monevo.tech/settings?token={profile.get_unsubscribe_token()}",
+                "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/settings",
+                "unsubscribe_link": f"{api_base}/email/unsubscribe/?token={profile.get_unsubscribe_token()}",
             }
             html_message = render_to_string("emails/reminder.html", context)
 
