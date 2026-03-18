@@ -1265,6 +1265,7 @@
       "submit": "Reset Password",
       "submitting": "Saving...",
       "success": "Password reset successful.",
+      "redirectingToLogin": "Redirecting to the login page…",
       "passwordsDoNotMatch": "Passwords do not match.",
       "error": "An error occurred. Please try again."
     }

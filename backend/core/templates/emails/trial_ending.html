@@ -1,0 +1,35 @@
+{% extends "emails/_base.html" %}
+
+{% block title %}Your trial ends soon{% endblock %}
+{% block header %}Your trial ends in 2 days{% endblock %}
+{% block preheader %}A heads-up before your subscription starts billing.{% endblock %}
+
+{% block content %}
+  <p style="margin:0 0 14px 0;">
+    Hi {{ display_name }},
+  </p>
+
+  <p style="margin:0 0 14px 0;">
+    Your Monevo free trial ends in <strong>2 days</strong>.
+    {% if trial_end_str %}
+      Your billing date is <strong>{{ trial_end_str }}</strong>.
+    {% endif %}
+  </p>
+
+  <p style="margin:0 0 14px 0;color:rgba(229,231,235,0.78);font-size:13px;">
+    You can manage or cancel your subscription anytime from your billing page.
+  </p>
+
+  {% if manage_url %}
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 0 0;">
+    <tr>
+      <td>
+        <a href="{{ manage_url }}"
+           style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;padding:12px 16px;border-radius:12px;">
+          Manage subscription
+        </a>
+      </td>
+    </tr>
+  </table>
+  {% endif %}
+{% endblock %}

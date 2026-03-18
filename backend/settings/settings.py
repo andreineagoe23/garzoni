@@ -305,7 +305,12 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Use X-Forwarded-Host so build_absolute_uri() (e.g. course image URLs) is correct on Railway/proxy
 USE_X_FORWARDED_HOST = True
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+USE_SMTP_EMAIL = env_bool("USE_SMTP_EMAIL", not DEBUG)
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if USE_SMTP_EMAIL
+    else "django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
@@ -323,6 +328,9 @@ if DEBUG:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 else:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
+
+# Base API URL (including /api). Used to generate absolute links in emails.
+BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/api").rstrip("/")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")

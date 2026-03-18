@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from django.utils import timezone
 import uuid
+from django.core import signing
 
 
 class UserProfile(models.Model):
@@ -124,6 +125,16 @@ class UserProfile(models.Model):
         if not self.referral_code:
             self.referral_code = uuid.uuid4().hex[:8].upper()
         super().save(*args, **kwargs)
+
+    def get_unsubscribe_token(self) -> str:
+        """
+        One-click unsubscribe token for reminder emails.
+        Uses Django signing so we don't need to store a token in the DB.
+        """
+        return signing.dumps(
+            {"profile_id": self.pk},
+            salt="monevo.email.unsubscribe",
+        )
 
     class Meta:
         verbose_name = "User Profile"

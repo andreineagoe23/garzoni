@@ -34,7 +34,11 @@ function ResetPassword() {
         confirm_password: confirmPassword,
       });
 
-      setMessage(response.data.message || t("auth.resetPassword.success"));
+      setMessage(
+        `${response.data.message || t("auth.resetPassword.success")} ${t(
+          "auth.resetPassword.redirectingToLogin"
+        )}`
+      );
       setTimeout(() => navigate("/login"), 2500);
     } catch (resetError) {
       if (axios.isAxiosError(resetError)) {
@@ -52,9 +56,9 @@ function ResetPassword() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0f172a)] px-6 py-12 sm:px-8 transition-colors">
-      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/25 via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.25),_transparent_55%)] pointer-events-none" />
+    <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0B0F14)] px-6 py-12 sm:px-8 transition-colors">
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(29,83,48,0.35),_transparent_55%)] pointer-events-none" />
 
       <div
         className="relative w-full max-w-lg rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#111827)] px-6 py-10 shadow-2xl shadow-black/40 backdrop-blur transition-colors"
@@ -106,7 +110,7 @@ function ResetPassword() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0f172a)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
             />
           </div>
@@ -124,7 +128,7 @@ function ResetPassword() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0f172a)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               placeholder={t("auth.resetPassword.confirmPlaceholder")}
             />
           </div>
@@ -132,7 +136,7 @@ function ResetPassword() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#1d5330)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#1d5330)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting
               ? t("auth.resetPassword.submitting")

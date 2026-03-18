@@ -1265,6 +1265,7 @@
       "submit": "Resetează parola",
       "submitting": "Se salvează...",
       "success": "Parola a fost resetată cu succes.",
+      "redirectingToLogin": "Redirecționare către pagina de conectare…",
       "passwordsDoNotMatch": "Parolele nu coincid.",
       "error": "A apărut o eroare. Te rugăm să încerci din nou."
     }
