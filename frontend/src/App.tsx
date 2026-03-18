@@ -147,15 +147,17 @@ function AuthAwareLayout({
   const { isAuthenticated } = useAuth();
   const isLegalPath = LEGAL_PATHS.includes(location.pathname);
   const isLegalAndUnauth = isLegalPath && !isAuthenticated;
+  const matchesAnyPathPrefix = (prefixes: string[]) =>
+    prefixes.some(
+      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
+    );
   const hasNavbar =
     !isCourseFlowPath &&
     !isLegalAndUnauth &&
     ((isLegalPath && isAuthenticated) ||
-      !noNavbarPaths.includes(location.pathname));
+      !matchesAnyPathPrefix(noNavbarPaths));
   const hasFooter =
-    !noFooterPaths.some(
-      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
-    ) &&
+    !matchesAnyPathPrefix(noFooterPaths) &&
     !isCourseFlowPath &&
     !isLegalAndUnauth;
 
@@ -164,7 +166,7 @@ function AuthAwareLayout({
       className={[
         "app-container",
         "min-h-screen flex flex-col",
-        noChatbotPaths.includes(location.pathname) ? "nochatbot" : "",
+        matchesAnyPathPrefix(noChatbotPaths) ? "nochatbot" : "",
       ]
         .join(" ")
         .trim()}

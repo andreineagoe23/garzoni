@@ -142,7 +142,7 @@ npm start
 ## Security & Operations
 
 - Keep secrets in environment variables; do not commit credentials. Rotate any previously committed keys.
-- For production backups: use `scripts/backup_postgres.sh` (see the script for usage and restore instructions).
+- For production backups: use `backend/scripts/backup_postgres.sh` (see the script for usage and restore instructions).
 - Use HTTPS and restrict CORS_ALLOWED_ORIGINS/CSRF_TRUSTED_ORIGINS to trusted domains.
 - JWTs: access tokens via Authorization header; configure lifetimes in SIMPLE_JWT.
 - Run dependency checks regularly (pip-audit, npm audit) and keep requirements.txt/package-lock.json updated.
