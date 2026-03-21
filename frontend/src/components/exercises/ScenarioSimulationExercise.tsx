@@ -106,7 +106,7 @@ const ScenarioSimulationExercise = ({
   return (
     <GlassCard padding="lg" className="transition">
       <header className="space-y-2">
-        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
           {question}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -140,7 +140,7 @@ const ScenarioSimulationExercise = ({
             }
           }}
         >
-          <span className="font-semibold text-[color:var(--accent,#111827)]">
+          <span className="font-semibold text-[color:var(--text-color,#111827)]">
             {t("exercises.scenario.actionSlot")}
           </span>{" "}
           {selectedChoice
@@ -154,7 +154,7 @@ const ScenarioSimulationExercise = ({
             const borderClass =
               feedbackType && isSelected
                 ? feedbackType === "success"
-                  ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-600"
+                  ? "border-[color:var(--accent,#ffd700)]/45 bg-[color:var(--accent,#ffd700)]/12 text-[color:var(--accent,#ffd700)]"
                   : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
                 : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
             return (
@@ -177,13 +177,13 @@ const ScenarioSimulationExercise = ({
                   }
                 }}
                 disabled={isCompleted || disabled}
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${borderClass} ${
+                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${borderClass} ${
                   isCompleted || disabled ? "cursor-not-allowed opacity-70" : ""
                 }`}
               >
                 <span>{choice.label}</span>
                 {isSelected && (
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
                     {t("exercises.scenario.selected")}
                   </span>
                 )}
@@ -198,7 +198,7 @@ const ScenarioSimulationExercise = ({
           <button
             type="button"
             onClick={handleRetry}
-            className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+            className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
           >
             {t("exercises.actions.retryExercise")}
           </button>
@@ -209,10 +209,10 @@ const ScenarioSimulationExercise = ({
             disabled={
               selectedId === null || selectedId === undefined || disabled
             }
-            className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+            className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
               selectedId === null || selectedId === undefined || disabled
                 ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
-                : "bg-[color:var(--primary,#2563eb)] text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
+                : "bg-[color:var(--primary,#1d5330)] text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
             }`}
           >
             {t("exercises.scenario.submitChoice")}
@@ -224,7 +224,7 @@ const ScenarioSimulationExercise = ({
         <div
           className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
             feedbackType === "success"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+              ? "border-[color:var(--accent,#ffd700)]/35 bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
               : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
           }`}
         >
@@ -245,7 +245,7 @@ const ScenarioSimulationExercise = ({
                 href={learn_more_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                className="text-xs font-semibold text-[color:var(--accent,#ffd700)] underline"
               >
                 {t("exercises.explanation.learnMoreLink")}
               </a>

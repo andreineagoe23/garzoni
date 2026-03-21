@@ -18,6 +18,34 @@
   --error: #d32f2f; // Error color
   --success: #2e7d32; // Success color
 
+  // Semantic tokens (dark-first; gold on primary for nav/CTA labels)
+  --color-surface-page: var(--bg-color);
+  --color-surface-card: var(--card-bg);
+  --color-surface-elevated: #2a2a2a;
+
+  --color-text-primary: var(--text-color);
+  --color-text-muted: var(--muted-text);
+  --color-text-inverse: #ffffff;
+  --color-text-on-primary: var(--accent);
+
+  --color-brand-primary: var(--primary);
+  --color-brand-primary-hover: var(--accent);
+  --color-accent: var(--accent);
+
+  --color-state-success: var(--success);
+  --color-state-warning: #fbbf24;
+  --color-state-error: var(--error);
+  --color-state-info: #38bdf8;
+
+  --color-icon-default: var(--text-color);
+  --color-icon-muted: var(--muted-text);
+  --color-icon-on-brand: var(--accent);
+
+  --color-border-default: var(--border-color);
+  --color-ring-focus: var(--accent);
+
+  --nav-pill-active-fg: var(--color-text-on-primary);
+
   // ========== Base Styles ==========
   body {
     background: var(--bg-color);
@@ -54,6 +82,27 @@
       color: color.adjust(#ffd700, $lightness: -10%);
       border-bottom-style: solid;
     }
+  }
+
+  .app-footer .footer-brand,
+  .app-footer .footer-heading {
+    color: var(--accent);
+  }
+
+  .app-footer a.footer-link,
+  .app-footer button.footer-link {
+    color: var(--muted-text);
+    border-bottom: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--text-color);
+    }
+  }
+
+  // Global `p { color: var(--text-color) }` above would wash these out to near-white
+  .app-footer p.footer-muted {
+    color: var(--muted-text);
   }
 
   // ========== Cards ==========

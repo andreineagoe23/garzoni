@@ -13,7 +13,8 @@
     "ariaToggleDarkMode": "Comutare mod întunecat",
     "ariaLogout": "Deconectare",
     "ariaGoToProfile": "Mergi la profil",
-    "ariaToggleMenu": "Deschide/închide meniul de navigare"
+    "ariaToggleMenu": "Deschide/închide meniul de navigare",
+    "ariaAccountMenu": "Deschide meniul contului"
   },
   "language": {
     "label": "Limbă",
@@ -74,6 +75,7 @@
       "overallProgress": "Progres general",
       "reviewsDue": "Recapitulări restante",
       "activeMissions": "Misiuni active",
+      "streak": "Serie",
       "failedLoadReviews": "Nu s-au putut încărca recapitulările",
       "couldNotFetchReviews": "Nu am putut încărca coada de recapitulări.",
       "failedLoadMissions": "Nu s-au putut încărca misiunile",
@@ -85,6 +87,8 @@
       "noWeakSkills": "Fără abilități slabe",
       "noWeakSkillsDesc": "Bravo! Te descurci bine la toate abilitățile.",
       "areasToImprove": "Zone de îmbunătățit",
+      "quickPracticeTitle": "Recomandare de exersare",
+      "quickPracticeSubtitle": "Îți sugerăm acum cea mai bună zonă de exersat.",
       "focusOnSkills": "Concentrează-te pe aceste abilități pentru a-ți îmbunătăți stăpânirea",
       "lowMasteryIn": "Stăpânire scăzută la {{skill}}",
       "practice": "Exersează",
@@ -781,7 +785,7 @@
       "complete": "{{value}}% complet",
       "label": "Progres",
       "aria": "Progres misiune: {{value}}%",
-      "completed": "Finalizat! 🎉",
+      "completed": "Finalizat!",
       "levelTarget": "Țintă în funcție de nivel: {{lessons}} lecție{{plural}}. Estimat completate azi: {{completed}}."
     },
     "badge": {
@@ -805,8 +809,8 @@
       "title": "Progres pe scurt",
       "remaining": "{{count}} misiune{{plural}} rămase azi",
       "xp": "{{earned}} XP câștigate · {{remaining}} XP rămase",
-      "offline": "⚠️ Mod offline - misiunile se vor sincroniza când revii online",
-      "suggestedSavings": "💡 Țintă sugerată de economii: £{{amount}} (în funcție de nivelul tău {{level}})",
+      "offline": "Mod offline - misiunile se vor sincroniza când revii online",
+      "suggestedSavings": "Țintă sugerată de economii: £{{amount}} (în funcție de nivelul tău {{level}})",
       "streak": "Serie",
       "streakDays": "{{count}} zile",
       "totalXp": "Total XP azi"
@@ -1397,6 +1401,7 @@
     "noFinancialAdviceNotice": "Fără sfaturi financiare",
     "about": "Despre",
     "subscriptions": "Abonamente",
+    "contact": "Contact",
     "support": "Suport",
     "dashboard": "Acasă",
     "exercises": "Exerciții",
@@ -1497,6 +1502,10 @@
     },
     "timedMode": "Mod cronometrat",
     "streak": "🔥 Ai completat {{count}} exerciții la rând - continuă!",
+    "skillIntent": {
+      "applied": "Exersare focalizată: {{skill}} (categorie: {{category}}).",
+      "notMapped": "Nu am putut corela încă {{skill}} cu o categorie de exerciții, așa că afișăm toate exercițiile."
+    },
     "hints": {
       "title": "Indicații",
       "showNext": "Arată următoarea indicație (-{{cost}} monede)",

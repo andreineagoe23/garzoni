@@ -7,6 +7,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GlassButton, GlassCard } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
@@ -281,7 +282,7 @@ const SubscriptionPlansPage = () => {
               onClick={() => setBillingInterval("yearly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "yearly"
-                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
+                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
                   : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
               }`}
             >
@@ -292,7 +293,7 @@ const SubscriptionPlansPage = () => {
               onClick={() => setBillingInterval("monthly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "monthly"
-                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
+                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
                   : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
               }`}
             >
@@ -328,7 +329,7 @@ const SubscriptionPlansPage = () => {
                   key={plan.plan_id}
                   className={`flex flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
                     isHighlight
-                      ? "border-[color:var(--primary,#2563eb)] shadow-lg shadow-[color:var(--primary,#2563eb)]/20"
+                      ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--primary,#1d5330)]/20"
                       : ""
                   }`}
                 >
@@ -343,7 +344,7 @@ const SubscriptionPlansPage = () => {
                         </span>
                       )}
                       {trialLabel && paidPlan && (
-                        <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
+                        <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
                           {trialLabel}
                         </span>
                       )}
@@ -395,13 +396,13 @@ const SubscriptionPlansPage = () => {
               terms: (
                 <Link
                   to="/terms-of-service"
-                  className="text-[color:var(--primary,#2563eb)] hover:underline"
+                  className="text-[color:var(--primary,#1d5330)] hover:underline"
                 />
               ),
               privacy: (
                 <Link
                   to="/privacy-policy"
-                  className="text-[color:var(--primary,#2563eb)] hover:underline"
+                  className="text-[color:var(--primary,#1d5330)] hover:underline"
                 />
               ),
             }}
@@ -433,7 +434,7 @@ const SubscriptionPlansPage = () => {
                     : t("subscriptions.statusOnboarding")}
             </p>
             {entitlements?.status === "trialing" && trialEndLabel && (
-              <p className="text-xs text-[color:var(--accent,#2563eb)]">
+              <p className="text-xs text-[color:var(--accent,#ffd700)]">
                 {t("subscriptions.trialEndsOn", { date: trialEndLabel })}
               </p>
             )}
@@ -442,7 +443,12 @@ const SubscriptionPlansPage = () => {
             <GlassButton
               variant="ghost"
               onClick={handleSubscriptionNavigate}
-              icon={subscriptionInfo.hasPaid ? "⭐" : "🚀"}
+              icon={
+                <MonevoIcon
+                  name={subscriptionInfo.hasPaid ? "star" : "rocket"}
+                  size={16}
+                />
+              }
             >
               {subscriptionInfo.hasPaid
                 ? t("subscriptions.viewPersonalizedPath")
@@ -523,7 +529,7 @@ const SubscriptionPlansPage = () => {
           {entitlementSupportLink && (
             <a
               href={entitlementSupportLink}
-              className="text-sm font-semibold text-[color:var(--accent,#2563eb)] underline"
+              className="text-sm font-semibold text-[color:var(--accent,#ffd700)] underline"
             >
               {t("subscriptions.contactSupport")}
             </a>

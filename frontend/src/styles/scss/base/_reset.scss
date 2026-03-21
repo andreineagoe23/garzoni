@@ -61,6 +61,33 @@ a {
   }
 }
 
+// App shell navbar: NavLink renders <a>. Override global link colors so icons/text match
+// the marketing Header (muted → body text), including under [data-theme="dark"] gold links.
+.app-navbar a.app-navbar__brand {
+  color: var(--text-color);
+  border-bottom: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--text-color);
+    opacity: 0.88;
+  }
+}
+
+.app-navbar a:not(.app-navbar__brand) {
+  color: var(--muted-text);
+  border-bottom: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--text-color);
+  }
+
+  &[aria-current="page"] {
+    color: var(--color-text-inverse, #ffffff);
+  }
+}
+
 // 7. Form elements
 button,
 input,

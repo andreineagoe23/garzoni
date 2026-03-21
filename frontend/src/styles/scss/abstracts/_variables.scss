@@ -142,6 +142,34 @@ $container-max-widths: (
   --bs-body-bg: var(--bg-color);
   --bs-body-color: var(--text-color);
   --bs-border-color: var(--border-color);
+
+  // Semantic tokens (usage contract: docs/ui-color-audit/token-usage-contract.md)
+  --color-surface-page: var(--bg-color);
+  --color-surface-card: var(--card-bg);
+  --color-surface-elevated: #ffffff;
+
+  --color-text-primary: var(--text-color);
+  --color-text-muted: var(--muted-text);
+  --color-text-inverse: #ffffff;
+  --color-text-on-primary: #ffffff;
+
+  --color-brand-primary: var(--primary);
+  --color-brand-primary-hover: var(--primary-dark);
+  --color-accent: var(--accent);
+
+  --color-state-success: var(--success);
+  --color-state-warning: #d97706;
+  --color-state-error: var(--error);
+  --color-state-info: #0369a1;
+
+  --color-icon-default: var(--text-color);
+  --color-icon-muted: var(--muted-text);
+  --color-icon-on-brand: var(--accent);
+
+  --color-border-default: var(--border-color);
+  --color-ring-focus: var(--primary);
+
+  --nav-pill-active-fg: var(--color-text-on-primary);
 }
 
 // Bootstrap configuration

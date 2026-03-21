@@ -320,8 +320,8 @@ const SubscriptionManager = () => {
               onClick={() => setBillingInterval("yearly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "yearly"
-                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
-                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--text-color,#111827)]"
               }`}
             >
               {t("subscriptions.billingYearly")}
@@ -331,8 +331,8 @@ const SubscriptionManager = () => {
               onClick={() => setBillingInterval("monthly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "monthly"
-                  ? "bg-[color:var(--primary,#2563eb)] text-white shadow-sm"
-                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--text-color,#111827)]"
               }`}
             >
               {t("subscriptions.billingMonthly")}
@@ -375,17 +375,17 @@ const SubscriptionManager = () => {
                   key={`${plan.plan_id}-${billingLabel}`}
                   className={`flex flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
                     isHighlight
-                      ? "border-[color:var(--primary,#2563eb)] shadow-lg shadow-[color:var(--primary,#2563eb)]/20"
+                      ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--accent,#ffd700)]/20"
                       : ""
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                      <div className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
                         {name}
                       </div>
                       {isCurrent && (
-                        <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
+                        <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
                           {t("billing.active")}
                         </span>
                       )}
@@ -395,7 +395,7 @@ const SubscriptionManager = () => {
                         </span>
                       )}
                       {trialLabel && paidPlan && !isCurrent && (
-                        <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
+                        <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
                           {trialLabel}
                         </span>
                       )}

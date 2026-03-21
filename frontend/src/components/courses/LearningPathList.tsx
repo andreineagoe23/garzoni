@@ -65,7 +65,7 @@ function LearningPathList({
         const isLocked = Boolean(path.is_locked);
         return (
           <GlassCard key={path.id} padding="lg" className="group space-y-5">
-            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
             <div className="relative">
               {!hidePathHeader && (
                 <header className="flex items-baseline justify-between gap-3">

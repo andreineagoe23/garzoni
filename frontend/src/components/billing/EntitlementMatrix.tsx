@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { GlassCard } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import { FEATURE_COPY } from "services/entitlementsService";
 
 const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
@@ -85,7 +86,10 @@ const FeatureRow = ({
               : "bg-amber-50 text-amber-600"
           }`}
         >
-          {userFeature?.enabled ? "✓" : "🔒"}
+          <MonevoIcon
+            name={userFeature?.enabled ? "check" : "lock"}
+            size={16}
+          />
         </span>
         <div>
           <div>{featureLabel}</div>
@@ -97,7 +101,7 @@ const FeatureRow = ({
       <div
         className={`text-sm text-center ${
           isActivePlan === "starter"
-            ? "font-semibold text-[color:var(--accent,#2563eb)]"
+            ? "font-semibold text-[color:var(--accent,#ffd700)]"
             : "text-[color:var(--muted-text,#6b7280)]"
         }`}
       >
@@ -106,7 +110,7 @@ const FeatureRow = ({
       <div
         className={`text-sm text-center ${
           isActivePlan === "plus"
-            ? "font-semibold text-[color:var(--accent,#2563eb)]"
+            ? "font-semibold text-[color:var(--accent,#ffd700)]"
             : "text-[color:var(--muted-text,#6b7280)]"
         }`}
       >
@@ -115,7 +119,7 @@ const FeatureRow = ({
       <div
         className={`text-sm text-center ${
           isActivePlan === "pro"
-            ? "font-semibold text-[color:var(--accent,#2563eb)]"
+            ? "font-semibold text-[color:var(--accent,#ffd700)]"
             : "text-[color:var(--muted-text,#6b7280)]"
         }`}
       >
@@ -145,7 +149,7 @@ const EntitlementMatrix = ({
           <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
             {t("billing.planComparison")}
           </h3>
-          <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#2563eb)]">
+          <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
             {t("billing.current")}: {planLabel}
           </span>
         </div>

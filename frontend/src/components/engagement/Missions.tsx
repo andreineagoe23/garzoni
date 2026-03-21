@@ -19,6 +19,7 @@ import {
   isOnline,
 } from "services/offlineQueue";
 import { useTranslation } from "react-i18next";
+import { MonevoIcon } from "components/ui/monevoIcons";
 
 const initialState = {
   dailyMissions: [],
@@ -79,7 +80,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }) {
         })}
       </div>
       {balance < target && (
-        <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#2563eb)]">
+        <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#ffd700)]">
           {t("missions.savings.nextCoin", {
             amount: coinUnit - (balance % coinUnit),
           })}
@@ -95,7 +96,7 @@ function FactCard({ fact, onMarkRead }) {
     <GlassCard padding="md" className="bg-[color:var(--card-bg,#ffffff)]/60">
       {fact ? (
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
             {fact.category}
           </p>
           <p className="text-sm text-[color:var(--text-color,#111827)]">
@@ -195,7 +196,13 @@ function Missions() {
             });
             setCelebrationMessage(announcement);
             toast.success(announcement, {
-              icon: "🎉",
+              icon: (
+                <MonevoIcon
+                  name="sparkles"
+                  size={18}
+                  className="text-[color:var(--primary,#1d5330)]"
+                />
+              ),
               duration: 3000,
             });
             completedMissionsRef.current.add(mission.id);
@@ -542,7 +549,7 @@ function Missions() {
         role="article"
         aria-labelledby={`mission-title-${mission.id}`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
         <div className="relative">
           <header className="space-y-3 border-b border-white/20 pb-4">
             <div className="flex items-center justify-between gap-4">
@@ -552,7 +559,7 @@ function Missions() {
               >
                 {mission.name}
               </h3>
-              <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+              <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
                 {isDaily
                   ? t("missions.badge.daily")
                   : t("missions.badge.weekly")}
@@ -561,7 +568,7 @@ function Missions() {
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
               {mission.description}
             </p>
-            <p className="text-xs font-semibold text-[color:var(--accent,#2563eb)]">
+            <p className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
               {t("missions.why")} {purposeStatement(mission)}
             </p>
             <div className="space-y-2">
@@ -582,14 +589,23 @@ function Missions() {
                 })}
               >
                 <div
-                  className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width] duration-500 ease-out"
+                  className="h-full rounded-full bg-[color:var(--primary,#1d5330)] transition-[width] duration-500 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
               <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {isCompleted
-                  ? t("missions.progress.completed")
-                  : progressDetail}
+                {isCompleted ? (
+                  <span className="inline-flex items-center gap-2">
+                    <MonevoIcon
+                      name="sparkles"
+                      size={14}
+                      className="text-[color:var(--accent,#111827)]"
+                    />
+                    {t("missions.progress.completed")}
+                  </span>
+                ) : (
+                  progressDetail
+                )}
               </p>
               {completedLessons !== null && (
                 <p className="text-[0.7rem] text-[color:var(--muted-text,#6b7280)]">
@@ -619,7 +635,7 @@ function Missions() {
                 <button
                   type="button"
                   onClick={() => handleMissionSwap(mission.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                   aria-label={t("missions.swap.aria", {
                     name: mission.name,
                   })}
@@ -635,7 +651,7 @@ function Missions() {
                   <button
                     type="button"
                     onClick={() => setShowSavingsMenu((prev) => !prev)}
-                    className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                    className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                   >
                     {showSavingsMenu
                       ? t("missions.savings.hideJar")
@@ -666,7 +682,7 @@ function Missions() {
                               ? t("missions.savings.placeholderDaily")
                               : t("missions.savings.placeholderWeekly")
                           }
-                          className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                          className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                           disabled={isDaily && isCompleted}
                         />
                         <button
@@ -691,7 +707,7 @@ function Missions() {
                     <button
                       type="button"
                       onClick={loadNewFact}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-4 py-2 text-xs font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {t("missions.facts.tryAgain")}
                     </button>
@@ -721,39 +737,55 @@ function Missions() {
           padding="md"
           className="bg-[color:var(--card-bg,#ffffff)]/70"
         >
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
+            {/* Left: compact "at a glance" mini-card */}
+            <div className="flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                 {t("missions.summary.title")}
               </p>
-              <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                {t("missions.summary.remaining", {
-                  count: missionsRemaining,
-                  plural: missionsRemaining === 1 ? "" : "s",
-                })}
-              </p>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-                {t("missions.summary.xp", {
-                  earned: dailyXpEarned,
-                  remaining: dailyXpRemaining,
-                })}
-              </p>
+
+              <div className="mt-2 space-y-1">
+                <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  {t("missions.summary.remaining", {
+                    count: missionsRemaining,
+                    plural: missionsRemaining === 1 ? "" : "s",
+                  })}
+                </p>
+                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  {t("missions.summary.xp", {
+                    earned: dailyXpEarned,
+                    remaining: dailyXpRemaining,
+                  })}
+                </p>
+              </div>
+
               {isOffline && (
                 <p
                   className="mt-2 text-xs text-amber-600"
                   role="status"
                   aria-live="polite"
                 >
+                  <MonevoIcon
+                    name="warning"
+                    size={14}
+                    className="mr-2 inline-block text-amber-500"
+                  />
                   {t("missions.summary.offline")}
                 </p>
               )}
+
               {adaptiveSuggestions && (
-                <p className="mt-2 text-xs text-[color:var(--accent,#2563eb)]">
+                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--accent,#ffd700)]/25 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--accent,#ffd700)] leading-tight">
+                  <MonevoIcon
+                    name="lightbulb"
+                    size={14}
+                    className="mr-2 inline-block text-[color:var(--accent,#ffd700)]"
+                  />
                   {t("missions.summary.suggestedSavings", {
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
                     level: adaptiveSuggestions.level,
                   })}
-                </p>
+                </div>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent,#111827)] md:text-right">
@@ -782,14 +814,27 @@ function Missions() {
               {streakItems.map((item, index) => (
                 <div
                   key={`${item.type}-${index}`}
-                  className="rounded-full border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#2563eb)]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#ffd700)]"
                   role="status"
                   aria-label={t("missions.streakItemAria", {
                     type: item.type,
                     quantity: item.quantity,
                   })}
                 >
-                  {item.type === "streak_freeze" ? "❄️" : "⚡"} {item.quantity}x
+                  {item.type === "streak_freeze" ? (
+                    <MonevoIcon
+                      name="snowflake"
+                      size={14}
+                      className="inline-block text-[color:var(--accent,#ffd700)]"
+                    />
+                  ) : (
+                    <MonevoIcon
+                      name="bolt"
+                      size={14}
+                      className="inline-block text-[color:var(--accent,#ffd700)]"
+                    />
+                  )}
+                  {item.quantity}x
                 </div>
               ))}
             </div>
@@ -856,7 +901,7 @@ function Missions() {
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)] shadow-[color:var(--accent,#2563eb)]/20">
+                  <div className="rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)] shadow-[color:var(--accent,#ffd700)]/20">
                     {t("missions.wrapup.cta")}
                   </div>
                 </div>
