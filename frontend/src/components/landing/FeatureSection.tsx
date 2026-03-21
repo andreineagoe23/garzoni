@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play } from "lucide-react";
 import { GlassCard } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import { useLandingData } from "./landingData";
 import { useTranslation } from "react-i18next";
 import { BACKEND_URL } from "services/backendUrl";
@@ -118,7 +119,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                           {feature.bullets.map((bullet) => (
                             <li key={bullet} className="flex items-start gap-2">
                               <span className="mt-[3px] inline-flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/20 text-[color:var(--primary,#1d5330)]">
-                                ✓
+                                <MonevoIcon name="check" size={14} />
                               </span>
                               <span>{bullet}</span>
                             </li>
@@ -222,7 +223,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                           {feature.bullets.map((bullet) => (
                             <li key={bullet} className="flex items-start gap-2">
                               <span className="mt-[3px] inline-flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/20 text-[color:var(--primary,#1d5330)]">
-                                ✓
+                                <MonevoIcon name="check" size={14} />
                               </span>
                               <span>{bullet}</span>
                             </li>

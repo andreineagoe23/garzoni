@@ -22,7 +22,7 @@ import { formatCurrency, formatNumber, getLocale } from "utils/format";
 import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
 
-const COLORS = ["#2563eb", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b"];
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
 const EXPORT_EVENT = "monevo:tools:export";
 
@@ -746,7 +746,7 @@ function PortfolioAnalyzer() {
                     purchase_price: "185",
                   })
                 }
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
               >
                 {t("tools.portfolio.loadSampleStock")}
               </button>
@@ -760,7 +760,7 @@ function PortfolioAnalyzer() {
                     purchase_price: "34000",
                   })
                 }
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
               >
                 {t("tools.portfolio.loadSampleCrypto")}
               </button>
@@ -874,7 +874,7 @@ function PortfolioAnalyzer() {
 
           {insight && (
             <div
-              className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -995,7 +995,7 @@ function PortfolioAnalyzer() {
                                 );
                               }
                             }}
-                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:opacity-80"
                           >
                             Lesson →
                           </Link>
@@ -1003,7 +1003,7 @@ function PortfolioAnalyzer() {
                         {card.actionLink && (
                           <Link
                             to={card.actionLink}
-                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#2563eb)]"
+                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#1d5330)]"
                           >
                             Tool action →
                           </Link>
@@ -1019,7 +1019,7 @@ function PortfolioAnalyzer() {
                 </span>
                 <Link
                   to={insight.nextAction.href}
-                  className="inline-flex items-center rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
+                  className="inline-flex items-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40"
                 >
                   {insight.nextAction.label} →
                 </Link>
@@ -1150,7 +1150,7 @@ function PortfolioAnalyzer() {
                 name="asset_type"
                 value={newEntry.asset_type}
                 onChange={handleInputChange}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 <option value="stock">{t("tools.portfolio.stock")}</option>
                 <option value="crypto">{t("tools.portfolio.crypto")}</option>
@@ -1177,13 +1177,13 @@ function PortfolioAnalyzer() {
                   onChange={handleInputChange}
                   placeholder={t("tools.portfolio.symbolPlaceholder")}
                   required
-                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 />
                 <button
                   type="button"
                   onClick={handleLookupPrice}
                   disabled={lookupLoading || !newEntry.symbol.trim()}
-                  className="shrink-0 rounded-full border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#2563eb)] transition hover:bg-[color:var(--primary,#2563eb)]/20 disabled:opacity-50"
+                  className="shrink-0 rounded-full border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/20 disabled:opacity-50"
                 >
                   {lookupLoading
                     ? t("tools.portfolio.lookupLoading")
@@ -1216,7 +1216,7 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 
@@ -1230,7 +1230,7 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 
@@ -1242,12 +1242,12 @@ function PortfolioAnalyzer() {
                 value={newEntry.purchase_date}
                 onChange={handleInputChange}
                 required
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               Add Entry
             </button>

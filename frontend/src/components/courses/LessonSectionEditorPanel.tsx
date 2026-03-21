@@ -345,7 +345,7 @@ const LessonSectionEditorPanel = ({
           <input
             value={section.title || ""}
             onChange={(event) => onChange({ title: event.target.value })}
-            className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             placeholder={t("courses.editor.sectionTitlePlaceholder")}
           />
         </div>
@@ -358,7 +358,7 @@ const LessonSectionEditorPanel = ({
             <select
               value={section.content_type || "text"}
               onChange={(event) => handleContentTypeChange(event.target.value)}
-              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               <option value="text">
                 {t("courses.editor.contentTypeText")}
@@ -382,7 +382,7 @@ const LessonSectionEditorPanel = ({
               onChange={(event) =>
                 onChange({ order: Number(event.target.value) })
               }
-              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </div>
         </div>
@@ -407,7 +407,7 @@ const LessonSectionEditorPanel = ({
             <input
               value={section.video_url || ""}
               onChange={(event) => onChange({ video_url: event.target.value })}
-              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               placeholder={t("courses.editor.videoUrlPlaceholder")}
             />
           </div>
@@ -428,7 +428,7 @@ const LessonSectionEditorPanel = ({
                     onExerciseAttach?.(picked);
                   }
                 }}
-                className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 defaultValue=""
                 disabled={loadingExercises}
               >
@@ -452,7 +452,7 @@ const LessonSectionEditorPanel = ({
                 value={exerciseJson}
                 onChange={(event) => handleJsonChange(event.target.value)}
                 rows={6}
-                className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
               {jsonError && (
                 <p className="text-xs text-[color:var(--error,#dc2626)]">
@@ -481,14 +481,14 @@ const LessonSectionEditorPanel = ({
       <div className="flex-none flex flex-wrap items-center gap-2 pt-4">
         <button
           type="button"
-          className="rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+          className="rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
           onClick={onSave}
         >
           {t("courses.editor.saveNow")}
         </button>
         <button
           type="button"
-          className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/60 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+          className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/60 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
           onClick={onCloseRequest}
         >
           {t("courses.editor.stopEditing")}

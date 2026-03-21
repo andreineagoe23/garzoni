@@ -5,7 +5,7 @@ import { GlassButton } from "components/ui";
  * Reusable empty state component for dashboard widgets
  */
 type EmptyStateProps = {
-  icon?: string;
+  icon?: React.ReactNode;
   title: React.ReactNode;
   description: React.ReactNode;
   actionLabel?: React.ReactNode;
@@ -14,7 +14,7 @@ type EmptyStateProps = {
 };
 
 export const EmptyState = ({
-  icon = "📭",
+  icon,
   title,
   description,
   actionLabel,
@@ -25,9 +25,7 @@ export const EmptyState = ({
     <div
       className={`flex flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 p-8 text-center ${className}`}
     >
-      <span className="text-4xl mb-4" aria-hidden="true">
-        {icon}
-      </span>
+      {icon && <span className="text-4xl mb-4">{icon}</span>}
       <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)] mb-2">
         {title}
       </h3>

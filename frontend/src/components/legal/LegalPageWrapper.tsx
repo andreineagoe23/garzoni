@@ -45,7 +45,7 @@ export default function LegalPageWrapper({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               to="/"
-              className="text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:underline"
+              className="text-sm font-semibold text-[color:var(--primary,#1d5330)] hover:underline"
             >
               ← {t("footer.backToWelcome")}
             </Link>
@@ -62,7 +62,7 @@ export default function LegalPageWrapper({
                   ) : (
                     <Link
                       to={path}
-                      className="text-[color:var(--primary,#2563eb)] hover:underline"
+                      className="text-[color:var(--primary,#1d5330)] hover:underline"
                     >
                       {t(labelKey)}
                     </Link>

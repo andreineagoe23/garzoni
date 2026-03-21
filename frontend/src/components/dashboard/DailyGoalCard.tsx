@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
+import { MonevoIcon } from "components/ui/monevoIcons";
 
 type DailyGoalCardProps = {
   dailyGoalProgress: number;
@@ -27,9 +28,7 @@ const DailyGoalCard = ({
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg" aria-hidden="true">
-            🎯
-          </span>
+          <MonevoIcon name="target" size={20} className="text-[color:var(--primary,#1d5330)]" />
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
             {t("dashboard.dailyGoal.label", {
               xp: dailyGoalTargetXP,

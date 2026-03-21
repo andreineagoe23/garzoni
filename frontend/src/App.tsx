@@ -500,7 +500,26 @@ const AppContent = () => {
 
   useOnlineSync();
 
+  const prevPathnameRef = useRef<string | null>(null);
+
   useEffect(() => {
+    const pathname = location.pathname;
+    const prevPathname = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+
+    const isDashboardViewTab = (p: string) =>
+      p === "/all-topics" || p === "/personalized-path";
+
+    // Keep scroll position when switching only between the two dashboard tabs.
+    if (
+      prevPathname !== null &&
+      isDashboardViewTab(prevPathname) &&
+      isDashboardViewTab(pathname) &&
+      prevPathname !== pathname
+    ) {
+      return;
+    }
+
     const prefersReducedMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     )?.matches;

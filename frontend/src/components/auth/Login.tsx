@@ -206,7 +206,7 @@ function Login() {
                   onChange={handleChange}
                   required
                   autoComplete="username"
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   placeholder={t("auth.login.usernamePlaceholder")}
                 />
               </div>
@@ -227,13 +227,13 @@ function Login() {
                     onChange={handleChange}
                     required
                     autoComplete="current-password"
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                     placeholder={t("auth.login.passwordPlaceholder")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -252,14 +252,14 @@ function Login() {
                     name="remember_me"
                     checked={formData.remember_me}
                     onChange={handleChange}
-                    className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]"
+                    className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
                   />
                   {t("auth.login.rememberMe")}
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
+                  className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--accent,#ffd700)]/80"
                 >
                   {t("auth.login.forgotPassword")}
                 </button>
@@ -322,7 +322,7 @@ function Login() {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
+                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--accent,#ffd700)]/80"
               >
                 {t("auth.login.signUpNow")}
               </button>

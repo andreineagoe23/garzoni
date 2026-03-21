@@ -19,7 +19,7 @@ const ProtectedRoute = ({
             WebkitBackdropFilter: "blur(8px)",
           }}
         >
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary,#2563eb)] border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary,#1d5330)] border-t-transparent" />
           <div>
             <p className="text-base font-semibold text-white">Verifying...</p>
             <p className="mt-1 text-sm text-slate-300">

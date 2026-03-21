@@ -51,10 +51,10 @@ const ReferralLink = ({ referralCode }) => {
           <button
             type="button"
             onClick={copyToClipboard}
-            className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+            className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
               copied
-                ? "bg-emerald-500/10 text-emerald-400 shadow-inner shadow-emerald-500/20"
-                : "bg-[color:var(--primary,#2563eb)] text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/40"
+                ? "bg-emerald-500/10 text-[color:var(--accent,#ffd700)] shadow-inner shadow-[color:var(--accent,#ffd700)]/20"
+                : "bg-[color:var(--primary,#1d5330)] text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40"
             }`}
           >
             {copied
