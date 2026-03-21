@@ -59,6 +59,7 @@ This script runs, in order:
 
 1. `python manage.py migrate --noinput`
 2. `python manage.py sync_content_release` (idempotent in-place lesson/video sync by version)
-3. `python manage.py verify_lesson_video_embeds --check-live --fix`
-4. `python manage.py validate_lesson_quality_gates` (hard fail on errors)
-5. `python manage.py collectstatic --noinput`
+3. `python manage.py sync_exercises_release` (idempotent exercise fixture from `education/content/`, gated by `exercises_version` in `release_manifest.json`)
+4. `python manage.py verify_lesson_video_embeds --check-live --fix`
+5. `python manage.py validate_lesson_quality_gates` (hard fail on errors)
+6. `python manage.py collectstatic --noinput`

@@ -43,6 +43,10 @@ from education.serializers import (
 )
 from education.permissions import IsStaffOrSuperuser
 from education.utils import log_admin_action, resolve_path_access_tier
+from education.exercise_visibility import (
+    apply_learner_exercise_filters,
+    learner_can_access_exercise,
+)
 from authentication.models import UserProfile
 from authentication.entitlements import allowed_plan_tiers, get_user_plan, plan_allows
 from onboarding.models import QuestionnaireProgress
@@ -96,6 +100,7 @@ EXERCISE_SAFE_FIELDS = [
     "misconception_tags",
     "error_patterns",
     "created_at",
+    "is_published",
 ]
 
 
@@ -1035,12 +1040,16 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
 
-        return queryset
+        return apply_learner_exercise_filters(queryset, self.request.user)
 
     @action(detail=False, methods=["get"])
     def categories(self, request):
         """Get all unique exercise categories."""
-        categories = Exercise.objects.values_list("category", flat=True).distinct()
+        base = apply_learner_exercise_filters(
+            Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS),
+            request.user,
+        )
+        categories = base.values_list("category", flat=True).distinct().order_by("category")
         return Response(list(categories))
 
     @action(detail=True, methods=["post"])
@@ -1156,6 +1165,8 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def get_exercise_progress(request, exercise_id):
     """Retrieve the progress of a specific exercise for the authenticated user."""
+    if not learner_can_access_exercise(request.user, exercise_id):
+        return Response({"error": "Exercise not found."}, status=404)
     try:
         exercise = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).get(id=exercise_id)
         progress = UserExerciseProgress.objects.filter(user=request.user, exercise=exercise).first()
@@ -1183,6 +1194,14 @@ def reset_exercise(request):
 
     if not exercise_id and not section_id:
         return Response({"error": "Either exercise_id or section_id is required"}, status=400)
+
+    if exercise_id:
+        try:
+            ex_id_int = int(exercise_id)
+        except (TypeError, ValueError):
+            return Response({"error": "Invalid exercise_id"}, status=400)
+        if not learner_can_access_exercise(request.user, ex_id_int):
+            return Response({"error": "Exercise not found."}, status=404)
 
     try:
         if section_id:
@@ -1216,8 +1235,10 @@ def review_queue(request):
     queue = []
     for mastery in due_mastery:
         exercise = (
-            Exercise.objects.only(*EXERCISE_SAFE_FIELDS)
-            .filter(category=mastery.skill)
+            apply_learner_exercise_filters(
+                Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(category=mastery.skill),
+                request.user,
+            )
             .order_by("difficulty", "id")
             .first()
         )
@@ -1287,20 +1308,24 @@ def next_exercise(request):
     )
 
     if last_exercise_id and not last_correct:
-        retry = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(id=last_exercise_id).first()
-        if retry:
-            return Response({"exercise_id": retry.id, "reason": "remediate"})
+        try:
+            last_id_int = int(last_exercise_id)
+        except (TypeError, ValueError):
+            last_id_int = None
+        if last_id_int and learner_can_access_exercise(request.user, last_id_int):
+            retry = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(id=last_id_int).first()
+            if retry:
+                return Response({"exercise_id": retry.id, "reason": "remediate"})
 
-    next_available = (
-        Exercise.objects.only(*EXERCISE_SAFE_FIELDS)
-        .exclude(id__in=completed_ids)
-        .order_by("difficulty", "id")
-        .first()
+    learner_qs = apply_learner_exercise_filters(
+        Exercise.objects.only(*EXERCISE_SAFE_FIELDS),
+        request.user,
     )
+    next_available = learner_qs.exclude(id__in=completed_ids).order_by("difficulty", "id").first()
     if next_available:
         return Response({"exercise_id": next_available.id, "reason": "fresh"})
 
-    fallback = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).order_by("-created_at").first()
+    fallback = learner_qs.order_by("-created_at").first()
     if fallback:
         return Response({"exercise_id": fallback.id, "reason": "fallback"})
 

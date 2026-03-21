@@ -59,7 +59,7 @@
       "browseTopics": "Răsfoiește subiectele"
     },
     "dailyGoal": {
-      "label": "Obiectiv zilnic · {{xp}} XP",
+      "label": "Obiectiv zilnic",
       "completeDesc": "Finalizează obiectivul zilnic",
       "xpProgress": "{{current}} / {{target}} XP azi"
     },
@@ -1489,7 +1489,9 @@
       "allDifficulties": "Toate dificultățile",
       "beginner": "Începător",
       "intermediate": "Intermediar",
-      "advanced": "Avansat"
+      "advanced": "Avansat",
+      "toggleShow": "Arată filtrele",
+      "toggleHide": "Ascunde filtrele"
     },
     "progress": {
       "label": "Exercițiul {{current}} din {{total}}",
@@ -1502,9 +1504,46 @@
     },
     "timedMode": "Mod cronometrat",
     "streak": "🔥 Ai completat {{count}} exerciții la rând - continuă!",
+    "refreshing": "Se actualizează exercițiile…",
+    "emptyFiltered": {
+      "title": "Niciun exercițiu nu corespunde filtrelor",
+      "subtitle": "Încearcă să elimini filtrul de categorie sau alege altul.",
+      "browseTopics": "Răsfoiește subiectele"
+    },
+    "emptyUnmapped": {
+      "title": "Nu am putut încă potrivi „{{skill}}” cu o categorie de exerciții.",
+      "subtitle": "Poți exersa oricum: deschide toate exercițiile, alege o categorie sau continuă cu lecții pe acest subiect.",
+      "viewAll": "Vezi toate exercițiile",
+      "pickCategory": "Alege o categorie",
+      "browseLessons": "Mergi la lecții"
+    },
+    "emptyMappedZero": {
+      "title": "Ești focalizat pe {{category}}, dar nu sunt exerciții aici momentan.",
+      "subtitle": "Încearcă altă categorie, golește filtrul sau învață din lecții în timp ce extindem biblioteca.",
+      "clearFilter": "Golește filtrul de categorie",
+      "pickAnother": "Alege altă categorie",
+      "goToLessons": "Mergi la lecții"
+    },
     "skillIntent": {
-      "applied": "Exersare focalizată: {{skill}} (categorie: {{category}}).",
-      "notMapped": "Nu am putut corela încă {{skill}} cu o categorie de exerciții, așa că afișăm toate exercițiile."
+      "applied": "Exersare focalizată pentru {{skill}} — exerciții filtrate la {{category}}.",
+      "notMapped": "Nu am putut încă potrivi {{skill}} cu o categorie de exerciții; afișăm toate exercițiile.",
+      "dismiss": "Ascunde mesajul",
+      "dismissRecommendation": "Închide recomandarea",
+      "applyingFocus": "Se aplică focusul recomandat…",
+      "clearFilter": "Arată toate exercițiile",
+      "changeCategory": "Alege altă categorie",
+      "regionLabel": "Recomandare de exersare",
+      "titleMapped": "Focalizat pe {{category}}",
+      "titleMappedDiffers": "Focalizat pe {{category}} pentru abilitatea slabă: {{skill}}",
+      "titleUnmapped": "Nu am putut încă potrivi „{{skill}}” cu o categorie de exerciții",
+      "bodyMapped": "Exercițiile sunt filtrate la această categorie. Poți schimba filtrul, arăta toate exercițiile sau închide acest mesaj oricând.",
+      "bodyUnmapped": "Afișăm toate exercițiile momentan. Alege o categorie mai jos sau deschide lecții pentru un parcurs ghidat.",
+      "context": {
+        "weak_skill_click": "Din tabloul de bord: zonă de îmbunătățit (ai deschis această abilitate).",
+        "weak_skill_practice": "Din tabloul de bord: zonă de îmbunătățit (exersare).",
+        "quick_card_exercises": "Din cardul rapid de exersare de pe tabloul de bord.",
+        "default": "Recomandare din tabloul de bord."
+      }
     },
     "hints": {
       "title": "Indicații",

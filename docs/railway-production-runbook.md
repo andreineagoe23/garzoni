@@ -22,8 +22,26 @@ sh /app/scripts/railway_predeploy.sh
 ## Content Sync Model
 
 - Lesson and video updates are applied in-place by `sync_content_release`.
-- Sync is versioned and idempotent using DB state (`education_content_release_state`).
-- No manual DB push or deploy-time env toggles are required for normal releases.
+- **Exercise catalog** (questions, categories, `exercise_data`, multiple-choice rows, translations) is applied in-place by `sync_exercises_release` from `education/content/exercises_release.json`, gated by `exercises_version` in `education/content/release_manifest.json`.
+- Sync is versioned and idempotent using DB state (`education_content_release_state` — keys `education_content` and `education_exercises`).
+- No Railway shell or manual DB push is required for normal lesson + exercise releases.
+
+### Shipping exercise changes (no console)
+
+1. Update exercises in local Docker (or your canonical environment).
+2. From repo root:
+   ```bash
+   ./backend/scripts/export_exercises_release.sh
+   ```
+   Or: `docker compose exec backend python manage.py export_exercises_release`
+3. **Bump** `exercises_version` in `backend/education/content/release_manifest.json` (e.g. `2026.03.21.2`) whenever the JSON fixture changes.
+4. Commit `exercises_release.json` + `release_manifest.json` and deploy. Pre-deploy runs `sync_exercises_release` automatically.
+
+Use `--force` locally to re-apply the same version: `python manage.py sync_exercises_release --force`.
+
+### Full education wipe + import (optional, destructive)
+
+The fixture in `backend/backups/` plus `railway_import_content.sh` still clears **all** education tables (including exercises). Prefer the versioned exercise sync above for routine updates so user progress stays aligned with stable exercise primary keys.
 
 ## Pushing missions to Railway
 
