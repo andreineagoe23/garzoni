@@ -134,7 +134,7 @@ npm start
 ## Deployment Notes
 
 - Docker deployment guide: `docs/deployment-docker.md`
-- Railway production runbook: `docs/railway-production-runbook.md` (includes pushing missions: `./backend/scripts/railway_push_missions.sh`).
+- Railway production runbook: `docs/railway-production-runbook.md` (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
 - Frontend: Vercel-friendly static build (npm run build).
 - Backend: WSGI-compatible (e.g., PythonAnywhere). Configure ALLOWED_HOSTS, CORS/CSRF origins, SECRET_KEY, DB credentials, Stripe keys, reCAPTCHA, and email settings via environment variables.
 - Static files served by WhiteNoise; media served from MEDIA_ROOT or external storage in production.

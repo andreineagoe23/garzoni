@@ -5,8 +5,6 @@ import { MonevoIcon } from "components/ui/monevoIcons";
 
 type DailyGoalCardProps = {
   dailyGoalProgress: number;
-  dailyGoalCurrentXP: number;
-  dailyGoalTargetXP: number;
   locale?: string;
   prefersReducedMotion?: boolean;
   /** When true, omit top margin (e.g. when embedded in a shared container). */
@@ -15,8 +13,6 @@ type DailyGoalCardProps = {
 
 const DailyGoalCard = ({
   dailyGoalProgress,
-  dailyGoalCurrentXP,
-  dailyGoalTargetXP,
   locale,
   prefersReducedMotion,
   noMarginTop,
@@ -30,9 +26,7 @@ const DailyGoalCard = ({
         <div className="flex items-center gap-2">
           <MonevoIcon name="target" size={20} className="text-[color:var(--primary,#1d5330)]" />
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
-            {t("dashboard.dailyGoal.label", {
-              xp: dailyGoalTargetXP,
-            })}
+            {t("dashboard.dailyGoal.label")}
           </span>
         </div>
         <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
@@ -49,9 +43,7 @@ const DailyGoalCard = ({
           aria-valuenow={dailyGoalProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${t("dashboard.dailyGoal.label", {
-            xp: dailyGoalTargetXP,
-          })}: ${formatPercentage(dailyGoalProgress, locale, 0)} complete`}
+          aria-label={`${t("dashboard.dailyGoal.label")}: ${formatPercentage(dailyGoalProgress, locale, 0)} complete`}
         />
       </div>
     </div>

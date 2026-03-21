@@ -9,6 +9,9 @@ python manage.py migrate --noinput
 # 2) Deterministic in-place content sync (versioned/idempotent).
 python manage.py sync_content_release
 
+# 2b) Exercise catalog from repo fixture (versioned/idempotent; no shell access needed).
+python manage.py sync_exercises_release
+
 # 3) Validate and remediate lesson videos before release.
 python manage.py verify_lesson_video_embeds --check-live --fix
 

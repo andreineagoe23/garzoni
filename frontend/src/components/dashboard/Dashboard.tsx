@@ -39,6 +39,7 @@ import { useDashboardSummary } from "hooks/useDashboardSummary";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { useTranslation } from "react-i18next";
 import WeakSkillsQuickCard from "./WeakSkillsQuickCard";
+import { useDashboardSkillExercisesNavigation } from "hooks/useDashboardSkillExercisesNavigation";
 
 type WeakSkill = {
   skill: string;
@@ -364,8 +365,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     activeMissions,
     weakestSkills,
     dailyGoalProgress,
-    dailyGoalCurrentXP,
-    dailyGoalTargetXP,
     resume,
     startHere,
     completedSections,
@@ -562,36 +561,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
   }, []);
 
-  const handleWeakSkillClick = useCallback(
-    (skill: WeakSkill) => {
-      trackEvent("weak_skill_click", {
-        skill: skill.skill,
-        proficiency: skill.proficiency,
-      });
-      navigate("/exercises", {
-        state: {
-          from: "dashboard",
-          targetSkill: skill.skill,
-          reason: "weak_skill_click",
-        },
-      });
-    },
-    [navigate, trackEvent]
-  );
-
-  const handleWeakSkillPractice = useCallback(
-    (skill: WeakSkill) => {
-      trackEvent("improve_recommendation_click", { skill: skill.skill });
-      navigate("/exercises", {
-        state: {
-          from: "dashboard",
-          targetSkill: skill.skill,
-          reason: "improve_weak_skill",
-        },
-      });
-    },
-    [navigate, trackEvent]
-  );
+  const {
+    handleWeakSkillClick,
+    handleWeakSkillPractice,
+    handleQuickCardSkillExercises,
+  } = useDashboardSkillExercisesNavigation(navigate, trackEvent);
 
   if (isLoading) {
     return (
@@ -691,19 +665,22 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             {(isQuestionnaireCompleted ||
               (questionnaireProgress as { status?: string } | null)?.status ===
                 "completed") ? (
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                 {resume ? (
-                  <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl sm:text-2xl" aria-hidden="true">
-                        <MonevoIcon name="bookOpen" size={28} />
+                  <div className="min-w-0 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-3 transition-all sm:p-4">
+                    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex w-full min-w-0 flex-col items-center gap-2 text-center sm:flex-1 sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+                        <span
+                          className="flex shrink-0 justify-center text-lg sm:text-2xl"
+                          aria-hidden="true"
+                        >
+                          <MonevoIcon name="bookOpen" size={24} />
                         </span>
-                        <div>
-                          <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
+                        <div className="min-w-0 w-full sm:flex-1">
+                          <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="text-[11px] sm:text-xs text-[color:var(--muted-text,#6b7280)]">
+                          <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
                             {t("dashboard.resume.continueWith", {
                               course: resume.course_title,
                             })}
@@ -718,7 +695,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             resume.path_id ?? undefined
                           )
                         }
-                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        className="w-full self-center rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
                         aria-label={t("dashboard.resume.continueLesson")}
                       >
                         {t("dashboard.resume.continueLesson")}
@@ -726,17 +703,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-4 transition-all">
-                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl sm:text-2xl" aria-hidden="true">
-                        <MonevoIcon name="bookOpen" size={28} />
+                  <div className="min-w-0 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-3 transition-all sm:p-4">
+                    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex w-full min-w-0 flex-col items-center gap-2 text-center sm:flex-1 sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+                        <span
+                          className="flex shrink-0 justify-center text-lg sm:text-2xl"
+                          aria-hidden="true"
+                        >
+                          <MonevoIcon name="bookOpen" size={24} />
                         </span>
-                        <div>
-                          <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
+                        <div className="min-w-0 w-full sm:flex-1">
+                          <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="text-[11px] sm:text-xs text-[color:var(--muted-text,#6b7280)]">
+                          <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
                             {t("dashboard.resume.startFirstLesson")}
                           </p>
                         </div>
@@ -755,7 +735,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             navigate("/all-topics");
                           }
                         }}
-                        className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+                        className="w-full self-center rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
                         aria-label={t("dashboard.resume.browseTopics")}
                       >
                         {t("dashboard.resume.browseTopics")}
@@ -767,16 +747,16 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               <WeakSkillsQuickCard
                 locale={locale}
                 topSkill={weakSkillItems[0] ?? null}
-                onPracticeSkill={handleWeakSkillPractice}
-                onExploreExercises={() => navigate("/exercises")}
+                onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                onOpenExercises={() => navigate("/exercises")}
               />
               </div>
             ) : (
               <WeakSkillsQuickCard
                 locale={locale}
                 topSkill={weakSkillItems[0] ?? null}
-                onPracticeSkill={handleWeakSkillPractice}
-                onExploreExercises={() => navigate("/exercises")}
+                onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                onOpenExercises={() => navigate("/exercises")}
               />
             )}
 
@@ -802,7 +782,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               reviewsDue={reviewsDue}
               activeMissionsCount={activeMissions.length}
               dailyGoalProgress={dailyGoalProgress}
-              dailyGoalTargetXP={dailyGoalTargetXP}
               streakCount={(profile as UserProfile)?.streak ?? 0}
               reviewError={reviewError}
               missionsError={missionsError}

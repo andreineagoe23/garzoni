@@ -7,6 +7,8 @@ declare module "axios" {
   interface AxiosRequestConfig {
     /** When true, 401/403 do not trigger redirect to login or global error toast (e.g. for login/register/refresh). */
     skipAuthRedirect?: boolean;
+    /** When true, failed responses do not open the global error toast (e.g. best-effort funnel ingest). */
+    skipGlobalErrorToast?: boolean;
   }
 }
 
@@ -56,17 +58,19 @@ const redirectToLoginWithReason = (reason: string) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const skipAuthRedirect = (
-      error.config as InternalAxiosRequestConfig & {
-        skipAuthRedirect?: boolean;
-      }
-    )?.skipAuthRedirect;
+    const cfg = error.config as InternalAxiosRequestConfig & {
+      skipAuthRedirect?: boolean;
+      skipGlobalErrorToast?: boolean;
+    };
+    const skipAuthRedirect = cfg?.skipAuthRedirect;
+    const skipGlobalErrorToast =
+      Boolean(cfg?.skipGlobalErrorToast) || Boolean(skipAuthRedirect);
     if (isAuthError(error) && !skipAuthRedirect) {
       clearAuthHeaders();
       redirectToLoginWithReason(AUTH_EXPIRED_REASON);
       return Promise.reject(error);
     }
-    if (!skipAuthRedirect) {
+    if (!skipGlobalErrorToast) {
       const message =
         error.response?.data?.detail ||
         error.response?.data?.error ||
