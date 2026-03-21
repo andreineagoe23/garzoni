@@ -344,10 +344,10 @@ const OnboardingQuestionnaire: React.FC = () => {
                   type="button"
                   onClick={() => handleOptionSelect(option.value)}
                   disabled={isSaving}
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#2563eb)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
+                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#2563eb)]/40"
+                      ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#ffd700)]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}
@@ -378,10 +378,10 @@ const OnboardingQuestionnaire: React.FC = () => {
                   type="button"
                   onClick={() => handleOptionSelect([option.value])}
                   disabled={isSaving}
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#2563eb)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
+                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#2563eb)]/40"
+                      ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#ffd700)]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}
@@ -420,7 +420,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
             {t("onboarding.somethingWentWrong")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -446,7 +446,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
             {t("onboarding.completeTitle")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -480,7 +480,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
             {t("onboarding.somethingWentWrong")}
           </h2>
           <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -510,7 +510,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       return (
         <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
           <GlassCard padding="lg" className="max-w-md text-center">
-            <h2 className="mb-4 text-xl font-semibold text-[color:var(--accent,#111827)]">
+            <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
               {t("onboarding.noQuestionLoaded")}
             </h2>
             <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -552,7 +552,7 @@ const OnboardingQuestionnaire: React.FC = () => {
   return (
     <>
       <section
-        className="min-h-screen bg-gradient-to-br from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--primary,#2563eb)]/5 px-4 py-10"
+        className="min-h-screen bg-gradient-to-br from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--primary,#1d5330)]/5 px-4 py-10"
         aria-label={t("onboarding.aria")}
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-8">
@@ -584,7 +584,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                 </GlassButton>
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+            <h1 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
               {t("onboarding.tellUsAboutYourself")}
             </h1>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -600,7 +600,7 @@ const OnboardingQuestionnaire: React.FC = () => {
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--primary,#2563eb)]/80 transition-[width] duration-500 ease-out"
+                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-[width] duration-500 ease-out"
                 style={{ width: `${computedProgressPercentage}%` }}
                 role="progressbar"
                 aria-valuenow={computedProgressPercentage}
@@ -614,9 +614,9 @@ const OnboardingQuestionnaire: React.FC = () => {
           {sectionSummary && (
             <GlassCard
               padding="md"
-              className="border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5"
+              className="border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5"
             >
-              <h3 className="mb-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
+              <h3 className="mb-3 text-sm font-semibold text-[color:var(--text-color,#111827)]">
                 {sectionSummary.section_title} {t("onboarding.summary")}
               </h3>
               <div className="space-y-2">
@@ -636,7 +636,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           {/* Question Card */}
           <GlassCard padding="lg" className="relative z-10 space-y-6 md:px-10">
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+              <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
                 {currentQuestion?.text ?? t("onboarding.noQuestionLoaded")}
               </h2>
               {currentQuestion?.description && (

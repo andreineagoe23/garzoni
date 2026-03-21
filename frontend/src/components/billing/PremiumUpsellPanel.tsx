@@ -78,13 +78,13 @@ const PremiumUpsellPanel = () => {
 
   return (
     <GlassCard padding="lg" className="space-y-6">
-      <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-[color:var(--primary,#1d5330)]/10 to-transparent px-4 py-4">
+      <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-[color:var(--primary,#1d5330)]/10 to-transparent px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
               {t("billing.upgradeToPremium")}
             </p>
-            <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+            <h4 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
               {t("billing.unlockPremiumFeatures")}
             </h4>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -109,22 +109,22 @@ const PremiumUpsellPanel = () => {
         </div>
         <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-[color:var(--muted-text,#6b7280)]">
           Checkout URL:{" "}
-          <span className="font-semibold text-[color:var(--accent,#111827)]">
+          <span className="font-semibold text-[color:var(--text-color,#111827)]">
             {CHECKOUT_URL.replace(/^https?:\/\//, "")}
           </span>{" "}
           with params{" "}
-          <code className="font-mono text-[color:var(--accent,#111827)]">
+          <code className="font-mono text-[color:var(--text-color,#111827)]">
             ?context=...
           </code>{" "}
           and{" "}
-          <code className="font-mono text-[color:var(--accent,#111827)]">
+          <code className="font-mono text-[color:var(--text-color,#111827)]">
             source=dashboard-upsell
           </code>{" "}
           for attribution tracking
         </div>
         <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-[color:var(--muted-text,#4b5563)] break-words">
           Referral link:{" "}
-          <span className="font-semibold text-[color:var(--accent,#111827)]">
+          <span className="font-semibold text-[color:var(--text-color,#111827)]">
             {referralLink}
           </span>
         </div>

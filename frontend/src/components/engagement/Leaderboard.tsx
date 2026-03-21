@@ -197,10 +197,10 @@ const Leaderboards = () => {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab as "global" | "friends")}
-                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm focus:ring-[color:var(--accent,#ffd700)]/40 ${
                   activeTab === tab
-                    ? "bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--primary,#2563eb)]/90 text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40"
-                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/60 hover:bg-[color:var(--accent,#2563eb)]/10 hover:text-[color:var(--accent,#2563eb)]"
+                    ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
+                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-[color:var(--accent,#ffd700)]"
                 }`}
               >
                 {tab === "global"
@@ -213,7 +213,7 @@ const Leaderboards = () => {
             <select
               value={timeFilter}
               onChange={(event) => setTimeFilter(event.target.value)}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               {timeFilterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -231,7 +231,7 @@ const Leaderboards = () => {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={t("leaderboard.searchPlaceholder")}
-            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
             type="text"
           />
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -251,10 +251,10 @@ const Leaderboards = () => {
         ) && (
           <GlassCard
             padding="md"
-            className="border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 shadow-[color:var(--accent,#2563eb)]/20"
+            className="border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 shadow-[color:var(--accent,#ffd700)]/20"
           >
             <div className="flex flex-wrap items-center gap-4">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#2563eb)] text-lg font-bold text-white shadow-md">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#ffd700)] text-lg font-bold text-white shadow-md">
                 #{userRank.rank}
               </span>
               <div className="flex items-center gap-3">
@@ -273,7 +273,7 @@ const Leaderboards = () => {
                       username: userRank.user.username,
                     })}
                   </p>
-                  <p className="text-[color:var(--accent,#2563eb)]">
+                  <p className="text-[color:var(--accent,#ffd700)]">
                     {t("leaderboard.points", {
                       points: userRank.points,
                     })}
@@ -305,7 +305,7 @@ const Leaderboards = () => {
                 padding="md"
                 className={`group flex flex-col gap-4 transition hover:-translate-y-1 ${highlight}`}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                 <div className="relative">
                   <div className="flex flex-wrap items-center gap-4">
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] text-sm font-semibold text-[color:var(--accent,#111827)]">
@@ -344,12 +344,12 @@ const Leaderboards = () => {
                         }
                         onClick={() => sendFriendRequest(entry.user.id)}
                         disabled={isFriend || pending}
-                        className={`ml-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#2563eb)]/40 ${
+                        className={`ml-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 ${
                           isFriend
-                            ? "cursor-not-allowed bg-emerald-500/10 text-emerald-500"
+                            ? "cursor-not-allowed bg-emerald-500/10 text-[color:var(--accent,#ffd700)]"
                             : pending
                               ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
-                              : "bg-[color:var(--primary,#2563eb)] text-white shadow hover:shadow-lg"
+                              : "bg-[color:var(--primary,#1d5330)] text-white shadow hover:shadow-lg"
                         }`}
                       >
                         {isFriend

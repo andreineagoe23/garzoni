@@ -40,7 +40,7 @@ const QuestionnaireCompletionModal: React.FC<
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+          colors: ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b", "#dc2626"],
         });
 
         // Right side
@@ -49,7 +49,7 @@ const QuestionnaireCompletionModal: React.FC<
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+          colors: ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b", "#dc2626"],
         });
 
         // Center burst
@@ -58,7 +58,7 @@ const QuestionnaireCompletionModal: React.FC<
             particleCount: 5,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+            colors: ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b", "#dc2626"],
           });
         }
       }, 100);
@@ -85,7 +85,7 @@ const QuestionnaireCompletionModal: React.FC<
         }
       }}
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#2563eb)]/10 p-8 text-center shadow-2xl">
+      <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#1d5330)]/10 p-8 text-center shadow-2xl">
         {/* Mascot */}
         <div className="mx-auto mb-4 flex flex-col items-center gap-2">
           <MascotMedia
@@ -111,16 +111,16 @@ const QuestionnaireCompletionModal: React.FC<
 
         {/* Rewards */}
         <div className="mb-8 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5 p-4">
-            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
+          <div className="rounded-2xl border border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5 p-4">
+            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
               +{rewards.xp}
             </div>
             <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
               {t("onboarding.completionModal.xpPoints")}
             </div>
           </div>
-          <div className="rounded-2xl border border-[color:var(--primary,#2563eb)]/20 bg-[color:var(--primary,#2563eb)]/5 p-4">
-            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#2563eb)]">
+          <div className="rounded-2xl border border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5 p-4">
+            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
               +{rewards.coins}
             </div>
             <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">

@@ -1,5 +1,6 @@
 import React from "react";
 import GlassButton from "./GlassButton";
+import { MonevoIcon } from "./monevoIcons";
 
 const config = {
   title: "UI/GlassButton",
@@ -13,7 +14,7 @@ export const Variants = () => (
     <GlassButton variant="primary">Primary</GlassButton>
     <GlassButton variant="active">Active</GlassButton>
     <GlassButton variant="ghost">Ghost</GlassButton>
-    <GlassButton variant="success" icon="✅">
+    <GlassButton variant="success" icon={<MonevoIcon name="check" size={16} />}>
       Success
     </GlassButton>
     <GlassButton variant="danger">Danger</GlassButton>

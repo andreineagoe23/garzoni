@@ -6,6 +6,7 @@ import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import UpsellModal from "components/billing/UpsellModal";
 import {
   consumeEntitlement,
@@ -200,7 +201,16 @@ function RewardsPage() {
         <GlassButton
           variant="ghost"
           onClick={handleShare}
-          icon={downloadsFeature && !downloadsFeature.enabled ? "🔒" : "⬇️"}
+          icon={
+            <MonevoIcon
+              name={
+                downloadsFeature && !downloadsFeature.enabled
+                  ? "lock"
+                  : "download"
+              }
+              size={16}
+            />
+          }
           disabled={downloadsFeature?.remaining_today === 0}
         >
           {downloadsFeature?.remaining_today === 0

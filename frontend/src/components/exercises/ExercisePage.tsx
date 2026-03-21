@@ -7,10 +7,11 @@ import React, {
 } from "react";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
@@ -41,6 +42,7 @@ const ExercisePage = () => {
     settings,
   } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [streak, setStreak] = useState(0);
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState({
@@ -73,6 +75,7 @@ const ExercisePage = () => {
   const [firstTryCorrect, setFirstTryCorrect] = useState(0);
   const [streakMultiplier, setStreakMultiplier] = useState(1);
   const [inlineHint, setInlineHint] = useState("");
+  const [skillIntentMessage, setSkillIntentMessage] = useState("");
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [recentSkillInsight, setRecentSkillInsight] = useState("");
   const inlineHintTimeoutRef = useRef(null);
@@ -80,6 +83,7 @@ const ExercisePage = () => {
   const isDevelopment = process.env.NODE_ENV === "development";
   const mascotTimeoutRef = useRef(null);
   const mascotInteractionCountRef = useRef(0);
+  const appliedSkillIntentRef = useRef<string | null>(null);
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
@@ -106,6 +110,16 @@ const ExercisePage = () => {
     () => exercises[currentExerciseIndex] || null,
     [exercises, currentExerciseIndex]
   );
+  const targetSkillIntent = useMemo(() => {
+    const stateSkill =
+      (
+        location.state as
+          | { targetSkill?: string; from?: string; reason?: string }
+          | undefined
+      )?.targetSkill || "";
+    const querySkill = new URLSearchParams(location.search).get("skill") || "";
+    return (stateSkill || querySkill).trim();
+  }, [location.search, location.state]);
   const hintFeature = entitlements?.features?.hints;
   const hintEnabled = hintFeature?.enabled ?? true;
   const hintRemaining = hintFeature?.remaining_today;
@@ -114,6 +128,27 @@ const ExercisePage = () => {
   const soundEnabled = settings?.sound_enabled ?? true;
   const animationsEnabled = Boolean(settings?.animations_enabled ?? true);
   const hintCoinCost = 5;
+
+  const resolveCategoryFromSkill = useCallback(
+    (skill: string, availableCategories: string[]) => {
+      const normalizedSkill = skill.trim().toLowerCase();
+      if (!normalizedSkill) return "";
+      const exact = availableCategories.find(
+        (category) => category.trim().toLowerCase() === normalizedSkill
+      );
+      if (exact) return exact;
+
+      const partial = availableCategories.find((category) => {
+        const normalizedCategory = category.trim().toLowerCase();
+        return (
+          normalizedCategory.includes(normalizedSkill) ||
+          normalizedSkill.includes(normalizedCategory)
+        );
+      });
+      return partial || "";
+    },
+    []
+  );
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -260,6 +295,36 @@ const ExercisePage = () => {
     fetchReviewQueue,
     navigate,
   ]);
+
+  useEffect(() => {
+    if (!targetSkillIntent || categories.length === 0) return;
+    if (appliedSkillIntentRef.current === targetSkillIntent) return;
+
+    const matchedCategory = resolveCategoryFromSkill(
+      targetSkillIntent,
+      categories
+    );
+
+    if (matchedCategory) {
+      setFilters((prev) =>
+        prev.category === matchedCategory
+          ? prev
+          : { ...prev, category: matchedCategory }
+      );
+      setSkillIntentMessage(
+        t("exercises.skillIntent.applied", {
+          skill: targetSkillIntent,
+          category: matchedCategory,
+        })
+      );
+    } else {
+      setSkillIntentMessage(
+        t("exercises.skillIntent.notMapped", { skill: targetSkillIntent })
+      );
+    }
+
+    appliedSkillIntentRef.current = targetSkillIntent;
+  }, [categories, resolveCategoryFromSkill, t, targetSkillIntent]);
 
   const initializeAnswer = (exercise) => {
     if (!exercise) return null;
@@ -736,9 +801,9 @@ const ExercisePage = () => {
                   <label
                     key={id}
                     htmlFor={id}
-                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--accent,#2563eb)]/40 ${
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--accent,#ffd700)]/40 ${
                       userAnswer === index
-                        ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
+                        ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
                         : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
                     } ${
                       hasResult && userAnswer === index
@@ -838,7 +903,7 @@ const ExercisePage = () => {
                     tabIndex={0}
                     role="button"
                     aria-label={`Drag item ${item}`}
-                    className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#2563eb)]/40 ${
+                    className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
                       hasResult && isCorrectSlot !== null
                         ? isCorrectSlot
                           ? "border-emerald-500/60 bg-emerald-500/10"
@@ -874,7 +939,7 @@ const ExercisePage = () => {
                   exercise.exercise_data?.placeholder ||
                   t("exercises.inputs.numberPlaceholder")
                 }
-                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
+                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
                   hasResult
                     ? isAnswerCorrect
                       ? "border-emerald-500/60 bg-emerald-500/10"
@@ -930,7 +995,7 @@ const ExercisePage = () => {
                             : Math.max(0, parseFloat(value) || 0),
                       }));
                     }}
-                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </label>
               ))}
@@ -1000,7 +1065,7 @@ const ExercisePage = () => {
                                 });
                               }}
                               aria-label={`${row.label || t("exercises.table.row")} ${column}`}
-                              className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 ${
+                              className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
                                 hasResult
                                   ? isCellCorrect
                                     ? "border-emerald-500/60 bg-emerald-500/10"
@@ -1068,9 +1133,9 @@ const ExercisePage = () => {
                       )
                     }
                     onClick={() => setUserAnswer(choice.id)}
-                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
                       isSelected
-                        ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
+                        ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
                         : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
                     } ${
                       hasResult && isSelected
@@ -1082,7 +1147,7 @@ const ExercisePage = () => {
                   >
                     <span>{choice.label}</span>
                     {isSelected && (
-                      <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#2563eb)]">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
                         {t("exercises.scenario.selected")}
                       </span>
                     )}
@@ -1113,7 +1178,7 @@ const ExercisePage = () => {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           {t("exercises.loading")}
         </div>
       </div>
@@ -1131,7 +1196,7 @@ const ExercisePage = () => {
           <button
             type="button"
             onClick={fetchExercises}
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+            className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
           >
             {t("exercises.retry")}
           </button>
@@ -1159,9 +1224,9 @@ const ExercisePage = () => {
             {t("exercises.header.subtitle")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] lg:justify-start">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#2563eb)]/30 bg-[color:var(--accent,#2563eb)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#2563eb)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#ffd700)]">
               {t("exercises.reviewQueue.title")}
-              <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#2563eb)]">
+              <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#ffd700)]">
                 {t("exercises.reviewQueue.due", {
                   count: reviewQueue.count || 0,
                 })}
@@ -1179,9 +1244,9 @@ const ExercisePage = () => {
               type="button"
               onClick={startReviewMode}
               disabled={!reviewQueue?.count}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 ${
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
                 reviewQueue?.count
-                  ? "border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#2563eb)] hover:border-[color:var(--accent,#2563eb)]/60"
+                  ? "border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#ffd700)] hover:border-[color:var(--accent,#ffd700)]/60"
                   : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
               }`}
             >
@@ -1193,7 +1258,7 @@ const ExercisePage = () => {
         {mode === "review" && exercises.length === 0 && (
           <GlassCard
             padding="lg"
-            className="border-[color:var(--accent,#2563eb)]/30 bg-white"
+            className="border-[color:var(--accent,#ffd700)]/30 bg-white"
           >
             <div className="flex flex-col gap-3 text-center">
               <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
@@ -1206,14 +1271,14 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={exitReviewMode}
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#2563eb)]/50"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#ffd700)]/50"
                 >
                   {t("exercises.reviewQueue.backToLesson")}
                 </button>
                 <button
                   type="button"
                   onClick={fetchExercises}
-                  className="rounded-full bg-[color:var(--primary,#2563eb)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30"
+                  className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
                 >
                   {t("exercises.reviewQueue.refresh")}
                 </button>
@@ -1233,6 +1298,11 @@ const ExercisePage = () => {
 
         <div className="flex flex-col gap-6 lg:flex-row">
           <GlassCard padding="lg" className="w-full lg:flex-1">
+            {skillIntentMessage && (
+              <div className="mb-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)]">
+                {skillIntentMessage}
+              </div>
+            )}
             <div className="grid gap-4 border-b border-white/20 pb-6 lg:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -1246,7 +1316,7 @@ const ExercisePage = () => {
                       type: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">{t("exercises.filters.allTypes")}</option>
                   <option value="multiple-choice">
@@ -1282,7 +1352,7 @@ const ExercisePage = () => {
                       category: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">
                     {t("exercises.filters.allCategories")}
@@ -1307,7 +1377,7 @@ const ExercisePage = () => {
                       difficulty: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">
                     {t("exercises.filters.allDifficulties")}
@@ -1335,7 +1405,7 @@ const ExercisePage = () => {
                 </p>
                 <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                   <div
-                    className="h-2 rounded-full bg-[color:var(--primary,#2563eb)] transition-all"
+                    className="h-2 rounded-full bg-[color:var(--primary,#1d5330)] transition-all"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -1350,11 +1420,11 @@ const ExercisePage = () => {
                     onChange={(event) => setIsTimedMode(event.target.checked)}
                     className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   />
-                  <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[color:var(--accent,#2563eb)]" />
+                  <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[color:var(--accent,#ffd700)]" />
                   <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
                 </div>
                 {isTimedMode && (
-                  <span className="text-xs font-semibold text-[color:var(--accent,#2563eb)]">
+                  <span className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
                     {formatTime(timeRemaining)}
                   </span>
                 )}
@@ -1373,7 +1443,7 @@ const ExercisePage = () => {
 
             {inlineHint && (
               <div
-                className="mt-4 rounded-2xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-4 py-3 text-sm text-[color:var(--accent,#2563eb)]"
+                className="mt-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)]"
                 aria-live="polite"
               >
                 {inlineHint}
@@ -1393,7 +1463,7 @@ const ExercisePage = () => {
                     className={`text-xs font-semibold underline ${
                       !hintEnabled || hintDepleted
                         ? "cursor-not-allowed text-[color:var(--muted-text,#6b7280)]"
-                        : "text-[color:var(--accent,#2563eb)]"
+                        : "text-[color:var(--accent,#ffd700)]"
                     }`}
                   >
                     {t("exercises.hints.showNext", {
@@ -1450,7 +1520,7 @@ const ExercisePage = () => {
                   <textarea
                     value={scratchpad}
                     onChange={(event) => setScratchpad(event.target.value)}
-                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                     placeholder={t("exercises.assist.scratchpadPlaceholder")}
                   />
                 </div>
@@ -1465,13 +1535,13 @@ const ExercisePage = () => {
                       onChange={(event) =>
                         setCalculatorValue(event.target.value)
                       }
-                      className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                      className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                       placeholder={t("exercises.assist.calculatorPlaceholder")}
                     />
                     <button
                       type="button"
                       onClick={evaluateCalculator}
-                      className="rounded-xl bg-[color:var(--primary,#2563eb)] px-3 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#2563eb)]/30"
+                      className="rounded-xl bg-[color:var(--primary,#1d5330)] px-3 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
                     >
                       =
                     </button>
@@ -1483,7 +1553,7 @@ const ExercisePage = () => {
             {(submissionFeedback || showCorrection) && (
               <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
                 {submissionFeedback && (
-                  <div className="rounded-xl border border-[color:var(--accent,#2563eb)]/40 bg-[color:var(--accent,#2563eb)]/10 px-3 py-2 text-[color:var(--accent,#2563eb)]">
+                  <div className="rounded-xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-3 py-2 text-[color:var(--accent,#ffd700)]">
                     {submissionFeedback}
                   </div>
                 )}
@@ -1502,7 +1572,7 @@ const ExercisePage = () => {
                       href={currentLearnMoreUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                      className="text-xs font-semibold text-[color:var(--accent,#ffd700)] underline"
                     >
                       {t("exercises.explanation.learnMore")}
                     </a>
@@ -1511,7 +1581,7 @@ const ExercisePage = () => {
                   <button
                     type="button"
                     onClick={openTutor}
-                    className="text-xs font-semibold text-[color:var(--accent,#2563eb)] underline"
+                    className="text-xs font-semibold text-[color:var(--accent,#ffd700)] underline"
                   >
                     {t("exercises.explanation.askTutor")}
                   </button>
@@ -1527,7 +1597,7 @@ const ExercisePage = () => {
                 <select
                   value={confidence}
                   onChange={(event) => setConfidence(event.target.value)}
-                  className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="low">{t("exercises.confidence.low")}</option>
                   <option value="medium">
@@ -1559,7 +1629,7 @@ const ExercisePage = () => {
                       type="button"
                       onClick={() => setCurrentExerciseIndex(0)}
                       disabled={currentExerciseIndex === 0}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {t("exercises.actions.restart")}
                     </button>
@@ -1569,7 +1639,7 @@ const ExercisePage = () => {
                         type="button"
                         onClick={handleRetry}
                         disabled={isRetrying}
-                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isRetrying
                           ? t("exercises.actions.retrying")
@@ -1580,7 +1650,7 @@ const ExercisePage = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                      className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {currentExerciseIndex === exercises.length - 1
                         ? t("exercises.actions.finish")
@@ -1592,7 +1662,7 @@ const ExercisePage = () => {
                         fetchExercises();
                         setCurrentExerciseIndex(0);
                       }}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {t("exercises.actions.tryVariant")}
                     </button>
@@ -1602,7 +1672,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   {t("exercises.actions.submit")}
                 </button>
@@ -1709,12 +1779,15 @@ const ExercisePage = () => {
             )}
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
               <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
-                <span className="mr-2">🏆</span> Exercise Session Summary
+                <span className="mr-2">
+                  <MonevoIcon name="trophy" size={18} />
+                </span>{" "}
+                Exercise Session Summary
               </h2>
               <button
                 type="button"
                 onClick={() => setShowStats(false)}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)]"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
               >
                 Close
               </button>
@@ -1885,7 +1958,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={() => setShowStats(false)}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   Close
                 </button>
@@ -1896,7 +1969,7 @@ const ExercisePage = () => {
                       setShowStats(false);
                       startReviewMode();
                     }}
-                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#2563eb)]/50 px-5 py-2 text-sm font-semibold text-[color:var(--accent,#2563eb)] shadow-sm shadow-[color:var(--accent,#2563eb)]/20 transition hover:bg-[color:var(--accent,#2563eb)] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)]/50 px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] shadow-sm shadow-[color:var(--accent,#ffd700)]/20 transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white"
                   >
                     Do your reviews
                   </button>
@@ -1907,7 +1980,7 @@ const ExercisePage = () => {
                     setShowStats(false);
                     goToRecommended();
                   }}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#2563eb)]/40 hover:text-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   Next recommended
                 </button>
@@ -1932,7 +2005,7 @@ const ExercisePage = () => {
                       );
                     }
                   }}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   Start New Session
                 </button>

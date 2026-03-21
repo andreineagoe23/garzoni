@@ -149,7 +149,7 @@ const EconomicCalendar = () => {
           <button
             type="button"
             onClick={() => setShowAllEvents((prev) => !prev)}
-            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
           >
             {showAllEvents
               ? t("tools.calendar.impactFilter.hideLow")
@@ -169,7 +169,7 @@ const EconomicCalendar = () => {
               href="https://www.tradingview.com/economic-calendar/"
               rel="noopener noreferrer"
               target="_blank"
-              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-90"
+              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-90"
             >
               {t("tools.calendar.errors.openNewTab")}
             </a>
@@ -201,7 +201,7 @@ const EconomicCalendar = () => {
                   href="https://www.tradingview.com/economic-calendar/"
                   rel="noopener noreferrer"
                   target="_blank"
-                  className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                  className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
                 />
               ),
               open: (
@@ -209,7 +209,7 @@ const EconomicCalendar = () => {
                   href="https://www.tradingview.com/economic-calendar/"
                   rel="noopener noreferrer"
                   target="_blank"
-                  className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
+                  className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
                 />
               ),
             }}
@@ -235,12 +235,12 @@ const EconomicCalendar = () => {
               className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
                   {eventCopy.label}
                 </h4>
                 <div className="flex items-center gap-2">
                   {isRelevant && (
-                    <span className="rounded-full bg-[color:var(--primary,#2563eb)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+                    <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
                       {t("tools.calendar.relevant")}
                     </span>
                   )}
@@ -250,19 +250,19 @@ const EconomicCalendar = () => {
                 </div>
               </div>
               <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                <span className="font-semibold text-[color:var(--text-color,#111827)]">
                   {t("tools.calendar.why")}
                 </span>{" "}
                 {eventCopy.why}
               </p>
               <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                <span className="font-semibold text-[color:var(--text-color,#111827)]">
                   {t("tools.calendar.who")}
                 </span>{" "}
                 {eventCopy.who}
               </p>
               <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--accent,#111827)]">
+                <span className="font-semibold text-[color:var(--text-color,#111827)]">
                   {t("tools.calendar.affects")}
                 </span>{" "}
                 {eventCopy.affects}
@@ -281,7 +281,7 @@ const EconomicCalendar = () => {
                     });
                   }
                 }}
-                className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:opacity-80"
               >
                 {t("tools.calendar.learnMore")}
               </a>

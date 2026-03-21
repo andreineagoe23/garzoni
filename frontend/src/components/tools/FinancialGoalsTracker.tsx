@@ -13,8 +13,8 @@ const STATUS_COLORS = {
   not_started:
     "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
   in_progress:
-    "bg-[color:var(--primary,#2563eb)]/10 text-[color:var(--primary,#2563eb)]",
-  completed: "bg-emerald-500/10 text-emerald-400",
+    "bg-[color:var(--primary,#1d5330)]/10 text-[color:var(--primary,#1d5330)]",
+  completed: "bg-emerald-500/10 text-[color:var(--accent,#ffd700)]",
 };
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:goals";
@@ -150,7 +150,7 @@ const FinancialGoalsTracker = () => {
                 key={preset.label}
                 type="button"
                 onClick={() => setNewGoal(preset.values)}
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
               >
                 {preset.label}
               </button>
@@ -176,7 +176,7 @@ const FinancialGoalsTracker = () => {
               onChange={handleInputChange}
               placeholder={t("tools.goalsTracker.goalNamePlaceholder")}
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -190,7 +190,7 @@ const FinancialGoalsTracker = () => {
               placeholder={t("tools.goalsTracker.targetAmountPlaceholder")}
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -204,7 +204,7 @@ const FinancialGoalsTracker = () => {
               placeholder={t("tools.goalsTracker.currentAmountPlaceholder")}
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -216,14 +216,14 @@ const FinancialGoalsTracker = () => {
               value={newGoal.target_date}
               onChange={handleInputChange}
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               {t("tools.goalsTracker.addGoal")}
             </button>
@@ -319,7 +319,7 @@ const FinancialGoalsTracker = () => {
                     </div>
                     <div className="mt-2 h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                       <div
-                        className="h-2 rounded-full bg-[color:var(--primary,#2563eb)] transition-[width] duration-500 ease-out"
+                        className="h-2 rounded-full bg-[color:var(--primary,#1d5330)] transition-[width] duration-500 ease-out"
                         style={{ width: `${progress}%` }}
                       />
                     </div>

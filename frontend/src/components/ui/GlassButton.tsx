@@ -33,15 +33,15 @@ const GlassButton = ({
 
   const variantStyles = {
     primary:
-      "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/80 text-[color:var(--primary,#1d5330)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-gradient-to-r hover:from-[color:var(--primary,#1d5330)] hover:to-[color:var(--primary,#1d5330)]/90 hover:text-white hover:shadow-lg hover:shadow-[color:var(--primary,#1d5330)]/30 focus:ring-[color:var(--primary,#1d5330)]/40",
+      "border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[color:var(--color-brand-primary,var(--primary,#1d5330))] hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))]/60 hover:bg-gradient-to-r hover:from-[color:var(--color-brand-primary,var(--primary,#1d5330))] hover:to-[color:var(--color-brand-primary,var(--primary,#1d5330))]/90 hover:text-[color:var(--color-text-inverse,#ffffff)] hover:shadow-lg hover:shadow-[color:var(--color-brand-primary,var(--primary,#1d5330))]/30 focus:ring-[color:var(--primary,#1d5330)]/40",
     active:
-      "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40",
+      "bg-gradient-to-r from-[color:var(--color-brand-primary,var(--primary,#1d5330))] to-[color:var(--color-brand-primary,var(--primary,#1d5330))]/90 text-[color:var(--color-text-inverse,#ffffff)] shadow-lg shadow-[color:var(--color-brand-primary,var(--primary,#1d5330))]/30 hover:shadow-xl hover:shadow-[color:var(--color-brand-primary,var(--primary,#1d5330))]/40 focus:ring-[color:var(--primary,#1d5330)]/40",
     success:
-      "border border-green-500/40 bg-[color:var(--card-bg,#ffffff)]/80 text-green-700 hover:border-green-500/60 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600/90 hover:text-white hover:shadow-lg hover:shadow-green-500/30 focus:ring-green-500/40 [&>span:first-child]:!text-green-600 [&>span:first-child]:font-bold",
+      "border border-[color:var(--color-state-success,var(--success,#4caf50))]/40 bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[color:var(--color-state-success,var(--success,#15803d))] hover:border-[color:var(--color-state-success,var(--success,#4caf50))]/60 hover:bg-gradient-to-r hover:from-[color:var(--color-state-success,var(--success,#4caf50))] hover:to-[color:var(--color-state-success,var(--success,#166534))]/90 hover:text-[color:var(--color-text-inverse,#ffffff)] hover:shadow-lg hover:shadow-[color:var(--color-state-success,var(--success,#4caf50))]/30 focus:ring-[color:var(--color-state-success,var(--success,#4caf50))]/40 [&>span:first-child]:!text-[color:var(--color-state-success,var(--success,#15803d))] [&>span:first-child]:font-bold",
     danger:
-      "border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)] hover:bg-[color:var(--error,#dc2626)] hover:text-white hover:shadow-md focus:ring-[color:var(--error,#dc2626)]/40",
+      "border border-[color:var(--color-state-error,var(--error,#dc2626))]/40 bg-[color:var(--color-state-error,var(--error,#dc2626))]/10 text-[color:var(--color-state-error,var(--error,#dc2626))] hover:bg-[color:var(--color-state-error,var(--error,#dc2626))] hover:text-[color:var(--color-text-inverse,#ffffff)] hover:shadow-md focus:ring-[color:var(--color-state-error,var(--error,#dc2626))]/40",
     ghost:
-      "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40",
+      "border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/70 text-[color:var(--color-text-muted,var(--muted-text,#6b7280))] hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))]/60 hover:bg-[color:var(--color-brand-primary,var(--primary,#1d5330))]/10 hover:text-[color:var(--color-brand-primary,var(--primary,#1d5330))] focus:ring-[color:var(--primary,#1d5330)]/40",
   };
 
   const disabledStyles = disabled
@@ -53,8 +53,11 @@ const GlassButton = ({
   const iconElement =
     typeof icon === "string" ? (
       <span
-        className={variant === "success" ? "!text-green-600" : ""}
-        style={variant === "success" ? { color: "#16a34a" } : {}}
+        className={
+          variant === "success"
+            ? "!text-[color:var(--color-state-success,var(--success,#15803d))]"
+            : ""
+        }
       >
         {icon}
       </span>

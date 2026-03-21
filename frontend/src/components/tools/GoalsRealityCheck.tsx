@@ -169,7 +169,7 @@ const GoalsRealityCheck = () => {
             <button
               type="button"
               onClick={() => setForm(localizedDemoPreset)}
-              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
             >
               {t("tools.realityCheck.useDemoGoal")}
             </button>
@@ -187,7 +187,7 @@ const GoalsRealityCheck = () => {
                   expenseHigh: "",
                 })
               }
-              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
             >
               {t("tools.realityCheck.clear")}
             </button>
@@ -203,7 +203,7 @@ const GoalsRealityCheck = () => {
               value={form.goalName}
               onChange={handleChange}
               placeholder={t("tools.realityCheck.goalNamePlaceholder")}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -216,7 +216,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.goalAmountPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -229,7 +229,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.timeframePlaceholder")}
               min="1"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -242,7 +242,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.alreadySavedPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
         </div>
@@ -257,7 +257,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.incomeLowPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
@@ -269,7 +269,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.incomeHighPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
@@ -281,7 +281,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.expenseLowPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
@@ -293,7 +293,7 @@ const GoalsRealityCheck = () => {
               onChange={handleChange}
               placeholder={t("tools.realityCheck.expenseHighPlaceholder")}
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
         </div>
@@ -309,13 +309,13 @@ const GoalsRealityCheck = () => {
             <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
               {t("tools.realityCheck.savingRange")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <p className="mt-2 text-lg font-semibold text-[color:var(--text-color,#111827)]">
               {formatCurrency(lowSurplus, "USD", locale)} -{" "}
               {formatCurrency(highSurplus, "USD", locale)} / month
             </p>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
               {t("tools.realityCheck.requiredToHitGoal")}{" "}
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {formatCurrency(requiredMonthly, "USD", locale)} / month
               </span>
             </p>
@@ -326,13 +326,13 @@ const GoalsRealityCheck = () => {
             </p>
             <div className="mt-3 h-2 w-full rounded-full bg-[color:var(--border-color,#d1d5db)]/40">
               <div
-                className="h-2 rounded-full bg-[color:var(--primary,#2563eb)]"
+                className="h-2 rounded-full bg-gradient-to-r from-[color:var(--accent,#ffd700)]/90 to-[color:var(--accent,#ffd700)]/45"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
               {t("tools.realityCheck.youAre")}{" "}
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {Math.round(progressPct)}%
               </span>{" "}
               {t("tools.realityCheck.ofTheWayThere")}
@@ -344,19 +344,19 @@ const GoalsRealityCheck = () => {
             </p>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
               {t("tools.realityCheck.best")}{" "}
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {bestMonths
                   ? `${bestMonths} ${t("tools.realityCheck.months")}`
                   : t("tools.realityCheck.notFeasible")}
               </span>{" "}
               · {t("tools.realityCheck.expected")}{" "}
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {expectedMonths
                   ? `${expectedMonths} ${t("tools.realityCheck.months")}`
                   : t("tools.realityCheck.notFeasible")}
               </span>{" "}
               · {t("tools.realityCheck.worst")}{" "}
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-[color:var(--text-color,#111827)]">
                 {worstMonths
                   ? `${worstMonths} ${t("tools.realityCheck.months")}`
                   : t("tools.realityCheck.notFeasible")}
@@ -395,7 +395,7 @@ const GoalsRealityCheck = () => {
                 </p>
                 <a
                   href={GOALS_LEVER_LESSONS[lever.key]}
-                  className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                  className="mt-2 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:opacity-80"
                 >
                   {t("tools.realityCheck.learnMore")}
                 </a>

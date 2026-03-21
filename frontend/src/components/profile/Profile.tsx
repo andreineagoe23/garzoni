@@ -249,7 +249,7 @@ function Profile() {
         className="space-y-4 bg-[color:var(--card-bg,#ffffff)]/60"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+          <h3 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
             {currentMonth.month_name} {currentMonth.year}
           </h3>
         </div>
@@ -290,7 +290,7 @@ function Profile() {
               >
                 <span className="text-sm font-semibold">{day}</span>
                 {hasActivity && (
-                  <span className="mt-1 rounded-full bg-[color:var(--primary,#2563eb)]/15 px-2 text-xs font-semibold text-[color:var(--accent,#2563eb)]">
+                  <span className="mt-1 rounded-full bg-[color:var(--primary,#1d5330)]/15 px-2 text-xs font-semibold text-[color:var(--accent,#ffd700)]">
                     {activityCount}
                   </span>
                 )}
@@ -343,7 +343,7 @@ function Profile() {
     return (
       <PageContainer maxWidth="5xl" layout="centered">
         <div className="flex flex-col items-center gap-4 text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
+          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           <p className="text-sm">{t("profile.loading")}</p>
         </div>
       </PageContainer>
@@ -358,7 +358,7 @@ function Profile() {
             <img
               src={imageUrl || DEFAULT_AVATAR_URL}
               alt={t("profile.avatarAlt")}
-              className="h-36 w-36 rounded-full border-4 border-[color:var(--accent,#2563eb)] object-cover shadow-xl shadow-[color:var(--accent,#2563eb)]/20"
+              className="h-36 w-36 rounded-full border-4 border-[color:var(--accent,#ffd700)] object-cover shadow-xl shadow-[color:var(--accent,#ffd700)]/20"
             />
             <div className="absolute -bottom-2 right-2">
               <AvatarSelector
@@ -368,7 +368,7 @@ function Profile() {
             </div>
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+            <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
               {displayUsername}
             </h2>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -383,7 +383,7 @@ function Profile() {
             <button
               type="button"
               onClick={() => navigate("/personalized-path")}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#2563eb)] to-[color:var(--accent,#1d4ed8)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#2563eb)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--accent,#1d4ed8)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               <span aria-hidden>🧭</span>
               {t("profile.actions.personalizedPath")}
@@ -397,7 +397,7 @@ function Profile() {
                     : "/subscriptions"
                 )
               }
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               <span aria-hidden>💳</span>
               {["active", "trialing"].includes(entitlements?.status ?? "")
@@ -409,7 +409,7 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
               {t("profile.goals.title")}
             </h3>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -430,11 +430,11 @@ function Profile() {
                   padding="md"
                   className={`bg-[color:var(--card-bg,#ffffff)]/60 transition ${
                     goal.completed
-                      ? "ring-2 ring-[color:var(--accent,#2563eb)]/40"
+                      ? "ring-2 ring-[color:var(--accent,#ffd700)]/40"
                       : ""
                   }`}
                 >
-                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
                     {key === "daily"
                       ? t("profile.goals.dailyTitle")
                       : t("profile.goals.weeklyTitle")}
@@ -444,14 +444,14 @@ function Profile() {
                   </p>
                   <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                     <div
-                      className={`h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[color:var(--accent,#ffd700)]/90 to-[color:var(--accent,#ffd700)]/45 transition-[width]`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>
                   <p className="mt-3 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
                     {Math.min(goal.current, goal.target)} / {goal.target}
                     {goal.completed && (
-                      <span className="ml-2 text-[color:var(--accent,#2563eb)]">
+                      <span className="ml-2 text-[color:var(--accent,#ffd700)]">
                         {t("profile.goals.completed")}
                       </span>
                     )}
@@ -468,7 +468,7 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
               {t("profile.streak.title")}
             </h3>
             <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -480,7 +480,7 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
               {t("profile.stats.title")}
             </h3>
           </header>
@@ -492,7 +492,7 @@ function Profile() {
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                 {t("profile.stats.balance")}
               </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
+              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
                 {formatNumber(Number(profileData.earned_money || 0), locale, {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
@@ -507,7 +507,7 @@ function Profile() {
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                 {t("profile.stats.points")}
               </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
+              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
                 {profileData.points}
               </p>
             </GlassCard>
@@ -518,14 +518,14 @@ function Profile() {
               <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                 {t("profile.stats.streak")}
               </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--accent,#111827)]">
+              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
                 {t("profile.stats.streakDays", {
                   count: profileData.streak,
                 })}
               </p>
               <div className="mt-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
                 {profileData.streak >= 7 ? (
-                  <span className="text-emerald-500">
+                  <span className="text-[color:var(--accent,#ffd700)]">
                     {t("profile.stats.hotStreak")}
                   </span>
                 ) : profileData.streak >= 3 ? (
@@ -543,7 +543,7 @@ function Profile() {
         <section className="space-y-6">
           <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
                 {t("profile.achievements.title")}
               </h3>
               <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -568,7 +568,7 @@ function Profile() {
                   setBadgeFilter(e.target.value);
                   setShowAllBadges(false);
                 }}
-                className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 <option value="all">
                   {t("profile.achievements.filterAll")}
@@ -585,7 +585,7 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setShowAllBadges((prev) => !prev)}
-                  className="rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                  className="rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/50 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   {showAllBadges
                     ? t("profile.achievements.showLess")
@@ -617,7 +617,7 @@ function Profile() {
                     alt={userBadge.badge.name}
                     className="h-14 w-14 rounded-full object-cover"
                   />
-                  <p className="mt-3 text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  <p className="mt-3 text-sm font-semibold text-[color:var(--text-color,#111827)]">
                     {userBadge.earned
                       ? userBadge.badge.name
                       : t("profile.achievements.locked")}
@@ -641,7 +641,7 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
               {t("profile.activity.title")}
             </h3>
           </header>
@@ -655,7 +655,7 @@ function Profile() {
                   className="flex flex-wrap items-center justify-between gap-2 bg-[color:var(--card-bg,#ffffff)]/60"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[color:var(--accent,#111827)]">
+                    <p className="truncate text-sm font-medium text-[color:var(--text-color,#111827)]">
                       {activity.title}
                     </p>
                     {activity.details ? (

@@ -24,7 +24,7 @@ const ForexTools = () => {
   return (
     <section className="space-y-4">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
           {t("tools.forex.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -49,7 +49,7 @@ const ForexTools = () => {
                   href={FOREX_CALC_OPEN_URL}
                   rel="noopener noreferrer"
                   target="_blank"
-                  className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+                  className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
                 />
               ),
               open: (
@@ -57,7 +57,7 @@ const ForexTools = () => {
                   href={FOREX_CALC_OPEN_URL}
                   rel="noopener noreferrer"
                   target="_blank"
-                  className="font-semibold text-[color:var(--primary,#2563eb)] underline hover:opacity-80"
+                  className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
                 />
               ),
             }}

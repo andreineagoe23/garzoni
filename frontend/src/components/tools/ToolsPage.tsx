@@ -137,13 +137,13 @@ const ToolsLanding = ({
                       />
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                      <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
                         {title}
                       </h3>
                       <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)] line-clamp-3">
                         {getToolText(tool, "whatItDoes")}
                       </p>
-                      <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+                      <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
                         {t("tools.hub.openTool")}
                       </span>
                     </div>
@@ -191,7 +191,7 @@ const ToolView = ({
       <div className="flex flex-col gap-3 rounded-2xl border border-white/30 bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between sm:px-6 min-w-0">
         <div className="space-y-2 min-w-0 flex-1">
           <div>
-            <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl">
+            <h2 className="text-lg font-semibold text-[color:var(--text-color,#111827)] sm:text-xl">
               {toolTitle}
             </h2>
             <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -199,19 +199,19 @@ const ToolView = ({
             </p>
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            <span className="font-semibold text-[color:var(--accent,#111827)]">
+            <span className="font-semibold text-[color:var(--text-color,#111827)]">
               {t("tools.detail.whoItsFor")}
             </span>{" "}
             {toolWhoItsFor}
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            <span className="font-semibold text-[color:var(--accent,#111827)]">
+            <span className="font-semibold text-[color:var(--text-color,#111827)]">
               {t("tools.detail.questionAnswered")}
             </span>{" "}
             {toolQuestion}
           </div>
           <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            <span className="font-semibold text-[color:var(--accent,#111827)]">
+            <span className="font-semibold text-[color:var(--text-color,#111827)]">
               {t("tools.detail.example")}
             </span>{" "}
             {toolExample}
@@ -231,13 +231,13 @@ const ToolView = ({
                   });
                 }
               }}
-              className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)] hover:text-[color:var(--primary,#2563eb)]/80"
+              className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:text-[color:var(--accent,#ffd700)]/80"
             >
               {t("tools.detail.learnConcept")}
             </Link>
             <Link
               to={TOOL_BASE_PATH}
-              className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#2563eb)]"
+              className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#ffd700)]"
             >
               {t("tools.detail.backToHub")}
             </Link>
@@ -246,14 +246,14 @@ const ToolView = ({
         <div className="flex flex-shrink-0 flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
           <a
             href={feedbackHref}
-            className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+            className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
           >
             {t("tools.detail.feedback")}
           </a>
           <button
             type="button"
             onClick={onReset}
-            className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+            className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
           >
             {t("tools.detail.resetTool")}
           </button>
@@ -261,7 +261,7 @@ const ToolView = ({
             <button
               type="button"
               onClick={onExport}
-              className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              className="rounded-full border border-white/40 px-3 py-1 text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
             >
               {t("tools.detail.export")}
             </button>
@@ -457,7 +457,7 @@ const ToolsPage = () => {
           padding="xl"
           className="flex flex-col items-center gap-4 text-center"
         >
-          <h2 className="text-2xl font-semibold text-[color:var(--accent,#111827)]">
+          <h2 className="text-2xl font-semibold text-[color:var(--text-color,#111827)]">
             {t("tools.authRequired.title")}
           </h2>
           <p className="max-w-xl text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -479,7 +479,7 @@ const ToolsPage = () => {
         <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
           {t("tools.header.kicker")}
         </p>
-        <h1 className="text-2xl font-bold text-[color:var(--accent,#111827)] sm:text-3xl">
+        <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)] sm:text-3xl">
           {t("tools.header.title")}
         </h1>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)] max-w-xl mx-auto">

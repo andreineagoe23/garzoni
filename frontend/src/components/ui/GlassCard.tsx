@@ -14,8 +14,9 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     ref
   ) => {
     // Theme-aware border: darker in light mode, lighter in dark mode
-    const borderStyle = "border-[color:var(--border-color,rgba(0,0,0,0.1))]";
-    const baseStyles = `relative overflow-hidden rounded-3xl ${borderStyle} bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all`;
+    const borderStyle =
+      "border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))]";
+    const baseStyles = `relative overflow-hidden rounded-3xl ${borderStyle} bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all`;
 
     const paddingStyles = {
       none: "",

@@ -12,7 +12,7 @@ export const selectPrimaryCTA = ({
   if (reviewsDue > 0) {
     return {
       type: "reviews_due",
-      icon: "📚",
+      iconName: "book",
       reasonKey: "cta.reviewsDue",
       reasonCount: reviewsDue,
     };
@@ -25,14 +25,14 @@ export const selectPrimaryCTA = ({
     if (lessonMission) {
       return {
         type: "continue_lesson",
-        icon: "📖",
+        iconName: "bookOpen",
         reasonKey: "cta.activeLesson",
         mission: lessonMission,
       };
     }
     return {
       type: "start_mission",
-      icon: "🎯",
+      iconName: "rocket",
       reasonKey: "cta.activeMissions",
       reasonCount: activeMissions.length,
     };
@@ -40,7 +40,7 @@ export const selectPrimaryCTA = ({
 
   return {
     type: "continue_learning",
-    icon: "🚀",
+    iconName: "rocket",
     reasonKey: "cta.keepMomentum",
   };
 };

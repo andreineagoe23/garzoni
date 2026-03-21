@@ -97,7 +97,7 @@ function TradingViewMarketExplorer() {
             href="https://www.tradingview.com/symbols/NASDAQ-AAPL/"
             rel="noopener noreferrer nofollow"
             target="_blank"
-            className="font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-80"
+            className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
           >
             AAPL stock chart
           </a>

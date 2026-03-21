@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import apiClient from "services/httpClient";
 import { queryKeys } from "lib/reactQuery";
 import { UserProfile } from "types/api";
@@ -249,13 +250,13 @@ function PersonalizedPath({
         className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
       >
         <h2 className="mb-3 text-lg font-semibold">
-          ⚠️ {t("personalizedPath.errorTitle")}
+          <MonevoIcon name="warning" size={18} /> {t("personalizedPath.errorTitle")}
         </h2>
         <p className="mb-4 text-sm">{error}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="rounded-full bg-[color:var(--primary,#2563eb)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40 touch-manipulation sm:px-5 sm:py-2 sm:text-sm"
+          className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-5 sm:py-2 sm:text-sm"
         >
           {t("personalizedPath.tryAgain")}
         </button>
@@ -278,12 +279,6 @@ function PersonalizedPath({
 
   return (
     <div className="space-y-8">
-      <GlassCard padding="lg" className="text-center">
-        <p className="text-lg font-semibold text-[color:var(--muted-text,#6b7280)]">
-          {t("personalizedPath.title")}
-        </p>
-      </GlassCard>
-
       <div className="relative space-y-10">
         {personalizedCourses.map((course, index) => (
           <React.Fragment key={course.id}>
@@ -334,7 +329,7 @@ function PersonalizedPath({
                     title: course.title,
                   })}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
                   <div className="relative">
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
@@ -353,7 +348,7 @@ function PersonalizedPath({
                         })}
                       </span>
                     </div>
-                    <h4 className="mt-3 text-xl font-semibold text-[color:var(--accent,#111827)]">
+                    <h4 className="mt-3 text-xl font-semibold text-[color:var(--text-color,#111827)]">
                       {course.title}
                     </h4>
 
@@ -362,7 +357,7 @@ function PersonalizedPath({
                         <span className="text-[color:var(--muted-text,#6b7280)]">
                           {t("personalizedPath.progressLabel")}
                         </span>
-                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                        <span className="font-semibold text-[color:var(--text-color,#111827)]">
                           {t("personalizedPath.lessonCount", {
                             completed: course.progress ?? 0,
                             total: course.totalLessons ?? 0,
@@ -372,7 +367,7 @@ function PersonalizedPath({
 
                       <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                         <div
-                          className="h-full rounded-full bg-[color:var(--primary,#2563eb)] transition-[width]"
+                          className="h-full rounded-full bg-[color:var(--primary,#1d5330)] transition-[width]"
                           style={{
                             width: `${
                               course.totalLessons
@@ -399,11 +394,11 @@ function PersonalizedPath({
 
       <GlassCard padding="md" className="text-center">
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          🔁 {t("personalizedPath.basedOnOnboarding")}{" "}
+          {t("personalizedPath.basedOnOnboarding")}{" "}
           <button
             type="button"
             onClick={() => navigate("/onboarding")}
-            className="font-semibold text-[color:var(--accent,#2563eb)] transition hover:text-[color:var(--accent,#2563eb)]/80"
+            className="font-semibold text-[color:var(--primary,#1d5330)] underline decoration-[color:var(--primary,#1d5330)]/40 underline-offset-2 transition hover:text-[color:var(--primary,#1d5330)]/85 hover:decoration-[color:var(--primary,#1d5330)]/60"
           >
             {t("personalizedPath.updatePreferences")}
           </button>

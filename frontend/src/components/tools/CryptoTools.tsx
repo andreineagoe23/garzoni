@@ -89,7 +89,7 @@ const CryptoTools = () => {
   return (
     <section className="space-y-4 min-w-0 w-full">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)] sm:text-xl">
+        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)] sm:text-xl">
           {t("tools.crypto.title")}
         </h3>
         <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
@@ -116,7 +116,7 @@ const CryptoTools = () => {
               href="https://www.tradingview.com/"
               rel="noopener noreferrer"
               target="_blank"
-              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#2563eb)] bg-[color:var(--primary,#2563eb)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#2563eb)] hover:opacity-90"
+              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-90"
             >
               {t("tools.crypto.errors.openNewTab")}
             </a>
@@ -142,7 +142,7 @@ const CryptoTools = () => {
               href="https://www.tradingview.com/"
               rel="noopener noreferrer"
               target="_blank"
-              className="font-semibold text-[color:var(--accent,#2563eb)] hover:text-[color:var(--accent,#2563eb)]/80"
+              className="font-semibold text-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)]/80"
             >
               {t("tools.crypto.tradingViewLabel")}
             </a>

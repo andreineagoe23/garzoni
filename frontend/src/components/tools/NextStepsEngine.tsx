@@ -198,7 +198,7 @@ const NextStepsEngine = () => {
             <button
               type="button"
               onClick={() => setUseDemo((prev) => !prev)}
-              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--primary,#2563eb)]/40 hover:text-[color:var(--primary,#2563eb)]"
+              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
             >
               {useDemo ? "Use live activity" : "Use demo suggestions"}
             </button>
@@ -237,7 +237,7 @@ const NextStepsEngine = () => {
             }}
             className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md min-w-0 block"
           >
-            <p className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
               {item.label}
             </p>
             <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
@@ -250,7 +250,7 @@ const NextStepsEngine = () => {
                   : `Because ${item.because.charAt(0).toLowerCase() + item.because.slice(1)}`}
               </p>
             )}
-            <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#2563eb)]">
+            <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
               Open resource →
             </span>
           </a>

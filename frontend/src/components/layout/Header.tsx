@@ -57,13 +57,13 @@ function Header() {
         <div className="flex items-center gap-3">
           <Link
             to="/"
-            className="text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:text-[color:var(--primary,#1d5330)] hover:no-underline sm:text-lg"
+            className="text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:opacity-90 hover:no-underline sm:text-lg"
           >
             monevo
           </Link>
 
           {isInitialized && isAuthenticated && (
-            <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30 sm:px-3 sm:py-1 sm:text-[11px]">
+            <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 sm:px-3 sm:py-1 sm:text-[11px]">
               {t("header.premiumReady")}
             </span>
           )}
@@ -75,7 +75,7 @@ function Header() {
             type="button"
             onClick={handleDarkModeToggle}
             aria-label={t("header.toggleDarkMode")}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-[color:var(--text-color,#111827)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/45 sm:h-10 sm:w-10"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--border-color,rgba(0,0,0,0.2))] hover:text-[color:var(--text-color,#111827)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:h-10 sm:w-10"
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
           </button>

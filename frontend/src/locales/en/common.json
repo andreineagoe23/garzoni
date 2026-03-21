@@ -13,7 +13,8 @@
     "ariaToggleDarkMode": "Toggle dark mode",
     "ariaLogout": "Logout",
     "ariaGoToProfile": "Go to profile",
-    "ariaToggleMenu": "Toggle navigation menu"
+    "ariaToggleMenu": "Toggle navigation menu",
+    "ariaAccountMenu": "Open account menu"
   },
   "language": {
     "label": "Language",
@@ -74,6 +75,7 @@
       "overallProgress": "Overall Progress",
       "reviewsDue": "Reviews Due",
       "activeMissions": "Active Missions",
+      "streak": "Streak",
       "failedLoadReviews": "Failed to load reviews",
       "couldNotFetchReviews": "We couldn't fetch your review queue.",
       "failedLoadMissions": "Failed to load missions",
@@ -85,6 +87,8 @@
       "noWeakSkills": "No Weak Skills",
       "noWeakSkillsDesc": "Great job! You're doing well across all skills.",
       "areasToImprove": "Areas to Improve",
+      "quickPracticeTitle": "Practice Recommendation",
+      "quickPracticeSubtitle": "We'll suggest the best practice area for you right now.",
       "focusOnSkills": "Focus on these skills to boost your overall mastery",
       "lowMasteryIn": "Low mastery in {{skill}}",
       "practice": "Practice",
@@ -781,7 +785,7 @@
       "complete": "{{value}}% complete",
       "label": "Progress",
       "aria": "Mission progress: {{value}}%",
-      "completed": "Completed! 🎉",
+      "completed": "Completed!",
       "levelTarget": "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}."
     },
     "badge": {
@@ -805,8 +809,8 @@
       "title": "Progress at a glance",
       "remaining": "{{count}} mission{{plural}} left today",
       "xp": "{{earned}} XP earned · {{remaining}} XP still on the table",
-      "offline": "⚠️ Offline mode - missions will sync when you're back online",
-      "suggestedSavings": "💡 Suggested savings target: £{{amount}} (based on your {{level}} level)",
+      "offline": "Offline mode - missions will sync when you're back online",
+      "suggestedSavings": "Suggested savings target: £{{amount}} (based on your {{level}} level)",
       "streak": "Streak",
       "streakDays": "{{count}} days",
       "totalXp": "Total XP today"
@@ -1397,6 +1401,7 @@
     "noFinancialAdviceNotice": "No Financial Advice Notice",
     "about": "About",
     "subscriptions": "Subscriptions",
+    "contact": "Contact",
     "support": "Support",
     "dashboard": "Dashboard",
     "exercises": "Exercises",
@@ -1497,6 +1502,10 @@
     },
     "timedMode": "Timed Mode",
     "streak": "🔥 You've completed {{count}} exercises in a row - keep it up!",
+    "skillIntent": {
+      "applied": "Focused practice: {{skill}} (category: {{category}}).",
+      "notMapped": "Couldn't map {{skill}} to an exercise category yet, so we're showing all exercises."
+    },
     "hints": {
       "title": "Hints",
       "showNext": "Show next hint (-{{cost}} coins)",

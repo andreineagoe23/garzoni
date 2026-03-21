@@ -11,6 +11,7 @@ import apiClient from "services/httpClient";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
+import { MonevoIcon } from "components/ui/monevoIcons";
 
 const Chatbot = () => {
   const { t } = useTranslation();
@@ -678,7 +679,8 @@ const Chatbot = () => {
                 checked={isSpeechEnabled}
               />
               <span className="text-xs uppercase tracking-wide">
-                🔊 Speak answers
+                <MonevoIcon name="volume" size={14} className="mr-2 inline-block" />{" "}
+                Speak answers
               </span>
             </label>
 
@@ -756,7 +758,7 @@ const Chatbot = () => {
                   >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
-                        <span>⚙️</span>
+                        <MonevoIcon name="gear" size={18} />
                       </div>
                       <div className="space-y-3">
                         <p>{msg.text}</p>
@@ -770,7 +772,7 @@ const Chatbot = () => {
                   >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
-                        <span>🤖</span>
+                        <MonevoIcon name="robot" size={18} />
                       </div>
                       <div className="space-y-3">
                         <p>{msg.text}</p>
@@ -780,7 +782,15 @@ const Chatbot = () => {
                             className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
                             onClick={() => handleCourseClick(msg.link.path)}
                           >
-                            {msg.link.icon || "📚"} {msg.link.text}
+                            {msg.link.icon && (
+                              <MonevoIcon
+                                name={msg.link.icon}
+                                size={14}
+                                className="inline-block"
+                              />
+                            )}
+                            {!msg.link.icon && <MonevoIcon name="book" size={14} />}
+                            {msg.link.text}
                           </button>
                         )}
                         {msg.links && msg.links.length > 0 && (
@@ -796,7 +806,12 @@ const Chatbot = () => {
                                   className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
                                   onClick={() => handleCourseClick(link.path)}
                                 >
-                                  {link.icon || "📚"} {link.text}
+                                  <MonevoIcon
+                                    name={link.icon || "book"}
+                                    size={14}
+                                    className="inline-block"
+                                  />
+                                  {link.text}
                                 </button>
                               ))}
                             </div>
@@ -805,7 +820,7 @@ const Chatbot = () => {
                       </div>
                       {isSpeaking && (
                         <div className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                          🔊
+                          <MonevoIcon name="volume" size={14} />
                         </div>
                       )}
                     </div>
@@ -820,7 +835,7 @@ const Chatbot = () => {
                   className="text-sm text-[color:var(--muted-text,#6b7280)]"
                 >
                   <div className="flex items-center gap-2">
-                    <span>🤖</span>
+                    <MonevoIcon name="robot" size={16} />
                     <span>{t("chatbot.typing")}</span>
                   </div>
                 </GlassCard>
@@ -833,7 +848,7 @@ const Chatbot = () => {
                   className="text-sm text-[color:var(--text-color,#111827)]"
                 >
                   <div className="flex items-start gap-2">
-                    <span>🤖</span>
+                    <MonevoIcon name="robot" size={16} />
                     <div className="space-y-2">
                       <p className="text-[color:var(--muted-text,#6b7280)]">
                         {t("chatbot.tryAsking")}
@@ -864,7 +879,7 @@ const Chatbot = () => {
               onClick={startVoiceRecognition}
               aria-label={t("chatbot.voiceInputAria")}
             >
-              🎙
+              <MonevoIcon name="microphone" size={18} />
             </button>
             <input
               type="text"

@@ -137,10 +137,10 @@ const AllTopics = ({
       const el = document.getElementById(anchor);
       if (el) {
         el.scrollIntoView({ behavior: "smooth" });
-        el.classList.add("ring-2", "ring-[color:var(--accent,#2563eb)]");
+        el.classList.add("ring-2", "ring-[color:var(--primary,#1d5330)]");
         setActivePathId(anchor);
         setTimeout(
-          () => el.classList.remove("ring-2", "ring-[color:var(--accent,#2563eb)]"),
+          () => el.classList.remove("ring-2", "ring-[color:var(--primary,#1d5330)]"),
           2000
         );
       }
@@ -217,7 +217,7 @@ const AllTopics = ({
     return (
       <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
         <div className="flex items-center gap-3">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--accent,#2563eb)] border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
           {t("allTopics.loading")}
         </div>
       </div>
@@ -332,7 +332,7 @@ const AllTopics = ({
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                    <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
                       {pathDisplayTitle(path.title)}
                     </h3>
                     {path.description && (
@@ -381,7 +381,6 @@ const AllTopics = ({
                     <GlassButton
                       variant={activePathId === path.id ? "primary" : "success"}
                       onClick={() => handleTogglePath(path.id, false)}
-                      icon={activePathId === path.id ? "▼" : "▶"}
                       aria-expanded={activePathId === path.id}
                       aria-controls={`path-${path.id}-courses`}
                     >
@@ -393,7 +392,6 @@ const AllTopics = ({
                   {isLocked && (
                     <GlassButton
                       variant="primary"
-                      icon="⚡"
                       onClick={() => {
                         trackEvent("upgrade_click", {
                           source: "path_lock",

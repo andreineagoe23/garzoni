@@ -67,7 +67,7 @@ function UserProgressBox({ progressData }) {
       className="relative flex w-full flex-col overflow-hidden"
       style={{ height: "100%", maxHeight: "100%", minHeight: 0 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-transparent to-transparent pointer-events-none" />
       <div className="relative shrink-0 space-y-4 px-5 py-4">
         <div className="flex items-center justify-between">
           <h5 className="flex items-center gap-2 text-lg font-semibold text-[color:var(--text-color,#111827)]">
@@ -84,8 +84,8 @@ function UserProgressBox({ progressData }) {
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 text-center">
-            <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-lg hover:shadow-[color:var(--primary,#1d5330)]/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--accent,#ffd700)]/40 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
                 <span className="block text-2xl font-bold text-[color:var(--text-color,#111827)]">
                   {userProfile?.points}
@@ -96,8 +96,8 @@ function UserProgressBox({ progressData }) {
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-lg hover:shadow-[color:var(--primary,#1d5330)]/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--accent,#ffd700)]/40 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
                 <span className="block text-2xl font-bold text-[color:var(--text-color,#111827)]">
                   {userProfile?.streak}
@@ -139,7 +139,7 @@ function UserProgressBox({ progressData }) {
               <span className="flex items-center gap-2 font-medium text-[color:var(--muted-text,#6b7280)]">
                 <span>{t("widgets.userProgress.overallCompletion")}</span>
               </span>
-              <span className="font-bold text-[color:var(--accent,#111827)]">
+              <span className="font-bold text-[color:var(--text-color,#111827)]">
                 {formatNumber(overallProgress, locale, {
                   minimumFractionDigits: 1,
                   maximumFractionDigits: 1,
@@ -149,7 +149,7 @@ function UserProgressBox({ progressData }) {
             </div>
             <div className="relative h-3 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition-[width] duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition-[width] duration-500"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
@@ -157,14 +157,14 @@ function UserProgressBox({ progressData }) {
 
           {paths.length > 0 && (
             <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--accent,#111827)]">
+              <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
                 <span>{t("widgets.userProgress.pathProgress")}</span>
               </h4>
               <div className="space-y-4">
                 {paths.map((path) => (
                   <div
                     key={path.course}
-                    className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 backdrop-blur-sm transition-all hover:border-[color:var(--primary,#1d5330)]/40 hover:shadow-md"
+                    className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 backdrop-blur-sm transition-all hover:border-[color:var(--accent,#ffd700)]/40 hover:shadow-md"
                     style={{
                       backdropFilter: "blur(8px)",
                       WebkitBackdropFilter: "blur(8px)",
@@ -184,7 +184,7 @@ function UserProgressBox({ progressData }) {
                     </div>
                     <div className="relative h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-md shadow-[color:var(--primary,#1d5330)]/20 transition-[width] duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 shadow-md shadow-[color:var(--accent,#ffd700)]/20 transition-[width] duration-500"
                         style={{ width: `${path.percent_complete}%` }}
                       />
                     </div>

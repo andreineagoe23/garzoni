@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPath";
 import { GlassButton, GlassCard } from "components/ui";
+import { MonevoIcon } from "components/ui/monevoIcons";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import {
   fetchReviewQueue,
@@ -27,7 +28,6 @@ import { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
 import { usePreferences } from "hooks/usePreferences";
 import DashboardHeader from "./DashboardHeader";
-import DailyGoalCard from "./DailyGoalCard";
 import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
@@ -38,6 +38,7 @@ import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useDashboardSummary } from "hooks/useDashboardSummary";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { useTranslation } from "react-i18next";
+import WeakSkillsQuickCard from "./WeakSkillsQuickCard";
 
 type WeakSkill = {
   skill: string;
@@ -142,7 +143,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             .filter(Boolean)
             .join(" • ");
           toast.success(message, {
-            icon: "🎉",
+            icon: <MonevoIcon name="sparkles" size={18} />,
             duration: 4000,
           });
         }, 500);
@@ -487,7 +488,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             });
             navigate("/exercises");
           },
-          icon: primaryCTASignal.icon,
+          iconName: primaryCTASignal.iconName,
           priority: "high",
           reason: t("dashboard.cta.reviewsDue", {
             count: primaryCTASignal.reasonCount || 0,
@@ -510,7 +511,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               navigate("/all-topics");
             }
           },
-          icon: primaryCTASignal.icon,
+          iconName: primaryCTASignal.iconName,
           priority: "medium",
           reason: t("dashboard.cta.continueWhereLeftOff"),
         };
@@ -525,7 +526,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             });
             navigate("/missions");
           },
-          icon: primaryCTASignal.icon,
+          iconName: primaryCTASignal.iconName,
           priority: "medium",
           reason: t("dashboard.cta.missionsAvailable", {
             count: primaryCTASignal.reasonCount || 0,
@@ -538,7 +539,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             trackEvent("cta_click", { reason: "continue_learning" });
             navigate("/all-topics");
           },
-          icon: primaryCTASignal.icon,
+          iconName: primaryCTASignal.iconName,
           priority: "low",
           reason: t("dashboard.cta.continueLearningReason"),
         };
@@ -567,7 +568,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         skill: skill.skill,
         proficiency: skill.proficiency,
       });
-      navigate("/exercises");
+      navigate("/exercises", {
+        state: {
+          from: "dashboard",
+          targetSkill: skill.skill,
+          reason: "weak_skill_click",
+        },
+      });
     },
     [navigate, trackEvent]
   );
@@ -626,36 +633,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             navigate("/all-topics");
           });
         }}
-        icon="📚"
         className="w-full sm:w-auto"
       >
         {t("dashboard.nav.allTopics")}
       </GlassButton>
 
-      <button
-        type="button"
+      <GlassButton
+        variant={activePage === "personalized-path" ? "active" : "ghost"}
         onClick={handlePersonalizedPathClick}
-        aria-disabled={isProfileLoading}
-        className={`inline-flex w-full items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 focus:outline-none focus:ring-2 backdrop-blur-sm touch-manipulation relative z-10 px-4 py-2 text-sm sm:w-auto ${
-          activePage === "personalized-path"
-            ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:ring-[color:var(--primary,#1d5330)]/40"
-            : "border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/60 hover:bg-[color:var(--primary,#1d5330)]/10 hover:text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/40"
-        } ${
-          isProfileFetching ? "opacity-80 cursor-progress" : "cursor-pointer"
-        }`}
-        style={{
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
+        disabled={isProfileLoading || isProfileFetching}
+        className="w-full sm:w-auto"
       >
-        <span>🎯</span>
         {t("dashboard.nav.personalizedPath")}
         {!isQuestionnaireCompleted && (
           <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
             {t("dashboard.nav.completeOnboarding")}
           </span>
         )}
-      </button>
+      </GlassButton>
     </>
   );
 
@@ -702,7 +697,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-xl sm:text-2xl" aria-hidden="true">
-                          📖
+                        <MonevoIcon name="bookOpen" size={28} />
                         </span>
                         <div>
                           <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
@@ -735,7 +730,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-xl sm:text-2xl" aria-hidden="true">
-                          📖
+                        <MonevoIcon name="bookOpen" size={28} />
                         </span>
                         <div>
                           <p className="text-sm sm:text-base font-semibold text-[color:var(--text-color,#111827)]">
@@ -769,22 +764,19 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   </div>
                 )}
 
-              <DailyGoalCard
-                dailyGoalProgress={dailyGoalProgress}
-                dailyGoalCurrentXP={dailyGoalCurrentXP}
-                dailyGoalTargetXP={dailyGoalTargetXP}
+              <WeakSkillsQuickCard
                 locale={locale}
-                prefersReducedMotion={prefersReducedMotion.current}
-                noMarginTop
+                topSkill={weakSkillItems[0] ?? null}
+                onPracticeSkill={handleWeakSkillPractice}
+                onExploreExercises={() => navigate("/exercises")}
               />
               </div>
             ) : (
-              <DailyGoalCard
-                dailyGoalProgress={dailyGoalProgress}
-                dailyGoalCurrentXP={dailyGoalCurrentXP}
-                dailyGoalTargetXP={dailyGoalTargetXP}
+              <WeakSkillsQuickCard
                 locale={locale}
-                prefersReducedMotion={prefersReducedMotion.current}
+                topSkill={weakSkillItems[0] ?? null}
+                onPracticeSkill={handleWeakSkillPractice}
+                onExploreExercises={() => navigate("/exercises")}
               />
             )}
 
@@ -809,6 +801,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               overallProgress={overallProgress}
               reviewsDue={reviewsDue}
               activeMissionsCount={activeMissions.length}
+              dailyGoalProgress={dailyGoalProgress}
+              dailyGoalTargetXP={dailyGoalTargetXP}
+              streakCount={(profile as UserProfile)?.streak ?? 0}
               reviewError={reviewError}
               missionsError={missionsError}
               refetchReview={refetchReview}
@@ -833,9 +828,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 padding="md"
                 className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:ml-auto">
+                <div
+                  className="hidden min-h-[1px] sm:block sm:flex-1"
+                  aria-hidden
+                />
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
                   {navigationButtons}
                 </div>
+                <div className="hidden sm:block sm:flex-1" aria-hidden />
               </GlassCard>
               <PersonalizedPath onCourseClick={handleCourseClick} />
             </div>
