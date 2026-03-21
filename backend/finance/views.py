@@ -1728,6 +1728,16 @@ class FunnelEventIngestView(APIView):
         "sort_change",
         "filter_change",
         "improve_recommendation_click",
+        "quick_card_exercises_click",
+        "exercise_skill_intent_received",
+        "exercise_skill_intent_mapped",
+        "exercise_skill_intent_unmapped",
+        "exercise_skill_intent_cleared",
+        "exercise_skill_intent_manual_category",
+        "exercise_skill_intent_engaged",
+        "exercise_skill_intent_mapped_zero",
+        "exercises_page_view",
+        "exercise_started",
         "upgrade_click",
         # Onboarding questionnaire events
         "questionnaire_step_view",
@@ -1750,7 +1760,15 @@ class FunnelEventIngestView(APIView):
         metadata = request.data.get("metadata", {}) or {}
 
         if event_type not in self.ALLOWED_EVENT_TYPES:
-            return Response({"error": "Unsupported event type"}, status=400)
+            return Response(
+                {
+                    "error": "Unsupported event type",
+                    "event_type": event_type,
+                    "hint": "Restart or redeploy the API so ALLOWED_EVENT_TYPES includes this event, "
+                    "or align frontend ANALYTICS_EVENTS with backend.",
+                },
+                status=400,
+            )
 
         record_funnel_event(
             event_type,

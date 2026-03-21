@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
@@ -15,6 +15,10 @@ import { MonevoIcon } from "components/ui/monevoIcons";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
+import { useAnalytics } from "hooks/useAnalytics";
+import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
+import ExerciseIntentBanner from "./ExerciseIntentBanner";
+import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
 
 const ExercisePage = () => {
   const { t } = useTranslation();
@@ -43,6 +47,7 @@ const ExercisePage = () => {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { trackEvent } = useAnalytics();
   const [streak, setStreak] = useState(0);
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState({
@@ -75,7 +80,8 @@ const ExercisePage = () => {
   const [firstTryCorrect, setFirstTryCorrect] = useState(0);
   const [streakMultiplier, setStreakMultiplier] = useState(1);
   const [inlineHint, setInlineHint] = useState("");
-  const [skillIntentMessage, setSkillIntentMessage] = useState("");
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [recentSkillInsight, setRecentSkillInsight] = useState("");
   const inlineHintTimeoutRef = useRef(null);
@@ -83,7 +89,51 @@ const ExercisePage = () => {
   const isDevelopment = process.env.NODE_ENV === "development";
   const mascotTimeoutRef = useRef(null);
   const mascotInteractionCountRef = useRef(0);
-  const appliedSkillIntentRef = useRef<string | null>(null);
+  const exercisesBootRef = useRef(false);
+  const exercisesFetchGenerationRef = useRef(0);
+  const exercisesAbortRef = useRef<AbortController | null>(null);
+  const filtersRef = useRef(filters);
+  const [categoriesResolved, setCategoriesResolved] = useState(false);
+  filtersRef.current = filters;
+
+  const onIntentMatchedApplyLessonReset = useCallback(() => {
+    setCurrentExerciseIndex(0);
+    setProgress([]);
+    setShowCorrection(false);
+    setUserAnswer(null);
+    setSubmissionFeedback("");
+    setExplanation("");
+    setInlineHint("");
+    setSavedAnswers({});
+    setSessionCompleted(false);
+  }, []);
+
+  const {
+    targetSkillIntent,
+    intentReason,
+    intentFromDashboard,
+    intentSource,
+    skillFetchReady,
+    intentResolution,
+    skillIntentBanner,
+    skillBannerDismissed,
+    setSkillBannerDismissed,
+    skillBannerSubtitle,
+    dismissSkillRecommendation,
+    handleCategoryFilterChange,
+    resetIntentUiForClearFilter,
+  } = useExerciseSkillIntent({
+    categories,
+    categoriesResolved,
+    setFilters,
+    filtersRef,
+    navigate,
+    location,
+    t,
+    trackEvent,
+    onIntentMatchedApplyLessonReset,
+  });
+
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
@@ -110,16 +160,66 @@ const ExercisePage = () => {
     () => exercises[currentExerciseIndex] || null,
     [exercises, currentExerciseIndex]
   );
-  const targetSkillIntent = useMemo(() => {
-    const stateSkill =
-      (
-        location.state as
-          | { targetSkill?: string; from?: string; reason?: string }
-          | undefined
-      )?.targetSkill || "";
-    const querySkill = new URLSearchParams(location.search).get("skill") || "";
-    return (stateSkill || querySkill).trim();
-  }, [location.search, location.state]);
+
+  const skillIntentReceivedKeyRef = useRef<string | null>(null);
+  const skillIntentOutcomeKeyRef = useRef<string | null>(null);
+  const skillIntentEngagedRef = useRef(false);
+  const cameFromDashboardSkillRef = useRef(false);
+  const exercisesPageViewSentRef = useRef<string | null>(null);
+  const exerciseStartedLoggedRef = useRef(false);
+
+  const dashboardEntrySurface = useMemo(() => {
+    const hasSkillQuery = Boolean(
+      new URLSearchParams(location.search).get("skill")?.trim()
+    );
+    if (intentReason === "quick_card_exercises") return "quick_card";
+    if (intentReason === "weak_skill_practice") return "weak_skill_practice";
+    if (intentReason === "weak_skill_click") return "weak_skill_card";
+    if (hasSkillQuery) return "skill_query_only";
+    return "organic";
+  }, [intentReason, location.search]);
+
+  useEffect(() => {
+    if (targetSkillIntent.trim()) {
+      cameFromDashboardSkillRef.current = true;
+    }
+  }, [targetSkillIntent]);
+
+  useEffect(() => {
+    skillIntentEngagedRef.current = false;
+  }, [targetSkillIntent]);
+
+  useEffect(() => {
+    exerciseStartedLoggedRef.current = false;
+  }, [location.key]);
+
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated) return;
+    const id = `${location.key}|${location.pathname}|${location.search}`;
+    if (exercisesPageViewSentRef.current === id) return;
+    exercisesPageViewSentRef.current = id;
+    const skillInQuery =
+      new URLSearchParams(location.search).get("skill") || null;
+    trackEvent("exercises_page_view", {
+      skill_in_query: skillInQuery,
+      intent_source: intentSource,
+      intent_reason: intentReason ?? null,
+      from_dashboard: intentFromDashboard,
+      dashboard_entry_surface: dashboardEntrySurface,
+    });
+  }, [
+    isInitialized,
+    isAuthenticated,
+    location.key,
+    location.pathname,
+    location.search,
+    intentSource,
+    intentReason,
+    intentFromDashboard,
+    dashboardEntrySurface,
+    trackEvent,
+  ]);
+
   const hintFeature = entitlements?.features?.hints;
   const hintEnabled = hintFeature?.enabled ?? true;
   const hintRemaining = hintFeature?.remaining_today;
@@ -129,66 +229,127 @@ const ExercisePage = () => {
   const animationsEnabled = Boolean(settings?.animations_enabled ?? true);
   const hintCoinCost = 5;
 
-  const resolveCategoryFromSkill = useCallback(
-    (skill: string, availableCategories: string[]) => {
-      const normalizedSkill = skill.trim().toLowerCase();
-      if (!normalizedSkill) return "";
-      const exact = availableCategories.find(
-        (category) => category.trim().toLowerCase() === normalizedSkill
-      );
-      if (exact) return exact;
+  const validateExerciseList = useCallback((data: unknown[]) => {
+    return data.filter(
+      (exercise: {
+        question?: unknown;
+        type?: string;
+        exercise_data?: Record<string, unknown>;
+      }) =>
+        exercise.question &&
+        exercise.type &&
+        exercise.exercise_data &&
+        ((exercise.type === "multiple-choice" &&
+          Array.isArray(exercise.exercise_data.options)) ||
+          (exercise.type === "numeric" &&
+            typeof exercise.exercise_data?.expected_value !== "undefined") ||
+          (exercise.type === "drag-and-drop" &&
+            Array.isArray(exercise.exercise_data.items)) ||
+          (exercise.type === "budget-allocation" &&
+            Array.isArray(exercise.exercise_data.categories)) ||
+          (exercise.type === "fill-in-table" &&
+            (() => {
+              const table = exercise.exercise_data?.table as
+                | { rows?: unknown; columns?: unknown }
+                | undefined;
+              return (
+                Array.isArray(table?.rows) && Array.isArray(table?.columns)
+              );
+            })()) ||
+          (exercise.type === "scenario-simulation" &&
+            Array.isArray(exercise.exercise_data?.choices)))
+    );
+  }, []);
 
-      const partial = availableCategories.find((category) => {
-        const normalizedCategory = category.trim().toLowerCase();
-        return (
-          normalizedCategory.includes(normalizedSkill) ||
-          normalizedSkill.includes(normalizedCategory)
-        );
-      });
-      return partial || "";
+  type FilterSnapshot = { type: string; category: string; difficulty: string };
+
+  const isAbortLike = (err: unknown) => {
+    if (!err || typeof err !== "object") return false;
+    const e = err as { code?: string; name?: string };
+    return (
+      e.code === "ERR_CANCELED" ||
+      e.name === "CanceledError" ||
+      e.name === "AbortError"
+    );
+  };
+
+  const fetchExercisesWithSnapshot = useCallback(
+    async (
+      snapshot: FilterSnapshot,
+      options: {
+        resetLessonSession?: boolean;
+        fullPageLoading?: boolean;
+      } = {}
+    ) => {
+      const { resetLessonSession = false, fullPageLoading = false } = options;
+      exercisesAbortRef.current?.abort();
+      const ac = new AbortController();
+      exercisesAbortRef.current = ac;
+      const gen = ++exercisesFetchGenerationRef.current;
+
+      try {
+        if (fullPageLoading) {
+          setLoading(true);
+        } else {
+          setListRefreshing(true);
+        }
+        setError("");
+        const params = new URLSearchParams();
+        if (snapshot.type) params.append("type", snapshot.type);
+        if (snapshot.category) params.append("category", snapshot.category);
+        if (snapshot.difficulty) params.append("difficulty", snapshot.difficulty);
+
+        const response = await apiClient.get("/exercises/", {
+          params,
+          signal: ac.signal,
+        });
+        if (gen !== exercisesFetchGenerationRef.current) return;
+
+        const validatedExercises = validateExerciseList(response.data);
+
+        setLessonExercises(validatedExercises);
+        if (mode === "lesson") {
+          setExercises(validatedExercises);
+          if (resetLessonSession) {
+            setCurrentExerciseIndex(0);
+            setProgress([]);
+            setShowCorrection(false);
+            setUserAnswer(null);
+            setSubmissionFeedback("");
+            setExplanation("");
+            setInlineHint("");
+            setSavedAnswers({});
+            setSessionCompleted(false);
+          }
+        }
+        if (gen === exercisesFetchGenerationRef.current) {
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isAbortLike(err)) {
+          return;
+        }
+        if (gen !== exercisesFetchGenerationRef.current) return;
+        setError(t("exercises.errors.loadFailed"));
+        setLoading(false);
+      } finally {
+        if (gen === exercisesFetchGenerationRef.current) {
+          setListRefreshing(false);
+        }
+      }
     },
-    []
+    [mode, t, validateExerciseList]
   );
 
   const fetchExercises = useCallback(async () => {
-    try {
-      const params = new URLSearchParams();
-      if (filters.type) params.append("type", filters.type);
-      if (filters.category) params.append("category", filters.category);
-      if (filters.difficulty) params.append("difficulty", filters.difficulty);
-
-      const response = await apiClient.get("/exercises/", { params });
-
-      const validatedExercises = response.data.filter(
-        (exercise) =>
-          exercise.question &&
-          exercise.type &&
-          exercise.exercise_data &&
-          ((exercise.type === "multiple-choice" &&
-            Array.isArray(exercise.exercise_data.options)) ||
-            (exercise.type === "numeric" &&
-              typeof exercise.exercise_data?.expected_value !== "undefined") ||
-            (exercise.type === "drag-and-drop" &&
-              Array.isArray(exercise.exercise_data.items)) ||
-            (exercise.type === "budget-allocation" &&
-              Array.isArray(exercise.exercise_data.categories)) ||
-            (exercise.type === "fill-in-table" &&
-              Array.isArray(exercise.exercise_data?.table?.rows) &&
-              Array.isArray(exercise.exercise_data?.table?.columns)) ||
-            (exercise.type === "scenario-simulation" &&
-              Array.isArray(exercise.exercise_data?.choices)))
-      );
-
-      setLessonExercises(validatedExercises);
-      if (mode === "lesson") {
-        setExercises(validatedExercises);
-      }
-      setLoading(false);
-    } catch (err) {
-      setError(t("exercises.errors.loadFailed"));
-      setLoading(false);
+    const firstEver = !exercisesBootRef.current;
+    if (firstEver) {
+      exercisesBootRef.current = true;
     }
-  }, [filters, getAccessToken, mode, t]);
+    await fetchExercisesWithSnapshot(filters, {
+      fullPageLoading: firstEver,
+    });
+  }, [filters, fetchExercisesWithSnapshot]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -196,8 +357,10 @@ const ExercisePage = () => {
       setCategories(response.data);
     } catch (err) {
       logError("Failed to load categories:", err);
+    } finally {
+      setCategoriesResolved(true);
     }
-  }, [getAccessToken, logError]);
+  }, [logError]);
 
   const fetchReviewQueue = useCallback(async () => {
     try {
@@ -278,6 +441,13 @@ const ExercisePage = () => {
   ]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      exercisesBootRef.current = false;
+      setCategoriesResolved(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (!isInitialized) return;
     if (!isAuthenticated) {
       navigate("/login");
@@ -286,45 +456,117 @@ const ExercisePage = () => {
 
     fetchCategories();
     fetchReviewQueue();
-    fetchExercises();
   }, [
     isInitialized,
     isAuthenticated,
-    fetchExercises,
     fetchCategories,
     fetchReviewQueue,
     navigate,
   ]);
 
   useEffect(() => {
-    if (!targetSkillIntent || categories.length === 0) return;
-    if (appliedSkillIntentRef.current === targetSkillIntent) return;
+    if (!isInitialized || !isAuthenticated) return;
+    if (!skillFetchReady) return;
+    void fetchExercises();
+  }, [isInitialized, isAuthenticated, fetchExercises, skillFetchReady]);
 
-    const matchedCategory = resolveCategoryFromSkill(
-      targetSkillIntent,
-      categories
-    );
+  useEffect(() => {
+    return () => {
+      exercisesFetchGenerationRef.current += 1;
+      exercisesAbortRef.current?.abort();
+    };
+  }, []);
 
-    if (matchedCategory) {
-      setFilters((prev) =>
-        prev.category === matchedCategory
-          ? prev
-          : { ...prev, category: matchedCategory }
-      );
-      setSkillIntentMessage(
-        t("exercises.skillIntent.applied", {
-          skill: targetSkillIntent,
-          category: matchedCategory,
-        })
-      );
+  useEffect(() => {
+    if (!targetSkillIntent || !skillFetchReady) return;
+    const id = `${location.key}|recv|${targetSkillIntent}`;
+    if (skillIntentReceivedKeyRef.current === id) return;
+    skillIntentReceivedKeyRef.current = id;
+    trackEvent("exercise_skill_intent_received", {
+      skill: targetSkillIntent,
+      source: intentSource,
+      reason: intentReason ?? null,
+      from_dashboard: intentFromDashboard,
+    });
+  }, [
+    targetSkillIntent,
+    skillFetchReady,
+    intentSource,
+    intentReason,
+    intentFromDashboard,
+    location.key,
+    trackEvent,
+  ]);
+
+  const intentOutcomeStatus = intentResolution.status;
+  const intentOutcomeCategory =
+    intentResolution.status === "mapped" ? intentResolution.category : "";
+
+  useEffect(() => {
+    if (!skillFetchReady || loading || listRefreshing) return;
+    if (!targetSkillIntent.trim()) return;
+    if (intentOutcomeStatus === "idle") return;
+    const id = `${location.key}|out|${targetSkillIntent}|${intentOutcomeStatus}|${intentOutcomeCategory}|${exercises.length}`;
+    if (skillIntentOutcomeKeyRef.current === id) return;
+    skillIntentOutcomeKeyRef.current = id;
+    if (intentOutcomeStatus === "unmapped") {
+      trackEvent("exercise_skill_intent_unmapped", {
+        skill: targetSkillIntent,
+        result_count: exercises.length,
+      });
     } else {
-      setSkillIntentMessage(
-        t("exercises.skillIntent.notMapped", { skill: targetSkillIntent })
-      );
+      trackEvent("exercise_skill_intent_mapped", {
+        skill: targetSkillIntent,
+        category: intentOutcomeCategory,
+        result_count: exercises.length,
+        mapped_zero_results: exercises.length === 0,
+      });
+      if (exercises.length === 0) {
+        trackEvent("exercise_skill_intent_mapped_zero", {
+          skill: targetSkillIntent,
+          category: intentOutcomeCategory,
+        });
+      }
     }
+  }, [
+    skillFetchReady,
+    loading,
+    listRefreshing,
+    targetSkillIntent,
+    intentOutcomeStatus,
+    intentOutcomeCategory,
+    exercises.length,
+    location.key,
+    trackEvent,
+  ]);
 
-    appliedSkillIntentRef.current = targetSkillIntent;
-  }, [categories, resolveCategoryFromSkill, t, targetSkillIntent]);
+  const clearSkillFocus = useCallback(() => {
+    if (
+      targetSkillIntent ||
+      new URLSearchParams(location.search).get("skill")
+    ) {
+      trackEvent("exercise_skill_intent_cleared", { action: "clear_filter" });
+    }
+    resetIntentUiForClearFilter();
+    const next = { ...filtersRef.current, category: "" };
+    setFilters(next);
+    navigate({ pathname: "/exercises" }, { replace: true, state: {} });
+    setCurrentExerciseIndex(0);
+    setProgress([]);
+    setShowCorrection(false);
+    setUserAnswer(null);
+    setSubmissionFeedback("");
+    setExplanation("");
+    setInlineHint("");
+    setSavedAnswers({});
+    setSessionCompleted(false);
+  }, [
+    navigate,
+    targetSkillIntent,
+    location.search,
+    trackEvent,
+    resetIntentUiForClearFilter,
+  ]);
 
   const initializeAnswer = (exercise) => {
     if (!exercise) return null;
@@ -462,6 +704,16 @@ const ExercisePage = () => {
         return;
       }
 
+      if (!exerciseStartedLoggedRef.current) {
+        exerciseStartedLoggedRef.current = true;
+        trackEvent("exercise_started", {
+          exercise_id: currentExercise.id,
+          exercise_type: currentExercise.type,
+          category: currentExercise.category ?? null,
+          from_dashboard_skill_flow: cameFromDashboardSkillRef.current,
+        });
+      }
+
       const previousProgress = progress[currentExerciseIndex] || {};
       const wasFreshAttempt = !previousProgress.attempts;
 
@@ -484,6 +736,15 @@ const ExercisePage = () => {
       };
 
       setProgress(updated);
+      if (
+        cameFromDashboardSkillRef.current &&
+        !skillIntentEngagedRef.current
+      ) {
+        skillIntentEngagedRef.current = true;
+        trackEvent("exercise_skill_intent_engaged", {
+          exercise_id: currentExercise.id,
+        });
+      }
       setExplanation(response.data.explanation || "");
       setSubmissionFeedback(response.data.feedback || "");
       playFeedbackChime({
@@ -782,10 +1043,6 @@ const ExercisePage = () => {
 
     const hasResult = Boolean(showCorrection && progress[currentExerciseIndex]);
     const isAnswerCorrect = Boolean(progress[currentExerciseIndex]?.correct);
-    const learnMoreUrl =
-      exercise.exercise_data?.learn_more_url ||
-      exercise.exercise_data?.learn_more_link ||
-      "";
 
     switch (exercise.type) {
       case "multiple-choice":
@@ -1174,12 +1431,17 @@ const ExercisePage = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const applyingSkillFocus =
+    Boolean(targetSkillIntent.trim()) && !skillFetchReady && !error;
+
   if (loading) {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
         <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
-          {t("exercises.loading")}
+          {applyingSkillFocus
+            ? t("exercises.skillIntent.applyingFocus")
+            : t("exercises.loading")}
         </div>
       </div>
     );
@@ -1297,13 +1559,54 @@ const ExercisePage = () => {
         )}
 
         <div className="flex flex-col gap-6 lg:flex-row">
-          <GlassCard padding="lg" className="w-full lg:flex-1">
-            {skillIntentMessage && (
-              <div className="mb-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)]">
-                {skillIntentMessage}
+          <GlassCard padding="lg" className="relative w-full lg:flex-1">
+            {listRefreshing && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-[color:var(--card-bg,#ffffff)]/75 backdrop-blur-sm"
+                aria-busy="true"
+                aria-live="polite"
+              >
+                <div className="flex flex-col items-center gap-2 px-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
+                  {t("exercises.refreshing")}
+                </div>
               </div>
             )}
-            <div className="grid gap-4 border-b border-white/20 pb-6 lg:grid-cols-3">
+            {skillIntentBanner ? (
+              <ExerciseIntentBanner
+                model={skillIntentBanner}
+                contextSubtitle={
+                  intentFromDashboard ? skillBannerSubtitle : undefined
+                }
+                dismissed={skillBannerDismissed}
+                showClearFilter={
+                  skillIntentBanner.kind === "applied" &&
+                  Boolean(filters.category)
+                }
+                onClearFilter={clearSkillFocus}
+                onDismissRecommendation={dismissSkillRecommendation}
+                onChangeCategory={() => setFiltersExpanded(true)}
+              />
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setFiltersExpanded((open) => !open)}
+              className="mb-3 flex w-full items-center justify-between rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-left text-sm font-semibold text-[color:var(--text-color,#111827)] lg:hidden"
+              aria-expanded={filtersExpanded}
+            >
+              {filtersExpanded
+                ? t("exercises.filters.toggleHide")
+                : t("exercises.filters.toggleShow")}
+              <span
+                className={`text-[color:var(--muted-text,#6b7280)] transition-transform ${filtersExpanded ? "rotate-180" : ""}`}
+                aria-hidden
+              >
+                ▼
+              </span>
+            </button>
+            <div
+              className={`grid gap-4 border-b border-white/20 pb-6 lg:grid-cols-3 ${filtersExpanded ? "" : "max-lg:hidden"}`}
+            >
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                   {t("exercises.filters.type")}
@@ -1347,10 +1650,7 @@ const ExercisePage = () => {
                 <select
                   value={filters.category}
                   onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      category: event.target.value,
-                    }))
+                    handleCategoryFilterChange(event.target.value)
                   }
                   className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
@@ -1395,51 +1695,81 @@ const ExercisePage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-b border-white/20 py-6">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-                  {t("exercises.progress.label", {
-                    current: currentExerciseIndex + 1,
-                    total: exercises.length,
-                  })}
-                </p>
-                <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                  <div
-                    className="h-2 rounded-full bg-[color:var(--primary,#1d5330)] transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              </div>
+            {mode === "lesson" && exercises.length === 0 && !listRefreshing ? (
+              intentResolution.status === "mapped" &&
+              filters.category === intentResolution.category ? (
+                <ExerciseIntentLessonEmpty
+                  variant="mapped_zero"
+                  category={intentResolution.category}
+                  onClearFilter={clearSkillFocus}
+                  onOpenFilters={() => setFiltersExpanded(true)}
+                />
+              ) : intentResolution.status === "unmapped" ? (
+                <ExerciseIntentLessonEmpty
+                  variant="unmapped"
+                  skill={intentResolution.skill}
+                  onViewAllExercises={clearSkillFocus}
+                  onOpenFilters={() => setFiltersExpanded(true)}
+                />
+              ) : (
+                <ExerciseIntentLessonEmpty
+                  variant="generic_filtered"
+                  onClearFilter={
+                    filters.category ? clearSkillFocus : undefined
+                  }
+                />
+              )
+            ) : (
+              <>
+                <div className="flex flex-col gap-4 border-b border-white/20 py-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+                      {t("exercises.progress.label", {
+                        current: currentExerciseIndex + 1,
+                        total: Math.max(exercises.length, 1),
+                      })}
+                    </p>
+                    <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                      <div
+                        className="h-2 rounded-full bg-[color:var(--primary,#1d5330)] transition-all"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
 
-              <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
-                <span>{t("exercises.timedMode")}</span>
-                <div className="relative inline-flex h-6 w-11 items-center">
-                  <input
-                    type="checkbox"
-                    checked={isTimedMode}
-                    onChange={(event) => setIsTimedMode(event.target.checked)}
-                    className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  />
-                  <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[color:var(--accent,#ffd700)]" />
-                  <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
+                  <label className="flex shrink-0 items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <span>{t("exercises.timedMode")}</span>
+                    <div className="relative inline-flex h-6 w-11 items-center">
+                      <input
+                        type="checkbox"
+                        checked={isTimedMode}
+                        onChange={(event) =>
+                          setIsTimedMode(event.target.checked)
+                        }
+                        className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      />
+                      <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[color:var(--accent,#ffd700)]" />
+                      <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
+                    </div>
+                    {isTimedMode && (
+                      <span className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
+                        {formatTime(timeRemaining)}
+                      </span>
+                    )}
+                  </label>
                 </div>
-                {isTimedMode && (
-                  <span className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
-                    {formatTime(timeRemaining)}
-                  </span>
+
+                {streak > 0 && (
+                  <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
+                    {t("exercises.streak", {
+                      count: streak,
+                    })}
+                  </div>
                 )}
-              </label>
-            </div>
 
-            {streak > 0 && (
-              <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
-                {t("exercises.streak", {
-                  count: streak,
-                })}
-              </div>
+                <div className="pt-6">{renderExercise()}</div>
+              </>
             )}
-
-            <div className="pt-6">{renderExercise()}</div>
 
             {inlineHint && (
               <div

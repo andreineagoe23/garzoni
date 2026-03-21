@@ -226,7 +226,7 @@ function Navbar() {
           className="relative z-[1201] grid min-h-[56px] grid-cols-3 items-center gap-2 px-2 py-2 sm:min-h-[72px] sm:gap-4 sm:px-3 sm:py-3 md:gap-6 md:px-4"
           style={{ pointerEvents: "auto" }}
         >
-          <div className="flex items-center justify-start gap-2 sm:gap-3">
+          <div className="flex max-md:pl-2 items-center justify-start gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
               <NavLink
                 to="/all-topics"
@@ -316,7 +316,7 @@ function Navbar() {
           </div>
 
           {/* Right: utility icons on md+, burger only on mobile */}
-          <div className="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
+          <div className="flex max-md:pr-2 items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
             <div
               className="relative z-10 hidden md:block"
               ref={profileMenuRef}

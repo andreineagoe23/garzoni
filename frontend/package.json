@@ -70,7 +70,8 @@
       "^assets/(.*)$": "<rootDir>/src/assets/$1",
       "^hooks/(.*)$": "<rootDir>/src/hooks/$1",
       "^stores/(.*)$": "<rootDir>/src/stores/$1",
-      "^react-router-dom$": "<rootDir>/src/test-utils/react-router-dom-mock.tsx",
+      "^react-router-dom$": "<rootDir>/src/test-utils/react-router-dom-mock-impl.js",
+      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js",
       "^axios$": "<rootDir>/src/test-utils/axios-mock.ts"
     }
   },

@@ -34,6 +34,12 @@
 
 ---
 
+## 🔹 Exercises (dashboard skill intent)
+
+- [ ] **From dashboard weak skill / practice / quick card:** lands on `/exercises` with the expected focus (category or “all” if unmapped)
+- [ ] **Refresh on `/exercises?skill=…`** still applies the right category when mapped
+- [ ] After release, skim [monitoring red flags](./monitoring-red-flags.md) and [skill intent funnels](./analytics/skill-intent-funnels.md) for spikes (unmapped, mapped-zero, manual override)
+
 ## 🔹 Recommendations
 
 - [ ] **Next Steps shows ≤ 3 items**

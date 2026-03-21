@@ -2,7 +2,8 @@
 import json
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db.models.functions import Trim
 from django.contrib.admin.widgets import AdminTextareaWidget
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -317,6 +318,24 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
         )
 
 
+class EmptyQuestionExerciseFilter(admin.SimpleListFilter):
+    title = "question text"
+    parameter_name = "question_empty"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Empty or whitespace only"),
+            ("no", "Has text"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.annotate(_adm_qtrim=Trim("question")).filter(_adm_qtrim="")
+        if self.value() == "no":
+            return queryset.annotate(_adm_qtrim=Trim("question")).exclude(_adm_qtrim="")
+        return queryset
+
+
 class MultipleChoiceChoiceInline(admin.StackedInline):
     """Inline for managing discrete multiple-choice options."""
 
@@ -339,7 +358,7 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
         "is_published",
         "created_at",
     )
-    list_filter = ("type", "category", "difficulty", "is_published")
+    list_filter = ("type", "category", "difficulty", "is_published", EmptyQuestionExerciseFilter)
     search_fields = ("question", "category", "misconception_tags")
     readonly_fields = ("preview",)
     fieldsets = (
@@ -395,6 +414,7 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
                 raise ValidationError(
                     "Published exercises are immutable. Increment version to publish a new revision."
                 )
+        obj.full_clean()
         super().save_model(request, obj, form, change)
 
     def save_related(self, request, form, formsets, change):
@@ -419,10 +439,31 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
 
     @admin.action(description="Publish selected exercises")
     def publish_selected(self, request, queryset):
-        updated = queryset.update(is_published=True)
-        self.message_user(request, f"Published {updated} exercise(s).")
-        for exercise in queryset:
-            self.log_audit(request, exercise, "published")
+        published = 0
+        skipped = 0
+        with transaction.atomic():
+            for exercise in queryset:
+                ex = Exercise.objects.select_for_update().get(pk=exercise.pk)
+                if ex.is_published:
+                    continue
+                ex.is_published = True
+                try:
+                    ex.full_clean()
+                except ValidationError:
+                    skipped += 1
+                    ex.is_published = False
+                    continue
+                ex.save(update_fields=["is_published"])
+                published += 1
+                self.log_audit(request, ex, "published")
+        if published:
+            self.message_user(request, f"Published {published} exercise(s).")
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} exercise(s): empty question or failed validation.",
+                level=messages.WARNING,
+            )
 
     @admin.action(description="Duplicate as next version for editing")
     def duplicate_for_editing(self, request, queryset):

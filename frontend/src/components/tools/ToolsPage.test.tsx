@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import ToolsPage from "./ToolsPage";
 import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
@@ -84,7 +85,13 @@ describe("ToolsPage", () => {
   });
 
   test("renders the tools landing with tool cards", () => {
-    render(<ToolsPage />);
+    render(
+      <MemoryRouter initialEntries={["/tools"]}>
+        <Routes>
+          <Route path="/tools/*" element={<ToolsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
     expect(
       screen.getAllByText(i18n.t("tools.entries.calendar.title")).length
     ).toBeGreaterThan(0);
@@ -100,7 +107,13 @@ describe("ToolsPage", () => {
     (
       globalThis as typeof globalThis & { __TEST_LOCATION_PATHNAME__?: string }
     ).__TEST_LOCATION_PATHNAME__ = "/tools/unknown";
-    render(<ToolsPage />);
+    render(
+      <MemoryRouter initialEntries={["/tools/unknown"]}>
+        <Routes>
+          <Route path="/tools/*" element={<ToolsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
     expect(mockToastError).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/tools", { replace: true });
   });

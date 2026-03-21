@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from django_ckeditor_5.fields import CKEditor5Field
@@ -324,6 +325,7 @@ class ExerciseManager(models.Manager):
         "misconception_tags",
         "error_patterns",
         "created_at",
+        "is_published",
     )
 
     def get_queryset(self):
@@ -366,6 +368,26 @@ class Exercise(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = ExerciseManager()
+
+    def clean(self):
+        super().clean()
+        base_q = (self.question or "").strip()
+        if self.is_published:
+            if base_q:
+                return
+            if (
+                self.pk
+                and self.translations.exclude(question__isnull=True).exclude(question="").exists()
+            ):
+                return
+            raise ValidationError(
+                {
+                    "question": (
+                        "Published exercises must have question text, or at least one "
+                        "translation with a non-empty question."
+                    )
+                }
+            )
 
     def __str__(self):
         return f"{self.type} Exercise - {self.category}"

@@ -59,7 +59,7 @@
       "browseTopics": "Browse topics"
     },
     "dailyGoal": {
-      "label": "Daily goal · {{xp}} XP",
+      "label": "Daily goal",
       "completeDesc": "Complete your daily goal",
       "xpProgress": "{{current}} / {{target}} XP today"
     },
@@ -1489,7 +1489,9 @@
       "allDifficulties": "All Difficulties",
       "beginner": "Beginner",
       "intermediate": "Intermediate",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "toggleShow": "Show filters",
+      "toggleHide": "Hide filters"
     },
     "progress": {
       "label": "Exercise {{current}} of {{total}}",
@@ -1502,9 +1504,46 @@
     },
     "timedMode": "Timed Mode",
     "streak": "🔥 You've completed {{count}} exercises in a row - keep it up!",
+    "refreshing": "Updating exercises…",
+    "emptyFiltered": {
+      "title": "No exercises match these filters",
+      "subtitle": "Try clearing the category filter or choosing a different one.",
+      "browseTopics": "Browse topics"
+    },
+    "emptyUnmapped": {
+      "title": "We couldn’t match “{{skill}}” to an exercise category yet.",
+      "subtitle": "You can still practice: open all exercises, pick a category, or continue with lessons on this topic.",
+      "viewAll": "View all exercises",
+      "pickCategory": "Choose a category",
+      "browseLessons": "Go to lessons"
+    },
+    "emptyMappedZero": {
+      "title": "You’re focused on {{category}}, but there are no exercises here right now.",
+      "subtitle": "Try another category, clear this filter, or learn from lessons while we grow the library.",
+      "clearFilter": "Clear category filter",
+      "pickAnother": "Pick another category",
+      "goToLessons": "Go to lessons"
+    },
     "skillIntent": {
-      "applied": "Focused practice: {{skill}} (category: {{category}}).",
-      "notMapped": "Couldn't map {{skill}} to an exercise category yet, so we're showing all exercises."
+      "applied": "Focused practice for {{skill}} — exercises filtered to {{category}}.",
+      "notMapped": "We couldn't match {{skill}} to an exercise category yet, so all exercises are shown.",
+      "dismiss": "Hide message",
+      "dismissRecommendation": "Dismiss recommendation",
+      "applyingFocus": "Applying your recommended focus…",
+      "clearFilter": "Show all exercises",
+      "changeCategory": "Pick another category",
+      "regionLabel": "Practice recommendation",
+      "titleMapped": "Focused on {{category}}",
+      "titleMappedDiffers": "Focused on {{category}} for your weak skill: {{skill}}",
+      "titleUnmapped": "We couldn’t match “{{skill}}” to an exercise category yet",
+      "bodyMapped": "Exercises are filtered to this category. Change the filter, show all exercises, or dismiss this tip anytime.",
+      "bodyUnmapped": "We’re showing every exercise for now. Pick a category below or open lessons for a guided path.",
+      "context": {
+        "weak_skill_click": "Based on an area to improve from your dashboard (you opened this skill).",
+        "weak_skill_practice": "Based on an area to improve from your dashboard (practice).",
+        "quick_card_exercises": "From your dashboard quick practice card.",
+        "default": "Recommended from your dashboard."
+      }
     },
     "hints": {
       "title": "Hints",
