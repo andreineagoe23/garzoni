@@ -52,3 +52,5 @@ vine==5.1.0
 wcwidth==0.2.13
 whitenoise==6.8.2
 sentry-sdk[django]==2.19.0
+cloudinary==1.40.0
+django-cloudinary-storage==0.3.0

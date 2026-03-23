@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",
     "django.contrib.staticfiles",
     "whitenoise.runserver_nostatic",
     "corsheaders",
@@ -166,6 +167,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_STORAGE_BACKEND = os.getenv(
     "DJANGO_MEDIA_STORAGE_BACKEND", "django.core.files.storage.FileSystemStorage"
 )
+# Cloudinary (used when DJANGO_MEDIA_STORAGE_BACKEND=cloudinary_storage...)
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
