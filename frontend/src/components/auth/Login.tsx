@@ -122,21 +122,20 @@ function Login() {
     };
 
     try {
+      let token = "";
       if (executeRecaptcha) {
         setShowVerifyingModal(true);
         try {
-          const token = await executeRecaptcha("login");
-          const result = await runLogin({
-            ...formData,
-            recaptcha_token: token,
-          });
-          if (result.success) return;
+          token = await executeRecaptcha("login");
         } finally {
           setShowVerifyingModal(false);
         }
-      } else {
-        await runLogin(formData);
       }
+      const result = await runLogin({
+        ...formData,
+        recaptcha_token: token,
+      });
+      if (result.success) return;
     } catch (loginError) {
       if (axios.isAxiosError(loginError)) {
         const data = loginError.response?.data;
