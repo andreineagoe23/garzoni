@@ -637,15 +637,17 @@ if (
 SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
 if SENTRY_DSN and "test" not in sys.argv:
     import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         environment=DJANGO_ENV,
-        integrations=[DjangoIntegration()],
+        integrations=[DjangoIntegration(), CeleryIntegration()],
         traces_sample_rate=0.1,
         send_default_pii=False,
         sample_rate=1.0 if not DEBUG else 0.2,
+        release=os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
     )
 
 if "test" in sys.argv:
