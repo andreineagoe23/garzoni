@@ -1,8 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { browserTracingIntegration } from "@sentry/react";
 
-// Disabled: Sentry paid in production. Set REACT_APP_SENTRY_DSN to re-enable.
-const dsn = ""; // process.env.REACT_APP_SENTRY_DSN;
+const dsn = process.env.REACT_APP_SENTRY_DSN || "";
 const isProd = process.env.NODE_ENV === "production";
 
 /** Safe profile fields only (no PII). Use for context in errors. */
@@ -44,18 +43,17 @@ function beforeSend(
 
 export const initSentry = () => {
   if (!dsn) return;
-  // Sentry init commented out (paid in production). Uncomment and set dsn above to re-enable.
-  // const sampleRate = isProd ? 1.0 : 0.3;
-  // Sentry.init({
-  //   dsn,
-  //   integrations: [browserTracingIntegration()],
-  //   tracesSampleRate: 0.1,
-  //   environment: process.env.NODE_ENV,
-  //   replaysSessionSampleRate: 0,
-  //   replaysOnErrorSampleRate: 0,
-  //   beforeSend,
-  //   sampleRate,
-  // });
+  const sampleRate = isProd ? 1.0 : 0.3;
+  Sentry.init({
+    dsn,
+    integrations: [browserTracingIntegration()],
+    tracesSampleRate: 0.1,
+    environment: process.env.NODE_ENV,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0,
+    beforeSend,
+    sampleRate,
+  });
 };
 
 export const captureException = (error: unknown, info?: unknown) => {
