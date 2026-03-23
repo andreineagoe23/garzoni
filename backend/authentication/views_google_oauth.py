@@ -6,18 +6,23 @@ Google OAuth 2.0 flow for login and register.
   verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
 
+import hashlib
+import hmac
 import logging
 import os
+import re
+import secrets
 import urllib.parse
 
 import requests
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.shortcuts import redirect
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -27,8 +32,22 @@ from core.utils import env_bool
 logger = logging.getLogger(__name__)
 
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
-
 REFRESH_COOKIE_NAME = "refresh_token"
+
+# Only allow relative paths or whitelisted destinations as post-login redirect
+_ALLOWED_NEXT_RE = re.compile(r'^[a-zA-Z0-9_\-/]*$')
+_MAX_NEXT_LEN = 100
+
+
+def _sanitize_next(next_path: str, default: str = "all-topics") -> str:
+    """Return a safe relative path for post-login redirect, or the default."""
+    if not next_path:
+        return default
+    cleaned = next_path.strip().lstrip("/")[:_MAX_NEXT_LEN]
+    if not _ALLOWED_NEXT_RE.match(cleaned):
+        logger.warning("Unsafe next path rejected: %s", next_path)
+        return default
+    return cleaned
 
 
 def _get_refresh_cookie_kwargs():
@@ -68,6 +87,39 @@ GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 SCOPES = "openid email profile"
 
+_STATE_CACHE_PREFIX = "oauth_state:"
+_STATE_TTL = 600  # 10 minutes
+
+
+def _generate_state(next_path: str = "") -> str:
+    """Generate a signed, opaque state token and store it in cache."""
+    nonce = secrets.token_urlsafe(32)
+    payload = f"{nonce}:{next_path}"
+    state = urllib.parse.quote(payload, safe="")
+    cache.set(f"{_STATE_CACHE_PREFIX}{nonce}", next_path or "", _STATE_TTL)
+    return state
+
+
+def _consume_state(state: str):
+    """
+    Validate and consume the state token.  Returns next_path on success, or
+    raises ValueError if state is missing, malformed, or already used.
+    """
+    if not state:
+        raise ValueError("Missing OAuth state parameter")
+    try:
+        payload = urllib.parse.unquote(state)
+        nonce, _, next_path = payload.partition(":")
+    except Exception:
+        raise ValueError("Malformed OAuth state parameter")
+    cache_key = f"{_STATE_CACHE_PREFIX}{nonce}"
+    stored = cache.get(cache_key)
+    if stored is None:
+        raise ValueError("OAuth state expired or already used")
+    # Consume (one-time use)
+    cache.delete(cache_key)
+    return stored or next_path or "all-topics"
+
 
 def _get_google_config():
     client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", "") or ""
@@ -87,8 +139,10 @@ class GoogleOAuthInitView(APIView):
             frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
+        next_path = _sanitize_next(request.GET.get("next", ""))
+        state = _generate_state(next_path)
+
         redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
-        state = request.GET.get("state", "")
         params = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,
@@ -96,9 +150,8 @@ class GoogleOAuthInitView(APIView):
             "scope": SCOPES,
             "access_type": "offline",
             "prompt": "consent",
+            "state": state,
         }
-        if state:
-            params["state"] = state
         url = f"{GOOGLE_AUTH_URL}?{urllib.parse.urlencode(params)}"
         return redirect(url)
 
@@ -110,7 +163,7 @@ class GoogleOAuthCallbackView(APIView):
 
     def get(self, request):
         code = request.GET.get("code")
-        state = request.GET.get("state", "")
+        raw_state = request.GET.get("state", "")
         error = request.GET.get("error")
         frontend_url = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
 
@@ -121,6 +174,13 @@ class GoogleOAuthCallbackView(APIView):
         if not code:
             logger.warning("Google OAuth callback missing code")
             return redirect(f"{frontend_url}/login?error=oauth_missing_code")
+
+        # --- SECURITY: validate and consume the state parameter ---
+        try:
+            next_path = _consume_state(raw_state)
+        except ValueError as exc:
+            logger.warning("Google OAuth state validation failed: %s", exc)
+            return redirect(f"{frontend_url}/login?error=oauth_invalid_state")
 
         client_id, client_secret = _get_google_config()
         if not client_id or not client_secret:
@@ -173,6 +233,11 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google userinfo missing email")
             return redirect(f"{frontend_url}/login?error=oauth_no_email")
 
+        # SECURITY: reject unverified Google email addresses
+        if not userinfo.get("verified_email", False):
+            logger.warning("Google OAuth: unverified email rejected for %s", email)
+            return redirect(f"{frontend_url}/login?error=oauth_email_unverified")
+
         given_name = (userinfo.get("given_name") or "").strip()
         family_name = (userinfo.get("family_name") or "").strip()
         picture = (userinfo.get("picture") or "").strip()
@@ -182,13 +247,12 @@ class GoogleOAuthCallbackView(APIView):
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
 
-        # New users go to onboarding; existing use state or default to all-topics
         if is_new_user:
-            next_path = "onboarding"
+            resolved_next = "onboarding"
         else:
-            next_path = (state.strip() or "all-topics").strip() or "all-topics"
-        next_path = next_path.lstrip("/")
-        fragment = f"access={urllib.parse.quote(access_jwt)}&next={urllib.parse.quote(next_path)}"
+            resolved_next = _sanitize_next(next_path)
+
+        fragment = f"access={urllib.parse.quote(access_jwt)}&next={urllib.parse.quote(resolved_next)}"
         redirect_to = f"{frontend_url}/auth/callback#{fragment}"
 
         response = redirect(redirect_to)
@@ -284,6 +348,14 @@ class GoogleCredentialAuthView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        # SECURITY: reject unverified Google email addresses
+        if not payload.get("email_verified") in (True, "true"):
+            logger.warning("Google One Tap: unverified email in token payload")
+            return Response(
+                {"detail": "Google account email is not verified.", "code": "oauth_email_unverified"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         email = (payload.get("email") or "").strip()
         if not email:
             return Response(
@@ -299,8 +371,7 @@ class GoogleCredentialAuthView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
-        next_path = "onboarding" if is_new_user else (state or "all-topics")
-        next_path = next_path.lstrip("/")
+        next_path = "onboarding" if is_new_user else _sanitize_next(state)
 
         response = Response(
             {
