@@ -11,7 +11,12 @@ venv/
 env/
 .env
 db.sqlite3
-# media/ omitted so Docker image includes mascots, course_images, etc. for Railway
+# Keep image lean: include only essential seed media.
+media/**
+!media/path_images/
+!media/path_images/*.png
+!media/mascots/
+!media/mascots/monevo-*.png
 staticfiles/
 node_modules/
 .git/
@@ -51,8 +56,6 @@ ENV/
 *.log
 db.sqlite3
 db.sqlite3-journal
-# Keep media/ in image so mascots, course_images, etc. are available on Railway/production
-# /media
 /staticfiles
 /static
 

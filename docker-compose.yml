@@ -11,6 +11,7 @@ services:
       - ./backend/.env
     environment:
       DJANGO_SETTINGS_MODULE: settings.settings
+      ENABLE_DJANGO_EXTENSIONS: "${ENABLE_DJANGO_EXTENSIONS:-false}"
       # Use Postgres in Docker so the DB persists in backend_db_data (avoids re-running all migrations on every rebuild)
       DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
       REDIS_URL: "redis://redis:6379/0"

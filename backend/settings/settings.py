@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "whitenoise.runserver_nostatic",
-    "django_extensions",
     "corsheaders",
     "rest_framework",
     "drf_spectacular",
@@ -82,6 +81,8 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
 ]
+if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
+    INSTALLED_APPS += ["django_extensions"]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
