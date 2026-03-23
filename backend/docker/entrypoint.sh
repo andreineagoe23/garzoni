@@ -10,6 +10,11 @@ if [ "${DJANGO_ENV:-production}" = "production" ] && [ "${DEBUG:-}" != "True" ] 
 fi
 
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
+  if [ "${SKIP_CORE_FAKE:-0}" != "1" ]; then
+    echo "[entrypoint] Pre-faking legacy core migrations..." >&2
+    python manage.py migrate --fake core --noinput 2>/dev/null || true
+  fi
+
   i=0
   until python manage.py migrate --noinput --fake-initial 2>/dev/null || python manage.py migrate --noinput; do
     i=$((i+1))

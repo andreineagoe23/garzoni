@@ -53,6 +53,11 @@ jobs:
         run: |
           flake8 backend
 
+      - name: Migration drift check
+        run: |
+          cd backend
+          python manage.py makemigrations --check --dry-run
+
       - name: Unit tests
         run: |
           cd backend && python manage.py test

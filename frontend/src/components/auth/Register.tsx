@@ -59,21 +59,20 @@ function Register() {
     };
 
     try {
+      let token = "";
       if (executeRecaptcha) {
         setShowVerifyingModal(true);
         try {
-          const token = await executeRecaptcha("register");
-          const result = await runRegister({
-            ...formData,
-            recaptcha_token: token,
-          });
-          if (result.success) return;
+          token = await executeRecaptcha("register");
         } finally {
           setShowVerifyingModal(false);
         }
-      } else {
-        await runRegister(formData);
       }
+      const result = await runRegister({
+        ...formData,
+        recaptcha_token: token,
+      });
+      if (result.success) return;
     } catch (registerError) {
       if (axios.isAxiosError(registerError)) {
         const data = registerError.response?.data;

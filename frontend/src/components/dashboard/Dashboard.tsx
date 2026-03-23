@@ -788,6 +788,8 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               refetchReview={refetchReview}
               refetchMissions={refetchMissions}
               reviewQueueData={reviewQueueData}
+              reviewTopSkill={reviewQueueData?.due?.[0]?.skill ?? null}
+              onOpenReviews={() => navigate('/exercises')}
               locale={locale}
             />
 

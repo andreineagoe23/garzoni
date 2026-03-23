@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
@@ -19,6 +19,8 @@ import { useAnalytics } from "hooks/useAnalytics";
 import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
 import ExerciseIntentBanner from "./ExerciseIntentBanner";
 import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
+
+const LESSON_SESSION_STORAGE_KEY = "monevo_exercise_lesson_session_v1";
 
 const ExercisePage = () => {
   const { t } = useTranslation();
@@ -38,13 +40,7 @@ const ExercisePage = () => {
     difficulty: "",
   });
   const [categories, setCategories] = useState([]);
-  const {
-    getAccessToken,
-    isInitialized,
-    isAuthenticated,
-    entitlements,
-    settings,
-  } = useAuth();
+  const { isInitialized, isAuthenticated, entitlements, settings } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { trackEvent } = useAnalytics();
@@ -61,7 +57,6 @@ const ExercisePage = () => {
   const [startTime, setStartTime] = useState(Date.now());
   const [isTimedMode, setIsTimedMode] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [bestTime] = useState(null);
   const timerRef = useRef(null);
   const [savedAnswers, setSavedAnswers] = useState({});
   const [isRetrying, setIsRetrying] = useState(false);
@@ -92,6 +87,7 @@ const ExercisePage = () => {
   const exercisesBootRef = useRef(false);
   const exercisesFetchGenerationRef = useRef(0);
   const exercisesAbortRef = useRef<AbortController | null>(null);
+  const lastLessonSessionRestoreKeyRef = useRef<string | null>(null);
   const filtersRef = useRef(filters);
   const [categoriesResolved, setCategoriesResolved] = useState(false);
   filtersRef.current = filters;
@@ -117,9 +113,10 @@ const ExercisePage = () => {
     intentResolution,
     skillIntentBanner,
     skillBannerDismissed,
-    setSkillBannerDismissed,
     skillBannerSubtitle,
     dismissSkillRecommendation,
+    restoreIntentBanner,
+    collapsedIntentModel,
     handleCategoryFilterChange,
     resetIntentUiForClearFilter,
   } = useExerciseSkillIntent({
@@ -369,7 +366,7 @@ const ExercisePage = () => {
     } catch (err) {
       logError("Failed to load review queue", err);
     }
-  }, [getAccessToken, logError]);
+  }, [logError]);
 
   const startReviewMode = useCallback(async () => {
     if (!reviewQueue?.due?.length) {
@@ -395,7 +392,7 @@ const ExercisePage = () => {
     } catch (err) {
       logError("Failed to load review exercises", err);
     }
-  }, [getAccessToken, lessonExercises, logError, reviewQueue]);
+  }, [lessonExercises, logError, reviewQueue]);
 
   const exitReviewMode = useCallback(() => {
     setMode("lesson");
@@ -431,14 +428,7 @@ const ExercisePage = () => {
     } catch (err) {
       logError("Failed to fetch next recommended exercise", err);
     }
-  }, [
-    currentExerciseIndex,
-    exercises,
-    getAccessToken,
-    logError,
-    lessonExercises.length,
-    progress,
-  ]);
+  }, [currentExerciseIndex, exercises, logError, lessonExercises.length, progress]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -462,6 +452,87 @@ const ExercisePage = () => {
     fetchCategories,
     fetchReviewQueue,
     navigate,
+  ]);
+
+  useEffect(() => {
+    if (
+      exercises.length > 0 &&
+      currentExerciseIndex >= exercises.length
+    ) {
+      setCurrentExerciseIndex(Math.max(0, exercises.length - 1));
+    }
+  }, [exercises.length, currentExerciseIndex, exercises]);
+
+  useEffect(() => {
+    if (mode !== "lesson" || !exercises.length) return;
+    const ids = exercises.map((e) => e.id);
+    const idsKey = ids.join("|");
+    const filterKey = `${filters.type}|${filters.category}|${filters.difficulty}`;
+    const compositeKey = `${idsKey}@@${filterKey}`;
+    if (lastLessonSessionRestoreKeyRef.current === compositeKey) return;
+    lastLessonSessionRestoreKeyRef.current = compositeKey;
+
+    try {
+      const raw = sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (
+        parsed &&
+        parsed.mode === "lesson" &&
+        parsed.filters &&
+        parsed.filters.type === filters.type &&
+        parsed.filters.category === filters.category &&
+        parsed.filters.difficulty === filters.difficulty &&
+        Array.isArray(parsed.ids) &&
+        parsed.ids.length === ids.length &&
+        parsed.ids.every((id: unknown, i: number) => id === ids[i])
+      ) {
+        const idx =
+          typeof parsed.index === "number" ? parsed.index : 0;
+        if (idx >= 0 && idx < ids.length) {
+          setCurrentExerciseIndex(idx);
+        }
+        if (Array.isArray(parsed.progress) && parsed.progress.length === ids.length) {
+          setProgress(
+            parsed.progress.map((p: unknown) =>
+              p === null || p === undefined ? undefined : p
+            ) as typeof progress
+          );
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [mode, exercises, filters.type, filters.category, filters.difficulty]);
+
+  useEffect(() => {
+    if (mode !== "lesson" || !exercises.length) return;
+    try {
+      const payload = {
+        mode: "lesson" as const,
+        ids: exercises.map((e) => e.id),
+        index: currentExerciseIndex,
+        filters: {
+          type: filters.type,
+          category: filters.category,
+          difficulty: filters.difficulty,
+        },
+        progress: exercises.map((_, i) => progress[i] ?? null),
+      };
+      sessionStorage.setItem(
+        LESSON_SESSION_STORAGE_KEY,
+        JSON.stringify(payload)
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [
+    mode,
+    exercises,
+    currentExerciseIndex,
+    filters.type,
+    filters.category,
+    filters.difficulty,
+    progress,
   ]);
 
   useEffect(() => {
@@ -548,6 +619,11 @@ const ExercisePage = () => {
       trackEvent("exercise_skill_intent_cleared", { action: "clear_filter" });
     }
     resetIntentUiForClearFilter();
+    try {
+      sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
     const next = { ...filtersRef.current, category: "" };
     setFilters(next);
     navigate({ pathname: "/exercises" }, { replace: true, state: {} });
@@ -1015,6 +1091,10 @@ const ExercisePage = () => {
     setCalculatorValue(String(result));
   };
 
+  const appendCalculator = (chunk: string) => {
+    setCalculatorValue((prev) => `${prev}${chunk}`);
+  };
+
   const handleNext = () => {
     setShowCorrection(false);
     setExplanation("");
@@ -1044,32 +1124,72 @@ const ExercisePage = () => {
     const hasResult = Boolean(showCorrection && progress[currentExerciseIndex]);
     const isAnswerCorrect = Boolean(progress[currentExerciseIndex]?.correct);
 
+    const difficultyKey =
+      exercise.difficulty === "beginner" ||
+      exercise.difficulty === "intermediate" ||
+      exercise.difficulty === "advanced"
+        ? exercise.difficulty
+        : null;
+
+    const metaBadges = (
+      <div className="mb-2 flex flex-wrap gap-2">
+        {difficultyKey ? (
+          <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-900 dark:text-amber-100">
+            {t(`exercises.filters.${difficultyKey}`)}
+          </span>
+        ) : null}
+        {exercise.category ? (
+          <span className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+            {exercise.category}
+          </span>
+        ) : null}
+      </div>
+    );
+
     switch (exercise.type) {
-      case "multiple-choice":
+      case "multiple-choice": {
+        const correctIndexRaw = exercise.correct_answer;
+        const correctOptionIndex =
+          typeof correctIndexRaw === "number"
+            ? correctIndexRaw
+            : Number.isFinite(Number(correctIndexRaw))
+              ? Number(correctIndexRaw)
+              : null;
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
             <div className="grid gap-3">
               {exercise.exercise_data.options.map((option, index) => {
                 const id = `exercise-option-${index}`;
+                let frameClass =
+                  "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--accent,#ffd700)]/40 ";
+                if (hasResult) {
+                  if (
+                    correctOptionIndex !== null &&
+                    index === correctOptionIndex
+                  ) {
+                    frameClass +=
+                      "border-emerald-500/60 bg-emerald-500/10 text-emerald-700";
+                  } else if (userAnswer === index) {
+                    frameClass += isAnswerCorrect
+                      ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
+                      : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
+                  } else {
+                    frameClass +=
+                      "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                  }
+                } else if (userAnswer === index) {
+                  frameClass +=
+                    "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
+                } else {
+                  frameClass +=
+                    "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                }
                 return (
-                  <label
-                    key={id}
-                    htmlFor={id}
-                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--accent,#ffd700)]/40 ${
-                      userAnswer === index
-                        ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                        : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
-                    } ${
-                      hasResult && userAnswer === index
-                        ? isAnswerCorrect
-                          ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
-                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                        : ""
-                    }`}
-                  >
+                  <label key={id} htmlFor={id} className={frameClass}>
                     <input
                       id={id}
                       type="radio"
@@ -1085,17 +1205,19 @@ const ExercisePage = () => {
             </div>
           </div>
         );
+      }
 
       case "drag-and-drop":
         if (!Array.isArray(userAnswer)) {
           return (
             <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">
-              Error: drag-and-drop answer format invalid.
+              {t("exercises.errors.invalidDragDrop")}
             </div>
           );
         }
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
@@ -1112,63 +1234,70 @@ const ExercisePage = () => {
                 return (
                   <div
                     key={`${item}-${index}`}
-                    draggable
-                    onDragStart={(event) =>
-                      event.dataTransfer.setData("text/plain", String(index))
-                    }
-                    onKeyDown={(event) => {
-                      if (
-                        event.key === "ArrowLeft" ||
-                        event.key === "ArrowUp"
-                      ) {
-                        event.preventDefault();
-                        if (index === 0) return;
-                        const newOrder = [...userAnswer];
-                        [newOrder[index - 1], newOrder[index]] = [
-                          newOrder[index],
-                          newOrder[index - 1],
-                        ];
-                        setUserAnswer(newOrder);
-                      }
-                      if (
-                        event.key === "ArrowRight" ||
-                        event.key === "ArrowDown"
-                      ) {
-                        event.preventDefault();
-                        if (index === userAnswer.length - 1) return;
-                        const newOrder = [...userAnswer];
-                        [newOrder[index + 1], newOrder[index]] = [
-                          newOrder[index],
-                          newOrder[index + 1],
-                        ];
-                        setUserAnswer(newOrder);
-                      }
-                    }}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => {
-                      const fromIndex = parseInt(
-                        event.dataTransfer.getData("text/plain"),
-                        10
-                      );
-                      const newOrder = [...userAnswer];
-                      [newOrder[fromIndex], newOrder[index]] = [
-                        newOrder[index],
-                        newOrder[fromIndex],
-                      ];
-                      setUserAnswer(newOrder);
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Drag item ${item}`}
-                    className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
-                      hasResult && isCorrectSlot !== null
-                        ? isCorrectSlot
-                          ? "border-emerald-500/60 bg-emerald-500/10"
-                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
-                        : "border-[color:var(--border-color,#d1d5db)]"
-                    }`}
+                    className="flex flex-col items-center gap-1"
                   >
-                    {item}
+                    <span className="text-xs font-semibold tabular-nums text-[color:var(--muted-text,#6b7280)]">
+                      {t("exercises.drag.slot", { n: index + 1 })}
+                    </span>
+                    <div
+                      draggable
+                      onDragStart={(event) =>
+                        event.dataTransfer.setData("text/plain", String(index))
+                      }
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "ArrowLeft" ||
+                          event.key === "ArrowUp"
+                        ) {
+                          event.preventDefault();
+                          if (index === 0) return;
+                          const newOrder = [...userAnswer];
+                          [newOrder[index - 1], newOrder[index]] = [
+                            newOrder[index],
+                            newOrder[index - 1],
+                          ];
+                          setUserAnswer(newOrder);
+                        }
+                        if (
+                          event.key === "ArrowRight" ||
+                          event.key === "ArrowDown"
+                        ) {
+                          event.preventDefault();
+                          if (index === userAnswer.length - 1) return;
+                          const newOrder = [...userAnswer];
+                          [newOrder[index + 1], newOrder[index]] = [
+                            newOrder[index],
+                            newOrder[index + 1],
+                          ];
+                          setUserAnswer(newOrder);
+                        }
+                      }}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={(event) => {
+                        const fromIndex = parseInt(
+                          event.dataTransfer.getData("text/plain"),
+                          10
+                        );
+                        const newOrder = [...userAnswer];
+                        [newOrder[fromIndex], newOrder[index]] = [
+                          newOrder[index],
+                          newOrder[fromIndex],
+                        ];
+                        setUserAnswer(newOrder);
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${t("exercises.drag.slot", { n: index + 1 })}: ${item}`}
+                      className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
+                        hasResult && isCorrectSlot !== null
+                          ? isCorrectSlot
+                            ? "border-emerald-500/60 bg-emerald-500/10"
+                            : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                          : "border-[color:var(--border-color,#d1d5db)]"
+                      }`}
+                    >
+                      {item}
+                    </div>
                   </div>
                 );
               })}
@@ -1176,9 +1305,18 @@ const ExercisePage = () => {
           </div>
         );
 
-      case "numeric":
+      case "numeric": {
+        const expectedRaw =
+          exercise.correct_answer ?? exercise.exercise_data?.expected_value;
+        const toleranceRaw = exercise.exercise_data?.tolerance;
+        const showNumericReveal =
+          hasResult &&
+          !isAnswerCorrect &&
+          expectedRaw !== undefined &&
+          expectedRaw !== null;
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
@@ -1210,6 +1348,24 @@ const ExercisePage = () => {
                 </span>
               )}
             </div>
+            {showNumericReveal && (
+              <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+                {toleranceRaw !== undefined && toleranceRaw !== null
+                  ? t("exercises.numeric.expectedWithTolerance", {
+                      value: formatNumber(Number(expectedRaw), locale, {
+                        maximumFractionDigits: 8,
+                      }),
+                      tolerance: formatNumber(Number(toleranceRaw), locale, {
+                        maximumFractionDigits: 6,
+                      }),
+                    })
+                  : t("exercises.numeric.expectedValue", {
+                      value: formatNumber(Number(expectedRaw), locale, {
+                        maximumFractionDigits: 8,
+                      }),
+                    })}
+              </p>
+            )}
             {exercise.exercise_data?.validation && (
               <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
                 {exercise.exercise_data.validation}
@@ -1217,10 +1373,12 @@ const ExercisePage = () => {
             )}
           </div>
         );
+      }
 
       case "budget-allocation":
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
@@ -1266,6 +1424,7 @@ const ExercisePage = () => {
         const correctAnswer = exercise.correct_answer || {};
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
@@ -1347,8 +1506,10 @@ const ExercisePage = () => {
         const selectedChoice = choices.find(
           (choice) => choice.id === userAnswer
         );
+        const correctChoiceId = exercise.correct_answer;
         return (
           <div className="space-y-4">
+            {metaBadges}
             <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
               {exercise.question}
             </h3>
@@ -1378,6 +1539,28 @@ const ExercisePage = () => {
             <div className="grid gap-3">
               {choices.map((choice, index) => {
                 const isSelected = userAnswer === choice.id;
+                const isCorrectChoice =
+                  hasResult && choice.id === correctChoiceId;
+                let choiceFrame =
+                  "flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ";
+                if (hasResult) {
+                  if (isCorrectChoice) {
+                    choiceFrame +=
+                      "border-emerald-500/60 bg-emerald-500/10 text-emerald-700";
+                  } else if (isSelected) {
+                    choiceFrame +=
+                      "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
+                  } else {
+                    choiceFrame +=
+                      "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                  }
+                } else if (isSelected) {
+                  choiceFrame +=
+                    "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
+                } else {
+                  choiceFrame +=
+                    "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                }
                 return (
                   <button
                     key={`${choice.id}-${index}`}
@@ -1390,17 +1573,7 @@ const ExercisePage = () => {
                       )
                     }
                     onClick={() => setUserAnswer(choice.id)}
-                    className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
-                      isSelected
-                        ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                        : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
-                    } ${
-                      hasResult && isSelected
-                        ? isAnswerCorrect
-                          ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
-                          : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                        : ""
-                    }`}
+                    className={choiceFrame}
                   >
                     <span>{choice.label}</span>
                     {isSelected && (
@@ -1549,15 +1722,6 @@ const ExercisePage = () => {
           </GlassCard>
         )}
 
-        {showStats && (
-          <GlassCard
-            padding="md"
-            className="border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 shadow-emerald-500/20"
-          >
-            {t("exercises.session.complete")}
-          </GlassCard>
-        )}
-
         <div className="flex flex-col gap-6 lg:flex-row">
           <GlassCard padding="lg" className="relative w-full lg:flex-1">
             {listRefreshing && (
@@ -1587,6 +1751,30 @@ const ExercisePage = () => {
                 onDismissRecommendation={dismissSkillRecommendation}
                 onChangeCategory={() => setFiltersExpanded(true)}
               />
+            ) : null}
+            {!skillIntentBanner && collapsedIntentModel ? (
+              <div
+                className="mb-4 flex flex-col gap-2 rounded-xl border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                role="status"
+              >
+                <p className="text-sm text-[color:var(--text-color,#111827)]">
+                  {collapsedIntentModel.kind === "applied"
+                    ? t("exercises.skillIntent.reminderShortApplied", {
+                        skill: collapsedIntentModel.skill,
+                        category: collapsedIntentModel.category,
+                      })
+                    : t("exercises.skillIntent.reminderShortUnmapped", {
+                        skill: collapsedIntentModel.skill,
+                      })}
+                </p>
+                <button
+                  type="button"
+                  onClick={restoreIntentBanner}
+                  className="shrink-0 rounded-full border border-[color:var(--accent,#ffd700)]/50 bg-[color:var(--card-bg,#ffffff)] px-4 py-1.5 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)]/15"
+                >
+                  {t("exercises.skillIntent.restoreBanner")}
+                </button>
+              </div>
             ) : null}
             <button
               type="button"
@@ -1858,23 +2046,76 @@ const ExercisePage = () => {
                   <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                     {t("exercises.assist.calculator")}
                   </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={calculatorValue}
-                      onChange={(event) =>
-                        setCalculatorValue(event.target.value)
-                      }
-                      className="w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
-                      placeholder={t("exercises.assist.calculatorPlaceholder")}
-                    />
-                    <button
-                      type="button"
-                      onClick={evaluateCalculator}
-                      className="rounded-xl bg-[color:var(--primary,#1d5330)] px-3 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
-                    >
-                      =
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={calculatorValue}
+                        onChange={(event) =>
+                          setCalculatorValue(event.target.value)
+                        }
+                        className="min-w-0 flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                        placeholder={t(
+                          "exercises.assist.calculatorPlaceholder"
+                        )}
+                      />
+                      <button
+                        type="button"
+                        onClick={evaluateCalculator}
+                        className="shrink-0 rounded-xl bg-[color:var(--primary,#1d5330)] px-3 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
+                      >
+                        =
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[
+                        ["7", "8", "9", "/"],
+                        ["4", "5", "6", "*"],
+                        ["1", "2", "3", "-"],
+                        ["0", ".", "(", ")"],
+                      ].flatMap((row, ri) =>
+                        row.map((key) => (
+                          <button
+                            key={`${ri}-${key}`}
+                            type="button"
+                            onClick={() => appendCalculator(key)}
+                            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          >
+                            {key === "*" ? "×" : key}
+                          </button>
+                        ))
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => appendCalculator("+")}
+                        className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => appendCalculator("%")}
+                        className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                      >
+                        %
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCalculatorValue((prev) => prev.slice(0, -1))
+                        }
+                        className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40"
+                      >
+                        {t("exercises.calculator.backspace")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCalculatorValue("")}
+                        className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40"
+                      >
+                        {t("exercises.calculator.clear")}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1920,24 +2161,35 @@ const ExercisePage = () => {
             )}
 
             <div className="mt-6 flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div className="space-y-2 text-sm text-[color:var(--muted-text,#6b7280)]">
                 <span className="font-semibold text-[color:var(--accent,#111827)]">
                   {t("exercises.confidence.label")}
                 </span>
-                <select
-                  value={confidence}
-                  onChange={(event) => setConfidence(event.target.value)}
-                  className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
-                >
-                  <option value="low">{t("exercises.confidence.low")}</option>
-                  <option value="medium">
-                    {t("exercises.confidence.medium")}
-                  </option>
-                  <option value="high">{t("exercises.confidence.high")}</option>
-                </select>
-                <span className="text-xs">
-                  {t("exercises.confidence.helper")}
-                </span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "low", emoji: "😟", label: t("exercises.confidence.low") },
+                    { value: "medium", emoji: "😐", label: t("exercises.confidence.medium") },
+                    { value: "high", emoji: "😊", label: t("exercises.confidence.high") },
+                  ].map((option) => {
+                    const selected = confidence === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setConfidence(option.value)}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
+                          selected
+                            ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/15 text-[color:var(--accent,#ffd700)]"
+                            : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
+                        }`}
+                      >
+                        <span aria-hidden>{option.emoji}</span>
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-xs">{t("exercises.confidence.helper")}</span>
               </div>
 
               {showCorrection ? (
@@ -2029,44 +2281,46 @@ const ExercisePage = () => {
                 {t("exercises.progress.title")}
               </h3>
               <div className="mt-4 space-y-3">
-                {exercises
-                  .map((exercise, index) => ({
-                    exercise,
-                    index,
-                    progress: progress[index],
-                  }))
-                  .filter(
-                    ({ progress: prog }) => prog !== undefined && prog !== null
-                  )
-                  .map(({ index, progress: prog }) => (
+                {exercises.map((_, index) => {
+                  const prog = progress[index];
+                  const attempted = prog !== undefined && prog !== null;
+                  const isCurrent = index === currentExerciseIndex;
+                  return (
                     <div
                       key={`progress-${index}`}
                       className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
-                        prog?.correct
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                          : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                      }`}
+                        attempted
+                          ? prog?.correct
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                            : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                          : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
+                      } ${isCurrent ? "ring-1 ring-[color:var(--accent,#ffd700)]/50" : ""}`}
                     >
-                      <span className="font-medium">
+                      <span className="flex items-center gap-2 font-medium">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            attempted
+                              ? prog?.correct
+                                ? "bg-emerald-500"
+                                : "bg-[color:var(--error,#dc2626)]"
+                              : "bg-[color:var(--border-color,#d1d5db)]"
+                          }`}
+                          aria-hidden
+                        />
                         {t("exercises.progress.exercise", {
                           index: index + 1,
                         })}
                       </span>
                       <span className="text-xs uppercase tracking-wide">
-                        {prog?.status === "completed"
-                          ? t("exercises.progress.completed")
-                          : t("exercises.progress.attempted")}
+                        {attempted
+                          ? prog?.status === "completed"
+                            ? t("exercises.progress.completed")
+                            : t("exercises.progress.attempted")
+                          : t("exercises.progress.pending")}
                       </span>
                     </div>
-                  ))}
-                {exercises.filter(
-                  (_, index) =>
-                    progress[index] !== undefined && progress[index] !== null
-                ).length === 0 && (
-                  <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
-                    <p>{t("exercises.progress.empty")}</p>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </GlassCard>
           </div>
@@ -2112,14 +2366,14 @@ const ExercisePage = () => {
                 <span className="mr-2">
                   <MonevoIcon name="trophy" size={18} />
                 </span>{" "}
-                Exercise Session Summary
+                {t("exercises.summary.title")}
               </h2>
               <button
                 type="button"
                 onClick={() => setShowStats(false)}
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
               >
-                Close
+                {t("exercises.summary.close")}
               </button>
             </div>
             <div className="space-y-4 px-6 py-6">
@@ -2136,12 +2390,12 @@ const ExercisePage = () => {
                     {t("exercises.progress.totalCompleted")}
                   </h4>
                   <p>
-                    {stats.totalCompleted} of {stats.totalExercises}
+                    {t("exercises.summary.totalCompletedOf", { done: stats.totalCompleted, total: stats.totalExercises })}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Average Accuracy
+                    {t("exercises.summary.averageAccuracy")}
                   </h4>
                   <p>
                     {formatNumber(stats.averageAccuracy, locale, {
@@ -2153,7 +2407,7 @@ const ExercisePage = () => {
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    First-Try Accuracy
+                    {t("exercises.summary.firstTryAccuracy")}
                   </h4>
                   <p>
                     {formatNumber(stats.firstTryAccuracy || 0, locale, {
@@ -2165,59 +2419,58 @@ const ExercisePage = () => {
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    XP Earned
+                    {t("exercises.summary.xpEarned")}
                   </h4>
                   <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                     {xpTotal}
                   </p>
                   <p className="text-xs">
-                    Streak multiplier:{" "}
+                    {t("exercises.summary.streakMultiplier")}:{" "}
                     {streakMultiplier > 1
                       ? `x${formatNumber(streakMultiplier, locale, {
                           minimumFractionDigits: 1,
                           maximumFractionDigits: 1,
                         })}`
-                      : "none"}
+                      : t("exercises.summary.none")}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Coins Earned
+                    {t("exercises.summary.coinsEarned")}
                   </h4>
                   <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                     {coinsEarned}
                   </p>
                   <p className="text-xs">
-                    Earn more coins by finishing missions.
+                    {t("exercises.summary.coinsHint")}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Average Attempts
+                    {t("exercises.summary.averageAttempts")}
                   </h4>
                   <p>
                     {formatNumber(stats.averageAttempts, locale, {
                       minimumFractionDigits: 1,
                       maximumFractionDigits: 1,
                     })}{" "}
-                    per question
+                    {t("exercises.summary.perQuestion")}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Review Due
+                    {t("exercises.summary.reviewDue")}
                   </h4>
-                  <p>{reviewQueue.count || 0} exercises queued</p>
+                  <p>{t("exercises.summary.queuedCount", { count: reviewQueue.count || 0 })}</p>
                   {reviewQueue.due?.length > 0 && (
                     <p className="text-xs">
-                      Next: {reviewQueue.due[0].skill} (
-                      {reviewQueue.due[0].type})
+                      {t("exercises.summary.nextWithType", { skill: reviewQueue.due[0].skill, type: reviewQueue.due[0].type })}
                     </p>
                   )}
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Total Time Spent
+                    {t("exercises.summary.totalTimeSpent")}
                   </h4>
                   <p>
                     {Math.floor(stats.totalTimeSpent / 60)}m{" "}
@@ -2227,29 +2480,24 @@ const ExercisePage = () => {
                 {isTimedMode && (
                   <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)] md:col-span-2">
                     <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                      Time Remaining
+                      {t("exercises.summary.timeRemaining")}
                     </h4>
                     <p>{formatTime(timeRemaining)}</p>
-                    {bestTime && (
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                        Best Time: {formatTime(bestTime)}
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
                 <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
-                  Mission progress
+                  {t("exercises.summary.missionProgress")}
                 </h4>
                 <p>
-                  First-try correct answers:{" "}
+                  {t("exercises.summary.firstTryCorrect")}:{" "}
                   <span className="font-semibold text-[color:var(--accent,#111827)]">
                     {firstTryCorrect}
                   </span>
                 </p>
                 <p>
-                  Current streak:{" "}
+                  {t("exercises.summary.currentStreak")}:{" "}
                   <span className="font-semibold text-[color:var(--accent,#111827)]">
                     {streak}
                   </span>
@@ -2258,13 +2506,13 @@ const ExercisePage = () => {
               {Object.keys(skillGains).length > 0 && (
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
                   <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
-                    Skill highlights
+                    {t("exercises.summary.skillHighlights")}
                   </h4>
                   <ul className="space-y-1 text-[color:var(--muted-text,#6b7280)]">
                     {Object.entries(skillGains).map(([skill, gain]) => (
                       <li key={skill}>
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
-                          {`${skill}: +${gain} mastery points`}
+                          {`${skill}: +${gain} ${t("exercises.summary.masteryPoints")}`}
                         </span>
                       </li>
                     ))}
@@ -2274,14 +2522,12 @@ const ExercisePage = () => {
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
                 {reviewQueue.count ? (
                   <p>
-                    You have {reviewQueue.count} item(s) waiting. Do your
-                    reviews now to lock in gains.
+                    {t("exercises.summary.reviewCtaWithCount", {
+                      count: reviewQueue.count,
+                    })}
                   </p>
                 ) : (
-                  <p>
-                    No reviews due. Continue the lesson or jump to a recommended
-                    next exercise.
-                  </p>
+                  <p>{t("exercises.summary.reviewCtaNone")}</p>
                 )}
               </div>
               <div className="flex flex-wrap justify-end gap-3">
@@ -2290,7 +2536,7 @@ const ExercisePage = () => {
                   onClick={() => setShowStats(false)}
                   className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
-                  Close
+                  {t("exercises.summary.close")}
                 </button>
                 {reviewQueue.count > 0 && (
                   <button
@@ -2301,7 +2547,7 @@ const ExercisePage = () => {
                     }}
                     className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)]/50 px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] shadow-sm shadow-[color:var(--accent,#ffd700)]/20 transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white"
                   >
-                    Do your reviews
+                    {t("exercises.summary.doReviews")}
                   </button>
                 )}
                 <button
@@ -2312,7 +2558,7 @@ const ExercisePage = () => {
                   }}
                   className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
-                  Next recommended
+                  {t("exercises.summary.nextRecommended")}
                 </button>
                 <button
                   type="button"
@@ -2337,7 +2583,7 @@ const ExercisePage = () => {
                   }}
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
-                  Start New Session
+                  {t("exercises.summary.startNewSession")}
                 </button>
               </div>
             </div>

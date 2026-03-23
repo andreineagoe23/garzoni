@@ -29,6 +29,8 @@ type TrackFn = (
   metadata?: Record<string, unknown>
 ) => void;
 
+const COLLAPSED_INTENT_STORAGE_KEY = "monevo_exercise_collapsed_intent_v1";
+
 type UseExerciseSkillIntentParams = {
   categories: string[];
   categoriesResolved: boolean;
@@ -70,6 +72,8 @@ export function useExerciseSkillIntent({
   const [skillIntentBanner, setSkillIntentBanner] =
     useState<ExerciseIntentBannerModel | null>(null);
   const [skillBannerDismissed, setSkillBannerDismissed] = useState(false);
+  const [collapsedIntentModel, setCollapsedIntentModel] =
+    useState<ExerciseIntentBannerModel | null>(null);
   const [skillFetchReady, setSkillFetchReady] = useState(false);
 
   const appliedSkillIntentRef = useRef<string | null>(null);
@@ -98,6 +102,34 @@ export function useExerciseSkillIntent({
       appliedSkillIntentRef.current = null;
       setSkillIntentBanner(null);
       setIntentResolution({ status: "idle" });
+    }
+  }, [targetSkillIntent]);
+
+  useEffect(() => {
+    if (!targetSkillIntent?.trim()) return;
+    setCollapsedIntentModel(null);
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.removeItem(COLLAPSED_INTENT_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [targetSkillIntent]);
+
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    if (targetSkillIntent?.trim()) return;
+    try {
+      const raw = sessionStorage.getItem(COLLAPSED_INTENT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as ExerciseIntentBannerModel;
+      if (parsed && (parsed.kind === "applied" || parsed.kind === "unmapped")) {
+        setCollapsedIntentModel(parsed);
+        setSkillBannerDismissed(true);
+      }
+    } catch {
+      /* ignore */
     }
   }, [targetSkillIntent]);
 
@@ -196,12 +228,60 @@ export function useExerciseSkillIntent({
     trackEvent("exercise_skill_intent_cleared", {
       action: "dismiss_recommendation",
     });
+    if (skillIntentBanner) {
+      setCollapsedIntentModel(skillIntentBanner);
+      try {
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem(
+            COLLAPSED_INTENT_STORAGE_KEY,
+            JSON.stringify(skillIntentBanner)
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    setSkillIntentBanner(null);
     appliedSkillIntentRef.current = null;
     setSkillBannerDismissed(true);
-    setSkillIntentBanner(null);
     setIntentResolution({ status: "idle" });
     stripSkillFromLocation();
-  }, [stripSkillFromLocation, trackEvent]);
+  }, [skillIntentBanner, stripSkillFromLocation, trackEvent]);
+
+  const restoreIntentBanner = useCallback(() => {
+    const fromState = collapsedIntentModel;
+    let model = fromState;
+    if (!model && typeof sessionStorage !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(COLLAPSED_INTENT_STORAGE_KEY);
+        if (raw) model = JSON.parse(raw) as ExerciseIntentBannerModel;
+      } catch {
+        model = null;
+      }
+    }
+    if (!model) return;
+    setSkillIntentBanner(model);
+    setSkillBannerDismissed(false);
+    setCollapsedIntentModel(null);
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.removeItem(COLLAPSED_INTENT_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+    if (model.kind === "applied") {
+      const mappedCategory = model.category;
+      setIntentResolution({
+        status: "mapped",
+        skill: model.skill,
+        category: mappedCategory,
+      });
+      setFilters((prev) => ({ ...prev, category: mappedCategory }));
+    } else {
+      setIntentResolution({ status: "unmapped", skill: model.skill });
+    }
+  }, [collapsedIntentModel, setFilters]);
 
   const handleCategoryFilterChange = useCallback(
     (value: string) => {
@@ -215,7 +295,15 @@ export function useExerciseSkillIntent({
       appliedSkillIntentRef.current = null;
       setSkillBannerDismissed(true);
       setSkillIntentBanner(null);
+      setCollapsedIntentModel(null);
       setIntentResolution({ status: "idle" });
+      try {
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.removeItem(COLLAPSED_INTENT_STORAGE_KEY);
+        }
+      } catch {
+        /* ignore */
+      }
       stripSkillFromLocation();
       setFilters((prev) => ({ ...prev, category: value }));
     },
@@ -227,7 +315,15 @@ export function useExerciseSkillIntent({
     appliedSkillIntentRef.current = null;
     setSkillBannerDismissed(true);
     setSkillIntentBanner(null);
+    setCollapsedIntentModel(null);
     setIntentResolution({ status: "idle" });
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.removeItem(COLLAPSED_INTENT_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   return {
@@ -242,6 +338,8 @@ export function useExerciseSkillIntent({
     setSkillBannerDismissed,
     skillBannerSubtitle,
     dismissSkillRecommendation,
+    restoreIntentBanner,
+    collapsedIntentModel,
     handleCategoryFilterChange,
     resetIntentUiForClearFilter,
   };

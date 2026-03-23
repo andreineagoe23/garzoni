@@ -79,7 +79,10 @@
       "failedLoadReviews": "Failed to load reviews",
       "couldNotFetchReviews": "We couldn't fetch your review queue.",
       "failedLoadMissions": "Failed to load missions",
-      "couldNotFetchMissions": "We couldn't fetch your missions."
+      "couldNotFetchMissions": "We couldn't fetch your missions.",
+      "urgent": "Urgent",
+      "nextReviewSkill": "Next review: {{skill}}",
+      "startReviews": "Start reviews now"
     },
     "weakSkills": {
       "skillInsights": "Skill insights",
@@ -849,7 +852,17 @@
       "friends": "Friends"
     },
     "searchPlaceholder": "Search users...",
+    "searchAriaLabel": "Search leaderboard",
     "you": "You ({{username}})",
+    "youBadge": "You",
+    "rankShort": "Rank {{rank}}",
+    "friendRequestSent": "Friend request sent.",
+    "loadMore": "Load more",
+    "podium": {
+      "place1": "First place",
+      "place2": "Second place",
+      "place3": "Third place"
+    },
     "points": "{{points}} points",
     "empty": "No users found for the current selection.",
     "friendStatus": {
@@ -1450,7 +1463,8 @@
       "submissionFailed": "Submission failed. Please try again.",
       "submitAnswer": "Please submit an answer before continuing.",
       "invalidFormat": "Invalid exercise format",
-      "unsupportedType": "Unsupported exercise type."
+      "unsupportedType": "Unsupported exercise type.",
+      "invalidDragDrop": "Invalid drag-and-drop answer format."
     },
     "mascot": {
       "correct": "Great job! You got it right.",
@@ -1500,7 +1514,8 @@
       "completed": "Completed",
       "attempted": "Attempted",
       "empty": "No progress yet. Start an exercise to see your progress here!",
-      "totalCompleted": "Total Completed"
+      "totalCompleted": "Total Completed",
+      "pending": "Pending"
     },
     "timedMode": "Timed Mode",
     "streak": "🔥 You've completed {{count}} exercises in a row - keep it up!",
@@ -1543,7 +1558,10 @@
         "weak_skill_practice": "Based on an area to improve from your dashboard (practice).",
         "quick_card_exercises": "From your dashboard quick practice card.",
         "default": "Recommended from your dashboard."
-      }
+      },
+      "restoreBanner": "Show recommendation again",
+      "reminderShortApplied": "Focused practice for {{skill}} in {{category}}.",
+      "reminderShortUnmapped": "Practice recommendation for {{skill}} is hidden."
     },
     "hints": {
       "title": "Hints",
@@ -1582,7 +1600,8 @@
       "completed": "Great job! You completed the exercise!",
       "partialCorrect": "{{correct}} out of {{total}} answers are correct. Try again!",
       "alreadyCompleted": "This exercise is already completed.",
-      "answerLabel": "Answer:"
+      "answerLabel": "Answer:",
+      "slot": "#{{n}}"
     },
     "budget": {
       "instruction": "Allocate your budget across the categories below. Make sure the total adds up to {{total}}.",
@@ -1632,7 +1651,9 @@
       "submitAnswers": "Submit Answers"
     },
     "calculator": {
-      "checkExpression": "Check expression"
+      "checkExpression": "Check expression",
+      "backspace": "⌫",
+      "clear": "Clear"
     },
     "inputs": {
       "numberPlaceholder": "Enter a number"
@@ -1650,7 +1671,40 @@
     "loading": "Loading exercises...",
     "retry": "Retry",
     "skillFallback": "General",
-    "streakCongrats": "You did it! Keep the streak alive."
+    "streakCongrats": "You did it! Keep the streak alive.",
+    "numeric": {
+      "expectedValue": "Expected: {{value}}",
+      "expectedWithTolerance": "Expected: {{value}} (tolerance ±{{tolerance}})"
+    },
+    "summary": {
+      "title": "Exercise Session Summary",
+      "close": "Close",
+      "averageAccuracy": "Average Accuracy",
+      "firstTryAccuracy": "First-Try Accuracy",
+      "xpEarned": "XP Earned",
+      "streakMultiplier": "Streak multiplier",
+      "none": "none",
+      "coinsEarned": "Coins Earned",
+      "coinsHint": "Earn more coins by finishing missions.",
+      "averageAttempts": "Average Attempts",
+      "perQuestion": "per question",
+      "reviewDue": "Review Due",
+      "totalTimeSpent": "Total Time Spent",
+      "timeRemaining": "Time Remaining",
+      "missionProgress": "Mission progress",
+      "firstTryCorrect": "First-try correct answers",
+      "currentStreak": "Current streak",
+      "skillHighlights": "Skill highlights",
+      "masteryPoints": "mastery points",
+      "doReviews": "Do your reviews",
+      "nextRecommended": "Next recommended",
+      "startNewSession": "Start New Session",
+      "totalCompletedOf": "{{done}} of {{total}}",
+      "queuedCount": "{{count}} exercises queued",
+      "nextWithType": "Next: {{skill}} ({{type}})",
+      "reviewCtaWithCount": "You have {{count}} item(s) waiting. Do your reviews now to lock in gains.",
+      "reviewCtaNone": "No reviews due. Continue the lesson or jump to a recommended next exercise."
+    }
   },
   "landing": {
     "hero": {
