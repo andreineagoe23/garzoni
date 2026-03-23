@@ -41,6 +41,7 @@ fi
 
 if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
   mkdir -p /app/staticfiles /app/media
+  rm -rf /app/staticfiles/*
   python manage.py collectstatic --noinput
 fi
 # Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
