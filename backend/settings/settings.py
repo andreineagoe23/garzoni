@@ -623,7 +623,11 @@ STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
-if not DEBUG and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage":
+if (
+    not DEBUG
+    and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage"
+    and not env_bool("ALLOW_LOCAL_MEDIA_STORAGE", False)
+):
     raise ImproperlyConfigured(
         "Production media storage is local filesystem. Configure DJANGO_MEDIA_STORAGE_BACKEND "
         "to a durable backend (S3/R2/Cloudinary) before launch."
