@@ -2,37 +2,6 @@
 # Build context is usually the backend dir (Railway with backend/Dockerfile, or local docker-compose).
 # So BUILD_SRC defaults to ".". From repo root: docker build --build-arg BUILD_SRC=backend -f backend/Dockerfile .
 
-ARG BUILD_SRC=.
-
-FROM python:3.12-slim-bookworm AS builder
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    DEBIAN_FRONTEND=noninteractive
-
-WORKDIR /app
-
-# Install build dependencies in a single layer (no debconf prompts)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    libjpeg-dev \
-    zlib1g-dev \
-    libfreetype6-dev \
-    libffi-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG BUILD_SRC=.
-COPY ${BUILD_SRC}/requirements.txt .
-
-# Install Python dependencies
-RUN pip install --upgrade pip setuptools wheel \
-    && pip wheel --wheel-dir /wheels --no-cache-dir -r requirements.txt
-
-
 FROM python:3.12-slim-bookworm AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
@@ -54,21 +23,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy wheels and requirements from builder and install (no network: use base pip + local wheels only)
-COPY --from=builder /wheels /wheels
 ARG BUILD_SRC=.
 COPY ${BUILD_SRC}/requirements.txt .
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
-    && rm -rf /wheels
+RUN pip install --no-cache-dir -r requirements.txt \
+    && rm -rf /root/.cache/pip
 
 # Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
 COPY ${BUILD_SRC}/ /app/
 
-# Force-include media so path_images, mascots, etc. are never missing (e.g. Railway)
-COPY ${BUILD_SRC}/media/ /app/media/
-
-# Verify media is present (build fails if path_images or mascots are missing)
-RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png && test -f /app/media/mascots/Bear-Mascot.mp4 || (echo "ERROR: /app/media missing required files. Check .dockerignore and build context." && exit 1)
+# Verify essential media seed assets are present (small PNG assets only)
+RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \
