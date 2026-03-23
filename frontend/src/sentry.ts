@@ -16,9 +16,9 @@ export type SafeProfileContext = {
  * Add allowed context: tool name, anonymous user, safe profile snapshot.
  */
 function beforeSend(
-  event: Sentry.Event,
+  event: Sentry.ErrorEvent,
   hint: Sentry.EventHint
-): Sentry.Event | null {
+): Sentry.ErrorEvent | null {
   // Scrub known PII from extra/contexts
   if (event.extra) {
     const safe: Record<string, unknown> = {};
