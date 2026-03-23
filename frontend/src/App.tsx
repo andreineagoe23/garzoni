@@ -117,7 +117,13 @@ const prefetchOnIdle = (preload: () => Promise<unknown>) => {
   }
 };
 
-const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
+const RECAPTCHA_SITE_KEY_RAW = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
+const RECAPTCHA_ENABLE_IN_DEV =
+  process.env.REACT_APP_RECAPTCHA_ENABLE_IN_DEV === "true";
+const RECAPTCHA_SITE_KEY =
+  process.env.NODE_ENV === "production" || RECAPTCHA_ENABLE_IN_DEV
+    ? RECAPTCHA_SITE_KEY_RAW
+    : "";
 
 const LEGAL_PATHS = [
   "/privacy-policy",

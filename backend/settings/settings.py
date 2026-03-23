@@ -1,13 +1,13 @@
 import os
 import socket
 import sys
+import logging
 from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
 from corsheaders.defaults import default_headers
 from django.core.exceptions import ImproperlyConfigured
-from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 from core.utils import env_bool, env_csv
@@ -37,9 +37,9 @@ if not SECRET_KEY:
             'Generate a key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
         )
 if DEBUG:
-    print("[settings] DEBUG mode enabled")
+    logging.getLogger(__name__).info("[settings] DEBUG mode enabled")
 else:
-    print("[settings] Production mode (DEBUG=False)")
+    logging.getLogger(__name__).info("[settings] Production mode (DEBUG=False)")
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
@@ -159,10 +159,12 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_STORAGE_BACKEND = os.getenv(
+    "DJANGO_MEDIA_STORAGE_BACKEND", "django.core.files.storage.FileSystemStorage"
+)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -176,7 +178,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "1000/day"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "5000/day"},
 }
 
 SPECTACULAR_SETTINGS = {
@@ -260,6 +262,10 @@ if DEBUG and not cors_allowed_origins:
         ]
     )
 CORS_ALLOWED_ORIGINS = cors_allowed_origins
+if not DEBUG and not CORS_ALLOWED_ORIGINS:
+    raise ImproperlyConfigured(
+        "CORS_ALLOWED_ORIGINS must be set in production (CORS_ALLOWED_ORIGINS_CSV or CORS_ALLOWED_ORIGINS)."
+    )
 
 CSRF_TRUSTED_ORIGINS = env_csv("CSRF_TRUSTED_ORIGINS_CSV", default=[])
 if not CSRF_TRUSTED_ORIGINS:
@@ -350,6 +356,18 @@ STRIPE_DEFAULT_PRICE_ID = os.getenv(
 )  # fallback if plan-specific not set
 # Optional: pre-apply a promotion code at checkout (e.g. for testing in prod)
 STRIPE_DEFAULT_PROMOTION_CODE = os.getenv("STRIPE_DEFAULT_PROMOTION_CODE", "")
+if STRIPE_SECRET_KEY:
+    required_prices = {
+        "STRIPE_PRICE_PLUS_YEARLY": STRIPE_PRICE_PLUS_YEARLY,
+        "STRIPE_PRICE_PRO_YEARLY": STRIPE_PRICE_PRO_YEARLY,
+        "STRIPE_PRICE_PLUS_MONTHLY": STRIPE_PRICE_PLUS_MONTHLY,
+        "STRIPE_PRICE_PRO_MONTHLY": STRIPE_PRICE_PRO_MONTHLY,
+    }
+    missing_prices = [name for name, value in required_prices.items() if not value.strip()]
+    if missing_prices:
+        raise ImproperlyConfigured(
+            "Stripe is enabled but required price IDs are missing: " + ", ".join(missing_prices)
+        )
 
 # reCAPTCHA Enterprise (single key from monevo.educational@gmail.com console)
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
@@ -601,26 +619,29 @@ customColorPalette = [
 ]
 
 CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
-
-# Prevent Django from creating migrations for core app
-# since all models have been moved to other apps
-MIGRATION_MODULES = {
-    "core": None,  # Disable migrations for core app
+STORAGES = {
+    "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+if not DEBUG and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage":
+    raise ImproperlyConfigured(
+        "Production media storage is local filesystem. Configure DJANGO_MEDIA_STORAGE_BACKEND "
+        "to a durable backend (S3/R2/Cloudinary) before launch."
+    )
 
-# Error reporting: Sentry disabled (paid in production). Set SENTRY_DSN and uncomment to re-enable.
-# SENTRY_DSN = os.getenv("SENTRY_DSN")
-# if SENTRY_DSN and "test" not in sys.argv:
-#     import sentry_sdk
-#     from sentry_sdk.integrations.django import DjangoIntegration
-#     sentry_sdk.init(
-#         dsn=SENTRY_DSN,
-#         environment=DJANGO_ENV,
-#         integrations=[DjangoIntegration()],
-#         traces_sample_rate=0.1,
-#         send_default_pii=False,
-#         sample_rate=1.0 if not DEBUG else 0.2,
-#     )
+SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+if SENTRY_DSN and "test" not in sys.argv:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=DJANGO_ENV,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        sample_rate=1.0 if not DEBUG else 0.2,
+    )
 
 if "test" in sys.argv:
     # Use same PostgreSQL as dev/prod (DATABASE_URL). No SQLite override.

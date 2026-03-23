@@ -79,7 +79,10 @@
       "failedLoadReviews": "Nu s-au putut încărca recapitulările",
       "couldNotFetchReviews": "Nu am putut încărca coada de recapitulări.",
       "failedLoadMissions": "Nu s-au putut încărca misiunile",
-      "couldNotFetchMissions": "Nu am putut încărca misiunile."
+      "couldNotFetchMissions": "Nu am putut încărca misiunile.",
+      "urgent": "Urgent",
+      "nextReviewSkill": "Următoarea recapitulare: {{skill}}",
+      "startReviews": "Începe recapitulările"
     },
     "weakSkills": {
       "skillInsights": "Abilități și îmbunătățiri",
@@ -849,7 +852,17 @@
       "friends": "Prieteni"
     },
     "searchPlaceholder": "Caută utilizatori...",
+    "searchAriaLabel": "Caută în clasament",
     "you": "Tu ({{username}})",
+    "youBadge": "Tu",
+    "rankShort": "Locul {{rank}}",
+    "friendRequestSent": "Cererea de prietenie a fost trimisă.",
+    "loadMore": "Încarcă mai mult",
+    "podium": {
+      "place1": "Locul 1",
+      "place2": "Locul 2",
+      "place3": "Locul 3"
+    },
     "points": "{{points}} puncte",
     "empty": "Nu au fost găsiți utilizatori pentru selecția curentă.",
     "friendStatus": {
@@ -1450,7 +1463,8 @@
       "submissionFailed": "Trimiterea a eșuat. Te rugăm să încerci din nou.",
       "submitAnswer": "Te rugăm să trimiți un răspuns înainte de a continua.",
       "invalidFormat": "Format de exercițiu invalid",
-      "unsupportedType": "Tip de exercițiu neacceptat."
+      "unsupportedType": "Tip de exercițiu neacceptat.",
+      "invalidDragDrop": "Format de răspuns drag-and-drop invalid."
     },
     "mascot": {
       "correct": "Bravo! Ai răspuns corect.",
@@ -1500,7 +1514,8 @@
       "completed": "Finalizat",
       "attempted": "Încercat",
       "empty": "Încă nu ai progres. Începe un exercițiu pentru a-ți vedea progresul aici!",
-      "totalCompleted": "Total completate"
+      "totalCompleted": "Total completate",
+      "pending": "Neînceput"
     },
     "timedMode": "Mod cronometrat",
     "streak": "🔥 Ai completat {{count}} exerciții la rând - continuă!",
@@ -1543,7 +1558,10 @@
         "weak_skill_practice": "Din tabloul de bord: zonă de îmbunătățit (exersare).",
         "quick_card_exercises": "Din cardul rapid de exersare de pe tabloul de bord.",
         "default": "Recomandare din tabloul de bord."
-      }
+      },
+      "restoreBanner": "Afișează din nou recomandarea",
+      "reminderShortApplied": "Exersare focalizată pentru {{skill}} în {{category}}.",
+      "reminderShortUnmapped": "Recomandarea de exersare pentru {{skill}} este ascunsă."
     },
     "hints": {
       "title": "Indicații",
@@ -1582,7 +1600,8 @@
       "completed": "Felicitări! Ai completat exercițiul!",
       "partialCorrect": "{{correct}} din {{total}} răspunsuri sunt corecte. Încearcă din nou!",
       "alreadyCompleted": "Acest exercițiu este deja completat.",
-      "answerLabel": "Răspuns:"
+      "answerLabel": "Răspuns:",
+      "slot": "#{{n}}"
     },
     "budget": {
       "instruction": "Alocă bugetul pe categoriile de mai jos. Totalul trebuie să fie {{total}}.",
@@ -1632,7 +1651,9 @@
       "submitAnswers": "Trimite răspunsurile"
     },
     "calculator": {
-      "checkExpression": "Verifică expresia"
+      "checkExpression": "Verifică expresia",
+      "backspace": "⌫",
+      "clear": "Șterge"
     },
     "inputs": {
       "numberPlaceholder": "Introdu un număr"
@@ -1650,7 +1671,40 @@
     "loading": "Se încarcă exercițiile...",
     "retry": "Reîncearcă",
     "skillFallback": "General",
-    "streakCongrats": "Ai reușit! Păstrează-ți seria."
+    "streakCongrats": "Ai reușit! Păstrează-ți seria.",
+    "numeric": {
+      "expectedValue": "Valoare așteptată: {{value}}",
+      "expectedWithTolerance": "Valoare așteptată: {{value}} (toleranță ±{{tolerance}})"
+    },
+    "summary": {
+      "title": "Rezumat sesiune exerciții",
+      "close": "Închide",
+      "averageAccuracy": "Acuratețe medie",
+      "firstTryAccuracy": "Acuratețe la prima încercare",
+      "xpEarned": "XP câștigat",
+      "streakMultiplier": "Multiplicator serie",
+      "none": "niciunul",
+      "coinsEarned": "Monede câștigate",
+      "coinsHint": "Câștigă mai multe monede finalizând misiuni.",
+      "averageAttempts": "Încercări medii",
+      "perQuestion": "per întrebare",
+      "reviewDue": "Recapitulări restante",
+      "totalTimeSpent": "Timp total petrecut",
+      "timeRemaining": "Timp rămas",
+      "missionProgress": "Progres misiune",
+      "firstTryCorrect": "Răspunsuri corecte din prima",
+      "currentStreak": "Seria curentă",
+      "skillHighlights": "Abilități evidențiate",
+      "masteryPoints": "puncte de stăpânire",
+      "doReviews": "Fă recapitulările",
+      "nextRecommended": "Următoarea recomandată",
+      "startNewSession": "Începe sesiune nouă",
+      "totalCompletedOf": "{{done}} din {{total}}",
+      "queuedCount": "{{count}} exerciții în coadă",
+      "nextWithType": "Următorul: {{skill}} ({{type}})",
+      "reviewCtaWithCount": "Ai {{count}} element(e) în așteptare. Fă recapitulările acum ca să consolidezi progresul.",
+      "reviewCtaNone": "Nu ai recapitulări restante. Continuă lecția sau treci la următorul exercițiu recomandat."
+    }
   },
   "landing": {
     "hero": {
