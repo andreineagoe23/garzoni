@@ -13,8 +13,19 @@ declare module "axios" {
 }
 
 /**
+ * Read a cookie value by name.
+ * Used to extract the Django CSRF token for state-changing requests.
+ */
+export function getCookie(name: string): string {
+  const match = document.cookie.match(
+    new RegExp("(?:^|;\\s*)" + name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&") + "=([^;]*)"),
+  );
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+/**
  * Single HTTP client for all backend API calls. Use this instead of raw axios + BACKEND_URL
- * so that auth headers, i18n headers, 401/403 handling, and error toasts are consistent.
+ * so that auth headers, CSRF headers, i18n headers, 401/403 handling, and error toasts are consistent.
  */
 const apiClient = axios.create({
   baseURL: BACKEND_URL,
@@ -23,11 +34,25 @@ const apiClient = axios.create({
 
 const AUTH_EXPIRED_REASON = "session-expired";
 
-// Send current UI language so the backend can return translated content (lessons, exercises, etc.)
+/** HTTP methods that mutate state and therefore require a CSRF token. */
+const CSRF_UNSAFE_METHODS = new Set(["post", "put", "patch", "delete"]);
+
+// Send current UI language so the backend can return translated content
 apiClient.interceptors.request.use((config) => {
   const lang = typeof i18n?.language === "string" ? i18n.language : "en";
   config.headers.set("Accept-Language", lang);
   config.headers.set("X-App-Language", lang);
+
+  // Attach CSRF token for all unsafe methods so cookie-authenticated endpoints
+  // (refresh, logout) are protected against CSRF.
+  const method = (config.method ?? "").toLowerCase();
+  if (CSRF_UNSAFE_METHODS.has(method)) {
+    const csrfToken = getCookie("csrftoken");
+    if (csrfToken) {
+      config.headers.set("X-CSRFToken", csrfToken);
+    }
+  }
+
   return config;
 });
 

@@ -1,6 +1,8 @@
 /**
- * Handles redirect from backend after Google OAuth: reads access token from hash,
- * completes login in AuthContext, then navigates to the intended page.
+ * Handles redirect from backend after Google OAuth: reads access token from
+ * the URL fragment, completes login in AuthContext, then navigates to the
+ * intended page.  The fragment is never sent to the server and is cleared
+ * from the browser history immediately after reading.
  */
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -13,6 +15,13 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const hash = window.location.hash.replace(/^#/, "");
+
+    // Clear the fragment from the address bar immediately so the token is
+    // not retained in browser history or visible to the user.
+    if (window.history.replaceState) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
     const params = new URLSearchParams(hash);
     let access = params.get("access");
     const next = params.get("next") || "all-topics";

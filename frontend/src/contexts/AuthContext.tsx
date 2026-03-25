@@ -78,29 +78,31 @@ type RefreshResult =
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Access token is kept in memory; sessionStorage is used to survive full reloads.
+// ─────────────────────────────────────────────────────────────────────────────
+// Access token is kept ONLY in memory — never written to sessionStorage or
+// localStorage — to reduce XSS exposure.  On a hard reload the app calls
+// /token/refresh/ once (guarded by REFRESH_SESSION_KEY) to re-hydrate.
+// ─────────────────────────────────────────────────────────────────────────────
 let inMemoryToken: string | null = null;
-const ACCESS_TOKEN_STORAGE_KEY = "monevo_access_token";
+
+// Only signals whether a refresh session may exist (no token value stored).
 const REFRESH_SESSION_KEY = "monevo_has_refresh_session";
+
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:monevo.educational@gmail.com?subject=Billing%20support";
 const isDevelopment = process.env.NODE_ENV === "development";
 const authLog = (...args: unknown[]) => {
-  if (isDevelopment) {
-    console.info(...args);
-  }
+  if (isDevelopment) console.info(...args);
 };
 const authWarn = (...args: unknown[]) => {
-  if (isDevelopment) {
-    console.warn(...args);
-  }
+  if (isDevelopment) console.warn(...args);
 };
 const authError = (...args: unknown[]) => {
   console.error(...args);
 };
 
 // Rate limiting for token refresh
-const REFRESH_COOLDOWN = 5000; // 5 seconds cooldown between refresh attempts
+const REFRESH_COOLDOWN = 5000;
 let refreshAttempts = 0;
 const MAX_REFRESH_ATTEMPTS = 3;
 
@@ -138,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearAuthState = useCallback(() => {
     inMemoryToken = null;
-    sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    // Remove only the session-existence flag, never a stored token value
     sessionStorage.removeItem(REFRESH_SESSION_KEY);
     setIsAuthenticated(false);
     setUser(null);
@@ -169,21 +171,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
 
-  const persistAccessToken = useCallback((token: string) => {
-    if (!token) return;
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+  /**
+   * Store ONLY the session-existence flag (never the token value).
+   * The actual access token lives in inMemoryToken.
+   */
+  const markRefreshSession = useCallback(() => {
     sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
-  }, []);
-
-  const restoreAccessToken = useCallback(() => {
-    if (inMemoryToken) return inMemoryToken;
-    const stored = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-    if (stored) {
-      inMemoryToken = stored;
-      attachToken(stored);
-      return stored;
-    }
-    return null;
   }, []);
 
   const hasRefreshSession = useCallback(() => {
@@ -196,20 +189,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         authLog("[auth] fetchUserWithToken skipped: no token");
         return false;
       }
-
-      authLog("[auth] fetchUserWithToken using token");
-
       try {
         const userResponse = await apiClient.get("/verify-auth/", {
           headers: { Authorization: `Bearer ${token}` },
           skipAuthRedirect: true,
         });
-
         if (userResponse.data.isAuthenticated) {
           setUser(userResponse.data.user);
           setIsAuthenticated(true);
           refreshAttempts = 0;
-          authLog("[auth] verify-auth success");
           return true;
         }
         authWarn("[auth] verify-auth returned unauthenticated payload");
@@ -234,46 +222,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (now - lastRefreshAttempt.current < REFRESH_COOLDOWN) {
       return { ok: false, reason: "cooldown" };
     }
-
     if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
       return { ok: false, reason: "max-attempts" };
     }
-
     try {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
-
       const response = await apiClient.post(
         "/token/refresh/",
         {},
-        {
-          skipAuthRedirect: true,
-        }
+        { skipAuthRedirect: true }
       );
-
       if (!response.data.access) {
         return { ok: false, reason: "no-access" };
       }
-
       inMemoryToken = response.data.access;
-      persistAccessToken(inMemoryToken);
-      authLog("[auth] new access token received");
+      // Do NOT write the token to sessionStorage — in-memory only
+      markRefreshSession();
       attachToken(inMemoryToken);
       authLog("[auth] refresh success");
-
       return { ok: true, token: inMemoryToken };
     } catch (error) {
       const status = error.response?.status;
       const code = error.response?.data?.code;
-
       if (code === "user_not_found") {
         authWarn("[auth] refresh failed: user_not_found; clearing state");
         clearAuthState();
         return { ok: false, reason: "user-not-found" };
       }
-
-      // Don't log 400 errors as they're expected when refresh token is invalid/expired
-      // Only log unexpected errors
       if (status !== 400) {
         authError(
           "Token refresh failed:",
@@ -283,28 +259,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authWarn("[auth] refresh failed", status);
       return { ok: false, reason: "refresh-failed" };
     }
-  }, [clearAuthState, persistAccessToken]);
+  }, [clearAuthState, markRefreshSession]);
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
-
     try {
       isVerifying.current = true;
       authLog("[auth] verifyAuth start");
-      const restored = restoreAccessToken();
-      if (restored) {
-        const validated = await fetchUserWithToken(restored);
-        if (validated === true) {
-          setIsAuthenticated(true);
-          setIsInitialized(true);
-          return;
-        }
-      }
+
+      // No sessionStorage token to restore — go straight to refresh if we
+      // have a session flag indicating a refresh cookie may be present.
       if (!hasRefreshSession()) {
         authLog("[auth] verifyAuth skipped: no refresh session");
         setIsInitialized(true);
         return;
       }
+
       const refreshed = await refreshToken();
       if (
         !refreshed.ok &&
@@ -317,25 +287,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (refreshed.ok) {
-        // Assume authenticated on successful refresh; attempt to fetch user, but don't log out on a single verify failure
         setIsAuthenticated(true);
         const validated = await fetchUserWithToken(refreshed.token);
-        if (validated === true) {
-          return;
-        }
-
+        if (validated === true) return;
         if (
           validated &&
           typeof validated === "object" &&
           "unauthorized" in validated
         ) {
           authWarn(
-            "[auth] verify-auth 401 after refresh; keeping session and will rely on next call/flow"
+            "[auth] verify-auth 401 after refresh; keeping session"
           );
           return;
         }
-
-        // Non-401 fetch errors: keep session, they might be transient
         return;
       }
 
@@ -351,32 +315,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsInitialized(true);
       isVerifying.current = false;
     }
-  }, [
-    clearAuthState,
-    fetchUserWithToken,
-    refreshToken,
-    restoreAccessToken,
-    hasRefreshSession,
-  ]);
+  }, [clearAuthState, fetchUserWithToken, refreshToken, hasRefreshSession]);
 
   const loginUser = async (credentials: Record<string, unknown>) => {
     try {
       const response = await apiClient.post("/login-secure/", credentials, {
         skipAuthRedirect: true,
       });
-
       if (!response.data.access) {
         authError("No access token in login response");
         throw new Error("No access token received");
       }
-
       inMemoryToken = response.data.access;
-      persistAccessToken(inMemoryToken);
+      markRefreshSession();
       setIsAuthenticated(true);
       setUser(response.data.user);
-
       attachToken(inMemoryToken);
-
       return { success: true, user: response.data.user as UserProfile };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;
@@ -385,13 +339,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const code = data?.code;
       const url =
         errorObj.config?.url ?? errorObj.config?.baseURL ?? "/login-secure/";
-      authError("[auth] Login failed:", {
-        status,
-        code,
-        detail: data?.detail,
-        errors: data?.errors,
-        url,
-      });
+      authError("[auth] Login failed:", { status, code, url });
       let message: string;
       if (!errorObj.response) {
         message =
@@ -413,19 +361,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await apiClient.post("/register-secure/", userData, {
         skipAuthRedirect: true,
       });
-
       if (!response.data.access) {
         authError("No access token in registration response");
         throw new Error("No access token received");
       }
-
       inMemoryToken = response.data.access;
-      persistAccessToken(inMemoryToken);
+      markRefreshSession();
       setIsAuthenticated(true);
       setUser(response.data.user);
-
       attachToken(inMemoryToken);
-
       return {
         success: true,
         user: response.data.user as UserProfile,
@@ -438,13 +382,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const code = data?.code;
       const url =
         errorObj.config?.url ?? errorObj.config?.baseURL ?? "/register-secure/";
-      authError("[auth] Registration failed:", {
-        status,
-        code,
-        detail: data?.detail,
-        errors: data?.errors,
-        url,
-      });
+      authError("[auth] Registration failed:", { status, code, url });
       let message: string;
       if (!errorObj.response) {
         message =
@@ -496,7 +434,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { success: false, error: "Missing access token" };
       }
       inMemoryToken = accessToken.trim();
-      persistAccessToken(inMemoryToken);
+      markRefreshSession();
       attachToken(inMemoryToken);
       try {
         const userResponse = await apiClient.get("/verify-auth/", {
@@ -519,7 +457,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { success: false, error: String(msg) };
       }
     },
-    [persistAccessToken]
+    [markRefreshSession]
   );
 
   const cacheRequest = useCallback(
@@ -536,24 +474,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             inFlightRequestsRef.current.delete(key);
           }
         })();
-
         inFlightRequestsRef.current.set(key, requestPromise);
         return requestPromise;
       };
-
       if (force) {
         const existing = inFlightRequestsRef.current.get(key);
-        if (existing) {
-          return existing.then(() => runFetch());
-        }
+        if (existing) return existing.then(() => runFetch());
         return runFetch();
       }
-
       const existing = inFlightRequestsRef.current.get(key);
-      if (existing) {
-        return existing;
-      }
-
+      if (existing) return existing;
       return runFetch();
     },
     []
@@ -562,11 +492,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadProfile = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
       if (!isAuthenticated) return null;
-
-      if (!force && profileRef.current) {
-        return profileRef.current;
-      }
-
+      if (!force && profileRef.current) return profileRef.current;
       const data = await cacheRequest(
         "profile",
         async () => {
@@ -575,7 +501,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
         { force }
       );
-
       const profileData = data as UserProfile;
       profileRef.current = profileData;
       setProfile(profileData);
@@ -598,9 +523,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadFinancialProfile = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
       if (!isAuthenticated) return null;
-      if (!force && financialProfileRef.current) {
-        return financialProfileRef.current;
-      }
+      if (!force && financialProfileRef.current) return financialProfileRef.current;
       const data = await cacheRequest(
         "financial-profile",
         async () => {
@@ -630,11 +553,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadSettings = useCallback(
     async ({ force = false }: { force?: boolean } = {}) => {
       if (!isAuthenticated) return null;
-
-      if (!force && settingsRef.current) {
-        return settingsRef.current;
-      }
-
+      if (!force && settingsRef.current) return settingsRef.current;
       const data = await cacheRequest(
         "settings",
         async () => {
@@ -643,7 +562,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
         { force }
       );
-
       const settingsData = data as Record<string, unknown>;
       settingsRef.current = settingsData;
       setSettings(settingsData);
@@ -670,11 +588,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setEntitlementError(null);
         return fallbackEntitlements;
       }
-
-      if (!force && entitlementsRef.current) {
-        return entitlementsRef.current;
-      }
-
+      if (!force && entitlementsRef.current) return entitlementsRef.current;
       try {
         const data = await cacheRequest(
           "entitlements",
@@ -684,7 +598,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           },
           { force }
         );
-
         const dataObj = data as Partial<Entitlements> & {
           subscription?: { status?: string; trial_end?: string };
         };
@@ -705,13 +618,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           fallback: false,
           checked_at: dataObj?.checked_at,
         };
-
         entitlementsRef.current = normalized;
         setEntitlements(normalized);
         setEntitlementError(null);
-        queryClient.setQueryData(queryKeys.entitlements(), {
-          data: normalized,
-        });
+        queryClient.setQueryData(queryKeys.entitlements(), { data: normalized });
         return normalized;
       } catch (error) {
         const fallbackEntitlements: Entitlements = {
@@ -764,10 +674,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
-
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
-
           try {
             const refreshed = await refreshToken();
             if (refreshed.ok) {
@@ -785,10 +693,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               )?.response?.data || (refreshError as Error)?.message
             );
           }
-
           clearAuthState();
         }
-
         return Promise.reject(error);
       }
     );
@@ -799,11 +705,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [clearAuthState, refreshToken]);
 
-  // Verify auth on mount
   useEffect(() => {
-    if (didRequestInitialVerifyRef.current) {
-      return;
-    }
+    if (didRequestInitialVerifyRef.current) return;
     didRequestInitialVerifyRef.current = true;
     verifyAuth();
   }, [verifyAuth]);
@@ -826,7 +729,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setFinancialProfile(null);
       return;
     }
-
     loadEntitlements().catch((error) => {
       authError("Failed to prefetch entitlements:", error);
     });
