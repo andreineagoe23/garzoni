@@ -106,6 +106,19 @@ const REFRESH_COOLDOWN = 5000;
 let refreshAttempts = 0;
 const MAX_REFRESH_ATTEMPTS = 3;
 
+/**
+ * Fetch the Django CSRF cookie so it is set before the first
+ * state-mutating request (token/refresh, logout).  Safe to call
+ * multiple times — the server is idempotent and the browser caches the cookie.
+ */
+async function prefetchCsrfToken(): Promise<void> {
+  try {
+    await apiClient.get("/csrf/", { skipAuthRedirect: true, skipGlobalErrorToast: true });
+  } catch {
+    // Non-fatal — the CSRF cookie may already be set from a prior page load.
+  }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -140,7 +153,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearAuthState = useCallback(() => {
     inMemoryToken = null;
-    // Remove only the session-existence flag, never a stored token value
     sessionStorage.removeItem(REFRESH_SESSION_KEY);
     setIsAuthenticated(false);
     setUser(null);
@@ -171,10 +183,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
 
-  /**
-   * Store ONLY the session-existence flag (never the token value).
-   * The actual access token lives in inMemoryToken.
-   */
   const markRefreshSession = useCallback(() => {
     sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
   }, []);
@@ -237,7 +245,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { ok: false, reason: "no-access" };
       }
       inMemoryToken = response.data.access;
-      // Do NOT write the token to sessionStorage — in-memory only
       markRefreshSession();
       attachToken(inMemoryToken);
       authLog("[auth] refresh success");
@@ -267,8 +274,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isVerifying.current = true;
       authLog("[auth] verifyAuth start");
 
-      // No sessionStorage token to restore — go straight to refresh if we
-      // have a session flag indicating a refresh cookie may be present.
+      // Ensure the CSRF cookie is set before the first POST (token/refresh).
+      // This is a GET so it runs before the csrf_protect check on /token/refresh/.
+      await prefetchCsrfToken();
+
       if (!hasRefreshSession()) {
         authLog("[auth] verifyAuth skipped: no refresh session");
         setIsInitialized(true);
@@ -295,9 +304,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           typeof validated === "object" &&
           "unauthorized" in validated
         ) {
-          authWarn(
-            "[auth] verify-auth 401 after refresh; keeping session"
-          );
+          authWarn("[auth] verify-auth 401 after refresh; keeping session");
           return;
         }
         return;
@@ -370,10 +377,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(true);
       setUser(response.data.user);
       attachToken(inMemoryToken);
+      // next from backend is a bare path segment e.g. "onboarding".
+      // Ensure it always resolves to an absolute path for navigate().
+      const rawNext: string = response.data.next || "onboarding";
+      const next = rawNext.startsWith("/") ? rawNext : `/${rawNext}`;
       return {
         success: true,
         user: response.data.user as UserProfile,
-        next: response.data.next,
+        next,
       };
     } catch (error) {
       const errorObj = error as ApiErrorResponse;

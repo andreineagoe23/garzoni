@@ -2,7 +2,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .views_google_oauth import GoogleOAuthInitView, GoogleOAuthCallbackView
+from .views_google_oauth import (
+    GoogleOAuthInitView,
+    GoogleOAuthCallbackView,
+    GoogleCredentialAuthView,
+)
 from .views import (
     LoginSecureView,
     RegisterSecureView,
@@ -40,6 +44,8 @@ urlpatterns = [
     path("register-secure/", RegisterSecureView.as_view(), name="register-secure"),
     path("auth/google/", GoogleOAuthInitView.as_view(), name="google-oauth-init"),
     path("auth/google/callback", GoogleOAuthCallbackView.as_view(), name="google-oauth-callback"),
+    # Google One Tap / Sign-in button credential verification (JSON, no redirect)
+    path("auth/google/verify-credential/", GoogleCredentialAuthView.as_view(), name="google-verify-credential"),
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh"),
     path("verify-auth/", VerifyAuthView.as_view(), name="verify-auth"),
     path("logout/", LogoutView.as_view(), name="logout"),
