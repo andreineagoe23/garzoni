@@ -16,6 +16,8 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from core.utils import env_bool
 from core.http_client import request_with_backoff
 import requests
@@ -33,12 +35,34 @@ logger = logging.getLogger(__name__)
 REFRESH_COOKIE_NAME = "refresh_token"
 DEFAULT_REFRESH_MAX_AGE = 0
 
+# Environments where secure cookie overrides are permitted via env vars.
+# Outside of local/test, secure=True and samesite=None are always enforced.
+_INSECURE_ALLOWED_ENVS = {"local", "test", "development"}
+
 
 def _get_refresh_cookie_kwargs():
-    """Build keyword arguments for setting the refresh token cookie."""
-    secure = env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
-    default_samesite = "None" if secure else "Lax"
-    samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
+    """Build keyword arguments for setting the refresh token cookie.
+
+    Security rules:
+    - In non-local/non-test environments, secure=True and samesite='None' are
+      enforced regardless of env-var overrides.
+    - REFRESH_COOKIE_DOMAIN is omitted by default; only set if
+      REFRESH_COOKIE_DOMAIN_ENABLED=true is also set, to prevent overly-wide domains.
+    - max_age is session-only (0) unless REFRESH_TOKEN_MAX_AGE is explicitly set.
+    """
+    django_env = os.getenv("DJANGO_ENV", "production" if not settings.DEBUG else "local").lower()
+    is_insecure_env = django_env in _INSECURE_ALLOWED_ENVS
+
+    if is_insecure_env:
+        # Allow env-var overrides only in local/test/development
+        secure = env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
+        default_samesite = "None" if secure else "Lax"
+        samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
+    else:
+        # Production: always secure, always SameSite=None (cross-origin SPA)
+        secure = True
+        samesite = "None"
+
     max_age_setting = os.getenv("REFRESH_TOKEN_MAX_AGE")
     max_age = DEFAULT_REFRESH_MAX_AGE
 
@@ -66,9 +90,12 @@ def _get_refresh_cookie_kwargs():
     if max_age > 0:
         cookie_kwargs["max_age"] = max_age
 
-    cookie_domain = os.getenv("REFRESH_COOKIE_DOMAIN")
-    if cookie_domain:
-        cookie_kwargs["domain"] = cookie_domain
+    # Only attach cookie domain if explicitly opted in via REFRESH_COOKIE_DOMAIN_ENABLED=true
+    # This prevents accidentally wide-domain cookies.
+    if env_bool("REFRESH_COOKIE_DOMAIN_ENABLED", False):
+        cookie_domain = os.getenv("REFRESH_COOKIE_DOMAIN")
+        if cookie_domain:
+            cookie_kwargs["domain"] = cookie_domain
 
     return cookie_kwargs
 
@@ -130,10 +157,8 @@ def verify_recaptcha_enterprise(token, expected_action, request):
         resp = result.response
         if resp.status_code != 200:
             logger.warning(
-                "reCAPTCHA Enterprise API error: status=%s url=%s body=%s",
+                "reCAPTCHA Enterprise API error: status=%s",
                 resp.status_code,
-                url,
-                resp.text[:800],
             )
             return False
         body = resp.json()
@@ -141,9 +166,8 @@ def verify_recaptcha_enterprise(token, expected_action, request):
         risk = body.get("riskAnalysis") or {}
         if not token_props.get("valid", False):
             logger.warning(
-                "reCAPTCHA Enterprise token invalid: invalidReason=%s full_token_props=%s",
+                "reCAPTCHA Enterprise token invalid: invalidReason=%s",
                 token_props.get("invalidReason", "unknown"),
-                token_props,
             )
             return False
         if token_props.get("action") != expected_action:
@@ -191,8 +215,7 @@ def verify_recaptcha(token):
 
         if not success:
             logger.warning(
-                "reCAPTCHA verify failed: success=False error-codes=%s",
-                body.get("error-codes", []),
+                "reCAPTCHA verify failed: success=False",
             )
             return False
         if score is not None and score < required:
@@ -219,9 +242,18 @@ def get_csrf_token(request):
 
 
 class LogoutView(APIView):
-    """Handles user logout by clearing JWT cookies."""
+    """Handles user logout by clearing JWT cookies.
+
+    CSRF protection is enforced here because auth is carried by the refresh
+    cookie (not an Authorization header), making this endpoint susceptible to
+    CSRF without the extra check.
+    """
 
     permission_classes = [AllowAny]
+
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
@@ -283,8 +315,6 @@ class LoginSecureView(APIView):
                     status=400,
                 )
 
-        logger.info("Login attempt for username: %s", username)
-
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
             return Response(
@@ -295,14 +325,12 @@ class LoginSecureView(APIView):
         try:
             user = User.objects.get(username=username)
             if not user.check_password(password):
-                logger.warning("Invalid password for %s", username)
+                logger.warning("Invalid password attempt")
                 return Response({"detail": "Invalid username or password."}, status=401)
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-
-            logger.info("Successful login for %s", username)
 
             response = Response(
                 {
@@ -323,7 +351,7 @@ class LoginSecureView(APIView):
             return response
 
         except User.DoesNotExist:
-            logger.warning("Login attempt for non-existent user: %s", username)
+            logger.warning("Login attempt for non-existent user")
             return Response(
                 {"detail": "Invalid username or password.", "code": "invalid_credentials"},
                 status=401,
@@ -346,9 +374,6 @@ class RegisterSecureView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         email = (request.data.get("email") or "").strip()
         username = (request.data.get("username") or "").strip()
-        logger.info(
-            "Register attempt email=%s username=%s", email or "(empty)", username or "(empty)"
-        )
 
         # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token
         if _recaptcha_required():
@@ -387,7 +412,7 @@ class RegisterSecureView(generics.CreateAPIView):
             serializer.is_valid(raise_exception=True)
         except ValidationError:
             errs = serializer.errors
-            logger.warning("Register validation failed: %s", errs)
+            logger.warning("Register validation failed")
             for _field, msgs in errs.items():
                 if msgs and isinstance(msgs, (list, tuple)):
                     msg = msgs[0] if isinstance(msgs[0], str) else str(msgs[0])
@@ -418,7 +443,6 @@ class RegisterSecureView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        logger.info("Register success user_id=%s username=%s", user.id, user.username)
 
         response = Response(
             {
@@ -453,8 +477,13 @@ class VerifyAuthView(APIView):
         )
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class CustomTokenRefreshView(TokenRefreshView):
-    """Custom token refresh view that extracts the refresh token from cookies."""
+    """Custom token refresh view that extracts the refresh token from cookies.
+
+    CSRF protection is enforced because auth is carried via the refresh cookie,
+    not an Authorization header.
+    """
 
     permission_classes = [AllowAny]
     throttle_classes = [RefreshRateThrottle]
@@ -471,7 +500,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as exc:
-            logger.error("Token refresh error: %s", exc)
+            logger.error("Token refresh error (TokenError)")
             response = Response({"detail": str(exc)}, status=401)
             clear_refresh_cookie(response)
             return response
@@ -497,7 +526,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             if user_id:
                 User.objects.get(id=user_id)
         except User.DoesNotExist:
-            logger.error("Token refresh attempted for missing user id=%s", user_id)
+            logger.error("Token refresh attempted for non-existent user")
             response = Response(
                 {"detail": "User not found", "code": "user_not_found"},
                 status=401,
@@ -505,7 +534,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             clear_refresh_cookie(response)
             return response
         except TokenError as exc:
-            logger.warning("Refresh token blacklisted during user validation: %s", exc)
+            logger.warning("Refresh token blacklisted during user validation")
             response = Response({"detail": "Token is blacklisted."}, status=401)
             clear_refresh_cookie(response)
             return response

@@ -6,12 +6,11 @@ Google OAuth 2.0 flow for login and register.
   verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
 
-import hashlib
-import hmac
 import logging
 import os
 import re
 import secrets
+import time
 import urllib.parse
 
 import requests
@@ -27,12 +26,16 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentication.user_display import user_display_dict
+from authentication.views_auth import _get_refresh_cookie_kwargs
 from core.utils import env_bool
 
 logger = logging.getLogger(__name__)
 
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 REFRESH_COOKIE_NAME = "refresh_token"
+
+# Allowed Google token issuers
+_GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 
 # Only allow relative paths or whitelisted destinations as post-login redirect
 _ALLOWED_NEXT_RE = re.compile(r'^[a-zA-Z0-9_\-/]*$')
@@ -45,40 +48,13 @@ def _sanitize_next(next_path: str, default: str = "all-topics") -> str:
         return default
     cleaned = next_path.strip().lstrip("/")[:_MAX_NEXT_LEN]
     if not _ALLOWED_NEXT_RE.match(cleaned):
-        logger.warning("Unsafe next path rejected: %s", next_path)
+        logger.warning("Unsafe next path rejected")
         return default
     return cleaned
 
 
-def _get_refresh_cookie_kwargs():
-    """Build keyword arguments for setting the refresh token cookie (mirrors views_auth)."""
-    secure = env_bool("REFRESH_COOKIE_SECURE", not settings.DEBUG)
-    default_samesite = "None" if secure else "Lax"
-    samesite = os.getenv("REFRESH_COOKIE_SAMESITE", default_samesite)
-    max_age_setting = os.getenv("REFRESH_TOKEN_MAX_AGE")
-    max_age = 0
-    if max_age_setting is not None:
-        cleaned = max_age_setting.strip().lower()
-        if cleaned not in {"session", "none", ""}:
-            try:
-                max_age = int(max_age_setting)
-            except ValueError:
-                pass
-    cookie_kwargs = {
-        "httponly": True,
-        "secure": secure,
-        "samesite": samesite,
-        "path": "/",
-    }
-    if max_age > 0:
-        cookie_kwargs["max_age"] = max_age
-    if os.getenv("REFRESH_COOKIE_DOMAIN"):
-        cookie_kwargs["domain"] = os.getenv("REFRESH_COOKIE_DOMAIN")
-    return cookie_kwargs
-
-
 def _set_refresh_cookie(response, token: str):
-    """Attach the refresh token cookie to the response."""
+    """Attach the refresh token cookie to the response (uses shared cookie builder)."""
     response.set_cookie(REFRESH_COOKIE_NAME, token, **_get_refresh_cookie_kwargs())
 
 
@@ -127,6 +103,53 @@ def _get_google_config():
     return client_id.strip(), client_secret.strip()
 
 
+def _verify_google_id_token(credential: str, client_id: str) -> dict:
+    """
+    Verify a Google ID token via the tokeninfo endpoint.
+    Validates: audience, issuer, expiry, and email_verified.
+    Returns the token payload dict on success, raises ValueError on failure.
+    """
+    try:
+        token_resp = requests.get(
+            GOOGLE_TOKENINFO_URL,
+            params={"id_token": credential},
+            timeout=10,
+        )
+        token_resp.raise_for_status()
+        payload = token_resp.json()
+    except requests.RequestException as e:
+        logger.exception("Google tokeninfo request failed")
+        raise ValueError("Google credential verification failed") from e
+
+    # Validate audience
+    aud = payload.get("aud") or payload.get("azp")
+    if aud != client_id:
+        logger.warning("Google token audience mismatch")
+        raise ValueError("Invalid credential audience")
+
+    # Validate issuer
+    iss = payload.get("iss", "")
+    if iss not in _GOOGLE_ISSUERS:
+        logger.warning("Google token issuer mismatch: got %s", iss)
+        raise ValueError("Invalid credential issuer")
+
+    # Validate expiry
+    exp = payload.get("exp")
+    if exp is not None:
+        try:
+            if int(exp) < int(time.time()):
+                raise ValueError("Google credential has expired")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Invalid expiry in Google credential") from exc
+
+    # Validate email verified
+    if payload.get("email_verified") not in (True, "true"):
+        logger.warning("Google token: unverified email")
+        raise ValueError("Google account email is not verified")
+
+    return payload
+
+
 class GoogleOAuthInitView(APIView):
     """Redirect the user to Google's OAuth consent screen."""
 
@@ -142,7 +165,13 @@ class GoogleOAuthInitView(APIView):
         next_path = _sanitize_next(request.GET.get("next", ""))
         state = _generate_state(next_path)
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
+        # Always build redirect URI from settings in production to prevent open redirect
+        backend_url = getattr(settings, "BACKEND_URL", "").rstrip("/")
+        if backend_url:
+            redirect_uri = f"{backend_url}/api/auth/google/callback"
+        else:
+            redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
+
         params = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,
@@ -175,7 +204,7 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google OAuth callback missing code")
             return redirect(f"{frontend_url}/login?error=oauth_missing_code")
 
-        # --- SECURITY: validate and consume the state parameter ---
+        # SECURITY: validate and consume the state parameter (prevents CSRF)
         try:
             next_path = _consume_state(raw_state)
         except ValueError as exc:
@@ -187,7 +216,12 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google OAuth not configured")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
+        # Redirect URI must match what was sent to Google exactly
+        backend_url = getattr(settings, "BACKEND_URL", "").rstrip("/")
+        if backend_url:
+            redirect_uri = f"{backend_url}/api/auth/google/callback"
+        else:
+            redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
 
         # Exchange code for tokens
         token_data = {
@@ -207,7 +241,7 @@ class GoogleOAuthCallbackView(APIView):
             token_resp.raise_for_status()
             token_json = token_resp.json()
         except requests.RequestException as e:
-            logger.exception("Google token exchange failed: %s", e)
+            logger.exception("Google token exchange failed")
             return redirect(f"{frontend_url}/login?error=oauth_token_failed")
 
         access_token = token_json.get("access_token")
@@ -225,7 +259,7 @@ class GoogleOAuthCallbackView(APIView):
             userinfo_resp.raise_for_status()
             userinfo = userinfo_resp.json()
         except requests.RequestException as e:
-            logger.exception("Google userinfo failed: %s", e)
+            logger.exception("Google userinfo failed")
             return redirect(f"{frontend_url}/login?error=oauth_userinfo_failed")
 
         email = (userinfo.get("email") or "").strip()
@@ -235,7 +269,7 @@ class GoogleOAuthCallbackView(APIView):
 
         # SECURITY: reject unverified Google email addresses
         if not userinfo.get("verified_email", False):
-            logger.warning("Google OAuth: unverified email rejected for %s", email)
+            logger.warning("Google OAuth: unverified email rejected")
             return redirect(f"{frontend_url}/login?error=oauth_email_unverified")
 
         given_name = (userinfo.get("given_name") or "").strip()
@@ -252,6 +286,7 @@ class GoogleOAuthCallbackView(APIView):
         else:
             resolved_next = _sanitize_next(next_path)
 
+        # Pass access token in URL fragment (stripped by AuthCallback immediately on load)
         fragment = f"access={urllib.parse.quote(access_jwt)}&next={urllib.parse.quote(resolved_next)}"
         redirect_to = f"{frontend_url}/auth/callback#{fragment}"
 
@@ -323,36 +358,12 @@ class GoogleCredentialAuthView(APIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        # Verify ID token with Google tokeninfo
+        # Verify ID token: audience, issuer, expiry, email_verified
         try:
-            token_resp = requests.get(
-                GOOGLE_TOKENINFO_URL,
-                params={"id_token": credential},
-                timeout=10,
-            )
-            token_resp.raise_for_status()
-            payload = token_resp.json()
-        except requests.RequestException as e:
-            logger.exception("Google tokeninfo failed: %s", e)
+            payload = _verify_google_id_token(credential, client_id)
+        except ValueError as exc:
             return Response(
-                {"detail": "Invalid or expired Google credential.", "code": "invalid_credential"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        # Audience must match our client ID
-        aud = payload.get("aud") or payload.get("azp")
-        if aud != client_id:
-            logger.warning("Google token audience mismatch: got %s", aud)
-            return Response(
-                {"detail": "Invalid credential audience.", "code": "invalid_credential"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        # SECURITY: reject unverified Google email addresses
-        if not payload.get("email_verified") in (True, "true"):
-            logger.warning("Google One Tap: unverified email in token payload")
-            return Response(
-                {"detail": "Google account email is not verified.", "code": "oauth_email_unverified"},
+                {"detail": str(exc), "code": "invalid_credential"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
