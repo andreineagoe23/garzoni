@@ -15,7 +15,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.conf import settings
 from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.db import models
 import logging
@@ -103,46 +104,6 @@ def clear_refresh_cookie(response):
     response.delete_cookie(REFRESH_COOKIE_NAME, **delete_kwargs)
 
 
-# --- reCAPTCHA (commented out) ---
-# def verify_recaptcha(token, remote_ip=None):
-#     """Verify the user's reCAPTCHA response token with Google's siteverify API."""
-#     try:
-#         url = "https://www.google.com/recaptcha/api/siteverify"
-#         data = {"secret": settings.RECAPTCHA_PRIVATE_KEY, "response": token}
-#         if remote_ip:
-#             data["remoteip"] = remote_ip
-#         result = request_with_backoff(method="POST", url=url, data=data, allow_retry=False, max_attempts=1)
-#         body = result.response.json()
-#         if not body.get("success", False):
-#             return False
-#         score = body.get("score")
-#         if score is not None and score < getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.5):
-#             return False
-#         return True
-#     except Exception as e:
-#         logger.error("reCAPTCHA verification error: %s", e)
-#         return False
-#
-# def _get_client_ip(request):
-#     xff = request.META.get("HTTP_X_FORWARDED_FOR")
-#     if xff:
-#         return xff.split(",")[0].strip()
-#     return request.META.get("REMOTE_ADDR", "")
-#
-# def _require_recaptcha(request):
-#     if not settings.RECAPTCHA_PRIVATE_KEY:
-#         return None
-#     if getattr(settings, "DEBUG", False) and env_bool("RECAPTCHA_SKIP_WHEN_DEBUG", False):
-#         return None
-#     token = request.data.get("recaptcha_token")
-#     if not token:
-#         return Response({"detail": "reCAPTCHA token is required."}, status=400)
-#     if not verify_recaptcha(token, remote_ip=_get_client_ip(request) or None):
-#         return Response({"detail": "reCAPTCHA verification failed."}, status=400)
-#     return None
-# --- end reCAPTCHA ---
-
-
 @ensure_csrf_cookie
 def get_csrf_token(request):
     """Retrieve and return a CSRF token for the client."""
@@ -158,19 +119,15 @@ class UserProfileView(APIView):
     def get(self, request):
         """Retrieve and return the user's profile data."""
         user_profile = UserProfile.objects.get(user=request.user)
-        # Ensure every profile has a referral_code (for invites/referrals).
-        # This covers older accounts created before referral codes existed.
         if not user_profile.referral_code:
             user_profile.save()
 
-        # Get the current month's activity data
         today = timezone.now().date()
         first_day = today.replace(day=1)
         last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(
             days=1
         )
 
-        # Get all lesson completions for the current month
         lesson_completions = (
             LessonCompletion.objects.filter(
                 user_progress__user=request.user,
@@ -181,7 +138,6 @@ class UserProfileView(APIView):
             .annotate(count=models.Count("id"))
         )
 
-        # Create a dictionary of dates with completion counts
         activity_calendar = {
             str(date): 0
             for date in [
@@ -193,13 +149,10 @@ class UserProfileView(APIView):
         for completion in lesson_completions:
             activity_calendar[str(completion["completed_at__date"])] = completion["count"]
 
-        # Use onboarding progress (new flow) to avoid auto-completing when legacy
-        # question bank is empty.
         questionnaire_completed = QuestionnaireProgress.objects.filter(
             user=request.user, status="completed"
         ).exists()
 
-        # Add current month information
         current_month = {
             "first_day": first_day.isoformat(),
             "last_day": last_day.isoformat(),
@@ -319,19 +272,6 @@ class ConsumeEntitlementView(APIView):
 
 
 def _hearts_constants(profile=None):
-    """
-    Keep constants centralized to avoid frontend/backends drifting.
-
-    Rules:
-    - max hearts defaults to 5.
-    - regen interval defaults to 30 minutes.
-    - premium regen interval defaults to 15 minutes.
-
-    Settings overrides:
-    - HEARTS_MAX
-    - HEARTS_REGEN_SECONDS (standard)
-    - HEARTS_REGEN_SECONDS_PREMIUM (premium)
-    """
     max_hearts = getattr(settings, "HEARTS_MAX", 5)
     standard_regen_seconds = getattr(settings, "HEARTS_REGEN_SECONDS", 30 * 60)
     premium_regen_seconds = getattr(settings, "HEARTS_REGEN_SECONDS_PREMIUM", 15 * 60)
@@ -344,7 +284,6 @@ def _hearts_constants(profile=None):
             plan = get_user_plan(profile.user)
             is_premium = plan_allows(plan, "plus")
         except Exception:
-            # Be forgiving: some installs use has_paid to represent premium-like access.
             is_premium = bool(
                 getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
             )
@@ -354,10 +293,6 @@ def _hearts_constants(profile=None):
 
 
 def _apply_hearts_regen(profile, now=None):
-    """
-    Apply time-based regeneration to a UserProfile in-place (and save if changed).
-    Regeneration rule: +1 heart every regen interval until max_hearts.
-    """
     max_hearts, regen_seconds = _hearts_constants(profile)
     if now is None:
         now = timezone.now()
@@ -366,7 +301,6 @@ def _apply_hearts_regen(profile, now=None):
     last = getattr(profile, "hearts_last_refill_at", None) or now
 
     if hearts >= max_hearts:
-        # Keep timestamp fresh so the countdown is stable after a refill.
         if profile.hearts_last_refill_at != now:
             profile.hearts_last_refill_at = now
             profile.hearts = max_hearts
@@ -444,7 +378,6 @@ class UserHeartsDecrementView(APIView):
                 return Response(_hearts_payload(profile, now=now))
 
             profile.hearts = max(0, hearts - amount)
-            # Match frontend behavior: losing a heart resets the regen timer.
             profile.hearts_last_refill_at = now
             profile.save(update_fields=["hearts", "hearts_last_refill_at"])
             return Response(_hearts_payload(profile, now=now))
@@ -489,10 +422,14 @@ class UserHeartsRefillView(APIView):
             return Response(_hearts_payload(profile, now=now))
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class LogoutView(APIView):
-    """Handles user logout by clearing JWT cookies."""
+    """Handles user logout by clearing JWT cookies.
 
-    # AllowAny so an expired access token can still clear cookies. We still attempt to revoke refresh if provided.
+    CSRF is enforced because auth is carried by the refresh cookie,
+    not an Authorization header — making this endpoint susceptible to CSRF.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -503,7 +440,6 @@ class LogoutView(APIView):
             or request.headers.get("X-Refresh-Token")
         )
 
-        # Best-effort refresh token revocation (blacklist).
         if refresh_token:
             try:
                 token_obj = RefreshToken(refresh_token)
@@ -528,30 +464,19 @@ class LoginSecureView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        logger.info(f"Login attempt for username: {username}")
-
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
             return Response({"detail": "Username and password are required."}, status=400)
 
-        # recaptcha_error = _require_recaptcha(request)
-        # if recaptcha_error:
-        #     return recaptcha_error
-
         try:
             user = User.objects.get(username=username)
             if not user.check_password(password):
-                logger.warning(f"Invalid password for {username}")
                 return Response({"detail": "Invalid username or password."}, status=401)
 
-            # Create tokens
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
-            logger.info(f"Successful login for {username}")
-
-            # Create response with access token in body
             response = Response(
                 {
                     "access": access_token,
@@ -562,10 +487,8 @@ class LoginSecureView(APIView):
                 }
             )
 
-            # Set refresh token as HttpOnly cookie
             set_refresh_cookie(response, refresh_token)
 
-            # Update last login
             from django.utils.timezone import now
 
             user.last_login = now()
@@ -574,10 +497,9 @@ class LoginSecureView(APIView):
             return response
 
         except User.DoesNotExist:
-            logger.warning(f"Login attempt for non-existent user: {username}")
             return Response({"detail": "Invalid username or password."}, status=401)
         except Exception as e:
-            logger.error(f"Login error: {str(e)}")
+            logger.error("Login error: %s", e)
             return Response({"detail": "An error occurred during login."}, status=500)
 
 
@@ -588,20 +510,15 @@ class RegisterSecureView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # recaptcha_error = _require_recaptcha(request)
-        # if recaptcha_error:
-        #     return recaptcha_error
         data = request.data.copy() if hasattr(request.data, "copy") else dict(request.data)
-        data.pop("recaptcha_token", None)  # ignore if frontend still sends it
+        data.pop("recaptcha_token", None)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Generate tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        # Create response with access token
         response = Response(
             {
                 "access": access_token,
@@ -609,12 +526,12 @@ class RegisterSecureView(generics.CreateAPIView):
                 "user": user_display_dict(
                     user, include_id=True, include_email=True, include_staff=True
                 ),
-                "next": "/onboarding",  # New users complete onboarding first
+                # No leading slash — AuthContext does: navigate(`/${next}`)
+                "next": "onboarding",
             },
             status=status.HTTP_201_CREATED,
         )
 
-        # Set refresh token in HttpOnly cookie
         set_refresh_cookie(response, str(refresh))
 
         return response
@@ -637,8 +554,13 @@ class VerifyAuthView(APIView):
         )
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class CustomTokenRefreshView(TokenRefreshView):
-    """Custom token refresh view that extracts the refresh token from cookies."""
+    """Custom token refresh view that reads the refresh token from HttpOnly cookie.
+
+    CSRF is enforced because auth is carried by the refresh cookie,
+    not an Authorization header — making this endpoint susceptible to CSRF.
+    """
 
     permission_classes = [AllowAny]
 
@@ -658,30 +580,25 @@ class CustomTokenRefreshView(TokenRefreshView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as exc:
-            logger.error(f"Token refresh error: {exc}")
+            logger.error("Token refresh error (TokenError)")
             response = Response({"detail": str(exc)}, status=401)
             clear_refresh_cookie(response)
             return response
         except Exception as exc:
-            logger.error(f"Unexpected error during token refresh: {exc}", exc_info=True)
+            logger.error("Unexpected error during token refresh: %s", exc, exc_info=True)
             return Response(
                 {"detail": "An error occurred during token refresh."},
                 status=500,
             )
 
-        # Validate that the referenced user still exists; otherwise clear cookies
         try:
             token_obj = RefreshToken(refresh_token)
             user_id = token_obj.get("user_id")
             User.objects.get(id=user_id)
         except TokenError as exc:
-            # Blacklisted, expired, or invalid refresh token - clear cookie and return 401
-            logger.warning("Refresh token rejected (blacklisted or invalid): %s", exc)
+            logger.warning("Refresh token rejected (blacklisted or invalid)")
             response = Response(
-                {
-                    "detail": "Session expired. Please sign in again.",
-                    "code": "token_invalid",
-                },
+                {"detail": "Session expired. Please sign in again.", "code": "token_invalid"},
                 status=401,
             )
             clear_refresh_cookie(response)
@@ -695,11 +612,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             clear_refresh_cookie(response)
             return response
         except Exception as exc:
-            logger.error(
-                "Unexpected error while validating refresh token user: %s",
-                exc,
-                exc_info=True,
-            )
+            logger.error("Unexpected error while validating refresh token user: %s", exc, exc_info=True)
             response = Response({"detail": "User validation failed."}, status=401)
             clear_refresh_cookie(response)
             return response
@@ -713,10 +626,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             return Response({"detail": "Token refresh failed."}, status=401)
 
         response = Response(
-            {
-                "access": access_token,
-                "refresh": response_refresh,
-            },
+            {"access": access_token, "refresh": response_refresh},
             status=status.HTTP_200_OK,
         )
 
@@ -724,7 +634,6 @@ class CustomTokenRefreshView(TokenRefreshView):
             new_refresh_token = response_data.get("refresh")
             if new_refresh_token:
                 set_refresh_cookie(response, new_refresh_token)
-                logger.info("Refresh token rotated and cookie updated")
         else:
             set_refresh_cookie(response, refresh_token)
 
@@ -737,7 +646,6 @@ class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
         return Response(
             {
@@ -753,11 +661,9 @@ class UserSettingsView(APIView):
         )
 
     def patch(self, request):
-        """Handle PATCH requests to update the user's settings."""
         user = request.user
         user_profile = user.profile
 
-        # Update profile data
         profile_data = request.data.get("profile", {})
         if profile_data:
             user.username = profile_data.get("username", user.username)
@@ -766,7 +672,6 @@ class UserSettingsView(APIView):
             user.last_name = profile_data.get("last_name", user.last_name)
             user.save()
 
-        # Update other settings
         dark_mode = request.data.get("dark_mode")
         if dark_mode is not None:
             user_profile.dark_mode = dark_mode
@@ -785,7 +690,6 @@ class UserSettingsView(APIView):
 
         user_profile.save()
 
-        # Return updated settings
         return Response(
             {
                 "message": "Settings updated successfully.",
@@ -839,7 +743,7 @@ def change_password(request):
 
     user.set_password(new_password)
     user.save()
-    update_session_auth_hash(request, user)  # Keep the user logged in
+    update_session_auth_hash(request, user)
 
     return Response({"message": "Password changed successfully."}, status=200)
 
@@ -869,12 +773,9 @@ from django.http import HttpResponse
 
 
 class PasswordResetRequestView(APIView):
-    """Handle password reset requests by generating a reset token and sending an email with the reset link."""
-
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Process password reset requests by validating the email and sending a reset link."""
         email = request.data.get("email")
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -885,16 +786,11 @@ class PasswordResetRequestView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
 
-            # Render the email content
-            context = {
-                "user": user,
-                "reset_link": reset_link,
-            }
+            context = {"user": user, "reset_link": reset_link}
             subject = "Password Reset Request"
             html_content = render_to_string("emails/password_reset.html", context)
             text_content = strip_tags(html_content)
 
-            # Send the email
             email_message = EmailMultiAlternatives(
                 subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email]
             )
@@ -903,9 +799,7 @@ class PasswordResetRequestView(APIView):
                 email_message.send()
             except smtplib.SMTPAuthenticationError:
                 return Response(
-                    {
-                        "error": "Email delivery failed (SMTP authentication). Please check EMAIL_HOST_USER/EMAIL_HOST_PASSWORD (Gmail App Password) and try again."
-                    },
+                    {"error": "Email delivery failed (SMTP authentication). Please check EMAIL_HOST_USER/EMAIL_HOST_PASSWORD (Gmail App Password) and try again."},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
             except smtplib.SMTPException:
@@ -923,53 +817,35 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
-    """Handle password reset confirmation by validating the token and updating the user's password."""
-
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
-        """Validate the reset token and user ID to ensure the reset process can proceed."""
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response(
-                {"error": "Invalid user ID or token."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
 
         if PasswordResetTokenGenerator().check_token(user, token):
-            return Response(
-                {"message": "Token is valid, proceed with password reset."},
-                status=status.HTTP_200_OK,
-            )
+            return Response({"message": "Token is valid, proceed with password reset."}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, uidb64, token):
-        """Reset the user's password after validating the token and ensuring the passwords match."""
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response(
-                {"error": "Invalid user ID or token."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "Invalid user ID or token."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not PasswordResetTokenGenerator().check_token(user, token):
-            return Response(
-                {"error": "Invalid or expired token."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
 
         new_password = request.data.get("new_password")
         confirm_password = request.data.get("confirm_password")
 
         if not new_password or new_password != confirm_password:
-            return Response(
-                {"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()
@@ -978,11 +854,6 @@ class PasswordResetConfirmView(APIView):
 
 
 class EmailUnsubscribeView(APIView):
-    """
-    One-click unsubscribe endpoint used by reminder emails.
-    This disables reminder emails for the user profile tied to the signed token.
-    """
-
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -1023,13 +894,11 @@ class EmailUnsubscribeView(APIView):
       <div style="border:1px solid rgba(255,255,255,0.10);border-radius:16px;overflow:hidden;background:#111827;">
         <div style="padding:18px 20px;background:linear-gradient(135deg, rgba(29,83,48,0.60), rgba(11,15,20,0.20));border-bottom:1px solid rgba(255,255,255,0.10);">
           <div style="font-size:14px;font-weight:800;color:#E6C87A;text-transform:uppercase;">Monevo</div>
-          <div style="margin-top:4px;font-size:20px;font-weight:900;color:#FFFFFF;">You’re unsubscribed</div>
+          <div style="margin-top:4px;font-size:20px;font-weight:900;color:#FFFFFF;">You're unsubscribed</div>
         </div>
         <div style="padding:18px 20px;font-size:15px;line-height:1.6;">
-          <p style="margin:0 0 12px 0;">We won’t send you reminder emails anymore.</p>
-          <p style="margin:0 0 18px 0;color:rgba(229,231,235,0.78);font-size:13px;">
-            You can re-enable reminders anytime in Settings.
-          </p>
+          <p style="margin:0 0 12px 0;">We won't send you reminder emails anymore.</p>
+          <p style="margin:0 0 18px 0;color:rgba(229,231,235,0.78);font-size:13px;">You can re-enable reminders anytime in Settings.</p>
           <a href="{frontend}/settings"
              style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;padding:12px 16px;border-radius:12px;">
             Open Settings
@@ -1044,24 +913,18 @@ class EmailUnsubscribeView(APIView):
 
 
 class FriendRequestView(viewsets.ViewSet):
-    """Handle friend request functionality, including sending, accepting, and rejecting requests."""
-
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
-        """Retrieve all pending friend requests for the authenticated user."""
         requests = FriendRequest.objects.filter(receiver=request.user, status="pending")
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
 
     def create(self, request):
-        """Send a friend request to another user."""
         receiver_id = request.data.get("receiver")
 
         if not receiver_id:
-            return Response(
-                {"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Receiver ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             receiver = User.objects.get(id=receiver_id)
@@ -1091,7 +954,6 @@ class FriendRequestView(viewsets.ViewSet):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def update(self, request, pk=None):
-        """Accept or reject a friend request."""
         action = request.data.get("action")
 
         if action not in ["accept", "reject"]:
@@ -1117,20 +979,17 @@ class FriendRequestView(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def get_sent_requests(self, request):
-        """Retrieve all friend requests sent by the authenticated user."""
         requests = FriendRequest.objects.filter(sender=request.user)
         serializer = FriendRequestSerializer(requests, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def get_friends(self, request):
-        """Retrieve all accepted friends of the authenticated user."""
         friends_ids = FriendRequest.objects.filter(
             models.Q(sender=request.user, status="accepted")
             | models.Q(receiver=request.user, status="accepted")
         ).values_list("receiver", "sender")
 
-        # Flatten and remove duplicates
         user_ids = []
         for receiver_id, sender_id in friends_ids:
             if receiver_id != request.user.id:
@@ -1144,8 +1003,6 @@ class FriendRequestView(viewsets.ViewSet):
 
 
 class ReferralApplyView(APIView):
-    """Allow authenticated users to apply a referral code."""
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -1182,12 +1039,9 @@ class ReferralApplyView(APIView):
 
 
 class FriendsLeaderboardView(APIView):
-    """Retrieve a leaderboard of the authenticated user's friends based on their points."""
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Fetch the top friends of the authenticated user sorted by points."""
         friends = (
             User.objects.filter(
                 id__in=FriendRequest.objects.filter(
