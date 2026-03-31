@@ -1185,6 +1185,55 @@ def get_exercise_progress(request, exercise_id):
         return Response({"error": "Exercise not found."}, status=404)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_exercise_progress_batch(request):
+    """
+    Retrieve exercise progress for multiple exercise IDs in a single request.
+    Query param: ids=1,2,3
+    """
+    raw_ids = (request.query_params.get("ids") or "").strip()
+    if not raw_ids:
+        return Response({"progress": {}})
+
+    parsed_ids = []
+    for part in raw_ids.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        try:
+            parsed_ids.append(int(token))
+        except (TypeError, ValueError):
+            continue
+
+    if not parsed_ids:
+        return Response({"progress": {}})
+
+    allowed_ids = list(
+        apply_learner_exercise_filters(
+            Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(id__in=parsed_ids),
+            request.user,
+        ).values_list("id", flat=True)
+    )
+    if not allowed_ids:
+        return Response({"progress": {}})
+
+    rows = UserExerciseProgress.objects.filter(
+        user=request.user, exercise_id__in=allowed_ids
+    ).values("exercise_id", "completed", "attempts", "user_answer")
+
+    progress_map = {
+        str(row["exercise_id"]): {
+            "completed": bool(row["completed"]),
+            "attempts": int(row["attempts"] or 0),
+            "user_answer": row["user_answer"],
+            "status": "completed" if row["completed"] else "attempted",
+        }
+        for row in rows
+    }
+    return Response({"progress": progress_map})
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def reset_exercise(request):
