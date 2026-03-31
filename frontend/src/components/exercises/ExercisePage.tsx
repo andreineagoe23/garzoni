@@ -21,6 +21,7 @@ import ExerciseIntentBanner from "./ExerciseIntentBanner";
 import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
 
 const LESSON_SESSION_STORAGE_KEY = "monevo_exercise_lesson_session_v1";
+const MAX_VISIBLE_PROGRESS_ITEMS = 8;
 
 const ExercisePage = () => {
   const { t } = useTranslation();
@@ -64,8 +65,8 @@ const ExercisePage = () => {
   const [hintError, setHintError] = useState("");
   const [scratchpad, setScratchpad] = useState("");
   const [calculatorValue, setCalculatorValue] = useState("");
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [submissionFeedback, setSubmissionFeedback] = useState("");
-  const [confidence, setConfidence] = useState("medium");
   const [reviewQueue, setReviewQueue] = useState({ due: [], count: 0 });
   const [xpTotal, setXpTotal] = useState(0);
   const [sessionCompleted, setSessionCompleted] = useState(false);
@@ -679,7 +680,6 @@ const ExercisePage = () => {
       setHintError("");
       setSubmissionFeedback("");
       setScratchpad("");
-      setConfidence("medium");
       setInlineHint("");
     }
   }, [currentExercise]);
@@ -800,7 +800,7 @@ const ExercisePage = () => {
 
       const response = await apiClient.post(
         `/exercises/${currentExercise.id}/submit/`,
-        { user_answer: userAnswer, confidence, hints_used: hintIndex }
+        { user_answer: userAnswer, hints_used: hintIndex }
       );
 
       const updated = [...progress];
@@ -1956,6 +1956,17 @@ const ExercisePage = () => {
                 )}
 
                 <div className="pt-6">{renderExercise()}</div>
+                {!showCorrection && (
+                  <div className="mt-4 border-t border-[color:var(--border-color,#d1d5db)] pt-4">
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                    >
+                      {t("exercises.actions.submit")}
+                    </button>
+                  </div>
+                )}
               </>
             )}
 
@@ -2043,10 +2054,22 @@ const ExercisePage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                    {t("exercises.assist.calculator")}
-                  </label>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                      {t("exercises.assist.calculator")}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCalculatorOpen((prev) => !prev)}
+                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-[11px] font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                    >
+                      {calculatorOpen
+                        ? t("exercises.assist.hideCalculator")
+                        : t("exercises.assist.showCalculator")}
+                    </button>
+                  </div>
+                  {calculatorOpen && (
+                    <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -2116,7 +2139,8 @@ const ExercisePage = () => {
                         {t("exercises.calculator.clear")}
                       </button>
                     </div>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2160,39 +2184,8 @@ const ExercisePage = () => {
               </div>
             )}
 
-            <div className="mt-6 flex flex-col gap-4">
-              <div className="space-y-2 text-sm text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--accent,#111827)]">
-                  {t("exercises.confidence.label")}
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "low", emoji: "😟", label: t("exercises.confidence.low") },
-                    { value: "medium", emoji: "😐", label: t("exercises.confidence.medium") },
-                    { value: "high", emoji: "😊", label: t("exercises.confidence.high") },
-                  ].map((option) => {
-                    const selected = confidence === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setConfidence(option.value)}
-                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
-                          selected
-                            ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/15 text-[color:var(--accent,#ffd700)]"
-                            : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]"
-                        }`}
-                      >
-                        <span aria-hidden>{option.emoji}</span>
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <span className="text-xs">{t("exercises.confidence.helper")}</span>
-              </div>
-
-              {showCorrection ? (
+            {showCorrection ? (
+              <div className="mt-6">
                 <div className="space-y-4 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
                   <div
                     className={`rounded-xl px-4 py-3 text-sm font-semibold ${
@@ -2250,19 +2243,11 @@ const ExercisePage = () => {
                     </button>
                   </div>
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                >
-                  {t("exercises.actions.submit")}
-                </button>
-              )}
             </div>
+            ) : null}
           </GlassCard>
 
-          <div className="w-full lg:w-80 space-y-6">
+          <div className="w-full space-y-6 lg:flex lg:w-80 lg:flex-col lg:self-stretch">
             <div className="relative">
               <div className="pointer-events-none sticky bottom-6">
                 <MascotWithMessage
@@ -2276,12 +2261,61 @@ const ExercisePage = () => {
                 )}
               </div>
             </div>
-            <GlassCard padding="lg">
+            <GlassCard padding="lg" className="lg:flex-1">
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {t("exercises.progress.title")}
               </h3>
-              <div className="mt-4 space-y-3">
-                {exercises.map((_, index) => {
+              {exercises.length > MAX_VISIBLE_PROGRESS_ITEMS && (
+                <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  {t("exercises.progress.showingRange", {
+                    start:
+                      Math.max(
+                        0,
+                        Math.min(
+                          currentExerciseIndex - Math.floor(MAX_VISIBLE_PROGRESS_ITEMS / 2),
+                          exercises.length - MAX_VISIBLE_PROGRESS_ITEMS
+                        )
+                      ) + 1,
+                    end:
+                      Math.max(
+                        0,
+                        Math.min(
+                          currentExerciseIndex - Math.floor(MAX_VISIBLE_PROGRESS_ITEMS / 2),
+                          exercises.length - MAX_VISIBLE_PROGRESS_ITEMS
+                        )
+                      ) +
+                      Math.min(MAX_VISIBLE_PROGRESS_ITEMS, exercises.length),
+                    total: exercises.length,
+                  })}
+                </p>
+              )}
+              <div className="mt-4 space-y-3 lg:min-h-0 lg:overflow-y-auto">
+                {exercises
+                  .slice(
+                    Math.max(
+                      0,
+                      Math.min(
+                        currentExerciseIndex - Math.floor(MAX_VISIBLE_PROGRESS_ITEMS / 2),
+                        exercises.length - MAX_VISIBLE_PROGRESS_ITEMS
+                      )
+                    ),
+                    Math.max(
+                      0,
+                      Math.min(
+                        currentExerciseIndex - Math.floor(MAX_VISIBLE_PROGRESS_ITEMS / 2),
+                        exercises.length - MAX_VISIBLE_PROGRESS_ITEMS
+                      )
+                    ) + Math.min(MAX_VISIBLE_PROGRESS_ITEMS, exercises.length)
+                  )
+                  .map((_, visibleIndex) => {
+                  const startIndex = Math.max(
+                    0,
+                    Math.min(
+                      currentExerciseIndex - Math.floor(MAX_VISIBLE_PROGRESS_ITEMS / 2),
+                      exercises.length - MAX_VISIBLE_PROGRESS_ITEMS
+                    )
+                  );
+                  const index = startIndex + visibleIndex;
                   const prog = progress[index];
                   const attempted = prog !== undefined && prog !== null;
                   const isCurrent = index === currentExerciseIndex;

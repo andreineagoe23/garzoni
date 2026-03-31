@@ -36,8 +36,6 @@ const NAV_ITEMS = [
   },
   { path: "/rewards", key: "nav.rewards", icon: "🎁", label: "Rewards" },
   { path: "/support", key: "nav.support", icon: "❓", label: "Support" },
-  { path: "/profile", key: "nav.profile", icon: "👤", label: "Profile" },
-  { path: "/settings", key: "nav.settings", icon: "⚙️", label: "Settings" },
 ];
 
 /** Dashboard spans both All Topics and Personalized Path routes. */
@@ -194,6 +192,12 @@ function Navbar() {
 
   const handleProfileClick = () => {
     navigate("/profile");
+    closeMenu();
+    setProfileMenuOpen(false);
+  };
+
+  const handleSettingsClick = () => {
+    navigate("/settings");
     closeMenu();
     setProfileMenuOpen(false);
   };
@@ -377,6 +381,19 @@ function Navbar() {
                             className="shrink-0 text-inherit"
                           />
                           {t("nav.profile")}
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className={menuRowClass}
+                          onClick={handleSettingsClick}
+                        >
+                          <MonevoIcon
+                            name="⚙️"
+                            size={18}
+                            className="shrink-0 text-inherit"
+                          />
+                          {t("nav.settings")}
                         </button>
                         <div
                           className="my-2 h-px bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))]"
