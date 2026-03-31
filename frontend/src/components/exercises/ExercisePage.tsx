@@ -21,6 +21,7 @@ import ExerciseIntentBanner from "./ExerciseIntentBanner";
 import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
 
 const LESSON_SESSION_STORAGE_KEY = "monevo_exercise_lesson_session_v1";
+const SUPPORTS_PROGRESS_BATCH_STORAGE_KEY = "monevo_supports_progress_batch_v1";
 const MAX_VISIBLE_PROGRESS_ITEMS = 8;
 
 const ExercisePage = () => {
@@ -88,6 +89,17 @@ const ExercisePage = () => {
   const exercisesBootRef = useRef(false);
   const exercisesFetchGenerationRef = useRef(0);
   const exercisesAbortRef = useRef<AbortController | null>(null);
+  const supportsProgressBatchRef = useRef<boolean>(
+    (() => {
+      try {
+        return (
+          sessionStorage.getItem(SUPPORTS_PROGRESS_BATCH_STORAGE_KEY) !== "false"
+        );
+      } catch {
+        return true;
+      }
+    })()
+  );
   const lastLessonSessionRestoreKeyRef = useRef<string | null>(null);
   const filtersRef = useRef(filters);
   const [categoriesResolved, setCategoriesResolved] = useState(false);
@@ -228,35 +240,51 @@ const ExercisePage = () => {
   const hintCoinCost = 5;
 
   const validateExerciseList = useCallback((data: unknown[]) => {
-    return data.filter(
-      (exercise: {
+    type ValidatedExercise = {
+      id: number;
+      question: unknown;
+      type: string;
+      exercise_data: Record<string, unknown>;
+      [key: string]: unknown;
+    };
+    return data.filter((exercise): exercise is ValidatedExercise => {
+      if (!exercise || typeof exercise !== "object") return false;
+      const candidate = exercise as {
+        id?: unknown;
         question?: unknown;
-        type?: string;
-        exercise_data?: Record<string, unknown>;
-      }) =>
-        exercise.question &&
-        exercise.type &&
-        exercise.exercise_data &&
-        ((exercise.type === "multiple-choice" &&
-          Array.isArray(exercise.exercise_data.options)) ||
-          (exercise.type === "numeric" &&
-            typeof exercise.exercise_data?.expected_value !== "undefined") ||
-          (exercise.type === "drag-and-drop" &&
-            Array.isArray(exercise.exercise_data.items)) ||
-          (exercise.type === "budget-allocation" &&
-            Array.isArray(exercise.exercise_data.categories)) ||
-          (exercise.type === "fill-in-table" &&
-            (() => {
-              const table = exercise.exercise_data?.table as
-                | { rows?: unknown; columns?: unknown }
-                | undefined;
-              return (
-                Array.isArray(table?.rows) && Array.isArray(table?.columns)
-              );
-            })()) ||
-          (exercise.type === "scenario-simulation" &&
-            Array.isArray(exercise.exercise_data?.choices)))
-    );
+        type?: unknown;
+        exercise_data?: unknown;
+      };
+      if (
+        typeof candidate.id !== "number" ||
+        !candidate.question ||
+        typeof candidate.type !== "string" ||
+        !candidate.exercise_data ||
+        typeof candidate.exercise_data !== "object"
+      ) {
+        return false;
+      }
+      const exerciseData = candidate.exercise_data as Record<string, unknown>;
+      return (
+        (candidate.type === "multiple-choice" &&
+          Array.isArray(exerciseData.options)) ||
+        (candidate.type === "numeric" &&
+          typeof exerciseData.expected_value !== "undefined") ||
+        (candidate.type === "drag-and-drop" &&
+          Array.isArray(exerciseData.items)) ||
+        (candidate.type === "budget-allocation" &&
+          Array.isArray(exerciseData.categories)) ||
+        (candidate.type === "fill-in-table" &&
+          (() => {
+            const table = exerciseData.table as
+              | { rows?: unknown; columns?: unknown }
+              | undefined;
+            return Array.isArray(table?.rows) && Array.isArray(table?.columns);
+          })()) ||
+        (candidate.type === "scenario-simulation" &&
+          Array.isArray(exerciseData.choices))
+      );
+    });
   }, []);
 
   type FilterSnapshot = { type: string; category: string; difficulty: string };
@@ -270,6 +298,126 @@ const ExercisePage = () => {
       e.name === "AbortError"
     );
   };
+
+  const hydrateProgressFromBackend = useCallback(
+    async (exerciseList: Array<{ id: number }>) => {
+      if (!exerciseList.length) {
+        setProgress([]);
+        setSavedAnswers({});
+        return;
+      }
+
+      const loadViaSingleProgressEndpoints = async () => {
+        const responses = await Promise.all(
+          exerciseList.map((exercise) =>
+            apiClient
+              .get(`/exercises/progress/${exercise.id}/`, {
+                skipGlobalErrorToast: true,
+              })
+              .then((res) => ({
+                id: exercise.id,
+                data: res.data,
+              }))
+              .catch(() => ({
+                id: exercise.id,
+                data: null,
+              }))
+          )
+        );
+        const nextSavedAnswers: Record<number, unknown> = {};
+        const nextProgress = exerciseList.map((exercise) => {
+          const item = responses.find((r) => r.id === exercise.id)?.data as
+            | {
+                completed?: boolean;
+                attempts?: number;
+                user_answer?: unknown;
+              }
+            | null;
+          if (!item) return undefined;
+          const hasRealProgress =
+            Boolean(item.completed) ||
+            Number(item.attempts || 0) > 0 ||
+            (item.user_answer !== null && typeof item.user_answer !== "undefined");
+          if (!hasRealProgress) return undefined;
+          if (item.user_answer !== null && typeof item.user_answer !== "undefined") {
+            nextSavedAnswers[exercise.id] = item.user_answer;
+          }
+          return {
+            exerciseId: exercise.id,
+            correct: Boolean(item.completed),
+            attempts: Number(item.attempts || 0),
+            status: item.completed ? "completed" : "attempted",
+            user_answer: item.user_answer,
+          };
+        });
+        setSavedAnswers(nextSavedAnswers);
+        setProgress(nextProgress as typeof progress);
+      };
+
+      if (!supportsProgressBatchRef.current) {
+        await loadViaSingleProgressEndpoints();
+        return;
+      }
+      try {
+        const ids = exerciseList.map((e) => e.id).join(",");
+        const response = await apiClient.get("/exercises/progress-batch/", {
+          params: { ids },
+          skipGlobalErrorToast: true,
+        });
+        let progressMap = response.data?.progress || {};
+        if (!progressMap || typeof progressMap !== "object") {
+          progressMap = {};
+        }
+
+        const nextSavedAnswers: Record<number, unknown> = {};
+        const nextProgress = exerciseList.map((exercise) => {
+          const item = progressMap[String(exercise.id)] as
+            | {
+                completed?: boolean;
+                attempts?: number;
+                user_answer?: unknown;
+              }
+            | undefined;
+          if (!item) return undefined;
+          const hasRealProgress =
+            Boolean(item.completed) ||
+            Number(item.attempts || 0) > 0 ||
+            (item.user_answer !== null && typeof item.user_answer !== "undefined");
+          if (!hasRealProgress) return undefined;
+          if (item.user_answer !== null && typeof item.user_answer !== "undefined") {
+            nextSavedAnswers[exercise.id] = item.user_answer;
+          }
+          return {
+            exerciseId: exercise.id,
+            correct: Boolean(item.completed),
+            attempts: Number(item.attempts || 0),
+            status: item.completed ? "completed" : "attempted",
+            user_answer: item.user_answer,
+          };
+        });
+        setSavedAnswers(nextSavedAnswers);
+        setProgress(nextProgress as typeof progress);
+      } catch (err) {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 404) {
+          try {
+            supportsProgressBatchRef.current = false;
+            try {
+              sessionStorage.setItem(SUPPORTS_PROGRESS_BATCH_STORAGE_KEY, "false");
+            } catch {
+              /* ignore */
+            }
+            await loadViaSingleProgressEndpoints();
+            return;
+          } catch (fallbackErr) {
+            logError("Failed fallback hydrate exercise progress", fallbackErr);
+          }
+        }
+        logError("Failed to hydrate exercise progress", err);
+      }
+    },
+    [logError]
+  );
 
   const fetchExercisesWithSnapshot = useCallback(
     async (
@@ -308,15 +456,14 @@ const ExercisePage = () => {
         setLessonExercises(validatedExercises);
         if (mode === "lesson") {
           setExercises(validatedExercises);
+          await hydrateProgressFromBackend(validatedExercises);
           if (resetLessonSession) {
             setCurrentExerciseIndex(0);
-            setProgress([]);
             setShowCorrection(false);
             setUserAnswer(null);
             setSubmissionFeedback("");
             setExplanation("");
             setInlineHint("");
-            setSavedAnswers({});
             setSessionCompleted(false);
           }
         }
@@ -336,7 +483,7 @@ const ExercisePage = () => {
         }
       }
     },
-    [mode, t, validateExerciseList]
+    [hydrateProgressFromBackend, mode, t, validateExerciseList]
   );
 
   const fetchExercises = useCallback(async () => {
@@ -492,13 +639,6 @@ const ExercisePage = () => {
         if (idx >= 0 && idx < ids.length) {
           setCurrentExerciseIndex(idx);
         }
-        if (Array.isArray(parsed.progress) && parsed.progress.length === ids.length) {
-          setProgress(
-            parsed.progress.map((p: unknown) =>
-              p === null || p === undefined ? undefined : p
-            ) as typeof progress
-          );
-        }
       }
     } catch {
       /* ignore */
@@ -517,7 +657,6 @@ const ExercisePage = () => {
           category: filters.category,
           difficulty: filters.difficulty,
         },
-        progress: exercises.map((_, i) => progress[i] ?? null),
       };
       sessionStorage.setItem(
         LESSON_SESSION_STORAGE_KEY,
@@ -533,7 +672,6 @@ const ExercisePage = () => {
     filters.type,
     filters.category,
     filters.difficulty,
-    progress,
   ]);
 
   useEffect(() => {
@@ -675,14 +813,26 @@ const ExercisePage = () => {
 
   useEffect(() => {
     if (currentExercise) {
-      setUserAnswer(initializeAnswer(currentExercise));
+      const serverSavedAnswer =
+        progress[currentExerciseIndex] &&
+        typeof progress[currentExerciseIndex] === "object"
+          ? (progress[currentExerciseIndex] as { user_answer?: unknown }).user_answer
+          : undefined;
+      const cachedAnswer = savedAnswers[currentExercise.id];
+      setUserAnswer(
+        typeof cachedAnswer !== "undefined"
+          ? cachedAnswer
+          : typeof serverSavedAnswer !== "undefined" && serverSavedAnswer !== null
+            ? serverSavedAnswer
+            : initializeAnswer(currentExercise)
+      );
       setHintIndex(0);
       setHintError("");
       setSubmissionFeedback("");
       setScratchpad("");
       setInlineHint("");
     }
-  }, [currentExercise]);
+  }, [currentExercise, currentExerciseIndex, progress, savedAnswers]);
 
   useEffect(() => {
     if (isTimedMode) {
@@ -732,9 +882,14 @@ const ExercisePage = () => {
     };
   }, []);
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     if (!currentExercise) return;
     setIsRetrying(true);
+    try {
+      await apiClient.post("/exercises/reset/", { exercise_id: currentExercise.id });
+    } catch (err) {
+      logError("Failed to reset exercise progress", err);
+    }
     const updatedProgress = [...progress];
     updatedProgress[currentExerciseIndex] = {
       exerciseId: currentExercise.id,
@@ -809,6 +964,7 @@ const ExercisePage = () => {
         correct: response.data.correct,
         attempts: response.data.attempts,
         status: response.data.correct ? "completed" : "attempted",
+        user_answer: userAnswer,
       };
 
       setProgress(updated);
