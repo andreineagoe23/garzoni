@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from unittest.mock import patch, Mock
 from education.models import Course, Lesson, UserProgress, Path
 from gamification.models import Mission, MissionCompletion
-from authentication.models import UserProfile
+from authentication.models import UserProfile, Referral
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +86,77 @@ class ReferralTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Referral applied successfully", response.data["message"])
         logger.info("✅ test_referral_submission passed")
+
+
+class RegistrationReferralValidationTest(APITestCase):
+    def test_register_rejects_invalid_referral_code(self):
+        response = self.client.post(
+            "/api/register-secure/",
+            {
+                "username": "new-user-invalid-ref",
+                "password": "unit-test-password!",
+                "email": "invalid-ref@example.com",
+                "first_name": "Invalid",
+                "last_name": "Referral",
+                "referral_code": "NOT-REAL",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("referral_code", response.data)
+
+    def test_register_accepts_empty_referral_code(self):
+        response = self.client.post(
+            "/api/register-secure/",
+            {
+                "username": "new-user-empty-ref",
+                "password": "unit-test-password!",
+                "email": "empty-ref@example.com",
+                "first_name": "Empty",
+                "last_name": "Referral",
+                "referral_code": "",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username="new-user-empty-ref").exists())
+
+    def test_register_with_valid_referral_code_creates_referral(self):
+        referrer = User.objects.create_user(
+            username="signup-referrer", password="unit-test-password!"
+        )
+        referrer_code = referrer.profile.referral_code
+        response = self.client.post(
+            "/api/register-secure/",
+            {
+                "username": "new-user-valid-ref",
+                "password": "unit-test-password!",
+                "email": "valid-ref@example.com",
+                "first_name": "Valid",
+                "last_name": "Referral",
+                "referral_code": referrer_code.lower(),
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(username="new-user-valid-ref")
+        referral = Referral.objects.get(referred_user=created_user)
+        self.assertEqual(referral.referrer_id, referrer.id)
+        self.assertEqual(referral.referral_code, referrer_code)
+
+    def test_referral_validation_endpoint(self):
+        referrer = User.objects.create_user(
+            username="validate-referrer", password="unit-test-password!"
+        )
+        code = referrer.profile.referral_code
+
+        invalid = self.client.get("/api/referrals/validate/?code=BAD-CODE")
+        self.assertEqual(invalid.status_code, status.HTTP_200_OK)
+        self.assertFalse(invalid.data["valid"])
+
+        valid = self.client.get(f"/api/referrals/validate/?code={code.lower()}")
+        self.assertEqual(valid.status_code, status.HTTP_200_OK)
+        self.assertTrue(valid.data["valid"])
 
 
 class PaymentVerificationTest(AuthenticatedTestCase):
