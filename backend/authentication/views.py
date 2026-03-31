@@ -215,6 +215,7 @@ class UserProfileView(APIView):
                     "email": request.user.email,
                     "earned_money": user_profile.earned_money,
                     "points": user_profile.points,
+                    "referral_code": user_profile.referral_code,
                     "streak": user_profile.streak,
                     "profile_avatar": user_profile.profile_avatar,
                     "dark_mode": user_profile.dark_mode,
@@ -1179,6 +1180,27 @@ class ReferralApplyView(APIView):
         user_profile.save(update_fields=["referral_points"])
 
         return Response({"message": "Referral applied successfully"}, status=200)
+
+
+class ReferralCodeValidationView(APIView):
+    """Allow guests to check whether a referral code exists."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def get(self, request):
+        referral_code = (request.query_params.get("code") or "").strip()
+        if not referral_code:
+            return Response(
+                {"valid": False, "message": "Referral code is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        is_valid = UserProfile.objects.filter(referral_code__iexact=referral_code).exists()
+        if not is_valid:
+            return Response({"valid": False, "message": "Invalid referral code."}, status=200)
+
+        return Response({"valid": True, "message": "Referral code is valid."}, status=200)
 
 
 class FriendsLeaderboardView(APIView):

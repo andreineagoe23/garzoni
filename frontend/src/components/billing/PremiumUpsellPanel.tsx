@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
@@ -24,19 +24,45 @@ const trackPremiumEvent = (
 
 const PremiumUpsellPanel = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loadProfile } = useAuth();
   const [referralCopied, setReferralCopied] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
 
   const appOrigin =
     typeof window !== "undefined"
       ? window.location.origin
       : "https://app.monevo.com";
 
-  const referralCode = useMemo(() => {
-    if (user?.username) return `${user.username}-invite`;
-    if (user?.email) return `${user.email.split("@")[0]}-invite`;
-    return "MONEVO-FRIEND";
-  }, [user?.email, user?.username]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const profileData = await loadProfile();
+        if (cancelled) return;
+        const profileReferral =
+          typeof profileData?.referral_code === "string"
+            ? profileData.referral_code
+            : typeof (
+                  profileData?.user_data as
+                    | { referral_code?: string }
+                    | undefined
+                )?.referral_code === "string"
+              ? (
+                  profileData?.user_data as
+                    | { referral_code?: string }
+                    | undefined
+                )?.referral_code || ""
+              : "";
+        setReferralCode(profileReferral);
+      } catch {
+        if (!cancelled) setReferralCode("");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadProfile, user?.id]);
 
   const referralLink = `${appOrigin}/welcome?ref=${encodeURIComponent(
     referralCode
@@ -61,6 +87,7 @@ const PremiumUpsellPanel = () => {
   };
 
   const handleReferralClick = async () => {
+    if (!referralCode) return;
     trackPremiumEvent("premium_referral_share", {
       context: "referral",
       location: "dashboard_upsell",
@@ -100,6 +127,7 @@ const PremiumUpsellPanel = () => {
             variant="ghost"
             size="sm"
             onClick={handleReferralClick}
+            disabled={!referralCode}
             className={
               referralCopied ? "border-green-500/60 text-green-700" : ""
             }
@@ -125,7 +153,7 @@ const PremiumUpsellPanel = () => {
         <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-[color:var(--muted-text,#4b5563)] break-words">
           Referral link:{" "}
           <span className="font-semibold text-[color:var(--text-color,#111827)]">
-            {referralLink}
+            {referralCode ? referralLink : t("billing.referralUnavailable")}
           </span>
         </div>
       </div>
