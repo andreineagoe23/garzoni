@@ -60,7 +60,7 @@ def translate_path_async(self, path_id: int):
         return
 
     from education.models import Path, PathTranslation
-    from education.services.translation import OpenRouterPaymentRequiredError, get_translator
+    from education.services.translation import OpenAIPaymentRequiredError, get_translator
 
     try:
         path = Path.objects.get(pk=path_id)
@@ -88,9 +88,9 @@ def translate_path_async(self, path_id: int):
                 },
             )
         logger.info("Translated Path %s (%s) to %s", path.pk, path.title, LANGUAGE_CODE)
-    except OpenRouterPaymentRequiredError:
+    except OpenAIPaymentRequiredError:
         logger.error(
-            "OpenRouter 402 Payment Required – skipping Path %s. Add credits to resume.", path_id
+            "OpenAI 402 Payment Required – skipping Path %s. Add credits to resume.", path_id
         )
         return
 
@@ -102,7 +102,7 @@ def translate_course_async(self, course_id: int):
         return
 
     from education.models import Course, CourseTranslation
-    from education.services.translation import OpenRouterPaymentRequiredError, get_translator
+    from education.services.translation import OpenAIPaymentRequiredError, get_translator
 
     try:
         course = Course.objects.get(pk=course_id)
@@ -130,9 +130,9 @@ def translate_course_async(self, course_id: int):
                 },
             )
         logger.info("Translated Course %s (%s) to %s", course.pk, course.title, LANGUAGE_CODE)
-    except OpenRouterPaymentRequiredError:
+    except OpenAIPaymentRequiredError:
         logger.error(
-            "OpenRouter 402 Payment Required – skipping Course %s. Add credits to resume.",
+            "OpenAI 402 Payment Required – skipping Course %s. Add credits to resume.",
             course_id,
         )
         return
@@ -150,7 +150,7 @@ def translate_lesson_async(self, lesson_id: int):
         LessonSectionTranslation,
         LessonTranslation,
     )
-    from education.services.translation import OpenRouterPaymentRequiredError, get_translator
+    from education.services.translation import OpenAIPaymentRequiredError, get_translator
 
     try:
         lesson = Lesson.objects.select_related("course").get(pk=lesson_id)
@@ -195,9 +195,9 @@ def translate_lesson_async(self, lesson_id: int):
             _translate_section(translator, section, ctx)
 
         logger.info("Translated Lesson %s (%s) to %s", lesson.pk, lesson.title, LANGUAGE_CODE)
-    except OpenRouterPaymentRequiredError:
+    except OpenAIPaymentRequiredError:
         logger.error(
-            "OpenRouter 402 Payment Required – skipping Lesson %s. Add credits to resume.",
+            "OpenAI 402 Payment Required – skipping Lesson %s. Add credits to resume.",
             lesson_id,
         )
         return
@@ -210,7 +210,7 @@ def translate_section_async(self, section_id: int):
         return
 
     from education.models import LessonSection
-    from education.services.translation import OpenRouterPaymentRequiredError, get_translator
+    from education.services.translation import OpenAIPaymentRequiredError, get_translator
 
     try:
         section = LessonSection.objects.select_related("lesson", "lesson__course").get(
@@ -228,9 +228,9 @@ def translate_section_async(self, section_id: int):
         translator = get_translator()
         _translate_section(translator, section, ctx)
         logger.info("Translated LessonSection %s to %s", section.pk, LANGUAGE_CODE)
-    except OpenRouterPaymentRequiredError:
+    except OpenAIPaymentRequiredError:
         logger.error(
-            "OpenRouter 402 Payment Required – skipping Section %s. Add credits to resume.",
+            "OpenAI 402 Payment Required – skipping Section %s. Add credits to resume.",
             section_id,
         )
         return

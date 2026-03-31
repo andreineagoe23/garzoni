@@ -59,7 +59,7 @@ Monevo delivers interactive personal finance education with gamified progression
 
 ### Elsewhere
 
-- **AI chatbot**: Ask the finance assistant (OpenRouter) about budgeting, investing, saving, crypto, retirement, etc., from the in-app chat widget.
+- **AI chatbot**: Ask the finance assistant (OpenAI) about budgeting, investing, saving, crypto, retirement, etc., from the in-app chat widget.
 - **Onboarding questionnaire**: Complete the short questionnaire for personalized recommendations and rewards (XP/coins).
 - **Payment success / upgrade**: Dedicated pages after checkout or when payment is required for a feature.
 
@@ -69,7 +69,7 @@ Monevo delivers interactive personal finance education with gamified progression
 
 - Personalized learning paths (Basic Finance, Forex, Crypto, Real Estate, Budgeting).
 - Gamification: badges, streaks, leaderboards, rewards (coins, shop, donations).
-- AI tutor via OpenRouter-powered assistant for finance Q&A.
+- AI tutor via OpenAI-powered assistant for finance Q&A.
 - Finance tools: portfolio analyzer, reality check, economic calendar, economic map, news/market context, market explorer, next steps (some tools Plus/Pro).
 - Exercises: multiple choice, numeric, drag-and-drop, budget allocation, fill-in table, scenario simulation; review queue (see `docs/exercise-experience-plan.md`).
 - Missions: 4 daily + 4 weekly (randomized from pool per day/week), swap, completion XP.

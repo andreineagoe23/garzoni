@@ -444,7 +444,7 @@ const Chatbot = () => {
           throw new Error(t("chatbot.authTokenMissing"));
         }
 
-        const response = await apiClient.post("/proxy/openrouter/", {
+        const response = await apiClient.post("/proxy/openai/", {
           inputs: userMessage,
           chatHistory: updatedHistory.slice(-10),
           parameters: { temperature: 0.7 },

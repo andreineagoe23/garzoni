@@ -1,6 +1,6 @@
 """
 Translate backend education content (Paths, Courses, Lessons, LessonSections)
-to Romanian using the configured translation provider (OpenRouter by default).
+to Romanian using the configured translation provider (OpenAI by default).
 
 Usage examples:
     # Dry run – preview what would be translated
@@ -44,7 +44,7 @@ from education.models import (
     PathTranslation,
 )
 from education.services.translation import (
-    OpenRouterPaymentRequiredError,
+    OpenAIPaymentRequiredError,
     TranslationProvider,
     get_translator,
 )
@@ -156,10 +156,10 @@ class Command(BaseCommand):
 
             if not self.skip_lessons:
                 self._translate_lessons()
-        except OpenRouterPaymentRequiredError as e:
+        except OpenAIPaymentRequiredError as e:
             raise CommandError(
-                "OpenRouter returned 402 Payment Required (credits exhausted or billing limit). "
-                "Add credits at https://openrouter.ai/credits and re-run this command to resume; "
+                "OpenAI returned 402 Payment Required (credits exhausted or billing limit). "
+                "Add credits in OpenAI billing and re-run this command to resume; "
                 "already-translated items will be skipped."
             ) from e
 
@@ -378,7 +378,7 @@ class Command(BaseCommand):
 
             try:
                 translated_data = self.translator.translate_exercise(data, base_ctx)
-            except OpenRouterPaymentRequiredError:
+            except OpenAIPaymentRequiredError:
                 raise
             except Exception as exc:
                 logger.error("Failed to translate exercise section %s: %s", section.id, exc)
@@ -439,7 +439,7 @@ class Command(BaseCommand):
         try:
             result = self.translator.translate_text(text, context)
             return result if result else text
-        except OpenRouterPaymentRequiredError:
+        except OpenAIPaymentRequiredError:
             raise
         except Exception as exc:
             logger.error("Translation failed for '%s…': %s", text[:60], exc)

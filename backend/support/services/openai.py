@@ -14,7 +14,7 @@ from education.models import Path, UserProgress
 logger = logging.getLogger(__name__)
 
 
-class OpenRouterService:
+class OpenAIService:
     def __init__(self, request, request_with_backoff, check_and_consume_entitlement):
         self.request = request
         self.user = request.user
@@ -60,12 +60,7 @@ class OpenRouterService:
             return [p["title"] for p in paths]
         except Exception as exc:
             logger.error("Error retrieving learning paths: %s", exc)
-            default_paths = [
-                "Basic Finance",
-                "Investing",
-                "Real Estate",
-                "Cryptocurrency",
-            ]
+            default_paths = ["Basic Finance", "Investing", "Real Estate", "Cryptocurrency"]
             self.path_links = {
                 p.lower(): f"/all-topics#{p.lower().replace(' ', '-')}" for p in default_paths
             }
@@ -146,43 +141,6 @@ class OpenRouterService:
             "crypto",
             "bitcoin",
             "ethereum",
-            "compound interest",
-            "apr",
-            "apy",
-            "bond",
-            "etf",
-            "mutual fund",
-            "forex",
-            "hedge fund",
-            "ira",
-            "401k",
-            "cash flow",
-            "asset",
-            "liability",
-            "net worth",
-            "bull market",
-            "bear market",
-            "capital gain",
-            "diversification",
-            "liquidity",
-            "amortization",
-            "annuity",
-            "depreciation",
-            "equity",
-            "leverage",
-            "yield",
-            "security",
-            "volatility",
-            "appreciation",
-            "depreciation",
-            "fiduciary",
-            "principal",
-            "premium",
-            "maturity",
-            "roi",
-            "roic",
-            "exchange rate",
-            "roth",
         ]
         return any(term in text for term in finance_terms)
 
@@ -193,8 +151,7 @@ class OpenRouterService:
             "budgeting, and financial education. Focus on educational content "
             "rather than specific investment advice. Your responses should be "
             "clear, direct, and factual without unnecessary introductions or "
-            "self-references. Avoid saying 'I am a financial assistant' or similar "
-            "phrases. Just provide the useful financial information directly.\n\n"
+            "self-references.\n\n"
         )
 
         if "User:" in prompt and "AI:" in prompt:
@@ -235,9 +192,7 @@ class OpenRouterService:
 
             if context_parts:
                 return "User context: " + " ".join(context_parts)
-
             return None
-
         except Exception as exc:
             logger.error("Error getting user context: %s", exc)
             return None
@@ -250,43 +205,6 @@ class OpenRouterService:
             response_text = response_text.split("User:", 1)[0].strip()
         if "Human:" in response_text:
             response_text = response_text.split("Human:", 1)[0].strip()
-
-        response_text = response_text.replace("I am a financial assistant.", "")
-        response_text = response_text.replace("I am an AI assistant.", "")
-        response_text = response_text.replace("As a financial advisor,", "")
-        response_text = response_text.replace("As an AI assistant,", "")
-        response_text = response_text.replace("As an AI language model,", "")
-
-        intro_phrases = [
-            "I'd be happy to explain",
-            "I'd be glad to help",
-            "I can help with that",
-            "Let me explain",
-            "To answer your question",
-            "Here's information about",
-            "Great question",
-            "Sure,",
-            "Certainly,",
-            "Absolutely,",
-            "Hello,",
-            "Hi,",
-            "I understand you're asking about",
-            "I'd like to help you",
-            "I'd love to assist",
-        ]
-
-        for phrase in intro_phrases:
-            if response_text.lower().startswith(phrase.lower()):
-                response_text = response_text[len(phrase) :].strip()
-                if response_text.startswith(","):
-                    response_text = response_text[1:].strip()
-
-        if len(response_text.strip()) < 10:
-            return (
-                "I don't have enough information to answer that properly. "
-                "Could you provide more details about your financial question?"
-            )
-
         return response_text.strip()
 
     def handle(self):
@@ -295,17 +213,17 @@ class OpenRouterService:
         chat_history = self.request.data.get("chatHistory", [])
         request_id = getattr(self.request, "request_id", None)
 
-        if len(prompt) > settings.OPENROUTER_MAX_PROMPT_CHARS:
+        if len(prompt) > settings.OPENAI_MAX_PROMPT_CHARS:
             return {
                 "error": "Prompt is too long.",
-                "max_chars": settings.OPENROUTER_MAX_PROMPT_CHARS,
+                "max_chars": settings.OPENAI_MAX_PROMPT_CHARS,
                 "request_id": request_id,
             }, status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
         if chat_history and not isinstance(chat_history, list):
             return {"error": "Invalid chatHistory.", "request_id": request_id}, 400
-        if isinstance(chat_history, list) and len(chat_history) > settings.OPENROUTER_MAX_MESSAGES:
-            chat_history = chat_history[-settings.OPENROUTER_MAX_MESSAGES :]
+        if isinstance(chat_history, list) and len(chat_history) > settings.OPENAI_MAX_MESSAGES:
+            chat_history = chat_history[-settings.OPENAI_MAX_MESSAGES :]
 
         if not prompt:
             return {"error": "Prompt is required."}, 400
@@ -318,30 +236,24 @@ class OpenRouterService:
         if idempotency_key is not None:
             idempotency_key = str(idempotency_key).strip()
             if not idempotency_key or len(idempotency_key) > 128:
-                return {
-                    "error": "Invalid Idempotency-Key.",
-                    "request_id": request_id,
-                }, 400
+                return {"error": "Invalid Idempotency-Key.", "request_id": request_id}, 400
 
         idem_cache_key = None
         idem_lock_key = None
         if idempotency_key:
-            idem_cache_key = f"openrouter:idem:{self.user.id}:{idempotency_key}"
+            idem_cache_key = f"openai:idem:{self.user.id}:{idempotency_key}"
             cached_idem = cache.get(idem_cache_key)
             if cached_idem:
                 return cached_idem, 200
 
             idem_lock_key = f"{idem_cache_key}:lock"
-            if not cache.add(idem_lock_key, 1, timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS):
+            if not cache.add(idem_lock_key, 1, timeout=settings.OPENAI_IDEMPOTENCY_TTL_SECONDS):
                 cached_idem = cache.get(idem_cache_key)
                 if cached_idem:
                     return cached_idem, 200
-                return {
-                    "error": "Request already in progress.",
-                    "request_id": request_id,
-                }, 409
+                return {"error": "Request already in progress.", "request_id": request_id}, 409
 
-        cache_ttl = int(getattr(settings, "OPENROUTER_CACHE_TTL_SECONDS", 0) or 0)
+        cache_ttl = int(getattr(settings, "OPENAI_CACHE_TTL_SECONDS", 0) or 0)
         if settings.DEBUG and cache_ttl <= 0:
             cache_ttl = 300
         cache_key = None
@@ -404,8 +316,7 @@ class OpenRouterService:
                         {
                             "text": f"View {path.title()} Path",
                             "path": self.path_links.get(
-                                path.lower(),
-                                f"/all-topics#{path.lower().replace(' ', '-')}",
+                                path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
                             ),
                             "icon": "📚",
                         }
@@ -421,8 +332,7 @@ class OpenRouterService:
                         {
                             "text": f"View {path.title()} Path",
                             "path": self.path_links.get(
-                                path.lower(),
-                                f"/all-topics#{path.lower().replace(' ', '-')}",
+                                path.lower(), f"/all-topics#{path.lower().replace(' ', '-')}"
                             ),
                             "icon": "📚",
                         }
@@ -437,83 +347,64 @@ class OpenRouterService:
             if user_context:
                 prompt = f"{user_context}\n\n{prompt}"
 
-            api_key = settings.OPENROUTER_API_KEY
+            api_key = settings.OPENAI_API_KEY
             headers = {
                 "Authorization": f"Bearer {api_key}" if api_key else "",
-                "HTTP-Referer": "https://monevo.com",
-                "X-Title": "Monevo Financial Assistant",
                 "Content-Type": "application/json",
             }
-
             if not headers.get("Authorization") or headers["Authorization"].endswith(" "):
-                logger.error("OPENROUTER_API_KEY is not configured.")
+                logger.error("OPENAI_API_KEY is not configured.")
                 return {"error": "AI service unavailable."}, 503
 
             messages = []
             available_paths = self.format_paths_for_message()
-            system_message = {
-                "role": "system",
-                "content": (
-                    "You are a friendly, helpful financial assistant. Always reply with a clear, direct answer. "
-                    "Keep responses to 2-4 short sentences. "
-                    f"When relevant, you can mention we offer these learning paths: {available_paths}. "
-                    "Answer general finance questions (compound interest, budgeting, investing, crypto, etc.) with accurate, educational info. "
-                    "Answer casual greetings (e.g. 'how are you') briefly and warmly, then offer to help with finance. "
-                    "Never refuse to answer; if unsure, give a short helpful response and suggest our learning paths for more."
-                ),
-            }
-            messages.append(system_message)
+            messages.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a friendly, helpful financial assistant. Always reply with a clear, direct answer. "
+                        "Keep responses to 2-4 short sentences. "
+                        f"When relevant, you can mention we offer these learning paths: {available_paths}. "
+                        "Answer general finance questions with accurate, educational info."
+                    ),
+                }
+            )
 
-            if chat_history and isinstance(chat_history, list) and len(chat_history) > 0:
+            if chat_history and isinstance(chat_history, list):
                 sanitized = []
                 for item in chat_history:
                     if not isinstance(item, dict):
                         continue
                     role = item.get("role")
                     content = item.get("content")
-                    if role not in {"user", "assistant", "system"}:
-                        continue
-                    if not isinstance(content, str):
+                    if role not in {"user", "assistant", "system"} or not isinstance(content, str):
                         continue
                     content = content.strip()
                     if not content:
                         continue
-                    if len(content) > settings.OPENROUTER_MAX_MESSAGE_CHARS:
-                        content = content[: settings.OPENROUTER_MAX_MESSAGE_CHARS]
+                    if len(content) > settings.OPENAI_MAX_MESSAGE_CHARS:
+                        content = content[: settings.OPENAI_MAX_MESSAGE_CHARS]
                     sanitized.append({"role": role, "content": content})
-                    if len(sanitized) >= settings.OPENROUTER_MAX_MESSAGES:
+                    if len(sanitized) >= settings.OPENAI_MAX_MESSAGES:
                         break
                 messages.extend(sanitized)
             else:
-                if "User:" in prompt and "AI:" in prompt:
-                    conversation_parts = []
-                    for part in re.split(r"(User:|AI:)", prompt):
-                        if part and part not in ["User:", "AI:"]:
-                            conversation_parts.append(part.strip())
-
-                    for i, content in enumerate(conversation_parts):
-                        role = "user" if i % 2 == 0 else "assistant"
-                        messages.append({"role": role, "content": content})
-                else:
-                    messages.append({"role": "user", "content": prompt})
+                messages.append({"role": "user", "content": prompt})
 
             default_model = (
-                settings.OPENROUTER_ALLOWED_MODELS_CSV[0]
-                if settings.OPENROUTER_ALLOWED_MODELS_CSV
-                else "openrouter/auto"
+                settings.OPENAI_ALLOWED_MODELS_CSV[0]
+                if settings.OPENAI_ALLOWED_MODELS_CSV
+                else "gpt-5-mini"
             )
             requested_model = str(parameters.get("model") or default_model)
-            if requested_model not in settings.OPENROUTER_ALLOWED_MODELS_CSV:
-                return {
-                    "error": "Model not allowed.",
-                    "request_id": request_id,
-                }, 400
+            if requested_model not in settings.OPENAI_ALLOWED_MODELS_CSV:
+                return {"error": "Model not allowed.", "request_id": request_id}, 400
 
             try:
                 max_tokens = int(parameters.get("max_new_tokens", 256))
             except Exception:
                 max_tokens = 256
-            max_tokens = max(1, min(max_tokens, settings.OPENROUTER_MAX_TOKENS))
+            max_tokens = max(1, min(max_tokens, settings.OPENAI_MAX_TOKENS))
 
             temperature = parameters.get("temperature", 0.7)
             try:
@@ -533,7 +424,7 @@ class OpenRouterService:
                 payload_hash = hashlib.sha256(
                     json.dumps(api_params, sort_keys=True, default=str).encode("utf-8")
                 ).hexdigest()
-                cache_key = f"openrouter:v2:{self.user.id}:{payload_hash}"
+                cache_key = f"openai:v1:{self.user.id}:{payload_hash}"
                 cached = cache.get(cache_key)
                 if cached:
                     return cached, 200
@@ -541,7 +432,7 @@ class OpenRouterService:
             try:
                 result = self.request_with_backoff(
                     method="POST",
-                    url="https://openrouter.ai/api/v1/chat/completions",
+                    url="https://api.openai.com/v1/chat/completions",
                     headers=headers,
                     json=api_params,
                     allow_retry=bool(idem_cache_key),
@@ -554,46 +445,18 @@ class OpenRouterService:
                     "request_id": request_id,
                 }, 504
             except requests.RequestException as exc:
-                logger.warning(
-                    "openrouter_request_failed request_id=%s err=%s",
-                    request_id,
-                    str(exc),
-                )
-                return {
-                    "error": "AI service unavailable.",
-                    "request_id": request_id,
-                }, 502
+                logger.warning("openai_request_failed request_id=%s err=%s", request_id, str(exc))
+                return {"error": "AI service unavailable.", "request_id": request_id}, 502
 
             if response.status_code == 200:
                 response_data = response.json()
                 if "choices" in response_data and len(response_data["choices"]) > 0:
                     msg = response_data["choices"][0].get("message") or {}
-                    raw_content = msg.get("content")
-                    if isinstance(raw_content, list):
-                        ai_response = (
-                            " ".join(
-                                p.get("text", "") if isinstance(p, dict) else str(p)
-                                for p in raw_content
-                            ).strip()
-                            or None
-                        )
-                    else:
-                        ai_response = raw_content
-                    cleaned_response = (
-                        self.clean_response(ai_response)
-                        or "I'm sorry, I didn't get a clear answer that time. Try asking in a slightly different way, or ask about our learning paths."
-                    )
-
-                    result = {"response": cleaned_response}
-
-                    for path_name in self.path_links.keys():
-                        if path_name in cleaned_response.lower():
-                            result["link"] = {
-                                "text": f"View {path_name.title()} Path",
-                                "path": self.path_links[path_name],
-                                "icon": "📚",
-                            }
-                            break
+                    cleaned_response = self.clean_response(msg.get("content"))
+                    result = {
+                        "response": cleaned_response
+                        or "I could not generate a clear answer. Please try again."
+                    }
 
                     if cache_key and cache_ttl > 0:
                         cache.set(cache_key, result, timeout=cache_ttl)
@@ -601,29 +464,20 @@ class OpenRouterService:
                         cache.set(
                             idem_cache_key,
                             result,
-                            timeout=settings.OPENROUTER_IDEMPOTENCY_TTL_SECONDS,
+                            timeout=settings.OPENAI_IDEMPOTENCY_TTL_SECONDS,
                         )
-
                     return result, 200
-                return {
-                    "error": "No valid response from the model.",
-                    "request_id": request_id,
-                }, 502
+                return {"error": "No valid response from the model.", "request_id": request_id}, 502
 
             logger.warning(
-                "OpenRouter non-200 request_id=%s status=%s body=%s",
+                "OpenAI non-200 request_id=%s status=%s body=%s",
                 request_id,
                 response.status_code,
                 response.text[:200],
             )
             return {"error": "AI service error.", "request_id": request_id}, 502
-
         except Exception:
-            logger.error(
-                "openrouter_unexpected_error request_id=%s",
-                request_id,
-                exc_info=True,
-            )
+            logger.error("openai_unexpected_error request_id=%s", request_id, exc_info=True)
             return {"error": "Unexpected server error.", "request_id": request_id}, 500
         finally:
             if idem_lock_key:
