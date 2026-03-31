@@ -22,6 +22,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {"password": {"write_only": True}}
 
+    def validate_referral_code(self, value):
+        cleaned_code = (value or "").strip()
+        if not cleaned_code:
+            return ""
+        exists = UserProfile.objects.filter(referral_code__iexact=cleaned_code).exists()
+        if not exists:
+            raise serializers.ValidationError("Invalid referral code.")
+        return cleaned_code
+
     def create(self, validated_data):
         referral_code = validated_data.pop("referral_code", None)
 
@@ -33,13 +42,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         user_profile.save()
 
         if referral_code:
-            try:
-                referrer_profile = UserProfile.objects.get(referral_code=referral_code)
-                Referral.objects.create(referrer=referrer_profile.user, referred_user=user)
-                referrer_profile.add_points(100)
-                user_profile.add_points(50)
-            except UserProfile.DoesNotExist:
-                pass
+            referrer_profile = UserProfile.objects.get(referral_code__iexact=referral_code)
+            Referral.objects.create(
+                referrer=referrer_profile.user,
+                referred_user=user,
+                referral_code=referrer_profile.referral_code,
+            )
+            referrer_profile.add_points(100)
+            user_profile.add_points(50)
 
         return user
 

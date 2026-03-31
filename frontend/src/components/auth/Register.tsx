@@ -8,8 +8,11 @@ import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
+import apiClient from "services/httpClient";
 import { BACKEND_URL } from "services/backendUrl";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
+
+type ReferralValidationState = "idle" | "checking" | "valid" | "invalid";
 
 function Register() {
   const { t } = useTranslation();
@@ -31,6 +34,9 @@ function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showVerifyingModal, setShowVerifyingModal] = useState(false);
+  const [referralValidationState, setReferralValidationState] =
+    useState<ReferralValidationState>("idle");
+  const [referralValidationMessage, setReferralValidationMessage] = useState("");
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();
@@ -41,11 +47,68 @@ function Register() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateReferralCode = async (rawCode: string): Promise<boolean> => {
+    const code = rawCode.trim();
+    if (!code) {
+      setReferralValidationState("idle");
+      setReferralValidationMessage("");
+      return true;
+    }
+
+    setReferralValidationState("checking");
+    setReferralValidationMessage("");
+    try {
+      const response = await apiClient.get("/referrals/validate/", {
+        params: { code },
+        skipAuthRedirect: true,
+      });
+      const isValid = Boolean(response.data?.valid);
+      if (isValid) {
+        setReferralValidationState("valid");
+        setReferralValidationMessage(t("auth.register.referralCodeValid"));
+        return true;
+      }
+      setReferralValidationState("invalid");
+      setReferralValidationMessage(
+        response.data?.message || t("auth.register.referralCodeInvalid")
+      );
+      return false;
+    } catch {
+      setReferralValidationState("invalid");
+      setReferralValidationMessage(t("auth.register.referralCodeCheckFailed"));
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const code = formData.referral_code.trim();
+    if (!code) {
+      setReferralValidationState("idle");
+      setReferralValidationMessage("");
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      void validateReferralCode(code);
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [formData.referral_code]);
+
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
     setErrorCode(undefined);
+    const referralCode = formData.referral_code.trim();
+    if (referralCode) {
+      const isReferralValid = await validateReferralCode(referralCode);
+      if (!isReferralValid) {
+        setErrorMessage(t("auth.register.referralCodeInvalid"));
+        setIsLoading(false);
+        return;
+      }
+    }
 
     const runRegister = async (payload: Record<string, unknown>) => {
       const result = await registerUser(payload);
@@ -286,9 +349,27 @@ function Register() {
                   type="text"
                   value={formData.referral_code}
                   onChange={handleChange}
+                  onBlur={() => {
+                    void validateReferralCode(formData.referral_code);
+                  }}
                   placeholder={t("auth.register.referralPlaceholder")}
                   className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
+                {referralValidationState !== "idle" && (
+                  <p
+                    className={`text-xs ${
+                      referralValidationState === "valid"
+                        ? "text-emerald-700"
+                        : referralValidationState === "checking"
+                          ? "text-[color:var(--muted-text,#6b7280)]"
+                          : "text-[color:var(--error,#dc2626)]"
+                    }`}
+                  >
+                    {referralValidationState === "checking"
+                      ? t("auth.register.referralCodeChecking")
+                      : referralValidationMessage}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3">

@@ -25,6 +25,7 @@ from .views import (
     PlansView,
     get_csrf_token,
     ReferralApplyView,
+    ReferralCodeValidationView,
     UserHeartsView,
     UserHeartsDecrementView,
     UserHeartsGrantView,
@@ -77,6 +78,11 @@ urlpatterns = [
         name="friends-leaderboard",
     ),
     path("referrals/", ReferralApplyView.as_view(), name="apply-referral"),
+    path(
+        "referrals/validate/",
+        ReferralCodeValidationView.as_view(),
+        name="validate-referral-code",
+    ),
     path("csrf/", get_csrf_token, name="get_csrf_token"),
     # Hearts (lives) system
     path("user/hearts/", UserHeartsView.as_view(), name="user-hearts"),

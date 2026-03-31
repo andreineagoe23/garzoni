@@ -131,7 +131,19 @@ const Leaderboards = () => {
         if (cancelled) return;
         setFriendsLeaderboard(friendsResponse.data);
         setUserRank(rankResponse.data);
-        setReferralCode(profilePayload?.referral_code || "");
+        const resolvedReferralCode =
+          (typeof profilePayload?.referral_code === "string" &&
+            profilePayload.referral_code) ||
+          (typeof (
+            profilePayload?.user_data as { referral_code?: string } | undefined
+          )?.referral_code === "string" &&
+            (
+              profilePayload?.user_data as
+                | { referral_code?: string }
+                | undefined
+            )?.referral_code) ||
+          "";
+        setReferralCode(resolvedReferralCode);
         setSentRequests(sentRes.data);
         setFriends(friendsRes.data);
         setStableReady(true);
@@ -237,6 +249,13 @@ const Leaderboards = () => {
 
   const pageLoading = !stableReady || !globalReady;
 
+  const podiumOrder = useMemo((): LeaderboardEntry[] => {
+    const [a, b, c] = podiumEntries;
+    if (podiumEntries.length === 3 && a && b && c) return [b, a, c];
+    if (podiumEntries.length === 2 && a && b) return [b, a];
+    return podiumEntries;
+  }, [podiumEntries]);
+
   if (pageLoading) {
     return (
       <PageContainer layout="centered" maxWidth="4xl">
@@ -244,13 +263,6 @@ const Leaderboards = () => {
       </PageContainer>
     );
   }
-
-  const podiumOrder = useMemo((): LeaderboardEntry[] => {
-    const [a, b, c] = podiumEntries;
-    if (podiumEntries.length === 3 && a && b && c) return [b, a, c];
-    if (podiumEntries.length === 2 && a && b) return [b, a];
-    return podiumEntries;
-  }, [podiumEntries]);
 
   const rankForEntry = (entry: LeaderboardEntry, fallbackRank: number) =>
     entry.rank ?? fallbackRank;
@@ -283,12 +295,12 @@ const Leaderboards = () => {
               key={entry.user.id}
               padding="md"
               className={cx(
-                "relative overflow-hidden border-2 transition hover:-translate-y-0.5",
+                "relative w-full min-h-[260px] overflow-hidden border-2 transition hover:-translate-y-0.5 md:w-[220px]",
                 podiumHighlight[idxInTopThree] ?? podiumHighlight[2],
                 isYou &&
                   "ring-2 ring-[color:var(--accent,#ffd700)] ring-offset-2 ring-offset-[color:var(--card-bg,#ffffff)]",
                 rank === 2 && "md:order-1",
-                rank === 1 && "md:z-10 md:scale-105 md:order-2",
+                rank === 1 && "md:z-10 md:order-2",
                 rank === 3 && "md:order-3"
               )}
             >
@@ -323,11 +335,16 @@ const Leaderboards = () => {
                     e.currentTarget.src = DEFAULT_AVATAR_URL;
                   }}
                 />
-                <div>
-                  <p className="flex flex-wrap items-center justify-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
-                    <span>{entry.user.username}</span>
+                <div className="w-full">
+                  <p className="flex items-center justify-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                    <span
+                      className="max-w-[150px] truncate"
+                      title={entry.user.username}
+                    >
+                      {entry.user.username}
+                    </span>
                     {isYou && (
-                      <span className="rounded-full bg-[color:var(--accent,#ffd700)]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+                      <span className="shrink-0 rounded-full bg-[color:var(--accent,#ffd700)]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
                         {t("leaderboard.youBadge")}
                       </span>
                     )}
