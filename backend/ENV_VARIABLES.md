@@ -78,20 +78,20 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `GOOGLE_OAUTH_CLIENT_SECRET` | `""` | OAuth client secret. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | (none) | Path to service account JSON (if used). |
 
-### OpenRouter (AI chat)
+### OpenAI (AI chat)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OPENROUTER_API_KEY` | (none) | API key for OpenRouter (required for chat proxy). |
-| `OPENROUTER_ALLOWED_MODELS_CSV` | `openrouter/auto` | Allowed model IDs (comma-separated). For more reliable replies, set a specific model e.g. `google/gemini-2.0-flash-exp:free` or `meta-llama/llama-3.2-3b-instruct:free` (see https://openrouter.ai/models). |
-| `OPENROUTER_MAX_PROMPT_CHARS` | `4000` | Max prompt length. |
-| `OPENROUTER_MAX_MESSAGES` | `30` | Max message count. |
-| `OPENROUTER_MAX_MESSAGE_CHARS` | `2000` | Max chars per message. |
-| `OPENROUTER_MAX_TOKENS` | `250` | Max tokens. |
-| `OPENROUTER_THROTTLE_RATE_FREE` | `30/min` | Throttle for free tier. |
-| `OPENROUTER_THROTTLE_RATE_PREMIUM` | `120/min` | Throttle for premium. |
-| `OPENROUTER_CACHE_TTL_SECONDS` | `0` | Response cache TTL (0 = disabled). |
-| `OPENROUTER_IDEMPOTENCY_TTL_SECONDS` | `120` | Idempotency window. |
+| `OPENAI_API_KEY` | (none) | API key for OpenAI (required for AI tutor proxy). |
+| `OPENAI_ALLOWED_MODELS_CSV` | `gpt-5-nano,gpt-5-mini` | Allowed model IDs (comma-separated). |
+| `OPENAI_MAX_PROMPT_CHARS` | `4000` | Max prompt length. |
+| `OPENAI_MAX_MESSAGES` | `30` | Max message count. |
+| `OPENAI_MAX_MESSAGE_CHARS` | `2000` | Max chars per message. |
+| `OPENAI_MAX_TOKENS` | `512` | Max tokens per response. |
+| `AI_TUTOR_THROTTLE_RATE_FREE` | `30/min` | Throttle for free tier. |
+| `AI_TUTOR_THROTTLE_RATE_PREMIUM` | `120/min` | Throttle for premium. |
+| `OPENAI_CACHE_TTL_SECONDS` | `0` | Response cache TTL (0 = disabled). |
+| `OPENAI_IDEMPOTENCY_TTL_SECONDS` | `120` | Idempotency window. |
 
 ### Rate limits
 

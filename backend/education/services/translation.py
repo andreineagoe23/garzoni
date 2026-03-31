@@ -2,7 +2,7 @@
 Content translation provider layer.
 
 Provides a narrow interface for translating education content to Romanian,
-backed by OpenRouter (swappable via CONTENT_TRANSLATION_PROVIDER setting).
+backed by OpenAI (swappable via CONTENT_TRANSLATION_PROVIDER setting).
 
 Usage:
     from education.services.translation import get_translator
@@ -26,11 +26,11 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
 
-class OpenRouterPaymentRequiredError(Exception):
-    """Raised when OpenRouter returns 402 Payment Required (credits exhausted or billing limit)."""
+class OpenAIPaymentRequiredError(Exception):
+    """Raised when OpenAI returns 402 Payment Required (credits exhausted or billing limit)."""
 
     pass
 
@@ -69,13 +69,13 @@ class TranslationProvider(ABC):
         }
 
 
-class OpenRouterTranslator(TranslationProvider):
-    """Translate content via the OpenRouter chat-completions API."""
+class OpenAITranslator(TranslationProvider):
+    """Translate content via the OpenAI chat-completions API."""
 
-    DEFAULT_MODEL = "google/gemini-2.5-flash"
+    DEFAULT_MODEL = "gpt-5-nano"
 
     def __init__(self):
-        self.api_key: str = getattr(settings, "OPENROUTER_API_KEY", "") or ""
+        self.api_key: str = getattr(settings, "OPENAI_API_KEY", "") or ""
         self.model: str = getattr(settings, "CONTENT_TRANSLATION_MODEL", "") or self.DEFAULT_MODEL
         self.max_retries: int = 3
         self.backoff_base: float = 2.0
@@ -127,13 +127,11 @@ class OpenRouterTranslator(TranslationProvider):
 
     def _call_api(self, prompt: str) -> Optional[str]:
         if not self.api_key:
-            logger.error("OPENROUTER_API_KEY is not configured; cannot translate.")
+            logger.error("OPENAI_API_KEY is not configured; cannot translate.")
             return None
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "HTTP-Referer": "https://monevo.com",
-            "X-Title": "Monevo Content Translation",
             "Content-Type": "application/json",
         }
 
@@ -159,7 +157,7 @@ class OpenRouterTranslator(TranslationProvider):
         for attempt in range(1, self.max_retries + 1):
             try:
                 resp = requests.post(
-                    OPENROUTER_API_URL,
+                    OPENAI_API_URL,
                     headers=headers,
                     json=payload,
                     timeout=60,
@@ -175,12 +173,12 @@ class OpenRouterTranslator(TranslationProvider):
 
                 if resp.status_code == 402:
                     logger.error(
-                        "OpenRouter returned 402 Payment Required. "
+                        "OpenAI returned 402 Payment Required. "
                         "Credits exhausted or billing limit reached. "
-                        "Add credits at https://openrouter.ai and re-run to resume."
+                        "Add credits in OpenAI billing and re-run to resume."
                     )
-                    raise OpenRouterPaymentRequiredError(
-                        "OpenRouter 402 Payment Required – add credits to continue."
+                    raise OpenAIPaymentRequiredError(
+                        "OpenAI 402 Payment Required – add credits to continue."
                     )
 
                 resp.raise_for_status()
@@ -190,15 +188,15 @@ class OpenRouterTranslator(TranslationProvider):
                     content = choices[0].get("message", {}).get("content", "")
                     return content.strip()
 
-                logger.warning("Empty choices from OpenRouter: %s", data)
+                logger.warning("Empty choices from OpenAI: %s", data)
                 return None
 
             except requests.Timeout:
-                logger.warning("OpenRouter timeout on attempt %d", attempt)
+                logger.warning("OpenAI timeout on attempt %d", attempt)
                 if attempt < self.max_retries:
                     time.sleep(self.backoff_base**attempt)
             except requests.RequestException as exc:
-                logger.error("OpenRouter request error on attempt %d: %s", attempt, exc)
+                logger.error("OpenAI request error on attempt %d: %s", attempt, exc)
                 if attempt < self.max_retries:
                     time.sleep(self.backoff_base**attempt)
 
@@ -213,7 +211,7 @@ class NoopTranslator(TranslationProvider):
 
 
 def get_translator() -> TranslationProvider:
-    provider = getattr(settings, "CONTENT_TRANSLATION_PROVIDER", "openrouter")
+    provider = getattr(settings, "CONTENT_TRANSLATION_PROVIDER", "openai")
     if provider == "noop":
         return NoopTranslator()
-    return OpenRouterTranslator()
+    return OpenAITranslator()

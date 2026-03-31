@@ -21,10 +21,10 @@
 | Streak repair | `feature.gamification.streak_repair` | `/api/entitlements/consume/` | `EntitlementMatrix` copy (ready for streak UI) |
 | Downloads | `feature.resources.downloads` | `/api/entitlements/consume/` | Rewards share CTA (lock/limit) |
 | Analytics & insights | `feature.analytics.access` | `/api/entitlements/` response | `EntitlementMatrix` highlights lock state |
-| AI tutor quota | `feature.ai.tutor` | `/api/proxy/openrouter/` + `/api/entitlements/consume/` | Chatbot send action (lock/limit + upsell) |
+| AI tutor quota | `feature.ai.tutor` | `/api/proxy/openai/` + `/api/entitlements/consume/` | Chatbot send action (lock/limit + upsell) |
 | Personalized path | `feature.learning.personalized_path` | `/api/personalized-path/` | Personalized path CTA (lock + upsell) |
 
 ## Enforcement notes
 
-- **Backend**: `authentication.entitlements` centralizes plans, feature flags, and per-day usage counters (cached per user per day). AI tutor requests are blocked/upselled server-side before reaching the OpenRouter proxy, and `entitlements/consume` ensures other premium actions are verified server-side even when triggered from the client.
+- **Backend**: `authentication.entitlements` centralizes plans, feature flags, and per-day usage counters (cached per user per day). AI tutor requests are blocked/upselled server-side before reaching the OpenAI proxy, and `entitlements/consume` ensures other premium actions are verified server-side even when triggered from the client.
 - **Frontend**: a shared entitlements query powers the Settings plan matrix, Chatbot gating, and Rewards download guard. Locked or exhausted features surface a lock icon, disablement, and an upsell modal to guide upgrades.
