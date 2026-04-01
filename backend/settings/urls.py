@@ -4,7 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
-from authentication.views import CustomTokenRefreshView, FinancialProfileView
+from authentication.views_auth import CustomTokenRefreshView
+from authentication.views_profile import FinancialProfileView
 from authentication.views_google_oauth import GoogleCredentialAuthView
 from drf_spectacular.views import (
     SpectacularAPIView,

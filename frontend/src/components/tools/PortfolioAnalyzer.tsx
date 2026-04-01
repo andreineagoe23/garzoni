@@ -21,6 +21,7 @@ import apiClient from "services/httpClient";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
 import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
+import { requestAiTutorResponse } from "services/aiTutor";
 
 const COLORS = ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b"];
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
@@ -110,6 +111,9 @@ function PortfolioAnalyzer() {
   const [lookupPrice, setLookupPrice] = useState<number | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [aiMeaning, setAiMeaning] = useState<string>("");
+  const [isAiMeaningLoading, setIsAiMeaningLoading] = useState(false);
+  const [aiMeaningError, setAiMeaningError] = useState<string | null>(null);
   const { getAccessToken, financialProfile } = useAuth();
   const formRef = useRef<HTMLDivElement | null>(null);
 
@@ -456,6 +460,62 @@ function PortfolioAnalyzer() {
     if (totalCost === 0) return 0;
     return (summary.total_gain_loss / totalCost) * 100;
   }, [summary, entries]);
+
+  const explainPortfolioInPlainLanguage = useCallback(async () => {
+    if (!summary || entries.length === 0) return;
+
+    const topHoldings = entries
+      .slice()
+      .sort((a, b) => (b.current_value || 0) - (a.current_value || 0))
+      .slice(0, 3)
+      .map(
+        (entry) =>
+          `${entry.symbol.toUpperCase()} (${entry.asset_type}): ${formatCurrency(
+            Number(entry.current_value || 0),
+            "USD",
+            locale,
+            { maximumFractionDigits: 0 }
+          )}`
+      )
+      .join(", ");
+
+    const allocationSummary = Object.entries(summary.allocation || {})
+      .map(([assetType, value]) => {
+        const percent =
+          summary.total_value > 0 ? (Number(value) / summary.total_value) * 100 : 0;
+        return `${assetType}: ${formatNumber(percent, locale, {
+          maximumFractionDigits: 1,
+        })}%`;
+      })
+      .join(", ");
+
+    const prompt = [
+      "You are a practical personal finance coach.",
+      "Explain this learner's portfolio results in simple language.",
+      `Total portfolio value: ${formatCurrency(summary.total_value || 0, "USD", locale, { maximumFractionDigits: 0 })}`,
+      `Total gain/loss: ${formatCurrency(summary.total_gain_loss || 0, "USD", locale, { maximumFractionDigits: 0 })}`,
+      `Total gain/loss percentage: ${formatNumber(totalGainLossPercentage, locale, { maximumFractionDigits: 1 })}%`,
+      `Allocation mix: ${allocationSummary || "N/A"}`,
+      `Top holdings: ${topHoldings || "N/A"}`,
+      "Return 3 short bullets:",
+      "- What this means now",
+      "- Biggest risk to watch",
+      "- One practical next step",
+      "Keep it under 120 words.",
+    ].join("\n");
+
+    setIsAiMeaningLoading(true);
+    setAiMeaningError(null);
+    try {
+      const response = await requestAiTutorResponse(prompt);
+      if (!response) throw new Error("Empty AI response");
+      setAiMeaning(response);
+    } catch {
+      setAiMeaningError("Could not generate AI explanation right now.");
+    } finally {
+      setIsAiMeaningLoading(false);
+    }
+  }, [entries, locale, summary, totalGainLossPercentage]);
 
   const insight = useMemo(() => {
     if (!summary || entries.length === 0) return null;
@@ -1017,6 +1077,16 @@ function PortfolioAnalyzer() {
                 <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
                   Next step:
                 </span>
+                <button
+                  type="button"
+                  onClick={explainPortfolioInPlainLanguage}
+                  disabled={isAiMeaningLoading}
+                  className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
+                >
+                  {isAiMeaningLoading
+                    ? "Thinking..."
+                    : "What does this mean for me?"}
+                </button>
                 <Link
                   to={insight.nextAction.href}
                   className="inline-flex items-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40"
@@ -1024,6 +1094,21 @@ function PortfolioAnalyzer() {
                   {insight.nextAction.label} →
                 </Link>
               </div>
+              {aiMeaningError && (
+                <p className="mt-3 text-xs text-[color:var(--error,#dc2626)]">
+                  {aiMeaningError}
+                </p>
+              )}
+              {aiMeaning && (
+                <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-3 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    AI take
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--text-color,#111827)]">
+                    {aiMeaning}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

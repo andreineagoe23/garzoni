@@ -1,33 +1,28 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import PageContainer from "components/common/PageContainer";
-import { useAuth } from "contexts/AuthContext";
 import ShopItems from "./ShopItems";
 import DonationCauses from "./DonationCauses";
 import { GlassCard, GlassButton } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
 import UpsellModal from "components/billing/UpsellModal";
-import {
-  consumeEntitlement,
-  fetchEntitlements,
-} from "services/entitlementsService";
+import { fetchEntitlements } from "services/entitlementsService";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { formatNumber, getLocale } from "utils/format";
-import { UserProfile } from "types/api";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
+import ShareAchievementButton from "./ShareAchievementButton";
+import apiClient from "services/httpClient";
 
 function RewardsPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("shop");
-  const [balance, setBalance] = useState(0);
-  const didFetchRef = useRef(false);
-  const shareCardRef = useRef(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "donate" ? "donate" : "shop";
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const [lockedFeature, setLockedFeature] = useState(null);
   const [showUpsell, setShowUpsell] = useState(false);
-  const { loadProfile } = useAuth();
   const queryClient = useQueryClient();
   const locale = getLocale();
+  const [balanceFlash, setBalanceFlash] = useState(false);
 
   const { data: entitlementsData } = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -36,110 +31,32 @@ function RewardsPage() {
   });
 
   const downloadsFeature = entitlementsData?.data?.features?.downloads;
+  const { data: profileResponse } = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: () => apiClient.get("/userprofile/"),
+    staleTime: staleTimes.profile,
+  });
 
-  const fetchBalance = useCallback(
-    async (force = false) => {
-      try {
-        const profilePayload = await loadProfile(
-          force ? { force: true } : undefined
-        );
-        const userData =
-          (profilePayload as UserProfile)?.user_data ||
-          (profilePayload as UserProfile) ||
-          {};
-        const earned = (userData as Record<string, unknown>)?.earned_money ?? 0;
-        const normalized = Number.parseFloat(String(earned)) || 0;
-        setBalance(normalized);
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    },
-    [loadProfile]
-  );
+  const balance = useMemo(() => {
+    const payload = profileResponse?.data || {};
+    const earned = payload?.earned_money ?? payload?.user_data?.earned_money ?? 0;
+    return Number.parseFloat(String(earned)) || 0;
+  }, [profileResponse]);
 
-  useEffect(() => {
-    if (!didFetchRef.current) {
-      didFetchRef.current = true;
-      fetchBalance(false);
-    }
-  }, [fetchBalance]);
+  React.useEffect(() => {
+    if (!profileResponse) return;
+    setBalanceFlash(true);
+    const timeout = window.setTimeout(() => setBalanceFlash(false), 500);
+    return () => window.clearTimeout(timeout);
+  }, [balance, profileResponse]);
 
-  const guardDownloads = useCallback(async () => {
-    if (!downloadsFeature) return true;
+  const handlePurchase = async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+  };
 
-    if (!downloadsFeature.enabled || downloadsFeature.remaining_today === 0) {
-      setLockedFeature("downloads");
-      setShowUpsell(true);
-      toast.error(
-        downloadsFeature.enabled
-          ? t("rewards.errors.downloadLimit")
-          : t("rewards.errors.downloadsPremium")
-      );
-      return false;
-    }
-
-    try {
-      await consumeEntitlement("downloads");
-      queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
-      return true;
-    } catch (error) {
-      setLockedFeature("downloads");
-      setShowUpsell(true);
-      toast.error(
-        error.response?.data?.error || t("rewards.errors.downloadAllowance")
-      );
-      return false;
-    }
-  }, [downloadsFeature, queryClient, t]);
-
-  const handlePurchase = useCallback(async () => {
-    await fetchBalance(true);
-  }, [fetchBalance]);
-
-  const handleDonation = useCallback(async () => {
-    await fetchBalance(true);
-  }, [fetchBalance]);
-
-  const handleShare = useCallback(async () => {
-    try {
-      const allowed = await guardDownloads();
-      if (!allowed) return;
-
-      const target = shareCardRef.current;
-      if (!target) return;
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(target);
-      const dataUrl = canvas.toDataURL("image/png");
-
-      // Use the Web Share API with files when possible; otherwise fall back to download
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "monevo-achievement.png", {
-        type: "image/png",
-      });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: t("rewards.share.title"),
-          text: t("rewards.share.text"),
-          files: [file],
-        });
-      } else if (navigator.share) {
-        await navigator.share({
-          title: t("rewards.share.title"),
-          text: t("rewards.share.text"),
-        });
-      } else {
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "monevo-achievement.png";
-        link.click();
-        toast.success(t("rewards.share.downloaded"));
-      }
-    } catch (error) {
-      console.error("Share failed", error);
-      toast.error(t("rewards.share.unavailable"));
-    }
-  }, [guardDownloads, t]);
+  const handleDonation = async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+  };
 
   return (
     <PageContainer
@@ -153,24 +70,26 @@ function RewardsPage() {
         className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
       >
         <div className="space-y-3">
-          <h1 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+          <h1 className="text-3xl font-bold text-[color:var(--text-color)]">
             {t("rewards.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-[color:var(--muted-text)]">
             {t("rewards.subtitle")}
           </p>
         </div>
         <div
-          className="rounded-3xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--bg-color,#f8fafc)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]"
+          className={`rounded-3xl border border-[color:var(--border-color)] bg-[color:var(--bg-color)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text)] shadow-inner shadow-[color:var(--shadow-color)] transition-transform ${
+            balanceFlash ? "scale-[1.02]" : ""
+          }`}
           style={{
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
           }}
         >
-          <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text)]">
             {t("rewards.balanceLabel")}
           </span>
-          <p className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+          <p className="text-2xl font-bold text-[color:var(--text-color)]">
             {formatNumber(balance, locale, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -184,46 +103,35 @@ function RewardsPage() {
         <div className="flex gap-3">
           <GlassButton
             variant={activeTab === "shop" ? "active" : "ghost"}
-            onClick={() => setActiveTab("shop")}
+            onClick={() => setSearchParams({ tab: "shop" })}
           >
             {t("rewards.tabs.shop")}
           </GlassButton>
           <GlassButton
             variant={activeTab === "donate" ? "active" : "ghost"}
-            onClick={() => setActiveTab("donate")}
+            onClick={() => setSearchParams({ tab: "donate" })}
           >
             {t("rewards.tabs.donate")}
           </GlassButton>
         </div>
-        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-          {t("rewards.refreshNote")}
-        </p>
-        <GlassButton
-          variant="ghost"
-          onClick={handleShare}
-          icon={
-            <MonevoIcon
-              name={
-                downloadsFeature && !downloadsFeature.enabled
-                  ? "lock"
-                  : "download"
-              }
-              size={16}
-            />
-          }
-          disabled={downloadsFeature?.remaining_today === 0}
-        >
-          {downloadsFeature?.remaining_today === 0
-            ? t("rewards.downloadLimit")
-            : t("rewards.shareButton")}
-        </GlassButton>
+        <ShareAchievementButton
+          targetRef={shareCardRef}
+          downloadsFeature={downloadsFeature}
+          onLocked={() => {
+            setLockedFeature("downloads");
+            setShowUpsell(true);
+          }}
+        />
       </div>
+      <p className="text-xs text-[color:var(--muted-text)] -mt-4">
+        {t("rewards.refreshNote")}
+      </p>
 
       <GlassCard padding="lg">
         {activeTab === "shop" ? (
-          <ShopItems onPurchase={handlePurchase} />
+          <ShopItems onPurchase={handlePurchase} balance={balance} />
         ) : (
-          <DonationCauses onDonate={handleDonation} />
+          <DonationCauses onDonate={handleDonation} balance={balance} />
         )}
       </GlassCard>
       <UpsellModal

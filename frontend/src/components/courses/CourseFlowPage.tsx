@@ -1570,7 +1570,9 @@ function CourseFlowPage() {
 
           {!courseComplete && (
             <div className="flex flex-col gap-3 lg:flex-row lg:gap-8">
-              <div className="flex-1 space-y-6 lg:space-y-8">{renderSectionBody()}</div>
+              <div className="flex-1 space-y-6 lg:space-y-8">
+                {renderSectionBody()}
+              </div>
               {sectionInsight && (
                 <aside className="w-full shrink-0 lg:w-64">
                   <div className="relative">

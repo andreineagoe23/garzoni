@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Sum, F, DecimalField, ExpressionWrapper, Case, When
 from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -46,6 +46,7 @@ from finance.serializers import (
 )
 from authentication.models import UserProfile
 from authentication.services.profile import invalidate_profile_cache
+from authentication.services.subscriptions import apply_subscription_to_profile
 from authentication.tasks import send_subscription_cancelled_email
 from authentication.user_display import normalize_display_string
 from gamification.models import MissionCompletion
@@ -106,6 +107,19 @@ NEWS_LESSON_LINKS = {
     "Markets": "/all-topics?topic=investing",
     "Personal finance": "/all-topics?topic=budgeting",
     "Crypto": "/all-topics?topic=crypto",
+}
+
+COINGECKO_ID_MAP = {
+    "btc": "bitcoin",
+    "bitcoin": "bitcoin",
+    "eth": "ethereum",
+    "ethereum": "ethereum",
+    "sol": "solana",
+    "solana": "solana",
+    "xrp": "ripple",
+    "ada": "cardano",
+    "doge": "dogecoin",
+    "bnb": "binancecoin",
 }
 
 
@@ -271,6 +285,49 @@ def _parse_rss_items(feed_text: str, source: str):
             }
         )
     return items
+
+
+def refresh_news_feed_cache():
+    """
+    Build and cache finance news payload.
+    Used by Celery beat so request handlers remain non-blocking.
+    """
+    all_items = []
+    timeout = NEWS_FEED_TIMEOUT_SECONDS
+    for feed in NEWS_FEEDS:
+        try:
+            response = requests.get(feed["url"], timeout=timeout)
+            response.raise_for_status()
+            feed_items = _parse_rss_items(response.text, feed["name"])
+            feed_items_sorted = sorted(
+                feed_items, key=lambda x: x.get("published_at") or "", reverse=True
+            )
+            all_items.extend(feed_items_sorted[:4])
+        except Exception as exc:
+            logger.warning("Failed to fetch feed %s: %s", feed["url"], exc)
+            continue
+
+    seen_urls = set()
+    unique = []
+    for item in sorted(all_items, key=lambda x: x.get("published_at") or "", reverse=True):
+        url = (item.get("url") or "").strip()
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        unique.append(item)
+
+    items = unique[:12]
+    generated_at = timezone.now().isoformat()
+    payload = {
+        "items": items,
+        "generated_at": generated_at,
+        "stale": False,
+        "sources": [feed["name"] for feed in NEWS_FEEDS],
+    }
+    if items:
+        cache.set(NEWS_CACHE_KEY, payload, timeout=NEWS_CACHE_TTL_SECONDS)
+        cache.set(NEWS_LAST_GOOD_CACHE_KEY, payload, timeout=7 * 24 * 60 * 60)
+    return payload
 
 
 class SavingsAccountView(APIView):
@@ -561,18 +618,6 @@ class CryptoPriceView(APIView):
                 status=400,
             )
 
-        COINGECKO_ID_MAP = {
-            "btc": "bitcoin",
-            "bitcoin": "bitcoin",
-            "eth": "ethereum",
-            "ethereum": "ethereum",
-            "sol": "solana",
-            "solana": "solana",
-            "xrp": "ripple",
-            "ada": "cardano",
-            "doge": "dogecoin",
-            "bnb": "binancecoin",
-        }
         crypto_id = (raw_value or "").strip().lower()
         crypto_id = COINGECKO_ID_MAP.get(crypto_id, crypto_id)
         cache_key = f"crypto_{crypto_id}"
@@ -677,7 +722,7 @@ class FinanceFactView(APIView):
                 user=request.user,
                 mission__goal_type="read_fact",
                 status__in=["not_started", "in_progress"],
-            )
+            ).select_related("mission")
 
             for completion in completions:
                 if completion.mission.mission_type == "daily":
@@ -695,30 +740,15 @@ class FinanceFactView(APIView):
 
 
 class SavingsGoalCalculatorView(APIView):
-    """API view to manage savings goal calculations and update user savings progress."""
+    """
+    Legacy endpoint kept for backward compatibility.
+    Reuses SavingsAccountView to avoid duplicated savings update logic.
+    """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        """Handle POST requests to add a specified amount to the user's savings and update related missions."""
-        amount = request.data.get("amount", 0)
-        try:
-            account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
-            account.add_to_balance(amount)
-
-            mission_completions = MissionCompletion.objects.filter(
-                user=request.user, mission__goal_type="add_savings"
-            ).select_related("mission")
-
-            for completion in mission_completions:
-                target = completion.mission.goal_reference.get("target", 100)
-                progress_increment = (amount / target) * 100
-                completion.update_progress(increment=progress_increment, total=100)
-
-            return Response({"message": "Savings updated!"}, status=200)
-        except Exception as e:
-            logger.error(f"Savings error: {str(e)}")
-            return Response({"error": "Savings update failed"}, status=500)
+        return SavingsAccountView().post(request)
 
 
 class RewardViewSet(viewsets.ModelViewSet):
@@ -899,40 +929,26 @@ class StripeWebhookView(APIView):
                                         "subscription_plan_id": plan_id or "plus",
                                     },
                                 )
-                                if not user_profile.has_paid:
-                                    user_profile.has_paid = True
-                                user_profile.is_premium = True
-                                user_profile.subscription_status = subscription_status
-                                user_profile.stripe_payment_id = (
-                                    session.get("payment_intent", "") or ""
-                                )
-                                if plan_id:
-                                    user_profile.subscription_plan_id = plan_id
-                                if trial_end_dt is not None:
-                                    user_profile.trial_end = trial_end_dt
-                                if sub_id:
-                                    user_profile.stripe_subscription_id = sub_id
-                                if customer_id_webhook:
-                                    user_profile.stripe_customer_id = customer_id_webhook
-                                update_fields = [
-                                    "has_paid",
-                                    "is_premium",
-                                    "subscription_status",
-                                    "stripe_payment_id",
-                                    "subscription_plan_id",
-                                ]
-                                if trial_end_dt is not None:
-                                    update_fields.append("trial_end")
-                                if sub_id:
-                                    update_fields.append("stripe_subscription_id")
-                                if customer_id_webhook:
-                                    update_fields.append("stripe_customer_id")
-                                user_profile.save(update_fields=update_fields)
-                                cache.delete_many(
-                                    [
-                                        f"user_payment_status_{user_id}",
-                                        f"user_profile_{user_id}",
-                                    ]
+                                apply_subscription_to_profile(
+                                    user_profile,
+                                    has_paid=True,
+                                    is_premium=True,
+                                    subscription_status=subscription_status,
+                                    stripe_payment_id=(session.get("payment_intent", "") or ""),
+                                    subscription_plan_id=(
+                                        plan_id or user_profile.subscription_plan_id
+                                    ),
+                                    stripe_subscription_id=(
+                                        sub_id or user_profile.stripe_subscription_id
+                                    ),
+                                    trial_end=(
+                                        trial_end_dt
+                                        if trial_end_dt is not None
+                                        else user_profile.trial_end
+                                    ),
+                                    stripe_customer_id=(
+                                        customer_id_webhook or user_profile.stripe_customer_id
+                                    ),
                                 )
 
             elif event["type"] in {
@@ -955,24 +971,17 @@ class StripeWebhookView(APIView):
                                 .first()
                             )
                             if user_profile:
-                                user_profile.subscription_status = session_status
-                                user_profile.stripe_payment_id = (
-                                    session.get("payment_intent", "") or ""
-                                )
-                                user_profile.save(
-                                    update_fields=[
-                                        "subscription_status",
-                                        "stripe_payment_id",
-                                    ]
-                                )
-                                cache.delete_many(
-                                    [
-                                        f"user_payment_status_{user_id}",
-                                        f"user_profile_{user_id}",
-                                    ]
+                                apply_subscription_to_profile(
+                                    user_profile,
+                                    subscription_status=session_status,
+                                    stripe_payment_id=(session.get("payment_intent", "") or ""),
                                 )
                                 record_funnel_event(
-                                    "checkout_completed",
+                                    (
+                                        "checkout_failed"
+                                        if event["type"] == "checkout.session.async_payment_failed"
+                                        else "checkout_expired"
+                                    ),
                                     user=user_profile.user,
                                     session_id=session.get("id", ""),
                                     metadata={
@@ -996,14 +1005,10 @@ class StripeWebhookView(APIView):
                             .first()
                         )
                         if profile:
-                            profile.subscription_status = "active"
-                            profile.trial_end = None
-                            profile.save(update_fields=["subscription_status", "trial_end"])
-                            cache.delete_many(
-                                [
-                                    f"user_payment_status_{profile.user_id}",
-                                    f"user_profile_{profile.user_id}",
-                                ]
+                            apply_subscription_to_profile(
+                                profile,
+                                subscription_status="active",
+                                trial_end=None,
                             )
                 elif status == "canceled":
                     with transaction.atomic():
@@ -1013,25 +1018,13 @@ class StripeWebhookView(APIView):
                             .first()
                         )
                         if profile:
-                            profile.is_premium = False
-                            profile.subscription_plan_id = "starter"
-                            profile.stripe_subscription_id = None
-                            profile.subscription_status = "canceled"
-                            profile.trial_end = None
-                            profile.save(
-                                update_fields=[
-                                    "is_premium",
-                                    "subscription_plan_id",
-                                    "stripe_subscription_id",
-                                    "subscription_status",
-                                    "trial_end",
-                                ]
-                            )
-                            cache.delete_many(
-                                [
-                                    f"user_payment_status_{profile.user_id}",
-                                    f"user_profile_{profile.user_id}",
-                                ]
+                            apply_subscription_to_profile(
+                                profile,
+                                is_premium=False,
+                                subscription_plan_id="starter",
+                                stripe_subscription_id=None,
+                                subscription_status="canceled",
+                                trial_end=None,
                             )
 
             elif event["type"] == "customer.subscription.deleted":
@@ -1045,25 +1038,13 @@ class StripeWebhookView(APIView):
                             .first()
                         )
                         if profile:
-                            profile.is_premium = False
-                            profile.subscription_plan_id = "starter"
-                            profile.stripe_subscription_id = None
-                            profile.subscription_status = "canceled"
-                            profile.trial_end = None
-                            profile.save(
-                                update_fields=[
-                                    "is_premium",
-                                    "subscription_plan_id",
-                                    "stripe_subscription_id",
-                                    "subscription_status",
-                                    "trial_end",
-                                ]
-                            )
-                            cache.delete_many(
-                                [
-                                    f"user_payment_status_{profile.user_id}",
-                                    f"user_profile_{profile.user_id}",
-                                ]
+                            apply_subscription_to_profile(
+                                profile,
+                                is_premium=False,
+                                subscription_plan_id="starter",
+                                stripe_subscription_id=None,
+                                subscription_status="canceled",
+                                trial_end=None,
                             )
 
         except stripe.error.SignatureVerificationError as exc:
@@ -1168,39 +1149,16 @@ class VerifySessionView(APIView):
                             "subscription_plan_id": plan_id or "plus",
                         },
                     )
-
-                    profile.has_paid = True
-                    profile.is_premium = True
-                    profile.subscription_status = subscription_status
-                    profile.stripe_payment_id = stripe_payment_id
-                    if plan_id:
-                        profile.subscription_plan_id = plan_id
-                    if sub_id:
-                        profile.stripe_subscription_id = sub_id
-                    if customer_id_from_sub:
-                        profile.stripe_customer_id = customer_id_from_sub
-                    if trial_end_dt is not None:
-                        profile.trial_end = trial_end_dt
-                    update_fields = [
-                        "has_paid",
-                        "is_premium",
-                        "subscription_status",
-                        "stripe_payment_id",
-                        "subscription_plan_id",
-                    ]
-                    if sub_id:
-                        update_fields.append("stripe_subscription_id")
-                    if customer_id_from_sub:
-                        update_fields.append("stripe_customer_id")
-                    if trial_end_dt is not None:
-                        update_fields.append("trial_end")
-                    profile.save(update_fields=update_fields)
-
-                    cache.delete_many(
-                        [
-                            f"user_payment_status_{user_id_int}",
-                            f"user_profile_{user_id_int}",
-                        ]
+                    apply_subscription_to_profile(
+                        profile,
+                        has_paid=True,
+                        is_premium=True,
+                        subscription_status=subscription_status,
+                        stripe_payment_id=stripe_payment_id,
+                        subscription_plan_id=(plan_id or profile.subscription_plan_id),
+                        stripe_subscription_id=(sub_id or profile.stripe_subscription_id),
+                        stripe_customer_id=(customer_id_from_sub or profile.stripe_customer_id),
+                        trial_end=(trial_end_dt if trial_end_dt is not None else profile.trial_end),
                     )
                     cache.set(f"user_payment_status_{user_id_int}", "paid", 300)
 
@@ -1364,10 +1322,11 @@ class SubscriptionCreateView(APIView):
             )
 
 
-def _get_or_resolve_stripe_subscription_id(profile):
+def _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False):
     """
     Return profile.stripe_subscription_id if set. Otherwise, for premium users,
-    try to resolve by stripe_customer_id, then by customer email, and save on the profile.
+    resolve by stripe_customer_id. Email-based lookup is expensive and disabled
+    by default; only use it in explicit sync flows.
     """
     sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
     if sub_id:
@@ -1396,7 +1355,7 @@ def _get_or_resolve_stripe_subscription_id(profile):
                 getattr(profile, "id", None),
                 e,
             )
-    if not getattr(profile.user, "email", None):
+    if not allow_email_lookup or not getattr(profile.user, "email", None):
         return None
     is_premium = getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
     status_ok = getattr(profile, "subscription_status", None) in ("active", "trialing")
@@ -1483,7 +1442,7 @@ class SubscriptionSyncView(APIView):
                 status=404,
             )
         stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(profile)
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=True)
         if sub_id:
             return Response({"ok": True}, status=200)
         if getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False):
@@ -1520,7 +1479,7 @@ class SubscriptionPortalView(APIView):
         stripe.api_key = stripe_key
         customer_id = (getattr(profile, "stripe_customer_id", None) or "").strip()
         if not customer_id:
-            sub_id = _get_or_resolve_stripe_subscription_id(profile)
+            sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
             if sub_id:
                 try:
                     sub = stripe.Subscription.retrieve(sub_id)
@@ -1587,7 +1546,7 @@ class SubscriptionCancelView(APIView):
             return Response({"error": "Profile not found."}, status=404)
 
         stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(profile)
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
         if not sub_id:
             cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
             if cid:
@@ -1627,8 +1586,10 @@ class SubscriptionCancelView(APIView):
                 sub_id,
                 cancel_at_period_end=True,
             )
-            profile.subscription_status = getattr(subscription, "status", "canceled")
-            profile.save(update_fields=["subscription_status"])
+            apply_subscription_to_profile(
+                profile,
+                subscription_status=getattr(subscription, "status", "canceled"),
+            )
             cancel_at_period_end = getattr(subscription, "cancel_at_period_end", True)
             current_period_end = getattr(subscription, "current_period_end", None)
             period_end_iso = None
@@ -1719,6 +1680,8 @@ class FunnelEventIngestView(APIView):
         "pricing_view",
         "checkout_created",
         "checkout_completed",
+        "checkout_expired",
+        "checkout_failed",
         "entitlement_lookup",
         "webhook_received",
         # Dashboard analytics events
@@ -1755,7 +1718,7 @@ class FunnelEventIngestView(APIView):
             )
 
         event_type = request.data.get("event_type")
-        status = request.data.get("status", "success")
+        event_status = request.data.get("status", "success")
         session_id = request.data.get("session_id", "")
         metadata = request.data.get("metadata", {}) or {}
 
@@ -1772,7 +1735,7 @@ class FunnelEventIngestView(APIView):
 
         record_funnel_event(
             event_type,
-            status=status,
+            status=event_status,
             user=request.user if request.user.is_authenticated else None,
             session_id=session_id,
             metadata=metadata,
@@ -1780,7 +1743,7 @@ class FunnelEventIngestView(APIView):
 
         logger.info(
             "Funnel event recorded",
-            extra={"event_type": event_type, "status": status},
+            extra={"event_type": event_type, "status": event_status},
         )
 
         return Response({"ok": True})
@@ -1861,21 +1824,34 @@ class PortfolioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def summary(self, request):
         portfolio = self.get_queryset()
-        total_value = sum(entry.calculate_value() for entry in portfolio)
-        total_gain_loss = sum(entry.calculate_gain_loss() for entry in portfolio)
-
-        # Calculate allocation by asset type
-        allocation = {}
-        for entry in portfolio:
-            value = entry.calculate_value()
-            if entry.asset_type not in allocation:
-                allocation[entry.asset_type] = 0
-            allocation[entry.asset_type] += value
+        current_or_purchase = Case(
+            When(current_price__isnull=False, then=F("current_price")),
+            default=F("purchase_price"),
+            output_field=DecimalField(max_digits=20, decimal_places=8),
+        )
+        entry_value_expr = ExpressionWrapper(
+            F("quantity") * current_or_purchase,
+            output_field=DecimalField(max_digits=30, decimal_places=8),
+        )
+        gain_loss_expr = ExpressionWrapper(
+            (current_or_purchase - F("purchase_price")) * F("quantity"),
+            output_field=DecimalField(max_digits=30, decimal_places=8),
+        )
+        aggregate = portfolio.aggregate(
+            total_value=Sum(entry_value_expr),
+            total_gain_loss=Sum(gain_loss_expr),
+        )
+        allocation_qs = (
+            portfolio.annotate(entry_value=entry_value_expr)
+            .values("asset_type")
+            .annotate(total=Sum("entry_value"))
+        )
+        allocation = {row["asset_type"]: float(row["total"] or 0) for row in allocation_qs}
 
         return Response(
             {
-                "total_value": total_value,
-                "total_gain_loss": total_gain_loss,
+                "total_value": float(aggregate.get("total_value") or 0),
+                "total_gain_loss": float(aggregate.get("total_gain_loss") or 0),
                 "allocation": allocation,
             }
         )
@@ -1926,59 +1902,12 @@ class NewsFeedView(APIView):
         cached = cache.get(NEWS_CACHE_KEY)
         if cached:
             return Response(cached)
-
-        all_items = []
-        timeout = NEWS_FEED_TIMEOUT_SECONDS
-        for feed in NEWS_FEEDS:
-            try:
-                response = requests.get(feed["url"], timeout=timeout)
-                response.raise_for_status()
-                feed_items = _parse_rss_items(response.text, feed["name"])
-                # Cap per source so one feed doesn't dominate (newest 4 per source)
-                feed_items_sorted = sorted(
-                    feed_items, key=lambda x: x.get("published_at") or "", reverse=True
-                )
-                all_items.extend(feed_items_sorted[:4])
-            except Exception as exc:
-                logger.warning("Failed to fetch feed %s: %s", feed["url"], exc)
-                continue
-
-        # Deduplicate by URL (keep first = most recent when sorted)
-        seen_urls = set()
-        unique = []
-        for item in sorted(all_items, key=lambda x: x.get("published_at") or "", reverse=True):
-            url = (item.get("url") or "").strip()
-            if not url or url in seen_urls:
-                continue
-            seen_urls.add(url)
-            unique.append(item)
-
-        items = unique[:12]
-
-        generated_at = timezone.now().isoformat()
-        payload = {
-            "items": items,
-            "generated_at": generated_at,
-            "stale": False,
-            "sources": [feed["name"] for feed in NEWS_FEEDS],
-        }
-        if items:
-            cache.set(NEWS_CACHE_KEY, payload, timeout=NEWS_CACHE_TTL_SECONDS)
-            cache.set(NEWS_LAST_GOOD_CACHE_KEY, payload, timeout=7 * 24 * 60 * 60)
-            return Response(payload)
-
         last_good = cache.get(NEWS_LAST_GOOD_CACHE_KEY)
         if last_good:
             last_good["stale"] = True
             return Response(last_good)
 
-        # RSS ingestion failure: all feeds failed and no stale cache (Sentry disabled)
-        # if getattr(settings, "SENTRY_DSN", None):
-        #     import sentry_sdk
-        #     sentry_sdk.capture_message(
-        #         "News feed: all RSS sources failed, no last-good cache",
-        #         level="warning",
-        #     )
+        generated_at = timezone.now().isoformat()
         return Response(
             {
                 "items": [],

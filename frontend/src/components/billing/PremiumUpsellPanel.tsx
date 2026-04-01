@@ -136,22 +136,22 @@ const PremiumUpsellPanel = () => {
           </GlassButton>
         </div>
         <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-          Checkout URL:{" "}
+          {t("billing.checkoutUrlLabel")}:{" "}
           <span className="font-semibold text-[color:var(--text-color,#111827)]">
             {CHECKOUT_URL.replace(/^https?:\/\//, "")}
           </span>{" "}
-          with params{" "}
+          {t("billing.checkoutWithParams")}{" "}
           <code className="font-mono text-[color:var(--text-color,#111827)]">
             ?context=...
           </code>{" "}
-          and{" "}
+          {t("billing.checkoutAnd")}{" "}
           <code className="font-mono text-[color:var(--text-color,#111827)]">
             source=dashboard-upsell
           </code>{" "}
-          for attribution tracking
+          {t("billing.checkoutAttributionTracking")}
         </div>
         <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-[color:var(--muted-text,#4b5563)] break-words">
-          Referral link:{" "}
+          {t("billing.referralLinkLabel")}:{" "}
           <span className="font-semibold text-[color:var(--text-color,#111827)]">
             {referralCode ? referralLink : t("billing.referralUnavailable")}
           </span>

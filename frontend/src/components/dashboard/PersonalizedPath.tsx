@@ -9,6 +9,7 @@ import apiClient from "services/httpClient";
 import { queryKeys } from "lib/reactQuery";
 import { UserProfile } from "types/api";
 import { useTranslation } from "react-i18next";
+import { requestAiTutorResponse } from "services/aiTutor";
 
 type PersonalizedCourse = {
   id: number;
@@ -33,6 +34,9 @@ function PersonalizedPath({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const [pathReasoning, setPathReasoning] = useState<string>("");
+  const [isReasoningLoading, setIsReasoningLoading] = useState(false);
+  const [reasoningError, setReasoningError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -243,6 +247,44 @@ function PersonalizedPath({
     if (onCourseClick) onCourseClick(courseId, pathId);
   };
 
+  const generatePathReasoning = useCallback(async () => {
+    if (personalizedCourses.length === 0) return;
+
+    const courseSummary = personalizedCourses
+      .slice(0, 5)
+      .map((course, index) => {
+        const completed = Number(course.progress || 0);
+        const total = Number(course.totalLessons || 0);
+        return `${index + 1}. ${course.title || "Untitled course"} (${completed}/${Math.max(total, 1)} lessons done)`;
+      })
+      .join("\n");
+
+    const prompt = [
+      "You are an educational finance coach.",
+      "Explain why this personalized learning path makes sense for the learner.",
+      "Use clear and encouraging language.",
+      "Recommended courses:",
+      courseSummary,
+      "Return exactly 3 short bullets:",
+      "- Why these topics are prioritized now",
+      "- What skills this sequence builds",
+      "- What result the learner should expect after completing it",
+      "Keep answer under 110 words.",
+    ].join("\n");
+
+    setIsReasoningLoading(true);
+    setReasoningError(null);
+    try {
+      const aiText = await requestAiTutorResponse(prompt);
+      if (!aiText) throw new Error("Empty AI response");
+      setPathReasoning(aiText);
+    } catch {
+      setReasoningError("Could not generate path reasoning right now.");
+    } finally {
+      setIsReasoningLoading(false);
+    }
+  }, [personalizedCourses]);
+
   if (error) {
     return (
       <GlassCard
@@ -279,6 +321,30 @@ function PersonalizedPath({
 
   return (
     <div className="space-y-8">
+      <GlassCard padding="md" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+            Why this path for you?
+          </p>
+          <button
+            type="button"
+            onClick={generatePathReasoning}
+            disabled={isReasoningLoading}
+            className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
+          >
+            {isReasoningLoading ? "Thinking..." : "Explain recommendation"}
+          </button>
+        </div>
+        {reasoningError && (
+          <p className="text-xs text-[color:var(--error,#dc2626)]">{reasoningError}</p>
+        )}
+        {pathReasoning && (
+          <p className="whitespace-pre-line text-sm text-[color:var(--muted-text,#6b7280)]">
+            {pathReasoning}
+          </p>
+        )}
+      </GlassCard>
+
       <div className="relative space-y-10">
         {personalizedCourses.map((course, index) => (
           <React.Fragment key={course.id}>

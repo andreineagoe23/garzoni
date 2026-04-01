@@ -12,8 +12,11 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
+from django.core import signing
+from django.http import HttpResponse
 
 from authentication.throttles import PasswordResetRateThrottle
+from authentication.models import UserProfile
 
 
 @api_view(["POST"])
@@ -143,3 +146,69 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
+
+
+class EmailUnsubscribeView(APIView):
+    """
+    One-click unsubscribe endpoint used by reminder emails.
+    This disables reminder emails for the user profile tied to the signed token.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        token = request.query_params.get("token", "").strip()
+        if not token:
+            return HttpResponse(
+                "<h2>Missing token</h2><p>The unsubscribe link is invalid.</p>",
+                status=400,
+                content_type="text/html",
+            )
+        try:
+            payload = signing.loads(
+                token, salt="monevo.email.unsubscribe", max_age=60 * 60 * 24 * 365
+            )
+            profile_id = payload.get("profile_id")
+            profile = UserProfile.objects.select_related("user").get(id=profile_id)
+        except Exception:
+            return HttpResponse(
+                "<h2>Invalid link</h2><p>This unsubscribe link is invalid or has expired.</p>",
+                status=400,
+                content_type="text/html",
+            )
+
+        profile.email_reminder_preference = "none"
+        profile.save(update_fields=["email_reminder_preference"])
+
+        frontend = getattr(settings, "FRONTEND_URL", "https://monevo.tech").rstrip("/")
+        html = f"""
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Unsubscribed</title>
+  </head>
+  <body style="margin:0;padding:0;background:#0B0F14;color:#E5E7EB;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
+    <div style="max-width:640px;margin:40px auto;padding:0 16px;">
+      <div style="border:1px solid rgba(255,255,255,0.10);border-radius:16px;overflow:hidden;background:#111827;">
+        <div style="padding:18px 20px;background:linear-gradient(135deg, rgba(29,83,48,0.60), rgba(11,15,20,0.20));border-bottom:1px solid rgba(255,255,255,0.10);">
+          <div style="font-size:14px;font-weight:800;color:#E6C87A;text-transform:uppercase;">Monevo</div>
+          <div style="margin-top:4px;font-size:20px;font-weight:900;color:#FFFFFF;">You’re unsubscribed</div>
+        </div>
+        <div style="padding:18px 20px;font-size:15px;line-height:1.6;">
+          <p style="margin:0 0 12px 0;">We won’t send you reminder emails anymore.</p>
+          <p style="margin:0 0 18px 0;color:rgba(229,231,235,0.78);font-size:13px;">
+            You can re-enable reminders anytime in Settings.
+          </p>
+          <a href="{frontend}/settings"
+             style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;padding:12px 16px;border-radius:12px;">
+            Open Settings
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+"""
+        return HttpResponse(html, status=200, content_type="text/html")

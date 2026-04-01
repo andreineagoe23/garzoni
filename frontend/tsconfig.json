@@ -22,6 +22,12 @@
     "downlevelIteration": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "paths": {
+      "App": ["src/App"],
+      "routes/*": ["src/routes/*"],
+      "bootstrap/*": ["src/bootstrap/*"],
+      "sentry": ["src/sentry"],
+      "reportWebVitals": ["src/reportWebVitals"],
+      "serviceWorkerRegistration": ["src/serviceWorkerRegistration"],
       "contexts/*": ["src/contexts/*"],
       "components/*": ["src/components/*"],
       "services/*": ["src/services/*"],

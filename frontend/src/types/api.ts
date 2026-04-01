@@ -70,15 +70,21 @@ export type Entitlements = {
 
 export type Mission = {
   id: number | string;
-  status?: "in_progress" | "complete" | string;
+  name?: string;
+  description?: string;
+  points_reward?: number;
+  progress?: number;
+  status?: "not_started" | "in_progress" | "completed" | string;
   goal_type?: string;
   goal_reference?: Record<string, any>;
+  purpose_statement?: string;
   mission_name?: string;
 };
 
 export type MissionBuckets = {
   daily_missions?: Mission[];
   weekly_missions?: Mission[];
+  can_swap?: boolean;
 };
 
 export type ProgressSummary = {

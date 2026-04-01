@@ -2,6 +2,7 @@ from django.db import transaction
 import logging
 
 from authentication.models import Referral, UserProfile
+from authentication.tasks import send_referral_reward_emails
 
 logger = logging.getLogger(__name__)
 
@@ -23,3 +24,4 @@ def apply_referral(referrer_profile, referred_user):
             "referred_id": referred_user.id,
         },
     )
+    send_referral_reward_emails.delay(referrer_profile.user_id, referred_user.id)

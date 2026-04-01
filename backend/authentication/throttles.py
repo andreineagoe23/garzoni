@@ -32,3 +32,12 @@ class RegisterRateThrottle(AnonRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "REGISTER_THROTTLE_RATE", "5/min")
+
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    """Throttle password reset requests per IP."""
+
+    scope = "password_reset"
+
+    def get_rate(self):
+        return getattr(settings, "PASSWORD_RESET_THROTTLE_RATE", "5/hour")
