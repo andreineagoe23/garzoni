@@ -114,3 +114,42 @@ export type ProgressSummary = {
   /** First course of first accessible path (for "Browse topics" when no resume) */
   start_here?: { path_id: number; course_id: number } | null;
 };
+
+export type PersonalizedPathCourse = {
+  id: number;
+  path?: number;
+  path_title?: string;
+  title?: string;
+  description?: string;
+  image?: string | null;
+  completed_lessons?: number;
+  total_lessons?: number;
+  completion_percent?: number;
+  estimated_minutes?: number;
+  reason?: string;
+  locked?: boolean;
+  completed_sections?: number;
+  total_sections?: number;
+  next_lesson_title?: string | null;
+  starter_tasks?: string[];
+};
+
+export type PersonalizedPathResponse = {
+  courses: PersonalizedPathCourse[];
+  meta?: {
+    generated_at?: string;
+    onboarding_goals?: string[];
+    refresh_available?: boolean;
+    overall_completion?: number;
+    preview?: boolean;
+  };
+  review_queue?: Array<{
+    skill?: string;
+    proficiency?: number;
+    due_at?: string | null;
+  }>;
+  upgrade_prompt?: string;
+  message?: string;
+  redirect?: string;
+  error?: string;
+};

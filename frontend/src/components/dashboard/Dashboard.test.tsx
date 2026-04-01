@@ -79,7 +79,7 @@ jest.mock("./AllTopics", () => ({
   }) => <div>{navigationControls}</div>,
 }));
 
-jest.mock("./PersonalizedPath", () => ({
+jest.mock("./PersonalizedPathContent", () => ({
   __esModule: true,
   default: () => null,
 }));

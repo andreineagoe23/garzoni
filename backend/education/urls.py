@@ -9,6 +9,7 @@ from .views import (
     UserProgressViewSet,
     ExerciseViewSet,
     PersonalizedPathView,
+    PersonalizedPathRefreshView,
     get_exercise_progress,
     get_exercise_progress_batch,
     reset_exercise,
@@ -28,6 +29,11 @@ router.register(r"exercises", ExerciseViewSet, basename="exercise")
 urlpatterns = [
     path("", include(router.urls)),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
+    path(
+        "personalized-path/refresh/",
+        PersonalizedPathRefreshView.as_view(),
+        name="personalized-path-refresh",
+    ),
     path(
         "exercises/progress/<int:exercise_id>/",
         get_exercise_progress,
