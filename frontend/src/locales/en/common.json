@@ -56,7 +56,7 @@
       "continueWith": "Continue with {{course}}",
       "continueLesson": "Continue lesson",
       "startFirstLesson": "Start your first lesson and we'll remember your place.",
-      "browseTopics": "Browse topics"
+      "browseTopics": "Continue"
     },
     "dailyGoal": {
       "label": "Daily goal",
@@ -217,6 +217,11 @@
     "getUnlimitedAccess": "Get unlimited access to all learning features",
     "startFreeTrial": "Start Free Trial",
     "shareReferral": "Share Referral",
+    "checkoutUrlLabel": "Checkout URL",
+    "checkoutWithParams": "with params",
+    "checkoutAnd": "and",
+    "checkoutAttributionTracking": "for attribution tracking",
+    "referralLinkLabel": "Referral link",
     "referralUnavailable": "Referral code unavailable. Please try again in a moment.",
     "copied": "Copied!",
     "cancelTrial": "Cancel Trial",
@@ -811,7 +816,8 @@
     },
     "summary": {
       "title": "Progress at a glance",
-      "remaining": "{{count}} mission{{plural}} left today",
+      "remaining_one": "{{count}} mission left today",
+      "remaining_other": "{{count}} missions left today",
       "xp": "{{earned}} XP earned · {{remaining}} XP still on the table",
       "offline": "Offline mode - missions will sync when you're back online",
       "suggestedSavings": "Suggested savings target: £{{amount}} (based on your {{level}} level)",
@@ -824,7 +830,8 @@
     "wrapup": {
       "title": "Daily mission wrap-up",
       "earned": "You banked {{xp}} XP today",
-      "streakReview": "Streak: {{days}} day{{plural}} · Review due: {{review}}",
+      "streakReview_one": "Streak: {{days}} day · Review due: {{review}}",
+      "streakReview_other": "Streak: {{days}} days · Review due: {{review}}",
       "cta": "Keep going! Weekly missions and reviews will boost mastery next.",
       "mascotMessage": "Steady progress wins. Great work today!"
     },
@@ -898,15 +905,22 @@
     "shop": {
       "empty": "No shop items available right now.",
       "subtitle": "Redeem coins for exclusive rewards and resources.",
-      "buyNow": "Buy Now"
+      "buyNow": "Buy Now",
+      "purchaseSuccess": "Purchase successful!",
+      "purchaseFailed": "Failed to purchase reward.",
+      "insufficientFunds": "You don't have enough coins for this reward."
     },
     "donate": {
       "empty": "No donation causes available right now.",
-      "subtitle": "Support meaningful organizations with a portion of your coins."
+      "subtitle": "Support meaningful organizations with a portion of your coins.",
+      "donateNow": "Donate Now",
+      "donationSuccess": "Donation successful!",
+      "donationFailed": "Failed to donate."
     },
     "refreshNote": "Coins refresh automatically after each purchase or donation.",
     "downloadLimit": "Download limit reached",
-    "shareButton": "Share achievement card"
+    "shareButton": "Share achievement card",
+    "confirmAction": "Tap again to confirm"
   },
   "support": {
     "header": {
@@ -1175,6 +1189,13 @@
         "none": "No Reminders",
         "weekly": "Weekly",
         "monthly": "Monthly"
+      },
+      "emailTypes": {
+        "reminders": "General reminders",
+        "weeklyDigest": "Weekly digest",
+        "streakAlerts": "Streak alerts",
+        "billingAlerts": "Billing alerts",
+        "marketing": "Marketing emails"
       },
       "lessonSounds": "Lesson Sounds",
       "soundsHint": "Play subtle chimes for answers",

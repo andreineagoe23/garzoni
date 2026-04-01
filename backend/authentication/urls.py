@@ -3,29 +3,39 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .views_google_oauth import GoogleOAuthInitView, GoogleOAuthCallbackView
-from .views import (
+from .views_auth import (
     LoginSecureView,
     RegisterSecureView,
     CustomTokenRefreshView,
     VerifyAuthView,
     LogoutView,
+    get_csrf_token,
+)
+from .views_profile import (
     UserProfileView,
     FinancialProfileView,
     UserSettingsView,
     update_avatar,
+)
+from .views_password import (
     change_password,
     delete_account,
     PasswordResetRequestView,
     PasswordResetConfirmView,
     EmailUnsubscribeView,
+)
+from .views_friends import (
     FriendRequestView,
     FriendsLeaderboardView,
+    ReferralApplyView,
+    ReferralCodeValidationView,
+)
+from .views_entitlements import (
     EntitlementsView,
     ConsumeEntitlementView,
     PlansView,
-    get_csrf_token,
-    ReferralApplyView,
-    ReferralCodeValidationView,
+)
+from .views_hearts import (
     UserHeartsView,
     UserHeartsDecrementView,
     UserHeartsGrantView,

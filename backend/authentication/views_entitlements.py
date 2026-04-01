@@ -1,12 +1,14 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.conf import settings
 
 from authentication.entitlements import (
     check_and_consume_entitlement,
     entitlement_usage_snapshot,
     get_entitlements_for_user,
+    get_plan_catalog,
 )
 
 
@@ -52,3 +54,12 @@ class ConsumeEntitlementView(APIView):
             response_payload["error"] = meta.get("error", "Feature unavailable.")
 
         return Response(response_payload, status=status_code)
+
+
+class PlansView(APIView):
+    """Expose subscription plan catalog for pricing pages."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(get_plan_catalog(settings))

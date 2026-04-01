@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from authentication.models import UserProfile, Referral, FriendRequest
 from authentication.user_display import normalize_display_string
-from authentication.views import _apply_hearts_regen, _hearts_constants, _hearts_payload
+from authentication.services.hearts import apply_hearts_regen, hearts_constants, hearts_payload
 from gamification.models import MissionCompletion, UserBadge
 
 User = get_user_model()
@@ -92,7 +92,7 @@ class UserProfileAdmin(admin.ModelAdmin):
         updated = 0
         with transaction.atomic():
             for profile in queryset.select_for_update():
-                max_hearts, _ = _hearts_constants(profile)
+                max_hearts, _ = hearts_constants(profile)
                 profile.hearts = max_hearts
                 profile.hearts_last_refill_at = now
                 profile.save(update_fields=["hearts", "hearts_last_refill_at"])
@@ -105,8 +105,8 @@ class UserProfileAdmin(admin.ModelAdmin):
         updated = 0
         with transaction.atomic():
             for profile in queryset.select_for_update():
-                profile = _apply_hearts_regen(profile, now=now)
-                max_hearts, _ = _hearts_constants(profile)
+                profile = apply_hearts_regen(profile, now=now)
+                max_hearts, _ = hearts_constants(profile)
                 new_hearts = min(max_hearts, int(profile.hearts or 0) + 1)
                 if new_hearts != profile.hearts:
                     profile.hearts = new_hearts
@@ -129,7 +129,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     def next_heart_countdown(self, obj):
         """Readable countdown until the next heart regenerates."""
 
-        payload = _hearts_payload(obj)
+        payload = hearts_payload(obj)
         next_in = payload.get("next_heart_in_seconds")
         if next_in is None:
             return "Full"

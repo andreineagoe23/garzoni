@@ -417,8 +417,13 @@ class OpenAIService:
                 "model": requested_model,
                 "messages": messages,
                 "temperature": temperature,
-                "max_tokens": max_tokens,
             }
+            token_field = (
+                "max_completion_tokens"
+                if str(requested_model).startswith("gpt-5")
+                else "max_tokens"
+            )
+            api_params[token_field] = max_tokens
 
             if cache_ttl > 0:
                 payload_hash = hashlib.sha256(
