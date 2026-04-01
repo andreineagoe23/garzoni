@@ -118,7 +118,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build backend image
-        run: docker build -f backend/Dockerfile -t monevo-backend:ci .
+        run: docker build --build-arg BUILD_SRC=backend -f backend/Dockerfile -t monevo-backend:ci .
 
       - name: Build frontend image
         run: docker build -f frontend/Dockerfile -t monevo-frontend:ci .

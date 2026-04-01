@@ -13,11 +13,11 @@
  * Import `mockNavigate` from `react-router-dom-mock.ts` in tests; Jest `moduleNameMapper` points here.
  */
 const { TextEncoder, TextDecoder } = require("util");
-if (typeof globalThis.TextEncoder === "undefined") {
-  globalThis.TextEncoder = TextEncoder;
+if (typeof global.TextEncoder === "undefined") {
+  global.TextEncoder = TextEncoder;
 }
-if (typeof globalThis.TextDecoder === "undefined") {
-  globalThis.TextDecoder = TextDecoder;
+if (typeof global.TextDecoder === "undefined") {
+  global.TextDecoder = TextDecoder;
 }
 
 const React = require("react");
@@ -29,17 +29,17 @@ const actual = { ...reactRouter, ...reactRouterDom };
 const mockNavigate = jest.fn();
 
 function getSearch() {
-  return globalThis.__TEST_LOCATION_SEARCH__ || "";
+  return global.__TEST_LOCATION_SEARCH__ || "";
 }
 function getPathname() {
-  return globalThis.__TEST_LOCATION_PATHNAME__ || "/";
+  return global.__TEST_LOCATION_PATHNAME__ || "/";
 }
 function getLocationState() {
-  return globalThis.__TEST_LOCATION_STATE__;
+  return global.__TEST_LOCATION_STATE__;
 }
 
 function useLocation() {
-  if (globalThis.__USE_REAL_ROUTER__) {
+  if (global.__USE_REAL_ROUTER__) {
     return actual.useLocation();
   }
   return {
@@ -52,7 +52,7 @@ function useLocation() {
 }
 
 function useNavigate() {
-  if (globalThis.__USE_REAL_ROUTER__) {
+  if (global.__USE_REAL_ROUTER__) {
     return actual.useNavigate();
   }
   return mockNavigate;

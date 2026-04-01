@@ -24,6 +24,7 @@ class UserProfile(models.Model):
     points = models.IntegerField(default=0)
     profile_avatar = models.URLField(null=True, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
+    recommendations_generated_at = models.DateTimeField(null=True, blank=True)
     referral_code = models.CharField(
         max_length=20,
         unique=True,

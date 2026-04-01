@@ -88,7 +88,7 @@ describe("Register with referral", () => {
         params: { code: "BAD-CODE" },
         skipAuthRedirect: true,
       });
-      expect(mockRegisterUser).not.toHaveBeenCalled();
     });
+    expect(mockRegisterUser).not.toHaveBeenCalled();
   });
 });

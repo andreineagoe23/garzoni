@@ -280,7 +280,7 @@ const Leaderboards = () => {
     return (
       <div
         className={cx(
-          "mb-8 flex flex-col items-stretch gap-4 md:flex-row md:items-end md:justify-center md:gap-6",
+          "mb-8 flex flex-nowrap items-end justify-between gap-2 md:flex-wrap md:justify-center md:gap-6",
           podiumEntries.length === 1 && "md:justify-center"
         )}
       >
@@ -295,19 +295,22 @@ const Leaderboards = () => {
               key={entry.user.id}
               padding="md"
               className={cx(
-                "relative w-full min-h-[260px] overflow-hidden border-2 transition hover:-translate-y-0.5 md:w-[220px]",
+                "relative min-h-[160px] w-[31%] overflow-hidden border-2 p-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px] md:p-4",
                 podiumHighlight[idxInTopThree] ?? podiumHighlight[2],
                 isYou &&
                   "ring-2 ring-[color:var(--accent,#ffd700)] ring-offset-2 ring-offset-[color:var(--card-bg,#ffffff)]",
+                rank === 1 && "w-[34%] md:w-[220px]",
+                rank === 2 && "-translate-y-1 md:translate-y-0 md:order-1",
+                rank === 3 && "translate-y-1 md:translate-y-0 md:order-3",
                 rank === 2 && "md:order-1",
                 rank === 1 && "md:z-10 md:order-2",
                 rank === 3 && "md:order-3"
               )}
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/8 via-transparent to-transparent" />
-              <div className="relative flex flex-col items-center gap-3 text-center">
+              <div className="relative flex flex-col items-center gap-1.5 text-center md:gap-3">
                 <span
-                  className="text-4xl leading-none"
+                  className="text-2xl leading-none md:text-4xl"
                   role="img"
                   aria-label={placeLabel(rank)}
                 >
@@ -315,10 +318,10 @@ const Leaderboards = () => {
                 </span>
                 <span
                   className={cx(
-                    "inline-flex min-h-[3rem] min-w-[3rem] items-center justify-center rounded-full font-bold text-white shadow-md",
-                    rank === 1 && "bg-gradient-to-br from-amber-400 to-amber-600 text-xl",
-                    rank === 2 && "bg-gradient-to-br from-slate-400 to-slate-600 text-lg",
-                    rank === 3 && "bg-gradient-to-br from-orange-400 to-amber-700 text-lg"
+                    "inline-flex min-h-[2rem] min-w-[2rem] items-center justify-center rounded-full font-bold text-white shadow-md md:min-h-[3rem] md:min-w-[3rem]",
+                    rank === 1 && "bg-gradient-to-br from-amber-400 to-amber-600 text-sm md:text-xl",
+                    rank === 2 && "bg-gradient-to-br from-slate-400 to-slate-600 text-xs md:text-lg",
+                    rank === 3 && "bg-gradient-to-br from-orange-400 to-amber-700 text-xs md:text-lg"
                   )}
                 >
                   #{rank}
@@ -328,7 +331,7 @@ const Leaderboards = () => {
                   alt=""
                   className={cx(
                     "rounded-full border-2 border-white/40 object-cover shadow-md",
-                    rank === 1 ? "h-20 w-20" : "h-16 w-16"
+                    rank === 1 ? "h-10 w-10 md:h-20 md:w-20" : "h-9 w-9 md:h-16 md:w-16"
                   )}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
@@ -336,20 +339,20 @@ const Leaderboards = () => {
                   }}
                 />
                 <div className="w-full">
-                  <p className="flex items-center justify-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <p className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[color:var(--accent,#111827)] md:gap-2 md:text-base">
                     <span
-                      className="max-w-[150px] truncate"
+                      className="max-w-[68px] truncate md:max-w-[150px]"
                       title={entry.user.username}
                     >
                       {entry.user.username}
                     </span>
                     {isYou && (
-                      <span className="shrink-0 rounded-full bg-[color:var(--accent,#ffd700)]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+                      <span className="shrink-0 rounded-full bg-[color:var(--accent,#ffd700)]/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)] md:px-2 md:text-xs">
                         {t("leaderboard.youBadge")}
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-[10px] text-[color:var(--muted-text,#6b7280)] md:text-sm">
                     {t("leaderboard.points", {
                       points: formatNumber(entry.points || 0, locale),
                     })}
