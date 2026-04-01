@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 from authentication.user_display import normalize_display_string
-from authentication.models import UserProfile, Referral, FriendRequest
+from authentication.models import UserProfile, Referral, FriendRequest, UserEmailPreference
 
 
 # Serializer for user registration, including optional referral code handling.
@@ -63,6 +63,19 @@ class UserProfileSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["email_reminder_preference"]
+
+
+class UserEmailPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserEmailPreference
+        fields = [
+            "reminders",
+            "streak_alerts",
+            "weekly_digest",
+            "billing_alerts",
+            "marketing",
+            "reminder_frequency",
+        ]
 
 
 ALLOWED_GOAL_TYPES = {

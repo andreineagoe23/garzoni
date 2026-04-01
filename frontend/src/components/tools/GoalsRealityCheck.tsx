@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { GOALS_LEVER_LESSONS } from "./lessonMapping";
 import { formatCurrency, getLocale } from "utils/format";
+import { requestAiTutorResponse } from "services/aiTutor";
 
 const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:reality-check";
 
@@ -34,6 +35,9 @@ const GoalsRealityCheck = () => {
     () => ({ ...demoPreset, goalName: t("tools.realityCheck.demoGoalName") }),
     [t]
   );
+  const [aiMeaning, setAiMeaning] = useState<string>("");
+  const [isAiMeaningLoading, setIsAiMeaningLoading] = useState(false);
+  const [aiMeaningError, setAiMeaningError] = useState<string | null>(null);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -152,6 +156,54 @@ const GoalsRealityCheck = () => {
       sessionStorage.removeItem("monevo:tools:signal:goals_warning");
     }
   }, [warnings.length]);
+
+  const explainGoalPlan = React.useCallback(async () => {
+    if (!hasInputs) return;
+
+    const prompt = [
+      "You are a practical personal finance coach.",
+      "Explain this savings goal scenario in plain language.",
+      `Goal name: ${form.goalName || "Savings goal"}`,
+      `Goal amount: ${formatCurrency(Number(form.goalAmount || 0), "USD", locale)}`,
+      `Already saved: ${formatCurrency(Number(form.currentSaved || 0), "USD", locale)}`,
+      `Target timeline (months): ${form.months || 0}`,
+      `Monthly surplus range: ${formatCurrency(lowSurplus, "USD", locale)} to ${formatCurrency(highSurplus, "USD", locale)}`,
+      `Required monthly saving: ${formatCurrency(requiredMonthly, "USD", locale)}`,
+      `Estimated time-to-goal best/expected/worst: ${bestMonths ?? "not feasible"} / ${expectedMonths ?? "not feasible"} / ${worstMonths ?? "not feasible"}`,
+      warnings.length ? `Warnings: ${warnings.join("; ")}` : "Warnings: none",
+      "Give:",
+      "1) what this means right now,",
+      "2) the biggest risk to goal success,",
+      "3) one actionable next step this week.",
+      "Keep it short (under 120 words).",
+    ].join("\n");
+
+    setIsAiMeaningLoading(true);
+    setAiMeaningError(null);
+    try {
+      const response = await requestAiTutorResponse(prompt);
+      if (!response) throw new Error("Empty AI response");
+      setAiMeaning(response);
+    } catch {
+      setAiMeaningError("Could not generate AI explanation right now.");
+    } finally {
+      setIsAiMeaningLoading(false);
+    }
+  }, [
+    bestMonths,
+    expectedMonths,
+    form.currentSaved,
+    form.goalAmount,
+    form.goalName,
+    form.months,
+    hasInputs,
+    highSurplus,
+    locale,
+    lowSurplus,
+    requiredMonthly,
+    warnings,
+    worstMonths,
+  ]);
 
   return (
     <section className="space-y-6 min-w-0 w-full">
@@ -402,6 +454,34 @@ const GoalsRealityCheck = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {hasInputs && (
+        <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+              AI explanation
+            </p>
+            <button
+              type="button"
+              onClick={explainGoalPlan}
+              disabled={isAiMeaningLoading}
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
+            >
+              {isAiMeaningLoading ? "Thinking..." : "What does this mean for me?"}
+            </button>
+          </div>
+          {aiMeaningError && (
+            <p className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
+              {aiMeaningError}
+            </p>
+          )}
+          {aiMeaning && (
+            <p className="mt-2 whitespace-pre-line text-sm text-[color:var(--text-color,#111827)]">
+              {aiMeaning}
+            </p>
+          )}
         </div>
       )}
     </section>

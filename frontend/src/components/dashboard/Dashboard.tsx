@@ -469,10 +469,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const primaryCTA = useMemo<PrimaryCtaData | null>(() => {
     if (!primaryCTASignal) return null;
 
-    // If the user already has a dedicated "Pick up where you left off" card,
-    // don't also show a second CTA that says "Continue Lesson" – it feels like
-    // a duplicate surface for the same action.
-    if (primaryCTASignal.type === "continue_lesson" && resume) {
+    // Continue lesson is already covered by the dedicated resume/start card.
+    // Avoid showing a second top CTA with duplicated intent.
+    if (primaryCTASignal.type === "continue_lesson") {
       return null;
     }
 

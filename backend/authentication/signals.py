@@ -4,7 +4,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 import uuid
-from authentication.models import UserProfile
+from authentication.models import UserProfile, UserEmailPreference
+from authentication.tasks import send_welcome_email
 from core.utils import normalize_text_encoding
 
 
@@ -34,3 +35,11 @@ def create_user_profile(sender, instance, created, **kwargs):
         if created:
             profile.referral_code = uuid.uuid4().hex[:8].upper()
             profile.save()
+        UserEmailPreference.objects.get_or_create(
+            user=instance,
+            defaults={
+                "reminder_frequency": profile.email_reminder_preference,
+                "reminders": profile.email_reminder_preference != "none",
+            },
+        )
+        send_welcome_email.delay(instance.id)

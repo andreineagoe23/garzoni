@@ -1,11 +1,16 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
 from authentication.user_display import user_display_dict
-from authentication.models import UserProfile
-from authentication.serializers import UserProfileSettingsSerializer
+from authentication.models import UserProfile, UserEmailPreference
+from authentication.serializers import (
+    UserProfileSettingsSerializer,
+    FinancialProfileSerializer,
+    UserEmailPreferenceSerializer,
+)
 from authentication.services.profile import (
     build_profile_payload,
     invalidate_profile_cache,
@@ -53,10 +58,20 @@ class UserSettingsView(generics.GenericAPIView):
     def get(self, request):
         """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
+        email_prefs, _ = UserEmailPreference.objects.get_or_create(
+            user=request.user,
+            defaults={
+                "reminder_frequency": user_profile.email_reminder_preference,
+                "reminders": user_profile.email_reminder_preference != "none",
+            },
+        )
         return Response(
             {
                 "email_reminder_preference": user_profile.email_reminder_preference,
                 "dark_mode": user_profile.dark_mode,
+                "sound_enabled": user_profile.sound_enabled,
+                "animations_enabled": user_profile.animations_enabled,
+                "email_preferences": UserEmailPreferenceSerializer(email_prefs).data,
                 "profile": {
                     **user_display_dict(request.user, include_email=True),
                     "dark_mode": user_profile.dark_mode,
@@ -81,12 +96,41 @@ class UserSettingsView(generics.GenericAPIView):
             dark_mode = request.data.get("dark_mode")
             if dark_mode is not None:
                 user_profile.dark_mode = dark_mode
+            sound_enabled = request.data.get("sound_enabled")
+            if sound_enabled is not None:
+                user_profile.sound_enabled = sound_enabled
+            animations_enabled = request.data.get("animations_enabled")
+            if animations_enabled is not None:
+                user_profile.animations_enabled = animations_enabled
 
             email_reminder_preference = request.data.get("email_reminder_preference")
             if email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
                 user_profile.email_reminder_preference = email_reminder_preference
 
             user_profile.save()
+            email_preferences_payload = request.data.get("email_preferences")
+            email_prefs, _ = UserEmailPreference.objects.get_or_create(
+                user=user,
+                defaults={
+                    "reminder_frequency": user_profile.email_reminder_preference,
+                    "reminders": user_profile.email_reminder_preference != "none",
+                },
+            )
+            if email_preferences_payload:
+                email_serializer = UserEmailPreferenceSerializer(
+                    email_prefs, data=email_preferences_payload, partial=True
+                )
+                email_serializer.is_valid(raise_exception=True)
+                email_serializer.save()
+                if email_prefs.reminder_frequency in dict(UserProfile.REMINDER_CHOICES):
+                    user_profile.email_reminder_preference = email_prefs.reminder_frequency
+                if not email_prefs.reminders:
+                    user_profile.email_reminder_preference = "none"
+                user_profile.save(update_fields=["email_reminder_preference"])
+            elif email_reminder_preference in dict(UserProfile.REMINDER_CHOICES):
+                email_prefs.reminder_frequency = email_reminder_preference
+                email_prefs.reminders = email_reminder_preference != "none"
+                email_prefs.save(update_fields=["reminder_frequency", "reminders", "updated_at"])
             invalidate_profile_cache(request.user)
 
             return Response(
@@ -94,6 +138,9 @@ class UserSettingsView(generics.GenericAPIView):
                     "message": "Settings updated successfully.",
                     "dark_mode": user_profile.dark_mode,
                     "email_reminder_preference": user_profile.email_reminder_preference,
+                    "sound_enabled": user_profile.sound_enabled,
+                    "animations_enabled": user_profile.animations_enabled,
+                    "email_preferences": UserEmailPreferenceSerializer(email_prefs).data,
                 }
             )
         except Exception as exc:
@@ -127,3 +174,22 @@ def update_avatar(request):
     invalidate_profile_cache(request.user)
 
     return Response({"status": "success", "avatar_url": avatar_url})
+
+
+class FinancialProfileView(APIView):
+    """GET/PUT a single financial profile source of truth."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_profile = request.user.profile
+        serializer = FinancialProfileSerializer(user_profile)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user_profile = request.user.profile
+        serializer = FinancialProfileSerializer(user_profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        invalidate_profile_cache(request.user)
+        return Response(serializer.data)

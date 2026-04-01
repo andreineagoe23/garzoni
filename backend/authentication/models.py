@@ -142,6 +142,33 @@ class UserProfile(models.Model):
         db_table = "core_userprofile"
 
 
+class UserEmailPreference(models.Model):
+    """Per-email-category preferences and reminder cadence."""
+
+    REMINDER_FREQUENCY_CHOICES = [
+        ("none", "No Reminders"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="email_preferences")
+    reminders = models.BooleanField(default=True)
+    streak_alerts = models.BooleanField(default=True)
+    weekly_digest = models.BooleanField(default=True)
+    billing_alerts = models.BooleanField(default=True)
+    marketing = models.BooleanField(default=False)
+    reminder_frequency = models.CharField(
+        max_length=10, choices=REMINDER_FREQUENCY_CHOICES, default="weekly"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "core_useremailpreference"
+
+    def __str__(self):
+        return f"Email prefs for {self.user.username}"
+
+
 class Referral(models.Model):
     """
     Tracks referrals made by users. Links the referrer to the referred user and records the timestamp of the referral.

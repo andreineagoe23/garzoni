@@ -151,8 +151,11 @@ class OpenAITranslator(TranslationProvider):
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "max_tokens": 2048,
         }
+        token_field = (
+            "max_completion_tokens" if str(self.model).startswith("gpt-5") else "max_tokens"
+        )
+        payload[token_field] = 2048
 
         for attempt in range(1, self.max_retries + 1):
             try:

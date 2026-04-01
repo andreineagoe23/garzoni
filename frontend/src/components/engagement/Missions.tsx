@@ -1,18 +1,19 @@
 import React, {
   useState,
   useEffect,
-  useReducer,
   useCallback,
   useMemo,
   useRef,
 } from "react";
 import apiClient from "services/httpClient";
 import Loader from "components/common/Loader";
+import StatBadge from "components/common/StatBadge";
 import MascotMedia from "components/common/MascotMedia";
 import { useAuth } from "contexts/AuthContext";
-import type { UserProfile } from "types/api";
+import type { Mission, UserProfile } from "types/api";
 import { GlassCard } from "components/ui";
 import toast from "react-hot-toast";
+import { getUserLevel } from "utils/userLevel";
 import {
   getOfflineQueue,
   removeFromQueue,
@@ -20,222 +21,67 @@ import {
 } from "services/offlineQueue";
 import { useTranslation } from "react-i18next";
 import { MonevoIcon } from "components/ui/monevoIcons";
-
-const initialState = {
-  dailyMissions: [],
-  weeklyMissions: [],
-  virtualBalance: 0,
-  loading: true,
-  error: null,
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "setDailyMissions":
-      return { ...state, dailyMissions: action.payload };
-    case "setWeeklyMissions":
-      return { ...state, weeklyMissions: action.payload };
-    case "setVirtualBalance":
-      return { ...state, virtualBalance: action.payload };
-    case "setLoading":
-      return { ...state, loading: action.payload };
-    case "setError":
-      return { ...state, error: action.payload };
-    default:
-      return state;
-  }
-}
-
-function CoinStack({ balance, coinUnit = 10, target = 100 }) {
-  const { t } = useTranslation();
-  const coins = Array.from(
-    { length: target / coinUnit },
-    (_, index) => (index + 1) * coinUnit
-  );
-  const unlockedCoins = Math.floor(balance / coinUnit);
-
-  return (
-    <GlassCard padding="md" className="bg-[color:var(--bg-color,#f8fafc)]/60">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        {coins.map((amount, index) => {
-          const unlocked = index < unlockedCoins;
-          return (
-            <div
-              key={amount}
-              className={`coin flex h-20 flex-col items-center justify-center rounded-full border text-sm font-semibold shadow-md transition ${
-                unlocked
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--muted-text,#6b7280)]"
-              }`}
-            >
-              {"\u00A3"}
-              {amount}
-              <span className="coin-label mt-1 text-xs font-medium">
-                {unlocked
-                  ? t("missions.savings.unlocked")
-                  : t("missions.savings.locked")}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      {balance < target && (
-        <div className="coin next-unlock mt-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-center text-xs font-medium text-[color:var(--accent,#ffd700)]">
-          {t("missions.savings.nextCoin", {
-            amount: coinUnit - (balance % coinUnit),
-          })}
-        </div>
-      )}
-    </GlassCard>
-  );
-}
-
-function FactCard({ fact, onMarkRead }) {
-  const { t } = useTranslation();
-  return (
-    <GlassCard padding="md" className="bg-[color:var(--card-bg,#ffffff)]/60">
-      {fact ? (
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
-            {fact.category}
-          </p>
-          <p className="text-sm text-[color:var(--text-color,#111827)]">
-            {fact.text}
-          </p>
-          <button
-            type="button"
-            onClick={onMarkRead}
-            className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-xl hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-          >
-            {t("missions.facts.markRead")}
-          </button>
-        </div>
-      ) : (
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("missions.facts.empty")}
-        </p>
-      )}
-    </GlassCard>
-  );
-}
+import { formatNumber } from "utils/format";
+import MissionCard from "./MissionCard";
+import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Missions() {
+  type FinanceFact = { id: number; text: string; category?: string };
+  type StreakItem = { type: string; quantity: number; expires_at?: string | null };
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const { getAccessToken, loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+  const [dailyMissions, setDailyMissions] = useState<Mission[]>([]);
+  const [weeklyMissions, setWeeklyMissions] = useState<Mission[]>([]);
+  const [virtualBalance, setVirtualBalance] = useState(0);
+  const { loadProfile, profile: authProfile } = useAuth();
   const [showSavingsMenu, setShowSavingsMenu] = useState(false);
   const [savingsAmount, setSavingsAmount] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [currentFact, setCurrentFact] = useState(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentFact, setCurrentFact] = useState<FinanceFact | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [celebrationMessage, setCelebrationMessage] = useState("");
   const completedMissionsRef = useRef(new Set());
   const previousMissionsRef = useRef(new Map()); // Track previous mission states
   const isInitialLoadRef = useRef(true); // Track if this is the first load
   const savingsMenuInitializedRef = useRef(false);
-  const [streakItems, setStreakItems] = useState([]);
+  const [streakItems, setStreakItems] = useState<StreakItem[]>([]);
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [adaptiveSuggestions, setAdaptiveSuggestions] = useState<{
-    level: string;
     suggestedSavingsTarget: number;
     learningStyle: string;
   } | null>(null);
 
-  const checkLessonMissionProgress = useCallback(async () => {
-    try {
-      const response = await apiClient.get("/missions/");
-      dispatch({
-        type: "setDailyMissions",
-        payload: response.data.daily_missions || [],
-      });
-    } catch (error) {
-      setErrorMessage(t("missions.errors.refreshLesson"));
-    }
-  }, [getAccessToken, t]);
+  const { data: profilePayload } = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: () => loadProfile(),
+    staleTime: staleTimes.profile,
+    initialData: authProfile ?? undefined,
+    placeholderData: (previousData) => previousData ?? authProfile ?? undefined,
+  });
 
-  const fetchMissions = useCallback(async () => {
-    dispatch({ type: "setLoading", payload: true });
-    try {
-      const response = await apiClient.get("/missions/");
-      dispatch({
-        type: "setDailyMissions",
-        payload: response.data.daily_missions || [],
-      });
-      dispatch({
-        type: "setWeeklyMissions",
-        payload: response.data.weekly_missions || [],
-      });
-
-      const allMissions = [
-        ...(response.data.daily_missions || []),
-        ...(response.data.weekly_missions || []),
-      ];
-
-      // On initial load, just populate the previous state without showing toasts
-      if (isInitialLoadRef.current) {
-        allMissions.forEach((mission) => {
-          previousMissionsRef.current.set(mission.id, mission.status);
-          if (mission.status === "completed") {
-            completedMissionsRef.current.add(mission.id);
-          }
-        });
-        isInitialLoadRef.current = false;
-      } else {
-        // Only show completion messages for missions that just transitioned to completed
-        allMissions.forEach((mission) => {
-          const previousStatus = previousMissionsRef.current.get(mission.id);
-          const isNowCompleted = mission.status === "completed";
-          const wasPreviouslyCompleted = previousStatus === "completed";
-
-          // Only show toast if mission just became completed (transition from not-completed to completed)
-          if (isNowCompleted && !wasPreviouslyCompleted) {
-            const announcement = t("missions.toast.completed", {
-              name: mission.name,
-              xp: mission.points_reward,
-            });
-            setCelebrationMessage(announcement);
-            toast.success(announcement, {
-              icon: (
-                <MonevoIcon
-                  name="sparkles"
-                  size={18}
-                  className="text-[color:var(--primary,#1d5330)]"
-                />
-              ),
-              duration: 3000,
-            });
-            completedMissionsRef.current.add(mission.id);
-          }
-
-          // Update the previous state
-          previousMissionsRef.current.set(mission.id, mission.status);
-        });
-      }
-
-      // Clean up refs for missions that are no longer in the list
-      const currentMissionIds = new Set(allMissions.map((m) => m.id));
-      previousMissionsRef.current.forEach((_, missionId) => {
-        if (!currentMissionIds.has(missionId)) {
-          previousMissionsRef.current.delete(missionId);
-          completedMissionsRef.current.delete(missionId);
-        }
-      });
-    } catch (error) {
-      setErrorMessage(t("missions.errors.loadMissions"));
-    } finally {
-      dispatch({ type: "setLoading", payload: false });
-    }
-  }, [getAccessToken, t]);
+  const {
+    data: missionsResponse,
+    isLoading: missionsLoading,
+    refetch: refetchMissions,
+  } = useQuery({
+    queryKey: queryKeys.missions(),
+    queryFn: () => apiClient.get("/missions/"),
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: true,
+  });
 
   const fetchSavingsBalance = useCallback(async () => {
     try {
       const response = await apiClient.get("/savings-account/");
-      dispatch({ type: "setVirtualBalance", payload: response.data.balance });
+      setVirtualBalance(response.data.balance);
     } catch (error) {
-      setErrorMessage(t("missions.errors.loadSavings"));
+      setErrors((prev) => ({ ...prev, savings: t("missions.errors.loadSavings") }));
     }
-  }, [getAccessToken, t]);
+  }, [t]);
 
   const loadNewFact = useCallback(async () => {
     try {
@@ -243,8 +89,9 @@ function Missions() {
       setCurrentFact(response.data);
     } catch (error) {
       setCurrentFact(null);
+      setErrors((prev) => ({ ...prev, fact: t("missions.errors.markFact") }));
     }
-  }, [getAccessToken]);
+  }, [t]);
 
   const fetchStreakItems = useCallback(async () => {
     try {
@@ -253,7 +100,7 @@ function Missions() {
     } catch (error) {
       // Silently fail - streak items are optional
     }
-  }, [getAccessToken]);
+  }, []);
 
   const syncOfflineQueue = useCallback(async () => {
     if (!isOnline()) return;
@@ -284,8 +131,8 @@ function Missions() {
       }
     }
 
-    await fetchMissions();
-  }, [getAccessToken, fetchMissions]);
+    await refetchMissions();
+  }, [refetchMissions, t]);
 
   const handleMissionSwap = useCallback(
     async (missionId) => {
@@ -298,7 +145,7 @@ function Missions() {
           response.data?.message || t("missions.toast.swapSuccess")
         );
         setCanSwap(false);
-        await fetchMissions();
+        await refetchMissions();
       } catch (error) {
         // Extract error message from response
         const errorMessage =
@@ -320,43 +167,10 @@ function Missions() {
         }
       }
     },
-    [getAccessToken, fetchMissions, t]
+    [refetchMissions, t]
   );
 
   useEffect(() => {
-    const hydrateProfile = async () => {
-      try {
-        const profilePayload = await loadProfile();
-        setProfile(profilePayload);
-
-        // Generate adaptive suggestions based on profile
-        const rawPoints =
-          profilePayload?.user_data?.points ?? profilePayload?.points ?? 0;
-        const points = Number(rawPoints) || 0;
-        const learningStyle =
-          typeof profilePayload?.user_data?.learning_style === "string"
-            ? profilePayload.user_data.learning_style
-            : "balanced";
-        const level =
-          points >= 2500
-            ? "advanced"
-            : points >= 750
-              ? "intermediate"
-              : "beginner";
-
-        setAdaptiveSuggestions({
-          level,
-          suggestedSavingsTarget:
-            level === "advanced" ? 50 : level === "intermediate" ? 25 : 10,
-          learningStyle,
-        });
-      } catch (error) {
-        setErrorMessage(t("missions.errors.loadInsights"));
-      }
-    };
-
-    hydrateProfile();
-    fetchMissions();
     fetchSavingsBalance();
     loadNewFact();
     fetchStreakItems();
@@ -371,31 +185,87 @@ function Missions() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    const lessonMissionSync = setTimeout(() => {
-      checkLessonMissionProgress();
-    }, 1000);
-
-    const intervalId = setInterval(fetchMissions, 30000);
-
     // Sync queue periodically
     const syncInterval = setInterval(syncOfflineQueue, 60000);
 
     return () => {
-      clearInterval(intervalId);
       clearInterval(syncInterval);
-      clearTimeout(lessonMissionSync);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, [
-    fetchMissions,
     fetchSavingsBalance,
     loadNewFact,
-    checkLessonMissionProgress,
-    loadProfile,
     fetchStreakItems,
     syncOfflineQueue,
   ]);
+
+  useEffect(() => {
+    if (!missionsResponse?.data) return;
+    const daily = missionsResponse.data.daily_missions || [];
+    const weekly = missionsResponse.data.weekly_missions || [];
+    setDailyMissions(daily);
+    setWeeklyMissions(weekly);
+    if (typeof missionsResponse.data.can_swap === "boolean") {
+      setCanSwap(missionsResponse.data.can_swap);
+    }
+
+    const allMissions = [...daily, ...weekly];
+    if (isInitialLoadRef.current) {
+      allMissions.forEach((mission) => {
+        previousMissionsRef.current.set(mission.id, mission.status);
+        if (mission.status === "completed") {
+          completedMissionsRef.current.add(mission.id);
+        }
+      });
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    allMissions.forEach((mission) => {
+      const previousStatus = previousMissionsRef.current.get(mission.id);
+      const isNowCompleted = mission.status === "completed";
+      const wasPreviouslyCompleted = previousStatus === "completed";
+      if (isNowCompleted && !wasPreviouslyCompleted) {
+        const announcement = t("missions.toast.completed", {
+          name: (mission as { name?: string }).name || t("missions.missionFallback"),
+          xp: (mission as { points_reward?: number }).points_reward || 0,
+        });
+        setCelebrationMessage(announcement);
+        toast.success(announcement, {
+          icon: (
+            <MonevoIcon
+              name="sparkles"
+              size={18}
+              className="text-[color:var(--primary)]"
+            />
+          ),
+          duration: 3000,
+        });
+        completedMissionsRef.current.add(mission.id);
+      }
+      previousMissionsRef.current.set(mission.id, mission.status);
+    });
+  }, [missionsResponse, t]);
+
+  useEffect(() => {
+    if (!profilePayload) return;
+    setProfile(profilePayload);
+
+    const rawPoints = profilePayload?.user_data?.points ?? profilePayload?.points ?? 0;
+    const points = Number(rawPoints) || 0;
+    const learningStyle =
+      typeof profilePayload?.user_data?.learning_style === "string"
+        ? profilePayload.user_data.learning_style
+        : "balanced";
+    const level = getUserLevel(points);
+
+    setAdaptiveSuggestions({
+      suggestedSavingsTarget:
+        level === "advanced" ? 50 : level === "intermediate" ? 25 : 10,
+      learningStyle,
+    });
+  }, [profilePayload]);
 
   const markFactRead = async () => {
     if (!currentFact) return;
@@ -404,9 +274,9 @@ function Missions() {
         fact_id: currentFact.id,
       });
       await loadNewFact();
-      await fetchMissions();
+      await refetchMissions();
     } catch (error) {
-      setErrorMessage(t("missions.errors.markFact"));
+      setErrors((prev) => ({ ...prev, fact: t("missions.errors.markFact") }));
     }
   };
 
@@ -414,25 +284,23 @@ function Missions() {
     event.preventDefault();
     const amount = parseFloat(savingsAmount);
     if (Number.isNaN(amount) || amount <= 0) {
-      alert(t("missions.errors.validAmount"));
+      toast.error(t("missions.errors.validAmount"));
       return;
     }
     try {
       await apiClient.post("/savings-account/", { amount });
       setSavingsAmount("");
       await fetchSavingsBalance();
-      await fetchMissions();
+      await refetchMissions();
     } catch (error) {
-      setErrorMessage(t("missions.errors.addSavings"));
+      setErrors((prev) => ({ ...prev, savings: t("missions.errors.addSavings") }));
     }
   };
 
   const userLevel = useMemo(() => {
     const rawPoints = profile?.user_data?.points ?? profile?.points ?? 0;
     const points = Number(rawPoints) || 0;
-    if (points >= 2500) return "advanced";
-    if (points >= 750) return "intermediate";
-    return "beginner";
+    return getUserLevel(points);
   }, [profile]);
 
   const getLessonRequirement = (mission) => {
@@ -462,12 +330,12 @@ function Missions() {
   };
 
   const suggestedSavings = useMemo(() => {
-    const coinUnit = showSavingsMenu ? 1 : 1;
-    const target = showSavingsMenu ? 10 : 10;
-    if (state.virtualBalance >= target) return coinUnit;
-    const remainder = state.virtualBalance % coinUnit;
+    const coinUnit = 1;
+    const target = 10;
+    if (virtualBalance >= target) return coinUnit;
+    const remainder = virtualBalance % coinUnit;
     return remainder === 0 ? coinUnit : coinUnit - remainder;
-  }, [showSavingsMenu, state.virtualBalance]);
+  }, [virtualBalance]);
 
   // Set suggested amount only when the savings menu first opens, so the user can clear the field
   useEffect(() => {
@@ -481,277 +349,58 @@ function Missions() {
     }
   }, [showSavingsMenu, suggestedSavings]);
 
-  const missionsRemaining = state.dailyMissions.filter(
+  const missionsRemaining = dailyMissions.filter(
     (mission) => mission.status !== "completed"
   ).length;
 
-  const dailyXpEarned = state.dailyMissions
+  const dailyXpEarned = dailyMissions
     .filter((mission) => mission.status === "completed")
     .reduce((total, mission) => total + (mission.points_reward || 0), 0);
 
-  const dailyXpRemaining = state.dailyMissions
+  const dailyXpRemaining = dailyMissions
     .filter((mission) => mission.status !== "completed")
     .reduce((total, mission) => total + (mission.points_reward || 0), 0);
 
   const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
 
   const allDailyCompleted =
-    state.dailyMissions.length > 0 && missionsRemaining === 0;
+    dailyMissions.length > 0 && missionsRemaining === 0;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
   const reviewDue = profile?.reviews_due ?? 0;
 
-  const renderMissionCard = (mission, isDaily = true) => {
-    const progressPercent = Math.min(100, Math.round(mission.progress ?? 0));
-    const isCompleted = mission.status === "completed";
-
-    const progressLabel =
-      mission.goal_type === "read_fact" && !isDaily
-        ? t("missions.progress.factsCount", {
-            count: Math.floor(mission.progress / 20),
-          })
-        : t("missions.progress.percent", {
-            value: progressPercent,
-          });
-
-    const progressDetail =
-      mission.goal_type === "read_fact" && isDaily
-        ? t("missions.progress.readOneFact")
-        : mission.goal_type === "read_fact"
-          ? t("missions.progress.factsRemaining", {
-              count: 5 - Math.floor(mission.progress / 20),
-            })
-          : mission.goal_type === "complete_lesson"
-            ? t("missions.progress.lessonTarget", {
-                value: progressPercent,
-                lessons: getLessonRequirement(mission),
-              })
-            : t("missions.progress.complete", {
-                value: progressPercent,
-              });
-
-    const completedLessons =
-      mission.goal_type === "complete_lesson"
-        ? Math.min(
-            getLessonRequirement(mission),
-            Math.round(
-              (Math.max(mission.progress, 0) / 100) *
-                getLessonRequirement(mission)
-            )
-          )
-        : null;
-
-    return (
-      <GlassCard
-        padding="lg"
-        className="group transition hover:-translate-y-1"
-        role="article"
-        aria-labelledby={`mission-title-${mission.id}`}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
-        <div className="relative">
-          <header className="space-y-3 border-b border-white/20 pb-4">
-            <div className="flex items-center justify-between gap-4">
-              <h3
-                id={`mission-title-${mission.id}`}
-                className="text-lg font-semibold text-[color:var(--accent,#111827)]"
-              >
-                {mission.name}
-              </h3>
-              <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
-                {isDaily
-                  ? t("missions.badge.daily")
-                  : t("missions.badge.weekly")}
-              </span>
-            </div>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-              {mission.description}
-            </p>
-            <p className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
-              {t("missions.why")} {purposeStatement(mission)}
-            </p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
-                <span>{t("missions.progress.label")}</span>
-                <span className="text-[color:var(--accent,#111827)]">
-                  {progressLabel}
-                </span>
-              </div>
-              <div
-                className="h-2 rounded-full bg-[color:var(--input-bg,#f3f4f6)]"
-                role="progressbar"
-                aria-valuenow={progressPercent}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={t("missions.progress.aria", {
-                  value: progressPercent,
-                })}
-              >
-                <div
-                  className="h-full rounded-full bg-[color:var(--primary,#1d5330)] transition-[width] duration-500 ease-out"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {isCompleted ? (
-                  <span className="inline-flex items-center gap-2">
-                    <MonevoIcon
-                      name="sparkles"
-                      size={14}
-                      className="text-[color:var(--accent,#111827)]"
-                    />
-                    {t("missions.progress.completed")}
-                  </span>
-                ) : (
-                  progressDetail
-                )}
-              </p>
-              {completedLessons !== null && (
-                <p className="text-[0.7rem] text-[color:var(--muted-text,#6b7280)]">
-                  {t("missions.progress.levelTarget", {
-                    lessons: getLessonRequirement(mission),
-                    plural: getLessonRequirement(mission) !== 1 ? "s" : "",
-                    completed: completedLessons,
-                  })}
-                </p>
-              )}
-            </div>
-          </header>
-
-          {isCompleted ? (
-            <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-700 shadow-inner shadow-emerald-500/20">
-              <div className="flex items-center justify-between font-semibold">
-                <span>{t("missions.complete.title")}</span>
-                <span>+{mission.points_reward} XP</span>
-              </div>
-              <p className="text-[color:var(--muted-text,#047857)]">
-                {t("missions.complete.subtitle")}
-              </p>
-            </div>
-          ) : (
-            <div className="mt-6 space-y-4">
-              {canSwap && isDaily && (
-                <button
-                  type="button"
-                  onClick={() => handleMissionSwap(mission.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                  aria-label={t("missions.swap.aria", {
-                    name: mission.name,
-                  })}
-                >
-                  {t("missions.swap.label")}
-                </button>
-              )}
-              {mission.goal_type === "add_savings" && (
-                <GlassCard
-                  padding="md"
-                  className="space-y-4 bg-[color:var(--bg-color,#f8fafc)]/60"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setShowSavingsMenu((prev) => !prev)}
-                    className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                  >
-                    {showSavingsMenu
-                      ? t("missions.savings.hideJar")
-                      : t("missions.savings.showJar")}
-                  </button>
-                  {showSavingsMenu && (
-                    <div className="space-y-4">
-                      <CoinStack
-                        balance={state.virtualBalance}
-                        coinUnit={isDaily ? 1 : 10}
-                        target={isDaily ? 10 : 100}
-                      />
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                        {t("missions.savings.suggestedNote")}
-                      </p>
-                      <form
-                        onSubmit={handleSavingsSubmit}
-                        className="flex flex-col gap-3 sm:flex-row"
-                      >
-                        <input
-                          type="number"
-                          value={savingsAmount}
-                          onChange={(event) =>
-                            setSavingsAmount(event.target.value)
-                          }
-                          placeholder={
-                            isDaily
-                              ? t("missions.savings.placeholderDaily")
-                              : t("missions.savings.placeholderWeekly")
-                          }
-                          className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                          disabled={isDaily && isCompleted}
-                        />
-                        <button
-                          type="submit"
-                          disabled={isDaily && isCompleted}
-                          className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-xl hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isDaily && isCompleted
-                            ? t("missions.savings.savedToday")
-                            : t("missions.savings.add")}
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </GlassCard>
-              )}
-
-              {mission.goal_type === "read_fact" && isDaily && (
-                <div className="space-y-3">
-                  <FactCard fact={currentFact} onMarkRead={markFactRead} />
-                  {!currentFact && (
-                    <button
-                      type="button"
-                      onClick={loadNewFact}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                    >
-                      {t("missions.facts.tryAgain")}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </GlassCard>
-    );
-  };
+  // Rendered via memoized component to avoid rebuilding a long JSX tree
+  // on every parent state change.
 
   return (
-    <section className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
+    <section className="min-h-screen bg-[color:var(--bg-color)] px-4 py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
-          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+          <h1 className="text-3xl font-bold text-[color:var(--accent)]">
             {t("missions.header.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-[color:var(--muted-text)]">
             {t("missions.header.subtitle")}
           </p>
         </header>
 
         <GlassCard
           padding="md"
-          className="bg-[color:var(--card-bg,#ffffff)]/70"
+          className="bg-[color:var(--card-bg)]/70"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
             {/* Left: compact "at a glance" mini-card */}
-            <div className="flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <div className="flex-1 rounded-xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm">
+              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text)]">
                 {t("missions.summary.title")}
               </p>
 
               <div className="mt-2 space-y-1">
-                <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                  {t("missions.summary.remaining", {
-                    count: missionsRemaining,
-                    plural: missionsRemaining === 1 ? "" : "s",
-                  })}
+                <p className="text-base font-semibold text-[color:var(--accent)]">
+                  {t("missions.summary.remaining", { count: missionsRemaining })}
                 </p>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-[color:var(--muted-text)]">
                   {t("missions.summary.xp", {
                     earned: dailyXpEarned,
                     remaining: dailyXpRemaining,
@@ -775,38 +424,31 @@ function Missions() {
               )}
 
               {adaptiveSuggestions && (
-                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--accent,#ffd700)]/25 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--accent,#ffd700)] leading-tight">
+                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--accent)]/25 bg-[color:var(--accent)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--accent)] leading-tight">
                   <MonevoIcon
                     name="lightbulb"
                     size={14}
-                    className="mr-2 inline-block text-[color:var(--accent,#ffd700)]"
+                    className="mr-2 inline-block text-[color:var(--accent)]"
                   />
                   {t("missions.summary.suggestedSavings", {
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
-                    level: adaptiveSuggestions.level,
+                    level: userLevel,
                   })}
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent,#111827)] md:text-right">
-              <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
-                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("missions.summary.streak")}
-                </p>
-                <p className="text-base font-semibold">
-                  {t("missions.summary.streakDays", {
-                    count: streakCount,
-                  })}
-                </p>
-              </div>
-              <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 shadow-sm">
-                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                  {t("missions.summary.totalXp")}
-                </p>
-                <p className="text-base font-semibold">
-                  {dailyXpEarned} / {dailyXpTotal}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent)] md:text-right">
+              <StatBadge
+                label={t("missions.summary.streak")}
+                value={t("missions.summary.streakDays", { count: streakCount })}
+                className="bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm"
+              />
+              <StatBadge
+                label={t("missions.summary.totalXp")}
+                value={`${formatNumber(dailyXpEarned)} / ${formatNumber(dailyXpTotal)}`}
+                unit="XP"
+                className="bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm"
+              />
             </div>
           </div>
           {streakItems.length > 0 && (
@@ -814,7 +456,7 @@ function Missions() {
               {streakItems.map((item, index) => (
                 <div
                   key={`${item.type}-${index}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#ffd700)]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent)]"
                   role="status"
                   aria-label={t("missions.streakItemAria", {
                     type: item.type,
@@ -825,13 +467,13 @@ function Missions() {
                     <MonevoIcon
                       name="snowflake"
                       size={14}
-                      className="inline-block text-[color:var(--accent,#ffd700)]"
+                      className="inline-block text-[color:var(--accent)]"
                     />
                   ) : (
                     <MonevoIcon
                       name="bolt"
                       size={14}
-                      className="inline-block text-[color:var(--accent,#ffd700)]"
+                      className="inline-block text-[color:var(--accent)]"
                     />
                   )}
                   {item.quantity}x
@@ -844,25 +486,46 @@ function Missions() {
           </div>
         </GlassCard>
 
-        {errorMessage && (
+        {Object.values(errors).length > 0 && (
           <GlassCard
             padding="md"
-            className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20"
+            className="border-[color:var(--error)]/40 bg-[color:var(--error)]/10 text-sm text-[color:var(--error)] shadow-[color:var(--error)]/20"
           >
-            {errorMessage}
+            <ul className="space-y-1">
+              {Object.entries(errors).map(([key, message]) => (
+                <li key={key}>{message}</li>
+              ))}
+            </ul>
           </GlassCard>
         )}
 
-        {state.loading ? (
+        {missionsLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader message={t("missions.loading")} />
           </div>
         ) : (
           <>
             <div className="grid gap-6 md:grid-cols-2">
-              {state.dailyMissions.map((mission, index) => (
+              {dailyMissions.map((mission, index) => (
                 <React.Fragment key={`daily-${mission.id}-${index}`}>
-                  {renderMissionCard(mission, true)}
+                  <MissionCard
+                    mission={mission}
+                    isDaily
+                    t={t}
+                    canSwap={canSwap}
+                    onSwap={handleMissionSwap}
+                    showSavingsMenu={showSavingsMenu}
+                    setShowSavingsMenu={setShowSavingsMenu}
+                    virtualBalance={virtualBalance}
+                    currentFact={currentFact}
+                    onMarkFactRead={markFactRead}
+                    onLoadFact={loadNewFact}
+                    savingsAmount={savingsAmount}
+                    setSavingsAmount={setSavingsAmount}
+                    onSavingsSubmit={handleSavingsSubmit}
+                    getLessonRequirement={getLessonRequirement}
+                    purposeStatement={purposeStatement}
+                  />
                 </React.Fragment>
               ))}
             </div>
@@ -870,7 +533,7 @@ function Missions() {
             {allDailyCompleted && (
               <GlassCard
                 padding="lg"
-                className="bg-[color:var(--card-bg,#ffffff)]/80"
+                className="bg-[color:var(--card-bg)]/80"
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -879,44 +542,61 @@ function Missions() {
                         mascot="bear"
                         className="h-20 w-20 object-contain"
                       />
-                      <p className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                      <p className="text-xs font-medium text-[color:var(--muted-text)]">
                         {t("missions.wrapup.mascotMessage")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                      <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text)]">
                         {t("missions.wrapup.title")}
                       </p>
-                      <p className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+                      <p className="text-xl font-semibold text-[color:var(--accent)]">
                         {t("missions.wrapup.earned", {
                           xp: dailyXpEarned,
                         })}
                       </p>
-                      <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                      <p className="text-sm text-[color:var(--muted-text)]">
                         {t("missions.wrapup.streakReview", {
+                          count: streakCount,
                           days: streakCount,
-                          plural: streakCount === 1 ? "" : "s",
                           review: reviewDue,
                         })}
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)] shadow-[color:var(--accent,#ffd700)]/20">
+                  <div className="rounded-2xl border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-4 py-3 text-sm text-[color:var(--accent)] shadow-[color:var(--accent)]/20">
                     {t("missions.wrapup.cta")}
                   </div>
                 </div>
               </GlassCard>
             )}
 
-            {state.weeklyMissions.length > 0 && (
+            {weeklyMissions.length > 0 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-[color:var(--accent,#111827)]">
+                <h2 className="text-2xl font-semibold text-[color:var(--accent)]">
                   {t("missions.weekly.title")}
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
-                  {state.weeklyMissions.map((mission, index) => (
+                  {weeklyMissions.map((mission, index) => (
                     <React.Fragment key={`weekly-${mission.id}-${index}`}>
-                      {renderMissionCard(mission, false)}
+                      <MissionCard
+                        mission={mission}
+                        isDaily={false}
+                        t={t}
+                        canSwap={canSwap}
+                        onSwap={handleMissionSwap}
+                        showSavingsMenu={showSavingsMenu}
+                        setShowSavingsMenu={setShowSavingsMenu}
+                        virtualBalance={virtualBalance}
+                        currentFact={currentFact}
+                        onMarkFactRead={markFactRead}
+                        onLoadFact={loadNewFact}
+                        savingsAmount={savingsAmount}
+                        setSavingsAmount={setSavingsAmount}
+                        onSavingsSubmit={handleSavingsSubmit}
+                        getLessonRequirement={getLessonRequirement}
+                        purposeStatement={purposeStatement}
+                      />
                     </React.Fragment>
                   ))}
                 </div>

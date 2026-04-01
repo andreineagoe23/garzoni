@@ -53,6 +53,28 @@ def build_profile_payload(user, profile: UserProfile):
 
     display = user_display_dict(user)
     payload = {
+        "username": display["username"],
+        "email": user.email,
+        "first_name": display["first_name"],
+        "last_name": display["last_name"],
+        # Flat fields are the source of truth for frontend consumers.
+        "earned_money": profile.earned_money,
+        "points": profile.points,
+        "streak": profile.streak,
+        "profile_avatar": profile.profile_avatar,
+        "dark_mode": profile.dark_mode,
+        "email_reminder_preference": profile.email_reminder_preference,
+        "has_paid": profile.has_paid,
+        "is_premium": profile.is_premium,
+        "subscription_status": profile.subscription_status,
+        "subscription_plan_id": (
+            profile.subscription_plan_id
+            or getattr(getattr(profile, "subscription_plan", None), "plan_id", None)
+        ),
+        "stripe_customer_id": getattr(profile, "stripe_customer_id", None) or None,
+        "stripe_subscription_id": getattr(profile, "stripe_subscription_id", None) or None,
+        "trial_end": profile.trial_end,
+        "is_questionnaire_completed": questionnaire_completed,
         "user_data": {
             "username": display["username"],
             "first_name": display["first_name"],

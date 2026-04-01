@@ -8,7 +8,7 @@ import { UserProfile } from "types/api";
 import { useTranslation } from "react-i18next";
 
 function Settings() {
-  const { getAccessToken, logoutUser, loadSettings } = useAuth();
+  const { logoutUser, loadSettings } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -30,6 +30,13 @@ function Settings() {
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [emailPreferences, setEmailPreferences] = useState({
+    reminders: true,
+    streak_alerts: true,
+    weekly_digest: true,
+    billing_alerts: true,
+    marketing: false,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -54,6 +61,15 @@ function Settings() {
             true
           )
         );
+        const prefs = (data as { email_preferences?: Record<string, unknown> })
+          .email_preferences;
+        setEmailPreferences({
+          reminders: Boolean(prefs?.reminders ?? true),
+          streak_alerts: Boolean(prefs?.streak_alerts ?? true),
+          weekly_digest: Boolean(prefs?.weekly_digest ?? true),
+          billing_alerts: Boolean(prefs?.billing_alerts ?? true),
+          marketing: Boolean(prefs?.marketing ?? false),
+        });
         setProfileData({
           username: String((profile as UserProfile).username || ""),
           email: String((profile as UserProfile).email || ""),
@@ -86,6 +102,10 @@ function Settings() {
           last_name: profileData.last_name,
         },
         email_reminder_preference: emailReminderPreference,
+        email_preferences: {
+          ...emailPreferences,
+          reminder_frequency: emailReminderPreference,
+        },
         sound_enabled: soundEnabled,
         animations_enabled: animationsEnabled,
       });
@@ -304,6 +324,78 @@ function Settings() {
                       {t("settings.preferences.reminders.monthly")}
                     </option>
                   </select>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <input
+                      type="checkbox"
+                      checked={emailPreferences.reminders}
+                      onChange={(event) =>
+                        setEmailPreferences((prev) => ({
+                          ...prev,
+                          reminders: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    />
+                    {t("settings.preferences.emailTypes.reminders")}
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <input
+                      type="checkbox"
+                      checked={emailPreferences.weekly_digest}
+                      onChange={(event) =>
+                        setEmailPreferences((prev) => ({
+                          ...prev,
+                          weekly_digest: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    />
+                    {t("settings.preferences.emailTypes.weeklyDigest")}
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <input
+                      type="checkbox"
+                      checked={emailPreferences.streak_alerts}
+                      onChange={(event) =>
+                        setEmailPreferences((prev) => ({
+                          ...prev,
+                          streak_alerts: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    />
+                    {t("settings.preferences.emailTypes.streakAlerts")}
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <input
+                      type="checkbox"
+                      checked={emailPreferences.billing_alerts}
+                      onChange={(event) =>
+                        setEmailPreferences((prev) => ({
+                          ...prev,
+                          billing_alerts: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    />
+                    {t("settings.preferences.emailTypes.billingAlerts")}
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={emailPreferences.marketing}
+                      onChange={(event) =>
+                        setEmailPreferences((prev) => ({
+                          ...prev,
+                          marketing: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    />
+                    {t("settings.preferences.emailTypes.marketing")}
+                  </label>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">

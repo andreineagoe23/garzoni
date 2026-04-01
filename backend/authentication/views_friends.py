@@ -1,5 +1,5 @@
 from rest_framework import status, viewsets, mixins
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import FriendRequestSerializer, UserSearchSerializer
+from authentication.throttles import LoginRateThrottle
 from authentication.services.referrals import apply_referral
 
 
@@ -175,3 +176,24 @@ class FriendsLeaderboardView(APIView):
         ]
 
         return Response(leaderboard_data)
+
+
+class ReferralCodeValidationView(APIView):
+    """Allow guests to check whether a referral code exists."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def get(self, request):
+        referral_code = (request.query_params.get("code") or "").strip()
+        if not referral_code:
+            return Response(
+                {"valid": False, "message": "Referral code is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        is_valid = UserProfile.objects.filter(referral_code__iexact=referral_code).exists()
+        if not is_valid:
+            return Response({"valid": False, "message": "Invalid referral code."}, status=200)
+
+        return Response({"valid": True, "message": "Referral code is valid."}, status=200)

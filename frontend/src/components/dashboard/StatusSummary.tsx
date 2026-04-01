@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { formatNumber, formatPercentage } from "utils/format";
 import { ErrorState } from "./ErrorState";
 import { MonevoIcon } from "components/ui/monevoIcons";
+import StatBadge from "components/common/StatBadge";
 
 type StatusSummaryProps = {
   coursesCompleted: number;
@@ -40,37 +41,18 @@ const StatusSummary = ({
   const { t } = useTranslation();
   return (
     <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-          <MonevoIcon
-            name="target"
-            size={16}
-            className="text-[color:var(--muted-text,#6b7280)]"
-          />
-          <span>{t("dashboard.dailyGoal.label")}</span>
-        </div>
-        <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
-          {formatPercentage(dailyGoalProgress, locale, 0)}
-        </p>
-      </div>
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-          <MonevoIcon name="chartLine" size={16} className="text-[color:var(--muted-text,#6b7280)]" />
-          <span>{t("dashboard.statusSummary.overallProgress")}</span>
-        </div>
-        <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
-          {formatPercentage(overallProgress, locale, 0)}
-        </p>
-      </div>
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-          <MonevoIcon name="book" size={16} className="text-[color:var(--muted-text,#6b7280)]" />
-          <span>{t("dashboard.statusSummary.coursesCompleted")}</span>
-        </div>
-        <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
-          {formatNumber(coursesCompleted, locale)}
-        </p>
-      </div>
+      <StatBadge
+        label={t("dashboard.dailyGoal.label")}
+        value={formatPercentage(dailyGoalProgress, locale, 0)}
+      />
+      <StatBadge
+        label={t("dashboard.statusSummary.overallProgress")}
+        value={formatPercentage(overallProgress, locale, 0)}
+      />
+      <StatBadge
+        label={t("dashboard.statusSummary.coursesCompleted")}
+        value={formatNumber(coursesCompleted, locale)}
+      />
       {reviewError ? (
         <ErrorState
           title={t("dashboard.statusSummary.failedLoadReviews")}

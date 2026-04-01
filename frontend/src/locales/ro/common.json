@@ -56,7 +56,7 @@
       "continueWith": "Continuă cu {{course}}",
       "continueLesson": "Continuă lecția",
       "startFirstLesson": "Începe prima lecție și îți vom păstra locul.",
-      "browseTopics": "Răsfoiește subiectele"
+      "browseTopics": "Continuă"
     },
     "dailyGoal": {
       "label": "Obiectiv zilnic",
@@ -217,6 +217,11 @@
     "getUnlimitedAccess": "Acces nelimitat la toate funcțiile de învățare",
     "startFreeTrial": "Începe trial gratuit",
     "shareReferral": "Partajează recomandarea",
+    "checkoutUrlLabel": "URL checkout",
+    "checkoutWithParams": "cu parametrii",
+    "checkoutAnd": "și",
+    "checkoutAttributionTracking": "pentru urmărirea atribuirii",
+    "referralLinkLabel": "Link recomandare",
     "referralUnavailable": "Codul de recomandare nu este disponibil momentan. Încearcă din nou.",
     "copied": "Copiat!",
     "cancelTrial": "Anulează trialul",
@@ -811,7 +816,9 @@
     },
     "summary": {
       "title": "Progres pe scurt",
-      "remaining": "{{count}} misiune{{plural}} rămase azi",
+      "remaining_one": "{{count}} misiune rămasă azi",
+      "remaining_few": "{{count}} misiuni rămase azi",
+      "remaining_other": "{{count}} de misiuni rămase azi",
       "xp": "{{earned}} XP câștigate · {{remaining}} XP rămase",
       "offline": "Mod offline - misiunile se vor sincroniza când revii online",
       "suggestedSavings": "Țintă sugerată de economii: £{{amount}} (în funcție de nivelul tău {{level}})",
@@ -824,7 +831,9 @@
     "wrapup": {
       "title": "Rezumat misiuni zilnice",
       "earned": "Ai acumulat {{xp}} XP azi",
-      "streakReview": "Serie: {{days}} zi{{plural}} · Recapitulări restante: {{review}}",
+      "streakReview_one": "Serie: {{days}} zi · Recapitulări restante: {{review}}",
+      "streakReview_few": "Serie: {{days}} zile · Recapitulări restante: {{review}}",
+      "streakReview_other": "Serie: {{days}} de zile · Recapitulări restante: {{review}}",
       "cta": "Continuă! Misiunile săptămânale și recapitulările vor crește stăpânirea.",
       "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!"
     },
@@ -898,15 +907,22 @@
     "shop": {
       "empty": "Niciun produs disponibil în magazin momentan.",
       "subtitle": "Redeem monedele pentru recompense exclusive și resurse.",
-      "buyNow": "Cumpără acum"
+      "buyNow": "Cumpără acum",
+      "purchaseSuccess": "Achiziție reușită!",
+      "purchaseFailed": "Achiziția a eșuat.",
+      "insufficientFunds": "Nu ai suficiente monede pentru această recompensă."
     },
     "donate": {
       "empty": "Nicio cauză de donație disponibilă momentan.",
-      "subtitle": "Sprijină organizații cu sens cu o parte din monedele tale."
+      "subtitle": "Sprijină organizații cu sens cu o parte din monedele tale.",
+      "donateNow": "Donează acum",
+      "donationSuccess": "Donație reușită!",
+      "donationFailed": "Donația a eșuat."
     },
     "refreshNote": "Monedele se reîmprospătează automat după fiecare achiziție sau donație.",
     "downloadLimit": "Limita de descărcări atinsă",
-    "shareButton": "Partajează cardul de realizare"
+    "shareButton": "Partajează cardul de realizare",
+    "confirmAction": "Apasă din nou pentru confirmare"
   },
   "support": {
     "header": {
@@ -1175,6 +1191,13 @@
         "none": "Fără memento-uri",
         "weekly": "Săptămânal",
         "monthly": "Lunar"
+      },
+      "emailTypes": {
+        "reminders": "Memento-uri generale",
+        "weeklyDigest": "Digest săptămânal",
+        "streakAlerts": "Alerte de serie",
+        "billingAlerts": "Alerte de facturare",
+        "marketing": "Emailuri de marketing"
       },
       "lessonSounds": "Sunete lecție",
       "soundsHint": "Redă clopoței discreți pentru răspunsuri",

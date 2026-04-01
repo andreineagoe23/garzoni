@@ -128,11 +128,15 @@ class MissionView(APIView):
             seed_weekly = f"{user.id}-weekly-{week_str}"
             _deterministic_shuffle(daily_missions, seed_daily)
             _deterministic_shuffle(weekly_missions, seed_weekly)
+            can_swap = not MissionCompletion.objects.filter(
+                user=user, swapped_at__date=now.date()
+            ).exists()
 
             return Response(
                 {
                     "daily_missions": daily_missions[:MISSIONS_DAILY_DISPLAY],
                     "weekly_missions": weekly_missions[:MISSIONS_WEEKLY_DISPLAY],
+                    "can_swap": can_swap,
                 },
                 status=200,
             )

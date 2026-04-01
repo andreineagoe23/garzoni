@@ -1,22 +1,54 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AvatarSelector from "./AvatarSelector";
 import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
+import StatBadge from "components/common/StatBadge";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import EntitlementUsage from "components/dashboard/EntitlementUsage";
 import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
-import {
-  formatCurrency,
-  formatDate,
-  formatNumber,
-  formatRelativeDateTime,
-  getLocale,
-} from "utils/format";
+import ActivityCalendar from "./ActivityCalendar";
+import { formatDate, formatNumber, formatRelativeDateTime, getLocale } from "utils/format";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys, staleTimes } from "lib/reactQuery";
 function Profile() {
+  type RecentActivityItem = {
+    id: string;
+    type: string;
+    title: string;
+    action: string;
+    timestamp: string;
+    details: string;
+  };
+  type BadgeItem = {
+    badge: {
+      id: number;
+      name: string;
+      description?: string;
+      image_url: string;
+    };
+    earned: boolean;
+    earned_at: string | null;
+  };
+  type RecentActivityApiItem = {
+    type: string;
+    title?: string;
+    name?: string;
+    action: string;
+    timestamp: string;
+    course?: string;
+  };
+  type UserBadgeApiItem = { earned_at: string; badge: { id: number } };
+  type BadgeApiItem = {
+    id: number;
+    name: string;
+    description?: string;
+    image_url: string;
+  };
   const { t } = useTranslation();
   const locale = getLocale();
   const [profileData, setProfileData] = useState({
@@ -29,8 +61,8 @@ function Profile() {
     streak: 0,
   });
   const [imageUrl, setImageUrl] = useState(DEFAULT_AVATAR_URL);
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [badges, setBadges] = useState([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
+  const [badges, setBadges] = useState<BadgeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [goals, setGoals] = useState({
     daily: {
@@ -74,24 +106,34 @@ function Profile() {
     [t]
   );
   const [showAllBadges, setShowAllBadges] = useState(false);
-  const [isLgUp, setIsLgUp] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(false);
 
   const {
-    getAccessToken,
     loadProfile,
     isAuthenticated,
     isInitialized,
     entitlements,
+    profile: authProfile,
   } = useAuth();
   const navigate = useNavigate();
-  const hasFetchedRef = useRef(false);
+  const queryClient = useQueryClient();
+
+  const { data: profilePayload } = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: () => loadProfile(),
+    staleTime: staleTimes.profile,
+    enabled: isInitialized && isAuthenticated,
+    initialData: authProfile ?? undefined,
+    placeholderData: (previousData) => previousData ?? authProfile ?? undefined,
+  });
 
   const handleAvatarChange = (newAvatarUrl) => {
     setImageUrl(newAvatarUrl);
   };
 
   useEffect(() => {
-    if (!isInitialized || !isAuthenticated || hasFetchedRef.current) {
+    if (!isInitialized || !isAuthenticated) {
+      setIsLoading(false);
       return undefined;
     }
 
@@ -99,29 +141,34 @@ function Profile() {
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-        const profilePayload = await loadProfile();
-        if (!isMounted || !profilePayload) {
+        const resolvedProfilePayload = profilePayload || authProfile;
+        const [missionsResponse, activityResponse] = await Promise.all([
+          queryClient.fetchQuery({
+            queryKey: queryKeys.missions(),
+            queryFn: () => apiClient.get("/missions/"),
+            staleTime: 30_000,
+          }),
+          apiClient.get("/recent-activity/"),
+        ]);
+        if (!isMounted || !resolvedProfilePayload) {
           return;
         }
-        hasFetchedRef.current = true;
 
-        const profileUserData = profilePayload.user_data || {};
+        const profileUserData = resolvedProfilePayload.user_data || {};
         const resolvedUsername =
-          profileUserData.username ||
-          profilePayload.username ||
-          profilePayload.user?.username ||
-          "";
+          resolvedProfilePayload.username || profileUserData.username || "";
         const resolvedEmail =
-          profileUserData.email ||
-          profilePayload.email ||
-          profilePayload.user?.email ||
-          "";
+          resolvedProfilePayload.email || profileUserData.email || "";
+        const resolvedFirstName =
+          resolvedProfilePayload.first_name || profileUserData.first_name || "";
+        const resolvedLastName =
+          resolvedProfilePayload.last_name || profileUserData.last_name || "";
 
         setProfileData({
           username: String(resolvedUsername || ""),
           email: String(resolvedEmail || ""),
-          first_name: String(profileUserData.first_name || ""),
-          last_name: String(profileUserData.last_name || ""),
+          first_name: String(resolvedFirstName || ""),
+          last_name: String(resolvedLastName || ""),
           earned_money:
             parseFloat(String(profileUserData.earned_money || 0)) || 0,
           points:
@@ -129,8 +176,8 @@ function Profile() {
               ? profileUserData.points
               : 0,
           streak:
-            typeof profilePayload.streak === "number"
-              ? profilePayload.streak
+            typeof resolvedProfilePayload.streak === "number"
+              ? resolvedProfilePayload.streak
               : typeof profileUserData.streak === "number"
                 ? profileUserData.streak
                 : 0,
@@ -139,10 +186,8 @@ function Profile() {
         setImageUrl(
           String(profileUserData.profile_avatar || DEFAULT_AVATAR_URL)
         );
-        setActivityCalendar(profilePayload.activity_calendar || {});
-        setCurrentMonth(profilePayload.current_month || {});
-
-        const missionsResponse = await apiClient.get("/missions/");
+        setActivityCalendar(resolvedProfilePayload.activity_calendar || {});
+        setCurrentMonth(resolvedProfilePayload.current_month || {});
 
         const dailyLessonMission = missionsResponse.data.daily_missions.find(
           (mission) => mission.goal_type === "complete_lesson"
@@ -171,18 +216,15 @@ function Profile() {
           },
         }));
 
-        const activityResponse = await apiClient.get("/recent-activity/");
-
-        const formattedActivities = activityResponse.data.recent_activities.map(
-          (activity) => ({
+        const formattedActivities: RecentActivityItem[] =
+          activityResponse.data.recent_activities.map((activity: RecentActivityApiItem) => ({
             id: `${activity.type}-${activity.timestamp}`,
             type: activity.type,
-            title: activity.title || activity.name,
+            title: String(activity.title || activity.name || ""),
             action: activity.action,
             timestamp: formatRelativeDateTime(activity.timestamp, locale),
             details: activity.course ? `in ${activity.course}` : "",
-          })
-        );
+          }));
 
         if (isMounted) {
           setRecentActivity(formattedActivities);
@@ -193,12 +235,12 @@ function Profile() {
           apiClient.get("/badges/"),
         ]);
 
-        const earnedBadgesMap = {};
-        userBadgesResponse.data.forEach((userBadge) => {
+        const earnedBadgesMap: Record<number, UserBadgeApiItem> = {};
+        userBadgesResponse.data.forEach((userBadge: UserBadgeApiItem) => {
           earnedBadgesMap[userBadge.badge.id] = userBadge;
         });
 
-        const allBadgesWithStatus = allBadgesResponse.data.map((badge) => {
+        const allBadgesWithStatus: BadgeItem[] = allBadgesResponse.data.map((badge: BadgeApiItem) => {
           const userBadge = earnedBadgesMap[badge.id];
           return {
             badge,
@@ -224,90 +266,21 @@ function Profile() {
     return () => {
       isMounted = false;
     };
-  }, [getAccessToken, loadProfile, isAuthenticated, isInitialized, locale]);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)"); // tailwind lg
-    const update = () => setIsLgUp(Boolean(mq.matches));
-    update();
-    mq.addEventListener?.("change", update);
-    return () => mq.removeEventListener?.("change", update);
-  }, []);
-
-  const renderCalendar = () => {
-    if (!currentMonth.first_day || !currentMonth.last_day) return null;
-
-    const firstDay = new Date(currentMonth.first_day as string | number | Date);
-    const lastDay = new Date(currentMonth.last_day as string | number | Date);
-    const daysInMonth = lastDay.getDate();
-    const firstDayOfWeek = firstDay.getDay();
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-    return (
-      <GlassCard
-        padding="md"
-        className="space-y-4 bg-[color:var(--card-bg,#ffffff)]/60"
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
-            {currentMonth.month_name} {currentMonth.year}
-          </h3>
-        </div>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-          {weekdayLabels.map((label) => (
-            <div key={label}>{label}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2 text-sm">
-          {Array.from({ length: firstDayOfWeek }).map((_, index) => (
-            <div
-              key={`empty-${index}`}
-              className="h-16 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)]"
-              aria-hidden="true"
-            />
-          ))}
-          {days.map((day) => {
-            // Build YYYY-MM-DD from calendar month so it matches backend activity_calendar keys
-            // (avoids toISOString() which uses UTC and can shift the day in some timezones)
-            const firstDayStr = String(currentMonth.first_day ?? "");
-            const [y, m] = firstDayStr.split("-");
-            const dateStr = `${y}-${m}-${String(day).padStart(2, "0")}`;
-            const activityCount = (activityCalendar[dateStr] as number) ?? 0;
-            const hasActivity = activityCount > 0;
-
-            return (
-              <div
-                key={day}
-                className="relative flex h-16 flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)] transition"
-                style={{
-                  backgroundColor: hasActivity
-                    ? "rgba(var(--accent-rgb,59,130,246),0.12)"
-                    : "var(--input-bg,rgba(15,23,42,0.04))",
-                  boxShadow: hasActivity
-                    ? "0 0 0 1px rgba(var(--accent-rgb,59,130,246),0.25)"
-                    : "none",
-                }}
-              >
-                <span className="text-sm font-semibold">{day}</span>
-                {hasActivity && (
-                  <span className="mt-1 rounded-full bg-[color:var(--primary,#1d5330)]/15 px-2 text-xs font-semibold text-[color:var(--accent,#ffd700)]">
-                    {activityCount}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </GlassCard>
-    );
-  };
+  }, [
+    authProfile,
+    isAuthenticated,
+    isInitialized,
+    locale,
+    profilePayload,
+    queryClient,
+  ]);
 
   const displayUsername =
     profileData.username ||
     (profileData.email ? profileData.email.split("@")[0] : "") ||
     t("profile.fallbackUser");
 
-  const visibleBadgeLimit = isLgUp ? 9 : 4; // 3x3 on lg+, 2x2 on smaller
+  const visibleBadgeLimit = 6;
   const filteredBadges = useMemo(() => {
     if (badgeFilter === "earned") return badges.filter((b) => b.earned);
     if (badgeFilter === "locked") return badges.filter((b) => !b.earned);
@@ -342,8 +315,8 @@ function Profile() {
   if (isLoading) {
     return (
       <PageContainer maxWidth="5xl" layout="centered">
-        <div className="flex flex-col items-center gap-4 text-[color:var(--muted-text,#6b7280)]">
-          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
+        <div className="flex flex-col items-center gap-4 text-[color:var(--muted-text)]">
+          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--accent)] border-t-transparent" />
           <p className="text-sm">{t("profile.loading")}</p>
         </div>
       </PageContainer>
@@ -358,7 +331,7 @@ function Profile() {
             <img
               src={imageUrl || DEFAULT_AVATAR_URL}
               alt={t("profile.avatarAlt")}
-              className="h-36 w-36 rounded-full border-4 border-[color:var(--accent,#ffd700)] object-cover shadow-xl shadow-[color:var(--accent,#ffd700)]/20"
+              className="h-36 w-36 rounded-full border-4 border-[color:var(--accent)] object-cover shadow-xl shadow-[color:var(--accent)]/20"
             />
             <div className="absolute -bottom-2 right-2">
               <AvatarSelector
@@ -368,13 +341,13 @@ function Profile() {
             </div>
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+            <h2 className="text-xl font-semibold text-[color:var(--text-color)]">
               {displayUsername}
             </h2>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-[color:var(--muted-text)]">
               {profileData.first_name} {profileData.last_name}
             </p>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-[color:var(--muted-text)]">
               {profileData.email}
             </p>
           </div>
@@ -383,7 +356,7 @@ function Profile() {
             <button
               type="button"
               onClick={() => navigate("/personalized-path")}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--accent,#1d4ed8)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
             >
               <span aria-hidden>🧭</span>
               {t("profile.actions.personalizedPath")}
@@ -397,7 +370,7 @@ function Profile() {
                     : "/subscriptions"
                 )
               }
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--primary)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
             >
               <span aria-hidden>💳</span>
               {["active", "trialing"].includes(entitlements?.status ?? "")
@@ -409,10 +382,10 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
               {t("profile.goals.title")}
             </h3>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-[color:var(--muted-text)]">
               {t("profile.goals.subtitle")}
             </p>
           </header>
@@ -428,30 +401,28 @@ function Profile() {
                 <GlassCard
                   key={key}
                   padding="md"
-                  className={`bg-[color:var(--card-bg,#ffffff)]/60 transition ${
-                    goal.completed
-                      ? "ring-2 ring-[color:var(--accent,#ffd700)]/40"
-                      : ""
+                  className={`bg-[color:var(--card-bg)]/60 transition ${
+                    goal.completed ? "ring-2 ring-[color:var(--accent)]/40" : ""
                   }`}
                 >
-                  <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                  <h4 className="text-sm font-semibold text-[color:var(--text-color)]">
                     {key === "daily"
                       ? t("profile.goals.dailyTitle")
                       : t("profile.goals.weeklyTitle")}
                   </h4>
-                  <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <p className="mt-1 text-sm text-[color:var(--muted-text)]">
                     {goal.label}
                   </p>
-                  <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                  <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg)]">
                     <div
-                      className={`h-full rounded-full bg-gradient-to-r from-[color:var(--accent,#ffd700)]/90 to-[color:var(--accent,#ffd700)]/45 transition-[width]`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[color:var(--accent)]/90 to-[color:var(--accent)]/45 transition-[width]`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>
-                  <p className="mt-3 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                  <p className="mt-3 text-xs font-medium text-[color:var(--muted-text)]">
                     {Math.min(goal.current, goal.target)} / {goal.target}
                     {goal.completed && (
-                      <span className="ml-2 text-[color:var(--accent,#ffd700)]">
+                      <span className="ml-2 text-[color:var(--accent)]">
                         {t("profile.goals.completed")}
                       </span>
                     )}
@@ -468,64 +439,57 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
               {t("profile.streak.title")}
             </h3>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-[color:var(--muted-text)]">
               {t("profile.streak.subtitle")}
             </p>
           </header>
-          {renderCalendar()}
+          <ActivityCalendar
+            currentMonth={currentMonth}
+            activityCalendar={activityCalendar}
+            weekdayLabels={weekdayLabels}
+          />
         </section>
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
               {t("profile.stats.title")}
             </h3>
           </header>
           <div className="grid gap-5 md:grid-cols-3">
+            <StatBadge
+              label={t("profile.stats.balance")}
+              value={formatNumber(Number(profileData.earned_money || 0), locale, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
+              unit={t("rewards.coins")}
+              className="text-center bg-[color:var(--input-bg)]/60"
+            />
+            <StatBadge
+              label={t("profile.stats.points")}
+              value={formatNumber(Number(profileData.points || 0), locale)}
+              unit="XP"
+              className="text-center bg-[color:var(--input-bg)]/60"
+            />
             <GlassCard
               padding="md"
-              className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
+              className="bg-[color:var(--input-bg)]/60 text-center"
             >
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.stats.balance")}
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
-                {formatNumber(Number(profileData.earned_money || 0), locale, {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                })}{" "}
-                {t("rewards.coins")}
-              </p>
-            </GlassCard>
-            <GlassCard
-              padding="md"
-              className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
-            >
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("profile.stats.points")}
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
-                {profileData.points}
-              </p>
-            </GlassCard>
-            <GlassCard
-              padding="md"
-              className="bg-[color:var(--input-bg,#f8fafc)]/60 text-center"
-            >
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text)]">
                 {t("profile.stats.streak")}
               </p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color,#111827)]">
+              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-color)]">
                 {t("profile.stats.streakDays", {
                   count: profileData.streak,
                 })}
               </p>
-              <div className="mt-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+              <div className="mt-2 text-xs font-semibold text-[color:var(--muted-text)]">
                 {profileData.streak >= 7 ? (
-                  <span className="text-[color:var(--accent,#ffd700)]">
+                  <span className="text-[color:var(--accent)]">
                     {t("profile.stats.hotStreak")}
                   </span>
                 ) : profileData.streak >= 3 ? (
@@ -543,10 +507,10 @@ function Profile() {
         <section className="space-y-6">
           <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+              <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
                 {t("profile.achievements.title")}
               </h3>
-              <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="mt-1 text-sm text-[color:var(--muted-text)]">
                 {t("profile.achievements.showing", {
                   shown: Math.min(badgesToRender.length, filteredBadges.length),
                   total: filteredBadges.length,
@@ -557,7 +521,7 @@ function Profile() {
             <div className="flex flex-wrap items-center gap-3">
               <label
                 htmlFor="badge-filter"
-                className="text-sm font-medium text-[color:var(--text-color,#111827)]"
+                className="text-sm font-medium text-[color:var(--text-color)]"
               >
                 {t("profile.achievements.filterLabel")}
               </label>
@@ -568,7 +532,7 @@ function Profile() {
                   setBadgeFilter(e.target.value);
                   setShowAllBadges(false);
                 }}
-                className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-sm text-[color:var(--text-color)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
               >
                 <option value="all">
                   {t("profile.achievements.filterAll")}
@@ -585,7 +549,7 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setShowAllBadges((prev) => !prev)}
-                  className="rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/50 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text)] transition hover:border-[color:var(--accent)]/50 hover:text-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
                 >
                   {showAllBadges
                     ? t("profile.achievements.showLess")
@@ -601,7 +565,7 @@ function Profile() {
                 <GlassCard
                   key={userBadge.badge.id}
                   padding="md"
-                  className="flex h-28 flex-col items-center justify-center bg-[color:var(--input-bg,#f3f4f6)]/60 text-center transition"
+                  className="flex h-28 flex-col items-center justify-center bg-[color:var(--input-bg)]/60 text-center transition"
                   title={`${userBadge.badge.name}\n${
                     userBadge.badge.description ||
                     t("profile.achievements.earnedAchievement")
@@ -616,14 +580,21 @@ function Profile() {
                     src={userBadge.badge.image_url}
                     alt={userBadge.badge.name}
                     className="h-14 w-14 rounded-full object-cover"
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    onError={(event) => {
+                      (event.currentTarget as HTMLImageElement).src =
+                        DEFAULT_AVATAR_URL;
+                    }}
                   />
-                  <p className="mt-3 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                  <p className="mt-3 text-sm font-semibold text-[color:var(--text-color)]">
                     {userBadge.earned
                       ? userBadge.badge.name
                       : t("profile.achievements.locked")}
                   </p>
                   {userBadge.earned && userBadge.earned_at && (
-                    <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="mt-1 text-xs text-[color:var(--muted-text)]">
                       {t("profile.achievements.earnedOn", {
                         date: formatDate(userBadge.earned_at),
                       })}
@@ -632,7 +603,7 @@ function Profile() {
                 </GlassCard>
               ))
             ) : (
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-[color:var(--muted-text)]">
                 {t("profile.achievements.empty")}
               </p>
             )}
@@ -641,47 +612,61 @@ function Profile() {
 
         <section className="space-y-6">
           <header>
-            <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+            <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
               {t("profile.activity.title")}
             </h3>
           </header>
 
           {recentActivity.length > 0 ? (
             <div className="space-y-3">
-              {recentActivity.slice(0, 3).map((activity) => (
+              {(showAllActivity
+                ? recentActivity
+                : recentActivity.slice(0, 3)
+              ).map((activity) => (
                 <GlassCard
                   key={activity.id}
                   padding="sm"
-                  className="flex flex-wrap items-center justify-between gap-2 bg-[color:var(--card-bg,#ffffff)]/60"
+                  className="flex flex-wrap items-center justify-between gap-2 bg-[color:var(--card-bg)]/60"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[color:var(--text-color,#111827)]">
+                    <p className="truncate text-sm font-medium text-[color:var(--text-color)]">
                       {activity.title}
                     </p>
                     {activity.details ? (
-                      <p className="truncate text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="truncate text-xs text-[color:var(--muted-text)]">
                         {activity.details}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <span className="shrink-0 text-xs text-[color:var(--muted-text)]">
                     {activity.timestamp}
                   </span>
                 </GlassCard>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-[color:var(--muted-text)]">
               {t("profile.activity.empty")}
             </p>
           )}
 
           {recentActivity.length > 3 && (
-            <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
-              {t("profile.activity.showing", {
-                total: recentActivity.length,
-              })}
-            </p>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-center text-xs text-[color:var(--muted-text)]">
+                {t("profile.activity.showing", {
+                  total: recentActivity.length,
+                })}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowAllActivity((prev) => !prev)}
+                className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-2 text-xs font-semibold text-[color:var(--muted-text)] transition hover:border-[color:var(--accent)]/50 hover:text-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+              >
+                {showAllActivity
+                  ? t("profile.achievements.showLess")
+                  : t("profile.achievements.showAll")}
+              </button>
+            </div>
           )}
         </section>
       </GlassCard>

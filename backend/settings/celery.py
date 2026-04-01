@@ -8,6 +8,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.settings")
 app = Celery("settings")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
+app.conf.timezone = os.getenv("CELERY_TIMEZONE", "Europe/London")
+app.conf.enable_utc = True
 
 
 app.autodiscover_tasks()
@@ -32,6 +34,10 @@ app.conf.beat_schedule = {
         "task": "authentication.tasks.send_trial_ending_reminder",
         "schedule": crontab(hour=10, minute=0),
     },
+    "send-renewal-reminder": {
+        "task": "authentication.tasks.send_renewal_reminder",
+        "schedule": crontab(hour=10, minute=0),
+    },
     "reset-daily-missions": {
         "task": "gamification.models.reset_daily_missions",
         "schedule": crontab(hour=0, minute=0),
@@ -39,5 +45,9 @@ app.conf.beat_schedule = {
     "reset-weekly-missions": {
         "task": "gamification.models.reset_weekly_missions",
         "schedule": crontab(hour=0, minute=0, day_of_week=1),
+    },
+    "refresh-finance-news-cache": {
+        "task": "finance.tasks.refresh_news_feed_cache_task",
+        "schedule": crontab(minute="*/3"),
     },
 }
