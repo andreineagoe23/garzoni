@@ -13,7 +13,7 @@ import { useAuth } from "contexts/AuthContext";
 import { useAdmin } from "contexts/AdminContext";
 import toast from "react-hot-toast";
 import AllTopics from "./AllTopics";
-import PersonalizedPath from "./PersonalizedPath";
+import PersonalizedPath from "./PersonalizedPathContent";
 import { GlassButton, GlassCard } from "components/ui";
 import { MonevoIcon } from "components/ui/monevoIcons";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";

@@ -27,7 +27,6 @@ from education.models import (
     Exercise,
     UserExerciseProgress,
     Question,
-    UserResponse,
     Mastery,
 )
 from education.serializers import (
@@ -1383,17 +1382,23 @@ def next_exercise(request):
 
 
 class PersonalizedPathView(APIView):
-    """API view to provide personalized learning paths for users based on their responses and preferences."""
+    """Generate and return personalized recommendations with metadata."""
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Retrieve personalized course recommendations for the user."""
         try:
-            user_profile = UserProfile.objects.get(user=request.user)
-            plan = get_user_plan(request.user)
+            user = request.user
+            user_profile = UserProfile.objects.get(user=user)
+            plan = get_user_plan(user)
+            allowed_path_ids = _allowed_path_ids(user)
+            force_refresh = str(request.query_params.get("refresh", "")).lower() in {
+                "1",
+                "true",
+                "yes",
+            }
 
-            if not self._has_completed_questionnaire(request.user):
+            if not self._has_completed_questionnaire(user):
                 return Response(
                     {
                         "error": "Please complete onboarding to unlock your personalized path.",
@@ -1402,42 +1407,129 @@ class PersonalizedPathView(APIView):
                     status=400,
                 )
 
-            if not plan_allows(plan, "plus"):
-                return Response(
-                    {
-                        "error": "Payment required for personalized path",
-                        "redirect": "/upgrade",
-                    },
-                    status=403,
+            if self._should_regenerate(user_profile, user, allowed_path_ids, force_refresh):
+                self.generate_recommendations(
+                    user_profile=user_profile, user=user, allowed_path_ids=allowed_path_ids
                 )
 
-            # Generate recommendations if not already present
-            allowed_path_ids = _allowed_path_ids(request.user)
-            if not user_profile.recommended_courses:
-                self.generate_recommendations(user_profile, request.user, allowed_path_ids)
-
-            # Only return courses from paths the user can access (Plus: starter + plus; Pro: all)
-            recommended_courses = Course.objects.filter(
-                id__in=user_profile.recommended_courses,
-                path_id__in=allowed_path_ids,
-            ).order_by("order")
-
-            serializer = CourseSerializer(
-                recommended_courses, many=True, context={"request": request}
+            courses = (
+                Course.objects.filter(
+                    id__in=user_profile.recommended_courses,
+                    path_id__in=allowed_path_ids,
+                    is_active=True,
+                )
+                .select_related("path")
+                .order_by("path__sort_order", "order", "id")
             )
+            serializer = CourseSerializer(courses, many=True, context={"request": request})
+            payload_courses = serializer.data
 
-            # Cache control headers
-            response = Response(
-                {
-                    "courses": serializer.data,
-                    "message": "Recommended courses based on your financial goals:",
+            answers = self._get_onboarding_answers(user)
+            mastery_boosts = self._get_low_mastery_boosts(user)
+            course_ids = [c.id for c in courses]
+            sections_total_map = {
+                row["lesson__course_id"]: int(row["total"])
+                for row in LessonSection.objects.filter(
+                    lesson__course_id__in=course_ids,
+                    is_published=True,
+                )
+                .values("lesson__course_id")
+                .annotate(total=Count("id"))
+            }
+            progress_by_course = {}
+            for progress in UserProgress.objects.filter(
+                user=user,
+                course_id__in=course_ids,
+            ).prefetch_related("completed_sections", "completed_lessons"):
+                progress_by_course[progress.course_id] = {
+                    "completed_sections": progress.completed_sections.count(),
+                    "completed_lessons": progress.completed_lessons.count(),
+                    "completed_lesson_ids": set(
+                        progress.completed_lessons.values_list("id", flat=True)
+                    ),
                 }
+
+            progress_values = []
+            for idx, item in enumerate(payload_courses):
+                course_id = int(item.get("id") or 0)
+                progress_meta = progress_by_course.get(
+                    course_id,
+                    {
+                        "completed_sections": 0,
+                        "completed_lessons": 0,
+                        "completed_lesson_ids": set(),
+                    },
+                )
+                total_lessons = int(item.get("total_lessons") or 0)
+                completed_lessons = int(progress_meta.get("completed_lessons") or 0)
+                total_sections = int(sections_total_map.get(course_id, 0))
+                completed_sections = int(progress_meta.get("completed_sections") or 0)
+                completion_percent = (
+                    round((completed_lessons / max(total_lessons, 1)) * 100, 1)
+                    if total_lessons > 0
+                    else 0.0
+                )
+                if total_lessons > 0:
+                    progress_values.append(completion_percent)
+                path_key = self._path_key(str(item.get("path_title") or ""))
+                next_lesson_title = self._next_lesson_title(
+                    course_id=course_id,
+                    completed_lesson_ids=progress_meta.get("completed_lesson_ids") or set(),
+                )
+                item["completion_percent"] = completion_percent
+                item["estimated_minutes"] = max(total_lessons * 4, 8)
+                item["reason"] = self._build_course_reason(path_key, answers, mastery_boosts)
+                item["locked"] = False
+                item["priority_rank"] = idx + 1
+                item["completed_lessons"] = completed_lessons
+                item["total_lessons"] = total_lessons
+                item["completed_sections"] = completed_sections
+                item["total_sections"] = total_sections
+                item["next_lesson_title"] = next_lesson_title
+                item["starter_tasks"] = (
+                    [
+                        "Complete the first section to unlock momentum.",
+                        "Watch or read one concept, then answer one exercise.",
+                        "Finish one lesson to mark this course as in progress.",
+                    ]
+                    if completed_sections == 0
+                    else []
+                )
+
+            generated_at_dt = user_profile.recommendations_generated_at or timezone.now()
+            overall_completion = round(
+                (sum(progress_values) / len(progress_values)) if progress_values else 0.0, 1
             )
+            response_payload = {
+                "courses": payload_courses,
+                "meta": {
+                    "generated_at": generated_at_dt.isoformat(),
+                    "onboarding_goals": self._extract_onboarding_goals(answers),
+                    "refresh_available": generated_at_dt
+                    <= timezone.now() - timezone.timedelta(minutes=1),
+                    "overall_completion": overall_completion,
+                    "preview": False,
+                },
+                "review_queue": self._skills_to_reinforce(user),
+                "message": "Recommended courses based on your goals, progress, and mastery.",
+            }
+
+            if not plan_allows(plan, "plus"):
+                preview_courses = response_payload["courses"][:2]
+                for item in preview_courses:
+                    item["locked"] = True
+                response_payload["courses"] = preview_courses
+                response_payload["meta"]["preview"] = True
+                response_payload["upgrade_prompt"] = "Unlock your full personalized path with Plus."
+                response_payload["message"] = (
+                    "Preview your personalized path and upgrade to unlock all recommendations."
+                )
+
+            response = Response(response_payload, status=200)
             response["Cache-Control"] = "no-store, max-age=0"
             return response
-
-        except Exception as e:
-            logger.critical(f"Critical error in personalized path: {str(e)}", exc_info=True)
+        except Exception as exc:
+            logger.critical("Critical error in personalized path: %s", str(exc), exc_info=True)
             return Response(
                 {
                     "error": "We're having trouble generating recommendations. Our team has been notified."
@@ -1446,26 +1538,36 @@ class PersonalizedPathView(APIView):
             )
 
     def generate_recommendations(self, user_profile, user, allowed_path_ids):
-        """Generate personalized course recommendations based on onboarding answers.
-        Only includes courses from paths the user can access (plan-based).
-        """
-        answers = self._get_onboarding_answers(user_profile.user)
-        if answers:
-            path_weights = self.calculate_onboarding_path_weights(answers)
-            sorted_paths = self.get_sorted_paths(path_weights, allowed_path_ids)
-            recommended_courses = self.get_recommended_courses(sorted_paths, allowed_path_ids)
-        else:
-            responses = UserResponse.objects.filter(user=user_profile.user)
-            path_weights = self.calculate_path_weights(responses)
-            sorted_paths = [
-                name for name, _ in sorted(path_weights.items(), key=lambda x: x[1], reverse=True)
-            ]
-            recommended_courses = self.get_recommended_courses_by_name(
-                sorted_paths, allowed_path_ids
-            )
+        answers = self._get_onboarding_answers(user)
+        weights = self.calculate_onboarding_path_weights(answers) if answers else defaultdict(int)
+        mastery_boosts = self._get_low_mastery_boosts(user)
+        for key, boost in mastery_boosts.items():
+            weights[key] += boost
 
+        sorted_paths = self.get_sorted_paths(weights, allowed_path_ids)
+        recommended_courses = self.get_recommended_courses(sorted_paths, allowed_path_ids)
         user_profile.recommended_courses = [c.id for c in recommended_courses]
-        user_profile.save()
+        user_profile.recommendations_generated_at = timezone.now()
+        user_profile.save(update_fields=["recommended_courses", "recommendations_generated_at"])
+
+    def _should_regenerate(self, user_profile, user, allowed_path_ids, force_refresh=False):
+        if force_refresh:
+            return True
+        if not user_profile.recommended_courses or not user_profile.recommendations_generated_at:
+            return True
+        if user_profile.recommendations_generated_at <= timezone.now() - timezone.timedelta(days=7):
+            return True
+        if UserProgress.objects.filter(
+            user=user,
+            course_id__in=user_profile.recommended_courses,
+            is_course_complete=True,
+        ).exists():
+            return True
+        return not Course.objects.filter(
+            id__in=user_profile.recommended_courses,
+            path_id__in=allowed_path_ids,
+            is_active=True,
+        ).exists()
 
     def _get_onboarding_answers(self, user):
         progress = QuestionnaireProgress.objects.filter(user=user).first()
@@ -1474,9 +1576,7 @@ class PersonalizedPathView(APIView):
         return progress.answers
 
     def calculate_onboarding_path_weights(self, answers):
-        """Weight paths based on onboarding questionnaire answers."""
         weights = defaultdict(int)
-
         primary_goal = answers.get("primary_goal")
         if primary_goal == "budget":
             weights["budget"] += 4
@@ -1497,33 +1597,24 @@ class PersonalizedPathView(APIView):
             weights["debt"] += 3
         elif biggest_challenge == "confidence":
             weights["invest"] += 2
-
-        income_type = answers.get("income_type")
-        if income_type in {"variable", "student"}:
-            weights["budget"] += 2
-        elif income_type == "salaried":
-            weights["savings"] += 1
-
-        budgeting_style = answers.get("budgeting_style")
-        if budgeting_style == "no_track":
-            weights["budget"] += 3
-        elif budgeting_style == "basic":
-            weights["budget"] += 2
-        elif budgeting_style == "app":
-            weights["budget"] += 1
-
         return weights
 
     def get_sorted_paths(self, weights, allowed_path_ids):
-        """Sort Path objects by keyword weights (only paths the user can access)."""
         keyword_map = {
             "budget": ["budget", "budgeting", "spending", "cash"],
             "debt": ["debt", "credit"],
             "savings": ["savings", "saving", "emergency"],
-            "invest": ["invest", "investing", "stocks", "portfolio"],
+            "invest": [
+                "invest",
+                "investing",
+                "stocks",
+                "portfolio",
+                "real estate",
+                "crypto",
+                "forex",
+            ],
         }
-
-        paths = list(Path.objects.filter(id__in=allowed_path_ids))
+        paths = list(Path.objects.filter(id__in=allowed_path_ids).order_by("sort_order", "id"))
         scored = []
         for path in paths:
             title = (path.title or "").lower()
@@ -1532,156 +1623,118 @@ class PersonalizedPathView(APIView):
                 if any(k in title for k in keywords):
                     score += weights.get(key, 0)
             scored.append((path, score))
-
-        scored.sort(key=lambda x: x[1], reverse=True)
-        return [p for p, _ in scored]
-
-    def calculate_path_weights(self, responses):
-        """Calculate weights for different learning paths based on user responses."""
-        path_weights = defaultdict(int)
-        try:
-            for response in responses:
-                answer = response.answer
-                try:
-                    if response.question.type == "budget_allocation" and isinstance(answer, str):
-                        answer = json.loads(answer)
-                except json.JSONDecodeError:
-                    logger.error(f"Invalid JSON answer for question {response.question.id}")
-                    continue
-
-                if response.question.id == 1:
-                    if isinstance(answer, str):
-                        self.handle_risk_question(answer.lower().strip(), path_weights)
-
-                elif response.question.id == 3:
-                    if isinstance(answer, str):
-                        answer = [a.strip().lower() for a in answer.split(",")]
-                    self.handle_investment_question(answer, path_weights)
-
-                elif response.question.id == 4:
-                    self.handle_budget_question(answer, path_weights)
-
-        except Exception as e:
-            logger.error(f"Error calculating path weights: {str(e)}", exc_info=True)
-
-        return path_weights
-
-    def handle_risk_question(self, answer, weights):
-        """Adjust path weights based on the user's risk tolerance."""
-        risk_map = {
-            "very uncomfortable": 0,
-            "uncomfortable": 1,
-            "neutral": 2,
-            "comfortable": 3,
-            "very comfortable": 4,
-        }
-        normalized_answer = answer.lower().strip()
-        score = risk_map.get(normalized_answer, 0)
-        weights["Investing"] += score * 2
-        weights["Cryptocurrency"] += score * 1.5
-
-    def handle_investment_question(self, answer, weights):
-        """Adjust path weights based on the user's investment preferences."""
-        investment_map = {
-            "real estate": "Real Estate",
-            "crypto": "Cryptocurrency",
-            "cryptocurrency": "Cryptocurrency",
-            "stocks": "Investing",
-            "stock market": "Investing",
-        }
-
-        if isinstance(answer, str):
-            answer = [a.strip().lower() for a in answer.split(",")]
-
-        for selection in answer:
-            normalized = selection.strip().lower()
-            path = investment_map.get(normalized)
-            if path:
-                weights[path] += 3 if path == "Real Estate" else 2
-
-    def handle_budget_question(self, answer, weights):
-        """Adjust path weights based on the user's budget allocation."""
-        try:
-            if isinstance(answer, str):
-                allocation = json.loads(answer)
-            else:
-                allocation = answer
-
-            allocation = {k.lower().strip(): v for k, v in allocation.items()}
-
-            stock_weight = float(allocation.get("stocks", 0)) * 0.8
-            real_estate_weight = float(allocation.get("real estate", 0)) * 0.8
-            crypto_weight = float(allocation.get("crypto", 0)) * 1.2
-
-            if stock_weight > 0:
-                weights["Investing"] += stock_weight
-            if real_estate_weight > 0:
-                weights["Real Estate"] += real_estate_weight
-            if crypto_weight > 0:
-                weights["Cryptocurrency"] += crypto_weight
-
-        except Exception as e:
-            logger.error(f"Budget handling error: {str(e)}")
+        scored.sort(key=lambda pair: pair[1], reverse=True)
+        return [path for path, _ in scored]
 
     def get_recommended_courses(self, sorted_paths, allowed_path_ids):
-        """Retrieve recommended courses based on ordered Path objects (only from allowed paths)."""
         recommended_courses = []
         try:
             for path in sorted_paths[:3]:
-                courses = Course.objects.filter(path=path, is_active=True).order_by("order")[:2]
-                recommended_courses.extend(courses)
-
+                recommended_courses.extend(
+                    Course.objects.filter(path=path, is_active=True).order_by("order", "id")[:2]
+                )
             if len(recommended_courses) < 10:
-                additional = (
+                recommended_courses.extend(
                     Course.objects.filter(is_active=True, path_id__in=allowed_path_ids)
                     .exclude(id__in=[c.id for c in recommended_courses])
-                    .order_by("order", "id")[: 10 - len(recommended_courses)]
+                    .order_by("path__sort_order", "order", "id")[: 10 - len(recommended_courses)]
                 )
-                recommended_courses.extend(additional)
-
             return recommended_courses[:10]
-
-        except Exception as e:
-            logger.error(f"Course fetch error: {str(e)}")
+        except Exception as exc:
+            logger.error("Course fetch error: %s", str(exc))
             return list(
-                Course.objects.filter(is_active=True, path_id__in=allowed_path_ids).order_by("?")[
-                    :10
-                ]
+                Course.objects.filter(is_active=True, path_id__in=allowed_path_ids).order_by(
+                    "path__sort_order", "order", "id"
+                )[:10]
             )
 
-    def get_recommended_courses_by_name(self, sorted_paths, allowed_path_ids):
-        """Legacy fallback: path titles to courses (only from allowed paths)."""
-        recommended_courses = []
-        try:
-            for path_name in sorted_paths[:3]:
-                courses = Course.objects.filter(
-                    path__title__iexact=path_name,
-                    path_id__in=allowed_path_ids,
-                    is_active=True,
-                ).order_by("order")[:2]
-                recommended_courses.extend(courses)
+    def _path_key(self, value: str):
+        title = (value or "").lower()
+        if any(k in title for k in ["budget", "cash", "spend"]):
+            return "budget"
+        if any(k in title for k in ["debt", "credit"]):
+            return "debt"
+        if any(k in title for k in ["saving", "emergency"]):
+            return "savings"
+        if any(
+            k in title for k in ["invest", "stock", "portfolio", "real estate", "crypto", "forex"]
+        ):
+            return "invest"
+        return "general"
 
-            if len(recommended_courses) < 10:
-                additional = (
-                    Course.objects.filter(is_active=True, path_id__in=allowed_path_ids)
-                    .exclude(id__in=[c.id for c in recommended_courses])
-                    .order_by("order", "id")[: 10 - len(recommended_courses)]
-                )
-                recommended_courses.extend(additional)
+    def _get_low_mastery_boosts(self, user):
+        boosts = defaultdict(int)
+        for mastery in Mastery.objects.filter(user=user, proficiency__lt=30):
+            boosts[self._path_key(mastery.skill)] += 2
+        return boosts
 
-            return recommended_courses[:10]
+    def _extract_onboarding_goals(self, answers):
+        goals = []
+        for key in ("primary_goal", "biggest_challenge"):
+            value = answers.get(key)
+            if value:
+                goals.append(str(value))
+        return goals
 
-        except Exception as e:
-            logger.error(f"Course fetch error: {str(e)}")
-            return list(
-                Course.objects.filter(is_active=True, path_id__in=allowed_path_ids).order_by("?")[
-                    :10
-                ]
+    def _build_course_reason(self, path_key, answers, mastery_boosts):
+        if mastery_boosts.get(path_key, 0) >= 2:
+            return "Recommended to reinforce one of your weakest skills."
+        primary_goal = str(answers.get("primary_goal") or "")
+        if primary_goal:
+            return f"Matches your onboarding goal: {primary_goal}."
+        return "Recommended to build a balanced money foundation."
+
+    def _skills_to_reinforce(self, user):
+        items = []
+        for mastery in Mastery.objects.filter(user=user, due_at__lte=timezone.now()).order_by(
+            "due_at"
+        )[:6]:
+            items.append(
+                {
+                    "skill": mastery.skill,
+                    "proficiency": mastery.proficiency,
+                    "due_at": mastery.due_at.isoformat() if mastery.due_at else None,
+                }
             )
+        return items
+
+    def _next_lesson_title(self, course_id, completed_lesson_ids):
+        next_lesson = (
+            Lesson.objects.filter(course_id=course_id)
+            .exclude(id__in=list(completed_lesson_ids))
+            .order_by("id")
+            .first()
+        )
+        return next_lesson.title if next_lesson else None
 
     def _has_completed_questionnaire(self, user):
-        """Check whether the user has completed onboarding."""
         progress = QuestionnaireProgress.objects.filter(user=user).first()
-        if progress:
-            return progress.status == "completed"
-        return False
+        return bool(progress and progress.status == "completed")
+
+
+class PersonalizedPathRefreshView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user_profile = UserProfile.objects.get(user=request.user)
+            allowed_path_ids = _allowed_path_ids(request.user)
+            PersonalizedPathView().generate_recommendations(
+                user_profile=user_profile,
+                user=request.user,
+                allowed_path_ids=allowed_path_ids,
+            )
+            return Response(
+                {
+                    "status": "ok",
+                    "generated_at": (
+                        user_profile.recommendations_generated_at or timezone.now()
+                    ).isoformat(),
+                },
+                status=200,
+            )
+        except Exception as exc:
+            logger.error(
+                "personalized_path_refresh_failed user_id=%s err=%s", request.user.id, str(exc)
+            )
+            return Response({"error": "Unable to refresh recommendations right now."}, status=500)
