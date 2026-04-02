@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
+  "expo": {
+    "install": {
+      "exclude": ["react", "@types/react"]
+    }
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -22,14 +27,14 @@
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
+    "react": "19.2.4",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~19.2.0",
     "typescript": "~5.9.2"
   }
 }

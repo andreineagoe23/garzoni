@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import registerBg from "assets/register-bg.jpg";
+import registerBg from "assets/register-bg.jpg?format=webp&quality=75";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
