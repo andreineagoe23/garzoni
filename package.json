@@ -1,7 +1,15 @@
 {
   "name": "monevo",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@10.15.1",
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.4",
+      "react-dom": "19.2.4",
+      "@types/react": "19.2.7",
+      "@types/react-dom": "19.2.3"
+    }
+  },
   "scripts": {
     "dev": "pnpm --filter @monevo/web dev",
     "dev:web": "pnpm --filter @monevo/web dev",
