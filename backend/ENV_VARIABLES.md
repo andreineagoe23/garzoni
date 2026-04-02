@@ -95,6 +95,8 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `GOOGLE_OAUTH_ANDROID_CLIENT_ID` | (none) | Optional Android OAuth client ID (merged into allowed ID token audiences). |
 | `GOOGLE_APPLICATION_CREDENTIALS` | (none) | Path to service account JSON (if used). |
 
+**Redirect flow:** The authorization `redirect_uri` sent to Google is **`{FRONTEND_URL}/api/auth/google/callback`** (not the Django/Railway request host). Set **FRONTEND_URL** to the public web origin (e.g. `https://www.monevo.tech`) and add that full callback URL under **Authorised redirect URIs** in Google Cloud Console.
+
 ID tokens from Google Sign-In on native apps use the platform client as `aud`; the backend accepts any ID listed in the merged **allowed client IDs** set (web ID + CSV + iOS + Android, deduplicated). Create separate iOS/Android OAuth clients in Google Cloud Console and add their IDs here.
 
 ### OpenAI (AI chat)

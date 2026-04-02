@@ -2,6 +2,8 @@
 Google OAuth 2.0 flow for login and register.
 - GET /api/auth/google/ redirects to Google consent.
 - GET /api/auth/google/callback exchanges code, creates or gets user, issues JWT, redirects to frontend.
+  The OAuth redirect_uri sent to Google is always FRONTEND_URL + /api/auth/google/callback (not
+  request.build_absolute_uri), so production matches the public site (e.g. Vercel → /api proxy).
 - POST /api/auth/google/verify-credential/ accepts Google One Tap / Sign-in button ID token,
   verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
@@ -75,6 +77,12 @@ def _get_google_config():
     return client_id.strip(), client_secret.strip()
 
 
+def _google_oauth_redirect_uri():
+    """Callback URL registered with Google; uses FRONTEND_URL so it matches the browser-facing /api host."""
+    base = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    return f"{base}/api/auth/google/callback"
+
+
 class GoogleOAuthInitView(APIView):
     """Redirect the user to Google's OAuth consent screen."""
 
@@ -87,7 +95,7 @@ class GoogleOAuthInitView(APIView):
             frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
+        redirect_uri = _google_oauth_redirect_uri()
         state = request.GET.get("state", "")
         params = {
             "client_id": client_id,
@@ -127,7 +135,7 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google OAuth not configured")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = request.build_absolute_uri("/api/auth/google/callback")
+        redirect_uri = _google_oauth_redirect_uri()
 
         # Exchange code for tokens
         token_data = {
