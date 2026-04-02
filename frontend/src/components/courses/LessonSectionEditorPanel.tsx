@@ -4,17 +4,9 @@ import DOMPurify from "dompurify";
 import { GlassButton, GlassCard } from "components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
 
-export type LessonSection = {
-  id?: number;
-  title?: string;
-  text_content?: string;
-  content_type?: string;
-  video_url?: string;
-  order?: number;
-  exercise_type?: string;
-  exercise_data?: Record<string, unknown>;
-  is_published?: boolean;
-};
+import type { LessonSection } from "./lessonEditorTypes";
+
+export type { LessonSection };
 
 type SavingState = {
   status?: "idle" | "saving" | "saved" | "error";

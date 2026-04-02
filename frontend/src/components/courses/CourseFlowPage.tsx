@@ -1,4 +1,5 @@
 import React, {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -38,9 +39,11 @@ import FillInTableExercise from "components/exercises/FillInTableExercise";
 import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationExercise";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
-import LessonSectionEditorPanel, {
-  type LessonSection,
-} from "./LessonSectionEditorPanel";
+import type { LessonSection } from "./lessonEditorTypes";
+
+const LessonSectionEditorPanel = React.lazy(
+  () => import("./LessonSectionEditorPanel")
+);
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
@@ -1772,38 +1775,46 @@ function CourseFlowPage() {
             </div>
 
             <div className="h-full w-full overflow-hidden p-4 sm:p-6">
-              <LessonSectionEditorPanel
-                section={draftSection as LessonSection | null}
-                onChange={
-                  updateDraftSection as (
-                    updates: Partial<LessonSection>
-                  ) => void
+              <Suspense
+                fallback={
+                  <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                    {t("courses.flow.loadingEditor")}
+                  </div>
                 }
-                onDelete={() => {
-                  if (!draftSection || draftSection.lessonId === undefined)
-                    return;
-                  handleDeleteSection(draftSection.lessonId, draftSection.id);
-                }}
-                onPublishToggle={handlePublishToggle}
-                onSave={handleManualSave}
-                savingState={saveState}
-                exercises={
-                  Array.isArray(exercises) ? exercises : exercises?.data || []
-                }
-                loadingExercises={loadingExercises}
-                onExerciseAttach={(exercise) => {
-                  if (!exercise) return;
-                  updateDraftSection({
-                    content_type: "exercise",
-                    exercise_type: exercise.type,
-                    exercise_data: exercise.exercise_data || {},
-                  });
-                }}
-                onCloseRequest={() => beginEditingSection(null, null)}
-                currentSectionTitle={
-                  draftSection?.title || currentSection?.title
-                }
-              />
+              >
+                <LessonSectionEditorPanel
+                  section={draftSection as LessonSection | null}
+                  onChange={
+                    updateDraftSection as (
+                      updates: Partial<LessonSection>
+                    ) => void
+                  }
+                  onDelete={() => {
+                    if (!draftSection || draftSection.lessonId === undefined)
+                      return;
+                    handleDeleteSection(draftSection.lessonId, draftSection.id);
+                  }}
+                  onPublishToggle={handlePublishToggle}
+                  onSave={handleManualSave}
+                  savingState={saveState}
+                  exercises={
+                    Array.isArray(exercises) ? exercises : exercises?.data || []
+                  }
+                  loadingExercises={loadingExercises}
+                  onExerciseAttach={(exercise) => {
+                    if (!exercise) return;
+                    updateDraftSection({
+                      content_type: "exercise",
+                      exercise_type: exercise.type,
+                      exercise_data: exercise.exercise_data || {},
+                    });
+                  }}
+                  onCloseRequest={() => beginEditingSection(null, null)}
+                  currentSectionTitle={
+                    draftSection?.title || currentSection?.title
+                  }
+                />
+              </Suspense>
             </div>
           </div>
         </div>

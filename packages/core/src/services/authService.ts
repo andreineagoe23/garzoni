@@ -17,23 +17,27 @@ export type LoginSecurePayload = {
   platform?: string;
 };
 
-/** Password login; native apps should send `client_type` / `platform` `mobile` to skip web reCAPTCHA. */
-export const loginSecure = (payload: LoginSecurePayload) =>
-  apiClient.post<{
+/** Password login; native apps must send `client_type` / `platform` `mobile` to skip web reCAPTCHA. */
+export const loginSecure = (payload: LoginSecurePayload) => {
+  const body: Record<string, unknown> = {
+    username: payload.username,
+    password: payload.password,
+  };
+  if (payload.recaptcha_token != null && payload.recaptcha_token !== "") {
+    body.recaptcha_token = payload.recaptcha_token;
+  }
+  if (payload.client_type != null && payload.client_type !== "") {
+    body.client_type = payload.client_type;
+  }
+  if (payload.platform != null && payload.platform !== "") {
+    body.platform = payload.platform;
+  }
+  return apiClient.post<{
     access: string;
     refresh?: string;
     user: Record<string, unknown>;
-  }>(
-    "/login-secure/",
-    {
-      username: payload.username,
-      password: payload.password,
-      recaptcha_token: payload.recaptcha_token,
-      client_type: payload.client_type ?? "mobile",
-      platform: payload.platform ?? "mobile",
-    },
-    { skipAuthRedirect: true }
-  );
+  }>("/login-secure/", body, { skipAuthRedirect: true });
+};
 
 export const registerSecure = (userData: Record<string, unknown>) =>
   apiClient.post<{
@@ -41,15 +45,7 @@ export const registerSecure = (userData: Record<string, unknown>) =>
     refresh?: string;
     user: Record<string, unknown>;
     next?: string;
-  }>(
-    "/register-secure/",
-    {
-      ...userData,
-      client_type: "mobile",
-      platform: "mobile",
-    },
-    { skipAuthRedirect: true }
-  );
+  }>("/register-secure/", userData, { skipAuthRedirect: true });
 
 export const googleVerifyCredential = (body: {
   credential: string;

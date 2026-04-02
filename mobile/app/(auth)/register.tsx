@@ -40,6 +40,8 @@ export default function RegisterScreen() {
         password: form.password,
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
+        client_type: "mobile",
+        platform: "mobile",
       });
       if (data?.access) {
         await applyTokens(data.access, data.refresh);
