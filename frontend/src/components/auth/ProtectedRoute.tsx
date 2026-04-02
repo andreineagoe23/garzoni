@@ -5,7 +5,7 @@ const ProtectedRoute = ({
   children,
 }: {
   children: React.ReactNode;
-}): JSX.Element | null => {
+}): React.ReactElement | null => {
   const { isAuthenticated, isInitialized } = useAuth();
   const location = useLocation();
 

@@ -62,10 +62,10 @@ export const PricingFunnelDashboard = React.lazy(
   () => import("components/analytics/PricingFunnelDashboard")
 );
 
+/** Optional route warm-up; keep heavy pages (e.g. CourseFlow + CKEditor) out — load on navigation only. */
 export const preloaders = [
   () => import("components/dashboard/Dashboard"),
   () => import("components/courses/CoursePage"),
-  () => import("components/courses/CourseFlowPage"),
   () => import("components/billing/SubscriptionManager"),
   () => import("components/engagement/Missions"),
   () => import("components/profile/Profile"),

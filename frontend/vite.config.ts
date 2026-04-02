@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
+import { imagetools } from "vite-imagetools";
 import { defineConfig } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,7 +49,7 @@ export default defineConfig(({ mode }) => {
   ];
 
   return {
-    plugins: [react()],
+    plugins: [react(), imagetools()],
     server: {
       port: 3000,
       headers: {
@@ -58,9 +59,23 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "dist",
       sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "vendor-ckeditor": ["@ckeditor/ckeditor5-build-classic"],
+            "vendor-three": ["three"],
+            "vendor-html2canvas": ["html2canvas"],
+            "vendor-react": ["react", "react-dom", "react-router-dom"],
+            "vendor-charts": ["recharts"],
+            "vendor-motion": ["framer-motion"],
+            "vendor-query": ["@tanstack/react-query"],
+          },
+        },
+      },
     },
     resolve: {
       alias: aliases,
+      dedupe: ["react", "react-dom"],
     },
     test: {
       globals: true,

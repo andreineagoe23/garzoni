@@ -1,3 +1,7 @@
+/**
+ * Monorepo Metro config: watches the repo root and resolves `@monevo/core` from source.
+ * `expo-doctor` may warn about watchFolders vs defaults — expected for pnpm workspace + core package.
+ */
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 const fs = require("fs");
