@@ -57,6 +57,9 @@ export function navigateToExercisesFromDashboardSkill(
   skill: string,
   reason: ExercisesSkillReason
 ) {
-  const { pathname, search, state } = getExercisesSkillNavigation(skill, reason);
+  const { pathname, search, state } = getExercisesSkillNavigation(
+    skill,
+    reason
+  );
   navigate({ pathname, search }, { state });
 }

@@ -36,7 +36,8 @@ function Register() {
   const [showVerifyingModal, setShowVerifyingModal] = useState(false);
   const [referralValidationState, setReferralValidationState] =
     useState<ReferralValidationState>("idle");
-  const [referralValidationMessage, setReferralValidationMessage] = useState("");
+  const [referralValidationMessage, setReferralValidationMessage] =
+    useState("");
 
   const navigate = useNavigate();
   const { registerUser } = useAuth();

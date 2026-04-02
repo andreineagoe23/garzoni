@@ -18,7 +18,11 @@ type Props = {
   onLocked: () => void;
 };
 
-const ShareAchievementButton = ({ targetRef, downloadsFeature, onLocked }: Props) => {
+const ShareAchievementButton = ({
+  targetRef,
+  downloadsFeature,
+  onLocked,
+}: Props) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -59,7 +63,9 @@ const ShareAchievementButton = ({ targetRef, downloadsFeature, onLocked }: Props
       const canvas = await html2canvas(target);
       const dataUrl = canvas.toDataURL("image/png");
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "monevo-achievement.png", { type: "image/png" });
+      const file = new File([blob], "monevo-achievement.png", {
+        type: "image/png",
+      });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({

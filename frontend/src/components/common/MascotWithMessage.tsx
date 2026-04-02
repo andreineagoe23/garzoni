@@ -1,6 +1,10 @@
 import React from "react";
 import MascotMedia from "components/common/MascotMedia";
-import { useMascotMessage, type MascotMood, type MascotType } from "hooks/useMascotMessage";
+import {
+  useMascotMessage,
+  type MascotMood,
+  type MascotType,
+} from "hooks/useMascotMessage";
 
 type MascotWithMessageProps = {
   mood: MascotMood;
@@ -46,7 +50,8 @@ const MascotWithMessage = ({
           mascot={mascot}
           className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"
         />
-        {showMessage && message &&
+        {showMessage &&
+          message &&
           (messageStyle === "plain" ? (
             <p className="tooltip--inline-wrapper text-xs text-[color:var(--muted-text,#6b7280)]">
               {message}

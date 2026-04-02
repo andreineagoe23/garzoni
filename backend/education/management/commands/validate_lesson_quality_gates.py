@@ -6,7 +6,6 @@ from django.utils.html import strip_tags
 
 from education.models import Lesson
 
-
 TARGET_TYPES = ["text", "exercise", "text", "video", "text", "exercise", "text"]
 YOUTUBE_ID_RE = re.compile(
     r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{11})"

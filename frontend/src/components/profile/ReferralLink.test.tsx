@@ -26,9 +26,7 @@ describe("ReferralLink", () => {
     );
 
     const input = screen.getByLabelText(/Referral link/i) as HTMLInputElement;
-    expect(input.value).toBe(
-      "https://app.monevo.com/welcome?ref=TEST-CODE"
-    );
+    expect(input.value).toBe("https://app.monevo.com/welcome?ref=TEST-CODE");
   });
 
   it("copies the referral link to clipboard when clicking copy", () => {

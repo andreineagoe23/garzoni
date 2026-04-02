@@ -35,7 +35,6 @@ from education.models import (
     PathTranslation,
 )
 
-
 LANGUAGE_CODE = "ro"
 
 

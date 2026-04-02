@@ -39,7 +39,8 @@ function RewardsPage() {
 
   const balance = useMemo(() => {
     const payload = profileResponse?.data || {};
-    const earned = payload?.earned_money ?? payload?.user_data?.earned_money ?? 0;
+    const earned =
+      payload?.earned_money ?? payload?.user_data?.earned_money ?? 0;
     return Number.parseFloat(String(earned)) || 0;
   }, [profileResponse]);
 

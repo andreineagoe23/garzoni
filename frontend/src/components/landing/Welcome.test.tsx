@@ -28,9 +28,7 @@ describe("Welcome referral flow", () => {
 
     renderWithRoute(["/welcome"]);
 
-    expect(
-      screen.getByText(/You were invited to Monevo/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/You were invited to Monevo/i)).toBeInTheDocument();
 
     delete (globalThis as any).__TEST_LOCATION_SEARCH__;
     delete (globalThis as any).__TEST_LOCATION_PATHNAME__;

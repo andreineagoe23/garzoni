@@ -16,7 +16,6 @@ from django.utils.html import strip_tags
 
 from education.models import Lesson, LessonSectionTranslation
 
-
 TARGET_LESSON_IDS = [2, 3, 7, 8, 12, 13, 17, 18, 26, 35]
 MIN_QUESTION_LEN = 80
 GENERIC_PHRASES = (

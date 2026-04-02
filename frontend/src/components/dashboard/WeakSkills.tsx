@@ -66,7 +66,10 @@ const WeakSkills = ({
     for (const [skill, proficiency] of nextMap.entries()) {
       if (proficiency > JUST_UNLOCKED_THRESHOLD) continue;
       const prevProficiency = prevMap.get(skill);
-      if (prevProficiency === undefined || prevProficiency > JUST_UNLOCKED_THRESHOLD) {
+      if (
+        prevProficiency === undefined ||
+        prevProficiency > JUST_UNLOCKED_THRESHOLD
+      ) {
         newlyUnlocked.add(skill);
       }
     }
@@ -107,7 +110,13 @@ const WeakSkills = ({
       return (
         <div className="mt-6">
           <EmptyState
-            icon={<MonevoIcon name="target" size={44} className="text-[color:var(--primary,#1d5330)]" />}
+            icon={
+              <MonevoIcon
+                name="target"
+                size={44}
+                className="text-[color:var(--primary,#1d5330)]"
+              />
+            }
             title={t("dashboard.weakSkills.skillInsights")}
             description={t("dashboard.weakSkills.skillInsightsDesc")}
           />
@@ -117,7 +126,13 @@ const WeakSkills = ({
     return (
       <div className="mt-6">
         <EmptyState
-            icon={<MonevoIcon name="target" size={44} className="text-[color:var(--primary,#1d5330)]" />}
+          icon={
+            <MonevoIcon
+              name="target"
+              size={44}
+              className="text-[color:var(--primary,#1d5330)]"
+            />
+          }
           title={t("dashboard.weakSkills.noWeakSkills")}
           description={t("dashboard.weakSkills.noWeakSkillsDesc")}
         />

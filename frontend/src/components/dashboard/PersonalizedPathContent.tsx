@@ -22,7 +22,15 @@ function ProgressRing({ value }: { value: number }) {
   const offset = c - (clamped / 100) * c;
   return (
     <svg className="h-10 w-10" viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="20" cy="20" r={r} stroke="currentColor" className="text-gray-300" strokeWidth="4" fill="none" />
+      <circle
+        cx="20"
+        cy="20"
+        r={r}
+        stroke="currentColor"
+        className="text-gray-300"
+        strokeWidth="4"
+        fill="none"
+      />
       <circle
         cx="20"
         cy="20"
@@ -43,7 +51,12 @@ function ProgressRing({ value }: { value: number }) {
 function courseIcon(pathTitle?: string) {
   const title = String(pathTitle || "").toLowerCase();
   if (title.includes("budget") || title.includes("saving")) return "target";
-  if (title.includes("invest") || title.includes("stock") || title.includes("crypto")) return "chartLine";
+  if (
+    title.includes("invest") ||
+    title.includes("stock") ||
+    title.includes("crypto")
+  )
+    return "chartLine";
   if (title.includes("debt") || title.includes("credit")) return "bolt";
   if (title.includes("mindset")) return "lightbulb";
   return "bookOpen";
@@ -58,23 +71,29 @@ function PersonalizedPathContent({
   const { t } = useTranslation();
   const { isAuthenticated, loadProfile } = useAuth();
 
-  const { data: profilePayload, isLoading: profileLoading } = useQuery<UserProfile>({
-    queryKey: queryKeys.profile(),
-    queryFn: async () => (await loadProfile({ force: true })) as UserProfile,
-    enabled: isAuthenticated,
-    staleTime: staleTimes.profile,
-  });
+  const { data: profilePayload, isLoading: profileLoading } =
+    useQuery<UserProfile>({
+      queryKey: queryKeys.profile(),
+      queryFn: async () => (await loadProfile({ force: true })) as UserProfile,
+      enabled: isAuthenticated,
+      staleTime: staleTimes.profile,
+    });
 
   const questionnaireCompleted = Boolean(
     profilePayload?.is_questionnaire_completed ??
-      (profilePayload?.user_data as { is_questionnaire_completed?: boolean } | undefined)
-        ?.is_questionnaire_completed ??
-      false
+    (
+      profilePayload?.user_data as
+        | { is_questionnaire_completed?: boolean }
+        | undefined
+    )?.is_questionnaire_completed ??
+    false
   );
 
   const personalizedQuery = useQuery<PersonalizedPathResponse>({
     queryKey: ["personalizedPath"],
-    queryFn: async () => (await apiClient.get<PersonalizedPathResponse>("/personalized-path/")).data,
+    queryFn: async () =>
+      (await apiClient.get<PersonalizedPathResponse>("/personalized-path/"))
+        .data,
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: 60_000,
     refetchInterval: 30_000,
@@ -83,7 +102,9 @@ function PersonalizedPathContent({
 
   const progressSummaryQuery = useQuery<ProgressSummary>({
     queryKey: queryKeys.progressSummary(),
-    queryFn: async () => (await apiClient.get<ProgressSummary>("/userprogress/progress_summary/")).data,
+    queryFn: async () =>
+      (await apiClient.get<ProgressSummary>("/userprogress/progress_summary/"))
+        .data,
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: staleTimes.progressSummary,
     refetchInterval: 20_000,
@@ -153,10 +174,13 @@ function PersonalizedPathContent({
     const progress = progressByCourse.get(course.id);
     const fallbackCompletedLessons = Number(course.completed_lessons || 0);
     const fallbackTotalLessons = Number(course.total_lessons || 0);
-    const completedLessons = progress?.completedLessons ?? fallbackCompletedLessons;
+    const completedLessons =
+      progress?.completedLessons ?? fallbackCompletedLessons;
     const totalLessons = progress?.totalLessons ?? fallbackTotalLessons;
-    const completedSections = progress?.completedSections ?? Number(course.completed_sections || 0);
-    const totalSections = progress?.totalSections ?? Number(course.total_sections || 0);
+    const completedSections =
+      progress?.completedSections ?? Number(course.completed_sections || 0);
+    const totalSections =
+      progress?.totalSections ?? Number(course.total_sections || 0);
     const percent =
       progress?.percent ??
       (totalLessons > 0
@@ -191,7 +215,10 @@ function PersonalizedPathContent({
         <div className="h-32 animate-pulse rounded-2xl bg-[color:var(--input-bg,#f3f4f6)]" />
         <div className="grid gap-3 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-[color:var(--input-bg,#f3f4f6)]" />
+            <div
+              key={i}
+              className="h-28 animate-pulse rounded-2xl bg-[color:var(--input-bg,#f3f4f6)]"
+            />
           ))}
         </div>
       </GlassCard>
@@ -200,7 +227,10 @@ function PersonalizedPathContent({
 
   if (personalizedQuery.isError) {
     return (
-      <GlassCard padding="md" className="text-center text-sm text-[color:var(--error,#dc2626)]">
+      <GlassCard
+        padding="md"
+        className="text-center text-sm text-[color:var(--error,#dc2626)]"
+      >
         {t("personalizedPath.errors.recommendationsFailed")}
       </GlassCard>
     );
@@ -209,82 +239,98 @@ function PersonalizedPathContent({
   return (
     <div className="space-y-8">
       {heroCourse && (
-        <GlassCard padding="lg" className="relative overflow-hidden border border-[color:var(--primary,#1d5330)]/20">
+        <GlassCard
+          padding="lg"
+          className="relative overflow-hidden border border-[color:var(--primary,#1d5330)]/20"
+        >
           {(() => {
             const metrics = getCourseMetrics(heroCourse);
             return (
-          <>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-color,#d1d5db)]/70 pb-3">
-            <div>
-              <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
-                {t("personalizedPath.title")}
-              </p>
-              <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {(personalizedQuery.data?.meta?.onboarding_goals || []).join(" • ")}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                {t("personalizedPath.overallCompletion", {
-                  value: personalizedQuery.data?.meta?.overall_completion ?? 0,
-                })}
-              </span>
-              <button
-                type="button"
-                onClick={() => refreshMutation.mutate()}
-                disabled={refreshMutation.isPending}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold"
-              >
-                {refreshMutation.isPending
-                  ? t("personalizedPath.refreshing")
-                  : t("personalizedPath.refresh")}
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
-                {t("personalizedPath.continue")}
-              </p>
-              <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
-                {heroCourse.title}
-              </h3>
-              <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">{heroCourse.reason}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5">
-                  <MonevoIcon name={courseIcon(heroCourse.path_title)} size={12} />
-                  {heroCourse.path_title || t("personalizedPath.pathLabel")}
-                </span>
-                <span>
-                  {t("personalizedPath.eta", {
-                    minutes: metrics.estimatedMinutes,
-                  })}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ProgressRing value={metrics.percent} />
-              <div className="min-w-[90px] text-right text-xs text-[color:var(--muted-text,#6b7280)]">
-                {metrics.totalSections && metrics.totalSections > 0 ? (
+              <>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-color,#d1d5db)]/70 pb-3">
                   <div>
-                    {metrics.completedSections ?? 0}/{metrics.totalSections} sections
+                    <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                      {t("personalizedPath.title")}
+                    </p>
+                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                      {(
+                        personalizedQuery.data?.meta?.onboarding_goals || []
+                      ).join(" • ")}
+                    </p>
                   </div>
-                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                      {t("personalizedPath.overallCompletion", {
+                        value:
+                          personalizedQuery.data?.meta?.overall_completion ?? 0,
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => refreshMutation.mutate()}
+                      disabled={refreshMutation.isPending}
+                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold"
+                    >
+                      {refreshMutation.isPending
+                        ? t("personalizedPath.refreshing")
+                        : t("personalizedPath.refresh")}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    {metrics.completedLessons}/{metrics.totalLessons} lessons
+                    <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                      {t("personalizedPath.continue")}
+                    </p>
+                    <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                      {heroCourse.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                      {heroCourse.reason}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5">
+                        <MonevoIcon
+                          name={courseIcon(heroCourse.path_title)}
+                          size={12}
+                        />
+                        {heroCourse.path_title ||
+                          t("personalizedPath.pathLabel")}
+                      </span>
+                      <span>
+                        {t("personalizedPath.eta", {
+                          minutes: metrics.estimatedMinutes,
+                        })}
+                      </span>
+                    </div>
                   </div>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => openCourse(heroCourse)}
-                className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white"
-              >
-                {heroCourse.locked ? t("personalizedPath.unlock") : t("personalizedPath.open")}
-              </button>
-            </div>
-          </div>
-          </>
+                  <div className="flex items-center gap-2">
+                    <ProgressRing value={metrics.percent} />
+                    <div className="min-w-[90px] text-right text-xs text-[color:var(--muted-text,#6b7280)]">
+                      {metrics.totalSections && metrics.totalSections > 0 ? (
+                        <div>
+                          {metrics.completedSections ?? 0}/
+                          {metrics.totalSections} sections
+                        </div>
+                      ) : (
+                        <div>
+                          {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                          lessons
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openCourse(heroCourse)}
+                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      {heroCourse.locked
+                        ? t("personalizedPath.unlock")
+                        : t("personalizedPath.open")}
+                    </button>
+                  </div>
+                </div>
+              </>
             );
           })()}
           {heroCourse.locked && (
@@ -316,7 +362,7 @@ function PersonalizedPathContent({
           {restCourses.map((course, index) => {
             const metrics = getCourseMetrics(course);
             const percent = metrics.percent;
-    const focusHint =
+            const focusHint =
               percent < 30
                 ? "Focus on first two sections to build momentum."
                 : percent < 70
@@ -326,7 +372,10 @@ function PersonalizedPathContent({
               ? course.starter_tasks.slice(0, 2)
               : [];
             return (
-              <div key={course.id} className="relative flex gap-3 pb-5 last:pb-0">
+              <div
+                key={course.id}
+                className="relative flex gap-3 pb-5 last:pb-0"
+              >
                 <div className="relative flex w-10 shrink-0 justify-center">
                   {index < restCourses.length - 1 && (
                     <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--primary,#1d5330)]/50 to-[color:var(--border-color,#d1d5db)]" />
@@ -340,21 +389,35 @@ function PersonalizedPathContent({
                   </div>
                 </div>
 
-                <GlassCard padding="md" className="relative flex-1 overflow-hidden">
+                <GlassCard
+                  padding="md"
+                  className="relative flex-1 overflow-hidden"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{course.path_title}</p>
+                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                        {course.path_title}
+                      </p>
                       <p className="font-semibold">{course.title}</p>
-                      <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">{course.reason}</p>
-                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">{focusHint}</p>
+                      <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        {course.reason}
+                      </p>
+                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        {focusHint}
+                      </p>
                       <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
                         {metrics.totalSections && metrics.totalSections > 0 ? (
                           <>
-                            {metrics.completedSections ?? 0}/{metrics.totalSections} sections •{" "}
-                            {metrics.completedLessons}/{metrics.totalLessons} lessons
+                            {metrics.completedSections ?? 0}/
+                            {metrics.totalSections} sections •{" "}
+                            {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                            lessons
                           </>
                         ) : (
-                          <>{metrics.completedLessons}/{metrics.totalLessons} lessons</>
+                          <>
+                            {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                            lessons
+                          </>
                         )}
                       </div>
                       {course.next_lesson_title && (
@@ -365,7 +428,10 @@ function PersonalizedPathContent({
                       {!course.next_lesson_title && starterTasks.length > 0 && (
                         <ul className="mt-1 space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
                           {starterTasks.map((task, taskIdx) => (
-                            <li key={`${course.id}-task-${taskIdx}`} className="flex items-start gap-1">
+                            <li
+                              key={`${course.id}-task-${taskIdx}`}
+                              className="flex items-start gap-1"
+                            >
                               <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-[color:var(--primary,#1d5330)]/70" />
                               <span>{task}</span>
                             </li>
@@ -386,10 +452,14 @@ function PersonalizedPathContent({
                       onClick={() => openCourse(course)}
                       className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold"
                     >
-                      {course.locked ? t("personalizedPath.unlock") : t("personalizedPath.open")}
+                      {course.locked
+                        ? t("personalizedPath.unlock")
+                        : t("personalizedPath.open")}
                     </button>
                   </div>
-                  {course.locked && <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />}
+                  {course.locked && (
+                    <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
+                  )}
                 </GlassCard>
               </div>
             );
@@ -403,15 +473,26 @@ function PersonalizedPathContent({
         </h4>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {reviewQueue.length === 0 ? (
-            <GlassCard padding="sm" className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <GlassCard
+              padding="sm"
+              className="text-xs text-[color:var(--muted-text,#6b7280)]"
+            >
               {t("personalizedPath.noSkillsDue")}
             </GlassCard>
           ) : (
             reviewQueue.map((item, idx) => (
-              <GlassCard key={`${item.skill || "skill"}-${idx}`} padding="sm" className="min-w-[180px]">
-                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{item.skill}</p>
+              <GlassCard
+                key={`${item.skill || "skill"}-${idx}`}
+                padding="sm"
+                className="min-w-[180px]"
+              >
+                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  {item.skill}
+                </p>
                 <p className="text-sm font-semibold">
-                  {t("personalizedPath.skillScore", { value: item.proficiency ?? 0 })}
+                  {t("personalizedPath.skillScore", {
+                    value: item.proficiency ?? 0,
+                  })}
                 </p>
               </GlassCard>
             ))

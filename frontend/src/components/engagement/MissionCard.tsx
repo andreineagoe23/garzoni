@@ -74,7 +74,8 @@ const MissionCard = ({
       ? Math.min(
           getLessonRequirement(mission),
           Math.round(
-            (Math.max(mission.progress, 0) / 100) * getLessonRequirement(mission)
+            (Math.max(mission.progress, 0) / 100) *
+              getLessonRequirement(mission)
           )
         )
       : null;
@@ -209,7 +210,9 @@ const MissionCard = ({
                       <input
                         type="number"
                         value={savingsAmount}
-                        onChange={(event) => setSavingsAmount(event.target.value)}
+                        onChange={(event) =>
+                          setSavingsAmount(event.target.value)
+                        }
                         placeholder={
                           isDaily
                             ? t("missions.savings.placeholderDaily")

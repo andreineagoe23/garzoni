@@ -76,21 +76,18 @@ export const useDashboardSummary = ({
       .slice(0, 3);
   }, [masteryData]);
 
-  const {
-    dailyGoalProgress,
-    dailyGoalCurrentXP,
-    dailyGoalTargetXP,
-  } = useMemo(() => {
-    const targetXP = 30;
-    const totalXP = profile?.points || 0;
-    const currentXP = totalXP % targetXP;
-    const progress = Math.min(100, (currentXP / targetXP) * 100);
-    return {
-      dailyGoalProgress: progress,
-      dailyGoalCurrentXP: currentXP,
-      dailyGoalTargetXP: targetXP,
-    };
-  }, [profile?.points]);
+  const { dailyGoalProgress, dailyGoalCurrentXP, dailyGoalTargetXP } =
+    useMemo(() => {
+      const targetXP = 30;
+      const totalXP = profile?.points || 0;
+      const currentXP = totalXP % targetXP;
+      const progress = Math.min(100, (currentXP / targetXP) * 100);
+      return {
+        dailyGoalProgress: progress,
+        dailyGoalCurrentXP: currentXP,
+        dailyGoalTargetXP: targetXP,
+      };
+    }, [profile?.points]);
 
   const resume = progressData.resume ?? null;
   const startHere = progressData.start_here ?? null;

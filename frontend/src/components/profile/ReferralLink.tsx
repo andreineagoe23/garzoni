@@ -7,7 +7,8 @@ const ReferralLink = ({ referralCode }) => {
   const [copied, setCopied] = useState(false);
 
   const referralLink = useMemo(
-    () => `${window.location.origin}/welcome?ref=${encodeURIComponent(referralCode)}`,
+    () =>
+      `${window.location.origin}/welcome?ref=${encodeURIComponent(referralCode)}`,
     [referralCode]
   );
 

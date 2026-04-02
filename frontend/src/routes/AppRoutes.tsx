@@ -82,7 +82,10 @@ const AppRoutes = () => {
         path="/no-financial-advice"
         element={<Navigate to="/financial-disclaimer#no-advice" replace />}
       />
-      <Route path="/pricing" element={<Navigate to="/subscriptions" replace />} />
+      <Route
+        path="/pricing"
+        element={<Navigate to="/subscriptions" replace />}
+      />
       <Route
         path="/onboarding"
         element={protectedWithBoundary(<OnboardingQuestionnaire />)}
@@ -118,9 +121,15 @@ const AppRoutes = () => {
       />
       <Route path="/profile" element={protectedWithBoundary(<Profile />)} />
       <Route path="/settings" element={protectedWithBoundary(<Settings />)} />
-      <Route path="/billing" element={protectedWithBoundary(<SubscriptionManager />)} />
+      <Route
+        path="/billing"
+        element={protectedWithBoundary(<SubscriptionManager />)}
+      />
       <Route path="/rewards" element={protectedWithBoundary(<RewardsPage />)} />
-      <Route path="/courses/:pathId" element={protectedWithBoundary(<CoursePage />)} />
+      <Route
+        path="/courses/:pathId"
+        element={protectedWithBoundary(<CoursePage />)}
+      />
       <Route
         path="/lessons/:courseId/flow"
         element={protectedWithBoundary(<CourseFlowPage />)}
@@ -129,8 +138,14 @@ const AppRoutes = () => {
         path="/courses/:pathId/lessons/:courseId/flow"
         element={protectedWithBoundary(<CourseFlowPage />)}
       />
-      <Route path="/quiz/:courseId" element={protectedWithBoundary(<QuizPage />)} />
-      <Route path="/leaderboards" element={protectedWithBoundary(<Leaderboards />)} />
+      <Route
+        path="/quiz/:courseId"
+        element={protectedWithBoundary(<QuizPage />)}
+      />
+      <Route
+        path="/leaderboards"
+        element={protectedWithBoundary(<Leaderboards />)}
+      />
       <Route path="/missions" element={protectedWithBoundary(<Missions />)} />
       <Route
         path="/pricing-dashboard"
@@ -139,14 +154,23 @@ const AppRoutes = () => {
       <Route path="/tools/*" element={protectedWithBoundary(<ToolsPage />)} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/password-reset/:uidb64/:token" element={<ResetPassword />} />
-      <Route path="/exercises" element={protectedWithBoundary(<ExercisePage />)} />
+      <Route
+        path="/password-reset/:uidb64/:token"
+        element={<ResetPassword />}
+      />
+      <Route
+        path="/exercises"
+        element={protectedWithBoundary(<ExercisePage />)}
+      />
       <Route
         path="/exercise/:exerciseId"
         element={protectedWithBoundary(<ExercisePage />)}
       />
       <Route path="/support" element={protectedWithBoundary(<SupportPage />)} />
-      <Route path="/feedback" element={protectedWithBoundary(<FeedbackHubPage />)} />
+      <Route
+        path="/feedback"
+        element={protectedWithBoundary(<FeedbackHubPage />)}
+      />
     </Routes>
   );
 };

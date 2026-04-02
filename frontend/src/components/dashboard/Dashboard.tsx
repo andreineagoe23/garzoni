@@ -442,7 +442,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       action: () => {
         trackEvent("cta_click", { reason: "skill_insight_start" });
         if (startHere?.path_id != null && startHere?.course_id != null) {
-          navigate(`/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`);
+          navigate(
+            `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
+          );
         } else {
           navigate("/all-topics");
         }
@@ -661,9 +663,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               />
             )}
 
-            {(isQuestionnaireCompleted ||
-              (questionnaireProgress as { status?: string } | null)?.status ===
-                "completed") ? (
+            {isQuestionnaireCompleted ||
+            (questionnaireProgress as { status?: string } | null)?.status ===
+              "completed" ? (
               <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                 {resume ? (
                   <div className="min-w-0 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-3 transition-all sm:p-4">
@@ -743,12 +745,12 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                   </div>
                 )}
 
-              <WeakSkillsQuickCard
-                locale={locale}
-                topSkill={weakSkillItems[0] ?? null}
-                onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                onOpenExercises={() => navigate("/exercises")}
-              />
+                <WeakSkillsQuickCard
+                  locale={locale}
+                  topSkill={weakSkillItems[0] ?? null}
+                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                  onOpenExercises={() => navigate("/exercises")}
+                />
               </div>
             ) : (
               <WeakSkillsQuickCard
@@ -788,7 +790,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               refetchMissions={refetchMissions}
               reviewQueueData={reviewQueueData}
               reviewTopSkill={reviewQueueData?.due?.[0]?.skill ?? null}
-              onOpenReviews={() => navigate('/exercises')}
+              onOpenReviews={() => navigate("/exercises")}
               locale={locale}
             />
 

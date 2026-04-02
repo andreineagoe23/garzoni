@@ -82,7 +82,8 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
                 aria-label={t("lessonSection.completedAria")}
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-500"
               >
-                <MonevoIcon name="check" size={14} /> {t("lessonSection.completed")}
+                <MonevoIcon name="check" size={14} />{" "}
+                {t("lessonSection.completed")}
               </span>
             )}
           </div>

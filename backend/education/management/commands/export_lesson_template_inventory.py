@@ -6,7 +6,6 @@ from django.utils.html import strip_tags
 
 from education.models import Lesson
 
-
 TARGET_TEMPLATE = ["text", "text", "exercise", "text", "text", "exercise", "text", "text", "video"]
 
 

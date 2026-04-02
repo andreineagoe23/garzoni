@@ -45,7 +45,9 @@ export default function WeakSkillsQuickCard({
             </p>
             {hasSkill ? (
               <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
-                {t("dashboard.weakSkills.lowMasteryIn", { skill: topSkill!.skill })}{" "}
+                {t("dashboard.weakSkills.lowMasteryIn", {
+                  skill: topSkill!.skill,
+                })}{" "}
                 · {formatPercentage(topSkill!.proficiency, locale, 0)}
               </p>
             ) : (
@@ -67,7 +69,9 @@ export default function WeakSkillsQuickCard({
           }}
           disabled={buttonDisabled}
           className={`w-full self-center rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm ${
-            buttonDisabled ? "opacity-60 cursor-not-allowed hover:shadow-lg" : ""
+            buttonDisabled
+              ? "opacity-60 cursor-not-allowed hover:shadow-lg"
+              : ""
           }`}
           aria-label={
             hasSkill

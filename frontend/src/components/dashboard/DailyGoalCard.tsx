@@ -24,7 +24,11 @@ const DailyGoalCard = ({
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MonevoIcon name="target" size={20} className="text-[color:var(--primary,#1d5330)]" />
+          <MonevoIcon
+            name="target"
+            size={20}
+            className="text-[color:var(--primary,#1d5330)]"
+          />
           <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
             {t("dashboard.dailyGoal.label")}
           </span>

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cx from "classnames";
 import { Search } from "lucide-react";
 import toast from "react-hot-toast";
@@ -116,18 +122,23 @@ const Leaderboards = () => {
       try {
         setStableReady(false);
         setError("");
-        const [friendsResponse, rankResponse, profilePayload, sentRes, friendsRes] =
-          await Promise.all([
-            apiClient.get("/leaderboard/friends/"),
-            apiClient.get("/leaderboard/rank/"),
-            loadProfile(),
-            apiClient
-              .get("/friend-requests/get_sent_requests/")
-              .catch(() => ({ data: [] as SentRequest[] })),
-            apiClient
-              .get("/friend-requests/get_friends/")
-              .catch(() => ({ data: [] as Friend[] })),
-          ]);
+        const [
+          friendsResponse,
+          rankResponse,
+          profilePayload,
+          sentRes,
+          friendsRes,
+        ] = await Promise.all([
+          apiClient.get("/leaderboard/friends/"),
+          apiClient.get("/leaderboard/rank/"),
+          loadProfile(),
+          apiClient
+            .get("/friend-requests/get_sent_requests/")
+            .catch(() => ({ data: [] as SentRequest[] })),
+          apiClient
+            .get("/friend-requests/get_friends/")
+            .catch(() => ({ data: [] as Friend[] })),
+        ]);
         if (cancelled) return;
         setFriendsLeaderboard(friendsResponse.data);
         setUserRank(rankResponse.data);
@@ -173,8 +184,7 @@ const Leaderboards = () => {
         console.error("Error fetching global leaderboard:", err);
         const detail = (err as { response?: { data?: { detail?: string } } })
           ?.response?.data?.detail;
-        if (!cancelled)
-          setError(detail || t("leaderboard.errors.loadFailed"));
+        if (!cancelled) setError(detail || t("leaderboard.errors.loadFailed"));
       } finally {
         if (!cancelled) {
           setGlobalBusy(false);
@@ -319,9 +329,12 @@ const Leaderboards = () => {
                 <span
                   className={cx(
                     "inline-flex min-h-[2rem] min-w-[2rem] items-center justify-center rounded-full font-bold text-white shadow-md md:min-h-[3rem] md:min-w-[3rem]",
-                    rank === 1 && "bg-gradient-to-br from-amber-400 to-amber-600 text-sm md:text-xl",
-                    rank === 2 && "bg-gradient-to-br from-slate-400 to-slate-600 text-xs md:text-lg",
-                    rank === 3 && "bg-gradient-to-br from-orange-400 to-amber-700 text-xs md:text-lg"
+                    rank === 1 &&
+                      "bg-gradient-to-br from-amber-400 to-amber-600 text-sm md:text-xl",
+                    rank === 2 &&
+                      "bg-gradient-to-br from-slate-400 to-slate-600 text-xs md:text-lg",
+                    rank === 3 &&
+                      "bg-gradient-to-br from-orange-400 to-amber-700 text-xs md:text-lg"
                   )}
                 >
                   #{rank}
@@ -331,7 +344,9 @@ const Leaderboards = () => {
                   alt=""
                   className={cx(
                     "rounded-full border-2 border-white/40 object-cover shadow-md",
-                    rank === 1 ? "h-10 w-10 md:h-20 md:w-20" : "h-9 w-9 md:h-16 md:w-16"
+                    rank === 1
+                      ? "h-10 w-10 md:h-20 md:w-20"
+                      : "h-9 w-9 md:h-16 md:w-16"
                   )}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
@@ -597,16 +612,12 @@ const Leaderboards = () => {
         ) : (
           <>
             {renderPodium()}
-            {visibleRemainder.map((entry, i) =>
-              renderListRow(entry, i, 3)
-            )}
+            {visibleRemainder.map((entry, i) => renderListRow(entry, i, 3))}
             {hasMoreList && (
               <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={() =>
-                    setListVisible((v) => v + LIST_PAGE_SIZE)
-                  }
+                  onClick={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
                   className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   {t("leaderboard.loadMore")}

@@ -84,7 +84,10 @@ const Chatbot = () => {
       const [basePath, anchor] = path.split("#");
       const anchorId = (anchor || "").trim();
       if (anchorId) sessionStorage.setItem("scrollToPathId", anchorId);
-      navigate(basePath, { state: { scrollToPathId: anchorId }, replace: false });
+      navigate(basePath, {
+        state: { scrollToPathId: anchorId },
+        replace: false,
+      });
     } else if (path) {
       navigate(path);
     }
@@ -679,7 +682,11 @@ const Chatbot = () => {
                 checked={isSpeechEnabled}
               />
               <span className="text-xs uppercase tracking-wide">
-                <MonevoIcon name="volume" size={14} className="mr-2 inline-block" />{" "}
+                <MonevoIcon
+                  name="volume"
+                  size={14}
+                  className="mr-2 inline-block"
+                />{" "}
                 Speak answers
               </span>
             </label>
@@ -789,7 +796,9 @@ const Chatbot = () => {
                                 className="inline-block"
                               />
                             )}
-                            {!msg.link.icon && <MonevoIcon name="book" size={14} />}
+                            {!msg.link.icon && (
+                              <MonevoIcon name="book" size={14} />
+                            )}
                             {msg.link.text}
                           </button>
                         )}

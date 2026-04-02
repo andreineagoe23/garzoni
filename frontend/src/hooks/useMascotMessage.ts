@@ -11,13 +11,25 @@ const MOOD_TO_MASCOT: Record<MascotMood, MascotType> = {
 
 const POOL_KEYS: Record<MascotType, Record<string, string[]>> = {
   owl: {
-    celebrate: ["mascotPools.owl.celebrate_0", "mascotPools.owl.celebrate_1", "mascotPools.owl.celebrate_2"],
+    celebrate: [
+      "mascotPools.owl.celebrate_0",
+      "mascotPools.owl.celebrate_1",
+      "mascotPools.owl.celebrate_2",
+    ],
   },
   bull: {
-    encourage: ["mascotPools.bull.encourage_0", "mascotPools.bull.encourage_1", "mascotPools.bull.encourage_2"],
+    encourage: [
+      "mascotPools.bull.encourage_0",
+      "mascotPools.bull.encourage_1",
+      "mascotPools.bull.encourage_2",
+    ],
   },
   bear: {
-    neutral: ["mascotPools.bear.neutral_0", "mascotPools.bear.neutral_1", "mascotPools.bear.neutral_2"],
+    neutral: [
+      "mascotPools.bear.neutral_0",
+      "mascotPools.bear.neutral_1",
+      "mascotPools.bear.neutral_2",
+    ],
   },
 };
 
@@ -47,12 +59,15 @@ export function useMascotMessage(
 
   let message: string;
   if (pool && pool.length > 0) {
-    const index = rotateMessages && Number.isFinite(rotationKey)
-      ? Math.abs(Math.floor(rotationKey)) % pool.length
-      : 0;
+    const index =
+      rotateMessages && Number.isFinite(rotationKey)
+        ? Math.abs(Math.floor(rotationKey)) % pool.length
+        : 0;
     message = t(pool[index]);
   } else {
-    message = t(`exercises.mascot.${mood === "celebrate" ? "correct" : mood === "encourage" ? "encourage" : "neutral"}`);
+    message = t(
+      `exercises.mascot.${mood === "celebrate" ? "correct" : mood === "encourage" ? "encourage" : "neutral"}`
+    );
   }
 
   return { mascot, message };

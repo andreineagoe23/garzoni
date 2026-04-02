@@ -3,10 +3,7 @@
  * (requires __USE_REAL_ROUTER__ — see test-utils/react-router-dom-mock-impl.js)
  */
 import React from "react";
-import {
-  createMemoryRouter,
-  RouterProvider,
-} from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import { render, screen, waitFor } from "@testing-library/react";
 import ExercisePage from "./ExercisePage";

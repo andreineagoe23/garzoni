@@ -121,13 +121,18 @@ const SubscriptionManager = () => {
     if (!portalEligible) return;
     const syncSubscription = async () => {
       try {
-        const res = await apiClient.post<{ ok: boolean }>("/subscriptions/sync/", {});
+        const res = await apiClient.post<{ ok: boolean }>(
+          "/subscriptions/sync/",
+          {}
+        );
         if (res.data?.ok && loadProfile) {
           const profilePayload = await loadProfile({ force: true });
           const userData = profilePayload?.user_data || profilePayload || {};
           setStripeSubscriptionId(
-            (profilePayload as { stripe_subscription_id?: string | null })?.stripe_subscription_id ??
-              (userData as { stripe_subscription_id?: string | null })?.stripe_subscription_id ??
+            (profilePayload as { stripe_subscription_id?: string | null })
+              ?.stripe_subscription_id ??
+              (userData as { stripe_subscription_id?: string | null })
+                ?.stripe_subscription_id ??
               null
           );
           reloadEntitlements?.();
@@ -421,7 +426,9 @@ const SubscriptionManager = () => {
                     ))}
                   </ul>
                   <GlassButton
-                    variant={isCurrent ? "ghost" : isHighlight ? "primary" : "ghost"}
+                    variant={
+                      isCurrent ? "ghost" : isHighlight ? "primary" : "ghost"
+                    }
                     className="w-full"
                     disabled={isBusy || isCurrent}
                     onClick={() => {
