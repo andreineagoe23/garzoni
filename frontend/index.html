@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en" translate="no">
+  <head>
+    <!-- Suppress console noise as early as possible (before extensions and app bundle). -->
+    <script>
+      (function () {
+        var p = [
+          "TSS:",
+          "CONTENT_SHELL",
+          "Content Script Bridge",
+          "Sending response back",
+          "React DevTools",
+          "Download the React DevTools",
+          "SCHJK",
+          "DFP",
+          "Breach notification",
+          "feature flag is enabled",
+          "Unknown message type",
+          "MSG_CHECK_DOMAIN_ALLOW_LIST",
+          "injection-tss",
+          "hosted page injected",
+          "MBTSS",
+          "excluded result",
+          "Risky TLD",
+          "aggressive protection",
+          "MBTSS_NOTIFICATION",
+          "Banner not shown",
+          "beforeinstallprompt",
+          "prompt() to show the banner",
+          "Violation",
+          "non-passive",
+          "Forced reflow",
+          "handler took",
+          "ERR_BLOCKED_BY_CLIENT",
+          "Caught create URL",
+          "Caught history",
+          "Checking if repeated",
+          "Shell protection",
+          "Search Hijacking",
+          "rel=preload",
+          "uses an unsupported",
+          "webpackOk",
+          "runtime.lastError",
+          "message port closed",
+          "heartbeat",
+          "event-",
+          "open-fx",
+          "stream:",
+        ];
+        function suppress(args) {
+          var arr =
+            args && typeof args.length === "number"
+              ? Array.prototype.slice.call(args)
+              : args != null
+                ? [args]
+                : [];
+          var s = arr
+            .map(function (a) {
+              return typeof a === "string" ? a : String(a);
+            })
+            .join(" ");
+          return p.some(function (phrase) {
+            return s.indexOf(phrase) !== -1;
+          });
+        }
+        ["log", "info", "warn", "error", "debug"].forEach(function (m) {
+          var orig = console[m];
+          if (orig)
+            console[m] = function () {
+              if (!suppress(arguments)) orig.apply(console, arguments);
+            };
+        });
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="google" content="notranslate" />
+
+    <title>Monevo - Personal Finance</title>
+    <meta name="title" content="Monevo - Personal Finance Education" />
+    <meta
+      name="description"
+      content="Master financial literacy with interactive courses, quizzes, and tools. Learn budgeting, investing, and wealth management."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://monevo.tech/" />
+    <meta property="og:title" content="Monevo - Personal Finance Education" />
+    <meta
+      property="og:description"
+      content="Master financial literacy with interactive courses, quizzes, and tools."
+    />
+    <meta property="og:image" content="/og-image.jpg" />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://monevo.tech/" />
+    <meta
+      property="twitter:title"
+      content="Monevo - Personal Finance Education"
+    />
+    <meta
+      property="twitter:description"
+      content="Master financial literacy with interactive courses, quizzes, and tools."
+    />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/manifest.json" />
+
+    <script data-cookieconsent="ignore">
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("consent", "default", {
+        ad_personalization: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        analytics_storage: "denied",
+        functionality_storage: "denied",
+        personalization_storage: "denied",
+        security_storage: "granted",
+        wait_for_update: 500,
+      });
+      gtag("set", "ads_data_redaction", true);
+      gtag("set", "url_passthrough", true);
+    </script>
+
+    <link rel="preconnect" href="https://andreineagoe23.pythonanywhere.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      as="style"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    />
+
+    <script>
+      (function () {
+        var MEASUREMENT_ID = "G-99E61ZXSV9";
+        function deniedUpdate() {
+          if (typeof window.gtag !== "function") return;
+          window.gtag("consent", "update", {
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
+        }
+        function loadGA() {
+          if (window.__MONEVO_GA_LOADED__) return;
+          window.__MONEVO_GA_LOADED__ = true;
+          var gaScript = document.createElement("script");
+          gaScript.async = true;
+          gaScript.src =
+            "https://www.googletagmanager.com/gtag/js?id=" + MEASUREMENT_ID;
+          document.head.appendChild(gaScript);
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag("js", new Date());
+          gtag("consent", "update", {
+            analytics_storage: "granted",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
+          gtag("config", MEASUREMENT_ID, {
+            anonymize_ip: true,
+            allow_google_signals: false,
+            debug_mode: false,
+          });
+        }
+        function maybeLoadGA() {
+          try {
+            var raw = localStorage.getItem("monevo_cookie_consent");
+            if (raw) {
+              var c = JSON.parse(raw);
+              if (c && c.analytics) {
+                loadGA();
+                return true;
+              }
+            }
+          } catch (e) {}
+          return false;
+        }
+        maybeLoadGA();
+        window.addEventListener("MonevoCookieConsent", function (ev) {
+          var detail = ev.detail;
+          if (detail && detail.analytics) {
+            loadGA();
+          } else {
+            deniedUpdate();
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <strong
+        >We're sorry but Monevo doesn't work properly without JavaScript
+        enabled. Please enable it to continue.</strong
+      >
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Monevo",
+        "url": "https://monevo.tech",
+        "logo": "/logo-512x512.png",
+        "description": "Interactive personal finance education platform",
+        "sameAs": [
+          "https://twitter.com/monevo",
+          "https://linkedin.com/company/monevo"
+        ]
+      }
+    </script>
+  </body>
+</html>

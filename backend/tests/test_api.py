@@ -159,6 +159,84 @@ class RegistrationReferralValidationTest(APITestCase):
         self.assertTrue(valid.data["valid"])
 
 
+class LoginRegisterRecaptchaMobileTest(APITestCase):
+    """reCAPTCHA is required for web when configured; native apps skip via client_type/platform."""
+
+    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    def test_login_secure_requires_recaptcha_when_configured(self):
+        User.objects.create_user(username="recap-user", password="unit-test-password!")
+        response = self.client.post(
+            "/api/login-secure/",
+            {"username": "recap-user", "password": "unit-test-password!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data.get("code"), "recaptcha_missing")
+
+    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    def test_login_secure_skips_recaptcha_for_mobile_client_type(self):
+        User.objects.create_user(username="mobile-login-user", password="unit-test-password!")
+        response = self.client.post(
+            "/api/login-secure/",
+            {
+                "username": "mobile-login-user",
+                "password": "unit-test-password!",
+                "client_type": "mobile",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+
+    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    def test_login_secure_skips_recaptcha_for_mobile_platform(self):
+        User.objects.create_user(username="mobile-login-plat", password="unit-test-password!")
+        response = self.client.post(
+            "/api/login-secure/",
+            {
+                "username": "mobile-login-plat",
+                "password": "unit-test-password!",
+                "platform": "mobile",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+
+    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    def test_register_secure_requires_recaptcha_when_configured(self):
+        response = self.client.post(
+            "/api/register-secure/",
+            {
+                "username": "recap-reg-user",
+                "password": "unit-test-password!",
+                "email": "recap-reg@example.com",
+                "first_name": "Re",
+                "last_name": "Cap",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data.get("code"), "recaptcha_missing")
+
+    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    def test_register_secure_skips_recaptcha_for_mobile(self):
+        response = self.client.post(
+            "/api/register-secure/",
+            {
+                "username": "mobile-reg-user",
+                "password": "unit-test-password!",
+                "email": "mobile-reg@example.com",
+                "first_name": "Mobile",
+                "last_name": "Reg",
+                "client_type": "mobile",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username="mobile-reg-user").exists())
+
+
 class PaymentVerificationTest(AuthenticatedTestCase):
     """Test case for verifying payment sessions, ensuring successful payments are verified."""
 

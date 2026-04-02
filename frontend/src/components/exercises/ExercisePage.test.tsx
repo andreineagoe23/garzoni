@@ -2,41 +2,47 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
 import ExercisePage from "./ExercisePage";
 import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
 
-type TestG = typeof globalThis & {
-  __TEST_LOCATION_SEARCH__?: string;
-  __TEST_LOCATION_PATHNAME__?: string;
-  __TEST_LOCATION_STATE__?: unknown;
-};
+vi.mock("react-router-dom", async (importOriginal) => {
+  const { mockNavigate: nav } = await import(
+    "../../test-utils/react-router-dom-mock"
+  );
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return {
+    ...actual,
+    useNavigate: () => nav,
+  };
+});
 
-const mockHttpGet = jest.fn();
+const mockHttpGet = vi.fn();
 
-const mockExercisePageTrackEvent = jest.fn();
+const mockExercisePageTrackEvent = vi.fn();
 
-jest.mock("services/httpClient", () => ({
+vi.mock("services/httpClient", () => ({
   __esModule: true,
   default: {
     get: (url: string, config?: unknown) => mockHttpGet(url, config),
-    post: jest.fn(),
+    post: vi.fn(),
   },
 }));
 
-jest.mock("utils/sound", () => ({
-  playFeedbackChime: jest.fn(),
+vi.mock("utils/sound", () => ({
+  playFeedbackChime: vi.fn(),
 }));
 
-jest.mock("hooks/useAnalytics", () => ({
+vi.mock("hooks/useAnalytics", () => ({
   useAnalytics: () => ({
     trackEvent: (...args: unknown[]) => mockExercisePageTrackEvent(...args),
   }),
 }));
 
-jest.mock("contexts/AuthContext", () => ({
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
-    getAccessToken: jest.fn(() => "token"),
+    getAccessToken: () => "token",
     isInitialized: true,
     isAuthenticated: true,
     entitlements: { features: { hints: { enabled: true } } },
@@ -51,19 +57,24 @@ const minimalMcExercise = {
   exercise_data: { options: ["A", "B"] },
 };
 
-function setTestLocation(
-  search: string,
-  pathname = "/exercises",
-  state?: unknown
+function renderExercise(
+  initial:
+    | string
+    | { pathname: string; search?: string; state?: unknown }
 ) {
-  const g = globalThis as TestG;
-  g.__TEST_LOCATION_SEARCH__ = search;
-  g.__TEST_LOCATION_PATHNAME__ = pathname;
-  if (state === undefined) {
-    delete g.__TEST_LOCATION_STATE__;
-  } else {
-    g.__TEST_LOCATION_STATE__ = state;
-  }
+  const entry =
+    typeof initial === "string"
+      ? initial
+      : {
+          pathname: initial.pathname,
+          search: initial.search ?? "",
+          state: initial.state,
+        };
+  return render(
+    <MemoryRouter initialEntries={[entry]}>
+      <ExercisePage />
+    </MemoryRouter>
+  );
 }
 
 function getExerciseRequests() {
@@ -91,17 +102,8 @@ describe("ExercisePage skill intent pipeline", () => {
     });
   });
 
-  afterEach(() => {
-    const g = globalThis as TestG;
-    delete g.__TEST_LOCATION_SEARCH__;
-    delete g.__TEST_LOCATION_PATHNAME__;
-    delete g.__TEST_LOCATION_STATE__;
-  });
-
   it("does not request exercises until skill intent is resolved, then uses category filter", async () => {
-    setTestLocation("?skill=investing");
-
-    render(<ExercisePage />);
+    renderExercise("/exercises?skill=investing");
 
     expect(
       screen.getByText(i18n.t("exercises.skillIntent.applyingFocus"))
@@ -144,11 +146,11 @@ describe("ExercisePage skill intent pipeline", () => {
   });
 
   it("prefers ?skill= over location.state.targetSkill", async () => {
-    setTestLocation("?skill=Investing", "/exercises", {
-      targetSkill: "Budgeting",
+    renderExercise({
+      pathname: "/exercises",
+      search: "?skill=Investing",
+      state: { targetSkill: "Budgeting" },
     });
-
-    render(<ExercisePage />);
 
     await waitFor(() => {
       expect(
@@ -163,9 +165,11 @@ describe("ExercisePage skill intent pipeline", () => {
   });
 
   it("uses state.targetSkill when query param is absent", async () => {
-    setTestLocation("", "/exercises", { targetSkill: "Basic Finance" });
-
-    render(<ExercisePage />);
+    renderExercise({
+      pathname: "/exercises",
+      search: "",
+      state: { targetSkill: "Basic Finance" },
+    });
 
     await waitFor(() => {
       expect(
@@ -180,7 +184,6 @@ describe("ExercisePage skill intent pipeline", () => {
   });
 
   it("emits mapped_zero when mapped category returns no exercises", async () => {
-    setTestLocation("?skill=budgeting");
     mockHttpGet.mockImplementation(
       (url: string, config?: { params?: URLSearchParams }) => {
         if (url === "/exercises/categories/") {
@@ -202,11 +205,7 @@ describe("ExercisePage skill intent pipeline", () => {
       }
     );
 
-    render(
-      <MemoryRouter initialEntries={["/exercises?skill=budgeting"]}>
-        <ExercisePage />
-      </MemoryRouter>
-    );
+    renderExercise("/exercises?skill=budgeting");
 
     await waitFor(() => {
       expect(
@@ -231,9 +230,7 @@ describe("ExercisePage skill intent pipeline", () => {
   });
 
   it("manual category change strips skill from URL via navigate", async () => {
-    setTestLocation("?skill=Investing");
-
-    render(<ExercisePage />);
+    renderExercise("/exercises?skill=Investing");
 
     await waitFor(() => {
       expect(

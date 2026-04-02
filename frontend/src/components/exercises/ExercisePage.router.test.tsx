@@ -1,39 +1,39 @@
 /**
  * Deep-link / refresh simulation: real router initial URL with ?skill=
- * (requires __USE_REAL_ROUTER__ — see test-utils/react-router-dom-mock-impl.js)
  */
 import React from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import { render, screen, waitFor } from "@testing-library/react";
+import { vi } from "vitest";
 import ExercisePage from "./ExercisePage";
 import i18n from "../../i18n";
 
-const mockHttpGet = jest.fn();
+const mockHttpGet = vi.fn();
 
-const mockExerciseRouterTrackEvent = jest.fn();
+const mockExerciseRouterTrackEvent = vi.fn();
 
-jest.mock("services/httpClient", () => ({
+vi.mock("services/httpClient", () => ({
   __esModule: true,
   default: {
     get: (url: string, config?: unknown) => mockHttpGet(url, config),
-    post: jest.fn(),
+    post: vi.fn(),
   },
 }));
 
-jest.mock("utils/sound", () => ({
-  playFeedbackChime: jest.fn(),
+vi.mock("utils/sound", () => ({
+  playFeedbackChime: vi.fn(),
 }));
 
-jest.mock("hooks/useAnalytics", () => ({
+vi.mock("hooks/useAnalytics", () => ({
   useAnalytics: () => ({
     trackEvent: (...args: unknown[]) => mockExerciseRouterTrackEvent(...args),
   }),
 }));
 
-jest.mock("contexts/AuthContext", () => ({
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
-    getAccessToken: jest.fn(() => "token"),
+    getAccessToken: () => "token",
     isInitialized: true,
     isAuthenticated: true,
     entitlements: { features: { hints: { enabled: true } } },
@@ -54,8 +54,6 @@ function getExerciseRequests() {
 
 describe("ExercisePage router deep link", () => {
   beforeEach(() => {
-    (globalThis as { __USE_REAL_ROUTER__?: boolean }).__USE_REAL_ROUTER__ =
-      true;
     mockHttpGet.mockReset();
     mockExerciseRouterTrackEvent.mockReset();
     mockHttpGet.mockImplementation((url: string) => {
@@ -72,11 +70,6 @@ describe("ExercisePage router deep link", () => {
       }
       return Promise.resolve({ data: null });
     });
-  });
-
-  afterEach(() => {
-    delete (globalThis as { __USE_REAL_ROUTER__?: boolean })
-      .__USE_REAL_ROUTER__;
   });
 
   it("mounts on /exercises?skill=Budgeting, resolves category, then fetches with explicit map (Basic Finance)", async () => {

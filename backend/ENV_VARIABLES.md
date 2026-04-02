@@ -22,7 +22,7 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `ALLOWED_HOSTS_CSV` / `ALLOWED_HOSTS` | See settings | Comma-separated list of allowed hosts. |
 | `TIME_ZONE` | `UTC` | Django time zone. |
 | `FRONTEND_URL` | `http://localhost:3000` (DEBUG) / `https://www.monevo.tech` | Frontend origin for redirects and links. |
-| `FRONTEND_BUILD_DIR` | `../frontend/build` | Path to built React SPA when serving from Django/WhiteNoise. |
+| `FRONTEND_BUILD_DIR` | `../frontend/dist` | Path to built SPA (Vite output) when serving from Django/WhiteNoise. |
 
 ### CORS / CSRF
 
@@ -32,6 +32,8 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `CSRF_TRUSTED_ORIGINS_CSV` / `CSRF_TRUSTED_ORIGINS` | `[]` | Comma-separated origins trusted for CSRF. |
 | `CSRF_COOKIE_DOMAIN` | (none) | Optional cookie domain for CSRF. |
 | `CORS_ALLOW_CREDENTIALS` | `True` | Allow credentials in CORS. |
+
+**Production (e.g. Railway) checklist:** Set `CORS_ALLOWED_ORIGINS_CSV` to your real web app origin(s), such as `https://www.monevo.tech` (no trailing slash). Django raises at startup if this is empty when `DEBUG=False`. Native mobile apps do not send an `Origin` header for typical API calls, so they are not affected by CORS.
 
 ### Email (SMTP)
 
@@ -60,6 +62,16 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `STRIPE_DEFAULT_PRICE_ID` | (none) | Fallback price ID. |
 | `STRIPE_DEFAULT_PROMOTION_CODE` | (none) | Optional promotion code at checkout. |
 
+**Apple IAP (iOS subscriptions, not implemented yet):** Digital subscriptions offered inside the iOS app must use Apple In-App Purchase, not Stripe. A future backend milestone would add receipt / App Store Server API verification, Apple Server Notifications v2, and entitlement updates via the same `UserProfile` fields used by Stripe (`authentication.services.subscriptions.apply_subscription_to_profile`). Plan mobile paywall and web vs App Store management before shipping iOS subscriptions.
+
+### JWT (mobile-friendly sessions)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JWT_REFRESH_TOKEN_DAYS` | `30` | Refresh token lifetime in days (clamped 1–366 in settings). Access token lifetime stays 30 minutes in code. |
+
+**API authentication:** `REST_FRAMEWORK` uses `JWTAuthentication` only — clients send `Authorization: Bearer <access_jwt>` on protected routes. The refresh endpoint (`POST /api/token/refresh/`) accepts `{"refresh": "<refresh_jwt>"}` in the JSON body; the httpOnly refresh cookie is still set on login/register/OAuth responses for backward compatibility, but SPA and native clients should store the refresh token from the JSON response (or URL hash for the Google redirect flow) and refresh without relying on cookies. Logout accepts an optional `refresh` field in the body to blacklist the refresh token when no cookie is present.
+
 ### reCAPTCHA
 
 | Variable | Default | Description |
@@ -70,13 +82,20 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 | `RECAPTCHA_REQUIRED_SCORE` | `0.3` | Score threshold (0.0–1.0). |
 | `RECAPTCHA_PUBLIC_KEY` / `RECAPTCHA_PRIVATE_KEY` | (none) | Legacy v3 keys if Enterprise not used. |
 
+**Mobile:** Native clients cannot run reCAPTCHA v3. For `POST /api/login-secure/` and `POST /api/register-secure/`, send `client_type: "mobile"` or `platform: "mobile"` in the JSON body to skip reCAPTCHA when it is configured. Throttling still applies. For stronger abuse protection later, consider Firebase App Check (or similar) for mobile.
+
 ### Google OAuth
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GOOGLE_OAUTH_CLIENT_ID` | `""` | OAuth client ID. |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | `""` | OAuth client secret. |
+| `GOOGLE_OAUTH_CLIENT_ID` | `""` | Web OAuth client ID (authorization redirect + optional ID token). |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | `""` | OAuth client secret (web code exchange). |
+| `GOOGLE_OAUTH_CLIENT_IDS_CSV` | (none) | Optional comma-separated extra client IDs whose ID tokens are accepted by `POST /api/auth/google/verify-credential/` (e.g. iOS + Android + web if not already in `GOOGLE_OAUTH_CLIENT_ID`). |
+| `GOOGLE_OAUTH_IOS_CLIENT_ID` | (none) | Optional iOS OAuth client ID (merged into allowed ID token audiences). |
+| `GOOGLE_OAUTH_ANDROID_CLIENT_ID` | (none) | Optional Android OAuth client ID (merged into allowed ID token audiences). |
 | `GOOGLE_APPLICATION_CREDENTIALS` | (none) | Path to service account JSON (if used). |
+
+ID tokens from Google Sign-In on native apps use the platform client as `aud`; the backend accepts any ID listed in the merged **allowed client IDs** set (web ID + CSV + iOS + Android, deduplicated). Create separate iOS/Android OAuth clients in Google Cloud Console and add their IDs here.
 
 ### OpenAI (AI chat)
 

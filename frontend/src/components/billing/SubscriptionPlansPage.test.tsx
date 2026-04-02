@@ -2,36 +2,40 @@ import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { vi } from "vitest";
 import { formatCurrency, getLocale } from "utils/format";
 
 import SubscriptionPlansPage from "./SubscriptionPlansPage";
 
-jest.mock("services/analyticsService", () => ({
-  recordFunnelEvent: jest.fn(),
+vi.mock("services/analyticsService", () => ({
+  recordFunnelEvent: vi.fn(),
 }));
 
-jest.mock("axios", () => {
-  const get = jest.fn();
-  const post = jest.fn();
+vi.mock("axios", () => {
+  const get = vi.fn();
+  const post = vi.fn();
   const mock = {
     get,
     post,
     create: () => mock,
     defaults: { headers: { common: {} } },
     interceptors: {
-      request: { use: jest.fn(), eject: jest.fn() },
-      response: { use: jest.fn(), eject: jest.fn() },
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
     },
   };
   return { __esModule: true, default: mock };
 });
-const mockNavigate = jest.fn();
-const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
+const mockNavigate = vi.fn();
+const axiosMock = axios as unknown as {
+  get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+};
 
 let mockQuestionnaireStatus: "in_progress" | "completed" = "in_progress";
 
-jest.mock("react-router-dom", () => {
-  const actual = jest.requireActual("react-router-dom");
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -39,22 +43,22 @@ jest.mock("react-router-dom", () => {
   };
 });
 
-jest.mock("contexts/AuthContext", () => ({
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
     entitlements: { plan: "starter", status: "inactive", trialEnd: null },
     entitlementError: null,
     entitlementSupportLink: null,
-    reloadEntitlements: jest.fn(),
-    loadProfile: jest.fn().mockResolvedValue({
+    reloadEntitlements: () => undefined,
+    loadProfile: async () => ({
       user_data: { has_paid: false, is_questionnaire_completed: false },
     }),
     isAuthenticated: true,
-    getAccessToken: jest.fn(() => "token"),
+    getAccessToken: () => "token",
   }),
 }));
 
-jest.mock("@tanstack/react-query", () => {
-  const actual = jest.requireActual("@tanstack/react-query");
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-query")>();
   return {
     ...actual,
     useQuery: (opts: { queryKey?: unknown[] }) => {
@@ -131,7 +135,7 @@ describe("SubscriptionPlansPage", () => {
   beforeEach(async () => {
     axiosMock.get.mockResolvedValue({ data: plansResponse });
     Object.defineProperty(window, "location", {
-      value: { assign: jest.fn() },
+      value: { assign: vi.fn() },
       writable: true,
     });
     mockNavigate.mockClear();

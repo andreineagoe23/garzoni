@@ -1,10 +1,23 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
+
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "contexts/AuthContext";
 
-jest.mock("contexts/AuthContext", () => ({
-  useAuth: jest.fn(),
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return {
+    ...actual,
+    Navigate: ({ to }: { to: string }) => (
+      <div data-testid={`mock-navigate-${to}`} />
+    ),
+  };
+});
+
+vi.mock("contexts/AuthContext", () => ({
+  useAuth: vi.fn(),
 }));
 
 type MockAuthState = {
@@ -13,12 +26,13 @@ type MockAuthState = {
 };
 
 const renderWithAuth = (authState: MockAuthState) => {
-  const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-  mockUseAuth.mockReturnValue(authState);
+  vi.mocked(useAuth).mockReturnValue(authState as ReturnType<typeof useAuth>);
   return render(
-    <ProtectedRoute>
-      <div>Protected Content</div>
-    </ProtectedRoute>
+    <MemoryRouter>
+      <ProtectedRoute>
+        <div>Protected Content</div>
+      </ProtectedRoute>
+    </MemoryRouter>
   );
 };
 

@@ -8,8 +8,10 @@ import reportWebVitals from "reportWebVitals";
 import { registerServiceWorker } from "serviceWorkerRegistration";
 import { trackAnalyticsEvent } from "services/analyticsClient";
 import { initStartup } from "bootstrap/startup";
+import { initHttpClientWeb } from "bootstrap/httpClientWeb";
 
 initStartup();
+initHttpClientWeb();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {

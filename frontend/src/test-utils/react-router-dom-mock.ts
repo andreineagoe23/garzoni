@@ -1,20 +1,6 @@
 /**
- * TypeScript entry for tests: `import { mockNavigate } from ".../react-router-dom-mock"`.
- * The Jest `react-router-dom` alias targets `react-router-dom-mock-impl.js` (CommonJS) so
- * named imports like `createMemoryRouter` keep working.
+ * Shared navigate spy for tests that assert SPA navigation (Vitest).
  */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const impl = require("./react-router-dom-mock-impl.js") as Record<
-  string,
-  unknown
-> & {
-  /** Jest mock from `jest.fn()` in the impl bundle */
-  mockNavigate: {
-    (...args: unknown[]): unknown;
-    mockReset: () => void;
-    mockClear: () => void;
-  };
-};
+import { vi } from "vitest";
 
-export const mockNavigate = impl.mockNavigate;
-export default impl;
+export const mockNavigate = vi.fn();

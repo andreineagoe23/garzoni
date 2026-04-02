@@ -1,26 +1,18 @@
 {
   "name": "monevo",
   "private": true,
-  "devDependencies": {
-    "@babel/core": "^7.24.7",
-    "@babel/helper-module-imports": "^7.24.7",
-    "@babel/plugin-syntax-flow": "^7.24.7",
-    "@babel/plugin-transform-react-jsx": "^7.24.7",
-    "react-refresh": "^0.11.0",
-    "terser": "^5.27.2",
-    "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "void-elements": "^3.1.0"
-  },
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "build:frontend": "cd frontend && npm run build",
+    "dev": "pnpm --filter @monevo/web dev",
+    "dev:web": "pnpm --filter @monevo/web dev",
+    "dev:mobile": "pnpm --filter @monevo/mobile start",
+    "build": "pnpm --filter @monevo/web build",
+    "build:frontend": "pnpm --filter @monevo/web build",
     "build:marketing": "cd frontend/next-app && npm run build",
-    "build:all": "npm run build:frontend && npm run build:marketing",
-    "dev:frontend": "cd frontend && npm start",
-    "dev:marketing": "cd frontend/next-app && npm run dev"
-  },
-  "dependencies": {
-    "@amplitude/analytics-client-common": "^2.4.22",
-    "@sentry/utils": "^8.55.0",
-    "@testing-library/dom": "^10.4.1"
+    "build:all": "pnpm run build:frontend && pnpm run build:marketing",
+    "test": "pnpm --filter @monevo/web test",
+    "lint": "pnpm --filter @monevo/web lint",
+    "typecheck:core": "pnpm --filter @monevo/core typecheck",
+    "typecheck:mobile": "pnpm --filter @monevo/mobile exec tsc --noEmit"
   }
 }

@@ -1,0 +1,2248 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "tools": "Tools",
+    "missions": "Missions",
+    "leaderboards": "Leaderboards",
+    "rewards": "Rewards",
+    "support": "Support",
+    "profile": "Profile",
+    "settings": "Settings",
+    "conversions": "Analytics",
+    "ariaToggleDarkMode": "Toggle dark mode",
+    "ariaLogout": "Logout",
+    "ariaGoToProfile": "Go to profile",
+    "ariaToggleMenu": "Toggle navigation menu",
+    "ariaAccountMenu": "Open account menu"
+  },
+  "language": {
+    "label": "Language",
+    "option": {
+      "en": "English",
+      "ro": "Romanian",
+      "es": "Spanish (coming soon)"
+    }
+  },
+  "dashboard": {
+    "skipToContent": "Skip to content",
+    "nav": {
+      "allTopics": "All Topics",
+      "personalizedPath": "Personalized Path",
+      "completeOnboarding": "Complete Onboarding"
+    },
+    "toast": {
+      "xpGained": "+{{count}} XP",
+      "skillsImproved_one": "{{count}} skill improved",
+      "skillsImproved_other": "{{count}} skills improved",
+      "skillsImproved": "Skills improved"
+    },
+    "cta": {
+      "doReviews": "Do Reviews",
+      "continueLesson": "Continue Lesson",
+      "startMission": "Start Mission",
+      "continueLearning": "Continue Learning",
+      "reviewsDue_one": "{{count}} review due",
+      "reviewsDue_other": "{{count}} reviews due",
+      "missionsAvailable_one": "{{count}} mission available",
+      "missionsAvailable_other": "{{count}} missions available",
+      "continueWhereLeftOff": "Continue where you left off",
+      "continueLearningReason": "Continue your learning journey",
+      "missionsAvailable": "Missions available",
+      "reviewsDue": "Reviews due"
+    },
+    "resume": {
+      "title": "Pick up where you left off",
+      "continueWith": "Continue with {{course}}",
+      "continueLesson": "Continue lesson",
+      "startFirstLesson": "Start your first lesson and we'll remember your place.",
+      "browseTopics": "Continue"
+    },
+    "dailyGoal": {
+      "label": "Daily goal",
+      "completeDesc": "Complete your daily goal",
+      "xpProgress": "{{current}} / {{target}} XP today"
+    },
+    "header": {
+      "welcomeBack": "Welcome back",
+      "welcomeBackName": "Welcome back, {{name}}!",
+      "yourCoachSubtitle": "Your AI coach is here to help you learn",
+      "adminMode": "Admin Mode",
+      "enableAdmin": "Enable Admin"
+    },
+    "statusSummary": {
+      "coursesCompleted": "Courses Completed",
+      "overallProgress": "Overall Progress",
+      "reviewsDue": "Reviews Due",
+      "activeMissions": "Active Missions",
+      "streak": "Streak",
+      "failedLoadReviews": "Failed to load reviews",
+      "couldNotFetchReviews": "We couldn't fetch your review queue.",
+      "failedLoadMissions": "Failed to load missions",
+      "couldNotFetchMissions": "We couldn't fetch your missions.",
+      "urgent": "Urgent",
+      "nextReviewSkill": "Next review: {{skill}}",
+      "startReviews": "Start reviews now"
+    },
+    "weakSkills": {
+      "skillInsights": "Skill insights",
+      "skillInsightsDesc": "Complete lessons and quizzes to see your skill strengths and areas to improve.",
+      "noWeakSkills": "No Weak Skills",
+      "noWeakSkillsDesc": "Great job! You're doing well across all skills.",
+      "areasToImprove": "Areas to Improve",
+      "quickPracticeTitle": "Practice Recommendation",
+      "quickPracticeSubtitle": "We'll suggest the best practice area for you right now.",
+      "focusOnSkills": "Focus on these skills to boost your overall mastery",
+      "lowMasteryIn": "Low mastery in {{skill}}",
+      "practice": "Practice",
+      "practiceSkillAria": "Practice {{skill}} skill",
+      "practiceRecommendationAria": "Practice {{skill}} to improve this recommendation",
+      "failedLoadSkills": "Failed to load skills",
+      "couldNotFetchSkills": "We couldn't fetch your skill mastery data."
+    },
+    "skillInsights": {
+      "title": "Early skill insights",
+      "justUnlocked": "Just unlocked",
+      "foundation": "Foundation progress",
+      "firstMilestone": "First milestone complete",
+      "completeFirstSection": "Complete your first section to unlock insights.",
+      "currentFocus": "Current focus",
+      "learningFoundations": "Learning foundations",
+      "beginnerLevel": "Beginner",
+      "momentum": "Momentum",
+      "reviewsDue_one": "{{count}} review due",
+      "reviewsDue_other": "{{count}} reviews due",
+      "missionsActive_one": "{{count}} active mission",
+      "missionsActive_other": "{{count}} active missions",
+      "reviewsDue": "{{count}} review(s) due",
+      "missionsActive": "{{count}} active mission(s)",
+      "sectionsAndLessons": "Sections {{sections}} · Lessons {{lessons}}",
+      "nextStep": {
+        "doReviews": "Do reviews",
+        "startMission": "Start mission",
+        "continueLesson": "Continue lesson",
+        "startLearning": "Start learning"
+      },
+      "nextStepHint": {
+        "reviews": "Spaced reviews will strengthen retention fastest.",
+        "mission": "Missions can boost XP and keep your streak active.",
+        "continue": "Continue where you left off to deepen this skill.",
+        "start": "Start your first lesson to unlock personalized insights."
+      }
+    },
+    "entitlementUsage": {
+      "dailyUsage": "Daily Usage",
+      "resetsDaily": "Resets daily",
+      "usedRemaining": "{{used}} used, {{remaining}} remaining",
+      "unlimited": "unlimited",
+      "lockedUpgrade": "Locked - Upgrade to unlock"
+    },
+    "errorState": {
+      "title": "Something went wrong",
+      "message": "We couldn't load this data. Please try again.",
+      "showingCached": "Showing cached data from your last visit.",
+      "retrying": "Retrying...",
+      "retry": "Retry"
+    },
+    "primaryCta": {
+      "getStarted": "Get Started",
+      "continueReason": "Continue your learning journey"
+    }
+  },
+  "welcome": {
+    "referral": {
+      "title": "You were invited to Monevo",
+      "body": "After you complete your first learning path, you and your friend will both receive 40% off the Plus plan by email.",
+      "cta": "Start with your invite",
+      "dismiss": "Maybe later"
+    }
+  },
+  "analytics": {
+    "adminRequired": "Admin access required",
+    "adminRequiredDesc": "Conversion analytics are only available to administrators.",
+    "title": "Pricing & Checkout Funnel",
+    "subtitle": "Monitor how users move from the pricing page to successful checkout and entitlement activation.",
+    "refresh": "Refresh",
+    "pricingViews": "Pricing views",
+    "pricingViewsFooter": "Users reaching the pricing or paywall experience",
+    "checkoutsCreated": "Checkout sessions created",
+    "conversion": "Conversion: {{percent}}%",
+    "successfulPayments": "Successful payments",
+    "entitlementsConfirmed": "Entitlements confirmed",
+    "successRate": "Success rate: {{percent}}%",
+    "entitlementFailures": "Entitlement failures",
+    "fallbackFooter": "Fallback to free mode when checks fail",
+    "dailyFunnelEvents": "Daily funnel events",
+    "dailyFunnelSubtitle": "Volume of key funnel events over time.",
+    "noActivity": "No funnel activity recorded for this period.",
+    "date": "Date",
+    "eventType": "Event type",
+    "count": "Count"
+  },
+  "billing": {
+    "subscriptionManagement": "Subscription Management",
+    "manageSubtitle": "Manage your subscription and billing",
+    "currentPlan": "Current Plan",
+    "status": "Status",
+    "trialEndsOn": "Trial ends on {{date}}",
+    "availablePlans": "Available Plans",
+    "choosePlanSubtitle": "Choose a plan that fits your learning needs",
+    "loadingPlans": "Loading plans...",
+    "currentPlanButton": "Current Plan",
+    "switchPlan": "Switch Plan",
+    "startPlan": "Start Plan",
+    "active": "Active",
+    "cancelSubscription": "Cancel Subscription",
+    "manageSubscription": "Manage Subscription",
+    "explorePlans": "Explore Plans",
+    "failedCheckout": "Failed to start checkout. Please try again.",
+    "failedChangePlan": "Failed to change plan. Please try again.",
+    "failedCancel": "Failed to cancel subscription. Please try again.",
+    "failedPortal": "Failed to open customer portal. Please try again.",
+    "featureComparison": "Feature Comparison",
+    "planComparison": "Plan Comparison",
+    "current": "Current",
+    "capability": "Capability",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "unlockPremium": "Unlock Premium",
+    "premiumFeature": "Premium Feature",
+    "upgradeDescription": "Upgrade to unlock this feature and more premium benefits.",
+    "upgradeNow": "Upgrade Now",
+    "maybeLater": "Maybe Later",
+    "closeModal": "Close modal",
+    "upgradeToPremium": "Upgrade to Premium",
+    "unlockPremiumFeatures": "Unlock Premium Features",
+    "getUnlimitedAccess": "Get unlimited access to all learning features",
+    "startFreeTrial": "Start Free Trial",
+    "shareReferral": "Share Referral",
+    "checkoutUrlLabel": "Checkout URL",
+    "checkoutWithParams": "with params",
+    "checkoutAnd": "and",
+    "checkoutAttributionTracking": "for attribution tracking",
+    "referralLinkLabel": "Referral link",
+    "referralUnavailable": "Referral code unavailable. Please try again in a moment.",
+    "copied": "Copied!",
+    "cancelTrial": "Cancel Trial",
+    "cancelConfirmTitleTrial": "Cancel trial?",
+    "cancelConfirmTitleActive": "Cancel subscription?",
+    "cancelConfirmTrial": "You won't be charged. Your trial access will continue until {{date}}.",
+    "cancelConfirmActive": "You'll keep access until the end of your billing period ({{date}}). You won't be charged again.",
+    "cancelConfirmActiveShort": "You'll keep access until the end of your billing period. You won't be charged again.",
+    "cancelSuccess": "You've cancelled. You'll have access until {{date}}.",
+    "cancelSuccessNoDate": "You've cancelled. You'll have access until the end of your billing period.",
+    "keepTrial": "Keep trial",
+    "keepSubscription": "Keep subscription",
+    "features": {
+      "daily_limits": "Daily learning limit",
+      "hints": "Lesson & quiz hints",
+      "streak_repair": "Streak repair",
+      "downloads": "Downloads",
+      "analytics": "Analytics & insights",
+      "ai_tutor": "AI tutor",
+      "personalized_path": "Personalized path"
+    },
+    "notAvailable": "Not available"
+  },
+  "allTopics": {
+    "loading": "Loading learning paths...",
+    "error": "Failed to load learning paths. Please try again later.",
+    "sortByLabel": "Sort by:",
+    "sortByAria": "Sort learning paths",
+    "sort": {
+      "default": "Default",
+      "name": "Name (A-Z)",
+      "easiest": "Easiest First",
+      "hardest": "Hardest First",
+      "progressAsc": "Progress (Low to High)",
+      "progressDesc": "Progress (High to Low)"
+    },
+    "filterLabel": "Filter:",
+    "filterAria": "Filter learning paths",
+    "filter": {
+      "all": "All Topics",
+      "notStarted": "Not Started",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "pathProgress": "Path Progress",
+    "progressAria": "{{value}}% complete",
+    "hideCourses": "Hide Courses",
+    "viewCourses": "View Courses",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "coursesIn": "Courses in {{title}}"
+  },
+  "personalizedPath": {
+    "errorTitle": "Error Loading Recommendations",
+    "tryAgain": "Try Again",
+    "verifying": "Verifying your access...",
+    "title": "Your personalized learning path:",
+    "overallCompletion": "Overall completion: {{value}}%",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "refreshed": "Personalized path refreshed.",
+    "continue": "Continue where you left off",
+    "recommendedForYou": "Recommended for you",
+    "eta": "~{{minutes}} min",
+    "skillsToReinforce": "Skills to reinforce",
+    "noSkillsDue": "No skills due for reinforcement right now.",
+    "skillScore": "Proficiency: {{value}}%",
+    "open": "Open",
+    "unlock": "Unlock",
+    "locked": "Locked",
+    "upgrade": "Upgrade",
+    "pathLabel": "Path",
+    "courseAria": "Open {{title}}",
+    "courseMeta": "{{hours}} hrs · {{exercises}} exercises",
+    "progressLabel": "Progress",
+    "lessonCount": "{{completed}}/{{total}} lessons",
+    "basedOnOnboarding": "Based on your latest onboarding answers -",
+    "updatePreferences": "Update Preferences",
+    "errors": {
+      "accessDenied": "Access denied",
+      "recommendationsFailed": "Failed to load recommendations. Please try again later.",
+      "paymentVerifyFailed": "We couldn't verify your payment. Please try again."
+    }
+  },
+  "tools": {
+    "errors": {
+      "toolNotFound": "Tool not found. Returning to the tools hub."
+    },
+    "hub": {
+      "continueTitle": "Continue where you left off",
+      "continueSubtitle": "Jump back in without hunting for the tool.",
+      "resumeTool": "Resume tool →",
+      "suggestedTitle": "Suggested learning tools",
+      "suggestedSubtitle": "Based on your learning activity. These are educational prompts, not investment recommendations.",
+      "openTool": "Open tool →",
+      "open": "Open →",
+      "browseAll": "All tools",
+      "browseAllSubtitle": "Pick a tool below to get started."
+    },
+    "disclaimer": {
+      "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
+      "financialDisclaimer": "Financial Disclaimer",
+      "noFinancialAdvice": "No Financial Advice"
+    },
+    "detail": {
+      "whoItsFor": "Who it's for:",
+      "questionAnswered": "Question answered:",
+      "example": "Example:",
+      "learnConcept": "Learn the concept →",
+      "backToHub": "Back to tools hub →",
+      "feedback": "Feedback",
+      "resetTool": "Reset tool",
+      "export": "Export",
+      "feedbackSubject": "Tool feedback - {{tool}}",
+      "feedbackBody": "What happened?\n\nWhere did it happen?\n{{url}}"
+    },
+    "toast": {
+      "reset": "Tool reset."
+    },
+    "authRequired": {
+      "title": "Login Required",
+      "subtitle": "Please log in to access our financial tools and calculators."
+    },
+    "header": {
+      "kicker": "Guided decision tools",
+      "title": "Financial Tools",
+      "subtitle": "Each tool answers one clear question and links to the next step."
+    },
+    "nav": {
+      "ariaLabel": "Tools navigation",
+      "browse": "Browse tools",
+      "hub": "Hub",
+      "hubLink": "Tools hub"
+    },
+    "groups": {
+      "understand-world": {
+        "title": "Understand the World",
+        "imageAlt": "Global economy and markets"
+      },
+      "understand-myself": {
+        "title": "Understand Myself",
+        "imageAlt": "Personal finance and goals"
+      },
+      "decide-next": {
+        "title": "Plan What to Learn",
+        "imageAlt": "Learning plan and next steps"
+      }
+    },
+    "entries": {
+      "portfolio": {
+        "title": "Portfolio Analyzer",
+        "promise": "See if your portfolio matches your goals and risk comfort.",
+        "description": "Analyze and optimize your investment portfolio",
+        "mostUsefulFor": "Anyone already investing or thinking about reallocating.",
+        "whatItDoes": "Breaks down holdings, performance, and allocation in one view.",
+        "sampleUseCase": "Check if your portfolio is too concentrated in one asset.",
+        "whoItsFor": "Investors who want clarity on risk, concentration, and balance.",
+        "questionItAnswers": "Is my portfolio aligned with my goals and risk comfort?"
+      },
+      "reality-check": {
+        "title": "Savings & Goals Reality Check",
+        "promise": "Get a realistic saving range without false precision.",
+        "description": "See if your goals are realistic for your income and costs",
+        "mostUsefulFor": "People with a goal and uncertain monthly cash flow.",
+        "whatItDoes": "Turns a goal into a realistic saving range and feasibility check.",
+        "sampleUseCase": "Plan a $6k emergency fund in 12 months without guesswork.",
+        "whoItsFor": "Anyone who wants an honest view of what's achievable.",
+        "questionItAnswers": "Can I actually hit this goal with my current cash flow?"
+      },
+      "calendar": {
+        "title": "Economic Calendar",
+        "promise": "Understand how big economic events affect your money.",
+        "description": "Track macro events with context, not just dates",
+        "mostUsefulFor": "Anyone trying to make sense of inflation and rates.",
+        "whatItDoes": "Shows key economic events and explains why they matter.",
+        "sampleUseCase": "See how CPI or rate decisions could affect savings rates.",
+        "whoItsFor": "Anyone trying to understand the bigger picture.",
+        "questionItAnswers": "What's happening in the economy and why should I care?"
+      },
+      "economic-map": {
+        "title": "Economic Map",
+        "promise": "See macro changes around the world in one glance.",
+        "description": "Live global economic data visualized on a map",
+        "mostUsefulFor": "Anyone tracking global macro trends.",
+        "whatItDoes": "Displays economic indicators on a world map.",
+        "sampleUseCase": "Check regional trends before reading the news.",
+        "whoItsFor": "People who want a global macro view.",
+        "questionItAnswers": "Where are economic shifts happening right now?"
+      },
+      "news-context": {
+        "title": "News & Market Context",
+        "promise": "Turn headlines into simple, personal takeaways.",
+        "description": "Curated finance news with plain-English meaning",
+        "mostUsefulFor": "People who want news without panic or hype.",
+        "whatItDoes": "Summarizes what headlines mean for everyday money decisions.",
+        "sampleUseCase": "See how a rate cut impacts loans or savings.",
+        "whoItsFor": "People who want news without the noise.",
+        "questionItAnswers": "What does this headline mean for me?"
+      },
+      "market-explorer": {
+        "title": "Market Explorer",
+        "promise": "Scan major markets with simple, long-term framing.",
+        "description": "Explore stocks, ETFs, crypto, and indices in one view",
+        "mostUsefulFor": "Curious learners exploring markets for the first time.",
+        "whatItDoes": "Lets you explore markets while surfacing volatility warnings.",
+        "sampleUseCase": "Compare S&P 500 vs bonds before making a decision.",
+        "whoItsFor": "Learners deciding what to explore next.",
+        "questionItAnswers": "What markets should I look at, and with what caution?"
+      },
+      "next-steps": {
+        "title": "What Should I Learn Next?",
+        "promise": "Get 1-3 focused learning suggestions for your next step.",
+        "description": "Personalized learning suggestions based on your progress",
+        "mostUsefulFor": "Anyone who wants a clear learning next move.",
+        "whatItDoes": "Suggests 1-3 focused learning actions based on your activity.",
+        "sampleUseCase": "Get a short list of learning and tool steps that matter.",
+        "whoItsFor": "Anyone who wants clear, prioritized learning next steps.",
+        "questionItAnswers": "What should I learn next right now?"
+      }
+    },
+    "realityCheck": {
+      "activityLabel": "Checked goal feasibility",
+      "goalFirstFlow": "Goal-first flow",
+      "description": "Define the goal, then sanity-check your monthly reality.",
+      "useDemoGoal": "Use demo goal",
+      "clear": "Clear",
+      "goalName": "Goal name",
+      "demoGoalName": "Emergency fund",
+      "goalNamePlaceholder": "Emergency fund, trip, debt payoff",
+      "goalAmount": "Goal amount",
+      "goalAmountPlaceholder": "6000",
+      "timeframe": "Timeframe (months)",
+      "timeframePlaceholder": "12",
+      "alreadySaved": "Already saved",
+      "alreadySavedPlaceholder": "900",
+      "incomeLow": "Monthly income range (low)",
+      "incomeLowPlaceholder": "2800",
+      "incomeHigh": "Monthly income range (high)",
+      "incomeHighPlaceholder": "3200",
+      "expenseLow": "Monthly expense range (low)",
+      "expenseLowPlaceholder": "1900",
+      "expenseHigh": "Monthly expense range (high)",
+      "expenseHighPlaceholder": "2200",
+      "emptyState": "Start by entering a goal amount and timeframe to see a realistic range.",
+      "savingRange": "Realistic saving range",
+      "requiredToHitGoal": "Required to hit goal",
+      "progressTracker": "Progress tracker",
+      "youAre": "You're",
+      "ofTheWayThere": "of the way there.",
+      "timeToGoal": "Time to goal (range)",
+      "best": "Best:",
+      "expected": "Expected:",
+      "worst": "Worst:",
+      "months": "months",
+      "notFeasible": "Not feasible yet",
+      "feasibilityWarnings": "Feasibility warnings",
+      "twoBigLevers": "Two big levers",
+      "learnMore": "Learn more →",
+      "warningLowSurplus": "Even your best-month surplus looks too low for this timeline.",
+      "warningReduceExpenses": "You'll likely need to reduce expenses or extend the timeline.",
+      "warningExpensesHigher": "Expenses may be higher than income in a typical month.",
+      "leverIncome": "Increase monthly income or extend the timeline",
+      "leverExpenses": "Reduce monthly expenses by a small amount",
+      "leverFixedCosts": "Lower fixed costs to regain breathing room"
+    },
+    "goalsTracker": {
+      "loadFailed": "Failed to load financial goals. Please try again.",
+      "activityLabel": "{{count}} active goals",
+      "addFailed": "Failed to add goal. Please try again.",
+      "deleteFailed": "Failed to delete goal. Please try again.",
+      "title": "Financial Goals Tracker",
+      "presetEmergency": "Emergency fund",
+      "presetVacation": "Vacation",
+      "subtitle": "Set and track your financial goals",
+      "demoPresets": "Demo presets",
+      "presetTip1": "Add a goal and update progress every month",
+      "presetTip2": "Set a realistic target date for motivation",
+      "presetTip3": "Track multiple goals at once",
+      "goalName": "Goal Name",
+      "goalNamePlaceholder": "e.g., Emergency Fund",
+      "defaultGoalName": "Emergency Fund",
+      "targetAmount": "Target Amount",
+      "targetAmountPlaceholder": "Enter target amount",
+      "currentAmount": "Current Amount",
+      "currentAmountPlaceholder": "Enter current amount",
+      "targetDate": "Target Date",
+      "addGoal": "Add Goal",
+      "loading": "Loading goals...",
+      "emptyTitle": "No financial goals yet.",
+      "emptySubtitle": "Add your first goal above or choose a demo preset to get started.",
+      "target": "Target",
+      "current": "Current",
+      "targetDateLabel": "Target Date",
+      "notSet": "Not set",
+      "progress": "Progress",
+      "remaining": "Remaining",
+      "delete": "Delete"
+    },
+    "savingsCalc": {
+      "starterGoal": "Starter goal",
+      "longTerm": "Long-term",
+      "allFieldsRequired": "All fields are required",
+      "interestRateMax": "Annual interest rate cannot exceed 30%",
+      "calculationFailed": "Failed to calculate savings goal. Please try again.",
+      "title": "Savings Goal Calculator",
+      "subtitle": "Calculate how much you need to save to reach your financial goals",
+      "demoPresets": "Demo presets",
+      "presetTip1": "Try a 2-year goal for a quick benchmark",
+      "presetTip2": "Adjust interest rate to match your account",
+      "presetTip3": "Compare monthly vs quarterly compounding",
+      "savingsGoal": "Savings Goal",
+      "savingsGoalPlaceholder": "Enter your savings goal amount",
+      "initialInvestment": "Initial Investment",
+      "initialInvestmentPlaceholder": "Enter your initial investment",
+      "yearsToGrow": "Years to Grow",
+      "yearsToGrowPlaceholder": "Enter number of years",
+      "annualInterestRate": "Annual Interest Rate (%)",
+      "annualInterestRatePlaceholder": "Enter annual interest rate",
+      "compoundFrequency": "Compound Frequency",
+      "annually": "Annually",
+      "quarterly": "Quarterly",
+      "monthly": "Monthly",
+      "daily": "Daily",
+      "calculate": "Calculate",
+      "finalSavings": "Final Savings",
+      "activityPrefix": "Goal"
+    },
+    "portfolio": {
+      "stock": "Stock",
+      "crypto": "Crypto",
+      "etf": "ETF",
+      "bond": "Bond",
+      "fund": "Fund",
+      "commodity": "Commodity",
+      "real_estate": "Real estate",
+      "other": "Other",
+      "assetType": {
+        "stock": "Stock",
+        "crypto": "Crypto",
+        "etf": "ETF",
+        "bond": "Bond",
+        "fund": "Fund",
+        "commodity": "Commodity",
+        "real_estate": "Real estate",
+        "other": "Other"
+      },
+      "symbolPlaceholder": "e.g., AAPL, BTC, SPY",
+      "livePriceNotAvailable": "Live price not available for this asset type.",
+      "getPrice": "Get price",
+      "lookupLoading": "…",
+      "currentPrice": "Current price",
+      "symbolRequired": "Enter a symbol to look up.",
+      "priceNotFound": "Price not found. Check symbol or try again.",
+      "loadError": "Failed to load portfolio. Please try again.",
+      "exportEmpty": "No portfolio entries to export yet.",
+      "exportReady": "Portfolio export ready.",
+      "addFailed": "Failed to add portfolio entry. Please try again.",
+      "deleteFailed": "Failed to delete portfolio entry. Please try again.",
+      "loading": "Loading portfolio...",
+      "title": "Portfolio Analyzer",
+      "subtitle": "Track and analyze your investment portfolio",
+      "noEntries": "No Portfolio Entries",
+      "noEntriesSubtitle": "Add your first investment to start tracking your portfolio",
+      "loadSampleStock": "Load sample stock",
+      "loadSampleCrypto": "Load sample crypto",
+      "tryThis": "Try this",
+      "tryThisBullet1": "Add a sample stock to see allocation charts",
+      "tryThisBullet2": "Compare a stock and crypto holding together",
+      "tryThisBullet3": "Review total gain/loss once you add entries",
+      "totalValue": "Total Portfolio Value",
+      "currentValue": "Current value",
+      "totalGainLoss": "Total Gain/Loss",
+      "totalHoldings": "Total Holdings",
+      "investment_one": "investment",
+      "investment_other": "investments",
+      "portfolioInsight": "Portfolio insight",
+      "goodFit": "Good fit",
+      "risky": "Risky",
+      "misaligned": "Misaligned",
+      "confidence": "Confidence: {{level}}",
+      "isPortfolioRisky": "Is this portfolio risky for me?",
+      "riskReasonable": "Risk looks reasonable - you're not over-concentrated in one place.",
+      "riskModerate": "Moderate risk - one area dominates; consider spreading out.",
+      "riskHigh": "Higher risk - concentration or volatility is high; worth reviewing.",
+      "biggestProblem": "What's the biggest problem here?",
+      "nothingMajor": "Nothing major - your mix looks reasonable for a long-term approach.",
+      "inPlainEnglish": "In plain English",
+      "learnDiversification": "Learn: Why diversification helps",
+      "considerRebalancing": "Consider rebalancing or adding another holding",
+      "exploreMarket": "Explore: Market Explorer to compare assets",
+      "insights": {
+        "concentrationTitle": "Concentration risk",
+        "concentrationMeaning": "One holding dominates at {{pct}}% of your portfolio.",
+        "concentrationWhy": "A single decline can swing your overall results.",
+        "concentrationStep1": "Add a second holding in a different area.",
+        "concentrationStep2": "Consider trimming the oversized position.",
+        "diversificationTitle": "Low diversification",
+        "diversificationMeaning": "You have fewer than three holdings.",
+        "diversificationWhy": "Small portfolios tend to be less resilient to shocks.",
+        "diversificationStep1": "Add a broad market ETF or index exposure.",
+        "diversificationStep2": "Balance with another asset type.",
+        "volatilityTitle": "High volatility exposure",
+        "volatilityMeaning": "Crypto is about {{pct}}% of your portfolio.",
+        "volatilityWhy": "Crypto tends to swing more than stocks or bonds.",
+        "volatilityStep1": "Decide if this aligns with your risk comfort.",
+        "volatilityStep2": "Balance with less volatile assets.",
+        "drawdownTitle": "Portfolio drawdown",
+        "drawdownMeaning": "Your portfolio is down more than 10% overall.",
+        "drawdownWhy": "Large drawdowns can test your time horizon and confidence.",
+        "drawdownStep1": "Review your time horizon before making changes.",
+        "drawdownStep2": "Avoid panic selling without a plan.",
+        "healthyTitle": "Healthy balance",
+        "healthyMeaning": "Your mix looks reasonably diversified.",
+        "healthyWhy": "Balanced portfolios tend to handle volatility better.",
+        "healthyStep1": "Keep monitoring allocation drift quarterly.",
+        "healthyStep2": "Explore new assets only if they fit your goal."
+      },
+      "problems": {
+        "oneInvestment": "All your money is in one investment.",
+        "largestHolding": "Your largest holding is {{pct}}% of your portfolio - concentration is high.",
+        "largestHoldingModerate": "Your largest holding is {{pct}}% of your portfolio. Consider spreading risk.",
+        "cryptoVolatile": "Most of your portfolio is in crypto, which tends to be more volatile.",
+        "downOnPaper": "You're currently down on paper. Check if your timeline and risk tolerance still match this mix.",
+        "spreadAcross": "You're spread across more than one asset type - that helps smooth volatility.",
+        "stocksPct": "Stocks make up {{pct}}% of your portfolio.",
+        "cryptoPct": "Crypto makes up {{pct}}% - remember it can swing more than stocks.",
+        "totalValueBullet": "Total value is {{value}} with {{gainOrLoss}} of {{pct}}% overall.",
+        "gain": "a gain",
+        "loss": "a loss"
+      }
+    },
+    "calendarEmbed": {
+      "title": "Economic Calendar",
+      "subtitle": "Stay updated with important economic events and news",
+      "iframeTitle": "Economic Calendar",
+      "fallback": "Economic calendar by <provider>Investing.com</provider>. If the calendar doesn't load above, <open>open it in a new tab</open>.",
+      "activityLabel": "Viewed upcoming events"
+    },
+    "calendar": {
+      "activityLabel": "Checked macro events",
+      "impactFilter": {
+        "title": "Impact filter",
+        "subtitle": "High-impact events only by default.",
+        "showAll": "Show all events",
+        "hideLow": "Hide low-impact events"
+      },
+      "errors": {
+        "loadFailed": "Calendar failed to load.",
+        "loadFailedHelp": "Try disabling ad blockers or content blockers for this site, or open the calendar in a new tab.",
+        "openNewTab": "Open calendar in new tab"
+      },
+      "loading": "Loading the economic calendar…",
+      "fallback": "Economic calendar by <provider>TradingView</provider>. If it doesn't load, <open>open it in a new tab</open>.",
+      "relevant": "Relevant to you",
+      "why": "Why this matters:",
+      "who": "Who should care:",
+      "affects": "What it affects:",
+      "learnMore": "Learn more →",
+      "explainers": {
+        "inflation": {
+          "label": "CPI / Inflation",
+          "difficulty": "Beginner",
+          "why": "Signals rising prices that reduce purchasing power.",
+          "who": "Savers, borrowers, and anyone with a budget.",
+          "affects": "Savings rates, loan costs, everyday prices."
+        },
+        "rates": {
+          "label": "Central Bank Rates",
+          "difficulty": "Beginner",
+          "why": "Sets the baseline for borrowing and saving costs.",
+          "who": "Anyone with loans, mortgages, or savings accounts.",
+          "affects": "Mortgages, credit cards, savings yields."
+        },
+        "jobs": {
+          "label": "Jobs Report",
+          "difficulty": "Intermediate",
+          "why": "Shows labor strength which drives spending power.",
+          "who": "Workers, job seekers, investors.",
+          "affects": "Wages, consumer demand, rate decisions."
+        },
+        "gdp": {
+          "label": "GDP Growth",
+          "difficulty": "Intermediate",
+          "why": "Measures overall economic expansion or contraction.",
+          "who": "Investors and business owners.",
+          "affects": "Market sentiment, hiring, investment plans."
+        },
+        "retail": {
+          "label": "Retail Sales",
+          "difficulty": "Intermediate",
+          "why": "Highlights consumer spending trends.",
+          "who": "Budgeters and market observers.",
+          "affects": "Company earnings, inflation outlook."
+        },
+        "housing": {
+          "label": "Housing Data",
+          "difficulty": "Advanced",
+          "why": "Reflects affordability and credit conditions.",
+          "who": "Home buyers, renters, and lenders.",
+          "affects": "Mortgage rates, rents, construction jobs."
+        }
+      }
+    },
+    "crypto": {
+      "title": "Cryptocurrency Trading",
+      "subtitle": "Track and analyze cryptocurrency prices",
+      "errors": {
+        "loadFailed": "Chart failed to load.",
+        "loadFailedHelp": "Try disabling ad blockers or content blockers for this site, or open TradingView in a new tab.",
+        "openNewTab": "Open TradingView in new tab"
+      },
+      "tradingViewLabel": "TradingView Chart"
+    },
+    "sandbox": {
+      "activityLabel": "{{years}} yrs @ {{rate}}%",
+      "title": "Financial Sandbox",
+      "subtitle": "Experiment with contribution amounts, time horizons, and expected annual returns without touching your tracked data.",
+      "monthlyContribution": "Monthly Contribution",
+      "years": "Years",
+      "averageReturn": "Average Return (%)",
+      "startProjection": "Start Projection",
+      "tryThis": "Try this",
+      "tip1": "Double your monthly contribution and compare outcomes",
+      "tip2": "Increase the horizon to 15+ years to see compounding",
+      "tip3": "Lower the return rate to stress-test projections",
+      "projectedValue": "Projected Value in {{years}} year",
+      "projectedValue_one": "Projected Value in {{years}} year",
+      "projectedValue_other": "Projected Value in {{years}} years"
+    },
+    "forex": {
+      "title": "Forex Pip & Position Calculator",
+      "subtitle": "Calculate pip values and position sizes for your forex pairs",
+      "iframeTitle": "Forex Pip Calculator",
+      "fallback": "Calculator by <provider>Investing.com</provider>. If it doesn't load above, <open>open it in a new tab</open>.",
+      "activityLabel": "Viewed forex calculator"
+    }
+  },
+  "missions": {
+    "savings": {
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "nextCoin": "Save £{{amount}} more to unlock the next coin!",
+      "showJar": "Show Savings Jar",
+      "hideJar": "Hide Savings Jar",
+      "suggestedNote": "Suggested deposit is prefilled to unlock your next coin faster.",
+      "placeholderDaily": "Enter amount (e.g., £1)",
+      "placeholderWeekly": "Enter amount (e.g., £10)",
+      "savedToday": "Saved Today",
+      "add": "Add to Savings"
+    },
+    "facts": {
+      "markRead": "✓ Mark as Read",
+      "empty": "No new financial facts available right now - check back soon!",
+      "tryAgain": "↻ Try Again"
+    },
+    "errors": {
+      "refreshLesson": "Failed to refresh lesson mission.",
+      "loadMissions": "Failed to load missions. Please try again.",
+      "loadSavings": "Failed to load savings balance.",
+      "swapFailed": "Failed to swap mission. Please try again.",
+      "loadInsights": "Failed to load profile insights.",
+      "markFact": "Failed to mark fact as read.",
+      "addSavings": "Failed to add savings. Please try again.",
+      "validAmount": "Please enter a valid amount."
+    },
+    "toast": {
+      "completed": "Completed {{name}} (+{{xp}} XP)",
+      "synced": "Synced: {{name}} completed!",
+      "swapSuccess": "Mission swapped successfully!"
+    },
+    "missionFallback": "Mission",
+    "purpose": {
+      "completeLesson": "Building lesson momentum strengthens recall and keeps your streak alive.",
+      "addSavings": "Adding to your savings jar nudges you closer to your emergency fund.",
+      "readFact": "Quick money facts sharpen your intuition for smarter choices.",
+      "completePath": "Finishing a path cements mastery across related skills.",
+      "default": "Completing this mission keeps your learning loop tight."
+    },
+    "progress": {
+      "factsCount": "{{count}}/5 Facts",
+      "percent": "{{value}}%",
+      "readOneFact": "Read one fact to complete",
+      "factsRemaining": "{{count}} of 5 facts remaining",
+      "lessonTarget": "{{value}}% of your {{lessons}}-lesson target",
+      "complete": "{{value}}% complete",
+      "label": "Progress",
+      "aria": "Mission progress: {{value}}%",
+      "completed": "Completed!",
+      "levelTarget": "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}."
+    },
+    "badge": {
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "why": "Why this matters:",
+    "complete": {
+      "title": "Mission complete",
+      "subtitle": "Great work! Keep the momentum to unlock streak and leaderboard boosts."
+    },
+    "swap": {
+      "aria": "Swap mission: {{name}}",
+      "label": "Swap mission"
+    },
+    "header": {
+      "title": "Daily Missions",
+      "subtitle": "Complete focused challenges to earn rewards and strengthen your financial habits."
+    },
+    "summary": {
+      "title": "Progress at a glance",
+      "remaining": "{{count}} missions left today",
+      "remaining_one": "{{count}} mission left today",
+      "remaining_few": "{{count}} missions left today",
+      "remaining_other": "{{count}} missions left today",
+      "xp": "{{earned}} XP earned · {{remaining}} XP still on the table",
+      "offline": "Offline mode - missions will sync when you're back online",
+      "suggestedSavings": "Suggested savings target: £{{amount}} (based on your {{level}} level)",
+      "streak": "Streak",
+      "streakDays": "{{count}} days",
+      "totalXp": "Total XP today"
+    },
+    "streakItemAria": "{{type}}: {{quantity}} available",
+    "loading": "Loading missions...",
+    "wrapup": {
+      "title": "Daily mission wrap-up",
+      "earned": "You banked {{xp}} XP today",
+      "streakReview": "Streak: {{days}} days · Review due: {{review}}",
+      "streakReview_one": "Streak: {{days}} day · Review due: {{review}}",
+      "streakReview_few": "Streak: {{days}} days · Review due: {{review}}",
+      "streakReview_other": "Streak: {{days}} days · Review due: {{review}}",
+      "cta": "Keep going! Weekly missions and reviews will boost mastery next.",
+      "mascotMessage": "Steady progress wins. Great work today!"
+    },
+    "weekly": {
+      "title": "Weekly Missions"
+    }
+  },
+  "leaderboard": {
+    "time": {
+      "allTime": "All Time",
+      "thisMonth": "This Month",
+      "thisWeek": "This Week"
+    },
+    "errors": {
+      "loadFailed": "Failed to load leaderboard data. Please try again.",
+      "friendRequestFailed": "Failed to send friend request."
+    },
+    "loading": "Loading leaderboard data...",
+    "title": {
+      "global": "Global Leaderboard",
+      "friends": "Friends Leaderboard"
+    },
+    "subtitle": "Track progress, celebrate wins, and connect with the community.",
+    "tabs": {
+      "global": "Global",
+      "friends": "Friends"
+    },
+    "searchPlaceholder": "Search users...",
+    "searchAriaLabel": "Search leaderboard",
+    "you": "You ({{username}})",
+    "youBadge": "You",
+    "rankShort": "Rank {{rank}}",
+    "friendRequestSent": "Friend request sent.",
+    "loadMore": "Load more",
+    "podium": {
+      "place1": "First place",
+      "place2": "Second place",
+      "place3": "Third place"
+    },
+    "points": "{{points}} points",
+    "empty": "No users found for the current selection.",
+    "friendStatus": {
+      "alreadyFriends": "Already friends",
+      "pending": "Request pending",
+      "addFriend": "Add as friend",
+      "friends": "Friends",
+      "pendingShort": "Pending",
+      "addFriendShort": "Add Friend"
+    }
+  },
+  "rewards": {
+    "errors": {
+      "downloadLimit": "You've reached today's download limit. Upgrade for unlimited downloads.",
+      "downloadsPremium": "Downloads are Premium only. Upgrade to unlock.",
+      "downloadAllowance": "We couldn't verify your download allowance. Please try again."
+    },
+    "share": {
+      "title": "I just unlocked rewards on Monevo!",
+      "text": "Check out my latest achievement.",
+      "downloaded": "Share image downloaded. Post it anywhere!",
+      "unavailable": "Unable to generate share image right now."
+    },
+    "title": "Rewards",
+    "subtitle": "Spend your coins on exclusive rewards or donate to causes that matter.",
+    "balanceLabel": "Available Balance",
+    "coins": "coins",
+    "tabs": {
+      "shop": "Shop",
+      "donate": "Donate"
+    },
+    "shop": {
+      "empty": "No shop items available right now.",
+      "subtitle": "Redeem coins for exclusive rewards and resources.",
+      "buyNow": "Buy Now",
+      "purchaseSuccess": "Purchase successful!",
+      "purchaseFailed": "Failed to purchase reward.",
+      "insufficientFunds": "You don't have enough coins for this reward."
+    },
+    "donate": {
+      "empty": "No donation causes available right now.",
+      "subtitle": "Support meaningful organizations with a portion of your coins.",
+      "donateNow": "Donate Now",
+      "donationSuccess": "Donation successful!",
+      "donationFailed": "Failed to donate."
+    },
+    "refreshNote": "Coins refresh automatically after each purchase or donation.",
+    "downloadLimit": "Download limit reached",
+    "shareButton": "Share achievement card",
+    "confirmAction": "Tap again to confirm"
+  },
+  "support": {
+    "header": {
+      "kicker": "Help Center",
+      "title": "Frequently Asked Questions",
+      "subtitle": "Search for topics, browse categories, or reach out to our support team directly."
+    },
+    "search": {
+      "placeholder": "Search support...",
+      "clear": "Clear"
+    },
+    "filter": {
+      "label": "Filter:",
+      "aria": "Filter by category",
+      "all": "All"
+    },
+    "loading": "Loading...",
+    "empty": "No results match your search. Try different keywords or clear your filters.",
+    "vote": {
+      "prompt": "Was this helpful?",
+      "thanksHelpful": "Thanks for your feedback! 👍",
+      "thanksNotHelpful": "Thanks for your feedback! 👎",
+      "helpful": "👍 Helpful",
+      "notHelpful": "👎 Not really"
+    },
+    "feedbackSection": {
+      "title": "Did you see a bug or something not to your liking?",
+      "description": "Report a bug or send feedback so we can improve.",
+      "cta": "Report bug or send feedback"
+    },
+    "contact": {
+      "title": "Still need help? Contact us",
+      "subtitle": "Share a brief description of the issue and we'll be in touch.",
+      "email": "Your Email",
+      "topic": "Topic",
+      "selectTopic": "Select a topic",
+      "topics": {
+        "billing": "Billing",
+        "technical": "Technical Issue",
+        "account": "Account",
+        "content": "Course Content",
+        "feedback": "Feedback",
+        "other": "Other"
+      },
+      "message": "Message",
+      "send": "Send Message",
+      "success": "Your message has been received! Thank you for contacting us.",
+      "error": "Failed to send message. Please try again later."
+    }
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Report a bug or tell us what you'd like to see improved.",
+    "typeLabel": "Type",
+    "typeBug": "Bug report",
+    "typeSuggestion": "Suggestion / improvement",
+    "typeOther": "Something else",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Describe what happened or what you'd like to see changed...",
+    "whereLabel": "Where did this happen? (optional)",
+    "wherePlaceholder": "e.g. /tools, Dashboard, or a short description",
+    "send": "Send feedback",
+    "success": "Thanks! We've received your feedback.",
+    "error": "Failed to send feedback. Please try again.",
+    "backToSupport": "Back to Support"
+  },
+  "profile": {
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "goals": {
+      "dailyLabel": "Complete 1 lesson",
+      "weeklyLabel": "Earn 500 points",
+      "title": "Your Goals",
+      "subtitle": "Track daily and weekly learning progress.",
+      "dailyTitle": "🎯 Daily Goal",
+      "weeklyTitle": "🗓 Weekly Goal",
+      "completed": "✓ Completed!"
+    },
+    "fallbackUser": "User",
+    "loading": "Loading profile...",
+    "avatarAlt": "Avatar",
+    "actions": {
+      "personalizedPath": "Jump to Personalized Path",
+      "subscription": "Jump to Subscription"
+    },
+    "streak": {
+      "title": "Learning Streak",
+      "subtitle": "Visualize your daily activity for the month."
+    },
+    "referral": {
+      "title": "Invite Friends",
+      "subtitle": "Share your link—when a friend completes their first learning path, you’ll both get 40% off Plus by email.",
+      "linkLabel": "Your unique referral link",
+      "copied": "Copied!",
+      "copyLink": "Copy Link",
+      "linkAria": "Referral link"
+    },
+    "stats": {
+      "title": "Statistics",
+      "balance": "Balance",
+      "points": "Points",
+      "streak": "Streak",
+      "streakDays": "{{count}} days",
+      "hotStreak": "🔥 Hot streak!",
+      "keepGoing": "↑ Keep going!",
+      "startStreak": "Start your streak"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "showing": "Showing {{shown}} of {{total}}",
+      "filterLabel": "Filter:",
+      "filterAll": "All",
+      "filterEarned": "Earned",
+      "filterLocked": "Locked",
+      "showLess": "Show less",
+      "showAll": "Show all",
+      "earnedAchievement": "Earned achievement",
+      "locked": "Locked",
+      "earnedOn": "Earned {{date}}",
+      "empty": "No badges earned yet"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "empty": "No recent activity",
+      "showing": "Showing the 3 most recent activities of {{total}} total."
+    },
+    "friendRequests": {
+      "loadFailed": "Unable to load friend requests right now.",
+      "accepted": "Friend request accepted!",
+      "declined": "Friend request declined.",
+      "error": "Something went wrong. Please try again.",
+      "title": "Friend Requests",
+      "subtitle": "Manage people who want to connect.",
+      "empty": "No pending requests",
+      "wantsToConnect": "wants to connect with you",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "avatarSelector": {
+      "changeAvatar": "Change avatar",
+      "title": "Customize Your Avatar",
+      "subtitle": "Pick a style and personalize your look.",
+      "close": "Close avatar selector",
+      "previewAlt": "Avatar preview",
+      "seedHint": "Each avatar is generated from your seed text.",
+      "style": "Avatar Style",
+      "customizationSeed": "Customization Seed",
+      "customizePlaceholder": "Enter text to customize your avatar",
+      "customizeHint": "Different words create different avatars.",
+      "quickOptions": "Quick Options",
+      "quickOptionsHint": "Click any avatar below to use it.",
+      "randomize": "Randomize",
+      "saving": "Saving...",
+      "save": "Save Avatar"
+    }
+  },
+  "widgets": {
+    "userProgress": {
+      "loading": "Loading progress...",
+      "userProfile": "User Profile",
+      "logout": "Logout",
+      "loadingUserInfo": "Loading user info...",
+      "points": "Points",
+      "streak_one": "Day Streak",
+      "streak_other": "Days Streak",
+      "learningProgress": "Learning Progress",
+      "overallCompletion": "Overall Completion",
+      "pathProgress": "Path Progress",
+      "streak": "streak"
+    }
+  },
+  "chatbot": {
+    "title": "Finance Assistant",
+    "openAssistantAria": "Open Finance Assistant",
+    "closeAssistantAria": "Close Finance Assistant",
+    "loadingVoices": "Loading voices...",
+    "tryAsking": "Try asking me about:",
+    "voiceInputAria": "Voice input",
+    "inputPlaceholder": "Ask me about finance, budgeting, investing...",
+    "chatInputAria": "Chat input",
+    "send": "Send",
+    "typing": "Typing...",
+    "availablePaths": "Available paths",
+    "userAvatarAlt": "User avatar",
+    "speechNotSupported": "Speech recognition is not supported in your browser.",
+    "greeting": "Hello! I'm your financial assistant. Ask me about budgeting, investing, saving, cryptocurrencies, retirement planning, or any other finance topic. How can I help you today?",
+    "listening": "Listening...",
+    "loginRequired": "Please log in to use the chatbot. You will be redirected to the login page.",
+    "aiTutorLimited": "AI tutor access is limited on your current plan. Upgrade to keep chatting.",
+    "aiTutorPremiumOnly": "AI tutor is available on Premium plans. Upgrade to continue chatting.",
+    "aiTutorDailyLimit": "You've reached today's AI tutor limit. Upgrade for more conversations.",
+    "authTokenMissing": "Authentication token is missing. Please log in again.",
+    "genericError": "Sorry, I couldn't process your request. Please try again.",
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "rateLimit": "You've reached the rate limit. Please try again in a moment.",
+    "languages": {
+      "enUS": "English (US)",
+      "esES": "Spanish",
+      "frFR": "French",
+      "deDE": "German",
+      "itIT": "Italian",
+      "ptBR": "Portuguese",
+      "jaJP": "Japanese",
+      "koKR": "Korean",
+      "zhCN": "Chinese"
+    },
+    "quickReplies": {
+      "compoundInterest": "💰 What is compound interest?",
+      "learningPaths": "📚 Show me learning paths",
+      "recommendCourse": "📊 Recommend a course for me",
+      "bitcoinPrice": "📈 What's the price of Bitcoin?",
+      "startInvesting": "💼 How do I start investing?"
+    },
+    "responses": {
+      "increased": "increased",
+      "decreased": "decreased",
+      "up": "up",
+      "down": "down",
+      "stockPrice": "The current price of {{symbol}} is {{price}}. The stock {{direction}} by {{change}}% today.",
+      "stockNotFound": "I couldn't find current price data for {{symbol}}. Please check if the stock symbol is correct.",
+      "forexRate": "The current exchange rate from {{from}} to {{to}} is {{rate}}.",
+      "forexChanged": "The rate has changed by {{sign}}{{change}} today.",
+      "forexNotFound": "I couldn't find the exchange rate between {{from}} and {{to}}. Please check if both currency codes are valid.",
+      "cryptoPrice": "The current price of {{name}} is {{price}}. It's {{direction}} {{change}}% in the last 24 hours.",
+      "marketCap": "Market cap: {{marketCap}}.",
+      "cryptoNotFound": "I couldn't find current price data for {{name}}. It may not be listed on the exchanges I have access to.",
+      "cryptoUnrecognized": "I couldn't identify the cryptocurrency you're asking about. Please try specifying a major cryptocurrency like Bitcoin or Ethereum."
+    }
+  },
+  "settings": {
+    "errors": {
+      "loadSettings": "Failed to load settings. Please try again.",
+      "saveSettings": "Failed to save settings. Please try again.",
+      "passwordFields": "Please fill in all password fields.",
+      "passwordMismatch": "New passwords do not match.",
+      "passwordLength": "Password must be at least 8 characters.",
+      "passwordUpdate": "Failed to update password.",
+      "deletePassword": "Please enter your password to confirm deletion.",
+      "incorrectPassword": "Incorrect password. Please try again.",
+      "deleteAccount": "Failed to delete account. Please try again."
+    },
+    "success": {
+      "updated": "Settings updated successfully!",
+      "passwordUpdated": "Password updated successfully!"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "subtitle": "Update your personal details and email address.",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "subtitle": "Control reminders and personalization options.",
+      "emailReminders": "Email Reminders",
+      "reminders": {
+        "none": "No Reminders",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "emailTypes": {
+        "reminders": "General reminders",
+        "weeklyDigest": "Weekly digest",
+        "streakAlerts": "Streak alerts",
+        "billingAlerts": "Billing alerts",
+        "marketing": "Marketing emails"
+      },
+      "lessonSounds": "Lesson Sounds",
+      "soundsHint": "Play subtle chimes for answers",
+      "animations": "Animations",
+      "animationsHint": "Enable mascot and confetti animations"
+    },
+    "password": {
+      "title": "Change Password",
+      "subtitle": "Create a strong password to keep your account secure.",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "update": "Update Password"
+    },
+    "privacy": {
+      "settings": "Privacy Settings",
+      "cookiePolicy": "Cookie Policy",
+      "privacyPolicy": "Privacy Policy",
+      "financialDisclaimer": "Financial Disclaimer"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Permanently remove your account and all associated data.",
+      "deleteAccount": "Delete My Account",
+      "confirmNote": "This action cannot be undone. Please enter your password to confirm.",
+      "passwordPlaceholder": "Enter your password",
+      "confirmDeletion": "Confirm Deletion"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "save": "Save Changes"
+    }
+  },
+  "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "orContinueWith": "or continue with",
+    "recaptcha": {
+      "verifying": "Verifying you're human...",
+      "protectedBy": "Protected by reCAPTCHA"
+    },
+    "entitlementsUnavailable": "We could not confirm your entitlements right now.",
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account to continue",
+      "username": "Username",
+      "password": "Password",
+      "usernamePlaceholder": "Enter your username",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "signUpNow": "Sign up now",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "loginFailed": "Login failed. Please try again.",
+      "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Sign up to get started",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "referralCode": "Referral Code",
+      "optional": "optional",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastNamePlaceholder": "Enter your last name",
+      "usernamePlaceholder": "Choose a username",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Create a password",
+      "referralPlaceholder": "Enter referral code if you have one",
+      "referralCodeChecking": "Checking referral code...",
+      "referralCodeValid": "Referral code is valid.",
+      "referralCodeInvalid": "Referral code is invalid.",
+      "referralCodeCheckFailed": "Could not verify referral code. Try again.",
+      "submit": "Sign Up",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "loginHere": "Login here",
+      "registerFailed": "Registration failed. Please try again.",
+      "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
+      "verificationFailedHint": "Security verification could not be completed. Refresh the page and try again, or use Sign in with Google.",
+      "tryGoogleHint": "You can also sign in with Google below."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "logoAlt": "Monevo logo",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "submit": "Send Reset Link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to Login",
+      "success": "Password reset email sent successfully",
+      "error": "An error occurred. Please try again."
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password below",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPlaceholder": "Confirm your new password",
+      "submit": "Reset Password",
+      "submitting": "Saving...",
+      "success": "Password reset successful.",
+      "redirectingToLogin": "Redirecting to the login page…",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "error": "An error occurred. Please try again."
+    }
+  },
+  "subscriptions": {
+    "choosePlan": "Choose Your Plan",
+    "intro": "Starter is free after onboarding. Plus and Pro unlock your personalized path and premium features via secure Stripe checkout.",
+    "paymentConfirmed": "Payment confirmed! Your subscription is now active.",
+    "fallbackEntitlements": "Using fallback entitlements. Please contact support if this persists.",
+    "loadingPlans": "Loading plans...",
+    "free": "Free",
+    "trialDays": "{{count}} day trial",
+    "trialDays_one": "{{count}} day trial",
+    "trialDays_other": "{{count}} days trial",
+    "perMonth": "month",
+    "perYear": "year",
+    "billingYearly": "Yearly",
+    "billingMonthly": "Monthly",
+    "unlocksPath": "Unlocks personalized path + secure Stripe checkout",
+    "startStarter": "Start with Starter (Free)",
+    "choosePlanCheckout": "Choose {{name}}",
+    "premiumLearningAccess": "Premium learning access",
+    "selectPlanError": "Please choose a plan to continue.",
+    "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
+    "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "paymentSuccess": {
+      "title": "Payment successful",
+      "ariaLabel": "Setting up your account",
+      "fetchingAnswers": "Fetching your answers...",
+      "syncingSubscription": "Syncing your subscription...",
+      "buildingPaths": "Building your personalized paths...",
+      "ready": "Almost there..."
+    },
+    "retryEntitlements": "Retry entitlement check",
+    "contactSupport": "Contact support",
+    "subscriptionStatus": "Subscription status",
+    "statusPaid": "You're on Plus or Pro - personalized path and premium features unlocked.",
+    "statusStarterComplete": "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path.",
+    "statusOnboarding": "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro.",
+    "trialEndsOn": "Trial ends on {{date}}",
+    "viewPersonalizedPath": "View your personalized path",
+    "goToDashboard": "Go to dashboard",
+    "checkSubscriptionOptions": "Check subscription options",
+    "comparePlans": "Compare plans",
+    "seeWhatChanges": "See what changes by tier",
+    "feature": "Feature",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "notIncluded": "Not Included",
+    "unlimited": "Unlimited",
+    "perDay": "{{count}} / day",
+    "included": "Included",
+    "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
+  },
+  "onboarding": {
+    "loading": "Loading onboarding...",
+    "loadingQuestion": "Loading question...",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Try again",
+    "goToDashboard": "Go to Dashboard",
+    "goToAllTopics": "Go to All Topics",
+    "errorSetup": "Onboarding is being set up. Please try again in a moment.",
+    "errorLoad": "We couldn't load onboarding. Please try again.",
+    "errorNextQuestion": "We couldn't load the next question. Please try again.",
+    "errorNextQuestionSetup": "Questionnaire is being set up. Please try again in a moment.",
+    "noQuestionLoaded": "No question loaded",
+    "completeTitle": "Onboarding Complete!",
+    "completeSubtitle": "You're ready to choose a plan and unlock your personalized path.",
+    "viewPlans": "View Plans",
+    "questionOf": "Question {{current}} of {{total}}",
+    "tellUsAboutYourself": "Tell us about yourself",
+    "answerFewQuestions": "Answer a few quick questions so we can tailor your learning experience.",
+    "noAdviceNotice": "I understand Monevo provides educational information only and does not provide financial advice.",
+    "financialDisclaimer": "Financial Disclaimer",
+    "noFinancialAdvice": "No Financial Advice",
+    "progress": "Progress",
+    "summary": "Summary",
+    "allTopics": "All Topics",
+    "saveAndFinishLater": "Save and Finish Later",
+    "previous": "← Previous",
+    "next": "Next →",
+    "saving": "Saving...",
+    "complete": "Complete",
+    "completing": "Completing...",
+    "confirmNotice": "Please confirm the educational-use notice to continue.",
+    "selectAnswer": "Please select an answer",
+    "failedToSave": "Failed to save. Please try again.",
+    "failedToComplete": "Failed to complete onboarding",
+    "progressSaved": "Progress saved. You can resume anytime!",
+    "couldNotComplete": "Could not complete. Taking you to plans…",
+    "unsupportedQuestionType": "Unsupported question type: {{type}}",
+    "previousComingSoon": "Previous question navigation coming soon",
+    "reminderBanner": {
+      "loading": "Loading onboarding status…",
+      "error": "Couldn't load onboarding status.",
+      "retrying": "Retrying…",
+      "tryAgain": "Try again",
+      "status": "Onboarding Status",
+      "allSet": "You're all set. Your onboarding is complete.",
+      "questionsComplete": "{{done}} of {{total}} questions complete ({{percent}}%)",
+      "sectionsComplete": "{{done}} of {{total}} sections complete ({{percent}}%)",
+      "resume": "Resume Onboarding",
+      "start": "Start Onboarding",
+      "viewStatus": "View onboarding status"
+    },
+    "completionModal": {
+      "title": "🎉 Congratulations!",
+      "subtitle": "You've completed onboarding. Here are your rewards:",
+      "mascotMessage": "Your personalized learning path is ready. Let's go!",
+      "xpPoints": "XP Points",
+      "coins": "Coins",
+      "choosePlan": "Choose a Plan →",
+      "close": "Close"
+    },
+    "aria": "Onboarding Questionnaire"
+  },
+  "footer": {
+    "tagline": "Learn money skills with lessons, missions, and practice.",
+    "disclaimer": "Educational platform only. Monevo does not provide financial advice.",
+    "legal": "Legal",
+    "company": "Company",
+    "product": "Product",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy",
+    "termsConditions": "Terms & Conditions",
+    "financialDisclaimer": "Financial Disclaimer",
+    "noFinancialAdviceNotice": "No Financial Advice Notice",
+    "about": "About",
+    "subscriptions": "Subscriptions",
+    "contact": "Contact",
+    "support": "Support",
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "missions": "Missions",
+    "tools": "Tools",
+    "leaderboards": "Leaderboards",
+    "rewards": "Rewards",
+    "copyright": "© {{year}} Monevo. All rights reserved.",
+    "infoDisclaimer": "Information is educational and general, not personalized financial advice.",
+    "buyMeACoffee": "Buy me a coffee",
+    "monevoOn": "Monevo on {{platform}}",
+    "ariaLabel": "Site footer",
+    "cookieSettings": "Cookie settings",
+    "backToWelcome": "Back to Welcome"
+  },
+  "cookieConsent": {
+    "bannerAria": "Cookie consent",
+    "message": "We use cookies on this site. We need your consent to store non-essential cookies (e.g. analytics) on your device. Necessary cookies (session, login, security) are used without consent as required to provide the service. You can accept all, reject non-essential, or choose in settings.",
+    "acceptAll": "Accept all",
+    "rejectNonEssential": "Reject non-essential",
+    "cookieSettings": "Cookie settings",
+    "settingsTitle": "Cookie preferences",
+    "settingsIntro": "We inform you about the cookies we use. Necessary cookies (session, login, security) are always on and do not require consent under UK and EU law. Choose whether to allow optional cookies below.",
+    "necessaryNote": "Necessary cookies are always on (no consent required).",
+    "analyticsLabel": "Analytics — help us understand how the site is used (e.g. Google Analytics).",
+    "marketingLabel": "Marketing — optional ads or remarketing (we do not use these currently).",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "header": {
+    "premiumReady": "Premium Ready",
+    "toggleDarkMode": "Toggle dark mode",
+    "openDashboard": "Open Dashboard",
+    "login": "Login",
+    "getStarted": "Get Started"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong while loading this section.",
+    "chunkLoadMessage": "A new version was deployed and your browser still has an older cached file. Reloading should fix it.",
+    "genericMessage": "Please refresh the page or try again later. If the problem persists, contact support.",
+    "reloadPage": "Reload page"
+  },
+  "exercises": {
+    "errors": {
+      "loadFailed": "Failed to load exercises. Please try again later.",
+      "submissionFailed": "Submission failed. Please try again.",
+      "submitAnswer": "Please submit an answer before continuing.",
+      "invalidFormat": "Invalid exercise format",
+      "unsupportedType": "Unsupported exercise type.",
+      "invalidDragDrop": "Invalid drag-and-drop answer format."
+    },
+    "mascot": {
+      "correct": "Great job! You got it right.",
+      "encourage": "Keep the optimism. Try again.",
+      "neutral": "Calm and steady progress wins."
+    },
+    "header": {
+      "title": "Financial Exercises",
+      "subtitle": "Practice interactive challenges to strengthen your money skills."
+    },
+    "reviewQueue": {
+      "title": "Review Queue",
+      "due": "Due • {{count}}",
+      "nextUp": "Next up: {{skill}} - {{question}}",
+      "start": "Start Review",
+      "emptyTitle": "All caught up!",
+      "emptySubtitle": "No review items are due right now.",
+      "backToLesson": "Back to lesson mode",
+      "refresh": "Refresh content"
+    },
+    "session": {
+      "complete": "🎉 Congratulations! You've completed this session. Review your stats or start a new round below."
+    },
+    "filters": {
+      "type": "Type",
+      "allTypes": "All Types",
+      "multipleChoice": "Multiple Choice",
+      "numeric": "Numeric",
+      "dragDrop": "Drag and Drop",
+      "budget": "Budget Allocation",
+      "fillTable": "Fill In Table",
+      "scenario": "Scenario Simulation",
+      "category": "Category",
+      "allCategories": "All Categories",
+      "difficulty": "Difficulty",
+      "allDifficulties": "All Difficulties",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "toggleShow": "Show filters",
+      "toggleHide": "Hide filters"
+    },
+    "progress": {
+      "label": "Exercise {{current}} of {{total}}",
+      "title": "Your Progress",
+      "exercise": "Exercise {{index}}",
+      "completed": "Completed",
+      "attempted": "Attempted",
+      "empty": "No progress yet. Start an exercise to see your progress here!",
+      "totalCompleted": "Total Completed",
+      "pending": "Pending",
+      "showingRange": "Showing exercises {{start}}-{{end}} of {{total}}"
+    },
+    "timedMode": "Timed Mode",
+    "streak": "🔥 You've completed {{count}} exercises in a row - keep it up!",
+    "refreshing": "Updating exercises…",
+    "emptyFiltered": {
+      "title": "No exercises match these filters",
+      "subtitle": "Try clearing the category filter or choosing a different one.",
+      "browseTopics": "Browse topics"
+    },
+    "emptyUnmapped": {
+      "title": "We couldn’t match “{{skill}}” to an exercise category yet.",
+      "subtitle": "You can still practice: open all exercises, pick a category, or continue with lessons on this topic.",
+      "viewAll": "View all exercises",
+      "pickCategory": "Choose a category",
+      "browseLessons": "Go to lessons"
+    },
+    "emptyMappedZero": {
+      "title": "You’re focused on {{category}}, but there are no exercises here right now.",
+      "subtitle": "Try another category, clear this filter, or learn from lessons while we grow the library.",
+      "clearFilter": "Clear category filter",
+      "pickAnother": "Pick another category",
+      "goToLessons": "Go to lessons"
+    },
+    "skillIntent": {
+      "applied": "Focused practice for {{skill}} — exercises filtered to {{category}}.",
+      "notMapped": "We couldn't match {{skill}} to an exercise category yet, so all exercises are shown.",
+      "dismiss": "Hide message",
+      "dismissRecommendation": "Dismiss recommendation",
+      "applyingFocus": "Applying your recommended focus…",
+      "clearFilter": "Show all exercises",
+      "changeCategory": "Pick another category",
+      "regionLabel": "Practice recommendation",
+      "titleMapped": "Focused on {{category}}",
+      "titleMappedDiffers": "Focused on {{category}} for your weak skill: {{skill}}",
+      "titleUnmapped": "We couldn’t match “{{skill}}” to an exercise category yet",
+      "bodyMapped": "Exercises are filtered to this category. Change the filter, show all exercises, or dismiss this tip anytime.",
+      "bodyUnmapped": "We’re showing every exercise for now. Pick a category below or open lessons for a guided path.",
+      "context": {
+        "weak_skill_click": "Based on an area to improve from your dashboard (you opened this skill).",
+        "weak_skill_practice": "Based on an area to improve from your dashboard (practice).",
+        "quick_card_exercises": "From your dashboard quick practice card.",
+        "default": "Recommended from your dashboard."
+      },
+      "restoreBanner": "Show recommendation again",
+      "reminderShortApplied": "Focused practice for {{skill}} in {{category}}.",
+      "reminderShortUnmapped": "Practice recommendation for {{skill}} is hidden."
+    },
+    "hints": {
+      "title": "Hints",
+      "showNext": "Show next hint (-{{cost}} coins)",
+      "credits": "Hint credits:",
+      "earnMore": "Earn more hint credits via missions.",
+      "upgrade": "Upgrade",
+      "helper": "Use hints if you need a nudge. Each one costs a little XP.",
+      "unavailable": "Hints are unavailable on your plan. Upgrade to unlock.",
+      "depleted": "You have used all hints for today."
+    },
+    "assist": {
+      "title": "Assist",
+      "scratchpad": "Scratchpad",
+      "scratchpadPlaceholder": "Work through the steps here",
+      "calculator": "Calculator",
+      "calculatorPlaceholder": "e.g. (1+0.05/12)^12-1",
+      "showCalculator": "Show",
+      "hideCalculator": "Hide"
+    },
+    "explanation": {
+      "remember": "Remember:",
+      "learnMore": "Learn more about this topic",
+      "learnMoreLink": "Learn more",
+      "askTutor": "Ask the AI tutor for a deeper explanation"
+    },
+    "saveError": "Error saving progress. Please try again.",
+    "mc": {
+      "correct": "Correct! Well done!",
+      "incorrect": "Incorrect. Try again!",
+      "chooseBest": "Choose the best answer from the options below."
+    },
+    "drag": {
+      "title": "Match The Correct Items",
+      "instruction": "Drag each item to the matching target. Submit your answers when you are ready.",
+      "items": "Items",
+      "targets": "Targets",
+      "completed": "Great job! You completed the exercise!",
+      "partialCorrect": "{{correct}} out of {{total}} answers are correct. Try again!",
+      "alreadyCompleted": "This exercise is already completed.",
+      "answerLabel": "Answer:",
+      "slot": "#{{n}}"
+    },
+    "budget": {
+      "instruction": "Allocate your budget across the categories below. Make sure the total adds up to {{total}}.",
+      "correct": "Great job! Your budget allocation is correct!",
+      "totalMismatch": "Your total must be {{total}}. Current total: {{current}}",
+      "currentTotal": "Current Total:",
+      "target": "Target:",
+      "submitAllocation": "Submit Allocation"
+    },
+    "table": {
+      "row": "Row",
+      "rowWithId": "Row {{id}}",
+      "instruction": "Fill in each cell with the correct values.",
+      "fillOne": "Fill in at least one cell before submitting.",
+      "correct": "Nice work! The table is filled out correctly.",
+      "incorrect": "Some entries are off. Review the table and try again.",
+      "submitTable": "Submit Table"
+    },
+    "scenario": {
+      "actionSlot": "Action slot:",
+      "dragHint": "Drag a choice here or select one below.",
+      "selected": "Selected",
+      "correct": "Great call! You handled the scenario well.",
+      "incorrect": "Not quite. Try another strategy.",
+      "submitChoice": "Submit Choice"
+    },
+    "confidence": {
+      "label": "Confidence",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "helper": "Low confidence will schedule similar practice sooner."
+    },
+    "result": {
+      "correct": "✅ Correct! Well done!",
+      "incorrect": "❌ Incorrect. Better luck next time!"
+    },
+    "actions": {
+      "restart": "Restart",
+      "retrying": "Retrying...",
+      "tryAgain": "Try Again",
+      "finish": "Finish",
+      "next": "Next Exercise",
+      "tryVariant": "Try Variant",
+      "submit": "Submit Answer",
+      "retryExercise": "Retry Exercise",
+      "submitAnswers": "Submit Answers"
+    },
+    "calculator": {
+      "checkExpression": "Check expression",
+      "backspace": "⌫",
+      "clear": "Clear"
+    },
+    "inputs": {
+      "numberPlaceholder": "Enter a number"
+    },
+    "inline": {
+      "correct": "Nice work! Keep going.",
+      "incorrect": "Hint: revisit the prompt and try again."
+    },
+    "skillInsight": {
+      "firstUnlock": "New skill unlocked: {{skill}}",
+      "levelUp": "{{skill}} moved up to {{level}}",
+      "keepBuilding": "Keep building {{skill}}",
+      "building": "Building"
+    },
+    "loading": "Loading exercises...",
+    "retry": "Retry",
+    "skillFallback": "General",
+    "streakCongrats": "You did it! Keep the streak alive.",
+    "numeric": {
+      "expectedValue": "Expected: {{value}}",
+      "expectedWithTolerance": "Expected: {{value}} (tolerance ±{{tolerance}})"
+    },
+    "summary": {
+      "title": "Exercise Session Summary",
+      "close": "Close",
+      "averageAccuracy": "Average Accuracy",
+      "firstTryAccuracy": "First-Try Accuracy",
+      "xpEarned": "XP Earned",
+      "streakMultiplier": "Streak multiplier",
+      "none": "none",
+      "coinsEarned": "Coins Earned",
+      "coinsHint": "Earn more coins by finishing missions.",
+      "averageAttempts": "Average Attempts",
+      "perQuestion": "per question",
+      "reviewDue": "Review Due",
+      "totalTimeSpent": "Total Time Spent",
+      "timeRemaining": "Time Remaining",
+      "missionProgress": "Mission progress",
+      "firstTryCorrect": "First-try correct answers",
+      "currentStreak": "Current streak",
+      "skillHighlights": "Skill highlights",
+      "masteryPoints": "mastery points",
+      "doReviews": "Do your reviews",
+      "nextRecommended": "Next recommended",
+      "startNewSession": "Start New Session",
+      "totalCompletedOf": "{{done}} of {{total}}",
+      "queuedCount": "{{count}} exercises queued",
+      "nextWithType": "Next: {{skill}} ({{type}})",
+      "reviewCtaWithCount": "You have {{count}} item(s) waiting. Do your reviews now to lock in gains.",
+      "reviewCtaNone": "No reviews due. Continue the lesson or jump to a recommended next exercise."
+    }
+  },
+  "landing": {
+    "hero": {
+      "aria": "Hero section",
+      "badge": "{{count}}+ lessons",
+      "titleLine1": "Master Finance",
+      "titleLine2": "The Smart Way",
+      "subtitle": "Learn financial skills at your own pace with interactive courses, AI-powered guidance, and real-world tools.",
+      "ctaStartShort": "Start",
+      "ctaStart": "Get Started",
+      "ctaDemoShort": "Demo",
+      "ctaDemo": "Watch Demo",
+      "ctaExploreAria": "Scroll to explore features",
+      "ctaExploreShort": "Explore",
+      "ctaExplore": "Explore Features",
+      "stats": {
+        "currentStreak": "Current Streak",
+        "days": "days",
+        "totalXp": "Total XP",
+        "today": "today"
+      },
+      "topics": {
+        "budgeting": "Budgeting",
+        "saving": "Saving",
+        "investing": "Investing",
+        "credit": "Credit",
+        "taxes": "Taxes"
+      },
+      "demoModal": {
+        "aria": "Demo modal",
+        "videoAria": "Monevo demo video",
+        "closeAria": "Close demo modal",
+        "title": "Watch Demo",
+        "close": "Close",
+        "subtitle": "See how Monevo can help you master finance. Watch our interactive demo to explore the platform.",
+        "startLearning": "Start Learning"
+      }
+    },
+    "features": {
+      "title": "Everything You Need to Master Finance",
+      "subtitle": "Discover powerful features designed to accelerate your financial learning journey",
+      "featureLabel": "Feature {{count}}",
+      "items": {
+        "learning-paths": {
+          "title": "Comprehensive Learning Paths",
+          "text": "Structured courses designed to build your financial knowledge from the ground up.",
+          "bullets": [
+            "Step-by-step learning modules",
+            "Interactive quizzes and assessments",
+            "Progress tracking and certificates"
+          ]
+        },
+        "achievement-system": {
+          "title": "Achievement System",
+          "text": "Gamified learning experience that keeps you motivated and engaged.",
+          "bullets": [
+            "Earn badges and rewards",
+            "Track your learning streak",
+            "Compete on leaderboards"
+          ]
+        },
+        "ai-tutor": {
+          "title": "AI-Powered Tutor",
+          "text": "Get personalized guidance and answers to your financial questions.",
+          "bullets": [
+            "24/7 available assistant",
+            "Context-aware responses",
+            "Learning recommendations"
+          ]
+        },
+        "real-time-tools": {
+          "title": "Real-Time Tools",
+          "text": "Access powerful financial calculators and analysis tools.",
+          "bullets": [
+            "Portfolio analyzer",
+            "Savings goal calculator",
+            "Currency converter"
+          ]
+        },
+        "market-insights": {
+          "title": "Market Insights",
+          "text": "Stay updated with the latest financial news and market trends.",
+          "bullets": [
+            "Economic calendar",
+            "Market analysis",
+            "News aggregation"
+          ]
+        }
+      }
+    },
+    "reviews": {
+      "title": "Loved by Learners Worldwide",
+      "subtitle": "See what our community has to say about their learning experience",
+      "aria": "Customer reviews",
+      "cardAria": "Review by {{name}}",
+      "items": {
+        "sarah": {
+          "title": "Financial Advisor",
+          "quote": "Monevo has transformed how I learn about finance. The interactive courses are engaging and practical."
+        },
+        "michael": {
+          "title": "Entrepreneur",
+          "quote": "The AI tutor is incredibly helpful. It answers my questions instantly and helps me understand complex concepts."
+        },
+        "emily": {
+          "title": "Student",
+          "quote": "I love the gamification aspect. Earning badges and competing on leaderboards makes learning fun!"
+        },
+        "david": {
+          "title": "Investor",
+          "quote": "The financial tools are top-notch. The portfolio analyzer has been invaluable for my investment decisions."
+        },
+        "lisa": {
+          "title": "Small Business Owner",
+          "quote": "Finally, a platform that makes financial education accessible and enjoyable. Highly recommend!"
+        }
+      }
+    }
+  },
+  "legal": {
+    "related": "Related",
+    "lastUpdated": "Last updated: {{date}}",
+    "dates": {
+      "feb7_2026": "February 7, 2026"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "Monevo is an educational platform. This policy explains what personal data we collect, why we collect it, and your rights. It is written to comply with the UK General Data Protection Regulation (UK GDPR), the UK Data Protection Act 2018, and where applicable the EU General Data Protection Regulation (Regulation (EU) 2016/679) for users in the European Economic Area.",
+      "sections": {
+        "who": {
+          "title": "1. Who we are",
+          "body": "This policy applies to the Monevo web app and related services (\"Service\"). For data protection purposes, the data controller is Monevo, United Kingdom. If you are in the European Economic Area (EEA), we may act as controller for personal data processed in connection with the Service."
+        },
+        "data": {
+          "title": "2. Data we collect",
+          "intro": "We collect the following categories of data:",
+          "items": {
+            "account": {
+              "label": "Account data:",
+              "text": "email address, username, and password hash."
+            },
+            "profile": {
+              "label": "Profile and preference data:",
+              "text": "first/last name (if provided), onboarding responses, financial learning preferences, language, reminder settings, and theme settings."
+            },
+            "learning": {
+              "label": "Learning and product usage data:",
+              "text": "lessons viewed, progress, streaks, missions, tool usage events, and feature interactions."
+            },
+            "technical": {
+              "label": "Technical data:",
+              "text": "IP address, device/browser type, operating system, approximate region, timestamps, crash/error logs, and security logs."
+            },
+            "cookies": {
+              "label": "Cookie and tracking data:",
+              "text": "consent choices, analytics identifiers, and ad/marketing event data where consent is given."
+            },
+            "billing": {
+              "label": "Billing metadata:",
+              "text": "plan, subscription status, and Stripe subscription identifiers. We do not store your full card number."
+            },
+            "inputs": {
+              "label": "User-provided finance inputs:",
+              "text": "simulated portfolio entries and learning-tool inputs entered by you."
+            }
+          }
+        },
+        "collection": {
+          "title": "3. How we collect data",
+          "items": {
+            "direct": "Directly from you (registration, onboarding, settings, tools).",
+            "automatic": "Automatically via app logs, cookies, analytics, and pixels.",
+            "processors": "From processors that support our service (for example Stripe for subscription status)."
+          }
+        },
+        "purposes": {
+          "title": "4. Why we process your data and legal bases",
+          "items": {
+            "account": {
+              "label": "Provide and run your account",
+              "text": "(contractual necessity)."
+            },
+            "core": {
+              "label": "Deliver core product features and learning progress",
+              "text": "(contractual necessity)."
+            },
+            "security": {
+              "label": "Keep the platform secure and prevent abuse",
+              "text": "(legitimate interests)."
+            },
+            "improve": {
+              "label": "Improve product quality and performance",
+              "text": "(legitimate interests)."
+            },
+            "comms": {
+              "label": "Send service communications",
+              "text": "such as account and billing notices (contractual necessity and legitimate interests)."
+            },
+            "marketing": {
+              "label": "Send optional marketing messages",
+              "text": "(consent, where required)."
+            },
+            "legal": {
+              "label": "Meet legal and tax obligations",
+              "text": "(legal obligation)."
+            }
+          }
+        },
+        "cookies": {
+          "title": "5. Cookies and similar technologies",
+          "body1": "We use strictly necessary cookies for login/session functions and, when you consent, analytics and marketing cookies.",
+          "body2": "You can manage consent using our cookie banner and cookie settings. See our <link>Cookie Policy</link> for details."
+        },
+        "processors": {
+          "title": "6. Third-party processors and services",
+          "body1": "We use third parties to operate the service. Depending on your usage, these may include:",
+          "items": {
+            "stripe": "Stripe (billing and subscription processing).",
+            "cookieConsent": "Cookie consent (managed on our site; we do not use third-party consent tools).",
+            "google": "Google Analytics / Google Ads tags (with consent).",
+            "amplitude": "Amplitude (product analytics).",
+            "sentry": "Sentry (error monitoring).",
+            "hosting": "Hosting and infrastructure providers.",
+            "email": "Email and transactional messaging providers."
+          },
+          "body2": "These providers process data under contracts and only for approved purposes."
+        },
+        "transfers": {
+          "title": "7. International transfers",
+          "body": "Some of our service providers process data outside the UK or the European Economic Area (EEA). Where we do so, we rely on appropriate safeguards: for example UK adequacy regulations, EU adequacy decisions, or standard contractual clauses approved by the UK Secretary of State or the European Commission."
+        },
+        "retention": {
+          "title": "8. Data retention",
+          "body": "We keep personal data only as long as needed for service delivery, legal obligations, dispute resolution, and security. Retention periods vary by data type."
+        },
+        "rights": {
+          "title": "9. Your rights",
+          "body": "Subject to applicable law (including UK GDPR and, for EEA users, EU GDPR), you may request to:",
+          "items": {
+            "access": "Access your personal data.",
+            "correct": "Correct inaccurate data.",
+            "delete": "Delete your data.",
+            "restrict": "Restrict or object to certain processing.",
+            "withdraw": "Withdraw consent (where processing is based on consent).",
+            "portable": "Receive a portable copy of data you provided.",
+            "complaint": "Lodge a complaint with a supervisory authority: in the UK, the Information Commissioner's Office (ICO); in the EEA, the data protection authority of your country of residence or place of work."
+          }
+        },
+        "security": {
+          "title": "10. Security",
+          "body": "We use technical and organizational safeguards designed to protect personal data. No method of storage or transmission is completely secure."
+        },
+        "children": {
+          "title": "11. Children",
+          "body": "Monevo is not intended for children under 16. If you believe a child has provided personal data, contact us and we will investigate."
+        },
+        "changes": {
+          "title": "12. Changes to this policy",
+          "body": "We may update this policy from time to time. Material changes will be posted in the app or on our website with an updated date."
+        },
+        "contact": {
+          "title": "13. Contact us",
+          "email": "Email:",
+          "support": "Support:",
+          "country": "Country: United Kingdom"
+        }
+      }
+    },
+    "financialDisclaimer": {
+      "title": "Financial Disclaimer",
+      "intro": "Monevo content is for <strong>educational and informational</strong> purposes only. This disclaimer applies to users in the United Kingdom and the European Union / European Economic Area.",
+      "sections": {
+        "meaning": {
+          "title": "What this means",
+          "items": {
+            "general": "Content is general information and not tailored to your personal circumstances.",
+            "noProfile": "We do not consider your full financial situation, risk tolerance, time horizon, or investment objectives.",
+            "noRecommendation": "Nothing on Monevo is a recommendation or solicitation to buy, sell, hold, or invest in any asset.",
+            "examples": "Examples, scenarios, or tool outputs are illustrative and may use assumptions that do not match real-world outcomes.",
+            "pastPerformance": "Past performance, historical data, and model outputs do not guarantee future results."
+          }
+        },
+        "responsibility": {
+          "title": "Your responsibility",
+          "body": "You remain fully responsible for your own financial and investment decisions. Before acting, consider getting advice from a qualified, regulated professional."
+        },
+        "warranty": {
+          "title": "No warranty on accuracy or completeness",
+          "body": "We aim to provide useful and current educational content, but we do not guarantee that all content is complete, accurate, or up to date at all times."
+        },
+        "related": {
+          "title": "Related notices",
+          "body": "Please also review our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
+        }
+      }
+    },
+    "cookiePolicy": {
+      "title": "Cookie Policy",
+      "intro": "This policy explains what cookies and similar technologies we use and how you can manage your preferences. It is written to comply with UK rules (including the Privacy and Electronic Communications Regulations 2003 as amended, and UK GDPR where personal data is processed) and with EU rules on cookies and similar technologies (the ePrivacy Directive and the General Data Protection Regulation where applicable).",
+      "sections": {
+        "what": {
+          "title": "1. What cookies are",
+          "body": "Cookies are small text files placed on your device when you visit a website. They help with login, security, analytics, and service performance."
+        },
+        "sessionPersistent": {
+          "title": "2. Session and persistent cookies",
+          "sessionTitle": "Session cookies",
+          "sessionBody": "Session cookies let the site recognise and link your actions during a single browsing session. They are typically used for purposes such as remembering what you put in a basket while you browse. Session cookies often store an identifier so you can move from page to page without re-entering your username, password, etc. They last only for that session and are deleted when you close the browser or app.",
+          "persistentTitle": "Persistent cookies",
+          "persistentBody": "Persistent cookies are stored across sessions and can remember your preferences or actions on a site (or across sites)—for example language, theme, menu preferences, or favourite pages. We use them only where you have consented or where they are strictly necessary for the service you requested."
+        },
+        "categories": {
+          "title": "3. Cookie categories we use",
+          "items": {
+            "necessary": {
+              "label": "Strictly necessary cookies:",
+              "text": "required for core functionality such as login, session handling, and security."
+            },
+            "preference": {
+              "label": "Preference cookies:",
+              "text": "remember settings (for example display choices)."
+            },
+            "analytics": {
+              "label": "Analytics cookies:",
+              "text": "help us understand usage and improve product experience."
+            },
+            "marketing": {
+              "label": "Marketing cookies:",
+              "text": "measure campaign performance and ad interactions, where consent is provided."
+            }
+          }
+        },
+        "consentRequirement": {
+          "title": "4. Consent for cookies",
+          "body": "In the UK, the Privacy and Electronic Communications Regulations (PECR) require that we inform you about cookies and, except for those strictly necessary for a service you have requested (e.g. session and login cookies, security), obtain your consent before storing or accessing information on your device. In the EEA, the ePrivacy rules and national implementations impose similar requirements. Consent must be informed, specific, and freely given. We do not set non-essential cookies until you have given your consent."
+        },
+        "consent": {
+          "title": "5. Managing your consent",
+          "body": "You can change your cookie preferences at any time via the cookie banner or your browser settings. Disabling some cookies may impact certain features.",
+          "manageHint": "to update your choices."
+        },
+        "thirdParty": {
+          "title": "6. Third-party technologies",
+          "body": "We may use third-party tools such as Google Analytics when you consent. These services may set their own cookies according to your choices in our cookie settings."
+        },
+        "declaration": {
+          "title": "7. Cookie declaration",
+          "body": "Summary of categories we use:",
+          "necessary": "Necessary: session, auth, security (always on).",
+          "analytics": "Analytics: e.g. Google Analytics (optional, with your consent).",
+          "marketing": "Marketing: not used at present; optional if we add it later."
+        },
+        "contact": {
+          "title": "8. Contact",
+          "body": "For cookie questions:",
+          "related": "Related pages: <privacy>Privacy Policy</privacy> and <terms>Terms of Service</terms>"
+        }
+      },
+      "declaration": {
+        "loading": "Loading cookie declaration..."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "sections": {
+        "agreement": {
+          "title": "1. Agreement to these terms",
+          "body": "By creating an account, accessing, or using Monevo, you agree to these Terms, our <privacy>Privacy Policy</privacy>, and our <cookie>Cookie Policy</cookie>."
+        },
+        "about": {
+          "title": "2. What Monevo is (and is not)",
+          "body1": "Monevo is a financial education and decision-support platform. Monevo is not a financial adviser, investment adviser, broker, or fiduciary.",
+          "body2": "See our <financial>Financial Disclaimer</financial>."
+        },
+        "security": {
+          "title": "3. Eligibility and account security",
+          "body": "You must provide accurate account information and keep your login credentials secure. You are responsible for activity under your account."
+        },
+        "acceptableUse": {
+          "title": "4. Acceptable use",
+          "body": "You agree not to:",
+          "items": {
+            "unlawful": "Use the service for unlawful purposes.",
+            "unauthorized": "Attempt unauthorized access to systems or accounts.",
+            "interfere": "Interfere with service availability or security controls.",
+            "reverse": "Reverse engineer or abuse platform features."
+          }
+        },
+        "educational": {
+          "title": "5. Educational content and user decisions",
+          "body": "Content is provided for general educational purposes only and may be incomplete, simplified, delayed, or out of date. You are solely responsible for your financial decisions and outcomes."
+        },
+        "subscriptions": {
+          "title": "6. Subscriptions, billing, and payments",
+          "body": "Paid plans, billing intervals, and included features are displayed on the subscriptions page. Payments are processed securely by Stripe. Subscriptions renew automatically until you cancel. You may cancel at any time before the next billing date; access continues until the end of the current period. Refunds are given only where required by applicable law (for example UK Consumer Rights Act 2015)."
+        },
+        "thirdParty": {
+          "title": "7. Third-party services and links",
+          "body": "Monevo may integrate with or link to third-party services. We are not responsible for third-party content, accuracy, availability, or practices."
+        },
+        "ip": {
+          "title": "8. Intellectual property",
+          "body": "The platform, branding, and original content are owned by Monevo or licensors and are protected by applicable intellectual property laws. You receive a limited, non-exclusive, revocable license to use the service for personal lawful use."
+        },
+        "disclaimers": {
+          "title": "9. Disclaimers",
+          "body": "The service is provided \"as is\" and \"as available\" without warranties of any kind, express or implied, including fitness for a particular purpose, uninterrupted availability, or error-free operation."
+        },
+        "liability": {
+          "title": "10. Limitation of liability",
+          "body": "To the maximum extent permitted by law, Monevo and its affiliates are not liable for indirect, incidental, consequential, special, or punitive damages, or for loss of profits, revenue, data, investment gains, or business opportunities arising from use of the service."
+        },
+        "indemnity": {
+          "title": "11. Indemnity",
+          "body": "You agree to indemnify and hold harmless Monevo from claims, losses, liabilities, and expenses arising out of your misuse of the service or breach of these terms."
+        },
+        "termination": {
+          "title": "12. Suspension and termination",
+          "body": "We may suspend or terminate access if we reasonably believe you have breached these terms, created security risk, or used the service unlawfully."
+        },
+        "changes": {
+          "title": "13. Changes to service and terms",
+          "body": "We may update product features and these terms from time to time. Continued use after updates means you accept the revised terms."
+        },
+        "law": {
+          "title": "14. Governing law and jurisdiction",
+          "body": "These terms are governed by the laws of England and Wales. The courts of England and Wales will have non-exclusive jurisdiction, except where mandatory consumer law in your country of residence gives you the right to bring proceedings in your local courts. Nothing in these terms affects your statutory rights as a consumer: in the UK, under the Consumer Rights Act 2015 and related legislation; in the European Union and EEA, under the Consumer Rights Directive and applicable national laws."
+        },
+        "contact": {
+          "title": "15. Contact",
+          "body": "For terms questions:"
+        }
+      }
+    },
+    "noAdvice": {
+      "title": "No Financial Advice Notice",
+      "intro": "Monevo does not provide financial, investment, tax, or legal advice. This notice applies to users in the United Kingdom and the European Union / European Economic Area.",
+      "sections": {
+        "regulatory": {
+          "title": "Regulatory position",
+          "items": {
+            "position": "Monevo is positioned as a financial education platform and information tool.",
+            "fca": "In the UK: Monevo is not authorised by the Financial Conduct Authority (FCA) to provide regulated investment advice.",
+            "euRegulation": "In the EU/EEA: Monevo does not provide investment advice as defined under Directive 2014/65/EU (MiFID II) or equivalent national law.",
+            "noAdvisor": "Monevo does not act as your financial adviser, investment adviser, broker, or fiduciary.",
+            "noRelationship": "Use of Monevo does not create an adviser-client or fiduciary relationship."
+          }
+        },
+        "infer": {
+          "title": "What you should not infer",
+          "items": {
+            "outputs": "Tool outputs, rankings, prompts, and scenarios are not personal recommendations.",
+            "workflows": "Educational workflows are not instructions to enter any trade or investment.",
+            "labels": "Labels such as \"next step\" refer to learning flow, not regulated advice."
+          }
+        },
+        "professional": {
+          "title": "Professional advice",
+          "body": "If you need advice tailored to your circumstances, speak to a qualified and appropriately regulated adviser before making financial decisions."
+        },
+        "related": {
+          "title": "Related documents",
+          "body": "Review the <financial>Financial Disclaimer</financial>, <terms>Terms of Service</terms>, and <privacy>Privacy Policy</privacy>."
+        }
+      }
+    }
+  },
+  "lessonSection": {
+    "unsupportedExercise": "Unsupported exercise type",
+    "textAria": "Text content section",
+    "videoAria": "Educational video player",
+    "completedAria": "Section completed",
+    "completed": "Completed",
+    "completeAria": "Complete {{title}} exercise",
+    "completeExercise": "Complete Exercise"
+  },
+  "mascotPools": {
+    "owl": {
+      "celebrate_0": "Great job! You got it right.",
+      "celebrate_1": "You nailed it!",
+      "celebrate_2": "Well done!"
+    },
+    "bull": {
+      "encourage_0": "Keep the optimism. Try again.",
+      "encourage_1": "Mistakes happen. Keep going!",
+      "encourage_2": "You've got this. Try again!"
+    },
+    "bear": {
+      "neutral_0": "Calm and steady progress wins.",
+      "neutral_1": "Steady progress is the goal.",
+      "neutral_2": "One step at a time."
+    }
+  }
+}

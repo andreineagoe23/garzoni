@@ -1,12 +1,13 @@
 import React from "react";
 import { render } from "@testing-library/react";
+import { afterAll, test, expect, vi } from "vitest";
 import App from "./App";
 
-jest.mock("services/analyticsService", () => ({
-  recordFunnelEvent: jest.fn(() => Promise.resolve()),
+vi.mock("services/analyticsService", () => ({
+  recordFunnelEvent: () => Promise.resolve(),
 }));
 
-const consoleError = jest
+const consoleError = vi
   .spyOn(console, "error")
   .mockImplementation(() => undefined);
 

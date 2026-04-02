@@ -1,6 +1,5 @@
 /**
  * Clicks real WeakSkills + WeakSkillsQuickCard wired like Dashboard.
- * Real router via __USE_REAL_ROUTER__ (see test-utils/react-router-dom-mock-impl.js).
  */
 import React from "react";
 import {
@@ -11,12 +10,13 @@ import {
 import { I18nextProvider } from "react-i18next";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import i18n from "../../i18n";
 import WeakSkills from "./WeakSkills";
 import WeakSkillsQuickCard from "./WeakSkillsQuickCard";
 import { useDashboardSkillExercisesNavigation } from "hooks/useDashboardSkillExercisesNavigation";
 
-const mockTrackEvent = jest.fn();
+const mockTrackEvent = vi.fn();
 
 function assertSkillQuery(loc: { pathname: string; search: string }) {
   expect(loc.pathname).toBe("/exercises");
@@ -31,24 +31,17 @@ describe("Dashboard weak-skill UI navigation contract", () => {
           matches: false,
           media: "",
           onchange: null,
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-          dispatchEvent: jest.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
         }) as unknown as MediaQueryList;
     }
   });
 
   beforeEach(() => {
-    (globalThis as { __USE_REAL_ROUTER__?: boolean }).__USE_REAL_ROUTER__ =
-      true;
     mockTrackEvent.mockClear();
-  });
-
-  afterEach(() => {
-    delete (globalThis as { __USE_REAL_ROUTER__?: boolean })
-      .__USE_REAL_ROUTER__;
   });
 
   it("WeakSkills card opens exercises with ?skill=", async () => {

@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "baseUrl": "src",
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "paths": {
+      "services/*": ["services/*"],
+      "constants/*": ["constants/*"],
+      "types/*": ["types/*"],
+      "stores/*": ["stores/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "src/**/*.json"
+  ]
+}

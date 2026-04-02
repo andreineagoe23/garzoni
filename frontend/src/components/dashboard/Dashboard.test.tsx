@@ -1,76 +1,85 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 
 import Dashboard from "./Dashboard";
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 let mockProfileResponse: {
   is_questionnaire_completed: boolean;
   has_paid?: boolean;
 } = {
   is_questionnaire_completed: true,
 };
-const mockUseQuery = jest.fn();
+const mockUseQuery = vi.fn();
 
-jest.mock(
-  "react-router-dom",
-  () => ({
-    useNavigate: () => mockNavigate,
-    useLocation: () => ({ pathname: "/all-topics" }),
-  }),
-  { virtual: true }
-);
-
-jest.mock("contexts/AuthContext", () => ({
-  useAuth: () => ({
-    getAccessToken: jest.fn(() => "token"),
-    user: { first_name: "Alex" },
-    loadProfile: jest.fn(),
-    profile: null,
-  }),
-}));
-
-jest.mock("contexts/AdminContext", () => ({
-  useAdmin: () => ({
-    adminMode: false,
-    toggleAdminMode: jest.fn(),
-    canAdminister: false,
-  }),
-}));
-
-// Translation removed - no mock needed
-
-jest.mock("axios", () => ({
-  __esModule: true,
-  default: {
-    get: jest.fn(),
-    post: jest.fn(),
-  },
-  get: jest.fn(),
-  post: jest.fn(),
-}));
-
-jest.mock("@tanstack/react-query", () => {
-  const actual = jest.requireActual("@tanstack/react-query");
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
-    useQuery: (...args: unknown[]) => mockUseQuery(...args),
-    useQueryClient: () => ({
-      setQueryData: jest.fn(),
-      invalidateQueries: jest.fn(),
+    useNavigate: () => mockNavigate,
+    useLocation: () => ({
+      pathname: "/all-topics",
+      search: "",
+      hash: "",
+      state: null,
+      key: "default",
     }),
   };
 });
 
-jest.mock("services/userService", () => ({
-  fetchProgressSummary: jest.fn(),
+vi.mock("contexts/AuthContext", () => ({
+  useAuth: () => ({
+    getAccessToken: vi.fn(() => "token"),
+    user: { first_name: "Alex" },
+    loadProfile: vi.fn(),
+    profile: null,
+  }),
 }));
 
-jest.mock("services/httpClient", () => ({
-  attachToken: jest.fn(),
+vi.mock("contexts/AdminContext", () => ({
+  useAdmin: () => ({
+    adminMode: false,
+    toggleAdminMode: vi.fn(),
+    canAdminister: false,
+  }),
 }));
 
-jest.mock("./AllTopics", () => ({
+vi.mock("axios", () => ({
+  __esModule: true,
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
+  get: vi.fn(),
+  post: vi.fn(),
+}));
+
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-query")>();
+  return {
+    ...actual,
+    useQuery: (...args: unknown[]) => mockUseQuery(...args),
+    useQueryClient: () => ({
+      setQueryData: vi.fn(),
+      invalidateQueries: vi.fn(),
+    }),
+  };
+});
+
+vi.mock("services/userService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("services/userService")>();
+  return {
+    ...actual,
+    fetchProgressSummary: vi.fn(),
+  };
+});
+
+vi.mock("services/httpClient", () => ({
+  attachToken: vi.fn(),
+}));
+
+vi.mock("./AllTopics", () => ({
   __esModule: true,
   default: ({
     navigationControls,
@@ -79,7 +88,7 @@ jest.mock("./AllTopics", () => ({
   }) => <div>{navigationControls}</div>,
 }));
 
-jest.mock("./PersonalizedPathContent", () => ({
+vi.mock("./PersonalizedPathContent", () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -92,11 +101,11 @@ describe("Dashboard personalized path CTA", () => {
         matches: false,
         media: "",
         onchange: null,
-        addListener: jest.fn(), // deprecated
-        removeListener: jest.fn(), // deprecated
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
+        addListener: vi.fn(), // deprecated
+        removeListener: vi.fn(), // deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
       });
     }
   });
