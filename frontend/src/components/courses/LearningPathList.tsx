@@ -70,7 +70,8 @@ function LearningPathList({
               {!hidePathHeader && (
                 <header className="flex items-baseline justify-between gap-3">
                   <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
-                    {pathDisplayTitle(path.title) || t("courses.learningPath.customPath")}
+                    {pathDisplayTitle(path.title) ||
+                      t("courses.learningPath.customPath")}
                   </h3>
                   {path.description && (
                     <p className="text-sm text-[color:var(--muted-text,#6b7280)]">

@@ -86,10 +86,7 @@ const PricingFunnelDashboard = () => {
           </div>
           <GlassButton
             icon={
-              <MonevoIcon
-                name={isFetching ? "hourglass" : "sync"}
-                size={16}
-              />
+              <MonevoIcon name={isFetching ? "hourglass" : "sync"} size={16} />
             }
             onClick={() => refetch()}
             variant="ghost"

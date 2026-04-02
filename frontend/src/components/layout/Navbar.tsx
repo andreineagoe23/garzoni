@@ -321,10 +321,7 @@ function Navbar() {
 
           {/* Right: utility icons on md+, burger only on mobile */}
           <div className="flex max-md:pr-2 items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
-            <div
-              className="relative z-10 hidden md:block"
-              ref={profileMenuRef}
-            >
+            <div className="relative z-10 hidden md:block" ref={profileMenuRef}>
               <button
                 ref={profileAccountButtonRef}
                 type="button"

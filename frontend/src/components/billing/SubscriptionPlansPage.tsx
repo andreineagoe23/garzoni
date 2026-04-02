@@ -97,9 +97,9 @@ const SubscriptionPlansPage = () => {
       setSubscriptionInfo({
         hasPaid: Boolean(
           hasPlusAccess ||
-            entitlements?.entitled ||
-            userData?.has_paid ||
-            (profilePayload as { has_paid?: boolean })?.has_paid
+          entitlements?.entitled ||
+          userData?.has_paid ||
+          (profilePayload as { has_paid?: boolean })?.has_paid
         ),
       });
     } catch (e) {
@@ -430,8 +430,8 @@ const SubscriptionPlansPage = () => {
               {subscriptionInfo.hasPaid
                 ? t("subscriptions.statusPaid")
                 : questionnaireComplete
-                    ? t("subscriptions.statusStarterComplete")
-                    : t("subscriptions.statusOnboarding")}
+                  ? t("subscriptions.statusStarterComplete")
+                  : t("subscriptions.statusOnboarding")}
             </p>
             {entitlements?.status === "trialing" && trialEndLabel && (
               <p className="text-xs text-[color:var(--accent,#ffd700)]">
@@ -453,8 +453,8 @@ const SubscriptionPlansPage = () => {
               {subscriptionInfo.hasPaid
                 ? t("subscriptions.viewPersonalizedPath")
                 : questionnaireComplete
-                    ? t("subscriptions.goToDashboard")
-                    : t("subscriptions.checkSubscriptionOptions")}
+                  ? t("subscriptions.goToDashboard")
+                  : t("subscriptions.checkSubscriptionOptions")}
             </GlassButton>
             {(subscriptionInfo.hasPaid ||
               entitlements?.status === "trialing") && (

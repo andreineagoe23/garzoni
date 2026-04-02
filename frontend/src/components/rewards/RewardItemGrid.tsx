@@ -40,20 +40,28 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const headerTitle = isDonate ? t("rewards.tabs.donate") : t("rewards.tabs.shop");
+  const headerTitle = isDonate
+    ? t("rewards.tabs.donate")
+    : t("rewards.tabs.shop");
   const headerSubtitle = isDonate
     ? t("rewards.donate.subtitle")
     : t("rewards.shop.subtitle");
-  const emptyText = isDonate ? t("rewards.donate.empty") : t("rewards.shop.empty");
+  const emptyText = isDonate
+    ? t("rewards.donate.empty")
+    : t("rewards.shop.empty");
 
   const cardRows = useMemo(() => items, [items]);
 
   const handleAction = async (rewardId: number) => {
     try {
-      const response = await apiClient.post("/purchases/", { reward_id: rewardId });
+      const response = await apiClient.post("/purchases/", {
+        reward_id: rewardId,
+      });
       if (response.status === 201) {
         toast.success(
-          isDonate ? t("rewards.donate.donationSuccess") : t("rewards.shop.purchaseSuccess")
+          isDonate
+            ? t("rewards.donate.donationSuccess")
+            : t("rewards.shop.purchaseSuccess")
         );
         setConfirmingId(null);
         await onAction();
@@ -61,7 +69,9 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.error ||
-          (isDonate ? t("rewards.donate.donationFailed") : t("rewards.shop.purchaseFailed"))
+          (isDonate
+            ? t("rewards.donate.donationFailed")
+            : t("rewards.shop.purchaseFailed"))
       );
     }
   };
@@ -93,8 +103,12 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold text-[color:var(--text-color)]">{headerTitle}</h2>
-        <p className="text-sm text-[color:var(--muted-text)]">{headerSubtitle}</p>
+        <h2 className="text-xl font-semibold text-[color:var(--text-color)]">
+          {headerTitle}
+        </h2>
+        <p className="text-sm text-[color:var(--muted-text)]">
+          {headerSubtitle}
+        </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {cardRows.map((item) => {
@@ -118,12 +132,17 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       width={640}
                       height={320}
                       onError={(event) => {
-                        setBrokenImages((prev) => ({ ...prev, [item.id]: true }));
+                        setBrokenImages((prev) => ({
+                          ...prev,
+                          [item.id]: true,
+                        }));
                       }}
                     />
                   ) : (
                     <div className="flex h-40 w-full items-center justify-center bg-[color:var(--input-bg)] text-4xl font-bold text-[color:var(--muted-text)]">
-                      {String(item.name || "?").charAt(0).toUpperCase()}
+                      {String(item.name || "?")
+                        .charAt(0)
+                        .toUpperCase()}
                     </div>
                   )}
                 </div>
@@ -132,7 +151,9 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                   <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
                     {item.name}
                   </h3>
-                  <p className="text-sm text-[color:var(--muted-text)]">{item.description}</p>
+                  <p className="text-sm text-[color:var(--muted-text)]">
+                    {item.description}
+                  </p>
                 </div>
 
                 <div className="mt-auto space-y-3">
@@ -157,7 +178,11 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                           ? "bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40"
                           : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
-                      title={!canAfford ? t("rewards.shop.insufficientFunds") : undefined}
+                      title={
+                        !canAfford
+                          ? t("rewards.shop.insufficientFunds")
+                          : undefined
+                      }
                     >
                       {t("rewards.confirmAction")}
                     </button>
@@ -171,9 +196,15 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                           ? "bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40"
                           : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
-                      title={!canAfford ? t("rewards.shop.insufficientFunds") : undefined}
+                      title={
+                        !canAfford
+                          ? t("rewards.shop.insufficientFunds")
+                          : undefined
+                      }
                     >
-                      {isDonate ? t("rewards.donate.donateNow") : t("rewards.shop.buyNow")}
+                      {isDonate
+                        ? t("rewards.donate.donateNow")
+                        : t("rewards.shop.buyNow")}
                     </button>
                   )}
                 </div>

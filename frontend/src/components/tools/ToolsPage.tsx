@@ -280,7 +280,8 @@ const ToolView = ({
 const ToolsPage = () => {
   const { isAuthenticated, financialProfile, entitlements } = useAuth();
   const resolvedPlan =
-    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ?? "starter";
+    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ??
+    "starter";
   const hasPlusAccess =
     resolvedPlan === "plus" ||
     resolvedPlan === "pro" ||

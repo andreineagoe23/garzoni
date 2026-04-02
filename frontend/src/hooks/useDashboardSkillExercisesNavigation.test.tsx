@@ -2,7 +2,11 @@
  * Real router hooks via __USE_REAL_ROUTER__ (see test-utils/react-router-dom-mock-impl.js).
  */
 import React from "react";
-import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
+import {
+  createMemoryRouter,
+  RouterProvider,
+  useNavigate,
+} from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useDashboardSkillExercisesNavigation } from "./useDashboardSkillExercisesNavigation";
@@ -22,16 +26,10 @@ function NavigationHarness() {
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => handleWeakSkillClick(skill)}
-      >
+      <button type="button" onClick={() => handleWeakSkillClick(skill)}>
         weak-card
       </button>
-      <button
-        type="button"
-        onClick={() => handleWeakSkillPractice(skill)}
-      >
+      <button type="button" onClick={() => handleWeakSkillPractice(skill)}>
         practice
       </button>
       <button

@@ -43,16 +43,21 @@ export const initChunkRecovery = () => {
   };
 
   window.addEventListener("error", handleChunkError);
-  window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
-    const reason = event?.reason as { name?: string; message?: string } | undefined;
-    if (
-      reason?.name === "ChunkLoadError" ||
-      (typeof reason?.message === "string" &&
-        reason.message.includes("ChunkLoadError"))
-    ) {
-      handleChunkError({ error: reason, message: reason?.message });
+  window.addEventListener(
+    "unhandledrejection",
+    (event: PromiseRejectionEvent) => {
+      const reason = event?.reason as
+        | { name?: string; message?: string }
+        | undefined;
+      if (
+        reason?.name === "ChunkLoadError" ||
+        (typeof reason?.message === "string" &&
+          reason.message.includes("ChunkLoadError"))
+      ) {
+        handleChunkError({ error: reason, message: reason?.message });
+      }
     }
-  });
+  );
 
   sessionStorage.removeItem(CHUNK_ERROR_KEY);
 };

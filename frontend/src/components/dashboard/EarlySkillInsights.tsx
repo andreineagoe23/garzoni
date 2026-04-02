@@ -43,7 +43,9 @@ const EarlySkillInsights = ({
   const timerRef = useRef<number | null>(null);
   const [showJustUnlocked, setShowJustUnlocked] = useState(false);
   const firstSkill = weakestSkills[0];
-  const earlyProgress = hasStarted ? Math.max(8, Math.round(overallProgress || 0)) : 0;
+  const earlyProgress = hasStarted
+    ? Math.max(8, Math.round(overallProgress || 0))
+    : 0;
 
   useEffect(() => {
     // Show the "Just unlocked" badge only when insights become available.
@@ -57,7 +59,10 @@ const EarlySkillInsights = ({
 
     if (!prevHasStarted && hasStarted) {
       setShowJustUnlocked(true);
-      timerRef.current = window.setTimeout(() => setShowJustUnlocked(false), 5000);
+      timerRef.current = window.setTimeout(
+        () => setShowJustUnlocked(false),
+        5000
+      );
     } else {
       setShowJustUnlocked(false);
     }
@@ -96,10 +101,12 @@ const EarlySkillInsights = ({
             {t("dashboard.skillInsights.currentFocus")}
           </p>
           <p className="mt-1 truncate text-sm font-semibold text-[color:var(--text-color,#111827)]">
-            {firstSkill?.skill || t("dashboard.skillInsights.learningFoundations")}
+            {firstSkill?.skill ||
+              t("dashboard.skillInsights.learningFoundations")}
           </p>
           <p className="mt-1 text-[11px] text-[color:var(--muted-text,#6b7280)]">
-            {firstSkill?.level_label || t("dashboard.skillInsights.beginnerLevel")}
+            {firstSkill?.level_label ||
+              t("dashboard.skillInsights.beginnerLevel")}
           </p>
         </div>
 
@@ -124,7 +131,9 @@ const EarlySkillInsights = ({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{nextStepHint}</p>
+        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+          {nextStepHint}
+        </p>
         <button
           type="button"
           onClick={onNextStepClick}

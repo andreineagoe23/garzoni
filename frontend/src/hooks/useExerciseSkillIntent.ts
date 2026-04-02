@@ -59,16 +59,11 @@ export function useExerciseSkillIntent({
   trackEvent,
   onIntentMatchedApplyLessonReset,
 }: UseExerciseSkillIntentParams) {
-  const {
-    targetSkillIntent,
-    intentReason,
-    intentFromDashboard,
-    intentSource,
-  } = useExerciseSkillIntentSource();
+  const { targetSkillIntent, intentReason, intentFromDashboard, intentSource } =
+    useExerciseSkillIntentSource();
 
-  const [intentResolution, setIntentResolution] = useState<ExerciseIntentResolution>(
-    { status: "idle" }
-  );
+  const [intentResolution, setIntentResolution] =
+    useState<ExerciseIntentResolution>({ status: "idle" });
   const [skillIntentBanner, setSkillIntentBanner] =
     useState<ExerciseIntentBannerModel | null>(null);
   const [skillBannerDismissed, setSkillBannerDismissed] = useState(false);
@@ -145,7 +140,8 @@ export function useExerciseSkillIntent({
       const matched = resolveCategoryFromSkill(targetSkillIntent, categories);
       if (matched) {
         const differs =
-          matched.trim().toLowerCase() !== targetSkillIntent.trim().toLowerCase();
+          matched.trim().toLowerCase() !==
+          targetSkillIntent.trim().toLowerCase();
         setSkillIntentBanner({
           kind: "applied",
           skill: targetSkillIntent,

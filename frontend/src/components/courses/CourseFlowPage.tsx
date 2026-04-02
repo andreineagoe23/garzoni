@@ -925,7 +925,9 @@ function CourseFlowPage() {
   );
 
   const mascotTimeoutRef = useRef<number | null>(null);
-  const mascotHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mascotHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const mascotInteractionCountRef = useRef(0);
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const [mascotMood, setMascotMood] = useState<
@@ -937,7 +939,8 @@ function CourseFlowPage() {
   const MASCOT_VISIBLE_MS = 5000;
   useEffect(() => {
     if (!sectionInsight) return;
-    if (mascotHideTimeoutRef.current) clearTimeout(mascotHideTimeoutRef.current);
+    if (mascotHideTimeoutRef.current)
+      clearTimeout(mascotHideTimeoutRef.current);
     mascotHideTimeoutRef.current = setTimeout(() => {
       setSectionInsight("");
       mascotHideTimeoutRef.current = null;
@@ -981,7 +984,8 @@ function CourseFlowPage() {
 
   useEffect(() => {
     return () => {
-      if (mascotTimeoutRef.current) window.clearTimeout(mascotTimeoutRef.current);
+      if (mascotTimeoutRef.current)
+        window.clearTimeout(mascotTimeoutRef.current);
       if (mascotHideTimeoutRef.current) {
         clearTimeout(mascotHideTimeoutRef.current);
         mascotHideTimeoutRef.current = null;
@@ -1030,7 +1034,8 @@ function CourseFlowPage() {
         await completeSectionMutation.mutateAsync(sectionId);
         setSectionInsight(
           t("courses.flow.skillInsightSection", {
-            section: currentItem.section?.title || t("courses.flow.thisSection"),
+            section:
+              currentItem.section?.title || t("courses.flow.thisSection"),
           })
         );
       }
@@ -1110,11 +1115,17 @@ function CourseFlowPage() {
 
   const { sanitizedSectionHtml, recommendedVideoUrl } = useMemo(() => {
     if (!currentItem || currentItem.kind !== "section") {
-      return { sanitizedSectionHtml: null as string | null, recommendedVideoUrl: "" };
+      return {
+        sanitizedSectionHtml: null as string | null,
+        recommendedVideoUrl: "",
+      };
     }
     const raw = currentItem.section?.text_content || "";
     if (!raw) {
-      return { sanitizedSectionHtml: null as string | null, recommendedVideoUrl: "" };
+      return {
+        sanitizedSectionHtml: null as string | null,
+        recommendedVideoUrl: "",
+      };
     }
     // If author pasted a "Recommended Video" block into the text section, split it out
     const match = raw.match(/Recommended Video:?[\s\S]*$/i);
@@ -1172,10 +1183,7 @@ function CourseFlowPage() {
                 <div className="mt-2 overflow-hidden rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
                   <div className="aspect-video">
                     <iframe
-                      src={recommendedVideoUrl.replace(
-                        /watch\\?v=/,
-                        "embed/"
-                      )}
+                      src={recommendedVideoUrl.replace(/watch\\?v=/, "embed/")}
                       title={section.title}
                       allowFullScreen
                       loading="lazy"

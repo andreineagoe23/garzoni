@@ -70,8 +70,18 @@ const StatusSummary = ({
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <div className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--muted-text,#6b7280)]"}`}>
-              <MonevoIcon name="sync" size={16} className={reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--muted-text,#6b7280)]"} />
+            <div
+              className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--muted-text,#6b7280)]"}`}
+            >
+              <MonevoIcon
+                name="sync"
+                size={16}
+                className={
+                  reviewsDue > 0
+                    ? "text-[color:var(--error,#dc2626)]"
+                    : "text-[color:var(--muted-text,#6b7280)]"
+                }
+              />
               <span>{t("dashboard.statusSummary.reviewsDue")}</span>
             </div>
             {reviewsDue > 0 ? (
@@ -80,12 +90,16 @@ const StatusSummary = ({
               </span>
             ) : null}
           </div>
-          <p className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--text-color,#111827)]"}`}>
+          <p
+            className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--text-color,#111827)]"}`}
+          >
             {formatNumber(reviewsDue, locale)}
           </p>
           {reviewTopSkill ? (
             <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {t("dashboard.statusSummary.nextReviewSkill", { skill: reviewTopSkill })}
+              {t("dashboard.statusSummary.nextReviewSkill", {
+                skill: reviewTopSkill,
+              })}
             </p>
           ) : null}
           {onOpenReviews && reviewsDue > 0 ? (
@@ -109,7 +123,11 @@ const StatusSummary = ({
       ) : (
         <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            <MonevoIcon name="rocket" size={16} className="text-[color:var(--muted-text,#6b7280)]" />
+            <MonevoIcon
+              name="rocket"
+              size={16}
+              className="text-[color:var(--muted-text,#6b7280)]"
+            />
             <span>{t("dashboard.statusSummary.activeMissions")}</span>
           </div>
           <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">

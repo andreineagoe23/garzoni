@@ -7,7 +7,6 @@ from django.core.management.base import BaseCommand
 
 from education.models import Lesson
 
-
 YOUTUBE_ID_RE = re.compile(
     r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{11})"
 )

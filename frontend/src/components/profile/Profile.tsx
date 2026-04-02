@@ -10,7 +10,12 @@ import EntitlementUsage from "components/dashboard/EntitlementUsage";
 import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import ActivityCalendar from "./ActivityCalendar";
-import { formatDate, formatNumber, formatRelativeDateTime, getLocale } from "utils/format";
+import {
+  formatDate,
+  formatNumber,
+  formatRelativeDateTime,
+  getLocale,
+} from "utils/format";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -61,7 +66,9 @@ function Profile() {
     streak: 0,
   });
   const [imageUrl, setImageUrl] = useState(DEFAULT_AVATAR_URL);
-  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(
+    []
+  );
   const [badges, setBadges] = useState<BadgeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [goals, setGoals] = useState({
@@ -217,14 +224,16 @@ function Profile() {
         }));
 
         const formattedActivities: RecentActivityItem[] =
-          activityResponse.data.recent_activities.map((activity: RecentActivityApiItem) => ({
-            id: `${activity.type}-${activity.timestamp}`,
-            type: activity.type,
-            title: String(activity.title || activity.name || ""),
-            action: activity.action,
-            timestamp: formatRelativeDateTime(activity.timestamp, locale),
-            details: activity.course ? `in ${activity.course}` : "",
-          }));
+          activityResponse.data.recent_activities.map(
+            (activity: RecentActivityApiItem) => ({
+              id: `${activity.type}-${activity.timestamp}`,
+              type: activity.type,
+              title: String(activity.title || activity.name || ""),
+              action: activity.action,
+              timestamp: formatRelativeDateTime(activity.timestamp, locale),
+              details: activity.course ? `in ${activity.course}` : "",
+            })
+          );
 
         if (isMounted) {
           setRecentActivity(formattedActivities);
@@ -240,14 +249,16 @@ function Profile() {
           earnedBadgesMap[userBadge.badge.id] = userBadge;
         });
 
-        const allBadgesWithStatus: BadgeItem[] = allBadgesResponse.data.map((badge: BadgeApiItem) => {
-          const userBadge = earnedBadgesMap[badge.id];
-          return {
-            badge,
-            earned: !!userBadge,
-            earned_at: userBadge ? userBadge.earned_at : null,
-          };
-        });
+        const allBadgesWithStatus: BadgeItem[] = allBadgesResponse.data.map(
+          (badge: BadgeApiItem) => {
+            const userBadge = earnedBadgesMap[badge.id];
+            return {
+              badge,
+              earned: !!userBadge,
+              earned_at: userBadge ? userBadge.earned_at : null,
+            };
+          }
+        );
 
         if (isMounted) {
           setBadges(allBadgesWithStatus);
@@ -462,10 +473,14 @@ function Profile() {
           <div className="grid gap-5 md:grid-cols-3">
             <StatBadge
               label={t("profile.stats.balance")}
-              value={formatNumber(Number(profileData.earned_money || 0), locale, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
+              value={formatNumber(
+                Number(profileData.earned_money || 0),
+                locale,
+                {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }
+              )}
               unit={t("rewards.coins")}
               className="text-center bg-[color:var(--input-bg)]/60"
             />

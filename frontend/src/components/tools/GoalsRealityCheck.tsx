@@ -469,7 +469,9 @@ const GoalsRealityCheck = () => {
               disabled={isAiMeaningLoading}
               className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
             >
-              {isAiMeaningLoading ? "Thinking..." : "What does this mean for me?"}
+              {isAiMeaningLoading
+                ? "Thinking..."
+                : "What does this mean for me?"}
             </button>
           </div>
           {aiMeaningError && (

@@ -20,7 +20,6 @@ from django.conf import settings
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 _SESSION: Optional[requests.Session] = None
 
 

@@ -50,7 +50,11 @@ export const initErrorSuppression = () => {
 
   const suppressScriptError = (event: ErrorEvent) => {
     if (
-      isThirdPartyOrScriptError(event.message, event.filename, event.error?.stack)
+      isThirdPartyOrScriptError(
+        event.message,
+        event.filename,
+        event.error?.stack
+      )
     ) {
       event.stopImmediatePropagation();
       event.preventDefault();
@@ -85,7 +89,9 @@ export const initErrorSuppression = () => {
     if (!hook || hook.__monevo_patched) return;
     const isSuppressible = (value: unknown) => {
       const msg =
-        typeof value === "string" ? value : String((value as any)?.message ?? "");
+        typeof value === "string"
+          ? value
+          : String((value as any)?.message ?? "");
       const stack = (value as any)?.stack ?? "";
       return isThirdPartyOrScriptError(msg, undefined, stack);
     };

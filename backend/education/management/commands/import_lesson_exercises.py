@@ -18,7 +18,6 @@ from django.db import transaction
 
 from education.models import Lesson, LessonSectionTranslation
 
-
 EXERCISE_TYPE_TO_ORDER = {
     "knowledge_check": 3,
     "applied_exercise": 6,
