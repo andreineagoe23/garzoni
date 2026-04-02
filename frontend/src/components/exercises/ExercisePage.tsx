@@ -83,7 +83,7 @@ const ExercisePage = () => {
   const [recentSkillInsight, setRecentSkillInsight] = useState("");
   const inlineHintTimeoutRef = useRef(null);
   const skillInsightTimeoutRef = useRef(null);
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = import.meta.env.DEV;
   const mascotTimeoutRef = useRef(null);
   const mascotInteractionCountRef = useRef(0);
   const exercisesBootRef = useRef(false);

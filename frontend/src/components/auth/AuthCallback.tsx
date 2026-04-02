@@ -15,6 +15,7 @@ export default function AuthCallback() {
     const hash = window.location.hash.replace(/^#/, "");
     const params = new URLSearchParams(hash);
     let access = params.get("access");
+    const refresh = params.get("refresh");
     const next = params.get("next") || "all-topics";
 
     // URLSearchParams decodes once; some proxies may double-encode
@@ -35,7 +36,10 @@ export default function AuthCallback() {
 
     let cancelled = false;
     (async () => {
-      const result = await completeOAuthLogin(access!.trim());
+      const result = await completeOAuthLogin(
+        access!.trim(),
+        refresh || undefined
+      );
       if (cancelled) return;
       if (result.success) {
         const path = next.startsWith("/") ? next : `/${next}`;

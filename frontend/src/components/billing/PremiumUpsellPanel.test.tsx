@@ -3,10 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../../test-utils/i18n-for-tests";
 import PremiumUpsellPanel from "./PremiumUpsellPanel";
+import { vi } from "vitest";
 
-const mockLoadProfile = jest.fn();
+const mockLoadProfile = vi.fn();
 
-jest.mock("contexts/AuthContext", () => ({
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
     user: { id: 1 },
     loadProfile: mockLoadProfile,

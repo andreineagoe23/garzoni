@@ -188,7 +188,12 @@ class GoogleOAuthCallbackView(APIView):
         else:
             next_path = (state.strip() or "all-topics").strip() or "all-topics"
         next_path = next_path.lstrip("/")
-        fragment = f"access={urllib.parse.quote(access_jwt)}&next={urllib.parse.quote(next_path)}"
+        refresh_jwt = str(refresh)
+        fragment = (
+            f"access={urllib.parse.quote(access_jwt)}"
+            f"&refresh={urllib.parse.quote(refresh_jwt)}"
+            f"&next={urllib.parse.quote(next_path)}"
+        )
         redirect_to = f"{frontend_url}/auth/callback#{fragment}"
 
         response = redirect(redirect_to)
@@ -251,9 +256,9 @@ class GoogleCredentialAuthView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        client_id, _ = _get_google_config()
-        if not client_id:
-            logger.warning("Google OAuth not configured")
+        allowed_ids = getattr(settings, "GOOGLE_OAUTH_ALLOWED_CLIENT_IDS", None) or []
+        if not allowed_ids:
+            logger.warning("Google OAuth not configured (no allowed client IDs)")
             return Response(
                 {"detail": "Google sign-in is not configured.", "code": "oauth_not_configured"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -275,9 +280,9 @@ class GoogleCredentialAuthView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Audience must match our client ID
+        # Audience must be one of our OAuth client IDs (web, iOS, Android)
         aud = payload.get("aud") or payload.get("azp")
-        if aud != client_id:
+        if aud not in allowed_ids:
             logger.warning("Google token audience mismatch: got %s", aud)
             return Response(
                 {"detail": "Invalid credential audience.", "code": "invalid_credential"},
@@ -305,6 +310,7 @@ class GoogleCredentialAuthView(APIView):
         response = Response(
             {
                 "access": access_jwt,
+                "refresh": str(refresh),
                 "user": user_display_dict(
                     user, include_id=True, include_email=True, include_staff=True
                 ),

@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/react";
 import { browserTracingIntegration } from "@sentry/react";
 
-const dsn = process.env.REACT_APP_SENTRY_DSN || "";
-const isProd = process.env.NODE_ENV === "production";
+const dsn = import.meta.env.VITE_SENTRY_DSN || "";
+const isProd = import.meta.env.PROD;
 
 /** Safe profile fields only (no PII). Use for context in errors. */
 export type SafeProfileContext = {
@@ -48,7 +48,7 @@ export const initSentry = () => {
     dsn,
     integrations: [browserTracingIntegration()],
     tracesSampleRate: 0.1,
-    environment: process.env.NODE_ENV,
+    environment: import.meta.env.MODE,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 0,
     beforeSend,

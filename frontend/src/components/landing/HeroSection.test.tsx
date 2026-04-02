@@ -2,13 +2,16 @@ import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { I18nextProvider } from "react-i18next";
+import { vi } from "vitest";
 import i18n from "../../test-utils/i18n-for-tests";
 import HeroSection from "./HeroSection";
 
 // Avoid rendering the heavy Three.js particle scene in tests
-jest.mock("./ParticleStage", () => () => <div data-testid="particle-stage" />);
+vi.mock("./ParticleStage", () => ({
+  default: () => <div data-testid="particle-stage" />,
+}));
 
-jest.mock("services/backendUrl", () => ({
+vi.mock("services/backendUrl", () => ({
   BACKEND_URL: "http://localhost:8000/api",
 }));
 
@@ -17,7 +20,7 @@ describe("HeroSection demo modal", () => {
     render(
       <I18nextProvider i18n={i18n}>
         <MemoryRouter>
-          <HeroSection scrollToFeatures={jest.fn()} />
+          <HeroSection scrollToFeatures={vi.fn()} />
         </MemoryRouter>
       </I18nextProvider>
     );

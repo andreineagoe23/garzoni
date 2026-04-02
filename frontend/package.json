@@ -1,12 +1,14 @@
 {
-  "name": "frontend",
+  "name": "@monevo/web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@amplitude/analytics-browser": "^2.33.5",
     "@ckeditor/ckeditor5-build-classic": "41.4.2",
     "@fontsource/geist-sans": "^5.2.5",
     "@fontsource/jetbrains-mono": "^5.2.8",
+    "@monevo/core": "workspace:*",
     "@sentry/react": "^10.36.0",
     "@tanstack/react-query": "^5.59.15",
     "@testing-library/jest-dom": "^6.6.3",
@@ -20,8 +22,6 @@
     "framer-motion": "^12.0.6",
     "html2canvas": "^1.4.1",
     "i18next": "^23.16.0",
-    "js-cookie": "^3.0.5",
-    "js-cookies": "^1.0.4",
     "lucide-react": "^0.562.0",
     "react": "^18.2.0",
     "react-bootstrap-icons": "^1.11.5",
@@ -45,35 +45,19 @@
     "zustand": "^4.5.5"
   },
   "scripts": {
-    "start": "cross-env NODE_OPTIONS=--max-old-space-size=4096 craco start",
-    "clean:cache": "node -e \"try{require('fs').rmSync('node_modules/.cache',{recursive:true,force:true});console.log('Cache cleared. Run npm start.');}catch(e){console.log('Stop the dev server first, then run: npm run clean:cache');process.exit(1);}\"",
-    "clean": "node -e \"const fs=require('fs');const p=require('path');['.cache','build'].forEach(d=>{const dir=p.join('node_modules',d);try{fs.rmSync(dir,{recursive:true,force:true});console.log('Removed',dir);}catch(e){}});try{fs.rmSync('build',{recursive:true,force:true});console.log('Removed build');}catch(e){};console.log('Clean done. Restart dev server and hard-refresh the browser (Ctrl+Shift+R).');\"",
+    "dev": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite",
+    "start": "pnpm run dev",
+    "clean:cache": "node -e \"try{require('fs').rmSync('node_modules/.vite',{recursive:true,force:true});console.log('Vite cache cleared.');}catch(e){console.log(e.message);process.exit(1);}\"",
+    "clean": "node -e \"const fs=require('fs');const p=require('path');try{fs.rmSync('dist',{recursive:true,force:true});console.log('Removed dist');}catch(e){};console.log('Clean done.');\"",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "npx --yes prettier --write .",
     "format:check": "npx --yes prettier --check .",
-    "build": "craco build",
+    "build": "tsc --noEmit && vite build",
     "type-check": "tsc --noEmit --skipLibCheck",
-    "test": "craco test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
-  },
-  "jest": {
-    "moduleNameMapper": {
-      "^contexts/(.*)$": "<rootDir>/src/contexts/$1",
-      "^components/(.*)$": "<rootDir>/src/components/$1",
-      "^services/(.*)$": "<rootDir>/src/services/$1",
-      "^constants/(.*)$": "<rootDir>/src/constants/$1",
-      "^utils/(.*)$": "<rootDir>/src/utils/$1",
-      "^lib/(.*)$": "<rootDir>/src/lib/$1",
-      "^types/(.*)$": "<rootDir>/src/types/$1",
-      "^assets/(.*)$": "<rootDir>/src/assets/$1",
-      "^hooks/(.*)$": "<rootDir>/src/hooks/$1",
-      "^stores/(.*)$": "<rootDir>/src/stores/$1",
-      "^react-router-dom$": "<rootDir>/src/test-utils/react-router-dom-mock-impl.js",
-      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js",
-      "^axios$": "<rootDir>/src/test-utils/axios-mock.ts"
-    }
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "predeploy": "pnpm run build",
+    "deploy": "gh-pages -d dist"
   },
   "browserslist": {
     "production": [
@@ -88,13 +72,12 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@craco/craco": "^7.1.0",
-    "@types/node": "22.8.7",
-    "@types/react": "18.3.12",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
-    "ajv": "^8.17.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "cross-env": "^7.0.3",
     "eslint": "^8.44.0",
@@ -102,11 +85,12 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "gh-pages": "^6.2.0",
+    "happy-dom": "^20.8.9",
+    "jsdom": "^25.0.1",
     "postcss": "^8.5.6",
-    "react-refresh": "^0.11.0",
-    "react-scripts": "^5.0.1",
     "tailwindcss": "^3.4.14",
-    "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "typescript": "4.9.5"
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^3.0.5"
   }
 }

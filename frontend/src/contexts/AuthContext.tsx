@@ -49,7 +49,8 @@ type AuthContextValue = {
   }>;
   logoutUser: () => Promise<void>;
   completeOAuthLogin: (
-    accessToken: string
+    accessToken: string,
+    refreshToken?: string | null
   ) => Promise<{ success: boolean; error?: string }>;
   getAccessToken: () => string | null;
   isInitialized: boolean;
@@ -81,10 +82,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 // Access token is kept in memory; sessionStorage is used to survive full reloads.
 let inMemoryToken: string | null = null;
 const ACCESS_TOKEN_STORAGE_KEY = "monevo_access_token";
-const REFRESH_SESSION_KEY = "monevo_has_refresh_session";
+const REFRESH_TOKEN_STORAGE_KEY = "monevo_refresh_token";
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:monevo.educational@gmail.com?subject=Billing%20support";
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = import.meta.env.DEV;
 const authLog = (...args: unknown[]) => {
   if (isDevelopment) {
     console.info(...args);
@@ -139,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const clearAuthState = useCallback(() => {
     inMemoryToken = null;
     sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
-    sessionStorage.removeItem(REFRESH_SESSION_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     setIsAuthenticated(false);
     setUser(null);
     setProfile(null);
@@ -172,8 +173,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const persistAccessToken = useCallback((token: string) => {
     if (!token) return;
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
-    sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
   }, []);
+
+  const persistRefreshToken = useCallback((token: string) => {
+    if (!token) return;
+    sessionStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
+  }, []);
+
+  const getStoredRefreshToken = useCallback(
+    () => sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY),
+    []
+  );
 
   const restoreAccessToken = useCallback(() => {
     if (inMemoryToken) return inMemoryToken;
@@ -187,8 +197,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const hasRefreshSession = useCallback(() => {
-    return sessionStorage.getItem(REFRESH_SESSION_KEY) === "1";
-  }, []);
+    return Boolean(getStoredRefreshToken());
+  }, [getStoredRefreshToken]);
 
   const fetchUserWithToken = useCallback(
     async (token: string | null): Promise<FetchUserResult> => {
@@ -243,9 +253,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       lastRefreshAttempt.current = now;
       refreshAttempts++;
 
+      const storedRefresh = getStoredRefreshToken();
+      if (!storedRefresh) {
+        authWarn("[auth] refresh skipped: no refresh token in storage");
+        return { ok: false, reason: "no-refresh" };
+      }
+
       const response = await apiClient.post(
         "/token/refresh/",
-        {},
+        { refresh: storedRefresh },
         {
           skipAuthRedirect: true,
         }
@@ -257,6 +273,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       inMemoryToken = response.data.access;
       persistAccessToken(inMemoryToken);
+      const nextRefresh =
+        typeof response.data.refresh === "string"
+          ? response.data.refresh
+          : storedRefresh;
+      persistRefreshToken(nextRefresh);
       authLog("[auth] new access token received");
       attachToken(inMemoryToken);
       authLog("[auth] refresh success");
@@ -283,7 +304,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authWarn("[auth] refresh failed", status);
       return { ok: false, reason: "refresh-failed" };
     }
-  }, [clearAuthState, persistAccessToken]);
+  }, [
+    clearAuthState,
+    persistAccessToken,
+    persistRefreshToken,
+    getStoredRefreshToken,
+  ]);
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
@@ -372,6 +398,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       inMemoryToken = response.data.access;
       persistAccessToken(inMemoryToken);
+      if (typeof response.data.refresh === "string" && response.data.refresh) {
+        persistRefreshToken(response.data.refresh);
+      }
       setIsAuthenticated(true);
       setUser(response.data.user);
 
@@ -421,6 +450,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       inMemoryToken = response.data.access;
       persistAccessToken(inMemoryToken);
+      if (typeof response.data.refresh === "string" && response.data.refresh) {
+        persistRefreshToken(response.data.refresh);
+      }
       setIsAuthenticated(true);
       setUser(response.data.user);
 
@@ -471,9 +503,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logoutUser = async () => {
     try {
       if (inMemoryToken) {
+        const storedRefresh = getStoredRefreshToken();
         await apiClient.post(
           "/logout/",
-          {},
+          storedRefresh ? { refresh: storedRefresh } : {},
           {
             headers: { Authorization: `Bearer ${inMemoryToken}` },
             skipAuthRedirect: true,
@@ -490,13 +523,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const completeOAuthLogin = useCallback(
     async (
-      accessToken: string
+      accessToken: string,
+      refreshToken?: string | null
     ): Promise<{ success: boolean; error?: string }> => {
       if (!accessToken?.trim()) {
         return { success: false, error: "Missing access token" };
       }
       inMemoryToken = accessToken.trim();
       persistAccessToken(inMemoryToken);
+      if (refreshToken?.trim()) {
+        persistRefreshToken(refreshToken.trim());
+      }
       attachToken(inMemoryToken);
       try {
         const userResponse = await apiClient.get("/verify-auth/", {
@@ -519,7 +556,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { success: false, error: String(msg) };
       }
     },
-    [persistAccessToken]
+    [persistAccessToken, persistRefreshToken]
   );
 
   const cacheRequest = useCallback(

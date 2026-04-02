@@ -96,6 +96,13 @@ def _recaptcha_required():
     return bool(getattr(settings, "RECAPTCHA_PRIVATE_KEY", "").strip())
 
 
+def _is_mobile_auth_client(request):
+    """Native apps cannot run reCAPTCHA; send client_type or platform with value 'mobile'."""
+    ct = (request.data.get("client_type") or "").strip().lower()
+    plat = (request.data.get("platform") or "").strip().lower()
+    return ct == "mobile" or plat == "mobile"
+
+
 def verify_recaptcha_enterprise(token, expected_action, request):
     """Verify reCAPTCHA Enterprise token via createAssessment API. Returns True if valid and score OK."""
     project_id = getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
@@ -225,7 +232,9 @@ class LogoutView(APIView):
 
     def post(self, request):
         """Handle POST requests to log out the user and clear cookies."""
-        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
+        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME) or (
+            (request.data.get("refresh") or "").strip() or None
+        )
 
         if refresh_token:
             try:
@@ -251,8 +260,8 @@ class LoginSecureView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token
-        if _recaptcha_required():
+        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token (web only)
+        if _recaptcha_required() and not _is_mobile_auth_client(request):
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 logger.warning("Login rejected: recaptcha_token missing")
@@ -307,6 +316,7 @@ class LoginSecureView(APIView):
             response = Response(
                 {
                     "access": access_token,
+                    "refresh": refresh_token,
                     "user": user_display_dict(
                         user, include_id=True, include_email=True, include_staff=True
                     ),
@@ -350,8 +360,8 @@ class RegisterSecureView(generics.CreateAPIView):
             "Register attempt email=%s username=%s", email or "(empty)", username or "(empty)"
         )
 
-        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token
-        if _recaptcha_required():
+        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token (web only)
+        if _recaptcha_required() and not _is_mobile_auth_client(request):
             token = (request.data.get("recaptcha_token") or "").strip()
             if not token:
                 logger.warning("Register rejected: recaptcha_token missing")
@@ -423,6 +433,7 @@ class RegisterSecureView(generics.CreateAPIView):
         response = Response(
             {
                 "access": access_token,
+                "refresh": str(refresh),
                 "user": user_display_dict(
                     user, include_id=True, include_email=True, include_staff=True
                 ),
@@ -454,16 +465,18 @@ class VerifyAuthView(APIView):
 
 
 class CustomTokenRefreshView(TokenRefreshView):
-    """Custom token refresh view that extracts the refresh token from cookies."""
+    """Refresh access tokens using refresh JWT from JSON body or httpOnly cookie."""
 
     permission_classes = [AllowAny]
     throttle_classes = [RefreshRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
+        refresh_token = (request.data.get("refresh") or "").strip() or request.COOKIES.get(
+            REFRESH_COOKIE_NAME
+        )
 
         if not refresh_token:
-            logger.error("No refresh token cookie provided for refresh endpoint")
+            logger.error("No refresh token in request body or cookies for refresh endpoint")
             return Response({"detail": "No refresh token provided."}, status=400)
 
         serializer = self.get_serializer(data={"refresh": refresh_token})
@@ -522,10 +535,14 @@ class CustomTokenRefreshView(TokenRefreshView):
             logger.error("Token refresh failed to provide an access token")
             return Response({"detail": "Token refresh failed."}, status=401)
 
-        response = Response({"access": access_token}, status=status.HTTP_200_OK)
+        payload = {"access": access_token}
+        new_refresh_token = response_data.get("refresh")
+        if new_refresh_token:
+            payload["refresh"] = new_refresh_token
+
+        response = Response(payload, status=status.HTTP_200_OK)
 
         if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
-            new_refresh_token = response_data.get("refresh")
             if new_refresh_token:
                 set_refresh_cookie(response, new_refresh_token)
                 logger.info("Refresh token rotated and cookie updated")

@@ -1,21 +1,33 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { vi } from "vitest";
 import ToolsPage from "./ToolsPage";
 import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
 
-const mockToastError = jest.fn();
+vi.mock("react-router-dom", async (importOriginal) => {
+  const { mockNavigate: nav } = await import(
+    "../../test-utils/react-router-dom-mock"
+  );
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return {
+    ...actual,
+    useNavigate: () => nav,
+  };
+});
 
-jest.mock("react-hot-toast", () => ({
+const mockToastError = vi.fn();
+
+vi.mock("react-hot-toast", () => ({
   __esModule: true,
   default: {
     error: (...args: unknown[]) => mockToastError(...args),
-    success: jest.fn(),
+    success: vi.fn(),
   },
 }));
 
-jest.mock("contexts/AuthContext", () => ({
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({
     isAuthenticated: true,
     financialProfile: null,
@@ -25,14 +37,15 @@ jest.mock("contexts/AuthContext", () => ({
   }),
 }));
 
-jest.mock("./toolsRegistry", () => {
-  const React = require("react");
+vi.mock("./toolsRegistry", async () => {
+  const ReactMod = await import("react");
   const toolsRegistry = [
     {
       id: "calendar",
       group: "understand-world",
       route: "calendar",
-      component: () => React.createElement("div", null, "Calendar Tool"),
+      component: () =>
+        ReactMod.createElement("div", null, "Calendar Tool"),
       learnPath: "/all-topics?topic=macro",
       exportable: false,
       keywords: ["calendar"],
@@ -41,7 +54,8 @@ jest.mock("./toolsRegistry", () => {
       id: "portfolio",
       group: "understand-myself",
       route: "portfolio",
-      component: () => React.createElement("div", null, "Portfolio Tool"),
+      component: () =>
+        ReactMod.createElement("div", null, "Portfolio Tool"),
       learnPath: "/all-topics?topic=investing",
       exportable: true,
       keywords: ["portfolio"],
@@ -79,9 +93,6 @@ describe("ToolsPage", () => {
     sessionStorage.clear();
     mockNavigate.mockReset();
     mockToastError.mockReset();
-    (
-      globalThis as typeof globalThis & { __TEST_LOCATION_PATHNAME__?: string }
-    ).__TEST_LOCATION_PATHNAME__ = "/tools";
   });
 
   test("renders the tools landing with tool cards", () => {
@@ -104,9 +115,6 @@ describe("ToolsPage", () => {
   });
 
   test("redirects unknown tool routes to hub", () => {
-    (
-      globalThis as typeof globalThis & { __TEST_LOCATION_PATHNAME__?: string }
-    ).__TEST_LOCATION_PATHNAME__ = "/tools/unknown";
     render(
       <MemoryRouter initialEntries={["/tools/unknown"]}>
         <Routes>

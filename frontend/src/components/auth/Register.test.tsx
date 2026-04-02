@@ -5,19 +5,22 @@ import { MemoryRouter } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../../test-utils/i18n-for-tests";
 import apiClient from "services/httpClient";
+import { vi } from "vitest";
 
-jest.mock("components/layout/Header", () => () => <div>Header</div>);
+vi.mock("components/layout/Header", () => ({
+  default: () => <div>Header</div>,
+}));
 
-const mockRegisterUser = jest.fn();
-jest.mock("contexts/AuthContext", () => ({
+const mockRegisterUser = vi.fn();
+vi.mock("contexts/AuthContext", () => ({
   useAuth: () => ({ registerUser: mockRegisterUser }),
 }));
-jest.mock("contexts/RecaptchaContext", () => ({
+vi.mock("contexts/RecaptchaContext", () => ({
   useRecaptcha: () => ({ executeRecaptcha: null }),
 }));
-jest.mock("services/httpClient", () => ({
+vi.mock("services/httpClient", () => ({
   __esModule: true,
-  default: { get: jest.fn() },
+  default: { get: vi.fn() },
 }));
 
 const mockApiGet = apiClient.get as unknown as {
@@ -34,12 +37,9 @@ describe("Register with referral", () => {
   });
 
   it("prefills referral code from ref query param", () => {
-    (globalThis as any).__TEST_LOCATION_SEARCH__ = "?ref=INVITE-XYZ";
-    (globalThis as any).__TEST_LOCATION_PATHNAME__ = "/register";
-
     render(
       <I18nextProvider i18n={i18n}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={["/register?ref=INVITE-XYZ"]}>
           <Register />
         </MemoryRouter>
       </I18nextProvider>
@@ -47,16 +47,13 @@ describe("Register with referral", () => {
 
     const input = screen.getByLabelText(/Referral Code/i) as HTMLInputElement;
     expect(input.value).toBe("INVITE-XYZ");
-
-    delete (globalThis as any).__TEST_LOCATION_SEARCH__;
-    delete (globalThis as any).__TEST_LOCATION_PATHNAME__;
   });
 
   it("blocks submit when referral code is invalid", async () => {
     mockApiGet.mockResolvedValue({ data: { valid: false } });
     render(
       <I18nextProvider i18n={i18n}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={["/register"]}>
           <Register />
         </MemoryRouter>
       </I18nextProvider>

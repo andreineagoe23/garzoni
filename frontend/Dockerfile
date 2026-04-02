@@ -1,27 +1,31 @@
 # syntax=docker/dockerfile:1
+# Build from repository root: docker build -f frontend/Dockerfile .
 
 FROM node:20-alpine
 
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/core/package.json packages/core/
+COPY frontend/package.json frontend/
 
-COPY . .
+RUN pnpm install --frozen-lockfile
 
-# CRA env vars for development server
-ARG REACT_APP_BACKEND_URL
-ARG REACT_APP_BACKEND_PORT
-ARG REACT_APP_CHECKOUT_URL
-ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL \
-    REACT_APP_BACKEND_PORT=$REACT_APP_BACKEND_PORT \
-    REACT_APP_CHECKOUT_URL=$REACT_APP_CHECKOUT_URL
+COPY packages/core packages/core
+COPY frontend frontend
 
-# Expose the default React dev server port
+WORKDIR /app/frontend
+
+ARG VITE_BACKEND_URL
+ARG VITE_BACKEND_PORT
+ARG VITE_CHECKOUT_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL \
+    VITE_BACKEND_PORT=$VITE_BACKEND_PORT \
+    VITE_CHECKOUT_URL=$VITE_CHECKOUT_URL
+
 EXPOSE 3000
-
-# Set HOST to 0.0.0.0 to make dev server accessible from outside container
 ENV HOST=0.0.0.0
 
-# Run development server instead of building
-CMD ["npm", "start"]
+CMD ["pnpm", "exec", "vite", "--host"]

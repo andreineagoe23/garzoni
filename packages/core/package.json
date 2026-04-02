@@ -1,0 +1,34 @@
+{
+  "name": "@monevo/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "**/*.json",
+    "./src/i18n/**"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./locales/en": "./src/locales/en/index.ts",
+    "./locales/ro": "./src/locales/ro/index.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "dependencies": {
+    "@amplitude/analytics-browser": "^2.33.5",
+    "axios": "^1.7.9",
+    "i18next": "^23.16.0",
+    "react-i18next": "^14.1.3",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,2248 @@
+{
+  "nav": {
+    "dashboard": "Acasă",
+    "exercises": "Exerciții",
+    "tools": "Instrumente",
+    "missions": "Misiuni",
+    "leaderboards": "Clasamente",
+    "rewards": "Recompense",
+    "support": "Suport",
+    "profile": "Profil",
+    "settings": "Setări",
+    "conversions": "Analitice",
+    "ariaToggleDarkMode": "Comutare mod întunecat",
+    "ariaLogout": "Deconectare",
+    "ariaGoToProfile": "Mergi la profil",
+    "ariaToggleMenu": "Deschide/închide meniul de navigare",
+    "ariaAccountMenu": "Deschide meniul contului"
+  },
+  "language": {
+    "label": "Limbă",
+    "option": {
+      "en": "Engleză",
+      "ro": "Română",
+      "es": "Spaniolă (în curând)"
+    }
+  },
+  "dashboard": {
+    "skipToContent": "Sari la conținut",
+    "nav": {
+      "allTopics": "Toate subiectele",
+      "personalizedPath": "Traseu personalizat",
+      "completeOnboarding": "Finalizează onboardingul"
+    },
+    "toast": {
+      "xpGained": "+{{count}} XP",
+      "skillsImproved_one": "{{count}} abilitate îmbunătățită",
+      "skillsImproved_other": "{{count}} abilități îmbunătățite",
+      "skillsImproved": "Abilități îmbunătățite"
+    },
+    "cta": {
+      "doReviews": "Fă recapitulări",
+      "continueLesson": "Continuă lecția",
+      "startMission": "Începe misiunea",
+      "continueLearning": "Continuă să înveți",
+      "reviewsDue_one": "{{count}} recapitulare restantă",
+      "reviewsDue_other": "{{count}} recapitulări restante",
+      "missionsAvailable_one": "{{count}} misiune disponibilă",
+      "missionsAvailable_other": "{{count}} misiuni disponibile",
+      "continueWhereLeftOff": "Continuă de unde ai rămas",
+      "continueLearningReason": "Continuă-ți călătoria de învățare",
+      "missionsAvailable": "Misiuni disponibile",
+      "reviewsDue": "Recapitulări restante"
+    },
+    "resume": {
+      "title": "Reia de unde ai rămas",
+      "continueWith": "Continuă cu {{course}}",
+      "continueLesson": "Continuă lecția",
+      "startFirstLesson": "Începe prima lecție și îți vom păstra locul.",
+      "browseTopics": "Continuă"
+    },
+    "dailyGoal": {
+      "label": "Obiectiv zilnic",
+      "completeDesc": "Finalizează obiectivul zilnic",
+      "xpProgress": "{{current}} / {{target}} XP azi"
+    },
+    "header": {
+      "welcomeBack": "Bine ai revenit",
+      "welcomeBackName": "Bine ai revenit, {{name}}!",
+      "yourCoachSubtitle": "Coachul tău AI e aici să te ajute să înveți",
+      "adminMode": "Mod admin",
+      "enableAdmin": "Activează admin"
+    },
+    "statusSummary": {
+      "coursesCompleted": "Cursuri finalizate",
+      "overallProgress": "Progres general",
+      "reviewsDue": "Recapitulări restante",
+      "activeMissions": "Misiuni active",
+      "streak": "Serie",
+      "failedLoadReviews": "Nu s-au putut încărca recapitulările",
+      "couldNotFetchReviews": "Nu am putut încărca coada de recapitulări.",
+      "failedLoadMissions": "Nu s-au putut încărca misiunile",
+      "couldNotFetchMissions": "Nu am putut încărca misiunile.",
+      "urgent": "Urgent",
+      "nextReviewSkill": "Următoarea recapitulare: {{skill}}",
+      "startReviews": "Începe recapitulările"
+    },
+    "weakSkills": {
+      "skillInsights": "Abilități și îmbunătățiri",
+      "skillInsightsDesc": "Finalizează lecții și quiz-uri pentru a vedea punctele forte și zonele de îmbunătățit.",
+      "noWeakSkills": "Fără abilități slabe",
+      "noWeakSkillsDesc": "Bravo! Te descurci bine la toate abilitățile.",
+      "areasToImprove": "Zone de îmbunătățit",
+      "quickPracticeTitle": "Recomandare de exersare",
+      "quickPracticeSubtitle": "Îți sugerăm acum cea mai bună zonă de exersat.",
+      "focusOnSkills": "Concentrează-te pe aceste abilități pentru a-ți îmbunătăți stăpânirea",
+      "lowMasteryIn": "Stăpânire scăzută la {{skill}}",
+      "practice": "Exersează",
+      "practiceSkillAria": "Exersează abilitatea {{skill}}",
+      "practiceRecommendationAria": "Exersează {{skill}} pentru a îmbunătăți recomandarea",
+      "failedLoadSkills": "Nu s-au putut încărca abilitățile",
+      "couldNotFetchSkills": "Nu am putut încărca datele de stăpânire."
+    },
+    "skillInsights": {
+      "title": "Insights timpurii",
+      "justUnlocked": "Tocmai deblocat",
+      "foundation": "Progres de bază",
+      "firstMilestone": "Primul prag este atins",
+      "completeFirstSection": "Finalizează prima secțiune pentru a debloca insights.",
+      "currentFocus": "Focus curent",
+      "learningFoundations": "Fundamente de învățare",
+      "beginnerLevel": "Începător",
+      "momentum": "Ritm",
+      "reviewsDue_one": "{{count}} recapitulare restantă",
+      "reviewsDue_other": "{{count}} recapitulări restante",
+      "missionsActive_one": "{{count}} misiune activă",
+      "missionsActive_other": "{{count}} misiuni active",
+      "reviewsDue": "{{count}} recapitulare(e) restantă(e)",
+      "missionsActive": "{{count}} misiune(i) activă(e)",
+      "sectionsAndLessons": "Secțiuni {{sections}} · Lecții {{lessons}}",
+      "nextStep": {
+        "doReviews": "Fă recapitulări",
+        "startMission": "Începe misiunea",
+        "continueLesson": "Continuă lecția",
+        "startLearning": "Începe să înveți"
+      },
+      "nextStepHint": {
+        "reviews": "Recapitulările spațiate consolidează cel mai rapid reținerea.",
+        "mission": "Misiunile îți cresc XP-ul și mențin seria activă.",
+        "continue": "Continuă de unde ai rămas pentru a aprofunda abilitatea.",
+        "start": "Începe prima lecție pentru insights personalizate."
+      }
+    },
+    "entitlementUsage": {
+      "dailyUsage": "Utilizare zilnică",
+      "resetsDaily": "Se resetează zilnic",
+      "usedRemaining": "{{used}} folosite, {{remaining}} rămase",
+      "unlimited": "nelimitat",
+      "lockedUpgrade": "Blocat - Fă upgrade pentru deblocare"
+    },
+    "errorState": {
+      "title": "Ceva n-a mers bine",
+      "message": "Nu am putut încărca datele. Te rugăm să încerci din nou.",
+      "showingCached": "Se afișează date din cache de la ultima vizită.",
+      "retrying": "Se reîncearcă...",
+      "retry": "Reîncearcă"
+    },
+    "primaryCta": {
+      "getStarted": "Începe",
+      "continueReason": "Continuă-ți călătoria de învățare"
+    }
+  },
+  "welcome": {
+    "referral": {
+      "title": "Ai fost invitat(ă) la Monevo",
+      "body": "După ce finalizezi primul tău traseu de învățare, tu și prietenul tău veți primi fiecare 40% reducere la Plus prin email.",
+      "cta": "Începe cu invitația ta",
+      "dismiss": "Poate mai târziu"
+    }
+  },
+  "analytics": {
+    "adminRequired": "Acces admin necesar",
+    "adminRequiredDesc": "Analitica de conversie este disponibilă doar administratorilor.",
+    "title": "Trunchi prețuri și checkout",
+    "subtitle": "Urmărește cum utilizatorii trec de la pagina de prețuri la checkout și activarea drepturilor.",
+    "refresh": "Reîmprospătează",
+    "pricingViews": "Vizualizări prețuri",
+    "pricingViewsFooter": "Utilizatori care ajung la prețuri sau paywall",
+    "checkoutsCreated": "Sesiuni checkout create",
+    "conversion": "Conversie: {{percent}}%",
+    "successfulPayments": "Plăți reușite",
+    "entitlementsConfirmed": "Drepturi confirmate",
+    "successRate": "Rată succes: {{percent}}%",
+    "entitlementFailures": "Eșecuri drepturi",
+    "fallbackFooter": "Mod gratuit când verificările eșuează",
+    "dailyFunnelEvents": "Evenimente zilnice trunchi",
+    "dailyFunnelSubtitle": "Volumul evenimentelor cheie în timp.",
+    "noActivity": "Nicio activitate înregistrată pentru această perioadă.",
+    "date": "Data",
+    "eventType": "Tip eveniment",
+    "count": "Număr"
+  },
+  "billing": {
+    "subscriptionManagement": "Gestionare abonament",
+    "manageSubtitle": "Gestionează abonamentul și facturarea",
+    "currentPlan": "Plan curent",
+    "status": "Status",
+    "trialEndsOn": "Trialul se termină pe {{date}}",
+    "availablePlans": "Planuri disponibile",
+    "choosePlanSubtitle": "Alege un plan potrivit nevoilor tale de învățare",
+    "loadingPlans": "Se încarcă planurile...",
+    "currentPlanButton": "Plan curent",
+    "switchPlan": "Schimbă planul",
+    "startPlan": "Începe planul",
+    "active": "Activ",
+    "cancelSubscription": "Anulează abonamentul",
+    "manageSubscription": "Gestionează abonamentul",
+    "explorePlans": "Explorează planurile",
+    "failedCheckout": "Nu s-a putut începe checkout-ul. Te rugăm să încerci din nou.",
+    "failedChangePlan": "Nu s-a putut schimba planul. Te rugăm să încerci din nou.",
+    "failedCancel": "Nu s-a putut anula abonamentul. Te rugăm să încerci din nou.",
+    "failedPortal": "Nu s-a putut deschide portalul client. Te rugăm să încerci din nou.",
+    "featureComparison": "Comparare funcționalități",
+    "planComparison": "Comparare planuri",
+    "current": "Curent",
+    "capability": "Capacitate",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "unlockPremium": "Deblochează Premium",
+    "premiumFeature": "Funcționalitate premium",
+    "upgradeDescription": "Fă upgrade pentru a debloca această funcționalitate și alte beneficii premium.",
+    "upgradeNow": "Fă upgrade acum",
+    "maybeLater": "Poate mai târziu",
+    "closeModal": "Închide fereastra",
+    "upgradeToPremium": "Upgrade la Premium",
+    "unlockPremiumFeatures": "Deblochează funcții Premium",
+    "getUnlimitedAccess": "Acces nelimitat la toate funcțiile de învățare",
+    "startFreeTrial": "Începe trial gratuit",
+    "shareReferral": "Partajează recomandarea",
+    "checkoutUrlLabel": "URL checkout",
+    "checkoutWithParams": "cu parametrii",
+    "checkoutAnd": "și",
+    "checkoutAttributionTracking": "pentru urmărirea atribuirii",
+    "referralLinkLabel": "Link recomandare",
+    "referralUnavailable": "Codul de recomandare nu este disponibil momentan. Încearcă din nou.",
+    "copied": "Copiat!",
+    "cancelTrial": "Anulează trialul",
+    "cancelConfirmTitleTrial": "Anulezi trialul?",
+    "cancelConfirmTitleActive": "Anulezi abonamentul?",
+    "cancelConfirmTrial": "Nu vei fi taxat. Accesul la trial continuă până pe {{date}}.",
+    "cancelConfirmActive": "Păstrezi accesul până la sfârșitul perioadei de facturare ({{date}}). Nu vei mai fi taxat.",
+    "cancelConfirmActiveShort": "Păstrezi accesul până la sfârșitul perioadei de facturare. Nu vei mai fi taxat.",
+    "cancelSuccess": "Ai anulat. Vei avea acces până pe {{date}}.",
+    "cancelSuccessNoDate": "Ai anulat. Vei avea acces până la sfârșitul perioadei de facturare.",
+    "keepTrial": "Păstrează trialul",
+    "keepSubscription": "Păstrează abonamentul",
+    "features": {
+      "daily_limits": "Limită zilnică învățare",
+      "hints": "Indicații lecție și quiz",
+      "streak_repair": "Reparare serie",
+      "downloads": "Descărcări",
+      "analytics": "Analitică și insight-uri",
+      "ai_tutor": "Tutor AI",
+      "personalized_path": "Traseu personalizat"
+    },
+    "notAvailable": "Indisponibil"
+  },
+  "allTopics": {
+    "loading": "Se încarcă traseele de învățare...",
+    "error": "Nu am putut încărca traseele de învățare. Te rugăm să încerci din nou mai târziu.",
+    "sortByLabel": "Sortează după:",
+    "sortByAria": "Sortează traseele de învățare",
+    "sort": {
+      "default": "Implicit",
+      "name": "Nume (A-Z)",
+      "easiest": "Cele mai ușoare",
+      "hardest": "Cele mai dificile",
+      "progressAsc": "Progres (mic → mare)",
+      "progressDesc": "Progres (mare → mic)"
+    },
+    "filterLabel": "Filtru:",
+    "filterAria": "Filtrează traseele de învățare",
+    "filter": {
+      "all": "Toate subiectele",
+      "notStarted": "Neîncepute",
+      "inProgress": "În progres",
+      "completed": "Finalizate"
+    },
+    "pathProgress": "Progres traseu",
+    "progressAria": "{{value}}% complet",
+    "hideCourses": "Ascunde cursurile",
+    "viewCourses": "Vezi cursurile",
+    "upgradeTo": "Upgrade la {{plan}}",
+    "coursesIn": "Cursuri în {{title}}"
+  },
+  "personalizedPath": {
+    "errorTitle": "Eroare la încărcarea recomandărilor",
+    "tryAgain": "Încearcă din nou",
+    "verifying": "Se verifică accesul tău...",
+    "title": "Traseul tău de învățare personalizat:",
+    "overallCompletion": "Progres total: {{value}}%",
+    "refresh": "Reîmprospătează",
+    "refreshing": "Se reîmprospătează...",
+    "refreshed": "Traseul personalizat a fost reîmprospătat.",
+    "continue": "Continuă de unde ai rămas",
+    "recommendedForYou": "Recomandat pentru tine",
+    "eta": "~{{minutes}} min",
+    "skillsToReinforce": "Abilități de consolidat",
+    "noSkillsDue": "Nu ai abilități scadente pentru consolidare acum.",
+    "skillScore": "Proficiență: {{value}}%",
+    "open": "Deschide",
+    "unlock": "Deblochează",
+    "locked": "Blocat",
+    "upgrade": "Upgrade",
+    "pathLabel": "Traseu",
+    "courseAria": "Deschide {{title}}",
+    "courseMeta": "{{hours}} ore · {{exercises}} exerciții",
+    "progressLabel": "Progres",
+    "lessonCount": "{{completed}}/{{total}} lecții",
+    "basedOnOnboarding": "Pe baza ultimelor răspunsuri la onboarding -",
+    "updatePreferences": "Actualizează preferințele",
+    "errors": {
+      "accessDenied": "Acces refuzat",
+      "recommendationsFailed": "Nu am putut încărca recomandările. Te rugăm să încerci din nou mai târziu.",
+      "paymentVerifyFailed": "Nu am putut verifica plata. Te rugăm să încerci din nou."
+    }
+  },
+  "tools": {
+    "errors": {
+      "toolNotFound": "Instrumentul nu a fost găsit. Revenim la hub-ul de instrumente."
+    },
+    "hub": {
+      "continueTitle": "Continuă de unde ai rămas",
+      "continueSubtitle": "Revino rapid fără să cauți instrumentul.",
+      "resumeTool": "Reia instrumentul →",
+      "suggestedTitle": "Instrumente de învățare sugerate",
+      "suggestedSubtitle": "Pe baza activității tale de învățare. Acestea sunt sugestii educaționale, nu recomandări de investiții.",
+      "openTool": "Deschide instrumentul →",
+      "open": "Deschide →",
+      "browseAll": "Toate instrumentele",
+      "browseAllSubtitle": "Alege un instrument mai jos pentru a începe."
+    },
+    "disclaimer": {
+      "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
+      "financialDisclaimer": "Declinare de responsabilitate financiară",
+      "noFinancialAdvice": "Fără sfaturi financiare"
+    },
+    "detail": {
+      "whoItsFor": "Pentru cine este:",
+      "questionAnswered": "Întrebarea la care răspunde:",
+      "example": "Exemplu:",
+      "learnConcept": "Învață conceptul →",
+      "backToHub": "Înapoi la hub-ul de instrumente →",
+      "feedback": "Feedback",
+      "resetTool": "Resetează instrumentul",
+      "export": "Exportă",
+      "feedbackSubject": "Feedback instrument - {{tool}}",
+      "feedbackBody": "Ce s-a întâmplat?\n\nUnde s-a întâmplat?\n{{url}}"
+    },
+    "toast": {
+      "reset": "Instrument resetat."
+    },
+    "authRequired": {
+      "title": "Autentificare necesară",
+      "subtitle": "Te rugăm să te autentifici pentru a accesa instrumentele și calculatoarele financiare."
+    },
+    "header": {
+      "kicker": "Instrumente ghidate de decizie",
+      "title": "Instrumente financiare",
+      "subtitle": "Fiecare instrument răspunde la o întrebare clară și te trimite la următorul pas."
+    },
+    "nav": {
+      "ariaLabel": "Navigare instrumente",
+      "browse": "Răsfoiește instrumentele",
+      "hub": "Hub",
+      "hubLink": "Hub instrumente"
+    },
+    "groups": {
+      "understand-world": {
+        "title": "Înțelege lumea",
+        "imageAlt": "Economie și piețe globale"
+      },
+      "understand-myself": {
+        "title": "Înțelege-te pe tine",
+        "imageAlt": "Finanțe personale și obiective"
+      },
+      "decide-next": {
+        "title": "Planifică ce să înveți",
+        "imageAlt": "Plan de învățare și pași următori"
+      }
+    },
+    "entries": {
+      "portfolio": {
+        "title": "Analizor portofoliu",
+        "promise": "Vezi dacă portofoliul ți se potrivește cu obiectivele și riscul.",
+        "description": "Analizează și optimizează portofoliul tău de investiții",
+        "mostUsefulFor": "Oricine investește deja sau se gândește la realocare.",
+        "whatItDoes": "Descompune deținerile, performanța și alocarea într-o singură vedere.",
+        "sampleUseCase": "Verifică dacă portofoliul tău este prea concentrat într-un singur activ.",
+        "whoItsFor": "Investitori care vor claritate privind riscul, concentrarea și echilibrul.",
+        "questionItAnswers": "Este portofoliul meu aliniat cu obiectivele și confortul meu de risc?"
+      },
+      "reality-check": {
+        "title": "Verificare economii și obiective",
+        "promise": "Obține un interval realist de economii, fără precizie falsă.",
+        "description": "Vezi dacă obiectivele tale sunt realiste pentru venitul și costurile tale",
+        "mostUsefulFor": "Persoane cu un obiectiv și un flux lunar de numerar incert.",
+        "whatItDoes": "Transformă un obiectiv într-un interval realist de economisire și verifică fezabilitatea.",
+        "sampleUseCase": "Planifică un fond de urgență de 6.000 $ în 12 luni fără presupuneri.",
+        "whoItsFor": "Oricine vrea o imagine sinceră a ceea ce este realizabil.",
+        "questionItAnswers": "Pot atinge acest obiectiv cu fluxul meu de numerar actual?"
+      },
+      "calendar": {
+        "title": "Calendar economic",
+        "promise": "Înțelege cum evenimentele economice îți afectează banii.",
+        "description": "Urmărește evenimente macro cu context, nu doar date",
+        "mostUsefulFor": "Oricine încearcă să înțeleagă inflația și dobânzile.",
+        "whatItDoes": "Arată evenimente economice cheie și explică de ce contează.",
+        "sampleUseCase": "Vezi cum CPI sau deciziile de dobândă pot afecta ratele de economisire.",
+        "whoItsFor": "Oricine vrea să înțeleagă imaginea de ansamblu.",
+        "questionItAnswers": "Ce se întâmplă în economie și de ce ar trebui să-mi pese?"
+      },
+      "economic-map": {
+        "title": "Harta economică",
+        "promise": "Vezi schimbările macro în toată lumea dintr-o privire.",
+        "description": "Date economice globale în timp real vizualizate pe o hartă",
+        "mostUsefulFor": "Oricine urmărește tendințe macro globale.",
+        "whatItDoes": "Afișează indicatori economici pe o hartă a lumii.",
+        "sampleUseCase": "Verifică tendințele regionale înainte de a citi știrile.",
+        "whoItsFor": "Persoane care vor o vedere macro globală.",
+        "questionItAnswers": "Unde au loc schimbări economice chiar acum?"
+      },
+      "news-context": {
+        "title": "Știri și context de piață",
+        "promise": "Transformă titlurile în concluzii simple și personale.",
+        "description": "Știri financiare selectate cu explicații pe înțelesul tuturor",
+        "mostUsefulFor": "Persoane care vor știri fără panică sau exagerări.",
+        "whatItDoes": "Rezuma ce înseamnă titlurile pentru deciziile financiare de zi cu zi.",
+        "sampleUseCase": "Vezi cum o reducere a dobânzii afectează creditele sau economiile.",
+        "whoItsFor": "Persoane care vor știri fără zgomot.",
+        "questionItAnswers": "Ce înseamnă acest titlu pentru mine?"
+      },
+      "market-explorer": {
+        "title": "Explorator de piețe",
+        "promise": "Scanează piețele importante cu un cadru simplu, pe termen lung.",
+        "description": "Explorează acțiuni, ETF-uri, crypto și indici într-o singură vedere",
+        "mostUsefulFor": "Cursanți curioși care explorează piețele pentru prima dată.",
+        "whatItDoes": "Îți permite să explorezi piețele și evidențiază avertismente privind volatilitatea.",
+        "sampleUseCase": "Compară S&P 500 cu obligațiunile înainte de o decizie.",
+        "whoItsFor": "Cursanți care decid ce să exploreze mai departe.",
+        "questionItAnswers": "La ce piețe ar trebui să mă uit și cu ce precauție?"
+      },
+      "next-steps": {
+        "title": "Ce ar trebui să învăț mai departe?",
+        "promise": "Primește 1–3 sugestii de învățare pentru următorul pas.",
+        "description": "Sugestii de învățare personalizate pe baza progresului tău",
+        "mostUsefulFor": "Oricine vrea un pas următor clar în învățare.",
+        "whatItDoes": "Sugerează 1-3 acțiuni de învățare focalizate, în funcție de activitatea ta.",
+        "sampleUseCase": "Primește o listă scurtă de pași de învățare și instrumente care contează.",
+        "whoItsFor": "Oricine vrea pași următori clari și prioritizați.",
+        "questionItAnswers": "Ce ar trebui să învăț următorul pas acum?"
+      }
+    },
+    "realityCheck": {
+      "activityLabel": "Verificare fezabilitate obiectiv",
+      "goalFirstFlow": "Flux orientat pe obiectiv",
+      "description": "Definește obiectivul, apoi verifică realismul lunar.",
+      "useDemoGoal": "Folosește obiectiv demo",
+      "clear": "Șterge",
+      "goalName": "Nume obiectiv",
+      "demoGoalName": "Fond de urgență",
+      "goalNamePlaceholder": "Fond de urgență, vacanță, rambursare datorie",
+      "goalAmount": "Sumă obiectiv",
+      "goalAmountPlaceholder": "6000",
+      "timeframe": "Perioadă (luni)",
+      "timeframePlaceholder": "12",
+      "alreadySaved": "Deja economisit",
+      "alreadySavedPlaceholder": "900",
+      "incomeLow": "Interval venit lunar (minim)",
+      "incomeLowPlaceholder": "2800",
+      "incomeHigh": "Interval venit lunar (maxim)",
+      "incomeHighPlaceholder": "3200",
+      "expenseLow": "Interval cheltuieli lunare (minim)",
+      "expenseLowPlaceholder": "1900",
+      "expenseHigh": "Interval cheltuieli lunare (maxim)",
+      "expenseHighPlaceholder": "2200",
+      "emptyState": "Începe prin a introduce suma obiectivului și perioada ca să vezi un interval realist.",
+      "savingRange": "Interval realist de economisire",
+      "requiredToHitGoal": "Necesar pentru atingerea obiectivului",
+      "progressTracker": "Urmărire progres",
+      "youAre": "Ești",
+      "ofTheWayThere": "din drum către obiectiv.",
+      "timeToGoal": "Timp până la obiectiv (interval)",
+      "best": "Cel mai bun:",
+      "expected": "Estimare:",
+      "worst": "Cel mai slab:",
+      "months": "luni",
+      "notFeasible": "Nu este fezabil încă",
+      "feasibilityWarnings": "Avertismente de fezabilitate",
+      "twoBigLevers": "Două pârghii importante",
+      "learnMore": "Află mai multe →",
+      "warningLowSurplus": "Chiar și surplusul din luna cea mai bună pare prea mic pentru acest interval.",
+      "warningReduceExpenses": "Probabil va trebui să reduci cheltuielile sau să extinzi perioada.",
+      "warningExpensesHigher": "Cheltuielile pot fi mai mari decât veniturile într-o lună obișnuită.",
+      "leverIncome": "Crește venitul lunar sau extinde perioada",
+      "leverExpenses": "Redu puțin cheltuielile lunare",
+      "leverFixedCosts": "Scade costurile fixe pentru mai multă marjă"
+    },
+    "goalsTracker": {
+      "loadFailed": "Nu s-au putut încărca obiectivele financiare. Te rugăm să încerci din nou.",
+      "activityLabel": "{{count}} obiective active",
+      "addFailed": "Nu s-a putut adăuga obiectivul. Te rugăm să încerci din nou.",
+      "deleteFailed": "Nu s-a putut șterge obiectivul. Te rugăm să încerci din nou.",
+      "title": "Tracker obiective financiare",
+      "presetEmergency": "Fond de urgență",
+      "presetVacation": "Vacanță",
+      "subtitle": "Setează și urmărește obiectivele financiare",
+      "demoPresets": "Presetări demo",
+      "presetTip1": "Adaugă un obiectiv și actualizează progresul lunar",
+      "presetTip2": "Setează o dată țintă realistă pentru motivație",
+      "presetTip3": "Urmărește mai multe obiective simultan",
+      "goalName": "Nume obiectiv",
+      "goalNamePlaceholder": "ex.: Fond de urgență",
+      "defaultGoalName": "Fond de urgență",
+      "targetAmount": "Sumă țintă",
+      "targetAmountPlaceholder": "Introdu suma țintă",
+      "currentAmount": "Sumă curentă",
+      "currentAmountPlaceholder": "Introdu suma curentă",
+      "targetDate": "Dată țintă",
+      "addGoal": "Adaugă obiectiv",
+      "loading": "Se încarcă obiectivele...",
+      "emptyTitle": "Nu există încă obiective financiare.",
+      "emptySubtitle": "Adaugă primul obiectiv mai sus sau alege un preset demo.",
+      "target": "Țintă",
+      "current": "Curent",
+      "targetDateLabel": "Dată țintă",
+      "notSet": "Nesetat",
+      "progress": "Progres",
+      "remaining": "Rămas",
+      "delete": "Șterge"
+    },
+    "savingsCalc": {
+      "starterGoal": "Obiectiv de start",
+      "longTerm": "Pe termen lung",
+      "allFieldsRequired": "Toate câmpurile sunt obligatorii",
+      "interestRateMax": "Rata anuală a dobânzii nu poate depăși 30%",
+      "calculationFailed": "Nu s-a putut calcula obiectivul de economisire. Te rugăm să încerci din nou.",
+      "title": "Calculator obiectiv economisire",
+      "subtitle": "Calculează cât trebuie să economisești pentru obiectivele tale financiare",
+      "demoPresets": "Presetări demo",
+      "presetTip1": "Încearcă un obiectiv pe 2 ani pentru un reper rapid",
+      "presetTip2": "Ajustează dobânda după contul tău",
+      "presetTip3": "Compară capitalizarea lunară cu cea trimestrială",
+      "savingsGoal": "Obiectiv de economisire",
+      "savingsGoalPlaceholder": "Introdu suma obiectivului de economisire",
+      "initialInvestment": "Investiție inițială",
+      "initialInvestmentPlaceholder": "Introdu investiția inițială",
+      "yearsToGrow": "Ani de creștere",
+      "yearsToGrowPlaceholder": "Introdu numărul de ani",
+      "annualInterestRate": "Rată anuală a dobânzii (%)",
+      "annualInterestRatePlaceholder": "Introdu rata anuală a dobânzii",
+      "compoundFrequency": "Frecvență capitalizare",
+      "annually": "Anual",
+      "quarterly": "Trimestrial",
+      "monthly": "Lunar",
+      "daily": "Zilnic",
+      "calculate": "Calculează",
+      "finalSavings": "Economii finale",
+      "activityPrefix": "Obiectiv"
+    },
+    "portfolio": {
+      "stock": "Acțiune",
+      "crypto": "Crypto",
+      "etf": "ETF",
+      "bond": "Obligațiune",
+      "fund": "Fond",
+      "commodity": "Comoditate",
+      "real_estate": "Imobil",
+      "other": "Altele",
+      "assetType": {
+        "stock": "Acțiune",
+        "crypto": "Crypto",
+        "etf": "ETF",
+        "bond": "Obligațiune",
+        "fund": "Fond",
+        "commodity": "Comoditate",
+        "real_estate": "Imobil",
+        "other": "Altele"
+      },
+      "symbolPlaceholder": "ex.: AAPL, BTC, SPY",
+      "livePriceNotAvailable": "Preț în timp real indisponibil pentru acest tip de activ.",
+      "getPrice": "Preț actual",
+      "lookupLoading": "…",
+      "currentPrice": "Preț actual",
+      "symbolRequired": "Introdu un simbol pentru căutare.",
+      "priceNotFound": "Preț negăsit. Verifică simbolul sau încearcă din nou.",
+      "loadError": "Nu s-a putut încărca portofoliul. Te rugăm să încerci din nou.",
+      "exportEmpty": "Nu există intrări în portofoliu de exportat.",
+      "exportReady": "Exportul portofoliului este gata.",
+      "addFailed": "Nu s-a putut adăuga intrarea. Te rugăm să încerci din nou.",
+      "deleteFailed": "Nu s-a putut șterge intrarea. Te rugăm să încerci din nou.",
+      "loading": "Se încarcă portofoliul...",
+      "title": "Analizor portofoliu",
+      "subtitle": "Urmărește și analizează portofoliul tău de investiții",
+      "noEntries": "Nicio intrare în portofoliu",
+      "noEntriesSubtitle": "Adaugă prima ta investiție pentru a începe urmărirea portofoliului",
+      "loadSampleStock": "Încarcă acțiune exemplu",
+      "loadSampleCrypto": "Încarcă crypto exemplu",
+      "tryThis": "Încearcă",
+      "tryThisBullet1": "Adaugă o acțiune exemplu pentru grafice de alocare",
+      "tryThisBullet2": "Compară o acțiune și un crypto împreună",
+      "tryThisBullet3": "Revizuiește câștigul/pierderea totală după ce adaugi intrări",
+      "totalValue": "Valoare totală portofoliu",
+      "currentValue": "Valoare curentă",
+      "totalGainLoss": "Câștig/Pierdere totală",
+      "totalHoldings": "Total poziții",
+      "investment_one": "investiție",
+      "investment_other": "investiții",
+      "portfolioInsight": "Perspectivă portofoliu",
+      "goodFit": "Potrivit",
+      "risky": "Riscant",
+      "misaligned": "Nealiniat",
+      "confidence": "Încredere: {{level}}",
+      "isPortfolioRisky": "E riscant acest portofoliu pentru mine?",
+      "riskReasonable": "Riscul pare rezonabil – nu ești supraconcentrat într-un singur loc.",
+      "riskModerate": "Risc moderat – o zonă domină; ia în calcul o diversificare.",
+      "riskHigh": "Risc ridicat – concentrarea sau volatilitatea sunt mari; merită revizuit.",
+      "biggestProblem": "Care e cea mai mare problemă aici?",
+      "nothingMajor": "Nimic major – mixul tău pare rezonabil pentru o abordare pe termen lung.",
+      "inPlainEnglish": "Cu cuvinte simple",
+      "learnDiversification": "Află: De ce te ajută diversificarea",
+      "considerRebalancing": "Ia în calcul rebalansarea sau adăugarea unei poziții",
+      "exploreMarket": "Explorează: Market Explorer pentru a compara active",
+      "insights": {
+        "concentrationTitle": "Risc de concentrare",
+        "concentrationMeaning": "O poziție domină cu {{pct}}% din portofoliu.",
+        "concentrationWhy": "O singură scădere poate afecta rezultatele tale overall.",
+        "concentrationStep1": "Adaugă o a doua poziție într-o zonă diferită.",
+        "concentrationStep2": "Ia în calcul reducerea poziției supra dimensionate.",
+        "diversificationTitle": "Diversificare scăzută",
+        "diversificationMeaning": "Ai mai puțin de trei poziții.",
+        "diversificationWhy": "Portofoliile mici tind să fie mai puțin rezistente la șocuri.",
+        "diversificationStep1": "Adaugă un ETF de piață largă sau expunere la indice.",
+        "diversificationStep2": "Echilibrează cu alt tip de activ.",
+        "volatilityTitle": "Expunere mare la volatilitate",
+        "volatilityMeaning": "Crypto reprezintă circa {{pct}}% din portofoliu.",
+        "volatilityWhy": "Crypto tinde să oscileze mai mult decât acțiunile sau obligațiunile.",
+        "volatilityStep1": "Decide dacă asta se aliniază cu toleranța ta la risc.",
+        "volatilityStep2": "Echilibrează cu active mai puțin volatile.",
+        "drawdownTitle": "Scădere portofoliu",
+        "drawdownMeaning": "Portofoliul tău este în pierdere cu peste 10% overall.",
+        "drawdownWhy": "Scăderile mari îți pot testa orizontul și încrederea.",
+        "drawdownStep1": "Revizuiește orizontul înainte de modificări.",
+        "drawdownStep2": "Evită vânzarea în panică fără un plan.",
+        "healthyTitle": "Echilibru sănătos",
+        "healthyMeaning": "Mixul tău pare rezonabil diversificat.",
+        "healthyWhy": "Portofoliile echilibrate tind să reziste mai bine la volatilitate.",
+        "healthyStep1": "Continuă să monitorizezi driftul de alocare trimestrial.",
+        "healthyStep2": "Explorează active noi doar dacă se potrivesc obiectivului tău."
+      },
+      "problems": {
+        "oneInvestment": "Toți banii sunt într-o singură investiție.",
+        "largestHolding": "Cea mai mare poziție este {{pct}}% din portofoliu – concentrarea e mare.",
+        "largestHoldingModerate": "Cea mai mare poziție este {{pct}}% din portofoliu. Ia în calcul diversificarea riscului.",
+        "cryptoVolatile": "Majoritatea portofoliului e în crypto, care tinde să fie mai volatil.",
+        "downOnPaper": "Ești în pierdere pe hârtie. Verifică dacă orizontul și toleranța la risc încă se potrivesc acestui mix.",
+        "spreadAcross": "Ești dispersat pe mai mult de un tip de activ – asta ajută la netezirea volatilității.",
+        "stocksPct": "Acțiunile reprezintă {{pct}}% din portofoliul tău.",
+        "cryptoPct": "Crypto reprezintă {{pct}}% – ține minte că poate oscila mai mult decât acțiunile.",
+        "totalValueBullet": "Valoarea totală este {{value}} cu {{gainOrLoss}} de {{pct}}% overall.",
+        "gain": "un câștig",
+        "loss": "o pierdere"
+      }
+    },
+    "calendarEmbed": {
+      "title": "Calendar economic",
+      "subtitle": "Rămâi la curent cu evenimente economice importante și știri",
+      "iframeTitle": "Calendar economic",
+      "fallback": "Calendar economic oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
+      "activityLabel": "Ai văzut evenimentele viitoare"
+    },
+    "calendar": {
+      "activityLabel": "Ai verificat evenimentele macro",
+      "impactFilter": {
+        "title": "Filtru de impact",
+        "subtitle": "Implicit sunt afișate doar evenimentele cu impact ridicat.",
+        "showAll": "Arată toate evenimentele",
+        "hideLow": "Ascunde evenimentele cu impact scăzut"
+      },
+      "errors": {
+        "loadFailed": "Calendarul nu s-a putut încărca.",
+        "loadFailedHelp": "Încearcă să dezactivezi blocatoarele de reclame sau de conținut pentru acest site, sau deschide calendarul într-un tab nou.",
+        "openNewTab": "Deschide calendarul într-un tab nou"
+      },
+      "loading": "Se încarcă calendarul economic…",
+      "fallback": "Calendar economic oferit de <provider>TradingView</provider>. Dacă nu se încarcă, <open>deschide-l într-un tab nou</open>.",
+      "relevant": "Relevant pentru tine",
+      "why": "De ce contează:",
+      "who": "Cui îi pasă:",
+      "affects": "Ce afectează:",
+      "learnMore": "Află mai multe →",
+      "explainers": {
+        "inflation": {
+          "label": "CPI / Inflație",
+          "difficulty": "Începător",
+          "why": "Semnalează creșterea prețurilor care reduce puterea de cumpărare.",
+          "who": "Economisitorii, împrumutații și oricine are un buget.",
+          "affects": "Ratele de economisire, costul creditelor, prețurile de zi cu zi."
+        },
+        "rates": {
+          "label": "Ratele băncii centrale",
+          "difficulty": "Începător",
+          "why": "Stabilește baza pentru costurile de împrumut și economisire.",
+          "who": "Oricine are credite, ipoteci sau conturi de economii.",
+          "affects": "Ipoteci, carduri de credit, randamente la economii."
+        },
+        "jobs": {
+          "label": "Raportul locurilor de muncă",
+          "difficulty": "Intermediar",
+          "why": "Arată forța pieței muncii care influențează puterea de cumpărare.",
+          "who": "Angajați, persoane în căutare de job, investitori.",
+          "affects": "Salarii, cerere a consumatorilor, decizii de dobândă."
+        },
+        "gdp": {
+          "label": "Creșterea PIB",
+          "difficulty": "Intermediar",
+          "why": "Măsoară expansiunea sau contracția economiei.",
+          "who": "Investitori și antreprenori.",
+          "affects": "Sentimentul pieței, angajări, planuri de investiții."
+        },
+        "retail": {
+          "label": "Vânzări cu amănuntul",
+          "difficulty": "Intermediar",
+          "why": "Evidențiază tendințele de cheltuire ale consumatorilor.",
+          "who": "Cei care își fac bugetul și observatorii pieței.",
+          "affects": "Rezultatele companiilor, perspectiva asupra inflației."
+        },
+        "housing": {
+          "label": "Date despre piața imobiliară",
+          "difficulty": "Avansat",
+          "why": "Reflectă accesibilitatea și condițiile de creditare.",
+          "who": "Cumpărători de locuințe, chiriași și creditori.",
+          "affects": "Rate ipotecare, chirii, locuri de muncă în construcții."
+        }
+      }
+    },
+    "crypto": {
+      "title": "Tranzacționare criptomonede",
+      "subtitle": "Urmărește și analizează prețurile criptomonedelor",
+      "errors": {
+        "loadFailed": "Graficul nu s-a putut încărca.",
+        "loadFailedHelp": "Încearcă să dezactivezi blocatoarele de reclame sau de conținut pentru acest site, sau deschide TradingView într-un tab nou.",
+        "openNewTab": "Deschide TradingView într-un tab nou"
+      },
+      "tradingViewLabel": "Grafic TradingView"
+    },
+    "sandbox": {
+      "activityLabel": "{{years}} ani @ {{rate}}%",
+      "title": "Sandbox financiar",
+      "subtitle": "Experimentează cu sumele de contribuție, orizonturile de timp și randamentele anuale estimate fără a modifica datele urmărite.",
+      "monthlyContribution": "Contribuție lunară",
+      "years": "Ani",
+      "averageReturn": "Randament mediu (%)",
+      "startProjection": "Pornește proiecția",
+      "tryThis": "Încearcă asta",
+      "tip1": "Dublează contribuția lunară și compară rezultatele",
+      "tip2": "Mărește orizontul la 15+ ani pentru a vedea efectul compunerii",
+      "tip3": "Scade rata de randament pentru a testa scenariile",
+      "projectedValue": "Valoare proiectată în {{years}} an",
+      "projectedValue_one": "Valoare proiectată în {{years}} an",
+      "projectedValue_other": "Valoare proiectată în {{years}} ani"
+    },
+    "forex": {
+      "title": "Calculator pip & poziție Forex",
+      "subtitle": "Calculează valorile pip și dimensiunea poziției pentru perechile tale Forex",
+      "iframeTitle": "Calculator pip Forex",
+      "fallback": "Calculator oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
+      "activityLabel": "Ai vizualizat calculatorul Forex"
+    }
+  },
+  "missions": {
+    "savings": {
+      "unlocked": "Deblocat",
+      "locked": "Blocat",
+      "nextCoin": "Economisește £{{amount}} pentru a debloca următoarea monedă!",
+      "showJar": "Arată pușculița de economii",
+      "hideJar": "Ascunde pușculița de economii",
+      "suggestedNote": "Depozitul sugerat este completat pentru a debloca mai repede următoarea monedă.",
+      "placeholderDaily": "Introdu suma (ex.: £1)",
+      "placeholderWeekly": "Introdu suma (ex.: £10)",
+      "savedToday": "Economisit astăzi",
+      "add": "Adaugă la economii"
+    },
+    "facts": {
+      "markRead": "✓ Marchează ca citit",
+      "empty": "Nu există fapte financiare noi acum - revino curând!",
+      "tryAgain": "↻ Încearcă din nou"
+    },
+    "errors": {
+      "refreshLesson": "Nu s-a putut reîmprospăta misiunea de lecție.",
+      "loadMissions": "Nu s-au putut încărca misiunile. Te rugăm să încerci din nou.",
+      "loadSavings": "Nu s-a putut încărca soldul economiilor.",
+      "swapFailed": "Nu s-a putut schimba misiunea. Te rugăm să încerci din nou.",
+      "loadInsights": "Nu s-au putut încărca informațiile de profil.",
+      "markFact": "Nu s-a putut marca faptul ca citit.",
+      "addSavings": "Nu s-au putut adăuga economii. Te rugăm să încerci din nou.",
+      "validAmount": "Te rugăm să introduci o sumă validă."
+    },
+    "toast": {
+      "completed": "Finalizat {{name}} (+{{xp}} XP)",
+      "synced": "Sincronizat: {{name}} finalizat!",
+      "swapSuccess": "Misiunea a fost schimbată cu succes!"
+    },
+    "missionFallback": "Misiune",
+    "purpose": {
+      "completeLesson": "Construirea momentumului la lecții întărește reamintirea și îți menține seria.",
+      "addSavings": "Adăugarea în pușculița de economii te apropie de fondul de urgență.",
+      "readFact": "Faptele rapide despre bani îți ascut intuiția pentru alegeri mai bune.",
+      "completePath": "Finalizarea unui traseu consolidează stăpânirea abilităților conexe.",
+      "default": "Finalizarea acestei misiuni îți menține ritmul de învățare."
+    },
+    "progress": {
+      "factsCount": "{{count}}/5 fapte",
+      "percent": "{{value}}%",
+      "readOneFact": "Citește un fapt pentru a finaliza",
+      "factsRemaining": "{{count}} din 5 fapte rămase",
+      "lessonTarget": "{{value}}% din ținta ta de {{lessons}} lecții",
+      "complete": "{{value}}% complet",
+      "label": "Progres",
+      "aria": "Progres misiune: {{value}}%",
+      "completed": "Finalizat!",
+      "levelTarget": "Țintă în funcție de nivel: {{lessons}} lecție{{plural}}. Estimat completate azi: {{completed}}."
+    },
+    "badge": {
+      "daily": "Zilnic",
+      "weekly": "Săptămânal"
+    },
+    "why": "De ce contează:",
+    "complete": {
+      "title": "Misiune finalizată",
+      "subtitle": "Bravo! Păstrează ritmul pentru a debloca bonusuri de serie și clasament."
+    },
+    "swap": {
+      "aria": "Schimbă misiunea: {{name}}",
+      "label": "Schimbă misiunea"
+    },
+    "header": {
+      "title": "Misiuni zilnice",
+      "subtitle": "Finalizează provocări focusate pentru a câștiga recompense și a-ți întări obiceiurile financiare."
+    },
+    "summary": {
+      "title": "Progres pe scurt",
+      "remaining": "{{count}} misiuni rămase azi",
+      "remaining_one": "{{count}} misiune rămasă azi",
+      "remaining_few": "{{count}} misiuni rămase azi",
+      "remaining_other": "{{count}} de misiuni rămase azi",
+      "xp": "{{earned}} XP câștigate · {{remaining}} XP rămase",
+      "offline": "Mod offline - misiunile se vor sincroniza când revii online",
+      "suggestedSavings": "Țintă sugerată de economii: £{{amount}} (în funcție de nivelul tău {{level}})",
+      "streak": "Serie",
+      "streakDays": "{{count}} zile",
+      "totalXp": "Total XP azi"
+    },
+    "streakItemAria": "{{type}}: {{quantity}} disponibile",
+    "loading": "Se încarcă misiunile...",
+    "wrapup": {
+      "title": "Rezumat misiuni zilnice",
+      "earned": "Ai acumulat {{xp}} XP azi",
+      "streakReview": "Serie: {{days}} zile · Recapitulări restante: {{review}}",
+      "streakReview_one": "Serie: {{days}} zi · Recapitulări restante: {{review}}",
+      "streakReview_few": "Serie: {{days}} zile · Recapitulări restante: {{review}}",
+      "streakReview_other": "Serie: {{days}} de zile · Recapitulări restante: {{review}}",
+      "cta": "Continuă! Misiunile săptămânale și recapitulările vor crește stăpânirea.",
+      "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!"
+    },
+    "weekly": {
+      "title": "Misiuni săptămânale"
+    }
+  },
+  "leaderboard": {
+    "time": {
+      "allTime": "Tot timpul",
+      "thisMonth": "Luna aceasta",
+      "thisWeek": "Săptămâna aceasta"
+    },
+    "errors": {
+      "loadFailed": "Nu s-au putut încărca datele clasamentului. Te rugăm să încerci din nou.",
+      "friendRequestFailed": "Nu s-a putut trimite cererea de prietenie."
+    },
+    "loading": "Se încarcă datele clasamentului...",
+    "title": {
+      "global": "Clasament global",
+      "friends": "Clasament prieteni"
+    },
+    "subtitle": "Urmărește progresul, sărbătorește reușitele și conectează-te cu comunitatea.",
+    "tabs": {
+      "global": "Global",
+      "friends": "Prieteni"
+    },
+    "searchPlaceholder": "Caută utilizatori...",
+    "searchAriaLabel": "Caută în clasament",
+    "you": "Tu ({{username}})",
+    "youBadge": "Tu",
+    "rankShort": "Locul {{rank}}",
+    "friendRequestSent": "Cererea de prietenie a fost trimisă.",
+    "loadMore": "Încarcă mai mult",
+    "podium": {
+      "place1": "Locul 1",
+      "place2": "Locul 2",
+      "place3": "Locul 3"
+    },
+    "points": "{{points}} puncte",
+    "empty": "Nu au fost găsiți utilizatori pentru selecția curentă.",
+    "friendStatus": {
+      "alreadyFriends": "Deja prieteni",
+      "pending": "Cerere în așteptare",
+      "addFriend": "Adaugă ca prieten",
+      "friends": "Prieteni",
+      "pendingShort": "În așteptare",
+      "addFriendShort": "Adaugă prieten"
+    }
+  },
+  "rewards": {
+    "errors": {
+      "downloadLimit": "Ai atins limita de descărcări de azi. Upgrade pentru descărcări nelimitate.",
+      "downloadsPremium": "Descărcările sunt doar pentru Premium. Upgrade pentru deblocare.",
+      "downloadAllowance": "Nu am putut verifica limita de descărcări. Te rugăm să încerci din nou."
+    },
+    "share": {
+      "title": "Tocmai am deblocat recompense pe Monevo!",
+      "text": "Vezi ultima mea realizare.",
+      "downloaded": "Imaginea de partajare a fost descărcată. Posteaz-o oriunde!",
+      "unavailable": "Nu putem genera imaginea de partajare acum."
+    },
+    "title": "Recompense",
+    "subtitle": "Cheltuiește-ți monedele pe recompense exclusive sau donează către cauze importante.",
+    "balanceLabel": "Sold disponibil",
+    "coins": "monede",
+    "tabs": {
+      "shop": "Magazin",
+      "donate": "Donează"
+    },
+    "shop": {
+      "empty": "Niciun produs disponibil în magazin momentan.",
+      "subtitle": "Redeem monedele pentru recompense exclusive și resurse.",
+      "buyNow": "Cumpără acum",
+      "purchaseSuccess": "Achiziție reușită!",
+      "purchaseFailed": "Achiziția a eșuat.",
+      "insufficientFunds": "Nu ai suficiente monede pentru această recompensă."
+    },
+    "donate": {
+      "empty": "Nicio cauză de donație disponibilă momentan.",
+      "subtitle": "Sprijină organizații cu sens cu o parte din monedele tale.",
+      "donateNow": "Donează acum",
+      "donationSuccess": "Donație reușită!",
+      "donationFailed": "Donația a eșuat."
+    },
+    "refreshNote": "Monedele se reîmprospătează automat după fiecare achiziție sau donație.",
+    "downloadLimit": "Limita de descărcări atinsă",
+    "shareButton": "Partajează cardul de realizare",
+    "confirmAction": "Apasă din nou pentru confirmare"
+  },
+  "support": {
+    "header": {
+      "kicker": "Centru de ajutor",
+      "title": "Întrebări frecvente",
+      "subtitle": "Caută subiecte, răsfoiește categorii sau contactează echipa de suport."
+    },
+    "search": {
+      "placeholder": "Caută în suport...",
+      "clear": "Șterge"
+    },
+    "filter": {
+      "label": "Filtru:",
+      "aria": "Filtrează după categorie",
+      "all": "Toate"
+    },
+    "loading": "Se încarcă...",
+    "empty": "Nu există rezultate. Încearcă alte cuvinte cheie sau șterge filtrele.",
+    "vote": {
+      "prompt": "Ți-a fost de ajutor?",
+      "thanksHelpful": "Mulțumim pentru feedback! 👍",
+      "thanksNotHelpful": "Mulțumim pentru feedback! 👎",
+      "helpful": "👍 Util",
+      "notHelpful": "👎 Nu prea"
+    },
+    "feedbackSection": {
+      "title": "Ai observat un bug sau ceva care nu ți se potrivește?",
+      "description": "Raportează un bug sau trimite-ne feedback ca să ne îmbunătățim.",
+      "cta": "Raportează bug sau trimite feedback"
+    },
+    "contact": {
+      "title": "Ai nevoie de ajutor? Contactează-ne",
+      "subtitle": "Descrie pe scurt problema și revenim cu un răspuns.",
+      "email": "Emailul tău",
+      "topic": "Subiect",
+      "selectTopic": "Selectează un subiect",
+      "topics": {
+        "billing": "Facturare",
+        "technical": "Problemă tehnică",
+        "account": "Cont",
+        "content": "Conținut curs",
+        "feedback": "Feedback",
+        "other": "Altele"
+      },
+      "message": "Mesaj",
+      "send": "Trimite mesaj",
+      "success": "Mesajul tău a fost primit! Îți mulțumim că ne-ai contactat.",
+      "error": "Nu s-a putut trimite mesajul. Te rugăm să încerci mai târziu."
+    }
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Raportează un bug sau spune-ne ce ai vrea să îmbunătățim.",
+    "typeLabel": "Tip",
+    "typeBug": "Raportare bug",
+    "typeSuggestion": "Sugestie / îmbunătățire",
+    "typeOther": "Altele",
+    "messageLabel": "Mesaj",
+    "messagePlaceholder": "Descrie ce s-a întâmplat sau ce ai vrea să se schimbe...",
+    "whereLabel": "Unde s-a întâmplat? (opțional)",
+    "wherePlaceholder": "ex. /tools, Acasă sau o scurtă descriere",
+    "send": "Trimite feedback",
+    "success": "Mulțumim! Am primit feedback-ul tău.",
+    "error": "Nu s-a putut trimite feedback-ul. Te rugăm să încerci din nou.",
+    "backToSupport": "Înapoi la Suport"
+  },
+  "profile": {
+    "weekdays": {
+      "sun": "Dum",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mie",
+      "thu": "Joi",
+      "fri": "Vin",
+      "sat": "Sâm"
+    },
+    "goals": {
+      "dailyLabel": "Finalizează 1 lecție",
+      "weeklyLabel": "Câștigă 500 puncte",
+      "title": "Obiectivele tale",
+      "subtitle": "Urmărește progresul zilnic și săptămânal.",
+      "dailyTitle": "🎯 Obiectiv zilnic",
+      "weeklyTitle": "🗓 Obiectiv săptămânal",
+      "completed": "✓ Finalizat!"
+    },
+    "fallbackUser": "Utilizator",
+    "loading": "Se încarcă profilul...",
+    "avatarAlt": "Avatar",
+    "actions": {
+      "personalizedPath": "Mergi la Traseu personalizat",
+      "subscription": "Mergi la Abonament"
+    },
+    "streak": {
+      "title": "Serie de învățare",
+      "subtitle": "Vizualizează activitatea zilnică pentru lună."
+    },
+    "referral": {
+      "title": "Invită prieteni",
+      "subtitle": "Partajează linkul tău — când un prieten finalizează primul traseu de învățare, primiți amândoi 40% reducere la Plus prin email.",
+      "linkLabel": "Linkul tău unic de recomandare",
+      "copied": "Copiat!",
+      "copyLink": "Copiază link",
+      "linkAria": "Link de recomandare"
+    },
+    "stats": {
+      "title": "Statistici",
+      "balance": "Sold",
+      "points": "Puncte",
+      "streak": "Serie",
+      "streakDays": "{{count}} zile",
+      "hotStreak": "🔥 Serie fierbinte!",
+      "keepGoing": "↑ Continuă!",
+      "startStreak": "Începe-ți seria"
+    },
+    "achievements": {
+      "title": "Realizări",
+      "showing": "Se afișează {{shown}} din {{total}}",
+      "filterLabel": "Filtru:",
+      "filterAll": "Toate",
+      "filterEarned": "Obținute",
+      "filterLocked": "Blocate",
+      "showLess": "Arată mai puțin",
+      "showAll": "Arată tot",
+      "earnedAchievement": "Realizare obținută",
+      "locked": "Blocat",
+      "earnedOn": "Obținut {{date}}",
+      "empty": "Nu ai încă insigne obținute"
+    },
+    "activity": {
+      "title": "Activitate recentă",
+      "empty": "Fără activitate recentă",
+      "showing": "Se afișează ultimele 3 activități din total {{total}}."
+    },
+    "friendRequests": {
+      "loadFailed": "Nu putem încărca acum cererile de prietenie.",
+      "accepted": "Cerere de prietenie acceptată!",
+      "declined": "Cerere de prietenie respinsă.",
+      "error": "Ceva n-a mers bine. Te rugăm să încerci din nou.",
+      "title": "Cereri de prietenie",
+      "subtitle": "Gestionează persoanele care vor să se conecteze cu tine.",
+      "empty": "Nu ai cereri în așteptare",
+      "wantsToConnect": "vrea să se conecteze cu tine",
+      "accept": "Acceptă",
+      "decline": "Respinge"
+    },
+    "avatarSelector": {
+      "changeAvatar": "Schimbă avatarul",
+      "title": "Personalizează-ți avatarul",
+      "subtitle": "Alege un stil și personalizează-ți aspectul.",
+      "close": "Închide selectorul de avatar",
+      "previewAlt": "Previzualizare avatar",
+      "seedHint": "Fiecare avatar este generat din textul seed.",
+      "style": "Stil avatar",
+      "customizationSeed": "Seed personalizare",
+      "customizePlaceholder": "Introdu text pentru personalizarea avatarului",
+      "customizeHint": "Cuvinte diferite generează avatare diferite.",
+      "quickOptions": "Opțiuni rapide",
+      "quickOptionsHint": "Apasă pe orice avatar de mai jos ca să-l folosești.",
+      "randomize": "Aleator",
+      "saving": "Se salvează...",
+      "save": "Salvează avatarul"
+    }
+  },
+  "widgets": {
+    "userProgress": {
+      "loading": "Se încarcă progresul...",
+      "userProfile": "Profil utilizator",
+      "logout": "Deconectare",
+      "loadingUserInfo": "Se încarcă informațiile utilizatorului...",
+      "points": "Puncte",
+      "streak_one": "Zi serie",
+      "streak_other": "Zile serie",
+      "learningProgress": "Progres de învățare",
+      "overallCompletion": "Finalizare totală",
+      "pathProgress": "Progres traseu",
+      "streak": "serie"
+    }
+  },
+  "chatbot": {
+    "title": "Asistent financiar",
+    "openAssistantAria": "Deschide asistentul financiar",
+    "closeAssistantAria": "Închide asistentul financiar",
+    "loadingVoices": "Se încarcă vocile...",
+    "tryAsking": "Încearcă să mă întrebi despre:",
+    "voiceInputAria": "Intrare vocală",
+    "inputPlaceholder": "Întreabă-mă despre finanțe, buget, investiții...",
+    "chatInputAria": "Câmp chat",
+    "send": "Trimite",
+    "typing": "Scriu...",
+    "availablePaths": "Trasee disponibile",
+    "userAvatarAlt": "Avatar utilizator",
+    "speechNotSupported": "Recunoașterea vocală nu este suportată în browserul tău.",
+    "greeting": "Salut! Sunt asistentul tău financiar. Întreabă-mă despre buget, investiții, economii, criptomonede, planificare pentru pensie sau orice alt subiect financiar. Cum te pot ajuta azi?",
+    "listening": "Ascult...",
+    "loginRequired": "Te rugăm să te autentifici pentru a folosi chatbotul. Vei fi redirecționat către pagina de login.",
+    "aiTutorLimited": "Accesul la tutorul AI este limitat pe planul tău curent. Fă upgrade pentru a continua conversația.",
+    "aiTutorPremiumOnly": "Tutorul AI este disponibil pe planurile Premium. Fă upgrade pentru a continua conversația.",
+    "aiTutorDailyLimit": "Ai atins limita zilnică pentru tutorul AI. Fă upgrade pentru mai multe conversații.",
+    "authTokenMissing": "Tokenul de autentificare lipsește. Te rugăm să te conectezi din nou.",
+    "genericError": "Îmi pare rău, nu am putut procesa cererea. Te rugăm să încerci din nou.",
+    "sessionExpired": "Sesiunea ta a expirat. Te rugăm să te conectezi din nou.",
+    "rateLimit": "Ai atins limita de cereri. Te rugăm să încerci din nou în câteva momente.",
+    "languages": {
+      "enUS": "Engleză (US)",
+      "esES": "Spaniolă",
+      "frFR": "Franceză",
+      "deDE": "Germană",
+      "itIT": "Italiană",
+      "ptBR": "Portugheză",
+      "jaJP": "Japoneză",
+      "koKR": "Coreeană",
+      "zhCN": "Chineză"
+    },
+    "quickReplies": {
+      "compoundInterest": "💰 Ce este dobânda compusă?",
+      "learningPaths": "📚 Arată-mi trasee de învățare",
+      "recommendCourse": "📊 Recomandă-mi un curs",
+      "bitcoinPrice": "📈 Care este prețul Bitcoin?",
+      "startInvesting": "💼 Cum încep să investesc?"
+    },
+    "responses": {
+      "increased": "a crescut",
+      "decreased": "a scăzut",
+      "up": "în creștere",
+      "down": "în scădere",
+      "stockPrice": "Prețul curent pentru {{symbol}} este {{price}}. Acțiunea {{direction}} cu {{change}}% astăzi.",
+      "stockNotFound": "Nu am găsit date de preț curente pentru {{symbol}}. Verifică dacă simbolul este corect.",
+      "forexRate": "Cursul curent de schimb din {{from}} în {{to}} este {{rate}}.",
+      "forexChanged": "Cursul s-a schimbat cu {{sign}}{{change}} astăzi.",
+      "forexNotFound": "Nu am găsit cursul de schimb între {{from}} și {{to}}. Verifică dacă ambele coduri valutare sunt valide.",
+      "cryptoPrice": "Prețul curent pentru {{name}} este {{price}}. Este {{direction}} cu {{change}}% în ultimele 24 de ore.",
+      "marketCap": "Capitalizare de piață: {{marketCap}}.",
+      "cryptoNotFound": "Nu am găsit date de preț curente pentru {{name}}. Este posibil să nu fie listat pe bursele la care am acces.",
+      "cryptoUnrecognized": "Nu am putut identifica criptomoneda despre care întrebi. Încearcă să specifici una majoră, precum Bitcoin sau Ethereum."
+    }
+  },
+  "settings": {
+    "errors": {
+      "loadSettings": "Nu s-au putut încărca setările. Te rugăm să încerci din nou.",
+      "saveSettings": "Nu s-au putut salva setările. Te rugăm să încerci din nou.",
+      "passwordFields": "Te rugăm să completezi toate câmpurile parolei.",
+      "passwordMismatch": "Parolele noi nu se potrivesc.",
+      "passwordLength": "Parola trebuie să aibă cel puțin 8 caractere.",
+      "passwordUpdate": "Nu s-a putut actualiza parola.",
+      "deletePassword": "Te rugăm să introduci parola pentru a confirma ștergerea.",
+      "incorrectPassword": "Parolă incorectă. Te rugăm să încerci din nou.",
+      "deleteAccount": "Nu s-a putut șterge contul. Te rugăm să încerci din nou."
+    },
+    "success": {
+      "updated": "Setările au fost actualizate!",
+      "passwordUpdated": "Parola a fost actualizată!"
+    },
+    "profile": {
+      "title": "Informații profil",
+      "subtitle": "Actualizează datele personale și adresa de email.",
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "username": "Nume utilizator",
+      "email": "Email"
+    },
+    "preferences": {
+      "title": "Preferințe",
+      "subtitle": "Controlează mementourile și opțiunile de personalizare.",
+      "emailReminders": "Memento-uri email",
+      "reminders": {
+        "none": "Fără memento-uri",
+        "weekly": "Săptămânal",
+        "monthly": "Lunar"
+      },
+      "emailTypes": {
+        "reminders": "Memento-uri generale",
+        "weeklyDigest": "Digest săptămânal",
+        "streakAlerts": "Alerte de serie",
+        "billingAlerts": "Alerte de facturare",
+        "marketing": "Emailuri de marketing"
+      },
+      "lessonSounds": "Sunete lecție",
+      "soundsHint": "Redă clopoței discreți pentru răspunsuri",
+      "animations": "Animații",
+      "animationsHint": "Activează mascotele și confetti"
+    },
+    "password": {
+      "title": "Schimbă parola",
+      "subtitle": "Creează o parolă puternică pentru a-ți proteja contul.",
+      "current": "Parola curentă",
+      "new": "Parola nouă",
+      "confirm": "Confirmă parola nouă",
+      "update": "Actualizează parola"
+    },
+    "privacy": {
+      "settings": "Setări de confidențialitate",
+      "cookiePolicy": "Politica de cookie-uri",
+      "privacyPolicy": "Politica de confidențialitate",
+      "financialDisclaimer": "Declinare de responsabilitate financiară"
+    },
+    "danger": {
+      "title": "Zonă periculoasă",
+      "subtitle": "Șterge permanent contul și toate datele asociate.",
+      "deleteAccount": "Șterge contul meu",
+      "confirmNote": "Această acțiune nu poate fi anulată. Introdu parola pentru confirmare.",
+      "passwordPlaceholder": "Introdu parola",
+      "confirmDeletion": "Confirmă ștergerea"
+    },
+    "actions": {
+      "cancel": "Anulează",
+      "save": "Salvează modificările"
+    }
+  },
+  "auth": {
+    "signInWithGoogle": "Conectare cu Google",
+    "orContinueWith": "sau continuă cu",
+    "recaptcha": {
+      "verifying": "Verificăm că ești om...",
+      "protectedBy": "Protejat de reCAPTCHA"
+    },
+    "entitlementsUnavailable": "Nu am putut confirma drepturile tale în acest moment.",
+    "login": {
+      "title": "Bine ai revenit",
+      "subtitle": "Conectează-te la cont pentru a continua",
+      "username": "Nume de utilizator",
+      "password": "Parolă",
+      "usernamePlaceholder": "Introdu numele de utilizator",
+      "passwordPlaceholder": "Introdu parola",
+      "rememberMe": "Ține-mă minte",
+      "forgotPassword": "Ai uitat parola?",
+      "submit": "Conectare",
+      "submitting": "Se conectează...",
+      "noAccount": "Nu ai cont?",
+      "signUpNow": "Înscrie-te acum",
+      "sessionExpired": "Sesiunea a expirat. Te rugăm să te conectezi din nou.",
+      "loginFailed": "Conectarea a eșuat. Te rugăm să încerci din nou.",
+      "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
+      "unexpectedError": "A apărut o eroare neașteptată. Te rugăm să încerci din nou.",
+      "showPassword": "Arată parola",
+      "hidePassword": "Ascunde parola"
+    },
+    "register": {
+      "title": "Creează cont",
+      "subtitle": "Înscrie-te pentru a începe",
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "username": "Nume de utilizator",
+      "email": "Email",
+      "password": "Parolă",
+      "referralCode": "Cod de recomandare",
+      "optional": "opțional",
+      "firstNamePlaceholder": "Introdu prenumele",
+      "lastNamePlaceholder": "Introdu numele",
+      "usernamePlaceholder": "Alege un nume de utilizator",
+      "emailPlaceholder": "Introdu emailul",
+      "passwordPlaceholder": "Creează o parolă",
+      "referralPlaceholder": "Introdu codul de recomandare dacă îl ai",
+      "referralCodeChecking": "Se verifică codul de recomandare...",
+      "referralCodeValid": "Codul de recomandare este valid.",
+      "referralCodeInvalid": "Codul de recomandare este invalid.",
+      "referralCodeCheckFailed": "Nu am putut verifica codul. Încearcă din nou.",
+      "submit": "Înscriere",
+      "submitting": "Se creează contul...",
+      "hasAccount": "Ai deja cont?",
+      "loginHere": "Conectează-te aici",
+      "registerFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou.",
+      "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
+      "verificationFailedHint": "Verificarea de securitate nu a putut fi finalizată. Reîncarcă pagina și încearcă din nou, sau folosește Conectare cu Google.",
+      "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos."
+    },
+    "forgotPassword": {
+      "title": "Ai uitat parola",
+      "logoAlt": "Logo Monevo",
+      "subtitle": "Introdu adresa de email și îți vom trimite un link pentru resetarea parolei.",
+      "email": "Email",
+      "emailPlaceholder": "Introdu emailul",
+      "submit": "Trimite link de resetare",
+      "submitting": "Se trimite...",
+      "backToLogin": "Înapoi la conectare",
+      "success": "Emailul de resetare a parolei a fost trimis cu succes",
+      "error": "A apărut o eroare. Te rugăm să încerci din nou."
+    },
+    "resetPassword": {
+      "title": "Resetează parola",
+      "subtitle": "Introdu noua parolă mai jos",
+      "newPassword": "Parolă nouă",
+      "confirmPassword": "Confirmă parola",
+      "newPasswordPlaceholder": "Introdu noua parolă",
+      "confirmPlaceholder": "Confirmă noua parolă",
+      "submit": "Resetează parola",
+      "submitting": "Se salvează...",
+      "success": "Parola a fost resetată cu succes.",
+      "redirectingToLogin": "Redirecționare către pagina de conectare…",
+      "passwordsDoNotMatch": "Parolele nu coincid.",
+      "error": "A apărut o eroare. Te rugăm să încerci din nou."
+    }
+  },
+  "subscriptions": {
+    "choosePlan": "Alege planul tău",
+    "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium prin checkout securizat Stripe.",
+    "paymentConfirmed": "Plata a fost confirmată! Abonamentul tău este acum activ.",
+    "fallbackEntitlements": "Se folosesc drepturi de rezervă. Contactează suportul dacă problema persistă.",
+    "loadingPlans": "Se încarcă planurile...",
+    "free": "Gratuit",
+    "trialDays": "{{count}} zi de probă",
+    "trialDays_one": "{{count}} zi de probă",
+    "trialDays_other": "{{count}} zile de probă",
+    "perMonth": "lună",
+    "perYear": "an",
+    "billingYearly": "Anual",
+    "billingMonthly": "Lunar",
+    "unlocksPath": "Deblochează traseul personalizat + checkout securizat Stripe",
+    "startStarter": "Începe cu Starter (gratuit)",
+    "choosePlanCheckout": "Alege {{name}}",
+    "premiumLearningAccess": "Acces premium la învățare",
+    "selectPlanError": "Te rugăm să alegi un plan pentru a continua.",
+    "completeOnboardingFirst": "Te rugăm să finalizezi onboardingul înainte de a alege un plan.",
+    "paymentNotConfigured": "Plata nu este configurată încă. Te rugăm să încerci mai târziu sau contactează suportul.",
+    "checkoutFailed": "Nu s-a putut porni plata. Te rugăm să încerci din nou.",
+    "paymentSuccess": {
+      "title": "Plată reușită",
+      "ariaLabel": "Configurarea contului tău",
+      "fetchingAnswers": "Preluăm răspunsurile tale...",
+      "syncingSubscription": "Sincronizăm abonamentul...",
+      "buildingPaths": "Construim traseele tale personalizate...",
+      "ready": "Aproape gata..."
+    },
+    "retryEntitlements": "Reîncearcă verificarea drepturilor",
+    "contactSupport": "Contactează suportul",
+    "subscriptionStatus": "Stare abonament",
+    "statusPaid": "Ești pe Plus sau Pro — traseu personalizat și funcții premium deblocate.",
+    "statusStarterComplete": "Ești pe Starter (gratuit). Fă upgrade la Plus sau Pro pentru a-ți debloca traseul personalizat.",
+    "statusOnboarding": "Finalizează onboardingul, apoi alege Starter (gratuit) sau fă upgrade la Plus/Pro.",
+    "trialEndsOn": "Perioada de probă se termină pe {{date}}",
+    "viewPersonalizedPath": "Vezi traseul tău personalizat",
+    "goToDashboard": "Mergi la Acasă",
+    "checkSubscriptionOptions": "Vezi opțiunile de abonament",
+    "comparePlans": "Compară planurile",
+    "seeWhatChanges": "Vezi ce se schimbă pe nivel",
+    "feature": "Funcționalitate",
+    "starter": "Starter",
+    "plus": "Plus",
+    "pro": "Pro",
+    "notIncluded": "Nu este inclus",
+    "unlimited": "Nelimitat",
+    "perDay": "{{count}} / zi",
+    "included": "Inclus",
+    "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>."
+  },
+  "onboarding": {
+    "loading": "Se încarcă onboardingul...",
+    "loadingQuestion": "Se încarcă întrebarea...",
+    "somethingWentWrong": "Ceva n-a mers bine",
+    "tryAgain": "Încearcă din nou",
+    "goToDashboard": "Mergi la Acasă",
+    "goToAllTopics": "Mergi la toate subiectele",
+    "errorSetup": "Onboardingul se configurează. Te rugăm să încerci în câteva momente.",
+    "errorLoad": "Nu am putut încărca onboardingul. Te rugăm să încerci din nou.",
+    "errorNextQuestion": "Nu am putut încărca următoarea întrebare. Te rugăm să încerci din nou.",
+    "errorNextQuestionSetup": "Chestionarul se configurează. Te rugăm să încerci în câteva momente.",
+    "noQuestionLoaded": "Nu s-a încărcat nicio întrebare",
+    "completeTitle": "Onboarding finalizat!",
+    "completeSubtitle": "Ești gata să alegi un plan și să-ți deblochezi traseul personalizat.",
+    "viewPlans": "Vezi planurile",
+    "questionOf": "Întrebarea {{current}} din {{total}}",
+    "tellUsAboutYourself": "Spune-ne despre tine",
+    "answerFewQuestions": "Răspunde la câteva întrebări rapide ca să îți personalizăm experiența.",
+    "noAdviceNotice": "Înțeleg că Monevo oferă doar informații educaționale și nu oferă sfaturi financiare.",
+    "financialDisclaimer": "Declinare de responsabilitate financiară",
+    "noFinancialAdvice": "Fără sfaturi financiare",
+    "progress": "Progres",
+    "summary": "Rezumat",
+    "allTopics": "Toate subiectele",
+    "saveAndFinishLater": "Salvează și continuă mai târziu",
+    "previous": "← Anterior",
+    "next": "Următorul →",
+    "saving": "Se salvează...",
+    "complete": "Finalizează",
+    "completing": "Se finalizează...",
+    "confirmNotice": "Te rugăm să confirmi declinarea de responsabilitate pentru a continua.",
+    "selectAnswer": "Te rugăm să alegi un răspuns",
+    "failedToSave": "Salvarea a eșuat. Te rugăm să încerci din nou.",
+    "failedToComplete": "Nu s-a putut finaliza onboardingul",
+    "progressSaved": "Progres salvat. Poți continua oricând!",
+    "couldNotComplete": "Nu s-a putut finaliza. Te redirecționăm la planuri…",
+    "unsupportedQuestionType": "Tip de întrebare nesuportat: {{type}}",
+    "previousComingSoon": "Navigarea la întrebarea anterioară în curând",
+    "reminderBanner": {
+      "loading": "Se încarcă starea onboardingului…",
+      "error": "Nu s-a putut încărca starea onboardingului.",
+      "retrying": "Se reîncearcă…",
+      "tryAgain": "Încearcă din nou",
+      "status": "Stare onboarding",
+      "allSet": "Ești gata. Onboardingul tău este finalizat.",
+      "questionsComplete": "{{done}} din {{total}} întrebări completate ({{percent}}%)",
+      "sectionsComplete": "{{done}} din {{total}} secțiuni completate ({{percent}}%)",
+      "resume": "Continuă onboardingul",
+      "start": "Începe onboardingul",
+      "viewStatus": "Vezi starea onboardingului"
+    },
+    "completionModal": {
+      "title": "🎉 Felicitări!",
+      "subtitle": "Ai finalizat onboardingul. Iată recompensele:",
+      "mascotMessage": "Traseul tău personalizat e gata. Hai să începem!",
+      "xpPoints": "Puncte XP",
+      "coins": "Monede",
+      "choosePlan": "Alege un plan →",
+      "close": "Închide"
+    },
+    "aria": "Chestionar de onboarding"
+  },
+  "footer": {
+    "tagline": "Învață abilități financiare cu lecții, misiuni și exerciții.",
+    "disclaimer": "Doar platformă educațională. Monevo nu oferă sfaturi financiare.",
+    "legal": "Legal",
+    "company": "Companie",
+    "product": "Produs",
+    "privacyPolicy": "Politica de confidențialitate",
+    "cookiePolicy": "Politica de cookie-uri",
+    "termsConditions": "Termeni și condiții",
+    "financialDisclaimer": "Declinare de responsabilitate financiară",
+    "noFinancialAdviceNotice": "Fără sfaturi financiare",
+    "about": "Despre",
+    "subscriptions": "Abonamente",
+    "contact": "Contact",
+    "support": "Suport",
+    "dashboard": "Acasă",
+    "exercises": "Exerciții",
+    "missions": "Misiuni",
+    "tools": "Instrumente",
+    "leaderboards": "Clasamente",
+    "rewards": "Recompense",
+    "copyright": "© {{year}} Monevo. Toate drepturile rezervate.",
+    "infoDisclaimer": "Informațiile sunt educaționale și generale, nu sfaturi financiare personalizate.",
+    "buyMeACoffee": "Cumpără-mi o cafea",
+    "monevoOn": "Monevo pe {{platform}}",
+    "ariaLabel": "Subsolul site-ului",
+    "cookieSettings": "Setări cookie-uri",
+    "backToWelcome": "Înapoi la Welcome"
+  },
+  "cookieConsent": {
+    "bannerAria": "Consimțământ cookie-uri",
+    "message": "Folosim cookie-uri pe acest site. Avem nevoie de consimțământul tău pentru a stoca cookie-uri non-esențiale (ex. analiză) pe dispozitivul tău. Cookie-urile necesare (sesiune, login, securitate) sunt folosite fără consimțământ, conform cerințelor serviciului. Poți accepta toate, respinge non-esențiale sau alege în setări.",
+    "acceptAll": "Accept toate",
+    "rejectNonEssential": "Resping non-esențiale",
+    "cookieSettings": "Setări cookie-uri",
+    "settingsTitle": "Preferințe cookie-uri",
+    "settingsIntro": "Te informăm despre cookie-urile pe care le folosim. Cookie-urile necesare (sesiune, login, securitate) sunt mereu active și nu necesită consimțământ conform legislației din UK și UE. Alege mai jos dacă permiți cookie-uri opționale.",
+    "necessaryNote": "Cookie-urile necesare sunt mereu active (fără consimțământ).",
+    "analyticsLabel": "Analiză — ne ajută să înțelegem cum e folosit site-ul (ex. Google Analytics).",
+    "marketingLabel": "Marketing — reclame sau remarketing opțional (momentan nu le folosim).",
+    "save": "Salvează",
+    "cancel": "Anulează"
+  },
+  "header": {
+    "premiumReady": "Premium gata",
+    "toggleDarkMode": "Comutare mod întunecat",
+    "openDashboard": "Deschide Acasă",
+    "login": "Conectare",
+    "getStarted": "Începe"
+  },
+  "errorBoundary": {
+    "title": "Ceva n-a mers bine la încărcarea acestei secțiuni.",
+    "chunkLoadMessage": "A fost implementată o versiune nouă și browserul tău încă are un fișier din cache. Reîncarcă pagina pentru a remedia.",
+    "genericMessage": "Te rugăm să reîncarci pagina sau să încerci mai târziu. Dacă problema persistă, contactează suportul.",
+    "reloadPage": "Reîncarcă pagina"
+  },
+  "exercises": {
+    "errors": {
+      "loadFailed": "Nu s-au putut încărca exercițiile. Te rugăm să încerci din nou.",
+      "submissionFailed": "Trimiterea a eșuat. Te rugăm să încerci din nou.",
+      "submitAnswer": "Te rugăm să trimiți un răspuns înainte de a continua.",
+      "invalidFormat": "Format de exercițiu invalid",
+      "unsupportedType": "Tip de exercițiu neacceptat.",
+      "invalidDragDrop": "Format de răspuns drag-and-drop invalid."
+    },
+    "mascot": {
+      "correct": "Bravo! Ai răspuns corect.",
+      "encourage": "Păstrează optimismul. Încearcă din nou.",
+      "neutral": "Progresul calm și constant câștigă."
+    },
+    "header": {
+      "title": "Exerciții financiare",
+      "subtitle": "Exersează provocări interactive pentru a-ți întări abilitățile financiare."
+    },
+    "reviewQueue": {
+      "title": "Coada de recapitulări",
+      "due": "Restante • {{count}}",
+      "nextUp": "Urmează: {{skill}} - {{question}}",
+      "start": "Începe recapitularea",
+      "emptyTitle": "Totul e la zi!",
+      "emptySubtitle": "Nu există recapitulări restante acum.",
+      "backToLesson": "Înapoi la modul lecție",
+      "refresh": "Reîmprospătează conținutul"
+    },
+    "session": {
+      "complete": "🎉 Felicitări! Ai terminat această sesiune. Revizuiește statisticile sau începe o rundă nouă mai jos."
+    },
+    "filters": {
+      "type": "Tip",
+      "allTypes": "Toate tipurile",
+      "multipleChoice": "Alegere multiplă",
+      "numeric": "Numeric",
+      "dragDrop": "Trage și plasează",
+      "budget": "Alocare buget",
+      "fillTable": "Completează tabelul",
+      "scenario": "Simulare de scenariu",
+      "category": "Categorie",
+      "allCategories": "Toate categoriile",
+      "difficulty": "Dificultate",
+      "allDifficulties": "Toate dificultățile",
+      "beginner": "Începător",
+      "intermediate": "Intermediar",
+      "advanced": "Avansat",
+      "toggleShow": "Arată filtrele",
+      "toggleHide": "Ascunde filtrele"
+    },
+    "progress": {
+      "label": "Exercițiul {{current}} din {{total}}",
+      "title": "Progresul tău",
+      "exercise": "Exercițiul {{index}}",
+      "completed": "Finalizat",
+      "attempted": "Încercat",
+      "empty": "Încă nu ai progres. Începe un exercițiu pentru a-ți vedea progresul aici!",
+      "totalCompleted": "Total completate",
+      "pending": "Neînceput",
+      "showingRange": "Se afișează exercițiile {{start}}-{{end}} din {{total}}"
+    },
+    "timedMode": "Mod cronometrat",
+    "streak": "🔥 Ai completat {{count}} exerciții la rând - continuă!",
+    "refreshing": "Se actualizează exercițiile…",
+    "emptyFiltered": {
+      "title": "Niciun exercițiu nu corespunde filtrelor",
+      "subtitle": "Încearcă să elimini filtrul de categorie sau alege altul.",
+      "browseTopics": "Răsfoiește subiectele"
+    },
+    "emptyUnmapped": {
+      "title": "Nu am putut încă potrivi „{{skill}}” cu o categorie de exerciții.",
+      "subtitle": "Poți exersa oricum: deschide toate exercițiile, alege o categorie sau continuă cu lecții pe acest subiect.",
+      "viewAll": "Vezi toate exercițiile",
+      "pickCategory": "Alege o categorie",
+      "browseLessons": "Mergi la lecții"
+    },
+    "emptyMappedZero": {
+      "title": "Ești focalizat pe {{category}}, dar nu sunt exerciții aici momentan.",
+      "subtitle": "Încearcă altă categorie, golește filtrul sau învață din lecții în timp ce extindem biblioteca.",
+      "clearFilter": "Golește filtrul de categorie",
+      "pickAnother": "Alege altă categorie",
+      "goToLessons": "Mergi la lecții"
+    },
+    "skillIntent": {
+      "applied": "Exersare focalizată pentru {{skill}} — exerciții filtrate la {{category}}.",
+      "notMapped": "Nu am putut încă potrivi {{skill}} cu o categorie de exerciții; afișăm toate exercițiile.",
+      "dismiss": "Ascunde mesajul",
+      "dismissRecommendation": "Închide recomandarea",
+      "applyingFocus": "Se aplică focusul recomandat…",
+      "clearFilter": "Arată toate exercițiile",
+      "changeCategory": "Alege altă categorie",
+      "regionLabel": "Recomandare de exersare",
+      "titleMapped": "Focalizat pe {{category}}",
+      "titleMappedDiffers": "Focalizat pe {{category}} pentru abilitatea slabă: {{skill}}",
+      "titleUnmapped": "Nu am putut încă potrivi „{{skill}}” cu o categorie de exerciții",
+      "bodyMapped": "Exercițiile sunt filtrate la această categorie. Poți schimba filtrul, arăta toate exercițiile sau închide acest mesaj oricând.",
+      "bodyUnmapped": "Afișăm toate exercițiile momentan. Alege o categorie mai jos sau deschide lecții pentru un parcurs ghidat.",
+      "context": {
+        "weak_skill_click": "Din tabloul de bord: zonă de îmbunătățit (ai deschis această abilitate).",
+        "weak_skill_practice": "Din tabloul de bord: zonă de îmbunătățit (exersare).",
+        "quick_card_exercises": "Din cardul rapid de exersare de pe tabloul de bord.",
+        "default": "Recomandare din tabloul de bord."
+      },
+      "restoreBanner": "Afișează din nou recomandarea",
+      "reminderShortApplied": "Exersare focalizată pentru {{skill}} în {{category}}.",
+      "reminderShortUnmapped": "Recomandarea de exersare pentru {{skill}} este ascunsă."
+    },
+    "hints": {
+      "title": "Indicații",
+      "showNext": "Arată următoarea indicație (-{{cost}} monede)",
+      "credits": "Credite indicații:",
+      "earnMore": "Câștigă mai multe credite prin misiuni.",
+      "upgrade": "Upgrade",
+      "helper": "Folosește indicațiile dacă ai nevoie de un impuls. Fiecare costă puțin XP.",
+      "unavailable": "Indicațiile nu sunt disponibile în planul tău. Fă upgrade pentru deblocare.",
+      "depleted": "Ai folosit toate indicațiile pentru azi."
+    },
+    "assist": {
+      "title": "Asistență",
+      "scratchpad": "Ciornă",
+      "scratchpadPlaceholder": "Lucrează pașii aici",
+      "calculator": "Calculator",
+      "calculatorPlaceholder": "ex.: (1+0.05/12)^12-1",
+      "showCalculator": "Arată",
+      "hideCalculator": "Ascunde"
+    },
+    "explanation": {
+      "remember": "Amintește-ți:",
+      "learnMore": "Află mai multe despre acest subiect",
+      "learnMoreLink": "Află mai multe",
+      "askTutor": "Întreabă tutorul AI pentru o explicație mai detaliată"
+    },
+    "saveError": "Nu s-a putut salva progresul. Te rugăm să încerci din nou.",
+    "mc": {
+      "correct": "Corect! Bravo!",
+      "incorrect": "Greșit. Încearcă din nou!",
+      "chooseBest": "Alege răspunsul corect din opțiunile de mai jos."
+    },
+    "drag": {
+      "title": "Potrivește elementele corecte",
+      "instruction": "Trage fiecare element la ținta corespunzătoare. Trimite răspunsurile când ești gata.",
+      "items": "Elemente",
+      "targets": "Ținte",
+      "completed": "Felicitări! Ai completat exercițiul!",
+      "partialCorrect": "{{correct}} din {{total}} răspunsuri sunt corecte. Încearcă din nou!",
+      "alreadyCompleted": "Acest exercițiu este deja completat.",
+      "answerLabel": "Răspuns:",
+      "slot": "#{{n}}"
+    },
+    "budget": {
+      "instruction": "Alocă bugetul pe categoriile de mai jos. Totalul trebuie să fie {{total}}.",
+      "correct": "Felicitări! Alocarea bugetului este corectă!",
+      "totalMismatch": "Totalul trebuie să fie {{total}}. Total curent: {{current}}",
+      "currentTotal": "Total curent:",
+      "target": "Țintă:",
+      "submitAllocation": "Trimite alocarea"
+    },
+    "table": {
+      "row": "Rând",
+      "rowWithId": "Rând {{id}}",
+      "instruction": "Completează fiecare celulă cu valorile corecte.",
+      "fillOne": "Completează cel puțin o celulă înainte de a trimite.",
+      "correct": "Bravo! Tabelul este completat corect.",
+      "incorrect": "Unele intrări sunt greșite. Revizuiește tabelul și încearcă din nou.",
+      "submitTable": "Trimite tabelul"
+    },
+    "scenario": {
+      "actionSlot": "Slot acțiune:",
+      "dragHint": "Trage o opțiune aici sau selectează una mai jos.",
+      "selected": "Selectat",
+      "correct": "Bine! Ai gestionat scenariul corect.",
+      "incorrect": "Nu chiar. Încearcă o altă strategie.",
+      "submitChoice": "Trimite alegerea"
+    },
+    "confidence": {
+      "label": "Încredere",
+      "low": "Scăzută",
+      "medium": "Mediă",
+      "high": "Ridicată",
+      "helper": "Încrederea scăzută va programa exerciții similare mai repede."
+    },
+    "result": {
+      "correct": "✅ Corect! Bravo!",
+      "incorrect": "❌ Greșit. Succes data viitoare!"
+    },
+    "actions": {
+      "restart": "Repornește",
+      "retrying": "Se reîncearcă...",
+      "tryAgain": "Încearcă din nou",
+      "finish": "Finalizează",
+      "next": "Exercițiul următor",
+      "tryVariant": "Încearcă variantă",
+      "submit": "Trimite răspunsul",
+      "retryExercise": "Refă exercițiul",
+      "submitAnswers": "Trimite răspunsurile"
+    },
+    "calculator": {
+      "checkExpression": "Verifică expresia",
+      "backspace": "⌫",
+      "clear": "Șterge"
+    },
+    "inputs": {
+      "numberPlaceholder": "Introdu un număr"
+    },
+    "inline": {
+      "correct": "Bravo! Continuă.",
+      "incorrect": "Indiciu: revino la cerință și încearcă din nou."
+    },
+    "skillInsight": {
+      "firstUnlock": "Abilitate nouă deblocată: {{skill}}",
+      "levelUp": "{{skill}} a urcat la nivelul {{level}}",
+      "keepBuilding": "Continuă să construiești {{skill}}",
+      "building": "În dezvoltare"
+    },
+    "loading": "Se încarcă exercițiile...",
+    "retry": "Reîncearcă",
+    "skillFallback": "General",
+    "streakCongrats": "Ai reușit! Păstrează-ți seria.",
+    "numeric": {
+      "expectedValue": "Valoare așteptată: {{value}}",
+      "expectedWithTolerance": "Valoare așteptată: {{value}} (toleranță ±{{tolerance}})"
+    },
+    "summary": {
+      "title": "Rezumat sesiune exerciții",
+      "close": "Închide",
+      "averageAccuracy": "Acuratețe medie",
+      "firstTryAccuracy": "Acuratețe la prima încercare",
+      "xpEarned": "XP câștigat",
+      "streakMultiplier": "Multiplicator serie",
+      "none": "niciunul",
+      "coinsEarned": "Monede câștigate",
+      "coinsHint": "Câștigă mai multe monede finalizând misiuni.",
+      "averageAttempts": "Încercări medii",
+      "perQuestion": "per întrebare",
+      "reviewDue": "Recapitulări restante",
+      "totalTimeSpent": "Timp total petrecut",
+      "timeRemaining": "Timp rămas",
+      "missionProgress": "Progres misiune",
+      "firstTryCorrect": "Răspunsuri corecte din prima",
+      "currentStreak": "Seria curentă",
+      "skillHighlights": "Abilități evidențiate",
+      "masteryPoints": "puncte de stăpânire",
+      "doReviews": "Fă recapitulările",
+      "nextRecommended": "Următoarea recomandată",
+      "startNewSession": "Începe sesiune nouă",
+      "totalCompletedOf": "{{done}} din {{total}}",
+      "queuedCount": "{{count}} exerciții în coadă",
+      "nextWithType": "Următorul: {{skill}} ({{type}})",
+      "reviewCtaWithCount": "Ai {{count}} element(e) în așteptare. Fă recapitulările acum ca să consolidezi progresul.",
+      "reviewCtaNone": "Nu ai recapitulări restante. Continuă lecția sau treci la următorul exercițiu recomandat."
+    }
+  },
+  "landing": {
+    "hero": {
+      "aria": "Secțiunea principală",
+      "badge": "{{count}}+ lecții",
+      "titleLine1": "Stăpânește finanțele",
+      "titleLine2": "În mod inteligent",
+      "subtitle": "Învață abilități financiare în ritmul tău, cu cursuri interactive, ghidare bazată pe AI și instrumente din lumea reală.",
+      "ctaStartShort": "Începe",
+      "ctaStart": "Începe",
+      "ctaDemoShort": "Demo",
+      "ctaDemo": "Vezi demo",
+      "ctaExploreAria": "Derulează pentru a explora funcțiile",
+      "ctaExploreShort": "Explorează",
+      "ctaExplore": "Explorează funcțiile",
+      "stats": {
+        "currentStreak": "Seria curentă",
+        "days": "zile",
+        "totalXp": "XP total",
+        "today": "astăzi"
+      },
+      "topics": {
+        "budgeting": "Bugetare",
+        "saving": "Economisire",
+        "investing": "Investiții",
+        "credit": "Credit",
+        "taxes": "Taxe"
+      },
+      "demoModal": {
+        "aria": "Fereastră demo",
+        "videoAria": "Video demo Monevo",
+        "closeAria": "Închide fereastra demo",
+        "title": "Vezi demo",
+        "close": "Închide",
+        "subtitle": "Vezi cum Monevo te ajută să stăpânești finanțele. Urmărește demo-ul nostru interactiv pentru a explora platforma.",
+        "startLearning": "Începe să înveți"
+      }
+    },
+    "features": {
+      "title": "Tot ce ai nevoie ca să stăpânești finanțele",
+      "subtitle": "Descoperă funcții puternice concepute să accelereze călătoria ta de învățare financiară",
+      "featureLabel": "Funcția {{count}}",
+      "items": {
+        "learning-paths": {
+          "title": "Trasee de învățare complete",
+          "text": "Cursuri structurate concepute să-ți construiască cunoștințele financiare de la zero.",
+          "bullets": [
+            "Module de învățare pas cu pas",
+            "Quiz-uri și evaluări interactive",
+            "Urmărirea progresului și certificate"
+          ]
+        },
+        "achievement-system": {
+          "title": "Sistem de realizări",
+          "text": "Experiență de învățare gamificată care te menține motivat și implicat.",
+          "bullets": [
+            "Câștigă insigne și recompense",
+            "Urmărește-ți seria de învățare",
+            "Concură în clasamente"
+          ]
+        },
+        "ai-tutor": {
+          "title": "Tutor bazat pe AI",
+          "text": "Primești ghidare personalizată și răspunsuri la întrebările tale financiare.",
+          "bullets": [
+            "Asistent disponibil 24/7",
+            "Răspunsuri contextualizate",
+            "Recomandări de învățare"
+          ]
+        },
+        "real-time-tools": {
+          "title": "Instrumente în timp real",
+          "text": "Accesează calculatoare și instrumente de analiză financiară.",
+          "bullets": [
+            "Analizor de portofoliu",
+            "Calculator pentru obiective de economisire",
+            "Convertor valutar"
+          ]
+        },
+        "market-insights": {
+          "title": "Perspective de piață",
+          "text": "Rămâi la curent cu ultimele știri financiare și tendințe de piață.",
+          "bullets": [
+            "Calendar economic",
+            "Analiză de piață",
+            "Agregare de știri"
+          ]
+        }
+      }
+    },
+    "reviews": {
+      "title": "Apreciat de cursanți din toată lumea",
+      "subtitle": "Vezi ce spune comunitatea despre experiența de învățare",
+      "aria": "Recenzii ale utilizatorilor",
+      "cardAria": "Recenzie de la {{name}}",
+      "items": {
+        "sarah": {
+          "title": "Consultant financiar",
+          "quote": "Monevo mi-a transformat modul în care învăț despre finanțe. Cursurile interactive sunt captivante și practice."
+        },
+        "michael": {
+          "title": "Antreprenor",
+          "quote": "Tutorul AI este extrem de util. Îmi răspunde instant și mă ajută să înțeleg concepte complexe."
+        },
+        "emily": {
+          "title": "Student",
+          "quote": "Îmi place partea de gamificare. Să câștigi insigne și să concurezi în clasamente face învățarea distractivă!"
+        },
+        "david": {
+          "title": "Investitor",
+          "quote": "Instrumentele financiare sunt de top. Analizorul de portofoliu mi-a fost de mare ajutor pentru deciziile de investiții."
+        },
+        "lisa": {
+          "title": "Proprietar de mică afacere",
+          "quote": "În sfârșit, o platformă care face educația financiară accesibilă și plăcută. Recomand cu încredere!"
+        }
+      }
+    }
+  },
+  "legal": {
+    "related": "Legături",
+    "lastUpdated": "Ultima actualizare: {{date}}",
+    "dates": {
+      "feb7_2026": "7 februarie 2026"
+    },
+    "privacy": {
+      "title": "Politica de confidențialitate",
+      "intro": "Monevo este o platformă educațională. Această politică explică ce date personale colectăm, de ce le colectăm și drepturile tale. Este redactată în conformitate cu UK GDPR, cu UK Data Protection Act 2018 și, unde se aplică, cu Regulamentul (UE) 2016/679 pentru utilizatorii din SEE.",
+      "sections": {
+        "who": {
+          "title": "1. Cine suntem",
+          "body": "Această politică se aplică aplicației web Monevo și serviciilor conexe („Serviciul”). În scopuri de protecție a datelor, operatorul este Monevo, Regatul Unit. Dacă te afli în SEE, putem acționa ca operator pentru datele prelucrate în legătură cu Serviciul."
+        },
+        "data": {
+          "title": "2. Datele pe care le colectăm",
+          "intro": "Colectăm următoarele categorii de date:",
+          "items": {
+            "account": {
+              "label": "Date de cont:",
+              "text": "adresa de email, numele de utilizator și hash-ul parolei."
+            },
+            "profile": {
+              "label": "Date de profil și preferințe:",
+              "text": "prenume/nume (dacă sunt furnizate), răspunsuri la onboarding, preferințe de învățare financiară, limbă, setări de memento și setări de temă."
+            },
+            "learning": {
+              "label": "Date despre învățare și utilizarea produsului:",
+              "text": "lecții vizualizate, progres, serii, misiuni, evenimente de utilizare a instrumentelor și interacțiuni cu funcții."
+            },
+            "technical": {
+              "label": "Date tehnice:",
+              "text": "adresă IP, tip dispozitiv/browser, sistem de operare, regiune aproximativă, marcaje de timp, jurnale de erori și jurnale de securitate."
+            },
+            "cookies": {
+              "label": "Date despre cookie-uri și urmărire:",
+              "text": "opțiuni de consimțământ, identificatori de analiză și date despre evenimente de publicitate/marketing unde există consimțământ."
+            },
+            "billing": {
+              "label": "Metadate de facturare:",
+              "text": "plan, status de abonament și identificatori de abonament Stripe. Nu stocăm numărul complet al cardului."
+            },
+            "inputs": {
+              "label": "Date financiare furnizate de utilizator:",
+              "text": "intrări de portofoliu simulate și date introduse în instrumentele de învățare."
+            }
+          }
+        },
+        "collection": {
+          "title": "3. Cum colectăm datele",
+          "items": {
+            "direct": "Direct de la tine (înregistrare, onboarding, setări, instrumente).",
+            "automatic": "Automat prin jurnale ale aplicației, cookie-uri, analize și pixeli.",
+            "processors": "De la procesatori care ne susțin serviciul (de exemplu, Stripe pentru statusul abonamentului)."
+          }
+        },
+        "purposes": {
+          "title": "4. De ce prelucrăm datele și temeiurile legale",
+          "items": {
+            "account": {
+              "label": "Furnizarea și administrarea contului",
+              "text": "(necesitate contractuală)."
+            },
+            "core": {
+              "label": "Livrarea funcțiilor de bază și a progresului de învățare",
+              "text": "(necesitate contractuală)."
+            },
+            "security": {
+              "label": "Menținerea securității platformei și prevenirea abuzului",
+              "text": "(interese legitime)."
+            },
+            "improve": {
+              "label": "Îmbunătățirea calității și performanței produsului",
+              "text": "(interese legitime)."
+            },
+            "comms": {
+              "label": "Transmiterea comunicărilor de serviciu",
+              "text": "precum notificările despre cont și facturare (necesitate contractuală și interese legitime)."
+            },
+            "marketing": {
+              "label": "Trimiterea mesajelor de marketing opționale",
+              "text": "(consimțământ, unde este necesar)."
+            },
+            "legal": {
+              "label": "Respectarea obligațiilor legale și fiscale",
+              "text": "(obligație legală)."
+            }
+          }
+        },
+        "cookies": {
+          "title": "5. Cookie-uri și tehnologii similare",
+          "body1": "Folosim cookie-uri strict necesare pentru funcțiile de autentificare/sesiune și, cu consimțământul tău, cookie-uri de analiză și marketing.",
+          "body2": "Poți gestiona consimțământul folosind bannerul de cookie-uri și setările de cookie-uri. Vezi <link>Politica de cookie-uri</link> pentru detalii."
+        },
+        "processors": {
+          "title": "6. Procesatori și servicii terțe",
+          "body1": "Folosim terți pentru a opera serviciul. În funcție de utilizare, acestea pot include:",
+          "items": {
+            "stripe": "Stripe (facturare și procesare a abonamentelor).",
+            "cookieConsent": "Consimțământ pentru cookie-uri (gestionat pe site-ul nostru; nu folosim instrumente terțe de consimțământ).",
+            "google": "Google Analytics / taguri Google Ads (cu consimțământ).",
+            "amplitude": "Amplitude (analiză de produs).",
+            "sentry": "Sentry (monitorizare erori).",
+            "hosting": "Furnizori de găzduire și infrastructură.",
+            "email": "Furnizori de email și mesaje tranzacționale."
+          },
+          "body2": "Acești furnizori prelucrează date în baza unor contracte și doar pentru scopuri aprobate."
+        },
+        "transfers": {
+          "title": "7. Transferuri internaționale",
+          "body": "Unii furnizori prelucrează date în afara Regatului Unit sau SEE. În acest caz, ne bazăm pe garanții adecvate: reglementări britanice de adecvare, decizii de adecvare UE sau clauze contractuale standard aprobate de UK sau Comisia Europeană."
+        },
+        "retention": {
+          "title": "8. Păstrarea datelor",
+          "body": "Păstrăm datele personale doar atât timp cât este necesar pentru furnizarea serviciului, obligații legale, soluționarea disputelor și securitate. Perioadele de păstrare variază în funcție de tipul de date."
+        },
+        "rights": {
+          "title": "9. Drepturile tale",
+          "body": "Sub rezerva legii aplicabile (inclusiv UK GDPR și, pentru utilizatorii din SEE, Regulamentul UE privind protecția datelor), poți solicita:",
+          "items": {
+            "access": "Accesarea datelor tale personale.",
+            "correct": "Corectarea datelor inexacte.",
+            "delete": "Ștergerea datelor.",
+            "restrict": "Restricționarea sau opoziția la anumite prelucrări.",
+            "withdraw": "Retragerea consimțământului (acolo unde prelucrarea se bazează pe consimțământ).",
+            "portable": "Primirea unei copii portabile a datelor furnizate.",
+            "complaint": "Depunerea unei plângeri la o autoritate de supraveghere: în UK, Information Commissioner's Office (ICO); în SEE, autoritatea de protecție a datelor din țara de reședință sau de lucru."
+          }
+        },
+        "security": {
+          "title": "10. Securitate",
+          "body": "Folosim măsuri tehnice și organizaționale concepute pentru a proteja datele personale. Nicio metodă de stocare sau transmitere nu este complet sigură."
+        },
+        "children": {
+          "title": "11. Copiii",
+          "body": "Monevo nu este destinat copiilor sub 16 ani. Dacă crezi că un copil a furnizat date personale, contactează-ne și vom investiga."
+        },
+        "changes": {
+          "title": "12. Modificări ale politicii",
+          "body": "Putem actualiza această politică din când în când. Modificările materiale vor fi publicate în aplicație sau pe site, cu o dată actualizată."
+        },
+        "contact": {
+          "title": "13. Contact",
+          "email": "Email:",
+          "support": "Suport:",
+          "country": "Țară: Regatul Unit"
+        }
+      }
+    },
+    "financialDisclaimer": {
+      "title": "Declinare de responsabilitate financiară",
+      "intro": "Conținutul Monevo este doar în scopuri <strong>educaționale și informative</strong>. Această declinare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / SEE.",
+      "sections": {
+        "meaning": {
+          "title": "Ce înseamnă asta",
+          "items": {
+            "general": "Conținutul este informațional și nu este adaptat circumstanțelor tale personale.",
+            "noProfile": "Nu luăm în considerare întreaga ta situație financiară, toleranța la risc, orizontul de timp sau obiectivele de investiții.",
+            "noRecommendation": "Nimic de pe Monevo nu reprezintă o recomandare sau solicitare de a cumpăra, vinde, deține sau investi în vreun activ.",
+            "examples": "Exemplele, scenariile sau rezultatele instrumentelor sunt ilustrative și pot folosi presupuneri care nu reflectă rezultate reale.",
+            "pastPerformance": "Performanța trecută, datele istorice și rezultatele modelelor nu garantează rezultate viitoare."
+          }
+        },
+        "responsibility": {
+          "title": "Responsabilitatea ta",
+          "body": "Rămâi pe deplin responsabil pentru deciziile tale financiare și de investiții. Înainte de a acționa, ia în considerare să ceri sfatul unui profesionist calificat și autorizat."
+        },
+        "warranty": {
+          "title": "Fără garanții privind acuratețea sau completitudinea",
+          "body": "Ne străduim să oferim conținut educațional util și actual, dar nu garantăm că toate informațiile sunt complete, exacte sau actualizate în orice moment."
+        },
+        "related": {
+          "title": "Notificări conexe",
+          "body": "Te rugăm să consulți și <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+        }
+      }
+    },
+    "cookiePolicy": {
+      "title": "Politica de cookie-uri",
+      "intro": "Această politică explică ce cookie-uri și tehnologii similare folosim și cum îți poți gestiona preferințele. Este redactată în conformitate cu reglementările din UK (inclusiv Privacy and Electronic Communications Regulations 2003, și UK GDPR unde se prelucrează date personale) și cu normele UE privind cookie-urile (Directiva ePrivacy și GDPR unde se aplică).",
+      "sections": {
+        "what": {
+          "title": "1. Ce sunt cookie-urile",
+          "body": "Cookie-urile sunt fișiere text mici plasate pe dispozitivul tău când vizitezi un site. Ele ajută la autentificare, securitate, analiză și performanță."
+        },
+        "sessionPersistent": {
+          "title": "2. Cookie-uri de sesiune și cookie-uri persistente",
+          "sessionTitle": "Cookie-uri de sesiune",
+          "sessionBody": "Cookie-urile pentru sesiuni permit site-urilor să recunoască și să lege acțiunile unui utilizator în timpul unei sesiuni de navigare. Pot fi folosite pentru scopuri precum reținerea conținutului coșului de cumpărături. Cookie-urile de sesiune stochează de regulă un identificator astfel încât să poți trece de la o pagină la alta fără să reintroduci datele de autentificare. Sunt valabile doar pentru sesiunea respectivă și se șterg la închiderea browserului sau a aplicației.",
+          "persistentTitle": "Cookie-uri persistente",
+          "persistentBody": "Cookie-urile persistente sunt stocate între sesiunile de navigare și pot reține preferințele sau acțiunile utilizatorului pe un site (sau pe site-uri diferite)—de exemplu limba, tema, preferințe de meniu sau pagini favorite. Le folosim doar unde ai dat consimțământul sau unde sunt strict necesare pentru serviciul solicitat."
+        },
+        "categories": {
+          "title": "3. Categorii de cookie-uri pe care le folosim",
+          "items": {
+            "necessary": {
+              "label": "Cookie-uri strict necesare:",
+              "text": "necesare pentru funcții de bază precum autentificarea, gestionarea sesiunii și securitatea."
+            },
+            "preference": {
+              "label": "Cookie-uri de preferințe:",
+              "text": "rețin setările (de exemplu, opțiunile de afișare)."
+            },
+            "analytics": {
+              "label": "Cookie-uri de analiză:",
+              "text": "ne ajută să înțelegem utilizarea și să îmbunătățim experiența produsului."
+            },
+            "marketing": {
+              "label": "Cookie-uri de marketing:",
+              "text": "măsoară performanța campaniilor și interacțiunile cu reclamele, unde există consimțământ."
+            }
+          }
+        },
+        "consentRequirement": {
+          "title": "4. Consimțământul pentru cookie-uri",
+          "body": "În UK, Privacy and Electronic Communications Regulations (PECR) impun informarea despre cookie-uri și, cu excepția celor strict necesare pentru serviciul solicitat (ex. sesiune, login, securitate), obținerea consimțământului înainte de stocare/acces pe dispozitiv. În SEE, normele ePrivacy și transpunerile naționale impun cerințe similare. Consimțământul trebuie să fie informat, specific și dat liber. Nu setăm cookie-uri non-esențiale până nu ne-ai acordat consimțământul."
+        },
+        "consent": {
+          "title": "5. Gestionarea consimțământului",
+          "body": "Poți schimba preferințele de cookie-uri oricând prin banner sau setările browserului. Dezactivarea unor cookie-uri poate afecta anumite funcții.",
+          "manageHint": "pentru a-ți actualiza opțiunile."
+        },
+        "thirdParty": {
+          "title": "6. Tehnologii terțe",
+          "body": "Putem folosi instrumente terțe precum Google Analytics, cu consimțământul tău. Aceste servicii pot seta propriile cookie-uri în funcție de opțiunile din setările noastre de cookie-uri."
+        },
+        "declaration": {
+          "title": "7. Declarația de cookie-uri",
+          "body": "Rezumat al categoriilor pe care le folosim:",
+          "necessary": "Necesare: sesiune, autentificare, securitate (mereu active).",
+          "analytics": "Analiză: ex. Google Analytics (opțional, cu consimțământul tău).",
+          "marketing": "Marketing: momentan nefolosit; opțional dacă îl adăugăm ulterior."
+        },
+        "contact": {
+          "title": "8. Contact",
+          "body": "Pentru întrebări despre cookie-uri:",
+          "related": "Pagini conexe: <privacy>Politica de confidențialitate</privacy> și <terms>Termenii de serviciu</terms>"
+        }
+      },
+      "declaration": {
+        "loading": "Se încarcă declarația de cookie-uri..."
+      }
+    },
+    "terms": {
+      "title": "Termeni de serviciu",
+      "sections": {
+        "agreement": {
+          "title": "1. Acceptarea termenilor",
+          "body": "Prin crearea unui cont, accesarea sau utilizarea Monevo, accepți acești Termeni, <privacy>Politica de confidențialitate</privacy> și <cookie>Politica de cookie-uri</cookie>."
+        },
+        "about": {
+          "title": "2. Ce este Monevo (și ce nu este)",
+          "body1": "Monevo este o platformă de educație financiară și suport decizional. Monevo nu este consultant financiar, consilier de investiții, broker sau fiduciary.",
+          "body2": "Vezi <financial>Declinarea de responsabilitate financiară</financial>."
+        },
+        "security": {
+          "title": "3. Eligibilitate și securitatea contului",
+          "body": "Trebuie să oferi informații de cont corecte și să-ți păstrezi în siguranță credențialele. Ești responsabil pentru activitatea din contul tău."
+        },
+        "acceptableUse": {
+          "title": "4. Utilizare acceptabilă",
+          "body": "Ești de acord să nu:",
+          "items": {
+            "unlawful": "Folosești serviciul în scopuri ilegale.",
+            "unauthorized": "Încerci acces neautorizat la sisteme sau conturi.",
+            "interfere": "Interferezi cu disponibilitatea serviciului sau controalele de securitate.",
+            "reverse": "Efectuezi inginerie inversă sau abuzezi funcționalitățile platformei."
+          }
+        },
+        "educational": {
+          "title": "5. Conținut educațional și deciziile utilizatorului",
+          "body": "Conținutul este oferit doar în scop educațional general și poate fi incomplet, simplificat, întârziat sau depășit. Ești singurul responsabil pentru deciziile și rezultatele tale financiare."
+        },
+        "subscriptions": {
+          "title": "6. Abonamente, facturare și plăți",
+          "body": "Planurile plătite, intervalele de facturare și funcțiile incluse sunt afișate pe pagina de abonamente. Plățile sunt procesate în siguranță prin Stripe. Abonamentele se reînnoiesc automat până când le anulezi. Poți anula oricând înainte de următoarea dată de facturare; accesul continuă până la sfârșitul perioadei curente. Rambursările se acordă doar acolo unde legea aplicabilă o prevede (de ex. în UK, Consumer Rights Act 2015)."
+        },
+        "thirdParty": {
+          "title": "7. Servicii și linkuri terțe",
+          "body": "Monevo poate integra sau oferi linkuri către servicii terțe. Nu suntem responsabili pentru conținutul, acuratețea, disponibilitatea sau practicile terților."
+        },
+        "ip": {
+          "title": "8. Proprietate intelectuală",
+          "body": "Platforma, brandingul și conținutul original sunt deținute de Monevo sau licențiatori și sunt protejate de legile aplicabile. Primești o licență limitată, neexclusivă și revocabilă pentru utilizarea serviciului în scop personal și legal."
+        },
+        "disclaimers": {
+          "title": "9. Declarații de exonerare",
+          "body": "Serviciul este oferit „ca atare” și „așa cum este disponibil”, fără garanții de niciun fel, exprese sau implicite, inclusiv pentru un anumit scop, disponibilitate neîntreruptă sau funcționare fără erori."
+        },
+        "liability": {
+          "title": "10. Limitarea răspunderii",
+          "body": "În măsura maximă permisă de lege, Monevo și afiliații săi nu sunt răspunzători pentru daune indirecte, incidentale, consecutive, speciale sau punitive, ori pentru pierderi de profit, venit, date, câștiguri din investiții sau oportunități de afaceri rezultate din utilizarea serviciului."
+        },
+        "indemnity": {
+          "title": "11. Despăgubiri",
+          "body": "Ești de acord să despăgubești și să exonerezi Monevo de pretenții, pierderi, răspunderi și cheltuieli rezultate din utilizarea necorespunzătoare a serviciului sau încălcarea acestor termeni."
+        },
+        "termination": {
+          "title": "12. Suspendare și încetare",
+          "body": "Putem suspenda sau înceta accesul dacă avem motive rezonabile să credem că ai încălcat acești termeni, ai creat un risc de securitate sau ai folosit serviciul ilegal."
+        },
+        "changes": {
+          "title": "13. Modificări ale serviciului și termenilor",
+          "body": "Putem actualiza funcțiile produsului și acești termeni din când în când. Utilizarea continuă după actualizări înseamnă că accepți termenii revizuiți."
+        },
+        "law": {
+          "title": "14. Lege aplicabilă și jurisdicție",
+          "body": "Acești termeni sunt guvernați de legile Angliei și Țării Galilor. Instanțele din Anglia și Țara Galilor au jurisdicție neexclusivă, cu excepția cazurilor în care legea obligatorie a consumatorului din țara ta de reședință îți dă dreptul de a intenta acțiuni în instanțele locale. Nimic din acești termeni nu afectează drepturile tale legale ca consumator: în UK, conform Consumer Rights Act 2015; în UE/SEE, conform Directivelor privind drepturile consumatorilor și legilor naționale aplicabile."
+        },
+        "contact": {
+          "title": "15. Contact",
+          "body": "Pentru întrebări despre termeni:"
+        }
+      }
+    },
+    "noAdvice": {
+      "title": "Notificare privind lipsa sfaturilor financiare",
+      "intro": "Monevo nu oferă sfaturi financiare, de investiții, fiscale sau juridice. Această notificare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / Spațiul Economic European.",
+      "sections": {
+        "regulatory": {
+          "title": "Poziționare de reglementare",
+          "items": {
+            "position": "Monevo este poziționat ca platformă de educație financiară și instrument informativ.",
+            "fca": "În UK: Monevo nu este autorizat de FCA să ofere consultanță de investiții reglementată.",
+            "euRegulation": "În UE/SEE: Monevo nu oferă sfaturi de investiții în sensul Directivelor 2014/65/UE (MiFID II) sau al legilor naționale echivalente.",
+            "noAdvisor": "Monevo nu acționează ca adviser financiar, consilier de investiții, broker sau fiduciary.",
+            "noRelationship": "Utilizarea Monevo nu creează o relație adviser-client sau fiduciary."
+          }
+        },
+        "infer": {
+          "title": "Ce nu ar trebui să deduci",
+          "items": {
+            "outputs": "Rezultatele instrumentelor, clasamentele, prompturile și scenariile nu sunt recomandări personale.",
+            "workflows": "Fluxurile educaționale nu sunt instrucțiuni pentru a efectua tranzacții sau investiții.",
+            "labels": "Etichete precum „pasul următor” se referă la fluxul de învățare, nu la sfaturi reglementate."
+          }
+        },
+        "professional": {
+          "title": "Sfaturi profesionale",
+          "body": "Dacă ai nevoie de sfaturi adaptate situației tale, discută cu un consilier calificat și autorizat înainte de a lua decizii financiare."
+        },
+        "related": {
+          "title": "Documente conexe",
+          "body": "Consultă <financial>Declinarea de responsabilitate financiară</financial>, <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+        }
+      }
+    }
+  },
+  "lessonSection": {
+    "unsupportedExercise": "Tip de exercițiu nesuportat",
+    "textAria": "Secțiune cu conținut text",
+    "videoAria": "Player video educațional",
+    "completedAria": "Secțiune finalizată",
+    "completed": "Finalizat",
+    "completeAria": "Finalizează exercițiul {{title}}",
+    "completeExercise": "Finalizează exercițiul"
+  },
+  "mascotPools": {
+    "owl": {
+      "celebrate_0": "Felicitări! Ai răspuns corect.",
+      "celebrate_1": "Ai reușit!",
+      "celebrate_2": "Foarte bine!"
+    },
+    "bull": {
+      "encourage_0": "Păstrează optimismul. Încearcă din nou.",
+      "encourage_1": "Greșelile se întâmplă. Continuă!",
+      "encourage_2": "Poți face asta. Încearcă din nou!"
+    },
+    "bear": {
+      "neutral_0": "Progresul constant câștigă.",
+      "neutral_1": "Progresul constant este obiectivul.",
+      "neutral_2": "Pas cu pas."
+    }
+  }
+}

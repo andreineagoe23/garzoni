@@ -1,23 +1,24 @@
+import { vi } from "vitest";
+
 const axiosMock: any = {
   defaults: {
     headers: {
       common: {},
     },
   },
-  get: jest.fn(),
-  post: jest.fn(),
+  get: vi.fn(),
+  post: vi.fn(),
   interceptors: {
     response: {
-      use: jest.fn(),
-      eject: jest.fn(),
+      use: vi.fn(),
+      eject: vi.fn(),
     },
     request: {
-      use: jest.fn(() => 1),
-      eject: jest.fn(),
+      use: vi.fn(() => 1),
+      eject: vi.fn(),
     },
   },
   create: () => axiosMock,
 };
 
 export default axiosMock;
-module.exports = axiosMock;

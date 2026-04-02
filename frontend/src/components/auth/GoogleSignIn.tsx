@@ -48,8 +48,12 @@ const GSI_SCRIPT_URL = "https://accounts.google.com/gsi/client";
 export type GoogleSignInProps = {
   /** e.g. "all-topics" for login, "onboarding" for register */
   state?: string;
-  /** Called with our access token and next path after backend verification */
-  onSuccess: (accessToken: string, nextPath: string) => void;
+  /** Called with our access token, next path, and refresh token after backend verification */
+  onSuccess: (
+    accessToken: string,
+    nextPath: string,
+    refreshToken?: string
+  ) => void;
   /** Called on credential or network error */
   onError: (message: string) => void;
   /** Show One Tap prompt (floating UI). Default true. */
@@ -103,11 +107,12 @@ export default function GoogleSignIn({
       try {
         const { data } = await apiClient.post<{
           access: string;
+          refresh?: string;
           user: unknown;
           next: string;
         }>("/auth/google/verify-credential/", { credential, state });
         if (data?.access && data?.next != null) {
-          onSuccess(data.access, data.next);
+          onSuccess(data.access, data.next, data.refresh);
         } else {
           onError("Invalid response from server.");
         }

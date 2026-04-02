@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-const ROOT = path.resolve(__dirname, "..");
+const FRONTEND_SRC = path.resolve(__dirname, "..");
+const CORE_SRC = path.resolve(__dirname, "../../../packages/core/src");
 
 const loadJson = (relativePath: string) =>
-  JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), "utf8"));
+  JSON.parse(fs.readFileSync(path.join(CORE_SRC, relativePath), "utf8"));
 
 const flattenKeys = (obj: Record<string, unknown>, prefix = ""): string[] => {
   const keys: string[] = [];
@@ -52,7 +53,7 @@ const findUsedKeys = () => {
       }
     });
   };
-  walk(ROOT);
+  walk(FRONTEND_SRC);
 
   const keyPattern = /\b(?:t|i18n\.t)\(\s*["']([^"']+)["']/g;
   const transPattern = /i18nKey="([^"]+)"/g;
@@ -108,7 +109,7 @@ describe("i18n coverage", () => {
         }
       });
     };
-    walk(ROOT);
+    walk(FRONTEND_SRC);
 
     const offenders: string[] = [];
     files.forEach((file) => {

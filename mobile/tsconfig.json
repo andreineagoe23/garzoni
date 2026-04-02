@@ -1,0 +1,24 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@monevo/core": ["../packages/core/src/index.ts"],
+      "@monevo/core/*": ["../packages/core/src/*"],
+      "services/*": ["../packages/core/src/services/*"],
+      "constants/*": ["../packages/core/src/constants/*"],
+      "types/*": ["../packages/core/src/types/*"],
+      "stores/*": ["../packages/core/src/stores/*"],
+      "utils/*": ["../packages/core/src/utils/*"],
+      "messages/*": ["../packages/core/src/messages/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "import-meta.d.ts"
+  ]
+}

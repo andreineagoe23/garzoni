@@ -1,5 +1,5 @@
 /**
- * Real router hooks via __USE_REAL_ROUTER__ (see test-utils/react-router-dom-mock-impl.js).
+ * Real router hooks via createMemoryRouter / RouterProvider.
  */
 import React from "react";
 import {
@@ -9,10 +9,10 @@ import {
 } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { useDashboardSkillExercisesNavigation } from "./useDashboardSkillExercisesNavigation";
-import type { AnalyticsEvent } from "types/analytics";
 
-const mockTrackEvent = jest.fn();
+const mockTrackEvent = vi.fn();
 
 function NavigationHarness() {
   const navigate = useNavigate();
@@ -50,14 +50,7 @@ function assertNavigationContract(loc: { pathname: string; search: string }) {
 
 describe("useDashboardSkillExercisesNavigation", () => {
   beforeEach(() => {
-    (globalThis as { __USE_REAL_ROUTER__?: boolean }).__USE_REAL_ROUTER__ =
-      true;
     mockTrackEvent.mockReset();
-  });
-
-  afterEach(() => {
-    delete (globalThis as { __USE_REAL_ROUTER__?: boolean })
-      .__USE_REAL_ROUTER__;
   });
 
   it("navigates with shared contract for weak skill card click", async () => {
