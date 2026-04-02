@@ -29,6 +29,7 @@ async function proxy(request) {
   }
 
   const base = backend.replace(/\/+$/, "");
+  const backendUrl = new URL(base);
   const u = new URL(request.url);
   const afterApi = u.pathname.replace(/^\/api\/?/, "");
   const pathPart = afterApi ? (afterApi.startsWith("/") ? afterApi : `/${afterApi}`) : "";
@@ -40,6 +41,9 @@ async function proxy(request) {
       headers.set(key, value);
     }
   });
+  // Django USE_X_FORWARDED_HOST: avoid www.monevo.tech in OAuth redirect_uri / absolute URLs.
+  headers.delete("x-forwarded-host");
+  headers.set("host", backendUrl.host);
 
   const init = {
     method: request.method,
