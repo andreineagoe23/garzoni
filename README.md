@@ -128,14 +128,15 @@ cd frontend
 npm install
 npm start
 
-- Set REACT_APP_BACKEND_URL to point to your API.
-- Build for production with npm run build.
+- Set `VITE_BACKEND_URL` (or legacy `REACT_APP_BACKEND_URL`) to your API base if it is not same-origin (must end with `/api` or be the site origin without `/api`; it is normalized).
+- Build for production with `pnpm --filter @monevo/web build` (or `npm run build` from `frontend/`).
 
 ## Deployment Notes
 
 - Docker deployment guide: `docs/deployment-docker.md`
 - Railway production runbook: `docs/railway-production-runbook.md` (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
-- Frontend: Vercel-friendly static build (npm run build).
+- Frontend on **Vercel**: the repo includes an Edge proxy under `api/[...path].js` that forwards browser requests from `https://<your-domain>/api/*` to Django. Set **`MONEVO_BACKEND_ORIGIN`** on the Vercel project to your Railway (or other) **Django base URL** with no path suffix (for example `https://your-service.up.railway.app`, not `.../api`). Omit `VITE_BACKEND_URL` in that setup so the app uses same-origin `/api`. Alternatively, set `VITE_BACKEND_URL` to the full public API base and configure Django CORS for your web origin.
+- Frontend: Vercel-friendly static build (`pnpm --filter @monevo/web build`).
 - Backend: WSGI-compatible (e.g., PythonAnywhere). Configure ALLOWED_HOSTS, CORS/CSRF origins, SECRET_KEY, DB credentials, Stripe keys, reCAPTCHA, and email settings via environment variables.
 - Static files served by WhiteNoise; media served from MEDIA_ROOT or external storage in production.
 

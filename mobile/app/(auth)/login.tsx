@@ -30,6 +30,8 @@ export default function LoginScreen() {
       const { data } = await loginSecure({
         username: username.trim(),
         password,
+        client_type: "mobile",
+        platform: "mobile",
       });
       if (data?.access) {
         await applyTokens(data.access, data.refresh);
