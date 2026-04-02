@@ -132,9 +132,19 @@ export const formatRelativeDateTime = (
       minute: "2-digit",
       hour12: true,
     }).format(dateObj);
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const diffDays = Math.round((startOfToday.getTime() - startOfDate.getTime()) / (24 * 60 * 60 * 1000));
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+    const startOfDate = new Date(
+      dateObj.getFullYear(),
+      dateObj.getMonth(),
+      dateObj.getDate()
+    );
+    const diffDays = Math.round(
+      (startOfToday.getTime() - startOfDate.getTime()) / (24 * 60 * 60 * 1000)
+    );
 
     if (diffDays === 0) {
       const rtf = new Intl.RelativeTimeFormat(n, { numeric: "auto" });
@@ -153,11 +163,20 @@ export const formatRelativeDateTime = (
       }).format(dateObj);
     }
     if (dateObj.getFullYear() === now.getFullYear()) {
-      return new Intl.DateTimeFormat(n, { month: "short", day: "numeric" }).format(dateObj);
+      return new Intl.DateTimeFormat(n, {
+        month: "short",
+        day: "numeric",
+      }).format(dateObj);
     }
-    return new Intl.DateTimeFormat(n, { month: "short", day: "numeric", year: "numeric" }).format(dateObj);
+    return new Intl.DateTimeFormat(n, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(dateObj);
   } catch {
-    return typeof date === "string" || typeof date === "number" ? String(date) : "";
+    return typeof date === "string" || typeof date === "number"
+      ? String(date)
+      : "";
   }
 };
 
@@ -172,7 +191,5 @@ export const getTimezone = () => {
 /** Strip (Starter), (Plus), (Pro) from path titles for display on dashboard. */
 export const pathDisplayTitle = (title: string | undefined | null): string => {
   if (!title || typeof title !== "string") return "";
-  return title
-    .replace(/\s*\((?:Starter|Plus|Pro)\)\s*$/i, "")
-    .trim();
+  return title.replace(/\s*\((?:Starter|Plus|Pro)\)\s*$/i, "").trim();
 };

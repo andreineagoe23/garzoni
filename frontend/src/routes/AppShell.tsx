@@ -45,7 +45,9 @@ const AppShell = ({
     !isLegalAndUnauth &&
     ((isLegalPath && isAuthenticated) || !matchesAnyPathPrefix(noNavbarPaths));
   const hasFooter =
-    !matchesAnyPathPrefix(noFooterPaths) && !isCourseFlowPath && !isLegalAndUnauth;
+    !matchesAnyPathPrefix(noFooterPaths) &&
+    !isCourseFlowPath &&
+    !isLegalAndUnauth;
 
   return (
     <div
@@ -77,7 +79,9 @@ const AppShell = ({
             <AppRoutes />
           </Suspense>
         </main>
-        {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && <Chatbot />}
+        {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && (
+          <Chatbot />
+        )}
         {hasFooter && (
           <Suspense fallback={null}>
             <Footer />

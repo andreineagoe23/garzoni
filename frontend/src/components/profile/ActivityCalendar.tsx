@@ -15,7 +15,11 @@ type ActivityCalendarProps = {
 };
 
 const ActivityCalendar = React.memo(
-  ({ currentMonth, activityCalendar, weekdayLabels }: ActivityCalendarProps) => {
+  ({
+    currentMonth,
+    activityCalendar,
+    weekdayLabels,
+  }: ActivityCalendarProps) => {
     if (!currentMonth.first_day || !currentMonth.last_day) return null;
 
     const firstDay = new Date(currentMonth.first_day as string | number | Date);

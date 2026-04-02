@@ -1,11 +1,15 @@
 import React from "react";
 
 export const Welcome = React.lazy(() => import("components/landing/Welcome"));
-export const CoursePage = React.lazy(() => import("components/courses/CoursePage"));
+export const CoursePage = React.lazy(
+  () => import("components/courses/CoursePage")
+);
 export const CourseFlowPage = React.lazy(
   () => import("components/courses/CourseFlowPage")
 );
-export const Dashboard = React.lazy(() => import("components/dashboard/Dashboard"));
+export const Dashboard = React.lazy(
+  () => import("components/dashboard/Dashboard")
+);
 export const Navbar = React.lazy(() => import("components/layout/Navbar"));
 export const Footer = React.lazy(() => import("components/layout/Footer"));
 export const Profile = React.lazy(() => import("components/profile/Profile"));
@@ -14,28 +18,40 @@ export const QuizPage = React.lazy(() => import("components/courses/QuizPage"));
 export const Leaderboards = React.lazy(
   () => import("components/engagement/Leaderboard")
 );
-export const Missions = React.lazy(() => import("components/engagement/Missions"));
+export const Missions = React.lazy(
+  () => import("components/engagement/Missions")
+);
 export const OnboardingQuestionnaire = React.lazy(
   () => import("components/onboarding/OnboardingQuestionnaire")
 );
 export const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
-export const RewardsPage = React.lazy(() => import("components/rewards/RewardsPage"));
-export const SupportPage = React.lazy(() => import("components/support/SupportPage"));
+export const RewardsPage = React.lazy(
+  () => import("components/rewards/RewardsPage")
+);
+export const SupportPage = React.lazy(
+  () => import("components/support/SupportPage")
+);
 export const FeedbackHubPage = React.lazy(
   () => import("components/feedback/FeedbackHubPage")
 );
 export const ExercisePage = React.lazy(
   () => import("components/exercises/ExercisePage")
 );
-export const UpgradePage = React.lazy(() => import("components/billing/Upgrade"));
+export const UpgradePage = React.lazy(
+  () => import("components/billing/Upgrade")
+);
 export const SubscriptionManager = React.lazy(
   () => import("components/billing/SubscriptionManager")
 );
 export const PaymentSuccessPage = React.lazy(
   () => import("components/billing/PaymentSuccessPage")
 );
-export const PrivacyPolicy = React.lazy(() => import("components/legal/PrivacyPolicy"));
-export const CookiePolicy = React.lazy(() => import("components/legal/CookiePolicy"));
+export const PrivacyPolicy = React.lazy(
+  () => import("components/legal/PrivacyPolicy")
+);
+export const CookiePolicy = React.lazy(
+  () => import("components/legal/CookiePolicy")
+);
 export const TermsOfService = React.lazy(
   () => import("components/legal/TermsOfService")
 );

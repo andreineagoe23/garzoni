@@ -103,10 +103,14 @@ describe("ExercisePage skill intent pipeline", () => {
 
     render(<ExercisePage />);
 
-    expect(screen.getByText(i18n.t("exercises.skillIntent.applyingFocus"))).toBeInTheDocument();
+    expect(
+      screen.getByText(i18n.t("exercises.skillIntent.applyingFocus"))
+    ).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /Financial Exercises/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Financial Exercises/i })
+      ).toBeInTheDocument();
     });
 
     const exerciseGets = getExerciseRequests();
@@ -147,7 +151,9 @@ describe("ExercisePage skill intent pipeline", () => {
     render(<ExercisePage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /Financial Exercises/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Financial Exercises/i })
+      ).toBeInTheDocument();
     });
 
     const firstConfig = getExerciseRequests()[0][1] as {
@@ -162,7 +168,9 @@ describe("ExercisePage skill intent pipeline", () => {
     render(<ExercisePage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /Financial Exercises/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Financial Exercises/i })
+      ).toBeInTheDocument();
     });
 
     const firstConfig = getExerciseRequests()[0][1] as {
@@ -228,7 +236,9 @@ describe("ExercisePage skill intent pipeline", () => {
     render(<ExercisePage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /Financial Exercises/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Financial Exercises/i })
+      ).toBeInTheDocument();
     });
 
     const user = userEvent.setup();

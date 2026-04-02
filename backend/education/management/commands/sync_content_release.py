@@ -6,7 +6,6 @@ from django.core.management.base import BaseCommand
 
 from education.models import ContentReleaseState, Lesson, LessonSection, LessonSectionTranslation
 
-
 MANIFEST_PATH = Path(__file__).resolve().parents[2] / "content" / "release_manifest.json"
 BROKEN_VIDEO_IDS = {
     "J7dJ_tN1q1E",

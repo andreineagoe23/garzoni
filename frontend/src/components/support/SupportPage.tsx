@@ -269,7 +269,10 @@ function SupportPage() {
           )}
         </GlassCard>
 
-        <GlassCard padding="lg" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <GlassCard
+          padding="lg"
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
               {t("support.feedbackSection.title")}

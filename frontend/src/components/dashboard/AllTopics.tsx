@@ -114,7 +114,6 @@ const AllTopics = ({
             };
           })
         );
-
       } catch (err) {
         console.error("Error fetching learning paths:", err);
         setError(t("allTopics.error"));
@@ -129,9 +128,12 @@ const AllTopics = ({
   // Scroll to path when anchor is in navigation state, URL hash, or sessionStorage (e.g. from chatbot "View X Path" link)
   useEffect(() => {
     if (deferredPaths.length === 0) return;
-    const fromState = (location.state as { scrollToPathId?: string } | null)?.scrollToPathId;
-    const fromHash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
-    const anchor = fromState || fromHash || sessionStorage.getItem("scrollToPathId");
+    const fromState = (location.state as { scrollToPathId?: string } | null)
+      ?.scrollToPathId;
+    const fromHash =
+      typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    const anchor =
+      fromState || fromHash || sessionStorage.getItem("scrollToPathId");
     if (!anchor) return;
     const timer = setTimeout(() => {
       const el = document.getElementById(anchor);
@@ -140,7 +142,11 @@ const AllTopics = ({
         el.classList.add("ring-2", "ring-[color:var(--primary,#1d5330)]");
         setActivePathId(anchor);
         setTimeout(
-          () => el.classList.remove("ring-2", "ring-[color:var(--primary,#1d5330)]"),
+          () =>
+            el.classList.remove(
+              "ring-2",
+              "ring-[color:var(--primary,#1d5330)]"
+            ),
           2000
         );
       }

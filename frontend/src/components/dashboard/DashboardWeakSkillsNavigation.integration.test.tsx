@@ -54,8 +54,10 @@ describe("Dashboard weak-skill UI navigation contract", () => {
   it("WeakSkills card opens exercises with ?skill=", async () => {
     function OnlyWeakSkills() {
       const navigate = useNavigate();
-      const { handleWeakSkillClick } =
-        useDashboardSkillExercisesNavigation(navigate, mockTrackEvent);
+      const { handleWeakSkillClick } = useDashboardSkillExercisesNavigation(
+        navigate,
+        mockTrackEvent
+      );
       const skill = { skill: "Credit Score", proficiency: 25 };
       return (
         <WeakSkills
@@ -96,8 +98,10 @@ describe("Dashboard weak-skill UI navigation contract", () => {
   it("WeakSkills practice control uses the same contract", async () => {
     function OnlyWeakSkillsPractice() {
       const navigate = useNavigate();
-      const { handleWeakSkillPractice } =
-        useDashboardSkillExercisesNavigation(navigate, mockTrackEvent);
+      const { handleWeakSkillPractice } = useDashboardSkillExercisesNavigation(
+        navigate,
+        mockTrackEvent
+      );
       const skill = { skill: "Credit Score", proficiency: 25 };
       return (
         <WeakSkills
@@ -167,9 +171,7 @@ describe("Dashboard weak-skill UI navigation contract", () => {
     );
 
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: /Credit Score/i })
-    );
+    await user.click(screen.getByRole("button", { name: /Credit Score/i }));
 
     assertSkillQuery(router.state.location);
     expect(mockTrackEvent).toHaveBeenCalledWith(

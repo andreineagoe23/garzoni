@@ -29,7 +29,11 @@ import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Missions() {
   type FinanceFact = { id: number; text: string; category?: string };
-  type StreakItem = { type: string; quantity: number; expires_at?: string | null };
+  type StreakItem = {
+    type: string;
+    quantity: number;
+    expires_at?: string | null;
+  };
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [dailyMissions, setDailyMissions] = useState<Mission[]>([]);
@@ -79,7 +83,10 @@ function Missions() {
       const response = await apiClient.get("/savings-account/");
       setVirtualBalance(response.data.balance);
     } catch (error) {
-      setErrors((prev) => ({ ...prev, savings: t("missions.errors.loadSavings") }));
+      setErrors((prev) => ({
+        ...prev,
+        savings: t("missions.errors.loadSavings"),
+      }));
     }
   }, [t]);
 
@@ -193,12 +200,7 @@ function Missions() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [
-    fetchSavingsBalance,
-    loadNewFact,
-    fetchStreakItems,
-    syncOfflineQueue,
-  ]);
+  }, [fetchSavingsBalance, loadNewFact, fetchStreakItems, syncOfflineQueue]);
 
   useEffect(() => {
     if (!missionsResponse?.data) return;
@@ -228,7 +230,9 @@ function Missions() {
       const wasPreviouslyCompleted = previousStatus === "completed";
       if (isNowCompleted && !wasPreviouslyCompleted) {
         const announcement = t("missions.toast.completed", {
-          name: (mission as { name?: string }).name || t("missions.missionFallback"),
+          name:
+            (mission as { name?: string }).name ||
+            t("missions.missionFallback"),
           xp: (mission as { points_reward?: number }).points_reward || 0,
         });
         setCelebrationMessage(announcement);
@@ -252,7 +256,8 @@ function Missions() {
     if (!profilePayload) return;
     setProfile(profilePayload);
 
-    const rawPoints = profilePayload?.user_data?.points ?? profilePayload?.points ?? 0;
+    const rawPoints =
+      profilePayload?.user_data?.points ?? profilePayload?.points ?? 0;
     const points = Number(rawPoints) || 0;
     const learningStyle =
       typeof profilePayload?.user_data?.learning_style === "string"
@@ -293,7 +298,10 @@ function Missions() {
       await fetchSavingsBalance();
       await refetchMissions();
     } catch (error) {
-      setErrors((prev) => ({ ...prev, savings: t("missions.errors.addSavings") }));
+      setErrors((prev) => ({
+        ...prev,
+        savings: t("missions.errors.addSavings"),
+      }));
     }
   };
 
@@ -363,8 +371,7 @@ function Missions() {
 
   const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
 
-  const allDailyCompleted =
-    dailyMissions.length > 0 && missionsRemaining === 0;
+  const allDailyCompleted = dailyMissions.length > 0 && missionsRemaining === 0;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
@@ -385,10 +392,7 @@ function Missions() {
           </p>
         </header>
 
-        <GlassCard
-          padding="md"
-          className="bg-[color:var(--card-bg)]/70"
-        >
+        <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
           <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
             {/* Left: compact "at a glance" mini-card */}
             <div className="flex-1 rounded-xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm">
@@ -398,7 +402,9 @@ function Missions() {
 
               <div className="mt-2 space-y-1">
                 <p className="text-base font-semibold text-[color:var(--accent)]">
-                  {t("missions.summary.remaining", { count: missionsRemaining })}
+                  {t("missions.summary.remaining", {
+                    count: missionsRemaining,
+                  })}
                 </p>
                 <p className="text-sm text-[color:var(--muted-text)]">
                   {t("missions.summary.xp", {
@@ -531,10 +537,7 @@ function Missions() {
             </div>
 
             {allDailyCompleted && (
-              <GlassCard
-                padding="lg"
-                className="bg-[color:var(--card-bg)]/80"
-              >
+              <GlassCard padding="lg" className="bg-[color:var(--card-bg)]/80">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex shrink-0 flex-col items-center gap-2">

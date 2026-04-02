@@ -482,7 +482,9 @@ function PortfolioAnalyzer() {
     const allocationSummary = Object.entries(summary.allocation || {})
       .map(([assetType, value]) => {
         const percent =
-          summary.total_value > 0 ? (Number(value) / summary.total_value) * 100 : 0;
+          summary.total_value > 0
+            ? (Number(value) / summary.total_value) * 100
+            : 0;
         return `${assetType}: ${formatNumber(percent, locale, {
           maximumFractionDigits: 1,
         })}%`;

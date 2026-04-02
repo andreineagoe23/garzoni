@@ -156,9 +156,15 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
             <div className="hidden lg:block" aria-hidden />
             <div className="relative flex flex-col items-center justify-center lg:col-start-2">
               <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#0B0F14] text-white/85 shadow-lg shadow-black/40 backdrop-blur lg:mb-4">
-                <Play className="h-5 w-5 text-[color:var(--primary,#1d5330)]" aria-hidden />
+                <Play
+                  className="h-5 w-5 text-[color:var(--primary,#1d5330)]"
+                  aria-hidden
+                />
               </div>
-              <GlassCard padding="lg" className="w-full overflow-hidden rounded-xl border-white/10 bg-[#0B0F14] p-0">
+              <GlassCard
+                padding="lg"
+                className="w-full overflow-hidden rounded-xl border-white/10 bg-[#0B0F14] p-0"
+              >
                 <video
                   src={DEMO_VIDEO_URL}
                   controls

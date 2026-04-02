@@ -12,9 +12,8 @@
   --r: 0.9em; /* radius */
 
   padding: 0.4em 0.6em;
-  border-radius: var(--r) /
-    min(var(--r), var(--p) - var(--b) / 4) var(--r) var(--r)
-    min(var(--r), 100% - var(--p) - var(--b) / 4);
+  border-radius: var(--r) / min(var(--r), var(--p) - var(--b) / 4) var(--r)
+    var(--r) min(var(--r), 100% - var(--p) - var(--b) / 4);
 
   background: rgba(255, 255, 255, 0.8); /* glass light */
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
