@@ -336,7 +336,9 @@ const DraggableItem = ({ item, isDisabled, isSelected, onKeyboardSelect }) => {
 
   return (
     <div
-      ref={drag}
+      ref={(el) => {
+        drag(el);
+      }}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
       onKeyDown={(event) => {
@@ -399,7 +401,9 @@ const DroppableTarget = ({
 
   return (
     <div
-      ref={drop}
+      ref={(el) => {
+        drop(el);
+      }}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
       onKeyDown={(event) => {
