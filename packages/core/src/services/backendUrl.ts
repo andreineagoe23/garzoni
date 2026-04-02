@@ -1,13 +1,23 @@
 import { readPublicEnv } from "../runtime/publicEnv";
 
+/** Normalize env base to a single /api suffix (no trailing slash after api). */
+function normalizeBackendApiBase(url: string): string {
+  const trimmed = url.trim().replace(/\/+$/, "");
+  if (trimmed.endsWith("/api")) {
+    return trimmed;
+  }
+  return `${trimmed}/api`;
+}
+
 const getBackendUrl = () => {
-  const envUrl = readPublicEnv("VITE_BACKEND_URL", "REACT_APP_BACKEND_URL");
+  const rawEnv = readPublicEnv("VITE_BACKEND_URL", "REACT_APP_BACKEND_URL");
+  const envUrl = rawEnv?.trim();
   if (envUrl) {
-    return envUrl;
+    return normalizeBackendApiBase(envUrl);
   }
 
-  if (typeof window !== "undefined") {
-    const { protocol, hostname, host } = window.location;
+  if (typeof window !== "undefined" && window.location) {
+    const { protocol, hostname, origin, host } = window.location;
     const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
     const apiPort =
       readPublicEnv("VITE_BACKEND_PORT", "REACT_APP_BACKEND_PORT") || "8000";
@@ -16,7 +26,15 @@ const getBackendUrl = () => {
       return `${protocol}//${hostname}:${apiPort}/api`;
     }
 
-    return `${protocol}//${host}/api`;
+    const proto = (protocol || "").toLowerCase();
+    // Production SPA (e.g. Vercel): same-origin /api via Edge proxy to Django.
+    if (proto === "https:") {
+      return `${origin}/api`;
+    }
+    if (proto === "http:") {
+      // LAN / custom HTTP: legacy assumption that API is on the same host as the page.
+      return `${protocol}//${host}/api`;
+    }
   }
 
   return "http://localhost:8000/api";

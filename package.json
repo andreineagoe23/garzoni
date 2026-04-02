@@ -8,7 +8,8 @@
       "react-dom": "19.2.4",
       "@types/react": "19.2.7",
       "@types/react-dom": "19.2.3"
-    }
+    },
+    "onlyBuiltDependencies": ["sharp", "react-vertical-timeline-component"]
   },
   "scripts": {
     "dev": "pnpm --filter @monevo/web dev",

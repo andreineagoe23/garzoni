@@ -5,12 +5,29 @@ import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
 import { imagetools } from "vite-imagetools";
+import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const coreSrc = path.resolve(__dirname, "../packages/core/src");
 
 const r = (...segments: string[]) => path.resolve(__dirname, ...segments);
+
+/** Split heavy node_modules out of the main chunk. CKEditor is not listed — it loads only via dynamic import inside lazy editor chunks. */
+function manualChunks(id: string): string | undefined {
+  if (!id.includes("node_modules")) return;
+  if (id.includes("lucide-react")) return "vendor-icons";
+  if (id.includes("node_modules/axios") || id.includes("/axios@")) return "vendor-axios";
+  if (id.includes("zustand")) return "vendor-state";
+  if (id.includes("@tanstack/react-query")) return "vendor-query";
+  if (id.includes("node_modules/three/") || id.includes("/three@")) return "vendor-three";
+  if (id.includes("html2canvas")) return "vendor-html2canvas";
+  if (id.includes("recharts")) return "vendor-charts";
+  if (id.includes("framer-motion")) return "vendor-motion";
+  if (id.includes("react-router")) return "vendor-react";
+  if (id.includes("react-dom")) return "vendor-react";
+  if (id.includes("/node_modules/react/")) return "vendor-react";
+}
 
 export default defineConfig(({ mode }) => {
   const testOnly: { find: string; replacement: string }[] =
@@ -48,8 +65,22 @@ export default defineConfig(({ mode }) => {
     { find: "i18n", replacement: r("src/i18n.ts") },
   ];
 
+  const analyze = process.env.ANALYZE === "true";
+
   return {
-    plugins: [react(), imagetools()],
+    plugins: [
+      react(),
+      imagetools(),
+      ...(analyze
+        ? [
+            visualizer({
+              open: true,
+              gzipSize: true,
+              filename: "dist/bundle-report.html",
+            }),
+          ]
+        : []),
+    ],
     server: {
       port: 3000,
       headers: {
@@ -61,15 +92,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       rollupOptions: {
         output: {
-          manualChunks: {
-            "vendor-ckeditor": ["@ckeditor/ckeditor5-build-classic"],
-            "vendor-three": ["three"],
-            "vendor-html2canvas": ["html2canvas"],
-            "vendor-react": ["react", "react-dom", "react-router-dom"],
-            "vendor-charts": ["recharts"],
-            "vendor-motion": ["framer-motion"],
-            "vendor-query": ["@tanstack/react-query"],
-          },
+          manualChunks,
         },
       },
     },
