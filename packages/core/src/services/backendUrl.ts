@@ -1,4 +1,4 @@
-import { readPublicEnv } from "../env/publicEnv";
+import { readPublicEnv } from "../runtime/publicEnv";
 
 const getBackendUrl = () => {
   const envUrl = readPublicEnv("VITE_BACKEND_URL", "REACT_APP_BACKEND_URL");

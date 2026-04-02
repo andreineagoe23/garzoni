@@ -1,5 +1,5 @@
 import { init, track } from "@amplitude/analytics-browser";
-import { readPublicEnv } from "../env/publicEnv";
+import { readPublicEnv } from "../runtime/publicEnv";
 
 let isInitialized = false;
 
