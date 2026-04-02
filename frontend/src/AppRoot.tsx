@@ -100,7 +100,7 @@ const AppContent = () => {
 };
 
 const AppRoot = () => {
-  const siteKey = process.env.REACT_APP_RECAPTCHA_SITE_KEY || "";
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
   const appTree = (
     <AuthProvider>
       <AdminProvider>

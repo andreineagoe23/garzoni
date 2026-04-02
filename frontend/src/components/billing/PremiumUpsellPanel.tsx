@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 const CHECKOUT_URL =
-  process.env.REACT_APP_CHECKOUT_URL || "https://pay.monevo.app/checkout";
+  import.meta.env.VITE_CHECKOUT_URL || "https://pay.monevo.app/checkout";
 
 const canSendAnalytics = () =>
   typeof window !== "undefined" &&

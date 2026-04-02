@@ -88,13 +88,13 @@ frontend-install:
 	cd frontend && npm ci
 
 frontend-test:
-	cd frontend && npm test -- --watchAll=false
+	pnpm --filter @monevo/web test
 
 frontend-lint:
-	cd frontend && npm run lint
+	pnpm --filter @monevo/web lint
 
 frontend-build:
-	cd frontend && npm run build
+	pnpm --filter @monevo/web build
 
 # Run backend lint, backend tests, and frontend tests. Backend tests require the docker stack to be up (e.g. make dev).
 test-all: backend-lint backend-test frontend-test

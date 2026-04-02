@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { vi } from "vitest";
 import ReferralLink from "./ReferralLink";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../../test-utils/i18n-for-tests";
@@ -30,9 +31,11 @@ describe("ReferralLink", () => {
   });
 
   it("copies the referral link to clipboard when clicking copy", () => {
-    const writeText = jest.fn().mockResolvedValue(undefined);
-    Object.assign(navigator as any, {
-      clipboard: { writeText },
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+      writable: true,
     });
 
     render(

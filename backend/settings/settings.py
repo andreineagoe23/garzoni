@@ -21,7 +21,7 @@ DEBUG = env_bool("DEBUG", DJANGO_ENV != "production")
 # This keeps BrowserRouter URLs clean (e.g. /dashboard instead of fragment-based URLs)
 # when deploying frontend + backend together.
 FRONTEND_BUILD_DIR = Path(
-    os.getenv("FRONTEND_BUILD_DIR", str(BASE_DIR.parent / "frontend" / "build"))
+    os.getenv("FRONTEND_BUILD_DIR", str(BASE_DIR.parent / "frontend" / "dist"))
 ).resolve()
 
 SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("DJANGO_SECRET_KEY")
@@ -195,9 +195,15 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+try:
+    _jwt_refresh_days = int(os.getenv("JWT_REFRESH_TOKEN_DAYS", "30"))
+except ValueError:
+    _jwt_refresh_days = 30
+_jwt_refresh_days = max(1, min(_jwt_refresh_days, 366))
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=_jwt_refresh_days),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -394,6 +400,23 @@ RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
 # Google OAuth (login/register with Google)
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+
+
+def _google_oauth_allowed_client_ids() -> list:
+    """IDs accepted for Google ID tokens (web + native). Web redirect flow still uses GOOGLE_OAUTH_CLIENT_ID."""
+    raw = []
+    web = (GOOGLE_OAUTH_CLIENT_ID or "").strip()
+    if web:
+        raw.append(web)
+    raw.extend(env_csv("GOOGLE_OAUTH_CLIENT_IDS_CSV", default=[]))
+    for key in ("GOOGLE_OAUTH_IOS_CLIENT_ID", "GOOGLE_OAUTH_ANDROID_CLIENT_ID"):
+        v = (os.getenv(key, "") or "").strip()
+        if v:
+            raw.append(v)
+    return list(dict.fromkeys(raw))
+
+
+GOOGLE_OAUTH_ALLOWED_CLIENT_IDS = _google_oauth_allowed_client_ids()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 CSE_ID = os.getenv("CSE_ID", "")

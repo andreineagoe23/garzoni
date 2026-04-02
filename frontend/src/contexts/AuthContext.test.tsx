@@ -1,9 +1,10 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 
-const REFRESH_SESSION_KEY = "monevo_has_refresh_session";
+const REFRESH_TOKEN_STORAGE_KEY = "monevo_refresh_token";
 
 const AuthConsumer = () => {
   const { isAuthenticated, isInitialized } = useAuth();
@@ -15,11 +16,14 @@ const AuthConsumer = () => {
 
 describe("AuthContext refresh flow", () => {
   beforeEach(() => {
-    const axiosMock = axios as unknown as jest.Mocked<typeof axios>;
-    sessionStorage.setItem(REFRESH_SESSION_KEY, "1");
+    const axiosMock = axios as unknown as {
+      post: ReturnType<typeof vi.fn>;
+      get: ReturnType<typeof vi.fn>;
+    };
+    sessionStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, "fake-refresh-token");
     axiosMock.post.mockResolvedValue({
-      data: { access: "access-token" },
-    } as { data: { access: string } });
+      data: { access: "access-token", refresh: "fake-refresh-token" },
+    } as { data: { access: string; refresh: string } });
     axiosMock.get.mockResolvedValue({
       data: { isAuthenticated: true, user: { username: "tester" } },
     } as {
@@ -29,7 +33,7 @@ describe("AuthContext refresh flow", () => {
 
   afterEach(() => {
     sessionStorage.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("refreshes token and authenticates user on mount", async () => {
@@ -45,7 +49,7 @@ describe("AuthContext refresh flow", () => {
 
     expect(axios.post).toHaveBeenCalledWith(
       expect.stringContaining("/token/refresh/"),
-      {},
+      { refresh: "fake-refresh-token" },
       expect.objectContaining({ skipAuthRedirect: true })
     );
     expect(axios.get).toHaveBeenCalledWith(
