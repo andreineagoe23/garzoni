@@ -1,10 +1,15 @@
 /** @type {import('expo/config').ExpoConfig} */
 module.exports = ({ config }) => ({
   ...config,
+  extra: {
+    ...(config.extra ?? {}),
+    backendUrl: process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || undefined,
+  },
   plugins: [
     "expo-router",
     "expo-secure-store",
     "expo-font",
+    "expo-apple-authentication",
     [
       "@react-native-google-signin/google-signin",
       {

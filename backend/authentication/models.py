@@ -91,6 +91,14 @@ class UserProfile(models.Model):
     investing_experience = models.CharField(max_length=32, blank=True, default="")
     # Expo / mobile push (lesson reminders, streak alerts); updated via POST /api/auth/push-token/
     expo_push_token = models.CharField(max_length=200, blank=True, null=True)
+    # Sign in with Apple: stable subject from Apple identity token (`sub` claim)
+    apple_sub = models.CharField(
+        max_length=255,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
 
     def __str__(self):
         return self.user.username

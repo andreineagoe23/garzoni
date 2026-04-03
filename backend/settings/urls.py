@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from authentication.views_auth import CustomTokenRefreshView
 from authentication.views_profile import FinancialProfileView
+from authentication.views_apple_signin import AppleIdentityAuthView
 from authentication.views_google_oauth import GoogleCredentialAuthView
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -40,6 +41,16 @@ urlpatterns = [
         "api/auth/google/verify-credential",
         GoogleCredentialAuthView.as_view(),
         name="google-verify-credential-no-slash",
+    ),
+    path(
+        "api/auth/apple/verify-identity/",
+        AppleIdentityAuthView.as_view(),
+        name="apple-verify-identity",
+    ),
+    path(
+        "api/auth/apple/verify-identity",
+        AppleIdentityAuthView.as_view(),
+        name="apple-verify-identity-no-slash",
     ),
     # Onboarding first so /api/questionnaire/* is matched before other app catch-alls
     path("api/", include("onboarding.urls")),
