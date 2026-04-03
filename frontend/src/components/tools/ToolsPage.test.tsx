@@ -7,9 +7,8 @@ import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
 
 vi.mock("react-router-dom", async (importOriginal) => {
-  const { mockNavigate: nav } = await import(
-    "../../test-utils/react-router-dom-mock"
-  );
+  const { mockNavigate: nav } =
+    await import("../../test-utils/react-router-dom-mock");
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
@@ -44,8 +43,7 @@ vi.mock("./toolsRegistry", async () => {
       id: "calendar",
       group: "understand-world",
       route: "calendar",
-      component: () =>
-        ReactMod.createElement("div", null, "Calendar Tool"),
+      component: () => ReactMod.createElement("div", null, "Calendar Tool"),
       learnPath: "/all-topics?topic=macro",
       exportable: false,
       keywords: ["calendar"],
@@ -54,8 +52,7 @@ vi.mock("./toolsRegistry", async () => {
       id: "portfolio",
       group: "understand-myself",
       route: "portfolio",
-      component: () =>
-        ReactMod.createElement("div", null, "Portfolio Tool"),
+      component: () => ReactMod.createElement("div", null, "Portfolio Tool"),
       learnPath: "/all-topics?topic=investing",
       exportable: true,
       keywords: ["portfolio"],

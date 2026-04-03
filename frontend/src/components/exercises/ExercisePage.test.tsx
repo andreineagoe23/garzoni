@@ -8,9 +8,8 @@ import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
 
 vi.mock("react-router-dom", async (importOriginal) => {
-  const { mockNavigate: nav } = await import(
-    "../../test-utils/react-router-dom-mock"
-  );
+  const { mockNavigate: nav } =
+    await import("../../test-utils/react-router-dom-mock");
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
@@ -58,9 +57,7 @@ const minimalMcExercise = {
 };
 
 function renderExercise(
-  initial:
-    | string
-    | { pathname: string; search?: string; state?: unknown }
+  initial: string | { pathname: string; search?: string; state?: unknown }
 ) {
   const entry =
     typeof initial === "string"

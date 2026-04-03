@@ -25,12 +25,8 @@ type Plan = {
 
 const SubscriptionManager = () => {
   const { t } = useTranslation();
-  const {
-    entitlements,
-    isAuthenticated,
-    reloadEntitlements,
-    loadProfile,
-  } = useAuth();
+  const { entitlements, isAuthenticated, reloadEntitlements, loadProfile } =
+    useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
