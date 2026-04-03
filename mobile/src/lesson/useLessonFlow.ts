@@ -1,0 +1,219 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchLessonsWithProgress,
+  completeSection,
+  completeLesson,
+  fetchCourseFlowState,
+  saveCourseFlowState,
+  queryKeys,
+  staleTimes,
+} from "@monevo/core";
+
+export type FlowSection = {
+  id: number | string;
+  title?: string;
+  content_type?: string;
+  text_content?: string;
+  video_url?: string;
+  exercise_type?: string;
+  exercise_data?: Record<string, unknown>;
+  order?: number;
+  is_completed?: boolean;
+  is_published?: boolean;
+};
+
+export type FlowLesson = {
+  id: number;
+  title?: string;
+  short_description?: string;
+  detailed_content?: string;
+  is_completed?: boolean;
+  sections: FlowSection[];
+};
+
+export type FlowItem =
+  | {
+      key: string;
+      kind: "section";
+      lessonId: number;
+      lessonIndex: number;
+      lessonTitle?: string;
+      sectionIndex: number;
+      section: FlowSection;
+      isCompleted: boolean;
+    }
+  | {
+      key: string;
+      kind: "lesson-text";
+      lessonId: number;
+      lessonIndex: number;
+      lessonTitle?: string;
+      isCompleted: boolean;
+      detailedContent?: string;
+    };
+
+export function useLessonFlow(courseId: number) {
+  const queryClient = useQueryClient();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [courseComplete, setCourseComplete] = useState(false);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const lessonsQuery = useQuery({
+    queryKey: queryKeys.lessonsWithProgress(courseId),
+    enabled: Number.isFinite(courseId),
+    queryFn: () =>
+      fetchLessonsWithProgress(courseId).then((r) => {
+        const raw = r.data;
+        if (Array.isArray(raw)) return raw as FlowLesson[];
+        return ((raw as { results?: FlowLesson[] })?.results ?? []) as FlowLesson[];
+      }),
+    staleTime: staleTimes.content,
+  });
+
+  const flowStateQuery = useQuery({
+    queryKey: ["flowState", courseId],
+    enabled: Number.isFinite(courseId),
+    queryFn: () =>
+      fetchCourseFlowState(courseId).then(
+        (r) => (r.data as { current_index?: number })?.current_index ?? 0
+      ),
+    staleTime: staleTimes.content,
+  });
+
+  // Restore saved flow position on first load
+  useEffect(() => {
+    if (flowStateQuery.data != null && flowStateQuery.data > 0) {
+      setCurrentIndex(flowStateQuery.data);
+    }
+  }, [flowStateQuery.data]);
+
+  const flowItems = useMemo<FlowItem[]>(() => {
+    const lessons = lessonsQuery.data ?? [];
+    const items: FlowItem[] = [];
+    lessons.forEach((lesson, li) => {
+      if (lesson.sections && lesson.sections.length > 0) {
+        lesson.sections
+          .filter((s) => s.is_published !== false)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .forEach((section, si) => {
+            items.push({
+              key: `s-${lesson.id}-${section.id}`,
+              kind: "section",
+              lessonId: lesson.id,
+              lessonIndex: li,
+              lessonTitle: lesson.title,
+              sectionIndex: si,
+              section,
+              isCompleted:
+                Boolean(section.is_completed) ||
+                completedIds.has(`s-${section.id}`),
+            });
+          });
+      } else if (lesson.detailed_content) {
+        items.push({
+          key: `l-${lesson.id}`,
+          kind: "lesson-text",
+          lessonId: lesson.id,
+          lessonIndex: li,
+          lessonTitle: lesson.title,
+          isCompleted:
+            Boolean(lesson.is_completed) ||
+            completedIds.has(`l-${lesson.id}`),
+          detailedContent: lesson.detailed_content,
+        });
+      }
+    });
+    return items;
+  }, [lessonsQuery.data, completedIds]);
+
+  const currentItem = flowItems[currentIndex] ?? null;
+  const isFirst = currentIndex === 0;
+  const isLast = currentIndex >= flowItems.length - 1;
+  const totalSteps = flowItems.length;
+  const completedSteps = flowItems.filter((i) => i.isCompleted).length;
+
+  // Autosave position
+  useEffect(() => {
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      if (Number.isFinite(courseId)) {
+        void saveCourseFlowState(courseId, currentIndex).catch(() => {});
+      }
+    }, 2000);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [currentIndex, courseId]);
+
+  const completeSectionMutation = useMutation({
+    mutationFn: completeSection,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.progressSummary(),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+    },
+  });
+
+  const completeLessonMutation = useMutation({
+    mutationFn: completeLesson,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.progressSummary(),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+    },
+  });
+
+  const handleCompleteCurrent = useCallback(async () => {
+    if (!currentItem) return;
+    try {
+      if (currentItem.kind === "section") {
+        const sectionId = currentItem.section.id;
+        await completeSectionMutation.mutateAsync(sectionId);
+        setCompletedIds((prev) => new Set(prev).add(`s-${sectionId}`));
+      } else {
+        await completeLessonMutation.mutateAsync(currentItem.lessonId);
+        setCompletedIds((prev) =>
+          new Set(prev).add(`l-${currentItem.lessonId}`)
+        );
+      }
+    } catch {
+      // handled by caller
+    }
+  }, [currentItem, completeSectionMutation, completeLessonMutation]);
+
+  const goNext = useCallback(() => {
+    if (isLast) {
+      setCourseComplete(true);
+      return;
+    }
+    setCurrentIndex((i) => Math.min(i + 1, flowItems.length - 1));
+  }, [isLast, flowItems.length]);
+
+  const goPrev = useCallback(() => {
+    setCurrentIndex((i) => Math.max(i - 1, 0));
+  }, []);
+
+  return {
+    lessonsQuery,
+    flowItems,
+    currentIndex,
+    currentItem,
+    isFirst,
+    isLast,
+    totalSteps,
+    completedSteps,
+    courseComplete,
+    setCourseComplete,
+    goNext,
+    goPrev,
+    handleCompleteCurrent,
+    completeSectionMutation,
+    completeLessonMutation,
+  };
+}

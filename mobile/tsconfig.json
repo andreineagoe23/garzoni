@@ -10,6 +10,8 @@
       "constants/*": ["../packages/core/src/constants/*"],
       "types/*": ["../packages/core/src/types/*"],
       "stores/*": ["../packages/core/src/stores/*"],
+      "lib/*": ["../packages/core/src/lib/*"],
+      "hooks/*": ["../packages/core/src/hooks/*"],
       "utils/*": ["../packages/core/src/utils/*"],
       "messages/*": ["../packages/core/src/messages/*"]
     }

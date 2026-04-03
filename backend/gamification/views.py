@@ -453,6 +453,8 @@ class RecentActivityView(APIView):
                     "action": "completed",
                     "title": lc.lesson.title,
                     "course": lc.user_progress.course.title,
+                    "lesson_id": lc.lesson_id,
+                    "course_id": lc.user_progress.course_id,
                     "timestamp": lc.completed_at,
                 }
             )
