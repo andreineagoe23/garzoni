@@ -13,6 +13,8 @@ vi.mock("./ParticleStage", () => ({
 
 vi.mock("services/backendUrl", () => ({
   BACKEND_URL: "http://localhost:8000/api",
+  getBackendUrl: () => "http://localhost:8000/api",
+  getMediaBaseUrl: () => "http://localhost:8000",
 }));
 
 describe("HeroSection demo modal", () => {

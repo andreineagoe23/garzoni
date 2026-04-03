@@ -1,6 +1,7 @@
 {
   "name": "monevo",
   "private": true,
+  "workspaces": ["packages/*", "frontend", "mobile"],
   "packageManager": "pnpm@10.15.1",
   "pnpm": {
     "overrides": {

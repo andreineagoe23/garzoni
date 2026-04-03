@@ -1,5 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
-import { BACKEND_URL } from "services/backendUrl";
+import { getBackendUrl } from "services/backendUrl";
 import { getCurrentAppLanguage } from "../utils/appLanguage";
 import { getApiErrorFallbackMessage } from "../messages/apiErrorFallback";
 
@@ -41,17 +41,18 @@ export function configureHttpClient(next: Partial<HttpClientCallbacks>): void {
 }
 
 /**
- * Single HTTP client for all backend API calls. Use this instead of raw axios + BACKEND_URL
+ * Single HTTP client for all backend API calls. Use this instead of raw axios + getBackendUrl()
  * so that auth headers, i18n headers, 401/403 handling, and error reporting are consistent.
  * Authenticated requests use `Authorization: Bearer` via {@link attachToken}; cookies are not required.
  */
 const apiClient = axios.create({
-  baseURL: BACKEND_URL,
+  baseURL: getBackendUrl(),
   withCredentials: false,
 });
 
-// Send current UI language so the backend can return translated content (lessons, exercises, etc.)
+// Keep base URL in sync with configureBackendUrl (Expo) and env-driven web defaults.
 apiClient.interceptors.request.use((config) => {
+  config.baseURL = getBackendUrl();
   const lang = getCurrentAppLanguage();
   config.headers.set("Accept-Language", lang);
   config.headers.set("X-App-Language", lang);

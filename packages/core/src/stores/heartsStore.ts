@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { getStorageAdapter, storageGet } from "./storageAdapter";
 
 // IMPORTANT GUARDRAIL:
 // This store is UI-only. Do NOT put server-derived balances/counts here (e.g. heartsCount).
@@ -16,30 +17,36 @@ type HeartsStoreState = {
   resetHeartsUi: () => void;
 };
 
-function readOutOfHeartsUntilTs() {
+function parseTs(raw: string | null | undefined): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function readOutOfHeartsUntilTsSync(): number | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
+    const r = getStorageAdapter().getItem(STORAGE_KEY);
+    if (r instanceof Promise) return null;
+    return parseTs(r as string | null);
   } catch {
     return null;
   }
 }
 
-function writeOutOfHeartsUntilTs(value) {
+function writeOutOfHeartsUntilTs(value: number | null) {
+  const a = getStorageAdapter();
   try {
     if (value == null) {
-      localStorage.removeItem(STORAGE_KEY);
+      void Promise.resolve(a.removeItem(STORAGE_KEY)).catch(() => {});
     } else {
-      localStorage.setItem(STORAGE_KEY, String(value));
+      void Promise.resolve(a.setItem(STORAGE_KEY, String(value))).catch(() => {});
     }
   } catch {
     // ignore storage failures (private mode, quota, etc.)
   }
 }
 
-const initialOutOfHeartsUntilTs = readOutOfHeartsUntilTs();
+const initialOutOfHeartsUntilTs = readOutOfHeartsUntilTsSync();
 
 export const useHeartsStore = create<HeartsStoreState>((set) => ({
   // UI overlay state
@@ -66,22 +73,35 @@ export const useHeartsStore = create<HeartsStoreState>((set) => ({
   resetHeartsUi: () =>
     set({
       isOutOfHeartsModalOpen: false,
-      outOfHeartsUntilTs: readOutOfHeartsUntilTs(),
+      outOfHeartsUntilTs: readOutOfHeartsUntilTsSync(),
       lastSeenServerHeartsTs: null,
     }),
 }));
 
 let didInitTabSync = false;
 
+/**
+ * Hydrates from async storage (if any) and subscribes to cross-tab `storage` events on web.
+ */
 export function initHeartsTabSync() {
   if (didInitTabSync) return;
   didInitTabSync = true;
 
-  // Keep outOfHeartsUntilTs synced across tabs.
-  window.addEventListener("storage", (event) => {
-    if (event.key !== STORAGE_KEY) return;
-    const next = readOutOfHeartsUntilTs();
-    // IMPORTANT: do not write back to storage here (avoid ping-pong across tabs).
-    useHeartsStore.setState({ outOfHeartsUntilTs: next });
+  void storageGet(STORAGE_KEY).then((raw) => {
+    const next = parseTs(raw);
+    if (next != null) {
+      useHeartsStore.setState({ outOfHeartsUntilTs: next });
+    }
   });
+
+  if (
+    typeof window !== "undefined" &&
+    typeof window.addEventListener === "function"
+  ) {
+    window.addEventListener("storage", (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      const next = readOutOfHeartsUntilTsSync();
+      useHeartsStore.setState({ outOfHeartsUntilTs: next });
+    });
+  }
 }

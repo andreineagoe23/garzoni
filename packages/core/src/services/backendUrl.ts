@@ -9,7 +9,18 @@ function normalizeBackendApiBase(url: string): string {
   return `${trimmed}/api`;
 }
 
-const getBackendUrl = () => {
+let backendUrlOverride: string | null = null;
+
+/**
+ * Override API base at runtime (required for Expo/Metro when env is not baked into import.meta).
+ * Web can omit this if `VITE_BACKEND_URL` / `REACT_APP_BACKEND_URL` / same-origin inference is enough.
+ */
+export function configureBackendUrl(url: string): void {
+  backendUrlOverride = normalizeBackendApiBase(url);
+  BACKEND_URL = backendUrlOverride;
+}
+
+function inferBackendUrl(): string {
   const rawEnv = readPublicEnv("VITE_BACKEND_URL", "REACT_APP_BACKEND_URL");
   const envUrl = rawEnv?.trim();
   if (envUrl) {
@@ -27,20 +38,32 @@ const getBackendUrl = () => {
     }
 
     const proto = (protocol || "").toLowerCase();
-    // Production SPA (e.g. Vercel): same-origin /api via Edge proxy to Django.
     if (proto === "https:") {
       return `${origin}/api`;
     }
     if (proto === "http:") {
-      // LAN / custom HTTP: legacy assumption that API is on the same host as the page.
       return `${protocol}//${host}/api`;
     }
   }
 
   return "http://localhost:8000/api";
-};
+}
 
-export const BACKEND_URL = getBackendUrl();
+/** Current API base (`.../api`), including any {@link configureBackendUrl} override. */
+export function getBackendUrl(): string {
+  if (backendUrlOverride !== null) {
+    return backendUrlOverride;
+  }
+  return inferBackendUrl();
+}
+
+/** Live binding; prefer {@link getBackendUrl} after startup if the host may call `configureBackendUrl`. */
+export let BACKEND_URL = getBackendUrl();
+
+/** Public media/CDN base (strips trailing `/api` from the API base). */
+export function getMediaBaseUrl(): string {
+  return getBackendUrl().replace(/\/api\/?$/, "");
+}
 
 /** Google OAuth client ID for One Tap / Sign-in button (same as backend GOOGLE_OAUTH_CLIENT_ID). */
 export const GOOGLE_OAUTH_CLIENT_ID =

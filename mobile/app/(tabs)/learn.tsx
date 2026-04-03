@@ -1,149 +1,335 @@
-import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
+  LayoutAnimation,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { pathService, courseService, queryKeys, staleTimes } from "@monevo/core";
 import {
-  courseService,
-  fetchLessonsWithProgress,
-  pathService,
-} from "@monevo/core";
+  Badge,
+  Card,
+  ErrorState,
+  ProgressBar,
+  Skeleton,
+} from "../../src/components/ui";
+import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
+import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
 
-type PathRow = { id?: number; title?: string; name?: string };
-type CourseRow = { id?: number; title?: string; name?: string };
+type PathRow = {
+  id?: number;
+  title?: string;
+  name?: string;
+  description?: string;
+};
 
-export default function LearnScreen() {
-  const [selectedPathId, setSelectedPathId] = useState<number | null>(null);
+type CourseRow = {
+  id?: number;
+  title?: string;
+  name?: string;
+  short_description?: string;
+  completed_lessons?: number;
+  total_lessons?: number;
+};
+
+function unwrap<T>(raw: unknown): T[] {
+  if (Array.isArray(raw)) return raw;
+  const r = (raw as { results?: T[] })?.results;
+  return Array.isArray(r) ? r : [];
+}
+
+type FilterMode = "all" | "in_progress" | "completed";
+
+function LearnInner() {
+  const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<FilterMode>("all");
 
   const pathsQuery = useQuery({
     queryKey: ["paths"],
-    queryFn: async () => {
-      const res = await pathService.fetchPaths();
-      return res.data as PathRow[];
-    },
+    queryFn: () => pathService.fetchPaths().then((r) => unwrap<PathRow>(r.data)),
+    staleTime: staleTimes.content,
   });
 
   const coursesQuery = useQuery({
-    queryKey: ["courses", selectedPathId],
-    enabled: selectedPathId != null,
-    queryFn: async () => {
-      const res = await courseService.fetchForPath(selectedPathId!);
-      return res.data as CourseRow[];
-    },
+    queryKey: ["courses", expandedPathId],
+    enabled: expandedPathId != null,
+    queryFn: () =>
+      courseService
+        .fetchForPath(expandedPathId!)
+        .then((r) => unwrap<CourseRow>(r.data)),
+    staleTime: staleTimes.content,
   });
 
-  const openFirstLesson = async (courseId: number) => {
-    try {
-      const res = await fetchLessonsWithProgress(courseId);
-      const list = res.data as { id?: number }[];
-      const first = list?.[0];
-      if (first?.id != null) {
-        router.push(`/lesson/${first.id}`);
-      }
-    } catch {
-      /* handled by query UI elsewhere */
-    }
-  };
+  const togglePath = useCallback((id: number) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedPathId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const filteredPaths = useMemo(() => {
+    const paths = pathsQuery.data ?? [];
+    const q = query.trim().toLowerCase();
+    if (!q) return paths;
+    return paths.filter((p) => {
+      const t = `${p.title ?? p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
+      return t.includes(q);
+    });
+  }, [pathsQuery.data, query]);
+
+  const filterCourses = useCallback(
+    (courses: CourseRow[]) => {
+      return courses.filter((c) => {
+        const total = c.total_lessons ?? 0;
+        const done = c.completed_lessons ?? 0;
+        const pct = total > 0 ? done / total : 0;
+        if (filter === "completed") return pct >= 1;
+        if (filter === "in_progress") return pct > 0 && pct < 1;
+        return true;
+      });
+    },
+    [filter]
+  );
 
   if (pathsQuery.isPending) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton
+            key={i}
+            width="100%"
+            height={90}
+            style={{ marginBottom: spacing.md }}
+          />
+        ))}
       </View>
     );
   }
 
   if (pathsQuery.isError) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.error}>Could not load paths.</Text>
-      </View>
+      <ErrorState
+        message="Could not load learning paths."
+        onRetry={() => void pathsQuery.refetch()}
+      />
     );
   }
 
-  const rawPaths = pathsQuery.data;
-  const paths = Array.isArray(rawPaths)
-    ? rawPaths
-    : Array.isArray((rawPaths as { results?: PathRow[] })?.results)
-      ? (rawPaths as { results: PathRow[] }).results
-      : [];
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Learning paths</Text>
-      <FlatList
-        data={paths}
-        keyExtractor={(item, i) => String(item.id ?? i)}
-        renderItem={({ item }) => (
-          <Pressable
-            style={[
-              styles.row,
-              selectedPathId === item.id && styles.rowSelected,
-            ]}
-            onPress={() => setSelectedPathId(item.id ?? null)}
-          >
-            <Text style={styles.rowText}>
-              {item.title ?? item.name ?? `Path ${item.id}`}
-            </Text>
-          </Pressable>
-        )}
-      />
-      {selectedPathId != null && (
-        <View style={styles.courses}>
-          <Text style={styles.subheading}>Courses</Text>
-          {coursesQuery.isPending ? (
-            <ActivityIndicator />
-          ) : coursesQuery.isError ? (
-            <Text style={styles.error}>Failed to load courses.</Text>
-          ) : (
-            <FlatList
-              data={(() => {
-                const d = coursesQuery.data;
-                if (Array.isArray(d)) return d;
-                const r = (d as { results?: CourseRow[] })?.results;
-                return Array.isArray(r) ? r : [];
-              })()}
-              keyExtractor={(item, i) => String(item.id ?? i)}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.row}
-                  onPress={() => {
-                    if (item.id != null) void openFirstLesson(item.id);
-                  }}
+    <FlatList
+      data={filteredPaths}
+      keyExtractor={(item, i) => String(item.id ?? i)}
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={pathsQuery.isFetching}
+          onRefresh={() => void pathsQuery.refetch()}
+          tintColor={colors.primary}
+        />
+      }
+      ListHeaderComponent={
+        <View style={styles.headerBlock}>
+          <Text style={styles.heading}>Learning paths</Text>
+          <TextInput
+            style={styles.search}
+            placeholder="Search paths…"
+            placeholderTextColor={colors.textFaint}
+            value={query}
+            onChangeText={setQuery}
+          />
+          <View style={styles.chips}>
+            {(
+              [
+                ["all", "All"],
+                ["in_progress", "In progress"],
+                ["completed", "Completed"],
+              ] as const
+            ).map(([key, label]) => (
+              <Pressable
+                key={key}
+                style={[styles.chip, filter === key && styles.chipOn]}
+                onPress={() => setFilter(key)}
+              >
+                <Text
+                  style={[styles.chipText, filter === key && styles.chipTextOn]}
                 >
-                  <Text style={styles.rowText}>
-                    {item.title ?? item.name ?? `Course ${item.id}`}
-                  </Text>
-                  <Text style={styles.hint}>Open first lesson</Text>
-                </Pressable>
-              )}
-            />
-          )}
+                  {label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
-      )}
-    </View>
+      }
+      renderItem={({ item }) => {
+        const isExpanded = expandedPathId === item.id;
+        const title = item.title ?? item.name ?? `Path ${item.id}`;
+        const desc = item.description ?? "";
+        return (
+          <View style={{ marginBottom: spacing.md }}>
+            <Pressable onPress={() => item.id != null && togglePath(item.id)}>
+              <Card>
+                <Text style={styles.pathTitle}>{title}</Text>
+                {desc ? (
+                  <Text style={styles.pathDesc} numberOfLines={2}>
+                    {desc}
+                  </Text>
+                ) : null}
+                <Text style={styles.expandHint}>
+                  {isExpanded ? "▲ Hide courses" : "▼ View courses"}
+                </Text>
+              </Card>
+            </Pressable>
+
+            {isExpanded ? (
+              <View style={styles.coursesList}>
+                {coursesQuery.isPending ? (
+                  <Skeleton width="100%" height={70} />
+                ) : coursesQuery.isError ? (
+                  <Text style={styles.error}>Failed to load courses.</Text>
+                ) : (
+                  filterCourses(coursesQuery.data ?? []).map((course, ci) => {
+                    const done = course.completed_lessons ?? 0;
+                    const total = course.total_lessons ?? 0;
+                    const pct = total > 0 ? done / total : 0;
+                    const status =
+                      pct >= 1 ? "Completed" : pct > 0 ? "In progress" : "Start";
+                    const statusColor =
+                      pct >= 1
+                        ? colors.success
+                        : pct > 0
+                          ? colors.accent
+                          : colors.primary;
+
+                    return (
+                      <Pressable
+                        key={course.id ?? ci}
+                        style={styles.courseRow}
+                        onPress={() =>
+                          course.id != null && router.push(`/course/${course.id}`)
+                        }
+                      >
+                        <View style={styles.courseInfo}>
+                          <Text style={styles.courseTitle}>
+                            {course.title ?? course.name ?? `Course ${course.id}`}
+                          </Text>
+                          {total > 0 ? (
+                            <Text style={styles.courseMeta}>
+                              {done}/{total} lessons
+                            </Text>
+                          ) : null}
+                          {total > 0 ? (
+                            <ProgressBar
+                              value={pct}
+                              color={statusColor}
+                              height={4}
+                              style={{ marginTop: spacing.xs }}
+                            />
+                          ) : null}
+                        </View>
+                        <Badge label={status} color={statusColor} />
+                      </Pressable>
+                    );
+                  })
+                )}
+              </View>
+            ) : null}
+          </View>
+        );
+      }}
+    />
+  );
+}
+
+export default function LearnScreen() {
+  return (
+    <TabErrorBoundary>
+      <LearnInner />
+    </TabErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 8 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  heading: { fontSize: 20, fontWeight: "700", paddingHorizontal: 16, marginBottom: 8 },
-  subheading: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
-  row: {
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
+  container: { padding: spacing.xl, paddingBottom: 60, backgroundColor: colors.bg },
+  headerBlock: { marginBottom: spacing.md },
+  heading: {
+    fontSize: typography.xl,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: spacing.md,
   },
-  rowSelected: { backgroundColor: "#eef2ff" },
-  rowText: { fontSize: 16 },
-  hint: { fontSize: 12, color: "#666", marginTop: 4 },
-  courses: { flex: 1, borderTopWidth: 1, borderColor: "#eee", paddingTop: 8 },
-  error: { color: "#b91c1c" },
+  search: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    fontSize: typography.base,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.md,
+  },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  chipOn: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}12`,
+  },
+  chipText: { fontSize: typography.xs, fontWeight: "600", color: colors.textMuted },
+  chipTextOn: { color: colors.primary },
+  pathTitle: {
+    fontSize: typography.lg,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  pathDesc: {
+    fontSize: typography.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+    lineHeight: 20,
+  },
+  expandHint: {
+    fontSize: typography.xs,
+    color: colors.primary,
+    fontWeight: "600",
+    marginTop: spacing.md,
+  },
+  coursesList: {
+    marginTop: spacing.sm,
+    paddingLeft: spacing.md,
+    gap: spacing.sm,
+  },
+  courseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    ...shadows.sm,
+  },
+  courseInfo: { flex: 1, marginRight: spacing.md },
+  courseTitle: {
+    fontSize: typography.base,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  courseMeta: {
+    fontSize: typography.xs,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  error: { color: colors.error, fontSize: typography.sm },
 });

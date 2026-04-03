@@ -15,7 +15,7 @@ import { GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import ToolsAnalyticsPanel from "./ToolsAnalyticsPanel";
-import { BACKEND_URL } from "services/backendUrl";
+import { getMediaBaseUrl } from "services/backendUrl";
 import { recordToolEvent } from "services/toolsAnalytics";
 import {
   TOOL_STORAGE_KEYS,
@@ -24,8 +24,6 @@ import {
   toolsRegistry,
   type ToolDefinition,
 } from "./toolsRegistry";
-
-const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
 
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
@@ -73,7 +71,7 @@ const UnknownToolRedirect = () => {
 
 /** Tool card image: backend media path or group fallback. */
 const getToolCardImage = (tool: ToolDefinition): string => {
-  if (tool.cardImage) return `${MEDIA_BASE}/media/${tool.cardImage}`;
+  if (tool.cardImage) return `${getMediaBaseUrl()}/media/${tool.cardImage}`;
   const group = toolGroups.find((g) => g.id === tool.group);
   return (
     group?.image ??

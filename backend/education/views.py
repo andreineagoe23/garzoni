@@ -977,6 +977,20 @@ def _evaluate_numeric(exercise, user_answer):
     return False, " ".join(diagnostics)
 
 
+def _exercise_user_answers_equal(a, b) -> bool:
+    """Best-effort equality for debouncing duplicate rapid submits (double-clicks)."""
+    if a is None and b is None:
+        return True
+    if a is None or b is None:
+        return False
+    try:
+        return json.dumps(a, sort_keys=True, default=str) == json.dumps(
+            b, sort_keys=True, default=str
+        )
+    except (TypeError, ValueError):
+        return a == b
+
+
 def _evaluate_budget(exercise, user_answer):
     data = exercise.exercise_data or {}
     target = data.get("target")
@@ -1069,10 +1083,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             user=request.user, exercise=exercise
         )
         now = timezone.now()
+        # Only throttle duplicate payloads within a short window (double-submit spam).
+        # A new answer within 1.5s must still be accepted (e.g. user corrected a typo).
         if (
             progress.attempts
             and progress.last_attempt
             and (now - progress.last_attempt).total_seconds() < 1.5
+            and _exercise_user_answers_equal(progress.user_answer, user_answer)
         ):
             return Response(
                 {"error": "Please wait before submitting again"},

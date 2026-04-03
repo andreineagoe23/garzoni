@@ -4,15 +4,14 @@ import { GlassCard } from "components/ui";
 import { MonevoIcon } from "components/ui/monevoIcons";
 import { useLandingData } from "./landingData";
 import { useTranslation } from "react-i18next";
-import { BACKEND_URL } from "services/backendUrl";
-
-const DEMO_VIDEO_URL = `${BACKEND_URL.replace(/\/api\/?$/, "")}/media/welcome/monevo-demo.mp4`;
+import { getMediaBaseUrl } from "services/backendUrl";
 
 type FeatureSectionProps = {
   featureRef?: React.RefObject<HTMLElement>;
 };
 
 export default function FeatureSection({ featureRef }: FeatureSectionProps) {
+  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/monevo-demo.mp4`;
   const { features } = useLandingData();
   const { t } = useTranslation();
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -166,7 +165,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                 className="w-full overflow-hidden rounded-xl border-white/10 bg-[#0B0F14] p-0"
               >
                 <video
-                  src={DEMO_VIDEO_URL}
+                  src={demoVideoUrl}
                   controls
                   className="aspect-video w-full"
                   playsInline

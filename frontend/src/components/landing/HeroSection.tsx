@@ -5,14 +5,14 @@ import { ArrowRight, PlayCircle } from "lucide-react";
 import { GlassButton, Modal } from "components/ui";
 import ParticleStage from "./ParticleStage";
 import { useTranslation } from "react-i18next";
-import { BACKEND_URL } from "services/backendUrl";
+import { getMediaBaseUrl } from "services/backendUrl";
 
-const DEMO_VIDEO_URL = `${BACKEND_URL.replace(/\/api\/?$/, "")}/media/welcome/monevo-demo.mp4`;
 export default function HeroSection({
   scrollToFeatures,
 }: {
   scrollToFeatures: () => void;
 }) {
+  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/monevo-demo.mp4`;
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ export default function HeroSection({
     >
       {/* Preload demo video as soon as the page is open so the modal opens quickly */}
       <video
-        src={DEMO_VIDEO_URL}
+        src={demoVideoUrl}
         preload="auto"
         muted
         autoPlay
@@ -287,7 +287,7 @@ export default function HeroSection({
       >
         <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
           <video
-            src={DEMO_VIDEO_URL}
+            src={demoVideoUrl}
             controls
             className="w-full aspect-video"
             playsInline

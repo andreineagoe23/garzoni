@@ -64,3 +64,15 @@ export const refreshAccessToken = (refresh: string) =>
     { refresh },
     { skipAuthRedirect: true }
   );
+
+export const changePassword = (body: {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}) => apiClient.post<{ message?: string; error?: string }>("/change-password/", body);
+
+/** Deletes the authenticated user. Caller should clear local session after success. */
+export const deleteAccount = () =>
+  apiClient.delete<{ message?: string; error?: string }>("/delete-account/", {
+    skipAuthRedirect: true,
+  });

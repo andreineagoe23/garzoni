@@ -89,6 +89,8 @@ class UserProfile(models.Model):
     income_range = models.CharField(max_length=64, blank=True, default="")
     savings_rate_estimate = models.CharField(max_length=32, blank=True, default="")
     investing_experience = models.CharField(max_length=32, blank=True, default="")
+    # Expo / mobile push (lesson reminders, streak alerts); updated via POST /api/auth/push-token/
+    expo_push_token = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.user.username

@@ -1,5 +1,5 @@
 import React from "react";
-import { BACKEND_URL } from "services/backendUrl";
+import { getMediaBaseUrl } from "services/backendUrl";
 
 type MascotType = "owl" | "bull" | "bear";
 
@@ -8,25 +8,16 @@ type MascotMediaProps = {
   className?: string;
 };
 
-const MEDIA_BASE = BACKEND_URL.replace(/\/api\/?$/, "");
-
-const MASCOT_MEDIA: Record<MascotType, { image: string; alt: string }> = {
-  owl: {
-    image: `${MEDIA_BASE}/media/mascots/monevo-owl.png`,
-    alt: "Owl mascot",
-  },
-  bull: {
-    image: `${MEDIA_BASE}/media/mascots/monevo-bull.png`,
-    alt: "Bull mascot",
-  },
-  bear: {
-    image: `${MEDIA_BASE}/media/mascots/monevo-bear.png`,
-    alt: "Bear mascot",
-  },
+const MASCOT_FILES: Record<MascotType, { file: string; alt: string }> = {
+  owl: { file: "monevo-owl.png", alt: "Owl mascot" },
+  bull: { file: "monevo-bull.png", alt: "Bull mascot" },
+  bear: { file: "monevo-bear.png", alt: "Bear mascot" },
 };
 
 const MascotMedia = ({ mascot, className }: MascotMediaProps) => {
-  const { image, alt } = MASCOT_MEDIA[mascot];
+  const base = getMediaBaseUrl();
+  const { file, alt } = MASCOT_FILES[mascot];
+  const image = `${base}/media/mascots/${file}`;
   return (
     <img
       src={image}

@@ -8,7 +8,7 @@ import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
-import { BACKEND_URL } from "services/backendUrl";
+import { getBackendUrl } from "services/backendUrl";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 
 function Login() {
@@ -286,7 +286,7 @@ function Login() {
                   </div>
                 </div>
                 <a
-                  href={`${BACKEND_URL}/auth/google/?state=all-topics`}
+                  href={`${getBackendUrl()}/auth/google/?state=all-topics`}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-[color:var(--text-color)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
                 >
                   <svg

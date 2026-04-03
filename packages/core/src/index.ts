@@ -24,6 +24,47 @@ export { initMonevoI18n, i18n, normalizeLanguage } from "./i18n";
 
 export { useProgressStore } from "./stores/progressStore";
 
+export {
+  configureStorage,
+  getStorageAdapter,
+  storageGet,
+  storageSet,
+  storageRemove,
+} from "./stores/storageAdapter";
+export type { StorageAdapter } from "./stores/storageAdapter";
+
+export { useHeartsStore, initHeartsTabSync } from "./stores/heartsStore";
+
+export {
+  BACKEND_URL,
+  configureBackendUrl,
+  getBackendUrl,
+  getMediaBaseUrl,
+  GOOGLE_OAUTH_CLIENT_ID,
+} from "./services/backendUrl";
+
+export {
+  queryClient,
+  queryKeys,
+  staleTimes,
+  defaultRetry,
+  defaultRetryDelay,
+} from "./lib/reactQuery";
+export { createMutationOptions } from "./lib/createMutation";
+
+export { useHearts } from "./hooks/useHearts";
+export { useProgress } from "./hooks/useProgress";
+export { useProgressSummaryQuery } from "./hooks/useProgressSummaryQuery";
+export { useDashboardSummary } from "./hooks/useDashboardSummary";
+export { useRetry } from "./hooks/useRetry";
+export { useMascotMessage } from "./hooks/useMascotMessage";
+export type {
+  MascotMood,
+  MascotType,
+  UseMascotMessageOptions,
+} from "./hooks/useMascotMessage";
+export { useOnlineSync } from "./hooks/useOnlineSync";
+
 export type { UserProfile, ProgressSummary } from "./types/api";
 
 export {

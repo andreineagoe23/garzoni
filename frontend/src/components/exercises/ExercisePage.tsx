@@ -178,6 +178,8 @@ const ExercisePage = () => {
   const cameFromDashboardSkillRef = useRef(false);
   const exercisesPageViewSentRef = useRef<string | null>(null);
   const exerciseStartedLoggedRef = useRef(false);
+  const submitInFlightRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dashboardEntrySurface = useMemo(() => {
     const hasSkillQuery = Boolean(
@@ -929,6 +931,9 @@ const ExercisePage = () => {
   };
 
   const handleSubmit = async () => {
+    if (submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
+    setIsSubmitting(true);
     try {
       if (!currentExercise) return;
 
@@ -1096,8 +1101,19 @@ const ExercisePage = () => {
         }
         setShowStats(true);
       }
-    } catch (err) {
-      setError(t("exercises.errors.submissionFailed"));
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number; data?: { error?: string } } })
+        ?.response?.status;
+      const detail = (err as { response?: { data?: { error?: string } } })?.response?.data
+        ?.error;
+      if (status === 429 && typeof detail === "string" && detail.trim()) {
+        setError(detail);
+      } else {
+        setError(t("exercises.errors.submissionFailed"));
+      }
+    } finally {
+      submitInFlightRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -2131,10 +2147,13 @@ const ExercisePage = () => {
                   <div className="mt-4 border-t border-[color:var(--border-color,#d1d5db)] pt-4">
                     <button
                       type="button"
-                      onClick={handleSubmit}
-                      className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      onClick={() => void handleSubmit()}
+                      disabled={isSubmitting}
+                      className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:pointer-events-none disabled:opacity-60"
                     >
-                      {t("exercises.actions.submit")}
+                      {isSubmitting
+                        ? t("exercises.actions.submitting")
+                        : t("exercises.actions.submit")}
                     </button>
                   </div>
                 )}

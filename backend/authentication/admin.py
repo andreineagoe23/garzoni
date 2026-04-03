@@ -83,6 +83,7 @@ class UserProfileAdmin(admin.ModelAdmin):
         "next_heart_countdown",
         "badges_earned",
         "missions_completed",
+        "expo_push_token",
     )
     actions = ["refill_hearts", "grant_bonus_heart"]
 

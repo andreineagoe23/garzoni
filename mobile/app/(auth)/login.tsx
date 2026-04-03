@@ -1,28 +1,37 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
+  TextInput as RNTextInput,
   View,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { loginSecure } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { GoogleSignInButton } from "../../src/components/GoogleSignInButton";
+import { Button, FormInput } from "../../src/components/ui";
+import { colors, spacing, typography, radius } from "../../src/theme/tokens";
 
 export default function LoginScreen() {
   const { applyTokens } = useAuthSession();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const passwordRef = useRef<RNTextInput>(null);
 
   const onSubmit = async () => {
-    if (!username.trim() || !password) {
-      Alert.alert("Missing fields", "Enter username and password.");
+    setError("");
+    if (!username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+    if (!password) {
+      setError("Password is required.");
       return;
     }
     setLoading(true);
@@ -37,15 +46,15 @@ export default function LoginScreen() {
         await applyTokens(data.access, data.refresh);
         router.replace("/(tabs)");
       } else {
-        Alert.alert("Login failed", "No access token returned.");
+        setError("No access token returned.");
       }
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string } } };
-      const msg =
+      setError(
         typeof err.response?.data?.detail === "string"
           ? err.response.data.detail
-          : "Could not sign in. Check API URL and credentials.";
-      Alert.alert("Login failed", msg);
+          : "Could not sign in. Check your credentials."
+      );
     } finally {
       setLoading(false);
     }
@@ -53,71 +62,113 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Text style={styles.title}>Sign in</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        autoCapitalize="none"
-        autoCorrect={false}
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Pressable
-        style={[styles.primary, loading && styles.disabled]}
-        onPress={() => void onSubmit()}
-        disabled={loading}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.primaryText}>{loading ? "…" : "Sign in"}</Text>
-      </Pressable>
-      <GoogleSignInButton
-        onSuccess={async (access, refresh) => {
-          await applyTokens(access, refresh);
-          router.replace("/(tabs)");
-        }}
-        onError={(m) => Alert.alert("Google sign-in", m)}
-      />
-      <Link href="/register" style={styles.link}>
-        <Text style={styles.linkText}>Create an account</Text>
-      </Link>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Sign in to continue learning</Text>
+
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <FormInput
+          label="Username"
+          placeholder="Enter your username"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus
+          returnKeyType="next"
+          value={username}
+          onChangeText={setUsername}
+          onSubmitEditing={() => passwordRef.current?.focus()}
+        />
+
+        <FormInput
+          ref={passwordRef}
+          label="Password"
+          placeholder="Enter your password"
+          secureTextEntry
+          returnKeyType="done"
+          value={password}
+          onChangeText={setPassword}
+          onSubmitEditing={() => void onSubmit()}
+        />
+
+        <Button loading={loading} onPress={() => void onSubmit()}>
+          Sign in
+        </Button>
+
+        <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
+          <Text style={styles.forgotText}>Forgot password?</Text>
+        </Link>
+
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerLabel}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <GoogleSignInButton
+          onSuccess={async (access, refresh) => {
+            await applyTokens(access, refresh);
+            router.replace("/(tabs)");
+          }}
+          onError={(m) => setError(m)}
+        />
+
+        <Link href="/register" style={styles.bottomLink}>
+          <Text style={styles.bottomLinkText}>
+            Don't have an account?{" "}
+            <Text style={styles.bottomLinkBold}>Sign up</Text>
+          </Text>
+        </Link>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 48,
-    backgroundColor: "#fff",
+  flex: { flex: 1, backgroundColor: colors.bg },
+  container: { padding: spacing.xxl, paddingTop: spacing.xxxxl },
+  title: {
+    fontSize: typography.xxl,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
-  title: { fontSize: 28, fontWeight: "700", marginBottom: 24 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    fontSize: 16,
+  subtitle: {
+    fontSize: typography.base,
+    color: colors.textMuted,
+    marginBottom: spacing.xxl,
   },
-  primary: {
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    borderRadius: 10,
+  errorBanner: {
+    backgroundColor: colors.errorBg,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  errorText: { color: colors.error, fontSize: typography.sm },
+  forgotLink: { alignSelf: "center", marginTop: spacing.lg },
+  forgotText: { color: colors.primary, fontSize: typography.sm },
+  divider: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    marginVertical: spacing.xxl,
   },
-  primaryText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  disabled: { opacity: 0.5 },
-  link: { marginTop: 24, alignSelf: "center" },
-  linkText: { color: "#2563eb", fontSize: 16 },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  dividerLabel: {
+    marginHorizontal: spacing.md,
+    fontSize: typography.sm,
+    color: colors.textMuted,
+  },
+  bottomLink: { alignSelf: "center", marginTop: spacing.xxl },
+  bottomLinkText: { fontSize: typography.base, color: colors.textMuted },
+  bottomLinkBold: { color: colors.primary, fontWeight: "600" },
 });

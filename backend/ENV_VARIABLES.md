@@ -35,6 +35,10 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 
 **Production (e.g. Railway) checklist:** Set `CORS_ALLOWED_ORIGINS_CSV` to your real web app origin(s), such as `https://www.monevo.tech` (no trailing slash). Django raises at startup if this is empty when `DEBUG=False`. Native mobile apps do not send an `Origin` header for typical API calls, so they are not affected by CORS.
 
+**Expo / React Native dev:** If you use **Expo Web** or fetches that send an `Origin` (e.g. `http://localhost:8081`), add that origin to `CORS_ALLOWED_ORIGINS_CSV` alongside your production web URL. `DEBUG=True` already extends origins with common Metro ports on the machine’s LAN IP (see `settings.py`). Deep links like `exp://…` are not browser origins and do not need to be listed for CORS.
+
+**Push tokens (mobile prep):** Authenticated clients can `POST /api/auth/push-token/` with JSON `{"expo_push_token":"…"}` (or `push_token`) to store `UserProfile.expo_push_token` for future notification delivery.
+
 ### Email (SMTP)
 
 | Variable | Default | Description |
