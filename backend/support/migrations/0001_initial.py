@@ -14,100 +14,108 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="ContactMessage",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
+        # Tables are created by core.0005_contactmessage_faq and core.0006_faqfeedback.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name="ContactMessage",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        ("email", models.EmailField(max_length=254)),
+                        ("topic", models.CharField(max_length=100)),
+                        ("message", models.TextField()),
+                        ("created_at", models.DateTimeField(auto_now_add=True)),
+                    ],
+                    options={
+                        "db_table": "core_contactmessage",
+                    },
+                ),
+                migrations.CreateModel(
+                    name="FAQ",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        ("category", models.CharField(max_length=100)),
+                        ("question", models.TextField()),
+                        ("answer", models.TextField()),
+                        ("is_active", models.BooleanField(default=True)),
+                        ("helpful_count", models.PositiveIntegerField(default=0)),
+                        ("not_helpful_count", models.PositiveIntegerField(default=0)),
+                        ("created_at", models.DateTimeField(auto_now_add=True)),
+                    ],
+                    options={
+                        "db_table": "core_faq",
+                    },
+                ),
+                migrations.CreateModel(
+                    name="FAQFeedback",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        (
+                            "vote",
+                            models.CharField(
+                                choices=[
+                                    ("helpful", "Helpful"),
+                                    ("not_helpful", "Not Helpful"),
+                                ],
+                                max_length=20,
+                            ),
+                        ),
+                        ("created_at", models.DateTimeField(auto_now_add=True)),
+                        (
+                            "faq",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE, to="support.faq"
+                            ),
+                        ),
+                        (
+                            "user",
+                            models.ForeignKey(
+                                blank=True,
+                                null=True,
+                                on_delete=django.db.models.deletion.CASCADE,
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                    ],
+                    options={
+                        "db_table": "core_faqfeedback",
+                    },
+                ),
+                migrations.AddIndex(
+                    model_name="faqfeedback",
+                    index=models.Index(
+                        fields=["user", "faq"], name="core_faqfee_user_id_4c6b63_idx"
                     ),
                 ),
-                ("email", models.EmailField(max_length=254)),
-                ("topic", models.CharField(max_length=100)),
-                ("message", models.TextField()),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
+                migrations.AlterUniqueTogether(
+                    name="faqfeedback",
+                    unique_together={("user", "faq")},
+                ),
             ],
-            options={
-                "db_table": "core_contactmessage",
-            },
-        ),
-        migrations.CreateModel(
-            name="FAQ",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("category", models.CharField(max_length=100)),
-                ("question", models.TextField()),
-                ("answer", models.TextField()),
-                ("is_active", models.BooleanField(default=True)),
-                ("helpful_count", models.PositiveIntegerField(default=0)),
-                ("not_helpful_count", models.PositiveIntegerField(default=0)),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-            ],
-            options={
-                "db_table": "core_faq",
-            },
-        ),
-        migrations.CreateModel(
-            name="FAQFeedback",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "vote",
-                    models.CharField(
-                        choices=[
-                            ("helpful", "Helpful"),
-                            ("not_helpful", "Not Helpful"),
-                        ],
-                        max_length=20,
-                    ),
-                ),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                (
-                    "faq",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="support.faq"
-                    ),
-                ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-            ],
-            options={
-                "db_table": "core_faqfeedback",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="faqfeedback",
-            index=models.Index(fields=["user", "faq"], name="core_faqfee_user_id_4c6b63_idx"),
-        ),
-        migrations.AlterUniqueTogether(
-            name="faqfeedback",
-            unique_together={("user", "faq")},
         ),
     ]
