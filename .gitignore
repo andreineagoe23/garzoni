@@ -41,6 +41,8 @@ MANIFEST
 # The generic `lib/` ignore above is for Python packaging artifacts; we still want our JS src `lib` folder tracked.
 !frontend/src/lib/
 !frontend/src/lib/**
+!packages/core/src/lib/
+!packages/core/src/lib/**
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
