@@ -19,6 +19,12 @@ export { default as apiClient } from "./services/httpClient";
 
 export * from "./services/authService";
 export * from "./services/userService";
+export {
+  fetchEntitlements,
+  consumeEntitlement,
+  FEATURE_COPY,
+} from "./services/entitlementsService";
+export { requestAiTutorResponse } from "./services/aiTutor";
 
 export { initMonevoI18n, i18n, normalizeLanguage } from "./i18n";
 
@@ -44,6 +50,12 @@ export {
 } from "./services/backendUrl";
 
 export {
+  Images,
+  cloudinaryImageUrl,
+  configureCloudinaryCloudName,
+} from "./images";
+
+export {
   queryClient,
   queryKeys,
   staleTimes,
@@ -65,7 +77,13 @@ export type {
 } from "./hooks/useMascotMessage";
 export { useOnlineSync } from "./hooks/useOnlineSync";
 
-export type { UserProfile, ProgressSummary } from "./types/api";
+export type {
+  UserProfile,
+  ProgressSummary,
+  Mission,
+  MissionBuckets,
+  Entitlements,
+} from "./types/api";
 
 export {
   DEFAULT_LANGUAGE,

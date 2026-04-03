@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
-import { appleVerifyIdentity } from "@monevo/core";
+import { appleVerifyIdentity, getBackendUrl } from "@monevo/core";
 import type { SocialAuthSuccessMeta } from "./GoogleSignInButton";
 
 type Props = {
@@ -55,7 +55,14 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
       if (err.code === "ERR_REQUEST_CANCELED" || err.code === "ERR_CANCELED") {
         return;
       }
-      onError(err.message ?? "Apple sign-in failed.");
+      const msg = err.message ?? "";
+      if (/network|fetch|failed to connect|could not connect/i.test(msg)) {
+        onError(
+          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL and restart Expo.`
+        );
+        return;
+      }
+      onError(msg || "Apple sign-in failed.");
     } finally {
       setBusy(false);
     }

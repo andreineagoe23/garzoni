@@ -104,7 +104,7 @@ python manage.py runserver
 
 - Set DATABASE_URL (PostgreSQL) for local and production. CI uses a Postgres service container for backend tests.
 - Celery/Redis are optional in local dev; enable when running scheduled tasks.
-- Environment variables: see backend/.env.example and backend/ENV_VARIABLES.md.
+- Environment variables: see [docs/environment.md](docs/environment.md) (Railway, Vercel, local).
 
 #### Backend tests
 
