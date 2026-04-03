@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
-import loginBg from "assets/login-bg.jpg?format=webp&quality=75";
+import { Images } from "@monevo/core";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
@@ -162,7 +162,9 @@ function Login() {
       <Header />
       <div
         className="relative flex min-h-screen flex-col overflow-hidden bg-cover bg-center bg-fixed"
-        style={{ backgroundImage: `url(${loginBg})` }}
+        style={{
+          backgroundImage: Images.loginBg ? `url(${Images.loginBg})` : undefined,
+        }}
       >
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
 

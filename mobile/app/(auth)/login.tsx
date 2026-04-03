@@ -12,6 +12,8 @@ import { Link, router } from "expo-router";
 import { loginSecure, obtainTokenPair } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
+import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
+import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
 import { Button, FormInput } from "../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../src/theme/tokens";
@@ -96,11 +98,8 @@ export default function LoginScreen() {
         }
       }
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { detail?: string } } };
       setError(
-        typeof err.response?.data?.detail === "string"
-          ? err.response.data.detail
-          : "Could not sign in. Check your credentials."
+        formatAuthRequestError(e, "Could not sign in. Check your credentials.")
       );
     } finally {
       setLoading(false);
@@ -118,6 +117,8 @@ export default function LoginScreen() {
       >
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>Sign in to continue learning</Text>
+
+        <AuthBackendBanner />
 
         {error ? (
           <View style={styles.errorBanner}>

@@ -12,6 +12,8 @@ import { Link, router } from "expo-router";
 import { obtainTokenPair, registerSecure } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
+import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
+import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
 import { Button, FormInput } from "../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../src/theme/tokens";
@@ -132,17 +134,21 @@ export default function RegisterScreen() {
       const err = e as {
         response?: { data?: { detail?: string; [k: string]: unknown } };
       };
-      const detail = err.response?.data?.detail;
-      if (typeof detail === "string") {
-        setError(detail);
-      } else if (err.response?.data) {
-        const msgs = Object.entries(err.response.data)
-          .filter(([k]) => k !== "detail")
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-          .join("\n");
-        setError(msgs || "Could not register.");
+      if (!err.response) {
+        setError(formatAuthRequestError(e, "Could not register."));
       } else {
-        setError("Could not register.");
+        const detail = err.response?.data?.detail;
+        if (typeof detail === "string") {
+          setError(detail);
+        } else if (err.response?.data) {
+          const msgs = Object.entries(err.response.data)
+            .filter(([k]) => k !== "detail")
+            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+            .join("\n");
+          setError(msgs || "Could not register.");
+        } else {
+          setError("Could not register.");
+        }
       }
     } finally {
       setLoading(false);
@@ -160,6 +166,8 @@ export default function RegisterScreen() {
       >
         <Text style={styles.title}>Create account</Text>
         <Text style={styles.subtitle}>Start your financial learning journey</Text>
+
+        <AuthBackendBanner />
 
         {error ? (
           <View style={styles.errorBanner}>

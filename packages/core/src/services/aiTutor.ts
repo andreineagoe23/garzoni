@@ -1,4 +1,4 @@
-import apiClient from "services/httpClient";
+import apiClient from "./httpClient";
 
 type AiTutorMessage = {
   role: "user" | "assistant";

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -9,27 +9,33 @@ import {
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { href } from "../../src/navigation/href";
 import {
+  fetchMissions,
   fetchProfile,
   fetchProgressSummary,
   fetchRecentActivity,
+  fetchReviewQueue,
   queryKeys,
   staleTimes,
+  useDashboardSummary,
   useHearts,
-  useMascotMessage,
 } from "@monevo/core";
 import {
   Button,
-  Card,
-  CircularProgressRing,
   ErrorState,
-  HeartBar,
-  ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
-import MascotImage from "../../src/components/common/MascotImage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
-import { colors, spacing, typography, radius } from "../../src/theme/tokens";
+import MascotWithMessage from "../../src/components/common/MascotWithMessage";
+import StatusSummaryRow from "../../src/components/dashboard/StatusSummaryRow";
+import DailyGoalCard from "../../src/components/dashboard/DailyGoalCard";
+import WeakSkillsCard from "../../src/components/dashboard/WeakSkillsCard";
+import PersonalizedPathCard from "../../src/components/dashboard/PersonalizedPathCard";
+import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
+import AllTopicsGrid from "../../src/components/dashboard/AllTopicsGrid";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../../src/theme/tokens";
 
 const DAILY_LESSON_GOAL = 3;
 
@@ -38,6 +44,7 @@ function todayCalendarKey(): string {
 }
 
 function DashboardInner() {
+  const c = useThemeColors();
   const progressQuery = useQuery({
     queryKey: queryKeys.progressSummary(),
     queryFn: () => fetchProgressSummary().then((r) => r.data),
@@ -56,30 +63,55 @@ function DashboardInner() {
     staleTime: staleTimes.progressSummary,
   });
 
+  const reviewQuery = useQuery({
+    queryKey: queryKeys.reviewQueue(),
+    queryFn: () => fetchReviewQueue().then((r) => r.data),
+    staleTime: staleTimes.progressSummary,
+  });
+
+  const missionsQuery = useQuery({
+    queryKey: queryKeys.missions(),
+    queryFn: () => fetchMissions().then((r) => r.data),
+    staleTime: 30_000,
+  });
+
   const { hearts, maxHearts } = useHearts({ enabled: true });
-  const { mascot, message } = useMascotMessage("encourage", { rotateMessages: true, rotationKey: 1 });
+
+  const summary = useDashboardSummary({
+    progressResponse: progressQuery.data
+      ? { data: progressQuery.data }
+      : undefined,
+    reviewQueueData: reviewQuery.data,
+    missionsData: missionsQuery.data,
+    profile: profileQuery.data,
+  });
 
   const refreshing =
-    progressQuery.isFetching || profileQuery.isFetching || activityQuery.isFetching;
+    progressQuery.isFetching ||
+    profileQuery.isFetching ||
+    activityQuery.isFetching ||
+    missionsQuery.isFetching;
+
   const onRefresh = useCallback(() => {
     void progressQuery.refetch();
     void profileQuery.refetch();
     void activityQuery.refetch();
-  }, [progressQuery, profileQuery, activityQuery]);
+    void missionsQuery.refetch();
+    void reviewQuery.refetch();
+  }, [progressQuery, profileQuery, activityQuery, missionsQuery, reviewQuery]);
 
-  const dailyDone = useMemo(() => {
+  const dailyDone = (() => {
     const cal = profileQuery.data?.activity_calendar as Record<string, number> | undefined;
     if (!cal) return 0;
     return Number(cal[todayCalendarKey()] ?? 0);
-  }, [profileQuery.data?.activity_calendar]);
+  })();
 
   if (progressQuery.isPending) {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
         <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
-        <Skeleton width="100%" height={80} />
       </ScrollView>
     );
   }
@@ -93,116 +125,99 @@ function DashboardInner() {
     );
   }
 
-  const data = progressQuery.data;
   const profile = profileQuery.data;
   const recent = activityQuery.data?.recent_activities ?? [];
-
-  const rawOverall = Number(data?.overall_progress ?? 0);
-  const overallPct = rawOverall <= 1 ? rawOverall : rawOverall / 100;
-  const overallLabel = `${Math.round(overallPct * 100)}%`;
-  const lessonsDone = data?.completed_lessons ?? 0;
-  const lessonsTotal = data?.total_lessons ?? 0;
-  const streak = profile?.streak ?? 0;
-  const resume = data?.resume;
-  const startHere = data?.start_here;
+  const ud = profile?.user_data as { earned_money?: number } | undefined;
+  const coins = Number(profile?.earned_money ?? ud?.earned_money ?? 0) || 0;
+  const points = profile?.points ?? 0;
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
       }
     >
-      <Text style={styles.greeting}>
-        {profile?.first_name
-          ? `Hey, ${profile.first_name} 👋`
-          : "Welcome back 👋"}
+      <Text style={[styles.greeting, { color: c.text }]}>
+        {profile?.first_name ? `Hey, ${profile.first_name} 👋` : "Welcome back 👋"}
       </Text>
 
-      {resume ? (
-        <Card style={styles.resumeCard}>
-          <Text style={styles.resumeLabel}>Continue learning</Text>
-          <Text style={styles.resumeTitle}>{resume.course_title}</Text>
-          <Button
-            size="sm"
-            onPress={() => router.push(`/course/${resume.course_id}`)}
-          >
-            Resume course
-          </Button>
-        </Card>
-      ) : startHere?.course_id ? (
-        <Card style={styles.resumeCard}>
-          <Text style={styles.resumeLabel}>Start learning</Text>
-          <Text style={styles.resumeTitle}>Pick up your first course</Text>
-          <Button
-            size="sm"
-            onPress={() => router.push(`/course/${startHere.course_id}`)}
-          >
-            Start
-          </Button>
-        </Card>
-      ) : null}
-
-      <Card style={styles.dailyCard}>
-        <Text style={styles.dailyTitle}>Today's goal</Text>
-        <Text style={styles.dailyMeta}>
-          {dailyDone} / {DAILY_LESSON_GOAL} lessons completed today
-        </Text>
-        <ProgressBar
-          value={Math.min(1, dailyDone / DAILY_LESSON_GOAL)}
-          color={colors.accent}
-          style={{ marginTop: spacing.sm }}
-        />
-      </Card>
-
-      <View style={styles.grid}>
-        <Card style={[styles.statCard, styles.statWide]}>
-          <View style={styles.ringRow}>
-            <CircularProgressRing value={overallPct} label={overallLabel} />
-            <View style={styles.ringMeta}>
-              <Text style={styles.statLabel}>Overall progress</Text>
-              <Text style={styles.ringHint}>Across all paths</Text>
-            </View>
-          </View>
-        </Card>
-
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {lessonsDone}/{lessonsTotal}
-          </Text>
-          <ProgressBar
-            value={lessonsTotal > 0 ? lessonsDone / lessonsTotal : 0}
-            color={colors.accent}
-            style={{ marginTop: spacing.sm }}
-          />
-          <Text style={styles.statLabel}>Lessons done</Text>
-        </Card>
-
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>{streak} 🔥</Text>
-          <Text style={styles.statLabel}>Day streak</Text>
-        </Card>
-
-        <Card style={styles.statCard}>
-          <HeartBar hearts={hearts} maxHearts={maxHearts} />
-          <Text style={[styles.statLabel, { marginTop: spacing.sm }]}>Hearts</Text>
-        </Card>
+      <View style={{ marginBottom: spacing.lg }}>
+        <QuestionnaireReminderBanner />
       </View>
 
-      <Text style={styles.sectionHeading}>Recent activity</Text>
+      <View style={{ marginBottom: spacing.lg }}>
+        <StatusSummaryRow
+          streak={profile?.streak ?? 0}
+          points={points}
+          hearts={hearts}
+          maxHearts={maxHearts}
+          coins={coins}
+        />
+      </View>
+
+      <View style={{ marginBottom: spacing.lg }}>
+        <PersonalizedPathCard resume={summary.resume} startHere={summary.startHere} />
+      </View>
+
+      <View style={{ marginBottom: spacing.lg }}>
+        <DailyGoalCard
+          progressPct={summary.dailyGoalProgress}
+          currentXp={summary.dailyGoalCurrentXP}
+          targetXp={summary.dailyGoalTargetXP}
+        />
+      </View>
+
+      <View style={styles.lessonGoal}>
+        <Text style={[styles.cardTitle, { color: c.text }]}>Today&apos;s lessons</Text>
+        <Text style={[styles.cardMeta, { color: c.textMuted }]}>
+          {dailyDone} / {DAILY_LESSON_GOAL} lessons completed today
+        </Text>
+      </View>
+
+      <View style={{ marginBottom: spacing.lg }}>
+        <WeakSkillsCard />
+      </View>
+
+      <View style={styles.quickLinks}>
+        <Text style={[styles.sectionHeading, { color: c.text }]}>Quick links</Text>
+        <View style={styles.linkRow}>
+          <Button size="sm" variant="secondary" onPress={() => router.push(href("/leaderboard"))}>
+            Leaderboard
+          </Button>
+          <Button size="sm" variant="secondary" onPress={() => router.push(href("/rewards"))}>
+            Rewards
+          </Button>
+        </View>
+        <View style={styles.linkRow}>
+          <Button size="sm" variant="secondary" onPress={() => router.push(href("/tools"))}>
+            Tools
+          </Button>
+          <Button size="sm" variant="secondary" onPress={() => router.push(href("/missions"))}>
+            Missions
+          </Button>
+        </View>
+      </View>
+
+      <View style={{ marginBottom: spacing.xxl }}>
+        <AllTopicsGrid />
+      </View>
+
+      <Text style={[styles.sectionHeading, { color: c.text }]}>Recent activity</Text>
       {activityQuery.isPending ? (
         <Skeleton width="100%" height={48} style={{ marginBottom: spacing.sm }} />
       ) : recent.length === 0 ? (
-        <Text style={styles.emptyActivity}>Complete a lesson to see activity here.</Text>
+        <Text style={[styles.emptyActivity, { color: c.textMuted }]}>
+          Complete a lesson to see activity here.
+        </Text>
       ) : (
         recent.map((item, i) => (
           <Pressable
             key={`${item.type}-${i}-${item.timestamp}`}
-            style={styles.activityRow}
+            style={[
+              styles.activityRow,
+              { backgroundColor: c.surface, borderColor: c.border },
+            ]}
             onPress={() => {
               if (item.type === "lesson" && item.lesson_id != null) {
                 router.push(`/lesson/${item.lesson_id}`);
@@ -211,31 +226,21 @@ function DashboardInner() {
               }
             }}
           >
-            <Text style={styles.activityTitle} numberOfLines={1}>
+            <Text style={[styles.activityTitle, { color: c.text }]} numberOfLines={1}>
               {item.title ?? item.name ?? item.type}
             </Text>
             {item.course ? (
-              <Text style={styles.activitySub} numberOfLines={1}>
+              <Text style={[styles.activitySub, { color: c.textMuted }]} numberOfLines={1}>
                 {item.course}
-              </Text>
-            ) : null}
-            {item.timestamp ? (
-              <Text style={styles.activityTime}>
-                {new Date(item.timestamp).toLocaleString()}
               </Text>
             ) : null}
           </Pressable>
         ))
       )}
 
-      <Card style={styles.mascotCard}>
-        <View style={styles.mascotRow}>
-          <MascotImage mascot={mascot} size={64} />
-          <View style={styles.bubble}>
-            <Text style={styles.mascotText}>{message}</Text>
-          </View>
-        </View>
-      </Card>
+      <View style={{ marginTop: spacing.xl }}>
+        <MascotWithMessage mood="encourage" rotationKey={1} />
+      </View>
 
       <Button
         variant="secondary"
@@ -260,128 +265,38 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.xl,
     paddingBottom: 60,
-    backgroundColor: colors.bg,
   },
   greeting: {
     fontSize: typography.xl,
     fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.xl,
-  },
-  resumeCard: {
-    backgroundColor: colors.primary,
     marginBottom: spacing.lg,
-    borderColor: colors.primaryDark,
   },
-  resumeLabel: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    color: "rgba(255,255,255,0.7)",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: spacing.xs,
-  },
-  resumeTitle: {
-    fontSize: typography.lg,
-    fontWeight: "700",
-    color: colors.white,
-    marginBottom: spacing.md,
-  },
-  dailyCard: {
-    marginBottom: spacing.lg,
-    backgroundColor: colors.surfaceOffset,
-  },
-  dailyTitle: {
-    fontSize: typography.sm,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  dailyMeta: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
-  },
-  statCard: {
-    width: "48%",
-    flexGrow: 1,
-  },
-  statWide: {
-    width: "100%",
-  },
-  ringRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
-  },
-  ringMeta: { flex: 1 },
-  ringHint: { fontSize: typography.xs, color: colors.textMuted, marginTop: 4 },
-  statValue: {
-    fontSize: typography.xl,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  statLabel: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
+  lessonGoal: { marginBottom: spacing.md },
+  cardTitle: { fontSize: typography.sm, fontWeight: "700" },
+  cardMeta: { fontSize: typography.xs, marginTop: 4 },
   sectionHeading: {
     fontSize: typography.md,
     fontWeight: "700",
-    color: colors.text,
-    marginTop: spacing.xxl,
     marginBottom: spacing.md,
   },
+  quickLinks: { marginBottom: spacing.lg },
+  linkRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm },
   emptyActivity: {
     fontSize: typography.sm,
-    color: colors.textMuted,
     marginBottom: spacing.lg,
   },
   activityRow: {
-    backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
   },
   activityTitle: {
     fontSize: typography.base,
     fontWeight: "600",
-    color: colors.text,
   },
   activitySub: {
     fontSize: typography.xs,
-    color: colors.textMuted,
     marginTop: 2,
-  },
-  activityTime: {
-    fontSize: typography.xs,
-    color: colors.textFaint,
-    marginTop: spacing.xs,
-  },
-  mascotCard: {
-    marginTop: spacing.xl,
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-  },
-  mascotRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  bubble: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
-  mascotText: {
-    fontSize: typography.sm,
-    color: colors.text,
-    lineHeight: 20,
   },
 });

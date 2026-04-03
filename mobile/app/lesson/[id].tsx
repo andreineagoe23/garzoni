@@ -25,6 +25,7 @@ import {
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
+import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import TextSection from "../../src/components/lesson/TextSection";
 import VideoSection from "../../src/components/lesson/VideoSection";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
@@ -243,6 +244,9 @@ export default function LessonScreen() {
         ) : flowItems.length === 0 && !lessonsQuery.isPending ? (
           <Text style={styles.noContent}>No lesson content yet.</Text>
         ) : null}
+        <View style={{ marginTop: spacing.xl }}>
+          <MascotWithMessage mood="encourage" rotationKey={lessonId} />
+        </View>
       </ScrollView>
 
       <View style={styles.bottomBar}>

@@ -24,11 +24,19 @@ export const queryKeys = {
   reviewQueue: () => ["reviewQueue"] as const,
   masterySummary: () => ["masterySummary"] as const,
   missions: () => ["missions"] as const,
+  leaderboardGlobal: (timeFilter: string) =>
+    ["leaderboardGlobal", timeFilter] as const,
+  exerciseCategories: () => ["exerciseCategories"] as const,
+  exerciseDetail: (id: string | number) => ["exercise", id] as const,
+  rewardsShop: () => ["rewardsShop"] as const,
+  rewardsDonate: () => ["rewardsDonate"] as const,
+  questionnaireProgress: () => ["questionnaire-progress"] as const,
 
   // Other
   courses: (pathId: string | number) => ["courses", pathId] as const,
   pricingFunnelMetrics: () => ["pricingFunnelMetrics"] as const,
 
+  learningPaths: () => ["learningPaths"] as const,
   recentActivity: () => ["recentActivity"] as const,
   userSettings: () => ["userSettings"] as const,
   courseQuiz: (courseId: string | number) => ["courseQuiz", courseId] as const,

@@ -19,6 +19,21 @@ const ALLOWED_EXT = new Set([
   ".svg",
 ]);
 
+/** Basename → public_id for shared `@monevo/core` `Images` (see packages/core/src/images.ts). */
+const MARKETING_PUBLIC_IDS = {
+  "login-bg.jpg": "monevo/login-bg",
+  "register-bg.jpg": "monevo/register-bg",
+  "basicfinance.png": "monevo/basicfinance",
+  "crypto.png": "monevo/crypto",
+  "forex.png": "monevo/forex",
+  "mindset.png": "monevo/mindset",
+  "personalfinance.png": "monevo/personalfinance",
+  "realestate.png": "monevo/realestate",
+  "mobile-1.png": "monevo/mobile-1",
+  "mobile-2.png": "monevo/mobile-2",
+  "mobile-3.png": "monevo/mobile-3",
+};
+
 function walkFiles(dir, out = []) {
   if (!fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -79,12 +94,23 @@ async function main() {
   const results = [];
   for (const file of files) {
     const rel = path.relative(ROOT, file).replace(/\\/g, "/");
+    const base = path.basename(file);
+    const mappedId = MARKETING_PUBLIC_IDS[base];
     try {
-      const uploaded = await cloudinary.uploader.upload(file, {
-        folder: toCloudinaryFolder(file),
-        resource_type: "auto",
-        overwrite: true,
-      });
+      const uploaded = await cloudinary.uploader.upload(
+        file,
+        mappedId
+          ? {
+              public_id: mappedId,
+              resource_type: "auto",
+              overwrite: true,
+            }
+          : {
+              folder: toCloudinaryFolder(file),
+              resource_type: "auto",
+              overwrite: true,
+            }
+      );
       results.push({ file: rel, secure_url: uploaded.secure_url });
       console.log(`OK  ${rel}`);
     } catch (err) {

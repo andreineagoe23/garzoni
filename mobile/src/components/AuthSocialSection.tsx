@@ -3,12 +3,8 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { AppleSignInButton } from "./AppleSignInButton";
 import { GoogleSignInButton, type SocialAuthSuccessMeta } from "./GoogleSignInButton";
+import { isGoogleSignInConfigured } from "../bootstrap/googleOAuthConfig";
 import { colors, spacing, typography } from "../theme/tokens";
-
-const googleConfigured = Boolean(
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
-    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
-);
 
 type Props = {
   onSuccess: (access: string, refresh?: string, meta?: SocialAuthSuccessMeta) => void;
@@ -22,6 +18,8 @@ export function AuthSocialSection({ onSuccess, onError }: Props) {
     if (Platform.OS !== "ios") return;
     void AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
   }, []);
+
+  const googleConfigured = isGoogleSignInConfigured();
 
   if (!googleConfigured && !appleAvailable) {
     return null;
@@ -39,6 +37,12 @@ export function AuthSocialSection({ onSuccess, onError }: Props) {
         <GoogleSignInButton onSuccess={onSuccess} onError={onError} />
       ) : null}
       {appleAvailable ? <AppleSignInButton onSuccess={onSuccess} onError={onError} /> : null}
+      {Platform.OS === "ios" && googleConfigured && !appleAvailable ? (
+        <Text style={styles.appleHint}>
+          Sign in with Apple is not available in this build (use a dev client with the Sign in with
+          Apple capability, signed into iCloud, or continue with Google).
+        </Text>
+      ) : null}
     </>
   );
 }
@@ -54,5 +58,12 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     fontSize: typography.sm,
     color: colors.textMuted,
+  },
+  appleHint: {
+    marginTop: spacing.md,
+    fontSize: typography.xs,
+    color: colors.textMuted,
+    lineHeight: 18,
+    textAlign: "center",
   },
 });

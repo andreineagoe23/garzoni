@@ -11,7 +11,11 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { googleVerifyCredential } from "@monevo/core";
+import { getBackendUrl, googleVerifyCredential } from "@monevo/core";
+import {
+  getGoogleIosClientId,
+  getGoogleWebClientId,
+} from "../bootstrap/googleOAuthConfig";
 
 export type SocialAuthSuccessMeta = { next?: string };
 
@@ -20,26 +24,37 @@ type Props = {
   onError: (message: string) => void;
 };
 
-const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
-const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
-
 let configured = false;
+let lastWeb = "";
+let lastIos = "";
 
-function ensureConfigured() {
-  if (configured) return Boolean(webClientId || iosClientId);
+function ensureConfigured(): boolean {
+  const webClientId = getGoogleWebClientId();
+  const iosClientId = getGoogleIosClientId();
   if (!webClientId && !iosClientId) return false;
+  if (
+    configured &&
+    webClientId === lastWeb &&
+    iosClientId === lastIos
+  ) {
+    return true;
+  }
   GoogleSignin.configure({
     webClientId: webClientId || undefined,
     iosClientId: iosClientId || undefined,
     offlineAccess: false,
   });
   configured = true;
+  lastWeb = webClientId;
+  lastIos = iosClientId;
   return true;
 }
 
 export function GoogleSignInButton({ onSuccess, onError }: Props) {
   const [busy, setBusy] = useState(false);
 
+  const webClientId = getGoogleWebClientId();
+  const iosClientId = getGoogleIosClientId();
   if (!webClientId && !iosClientId) {
     return null;
   }
@@ -80,7 +95,17 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
       if (err.code === statusCodes.SIGN_IN_CANCELLED) {
         return;
       }
-      onError(err.message ?? "Google sign-in failed.");
+      const msg = err.message ?? "";
+      if (
+        /network|fetch|failed to connect|could not connect/i.test(msg) ||
+        (!msg && String(e) === "Network Error")
+      ) {
+        onError(
+          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL to your Railway URL and restart Expo.`
+        );
+        return;
+      }
+      onError(msg || "Google sign-in failed.");
     } finally {
       setBusy(false);
     }
