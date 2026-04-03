@@ -73,6 +73,8 @@ export default defineConfig(({ mode }) => {
   const analyze = process.env.ANALYZE === "true";
 
   return {
+    // Expose both prefixes so Vercel can keep CRA-style REACT_APP_*; new vars can use VITE_*.
+    envPrefix: ["VITE_", "REACT_APP_"],
     plugins: [
       react(),
       imagetools(),

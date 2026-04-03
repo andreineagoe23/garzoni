@@ -9,20 +9,16 @@ import {
   Text,
   View,
 } from "react-native";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { href } from "../../src/navigation/href";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   deleteAccount,
   fetchProfile,
   fetchProgressSummary,
-  fetchUserSettings,
-  patchUserSettings,
   queryKeys,
   staleTimes,
-  SUPPORTED_LANGUAGES,
-  i18n,
-  normalizeLanguage,
 } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import {
@@ -34,13 +30,17 @@ import {
 } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { registerForPushAndSubmitToken } from "../../src/bootstrap/pushNotificationsMobile";
-import { colors, spacing, typography, radius } from "../../src/theme/tokens";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import { navIcons } from "../../src/theme/navIcons";
+import { Ionicons } from "@expo/vector-icons";
+import { spacing, typography, radius } from "../../src/theme/tokens";
+import type { ThemeColors } from "../../src/theme/palettes";
 
 const SHOW_HEARTS_KEY = "monevo:show_hearts_ui";
 
 function ProfileInner() {
+  const colors = useThemeColors();
   const { clearSession } = useAuthSession();
-  const queryClient = useQueryClient();
   const [showHeartsUi, setShowHeartsUi] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
@@ -55,19 +55,6 @@ function ProfileInner() {
     queryKey: queryKeys.progressSummary(),
     queryFn: () => fetchProgressSummary().then((r) => r.data),
     staleTime: staleTimes.progressSummary,
-  });
-
-  const settingsQuery = useQuery({
-    queryKey: queryKeys.userSettings(),
-    queryFn: () => fetchUserSettings().then((r) => r.data),
-    staleTime: staleTimes.profile,
-  });
-
-  const settingsMutation = useMutation({
-    mutationFn: patchUserSettings,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.userSettings() });
-    },
   });
 
   useEffect(() => {
@@ -145,7 +132,7 @@ function ProfileInner() {
 
   if (profileQuery.isError) {
     return (
-      <View style={styles.errorWrapper}>
+      <View style={[styles.errorWrapper, { backgroundColor: colors.bg }]}>
         <ErrorState
           message="Could not load profile."
           onRetry={() => void profileQuery.refetch()}
@@ -165,92 +152,131 @@ function ProfileInner() {
   const points = data?.points ?? 0;
   const lessonsDone = progressQuery.data?.completed_lessons ?? 0;
 
-  const soundOn = settingsQuery.data?.sound_enabled !== false;
-  const animOn = settingsQuery.data?.animations_enabled !== false;
-
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { backgroundColor: colors.bg }]}
       refreshControl={
         <RefreshControl
-          refreshing={
-            profileQuery.isFetching ||
-            settingsQuery.isFetching ||
-            progressQuery.isFetching
-          }
+          refreshing={profileQuery.isFetching || progressQuery.isFetching}
           onRefresh={() => {
             void profileQuery.refetch();
-            void settingsQuery.refetch();
             void progressQuery.refetch();
           }}
           tintColor={colors.primary}
         />
       }
     >
-      <View style={styles.avatarRow}>
+      <View style={[styles.avatarRow, { marginBottom: spacing.xxl }]}>
         <Avatar username={displayName || username} size={64} />
         <View style={styles.nameCol}>
-          <Text style={styles.displayName}>{displayName || username}</Text>
-          <Text style={styles.email}>{email}</Text>
+          <Text style={[styles.displayName, { color: colors.text }]}>
+            {displayName || username}
+          </Text>
+          <Text style={[styles.email, { color: colors.textMuted }]}>{email}</Text>
         </View>
       </View>
 
-      <View style={styles.statsRow}>
-        <StatBox label="Streak" value={`${streak} 🔥`} />
-        <View style={styles.statDivider} />
-        <StatBox label="Total XP" value={String(points)} />
-        <View style={styles.statDivider} />
-        <StatBox label="Lessons" value={String(lessonsDone)} />
+      <View
+        style={[
+          styles.statsRow,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <StatBox label="Streak" value={`${streak} 🔥`} colors={colors} />
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <StatBox label="Total XP" value={String(points)} colors={colors} />
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <StatBox label="Lessons" value={String(lessonsDone)} colors={colors} />
       </View>
 
-      <Text style={styles.sectionTitle}>Settings</Text>
-      <Card>
-        <Text style={styles.subheading}>Language</Text>
-        {SUPPORTED_LANGUAGES.filter((l) => !("comingSoon" in l && l.comingSoon)).map(
-          (lng) => {
-            const active = normalizeLanguage(i18n.language) === lng.code;
-            return (
-              <Pressable
-                key={lng.code}
-                style={[styles.langRow, active && styles.langRowOn]}
-                onPress={() => void i18n.changeLanguage(lng.code)}
-              >
-                <Text style={styles.langLabel}>{lng.label}</Text>
-                {active ? <Text style={styles.check}>✓</Text> : null}
-              </Pressable>
-            );
-          }
-        )}
+      {data?.referral_code ? (
+        <Card style={{ marginTop: spacing.lg, backgroundColor: colors.surfaceOffset }}>
+          <Text style={[styles.subheading, { color: colors.textMuted }]}>Referral code</Text>
+          <Text style={{ fontSize: typography.lg, fontWeight: "800", color: colors.accent }}>
+            {data.referral_code}
+          </Text>
+          <Text style={{ color: colors.textMuted, fontSize: typography.xs, marginTop: spacing.xs }}>
+            Share Monevo with friends.
+          </Text>
+        </Card>
+      ) : null}
 
-        <View style={styles.separator} />
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Menu</Text>
+      <Card style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
+        <MenuRow
+          icon={navIcons.settings}
+          label="Settings"
+          onPress={() => router.push(href("/settings"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.billing}
+          label="Billing"
+          onPress={() => router.push(href("/billing"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.support}
+          label="Support"
+          onPress={() => router.push(href("/support"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.leaderboard}
+          label="Leaderboard"
+          onPress={() => router.push(href("/leaderboard"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.rewards}
+          label="Rewards"
+          onPress={() => router.push(href("/rewards"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.tools}
+          label="Tools"
+          onPress={() => router.push(href("/tools"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.chat}
+          label="AI Tutor"
+          onPress={() => router.push(href("/chat"))}
+          colors={colors}
+        />
+        <MenuRow
+          icon={navIcons.legal}
+          label="Terms & policies"
+          onPress={() => router.push(href("/legal/terms"))}
+          colors={colors}
+        />
+      </Card>
 
-        <RowSwitch
-          label="Sound effects"
-          value={soundOn}
-          onValueChange={(v) => settingsMutation.mutate({ sound_enabled: v })}
-        />
-        <RowSwitch
-          label="Animations"
-          value={animOn}
-          onValueChange={(v) => settingsMutation.mutate({ animations_enabled: v })}
-        />
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick toggles</Text>
+      <Card style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
         <RowSwitch
           label="Show hearts bar (UI)"
           value={showHeartsUi}
           onValueChange={(v) => void persistShowHearts(v)}
+          colors={colors}
         />
         <RowSwitch
           label="Push notifications"
           value={pushEnabled}
           disabled={pushBusy}
           onValueChange={(v) => void onPushToggle(v)}
+          colors={colors}
         />
       </Card>
 
-      <Card style={{ marginTop: spacing.lg }}>
-        <InfoRow label="Username" value={username} />
-        <View style={styles.separator} />
-        <InfoRow label="Email" value={email} />
+      <Card style={{ marginTop: spacing.lg, backgroundColor: colors.surface, borderColor: colors.border }}>
+        <InfoRow label="Username" value={username} colors={colors} />
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+        <InfoRow label="Email" value={email} colors={colors} />
       </Card>
 
       <View style={styles.actions}>
@@ -268,20 +294,36 @@ function ProfileInner() {
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
+function StatBox({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: ThemeColors;
+}) {
   return (
     <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color: colors.textMuted }]}>{label}</Text>
     </View>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: ThemeColors;
+}) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={[styles.infoLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
@@ -291,15 +333,17 @@ function RowSwitch({
   value,
   onValueChange,
   disabled,
+  colors,
 }: {
   label: string;
   value: boolean;
   onValueChange: (v: boolean) => void;
   disabled?: boolean;
+  colors: ThemeColors;
 }) {
   return (
     <View style={styles.switchRow}>
-      <Text style={styles.switchLabel}>{label}</Text>
+      <Text style={[styles.switchLabel, { color: colors.text }]}>{label}</Text>
       <Switch
         value={value}
         onValueChange={onValueChange}
@@ -307,6 +351,35 @@ function RowSwitch({
         trackColor={{ true: colors.primary, false: colors.border }}
       />
     </View>
+  );
+}
+
+function MenuRow({
+  icon,
+  label,
+  onPress,
+  colors,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  colors: ThemeColors;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.menuRow,
+        {
+          borderBottomColor: colors.border,
+          opacity: pressed ? 0.85 : 1,
+        },
+      ]}
+    >
+      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={22} color={colors.primary} />
+      <Text style={[styles.menuLabel, { color: colors.text }]}>{label}</Text>
+      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+    </Pressable>
   );
 }
 
@@ -322,51 +395,41 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.xl,
     paddingBottom: 60,
-    backgroundColor: colors.bg,
   },
   errorWrapper: {
     flex: 1,
-    backgroundColor: colors.bg,
     padding: spacing.xl,
   },
   avatarRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.xxl,
   },
   nameCol: { marginLeft: spacing.lg, flex: 1 },
   displayName: {
     fontSize: typography.xl,
     fontWeight: "700",
-    color: colors.text,
   },
   email: {
     fontSize: typography.sm,
-    color: colors.textMuted,
     marginTop: 2,
   },
   statsRow: {
     flexDirection: "row",
-    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     paddingVertical: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
     marginBottom: spacing.xl,
   },
   statBox: { flex: 1, alignItems: "center" },
   statDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
   },
   statValue: {
     fontSize: typography.lg,
     fontWeight: "700",
-    color: colors.text,
   },
   statLabel: {
     fontSize: typography.xs,
-    color: colors.textMuted,
     marginTop: 2,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -374,32 +437,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.md,
     fontWeight: "700",
-    color: colors.text,
     marginBottom: spacing.md,
+    marginTop: spacing.sm,
   },
   subheading: {
     fontSize: typography.xs,
     fontWeight: "700",
-    color: colors.textMuted,
     marginBottom: spacing.sm,
     textTransform: "uppercase",
   },
-  langRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    marginBottom: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  langRowOn: { borderColor: colors.primary, backgroundColor: `${colors.primary}10` },
-  langLabel: { fontSize: typography.base, color: colors.text },
-  check: { color: colors.primary, fontWeight: "700" },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
     marginVertical: spacing.md,
   },
   switchRow: {
@@ -408,7 +456,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: spacing.sm,
   },
-  switchLabel: { fontSize: typography.base, color: colors.text, flex: 1 },
+  switchLabel: { fontSize: typography.base, flex: 1 },
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  menuLabel: { flex: 1, fontSize: typography.base, fontWeight: "600" },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -416,14 +472,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: typography.sm,
-    color: colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   infoValue: {
     fontSize: typography.base,
     fontWeight: "600",
-    color: colors.text,
   },
   actions: { marginTop: spacing.xxxl, gap: spacing.md },
 });

@@ -5,6 +5,9 @@ import { vi } from "vitest";
 
 import "./i18n";
 
+process.env.VITE_CLOUDINARY_CLOUD_NAME =
+  process.env.VITE_CLOUDINARY_CLOUD_NAME || "test-cloud";
+
 const g = globalThis as Record<string, unknown>;
 g.jest = {
   fn: vi.fn,

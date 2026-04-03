@@ -1,25 +1,10 @@
-export const colors = {
-  primary: "#01696f",
-  primaryDark: "#0c4e54",
-  accent: "#ffd700",
-  accentMuted: "rgba(255,215,0,0.15)",
-  bg: "#f7f6f2",
-  surface: "#ffffff",
-  surfaceOffset: "#f3f0ec",
-  border: "#d4d1ca",
-  text: "#28251d",
-  textMuted: "#7a7974",
-  textFaint: "#bab9b4",
-  error: "#a12c7b",
-  errorBg: "rgba(161,44,123,0.08)",
-  success: "#437a22",
-  successBg: "rgba(67,122,34,0.08)",
-  heart: "#ef4444",
-  heartEmpty: "rgba(239,68,68,0.2)",
-  white: "#ffffff",
-  black: "#111111",
-  overlay: "rgba(0,0,0,0.45)",
-} as const;
+import { lightPalette } from "./palettes";
+
+/**
+ * Static light palette for legacy imports.
+ * Prefer `useTheme().colors` or `useThemeColors()` for theme-aware UI.
+ */
+export const colors = lightPalette;
 
 export const spacing = {
   xs: 4,
