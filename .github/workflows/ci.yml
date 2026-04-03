@@ -86,9 +86,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Version comes from root package.json "packageManager" (do not pin a different version here).
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Set up Node
         uses: actions/setup-node@v4
