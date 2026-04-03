@@ -308,12 +308,12 @@ const ToolsPage = () => {
     return toolByRoute.get(route) ?? null;
   }, [location.pathname]);
 
-  const lastTool = useMemo(() => {
+  const _lastTool = useMemo(() => {
     if (!lastToolId) return null;
     return toolsRegistry.find((tool) => tool.id === lastToolId) || null;
   }, [lastToolId]);
 
-  const recommendedTools = useMemo(() => {
+  const _recommendedTools = useMemo(() => {
     const picks: ToolDefinition[] = [];
     const goals = financialProfile?.goal_types || [];
     const riskComfort = financialProfile?.risk_comfort || "";
@@ -347,7 +347,7 @@ const ToolsPage = () => {
     return picks.filter((tool) => tool.id !== lastToolId).slice(0, 2);
   }, [financialProfile, lastToolId]);
 
-  const activeSlug = activeTool?.route ?? "hub";
+  const _activeSlug = activeTool?.route ?? "hub";
   const minViewportHeight = "calc(100vh - 88px - 120px)";
 
   const setNavSource = (source: ToolNavSource) => {

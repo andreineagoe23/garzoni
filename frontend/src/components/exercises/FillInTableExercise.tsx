@@ -39,7 +39,7 @@ const FillInTableExercise = ({
   isCompleted,
   disabled = false,
 }: FillInTableExerciseProps) => {
-  const { getAccessToken, settings } = useAuth();
+  const { settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const { t } = useTranslation();
   const { question, table, correctAnswer, learn_more_url, explanation } =
