@@ -13,9 +13,8 @@ module.exports = ({ config }) => ({
     [
       "@react-native-google-signin/google-signin",
       {
-        iosUrlScheme:
-          process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME?.trim() ||
-          "com.googleusercontent.apps.285624538344-cppis8r1s9hspg7qgubug42mrk79452a",
+        // Must match the iOS OAuth client’s REVERSED_CLIENT_ID (set in .env / EAS secrets; not committed).
+        iosUrlScheme: process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME?.trim() || "",
       },
     ],
     [
