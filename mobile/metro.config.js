@@ -13,13 +13,18 @@ const coreSrc = path.join(workspaceRoot, "packages", "core", "src");
 const config = getDefaultConfig(projectRoot);
 
 config.watchFolders = [workspaceRoot];
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, "node_modules"),
-  path.resolve(workspaceRoot, "node_modules"),
-];
+// Only the app package's node_modules — do not add the repo root, or Metro can pick
+// `react@19.2.4` from the web workspace while RN ships `react-native-renderer@19.1.0`
+// (invalid hook call / duplicate React).
+config.resolver.nodeModulesPaths = [path.resolve(projectRoot, "node_modules")];
+
+const mobileReact = path.resolve(projectRoot, "node_modules", "react");
+const mobileReactDom = path.resolve(projectRoot, "node_modules", "react-dom");
 
 config.resolver.extraNodeModules = {
   "@monevo/core": coreSrc,
+  react: mobileReact,
+  "react-dom": mobileReactDom,
 };
 
 function resolveSourceFile(basePath) {

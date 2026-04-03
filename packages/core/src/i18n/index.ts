@@ -52,10 +52,14 @@ export function initMonevoI18n(
     supportedLngs: supportedLanguageCodes,
     defaultNS: "common",
     ns: ["common"],
+    // Hermes / older JS engines may lack Intl.PluralRules; v3 avoids noisy warnings.
+    compatibilityJSON: "v3",
     interpolation: {
       escapeValue: false,
     },
     returnNull: false,
+    // RN / Expo: avoid suspending on `useTranslation` without a Suspense boundary (blank screen).
+    react: { useSuspense: false },
   });
 
   i18n.on("languageChanged", (language) => {
