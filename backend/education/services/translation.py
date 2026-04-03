@@ -72,7 +72,7 @@ class TranslationProvider(ABC):
 class OpenAITranslator(TranslationProvider):
     """Translate content via the OpenAI chat-completions API."""
 
-    DEFAULT_MODEL = "gpt-5-nano"
+    DEFAULT_MODEL = "gpt-4o-mini"
 
     def __init__(self):
         self.api_key: str = getattr(settings, "OPENAI_API_KEY", "") or ""
@@ -152,8 +152,9 @@ class OpenAITranslator(TranslationProvider):
             ],
             "temperature": 0.3,
         }
+        m = str(self.model)
         token_field = (
-            "max_completion_tokens" if str(self.model).startswith("gpt-5") else "max_tokens"
+            "max_completion_tokens" if m.startswith(("gpt-5", "o1", "o3", "o4")) else "max_tokens"
         )
         payload[token_field] = 2048
 
