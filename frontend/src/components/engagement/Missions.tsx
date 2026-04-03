@@ -24,7 +24,6 @@ import { MonevoIcon } from "components/ui/monevoIcons";
 import { formatNumber } from "utils/format";
 import MissionCard from "./MissionCard";
 import { useQuery } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 
 function Missions() {
@@ -35,7 +34,6 @@ function Missions() {
     expires_at?: string | null;
   };
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [dailyMissions, setDailyMissions] = useState<Mission[]>([]);
   const [weeklyMissions, setWeeklyMissions] = useState<Mission[]>([]);
   const [virtualBalance, setVirtualBalance] = useState(0);

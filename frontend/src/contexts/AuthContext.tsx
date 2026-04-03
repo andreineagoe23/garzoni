@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
 import apiClient from "services/httpClient";
 import { EntitlementFeature } from "types/api";
 import { attachToken } from "services/httpClient";

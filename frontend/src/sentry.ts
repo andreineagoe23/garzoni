@@ -17,7 +17,7 @@ export type SafeProfileContext = {
  */
 function beforeSend(
   event: Sentry.ErrorEvent,
-  hint: Sentry.EventHint
+  _hint: Sentry.EventHint
 ): Sentry.ErrorEvent | null {
   // Scrub known PII from extra/contexts
   if (event.extra) {

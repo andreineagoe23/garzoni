@@ -21,7 +21,7 @@ const MultipleChoiceExercise = ({
     learn_more_url,
   } = data || {};
   const { t } = useTranslation();
-  const { getAccessToken, settings } = useAuth();
+  const { settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState("");

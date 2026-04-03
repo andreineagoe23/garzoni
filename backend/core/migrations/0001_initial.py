@@ -624,34 +624,41 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Quizzes",
             },
         ),
-        migrations.CreateModel(
-            name="Referral",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                (
-                    "referred_user",
-                    models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="referral_received",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-                (
-                    "referrer",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="referrals_made",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
+        # Table is created by authentication.0001_initial (db_table core_referral).
+        # Keep this in migration state only so later core migrations can reference it.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name="Referral",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        ("created_at", models.DateTimeField(auto_now_add=True)),
+                        (
+                            "referred_user",
+                            models.OneToOneField(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="referral_received",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "referrer",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="referrals_made",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                    ],
                 ),
             ],
         ),

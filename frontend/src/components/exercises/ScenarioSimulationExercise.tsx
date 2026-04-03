@@ -35,7 +35,7 @@ const ScenarioSimulationExercise = ({
   isCompleted,
   disabled = false,
 }: ScenarioSimulationExerciseProps) => {
-  const { getAccessToken, settings } = useAuth();
+  const { settings } = useAuth();
   const soundEnabled = settings?.sound_enabled ?? true;
   const {
     question,

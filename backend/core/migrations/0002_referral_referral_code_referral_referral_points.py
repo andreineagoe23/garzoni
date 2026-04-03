@@ -10,14 +10,20 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="referral",
-            name="referral_code",
-            field=models.CharField(blank=True, max_length=20, unique=True),
-        ),
-        migrations.AddField(
-            model_name="referral",
-            name="referral_points",
-            field=models.PositiveIntegerField(default=0),
+        # Columns already exist on core_referral from authentication.0001_initial.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddField(
+                    model_name="referral",
+                    name="referral_code",
+                    field=models.CharField(blank=True, max_length=20, unique=True),
+                ),
+                migrations.AddField(
+                    model_name="referral",
+                    name="referral_points",
+                    field=models.PositiveIntegerField(default=0),
+                ),
+            ],
         ),
     ]

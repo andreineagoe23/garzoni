@@ -16,7 +16,7 @@ type QuestionnaireReminderBannerProps = {
 
 const QuestionnaireReminderBanner: React.FC<
   QuestionnaireReminderBannerProps
-> = ({ hasPaid, authReady = true }) => {
+> = ({ hasPaid: _hasPaid, authReady = true }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 

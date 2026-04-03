@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { PencilSquare, X } from "react-bootstrap-icons";
-import { useAuth } from "contexts/AuthContext";
 import { queryKeys } from "lib/reactQuery";
 
 const AVATAR_STYLES = [
@@ -25,7 +24,6 @@ const getAvatarUrl = (style, seed) =>
 
 function AvatarSelector({ currentAvatar, onAvatarChange }) {
   const { t } = useTranslation();
-  const { getAccessToken } = useAuth();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);

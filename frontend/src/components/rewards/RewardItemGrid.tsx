@@ -131,7 +131,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       loading="lazy"
                       width={640}
                       height={320}
-                      onError={(event) => {
+                      onError={() => {
                         setBrokenImages((prev) => ({
                           ...prev,
                           [item.id]: true,
