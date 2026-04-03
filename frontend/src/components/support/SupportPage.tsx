@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import PageContainer from "components/common/PageContainer";
-import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import apiClient from "services/httpClient";
 import { useTranslation } from "react-i18next";
@@ -30,7 +29,6 @@ const highlightText = (text, query) => {
 };
 
 function SupportPage() {
-  const { getAccessToken } = useAuth();
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");

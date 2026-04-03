@@ -405,63 +405,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nextSkillInsightStep = useMemo(() => {
-    if (reviewsDue > 0) {
-      return {
-        label: t("dashboard.skillInsights.nextStep.doReviews"),
-        hint: t("dashboard.skillInsights.nextStepHint.reviews"),
-        action: () => {
-          trackEvent("cta_click", { reason: "skill_insight_reviews" });
-          navigate("/exercises");
-        },
-      };
-    }
-    if (activeMissions.length > 0) {
-      return {
-        label: t("dashboard.skillInsights.nextStep.startMission"),
-        hint: t("dashboard.skillInsights.nextStepHint.mission"),
-        action: () => {
-          trackEvent("cta_click", { reason: "skill_insight_mission" });
-          navigate("/missions");
-        },
-      };
-    }
-    if (resume?.course_id) {
-      return {
-        label: t("dashboard.skillInsights.nextStep.continueLesson"),
-        hint: t("dashboard.skillInsights.nextStepHint.continue"),
-        action: () => {
-          trackEvent("cta_click", { reason: "skill_insight_resume" });
-          handleCourseClick(resume.course_id, resume.path_id ?? undefined);
-        },
-      };
-    }
-    return {
-      label: t("dashboard.skillInsights.nextStep.startLearning"),
-      hint: t("dashboard.skillInsights.nextStepHint.start"),
-      action: () => {
-        trackEvent("cta_click", { reason: "skill_insight_start" });
-        if (startHere?.path_id != null && startHere?.course_id != null) {
-          navigate(
-            `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
-          );
-        } else {
-          navigate("/all-topics");
-        }
-      },
-    };
-  }, [
-    activeMissions.length,
-    handleCourseClick,
-    navigate,
-    resume,
-    reviewsDue,
-    startHere?.course_id,
-    startHere?.path_id,
-    t,
-    trackEvent,
-  ]);
-
   // Determine CTA based on priority (memoized) - must be before early return
   const primaryCTASignal = useMemo(
     () => selectPrimaryCTA({ reviewsDue, activeMissions }),

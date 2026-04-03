@@ -27,7 +27,6 @@ const SubscriptionManager = () => {
   const { t } = useTranslation();
   const {
     entitlements,
-    getAccessToken,
     isAuthenticated,
     reloadEntitlements,
     loadProfile,

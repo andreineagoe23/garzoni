@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "contexts/AuthContext";
 import apiClient from "services/httpClient";
 import { formatCurrency, getLocale } from "utils/format";
 
@@ -17,7 +16,6 @@ const SavingsGoalCalculator = () => {
   });
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const { getAccessToken } = useAuth();
   const locale = getLocale();
   const presets = useMemo(
     () => [

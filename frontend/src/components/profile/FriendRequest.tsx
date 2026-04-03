@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
-import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { MonevoIcon } from "components/ui/monevoIcons";
 
@@ -10,8 +9,6 @@ const FriendRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const { getAccessToken } = useAuth();
-
   const fetchRequests = async () => {
     try {
       setLoading(true);
