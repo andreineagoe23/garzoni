@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationOptions,
+} from "@tanstack/react-query";
 import {
   decrementHearts,
   fetchHearts,
@@ -126,7 +131,7 @@ export function useHearts({
     })
   );
 
-  const grantMutation = useMutation(
+  const grantMutation = useMutation<unknown, Error, unknown>(
     createMutationOptions({
       queryClient,
       mutationFn: (amount: unknown) =>
@@ -135,7 +140,7 @@ export function useHearts({
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
       },
-    })
+    }) as UseMutationOptions<unknown, Error, unknown>
   );
 
   const refillMutation = useMutation(
