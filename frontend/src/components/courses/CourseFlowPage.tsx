@@ -31,7 +31,7 @@ import {
   updateLessonSection,
 } from "services/userService";
 import { attachToken } from "services/httpClient";
-import { BACKEND_URL } from "services/backendUrl";
+import { getBackendUrl } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
@@ -144,7 +144,7 @@ function HeartIcon({ filled }: { filled: boolean }) {
 
 function fixImagePaths(content: string) {
   if (!content) return "";
-  const mediaUrl = `${BACKEND_URL}/media/`;
+  const mediaUrl = `${getBackendUrl()}/media/`;
   return content.replace(
     /src="\/media\/([^"]+)"/g,
     (_: string, filename: string) => {

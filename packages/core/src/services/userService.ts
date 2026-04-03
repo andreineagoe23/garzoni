@@ -71,6 +71,12 @@ export const grantHearts = (amount = 1) =>
   apiClient.post("/user/hearts/grant/", { amount });
 export const refillHearts = () => apiClient.post("/user/hearts/refill/", {});
 
+/** Register Expo push token for the signed-in user (mobile notifications). */
+export const submitExpoPushToken = (expoPushToken: string) =>
+  apiClient.post<{ ok: boolean }>("/auth/push-token/", {
+    expo_push_token: expoPushToken,
+  });
+
 // Immersive course flow state (per course)
 export const fetchCourseFlowState = (courseId: string | number) =>
   apiClient.get("/userprogress/flow_state/", { params: { course: courseId } });
@@ -82,3 +88,70 @@ export const saveCourseFlowState = (
     course: courseId,
     current_index: currentIndex,
   });
+
+export type RecentActivityItem = {
+  type: string;
+  action?: string;
+  title?: string;
+  name?: string;
+  course?: string;
+  lesson_id?: number;
+  course_id?: number;
+  timestamp?: string;
+};
+
+export const fetchRecentActivity = () =>
+  apiClient.get<{ recent_activities: RecentActivityItem[] }>(
+    "/recent-activity/"
+  );
+
+export type CourseQuiz = {
+  id: number;
+  course?: number;
+  title?: string;
+  question?: string;
+  choices?: { text: string }[];
+  correct_answer?: string;
+};
+
+export const fetchQuizzesForCourse = (courseId: string | number) =>
+  apiClient.get<CourseQuiz[]>("/quizzes/", { params: { course: courseId } });
+
+export const completeCourseQuiz = (body: {
+  quiz_id: number;
+  selected_answer: string;
+}) =>
+  apiClient.post<{
+    message?: string;
+    correct?: boolean;
+    earned_money?: number;
+  }>("/quizzes/complete/", body);
+
+export type UserSettingsPayload = {
+  dark_mode?: boolean;
+  sound_enabled?: boolean;
+  animations_enabled?: boolean;
+  email_reminder_preference?: string;
+  email_preferences?: Record<string, unknown>;
+  profile?: Record<string, unknown>;
+};
+
+export const fetchUserSettings = () =>
+  apiClient.get<{
+    dark_mode?: boolean;
+    sound_enabled?: boolean;
+    animations_enabled?: boolean;
+    email_reminder_preference?: string;
+    email_preferences?: Record<string, unknown>;
+    profile?: Record<string, unknown>;
+  }>("/user/settings/");
+
+export const patchUserSettings = (data: UserSettingsPayload) =>
+  apiClient.patch<{
+    message?: string;
+    dark_mode?: boolean;
+    sound_enabled?: boolean;
+    animations_enabled?: boolean;
+    email_reminder_preference?: string;
+    email_preferences?: Record<string, unknown>;
+  }>("/user/settings/", data);

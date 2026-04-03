@@ -41,6 +41,7 @@ from .views_hearts import (
     UserHeartsGrantView,
     UserHeartsRefillView,
 )
+from .views_push import ExpoPushTokenView
 
 router = DefaultRouter()
 router.register(r"friend-requests", FriendRequestView, basename="friend-request")
@@ -54,6 +55,7 @@ urlpatterns = [
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh"),
     path("verify-auth/", VerifyAuthView.as_view(), name="verify-auth"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path("auth/push-token/", ExpoPushTokenView.as_view(), name="expo-push-token"),
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
     path("me/profile/", FinancialProfileView.as_view(), name="financial-profile"),
     path("update-avatar/", update_avatar, name="update_avatar"),

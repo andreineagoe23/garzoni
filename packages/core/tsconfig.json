@@ -9,7 +9,9 @@
       "services/*": ["services/*"],
       "constants/*": ["constants/*"],
       "types/*": ["types/*"],
-      "stores/*": ["stores/*"]
+      "stores/*": ["stores/*"],
+      "lib/*": ["lib/*"],
+      "hooks/*": ["hooks/*"]
     }
   },
   "include": [
