@@ -394,7 +394,7 @@ class OpenAIService:
             default_model = (
                 settings.OPENAI_ALLOWED_MODELS_CSV[0]
                 if settings.OPENAI_ALLOWED_MODELS_CSV
-                else "gpt-5-mini"
+                else "gpt-4o-mini"
             )
             requested_model = str(parameters.get("model") or default_model)
             if requested_model not in settings.OPENAI_ALLOWED_MODELS_CSV:
@@ -420,7 +420,7 @@ class OpenAIService:
             }
             token_field = (
                 "max_completion_tokens"
-                if str(requested_model).startswith("gpt-5")
+                if str(requested_model).startswith(("gpt-5", "o1", "o3", "o4"))
                 else "max_tokens"
             )
             api_params[token_field] = max_tokens
@@ -435,6 +435,9 @@ class OpenAIService:
                     return cached, 200
 
             try:
+                openai_timeout = float(
+                    getattr(settings, "OPENAI_REQUEST_TIMEOUT_SECONDS", 90) or 90
+                )
                 result = self.request_with_backoff(
                     method="POST",
                     url="https://api.openai.com/v1/chat/completions",
@@ -442,6 +445,7 @@ class OpenAIService:
                     json=api_params,
                     allow_retry=bool(idem_cache_key),
                     max_attempts=3,
+                    timeout=openai_timeout,
                 )
                 response = result.response
             except requests.Timeout:
