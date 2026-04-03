@@ -1,8 +1,4 @@
-import {
-  initMonevoI18n,
-  i18n,
-  normalizeLanguage,
-} from "@monevo/core/i18n";
+import { initMonevoI18n, i18n, normalizeLanguage } from "@monevo/core/i18n";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "constants/i18n";
 
 const getInitialLanguage = () => {

@@ -17,10 +17,12 @@ const r = (...segments: string[]) => path.resolve(__dirname, ...segments);
 function manualChunks(id: string): string | undefined {
   if (!id.includes("node_modules")) return;
   if (id.includes("lucide-react")) return "vendor-icons";
-  if (id.includes("node_modules/axios") || id.includes("/axios@")) return "vendor-axios";
+  if (id.includes("node_modules/axios") || id.includes("/axios@"))
+    return "vendor-axios";
   if (id.includes("zustand")) return "vendor-state";
   if (id.includes("@tanstack/react-query")) return "vendor-query";
-  if (id.includes("node_modules/three/") || id.includes("/three@")) return "vendor-three";
+  if (id.includes("node_modules/three/") || id.includes("/three@"))
+    return "vendor-three";
   if (id.includes("html2canvas")) return "vendor-html2canvas";
   if (id.includes("recharts")) return "vendor-charts";
   if (id.includes("framer-motion")) return "vendor-motion";
@@ -37,7 +39,10 @@ export default defineConfig(({ mode }) => {
 
   const aliases: { find: string | RegExp; replacement: string }[] = [
     ...testOnly,
-    { find: "constants/i18n", replacement: path.join(coreSrc, "constants/i18n.ts") },
+    {
+      find: "constants/i18n",
+      replacement: path.join(coreSrc, "constants/i18n.ts"),
+    },
     {
       find: "constants/skillToExerciseCategory",
       replacement: path.join(coreSrc, "constants/skillToExerciseCategory.ts"),

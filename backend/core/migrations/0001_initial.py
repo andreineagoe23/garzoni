@@ -735,63 +735,72 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.CreateModel(
-            name="UserProfile",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "earned_money",
-                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
-                ),
-                ("points", models.PositiveIntegerField(default=0)),
-                ("profile_avatar", models.URLField(blank=True, null=True)),
-                ("recommended_courses", models.JSONField(blank=True, default=list)),
-                (
-                    "referral_code",
-                    models.CharField(max_length=20, null=True, unique=True),
-                ),
-                ("referral_points", models.PositiveIntegerField(default=0)),
-                ("dark_mode", models.BooleanField(default=False)),
-                ("has_paid", models.BooleanField(default=False)),
-                (
-                    "stripe_payment_id",
-                    models.CharField(blank=True, db_index=True, max_length=255, null=True),
-                ),
-                ("email_reminders", models.BooleanField(default=True)),
-                (
-                    "email_frequency",
-                    models.CharField(
-                        choices=[
-                            ("daily", "Daily"),
-                            ("weekly", "Weekly"),
-                            ("monthly", "Monthly"),
-                        ],
-                        default="daily",
-                        max_length=10,
-                    ),
-                ),
-                ("streak", models.PositiveIntegerField(default=0)),
-                ("last_completed_date", models.DateField(blank=True, null=True)),
-                (
-                    "user",
-                    models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
+        # Table is created by authentication.0001_initial (db_table core_userprofile).
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name="UserProfile",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        (
+                            "earned_money",
+                            models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                        ),
+                        ("points", models.PositiveIntegerField(default=0)),
+                        ("profile_avatar", models.URLField(blank=True, null=True)),
+                        (
+                            "recommended_courses",
+                            models.JSONField(blank=True, default=list),
+                        ),
+                        (
+                            "referral_code",
+                            models.CharField(max_length=20, null=True, unique=True),
+                        ),
+                        ("referral_points", models.PositiveIntegerField(default=0)),
+                        ("dark_mode", models.BooleanField(default=False)),
+                        ("has_paid", models.BooleanField(default=False)),
+                        (
+                            "stripe_payment_id",
+                            models.CharField(blank=True, db_index=True, max_length=255, null=True),
+                        ),
+                        ("email_reminders", models.BooleanField(default=True)),
+                        (
+                            "email_frequency",
+                            models.CharField(
+                                choices=[
+                                    ("daily", "Daily"),
+                                    ("weekly", "Weekly"),
+                                    ("monthly", "Monthly"),
+                                ],
+                                default="daily",
+                                max_length=10,
+                            ),
+                        ),
+                        ("streak", models.PositiveIntegerField(default=0)),
+                        ("last_completed_date", models.DateField(blank=True, null=True)),
+                        (
+                            "user",
+                            models.OneToOneField(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                    ],
+                    options={
+                        "verbose_name": "User Profile",
+                        "verbose_name_plural": "User Profiles",
+                    },
                 ),
             ],
-            options={
-                "verbose_name": "User Profile",
-                "verbose_name_plural": "User Profiles",
-            },
         ),
         migrations.CreateModel(
             name="UserProgress",
@@ -918,51 +927,57 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.CreateModel(
-            name="FriendRequest",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "status",
-                    models.CharField(
-                        choices=[
-                            ("pending", "Pending"),
-                            ("accepted", "Accepted"),
-                            ("rejected", "Rejected"),
-                        ],
-                        default="pending",
-                        max_length=10,
-                    ),
-                ),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                (
-                    "receiver",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="received_requests",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-                (
-                    "sender",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="sent_requests",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
+        # Table is created by authentication.0001_initial (db_table core_friendrequest).
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name="FriendRequest",
+                    fields=[
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        (
+                            "status",
+                            models.CharField(
+                                choices=[
+                                    ("pending", "Pending"),
+                                    ("accepted", "Accepted"),
+                                    ("rejected", "Rejected"),
+                                ],
+                                default="pending",
+                                max_length=10,
+                            ),
+                        ),
+                        ("created_at", models.DateTimeField(auto_now_add=True)),
+                        (
+                            "receiver",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="received_requests",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "sender",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="sent_requests",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                    ],
+                    options={
+                        "unique_together": {("sender", "receiver")},
+                    },
                 ),
             ],
-            options={
-                "unique_together": {("sender", "receiver")},
-            },
         ),
         migrations.CreateModel(
             name="ExerciseCompletion",
