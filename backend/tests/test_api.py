@@ -103,7 +103,7 @@ class RegistrationReferralValidationTest(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("referral_code", response.data)
+        self.assertIn("referral_code", response.data.get("errors", {}))
 
     def test_register_accepts_empty_referral_code(self):
         response = self.client.post(
@@ -249,6 +249,8 @@ class PaymentVerificationTest(AuthenticatedTestCase):
                 payment_intent=mock_intent,
                 client_reference_id=str(self.user.id),
                 metadata={"user_id": self.user.id},
+                mode="payment",
+                subscription=None,
             )
             response = self.client.post(
                 "/api/verify-session/", {"session_id": session_id}, format="json"
