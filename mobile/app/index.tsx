@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthSession } from "../src/auth/AuthContext";
+import { colors } from "../src/theme/tokens";
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
@@ -8,7 +9,7 @@ export default function Index() {
   if (!hydrated) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -25,5 +26,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.bg,
   },
 });
