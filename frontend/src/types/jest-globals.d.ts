@@ -18,7 +18,11 @@ declare global {
   namespace jest {
     type Mocked<T> = T extends (...args: any[]) => any
       ? T & { mock: any }
-      : { [K in keyof T]: T[K] extends (...args: any[]) => any ? Mocked<T[K]> : T[K] };
+      : {
+          [K in keyof T]: T[K] extends (...args: any[]) => any
+            ? Mocked<T[K]>
+            : T[K];
+        };
   }
 }
 

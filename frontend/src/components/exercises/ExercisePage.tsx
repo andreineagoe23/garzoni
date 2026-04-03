@@ -1102,10 +1102,11 @@ const ExercisePage = () => {
         setShowStats(true);
       }
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number; data?: { error?: string } } })
-        ?.response?.status;
-      const detail = (err as { response?: { data?: { error?: string } } })?.response?.data
-        ?.error;
+      const status = (
+        err as { response?: { status?: number; data?: { error?: string } } }
+      )?.response?.status;
+      const detail = (err as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
       if (status === 429 && typeof detail === "string" && detail.trim()) {
         setError(detail);
       } else {
