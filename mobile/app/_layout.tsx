@@ -27,6 +27,7 @@ export default function RootLayout() {
               <Stack.Screen name="lesson" options={{ headerShown: false }} />
               <Stack.Screen name="course" options={{ headerShown: false }} />
               <Stack.Screen name="quiz" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               <Stack.Screen
                 name="change-password"
                 options={{ headerShown: true, title: "Change password" }}

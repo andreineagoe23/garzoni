@@ -1,7 +1,11 @@
 {
   "name": "monevo",
   "private": true,
-  "workspaces": ["packages/*", "frontend", "mobile"],
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "mobile"
+  ],
   "packageManager": "pnpm@10.15.1",
   "pnpm": {
     "overrides": {
@@ -10,7 +14,10 @@
       "@types/react": "19.2.7",
       "@types/react-dom": "19.2.3"
     },
-    "onlyBuiltDependencies": ["sharp", "react-vertical-timeline-component"]
+    "onlyBuiltDependencies": [
+      "sharp",
+      "react-vertical-timeline-component"
+    ]
   },
   "scripts": {
     "dev": "pnpm --filter @monevo/web dev",
@@ -24,5 +31,8 @@
     "lint": "pnpm --filter @monevo/web lint",
     "typecheck:core": "pnpm --filter @monevo/core typecheck",
     "typecheck:mobile": "pnpm --filter @monevo/mobile exec tsc --noEmit"
+  },
+  "dependencies": {
+    "cloudinary": "^2.9.0"
   }
 }

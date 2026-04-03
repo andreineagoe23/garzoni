@@ -203,3 +203,6 @@ frontend/.env
 
 # Cursor IDE metadata
 .cursor/
+
+# Generated Cloudinary upload output map
+scripts/cloudinary-upload-results.json

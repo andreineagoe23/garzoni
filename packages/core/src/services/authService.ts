@@ -39,6 +39,14 @@ export const loginSecure = (payload: LoginSecurePayload) => {
   }>("/login-secure/", body, { skipAuthRedirect: true });
 };
 
+export const obtainTokenPair = (payload: {
+  username: string;
+  password: string;
+}) =>
+  apiClient.post<{ access: string; refresh?: string }>("/token/", payload, {
+    skipAuthRedirect: true,
+  });
+
 export const registerSecure = (userData: Record<string, unknown>) =>
   apiClient.post<{
     access: string;
@@ -57,6 +65,19 @@ export const googleVerifyCredential = (body: {
     user: Record<string, unknown>;
     next: string;
   }>("/auth/google/verify-credential/", body, { skipAuthRedirect: true });
+
+export const appleVerifyIdentity = (body: {
+  identity_token: string;
+  state?: string;
+  first_name?: string;
+  last_name?: string;
+}) =>
+  apiClient.post<{
+    access: string;
+    refresh?: string;
+    user: Record<string, unknown>;
+    next: string;
+  }>("/auth/apple/verify-identity/", body, { skipAuthRedirect: true });
 
 export const refreshAccessToken = (refresh: string) =>
   apiClient.post<{ access: string; refresh?: string }>(

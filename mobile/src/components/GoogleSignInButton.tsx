@@ -13,8 +13,10 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { googleVerifyCredential } from "@monevo/core";
 
+export type SocialAuthSuccessMeta = { next?: string };
+
 type Props = {
-  onSuccess: (access: string, refresh?: string) => void;
+  onSuccess: (access: string, refresh?: string, meta?: SocialAuthSuccessMeta) => void;
   onError: (message: string) => void;
 };
 
@@ -69,7 +71,7 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
         state: "all-topics",
       });
       if (data?.access) {
-        onSuccess(data.access, data.refresh);
+        onSuccess(data.access, data.refresh, { next: data.next });
       } else {
         onError("Invalid response from server.");
       }

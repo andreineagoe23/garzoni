@@ -103,6 +103,15 @@ Variables are loaded from `backend/.env` (via `python-dotenv` in `backend/settin
 
 ID tokens from Google Sign-In on native apps use the platform client as `aud`; the backend accepts any ID listed in the merged **allowed client IDs** set (web ID + CSV + iOS + Android, deduplicated). Create separate iOS/Android OAuth clients in Google Cloud Console and add their IDs here.
 
+### Sign in with Apple (native)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APPLE_SIGNIN_BUNDLE_ID` | (none) | iOS app bundle ID used as JWT `aud` (e.g. `tech.monevo.app`). Merged into allowed audiences. |
+| `APPLE_SIGNIN_AUDIENCES_CSV` | (none) | Comma-separated `aud` values accepted by `POST /api/auth/apple/verify-identity/` (bundle ID, Services ID for web, etc.). |
+
+If neither is set, Apple sign-in returns **503** (`oauth_not_configured`). Run migrations so `UserProfile.apple_sub` exists.
+
 ### OpenAI (AI chat)
 
 | Variable | Default | Description |
