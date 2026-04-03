@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "tech.monevo.app",
       "buildNumber": "1",
       "privacyManifests": {
