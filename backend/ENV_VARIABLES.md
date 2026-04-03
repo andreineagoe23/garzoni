@@ -104,7 +104,8 @@ ID tokens from Google Sign-In on native apps use the platform client as `aud`; t
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENAI_API_KEY` | (none) | API key for OpenAI (required for AI tutor proxy). |
-| `OPENAI_ALLOWED_MODELS_CSV` | `gpt-5-nano,gpt-5-mini` | Allowed model IDs (comma-separated). |
+| `OPENAI_ALLOWED_MODELS_CSV` | `gpt-4o-mini,gpt-5.4-nano,gpt-5.4-mini` | Allowed model IDs (comma-separated). The first entry is the chatbot default. Use real API model names (e.g. `gpt-5.4-mini`, not `gpt-5-mini`). |
+| `OPENAI_REQUEST_TIMEOUT_SECONDS` | `90` | Timeout for OpenAI chat completion calls (separate from `EXTERNAL_REQUEST_TIMEOUT_SECONDS`). |
 | `OPENAI_MAX_PROMPT_CHARS` | `4000` | Max prompt length. |
 | `OPENAI_MAX_MESSAGES` | `30` | Max message count. |
 | `OPENAI_MAX_MESSAGE_CHARS` | `2000` | Max chars per message. |

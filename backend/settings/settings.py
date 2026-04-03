@@ -218,6 +218,8 @@ SIMPLE_JWT = {
 
 # External HTTP safety defaults
 EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15"))
+# OpenAI chat completions can exceed the generic external timeout; keep separate.
+OPENAI_REQUEST_TIMEOUT_SECONDS = int(os.getenv("OPENAI_REQUEST_TIMEOUT_SECONDS", "90"))
 HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
 HTTP_POOL_MAXSIZE = int(os.getenv("HTTP_POOL_MAXSIZE", "20"))
 
@@ -240,12 +242,13 @@ OPENAI_MAX_MESSAGE_CHARS = int(os.getenv("OPENAI_MAX_MESSAGE_CHARS", "2000"))
 OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "512"))
 OPENAI_ALLOWED_MODELS_CSV = env_csv(
     "OPENAI_ALLOWED_MODELS_CSV",
-    default=["gpt-5-nano", "gpt-5-mini"],
+    # gpt-5-nano / gpt-5-mini are not valid API IDs; use gpt-5.4-* or gpt-4o-mini (see OpenAI model docs).
+    default=["gpt-4o-mini", "gpt-5.4-nano", "gpt-5.4-mini"],
 )
 
 # Content translation settings
 CONTENT_TRANSLATION_PROVIDER = os.getenv("CONTENT_TRANSLATION_PROVIDER", "openai")
-CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "gpt-5-nano")
+CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "gpt-4o-mini")
 CONTENT_TRANSLATION_ENABLED = os.getenv("CONTENT_TRANSLATION_ENABLED", "true").lower() in (
     "1",
     "true",
