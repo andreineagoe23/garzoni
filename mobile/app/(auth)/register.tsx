@@ -9,10 +9,42 @@ import {
   View,
 } from "react-native";
 import { Link, router } from "expo-router";
-import { registerSecure } from "@monevo/core";
+import { obtainTokenPair, registerSecure } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
+import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
+import { AuthSocialSection } from "../../src/components/AuthSocialSection";
 import { Button, FormInput } from "../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../src/theme/tokens";
+
+type TokenResponseLike = {
+  access?: string;
+  access_token?: string;
+  token?: string;
+  refresh?: string;
+  refresh_token?: string;
+  data?: {
+    access?: string;
+    access_token?: string;
+    token?: string;
+    refresh?: string;
+    refresh_token?: string;
+  };
+};
+
+function extractTokens(payload: TokenResponseLike): {
+  access: string | null;
+  refresh?: string;
+} {
+  const directAccess = payload.access ?? payload.access_token ?? payload.token;
+  const nestedAccess =
+    payload.data?.access ?? payload.data?.access_token ?? payload.data?.token;
+  const access = (directAccess ?? nestedAccess ?? null) as string | null;
+  const refresh = (payload.refresh ??
+    payload.refresh_token ??
+    payload.data?.refresh ??
+    payload.data?.refresh_token) as string | undefined;
+  return { access, refresh };
+}
 
 export default function RegisterScreen() {
   const { applyTokens } = useAuthSession();
@@ -73,11 +105,28 @@ export default function RegisterScreen() {
         client_type: "mobile",
         platform: "mobile",
       });
-      if (data?.access) {
-        await applyTokens(data.access, data.refresh);
-        router.replace("/(tabs)");
+      const { access, refresh } = extractTokens(data as TokenResponseLike);
+      if (access) {
+        await applyTokens(access, refresh);
+        // New users go through personalisation questionnaire
+        router.replace("/onboarding");
       } else {
-        setError("No access token returned.");
+        // Fallback to standard JWT endpoint after successful registration.
+        const fallback = await obtainTokenPair({
+          username: form.username.trim(),
+          password: form.password,
+        });
+        const fallbackAccess = fallback.data?.access;
+        if (fallbackAccess) {
+          await applyTokens(fallbackAccess, fallback.data?.refresh);
+          router.replace("/onboarding");
+        } else {
+          const keys =
+            data && typeof data === "object"
+              ? Object.keys(data as Record<string, unknown>).join(", ")
+              : typeof data;
+          setError(`No access token returned from server. Response keys: ${keys || "none"}`);
+        }
       }
     } catch (e: unknown) {
       const err = e as {
@@ -187,6 +236,14 @@ export default function RegisterScreen() {
           Sign up
         </Button>
 
+        <AuthSocialSection
+          onSuccess={async (access, refresh, meta) => {
+            await applyTokens(access, refresh);
+            replaceAfterSocialAuth(meta?.next);
+          }}
+          onError={(m) => setError(m)}
+        />
+
         <Link href="/login" style={styles.bottomLink}>
           <Text style={styles.bottomLinkText}>
             Already have an account?{" "}
@@ -200,7 +257,12 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: spacing.xxl, paddingTop: spacing.xxxxl, paddingBottom: 60 },
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: spacing.xxl,
+    paddingBottom: spacing.xxxxl,
+  },
   title: {
     fontSize: typography.xxl,
     fontWeight: "700",

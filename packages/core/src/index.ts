@@ -79,3 +79,18 @@ export const courseService = {
   fetchById: fetchCourseById,
 };
 export const lessonService = { fetchById: fetchLesson };
+
+export {
+  fetchQuestionnaireProgress,
+  fetchNextQuestion,
+  saveAnswer as saveQuestionnaireAnswer,
+  completeQuestionnaire,
+  abandonQuestionnaire,
+} from "./services/questionnaireService";
+export type {
+  QuestionnaireProgress,
+  QuestionnaireQuestion,
+  NextQuestionResponse,
+  SaveAnswerRequest,
+  CompletionResponse,
+} from "./services/questionnaireService";

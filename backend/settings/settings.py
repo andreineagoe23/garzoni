@@ -421,6 +421,21 @@ def _google_oauth_allowed_client_ids() -> list:
 
 GOOGLE_OAUTH_ALLOWED_CLIENT_IDS = _google_oauth_allowed_client_ids()
 
+
+def _apple_signin_allowed_audiences() -> list:
+    """
+    Values allowed as JWT `aud` for native Sign in with Apple (usually the iOS bundle ID)
+    and/or a web Services ID. Comma-separated in APPLE_SIGNIN_AUDIENCES_CSV.
+    """
+    raw = list(env_csv("APPLE_SIGNIN_AUDIENCES_CSV", default=[]))
+    bundle = (os.getenv("APPLE_SIGNIN_BUNDLE_ID", "") or "").strip()
+    if bundle:
+        raw.append(bundle)
+    return list(dict.fromkeys([x.strip() for x in raw if x.strip()]))
+
+
+APPLE_SIGNIN_ALLOWED_AUDIENCES = _apple_signin_allowed_audiences()
+
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 CSE_ID = os.getenv("CSE_ID", "")
 API_KEY = os.getenv("API_KEY", "")

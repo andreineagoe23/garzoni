@@ -9,11 +9,42 @@ import {
   View,
 } from "react-native";
 import { Link, router } from "expo-router";
-import { loginSecure } from "@monevo/core";
+import { loginSecure, obtainTokenPair } from "@monevo/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
-import { GoogleSignInButton } from "../../src/components/GoogleSignInButton";
+import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
+import { AuthSocialSection } from "../../src/components/AuthSocialSection";
 import { Button, FormInput } from "../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../src/theme/tokens";
+
+type TokenResponseLike = {
+  access?: string;
+  access_token?: string;
+  token?: string;
+  refresh?: string;
+  refresh_token?: string;
+  data?: {
+    access?: string;
+    access_token?: string;
+    token?: string;
+    refresh?: string;
+    refresh_token?: string;
+  };
+};
+
+function extractTokens(payload: TokenResponseLike): {
+  access: string | null;
+  refresh?: string;
+} {
+  const directAccess = payload.access ?? payload.access_token ?? payload.token;
+  const nestedAccess =
+    payload.data?.access ?? payload.data?.access_token ?? payload.data?.token;
+  const access = (directAccess ?? nestedAccess ?? null) as string | null;
+  const refresh = (payload.refresh ??
+    payload.refresh_token ??
+    payload.data?.refresh ??
+    payload.data?.refresh_token) as string | undefined;
+  return { access, refresh };
+}
 
 export default function LoginScreen() {
   const { applyTokens } = useAuthSession();
@@ -42,11 +73,27 @@ export default function LoginScreen() {
         client_type: "mobile",
         platform: "mobile",
       });
-      if (data?.access) {
-        await applyTokens(data.access, data.refresh);
+      const { access, refresh } = extractTokens(data as TokenResponseLike);
+      if (access) {
+        await applyTokens(access, refresh);
         router.replace("/(tabs)");
       } else {
-        setError("No access token returned.");
+        // Fallback for environments where /login-secure/ response shape is customized.
+        const fallback = await obtainTokenPair({
+          username: username.trim(),
+          password,
+        });
+        const fallbackAccess = fallback.data?.access;
+        if (fallbackAccess) {
+          await applyTokens(fallbackAccess, fallback.data?.refresh);
+          router.replace("/(tabs)");
+        } else {
+          const keys =
+            data && typeof data === "object"
+              ? Object.keys(data as Record<string, unknown>).join(", ")
+              : typeof data;
+          setError(`No access token returned from server. Response keys: ${keys || "none"}`);
+        }
       }
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string } } };
@@ -109,16 +156,10 @@ export default function LoginScreen() {
           <Text style={styles.forgotText}>Forgot password?</Text>
         </Link>
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerLabel}>or</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <GoogleSignInButton
-          onSuccess={async (access, refresh) => {
+        <AuthSocialSection
+          onSuccess={async (access, refresh, meta) => {
             await applyTokens(access, refresh);
-            router.replace("/(tabs)");
+            replaceAfterSocialAuth(meta?.next);
           }}
           onError={(m) => setError(m)}
         />
@@ -136,7 +177,12 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: spacing.xxl, paddingTop: spacing.xxxxl },
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: spacing.xxl,
+    paddingBottom: spacing.xxxxl,
+  },
   title: {
     fontSize: typography.xxl,
     fontWeight: "700",
@@ -157,17 +203,6 @@ const styles = StyleSheet.create({
   errorText: { color: colors.error, fontSize: typography.sm },
   forgotLink: { alignSelf: "center", marginTop: spacing.lg },
   forgotText: { color: colors.primary, fontSize: typography.sm },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: spacing.xxl,
-  },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
-  dividerLabel: {
-    marginHorizontal: spacing.md,
-    fontSize: typography.sm,
-    color: colors.textMuted,
-  },
   bottomLink: { alignSelf: "center", marginTop: spacing.xxl },
   bottomLinkText: { fontSize: typography.base, color: colors.textMuted },
   bottomLinkBold: { color: colors.primary, fontWeight: "600" },
