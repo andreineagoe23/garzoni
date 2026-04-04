@@ -64,6 +64,8 @@ const SubscriptionPlansPage = () => {
     loadProfile,
     isAuthenticated,
     getAccessToken,
+    user,
+    profile,
   } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState({
     hasPaid: false,
@@ -581,7 +583,11 @@ const SubscriptionPlansPage = () => {
         aria-label="Subscription paywall"
       >
         <RevenueCatPaywall
-          userId={String((user as { id?: number } | null)?.id ?? "anonymous")}
+          userId={String(
+            (user as { id?: number } | null)?.id ??
+              (profile as { id?: number } | null)?.id ??
+              "anonymous"
+          )}
           onSuccess={handleRCSuccess}
           onClose={() => setShowRCPaywall(false)}
         />
