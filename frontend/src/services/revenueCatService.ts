@@ -96,8 +96,7 @@ function sdk(): Purchases {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /** Fetch all available offerings from RevenueCat. */
-export const rcGetOfferings = (): Promise<Offerings> =>
-  sdk().getOfferings();
+export const rcGetOfferings = (): Promise<Offerings> => sdk().getOfferings();
 
 /** Fetch the current customer info (entitlements, active subscriptions, …). */
 export const rcGetCustomerInfo = (): Promise<CustomerInfo> =>
@@ -154,21 +153,27 @@ export const rcShowCustomerCenter = async (): Promise<void> => {
 export function formatRCPackagePrice(pkg: Package): string {
   try {
     // RC Web SDK exposes price on rcBillingProduct
-    const product = (pkg as unknown as {
-      rcBillingProduct?: {
-        currentPrice?: {
-          formatted?: string;
-          amount?: number;
-          amountMicros?: number;
-          currency?: string;
+    const product = (
+      pkg as unknown as {
+        rcBillingProduct?: {
+          currentPrice?: {
+            formatted?: string;
+            amount?: number;
+            amountMicros?: number;
+            currency?: string;
+          };
         };
-      };
-    }).rcBillingProduct;
+      }
+    ).rcBillingProduct;
 
     if (!product?.currentPrice) return "";
 
-    const { formatted, amount, amountMicros, currency = "USD" } =
-      product.currentPrice;
+    const {
+      formatted,
+      amount,
+      amountMicros,
+      currency = "USD",
+    } = product.currentPrice;
 
     if (formatted) return formatted;
 

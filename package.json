@@ -19,7 +19,11 @@
       "react-vertical-timeline-component"
     ]
   },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
   "scripts": {
+    "prepare": "husky",
     "dev": "pnpm --filter @monevo/web dev",
     "dev:web": "pnpm --filter @monevo/web dev",
     "dev:mobile": "pnpm --filter @monevo/mobile start",
@@ -30,7 +34,10 @@
     "test": "pnpm --filter @monevo/web test",
     "lint": "pnpm --filter @monevo/web lint",
     "typecheck:core": "pnpm --filter @monevo/core typecheck",
-    "typecheck:mobile": "pnpm --filter @monevo/mobile exec tsc --noEmit"
+    "typecheck:web": "pnpm --filter @monevo/web exec tsc --noEmit",
+    "typecheck:mobile": "pnpm --filter @monevo/mobile exec tsc --noEmit",
+    "typecheck": "pnpm run typecheck:core && pnpm run typecheck:web && pnpm run typecheck:mobile",
+    "precommit": "pnpm run typecheck && pnpm lint && pnpm --filter @monevo/web format:check"
   },
   "dependencies": {
     "cloudinary": "^2.9.0"

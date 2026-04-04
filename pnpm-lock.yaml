@@ -17,6 +17,10 @@ importers:
       cloudinary:
         specifier: ^2.9.0
         version: 2.9.0
+    devDependencies:
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
 
   frontend:
     dependencies:
@@ -4076,6 +4080,11 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   i18next@23.16.8:
     resolution: {integrity: sha512-06r/TitrM88Mg5FdUXAKL96dJMzgqLE5dv3ryBAra4KCwD9mJ4ndOTS95ZuymIGoE+2hzfdaMak2X11/es7ZWg==}
 
@@ -7414,6 +7423,11 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-core@41.4.2':
     dependencies:
@@ -7550,11 +7564,21 @@ snapshots:
   '@ckeditor/ckeditor5-html-embed@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-html-support@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-image@41.4.2':
     dependencies:
@@ -7579,6 +7603,11 @@ snapshots:
   '@ckeditor/ckeditor5-language@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-link@41.4.2':
     dependencies:
@@ -7644,6 +7673,11 @@ snapshots:
   '@ckeditor/ckeditor5-page-break@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-paragraph@41.4.2':
     dependencies:
@@ -7663,10 +7697,20 @@ snapshots:
   '@ckeditor/ckeditor5-remove-format@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-restricted-editing@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-select-all@41.4.2':
     dependencies:
@@ -11206,6 +11250,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  husky@9.1.7: {}
 
   i18next@23.16.8:
     dependencies:

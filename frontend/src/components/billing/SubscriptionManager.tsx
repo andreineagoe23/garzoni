@@ -56,8 +56,7 @@ const SubscriptionManager = () => {
   const handleRCRestore = useCallback(async () => {
     if (!isAuthenticated) return;
     const userId = String(
-      (entitlements as unknown as { userId?: number })?.userId ??
-        "anonymous"
+      (entitlements as unknown as { userId?: number })?.userId ?? "anonymous"
     );
     setRcRestoring(true);
     setRcRestoreMsg("");

@@ -63,7 +63,7 @@ export function useLessonFlow(courseId: number) {
 
   const flowEnabled = Number.isFinite(courseId) && courseId > 0;
 
-  const lessonsQuery = useQuery({
+  const lessonsQuery = useQuery<FlowLesson[]>({
     queryKey: queryKeys.lessonsWithProgress(courseId),
     enabled: flowEnabled,
     queryFn: () =>
@@ -73,7 +73,7 @@ export function useLessonFlow(courseId: number) {
     staleTime: staleTimes.content,
   });
 
-  const flowStateQuery = useQuery({
+  const flowStateQuery = useQuery<number>({
     queryKey: ["flowState", courseId],
     enabled: flowEnabled,
     queryFn: () =>
