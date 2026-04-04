@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Card, Button } from "../ui";
-import { colors, spacing, typography, radius } from "../../theme/tokens";
+import { spacing, typography, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 type Props = {
   data: Record<string, unknown>;
@@ -12,6 +14,47 @@ type Props = {
   onComplete?: () => Promise<void> | void;
 };
 
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    question: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: spacing.md,
+      lineHeight: 24,
+    },
+    totalLabel: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginBottom: spacing.md,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    catLabel: {
+      flex: 1,
+      fontSize: typography.base,
+      color: c.text,
+    },
+    input: {
+      width: 80,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.sm,
+      padding: spacing.sm,
+      textAlign: "center",
+      fontSize: typography.base,
+      color: c.text,
+      backgroundColor: c.inputBg,
+    },
+    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    fSuccess: { color: c.success },
+    fError: { color: c.error },
+  });
+}
+
 export default function BudgetAllocation({
   data,
   isCompleted: isCompletedProp,
@@ -19,12 +62,15 @@ export default function BudgetAllocation({
   onAttempt,
   onComplete,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const question = data?.question as string | undefined;
   const categories = (data?.categories ?? []) as string[];
   const total = Number(data?.total ?? 0);
 
   const [allocations, setAllocations] = useState<Record<string, string>>(
-    () => Object.fromEntries(categories.map((c) => [c, ""]))
+    () => Object.fromEntries(categories.map((cat) => [cat, ""]))
   );
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
@@ -82,7 +128,7 @@ export default function BudgetAllocation({
               }))
             }
             placeholder="0"
-            placeholderTextColor={colors.textFaint}
+            placeholderTextColor={c.textFaint}
           />
         </View>
       ))}
@@ -110,41 +156,3 @@ export default function BudgetAllocation({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  question: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.md,
-    lineHeight: 24,
-  },
-  totalLabel: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  catLabel: {
-    flex: 1,
-    fontSize: typography.base,
-    color: colors.text,
-  },
-  input: {
-    width: 80,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    textAlign: "center",
-    fontSize: typography.base,
-    color: colors.text,
-  },
-  feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
-  fSuccess: { color: colors.success },
-  fError: { color: colors.error },
-});

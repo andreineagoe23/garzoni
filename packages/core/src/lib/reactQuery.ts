@@ -24,13 +24,22 @@ export const queryKeys = {
   reviewQueue: () => ["reviewQueue"] as const,
   masterySummary: () => ["masterySummary"] as const,
   missions: () => ["missions"] as const,
+  financeFact: () => ["financeFact"] as const,
+  savingsBalance: () => ["savingsBalance"] as const,
+  streakItems: () => ["streakItems"] as const,
   leaderboardGlobal: (timeFilter: string) =>
     ["leaderboardGlobal", timeFilter] as const,
+  leaderboardFriends: () => ["leaderboardFriends"] as const,
+  leaderboardRank: () => ["leaderboardRank"] as const,
+  friendRequestsIncoming: () => ["friendRequestsIncoming"] as const,
+  friendRequestsSent: () => ["friendRequestsSent"] as const,
+  friendsList: () => ["friendsList"] as const,
   exerciseCategories: () => ["exerciseCategories"] as const,
   exerciseDetail: (id: string | number) => ["exercise", id] as const,
   rewardsShop: () => ["rewardsShop"] as const,
   rewardsDonate: () => ["rewardsDonate"] as const,
   questionnaireProgress: () => ["questionnaire-progress"] as const,
+  personalizedPath: () => ["personalizedPath"] as const,
 
   // Other
   courses: (pathId: string | number) => ["courses", pathId] as const,
@@ -40,6 +49,10 @@ export const queryKeys = {
   recentActivity: () => ["recentActivity"] as const,
   userSettings: () => ["userSettings"] as const,
   courseQuiz: (courseId: string | number) => ["courseQuiz", courseId] as const,
+
+  badgesCatalog: () => ["badgesCatalog"] as const,
+  userBadges: () => ["userBadges"] as const,
+  subscriptionPlans: () => ["subscriptionPlans"] as const,
 };
 
 export const staleTimes = {

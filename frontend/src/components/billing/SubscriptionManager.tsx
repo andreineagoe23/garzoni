@@ -1,10 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { GlassButton, GlassCard, Modal } from "components/ui";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
+import {
+  isRevenueCatEnabled,
+  configureRevenueCat,
+  rcRestorePurchases,
+  rcIsEntitled,
+} from "services/revenueCatService";
+import RevenueCatCustomerCenter from "components/billing/RevenueCatCustomerCenter";
 
 type PlanFeature = {
   name?: string;
@@ -40,6 +47,36 @@ const SubscriptionManager = () => {
     "yearly"
   );
   const locale = getLocale();
+
+  // ── RevenueCat ──────────────────────────────────────────────────────────────
+  const rcEnabled = isRevenueCatEnabled();
+  const [rcRestoring, setRcRestoring] = useState(false);
+  const [rcRestoreMsg, setRcRestoreMsg] = useState("");
+
+  const handleRCRestore = useCallback(async () => {
+    if (!isAuthenticated) return;
+    const userId = String(
+      (entitlements as unknown as { userId?: number })?.userId ??
+        "anonymous"
+    );
+    setRcRestoring(true);
+    setRcRestoreMsg("");
+    try {
+      configureRevenueCat(userId);
+      const customerInfo = await rcRestorePurchases();
+      if (rcIsEntitled(customerInfo)) {
+        setRcRestoreMsg("Subscription restored successfully.");
+        await reloadEntitlements?.();
+      } else {
+        setRcRestoreMsg("No active subscription found for this account.");
+      }
+    } catch {
+      setRcRestoreMsg("Restore failed. Please try again or contact support.");
+    } finally {
+      setRcRestoring(false);
+    }
+  }, [isAuthenticated, entitlements, reloadEntitlements]);
+  // ───────────────────────────────────────────────────────────────────────────
 
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (axios.isAxiosError(error)) {
@@ -455,22 +492,59 @@ const SubscriptionManager = () => {
                   : t("billing.cancelSubscription")}
               </GlassButton>
             )}
-            <GlassButton
-              variant="primary"
-              onClick={handleOpenPortal}
-              disabled={isBusy}
-            >
-              {t("billing.manageSubscription")}
-            </GlassButton>
+            {/* RevenueCat Customer Center (when RC SDK is active) */}
+            {rcEnabled ? (
+              <RevenueCatCustomerCenter
+                userId={String(
+                  (entitlements as unknown as { userId?: number })?.userId ??
+                    "anonymous"
+                )}
+                label={t("billing.manageSubscription")}
+                variant="primary"
+                onClose={() => reloadEntitlements?.()}
+              />
+            ) : (
+              <GlassButton
+                variant="primary"
+                onClick={handleOpenPortal}
+                disabled={isBusy}
+              >
+                {t("billing.manageSubscription")}
+              </GlassButton>
+            )}
           </div>
         )}
         {!portalEligible && (
-          <GlassButton
-            variant="primary"
-            onClick={() => window.location.assign("/subscriptions")}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <GlassButton
+              variant="primary"
+              onClick={() => window.location.assign("/subscriptions")}
+            >
+              {t("billing.explorePlans")}
+            </GlassButton>
+            {/* Restore purchases via RevenueCat */}
+            {rcEnabled && (
+              <GlassButton
+                variant="ghost"
+                disabled={rcRestoring}
+                loading={rcRestoring}
+                onClick={() => void handleRCRestore()}
+              >
+                {rcRestoring ? "Restoring…" : "Restore purchases"}
+              </GlassButton>
+            )}
+          </div>
+        )}
+        {rcRestoreMsg && (
+          <p
+            className={`text-sm ${
+              rcRestoreMsg.includes("successfully")
+                ? "text-[color:var(--success,#16a34a)]"
+                : "text-[color:var(--error,#dc2626)]"
+            }`}
           >
-            {t("billing.explorePlans")}
-          </GlassButton>
+            {rcRestoreMsg}
+          </p>
         )}
         {actionError && (
           <p className="text-sm text-[color:var(--error,#dc2626)]">

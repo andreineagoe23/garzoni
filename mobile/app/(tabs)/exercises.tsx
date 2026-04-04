@@ -21,7 +21,10 @@ type ExerciseListItem = { id: number; type?: string; category?: string };
 
 function ExercisesInner() {
   const c = useThemeColors();
-  const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
+  const { category: categoryParam, skill: skillParam } = useLocalSearchParams<{
+    category?: string;
+    skill?: string;
+  }>();
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [pickedId, setPickedId] = useState<number | null>(null);
 
@@ -29,13 +32,21 @@ function ExercisesInner() {
     if (categoryParam) setCategory(categoryParam);
   }, [categoryParam]);
 
-  const initialCategory = categoryParam ?? category;
   const categoriesQuery = useQuery({
     queryKey: queryKeys.exerciseCategories(),
     queryFn: () => fetchExerciseCategories().then((r) => r.data as string[]),
     staleTime: staleTimes.content,
   });
 
+  useEffect(() => {
+    if (!skillParam || categoryParam) return;
+    const decoded = decodeURIComponent(skillParam);
+    const cats = categoriesQuery.data ?? [];
+    const exact = cats.find((x) => x.toLowerCase() === decoded.toLowerCase());
+    setCategory(exact ?? decoded);
+  }, [skillParam, categoryParam, categoriesQuery.data]);
+
+  const initialCategory = categoryParam ?? category;
   const listQuery = useQuery({
     queryKey: [...queryKeys.exercises(), initialCategory ?? "all"],
     queryFn: () =>

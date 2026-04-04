@@ -22,7 +22,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
           <GlassButton
             variant="active"
             size="md"
-            onPress={() => router.push(`/course/${resume.course_id}`)}
+            onPress={() => router.push(`/flow/${resume.course_id}`)}
           >
             Resume course
           </GlassButton>
@@ -41,7 +41,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
           <GlassButton
             variant="active"
             size="md"
-            onPress={() => router.push(`/course/${startHere.course_id}`)}
+            onPress={() => router.push(`/flow/${startHere.course_id}`)}
           >
             Begin
           </GlassButton>

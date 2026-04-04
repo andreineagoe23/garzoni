@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -7,7 +7,8 @@ import {
   type ViewStyle,
   type TextStyle,
 } from "react-native";
-import { colors, radius, spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -22,24 +23,6 @@ type ButtonProps = {
   style?: ViewStyle;
 };
 
-const bgColor: Record<Variant, string> = {
-  primary: colors.primary,
-  secondary: colors.surface,
-  ghost: "transparent",
-  danger: colors.error,
-};
-const textColor: Record<Variant, string> = {
-  primary: colors.white,
-  secondary: colors.text,
-  ghost: colors.primary,
-  danger: colors.white,
-};
-const borderColor: Record<Variant, string> = {
-  primary: colors.primary,
-  secondary: colors.border,
-  ghost: "transparent",
-  danger: colors.error,
-};
 const heights: Record<Size, number> = { sm: 36, md: 48, lg: 56 };
 const fontSizes: Record<Size, number> = {
   sm: typography.sm,
@@ -56,17 +39,40 @@ export default function Button({
   onPress,
   style,
 }: ButtonProps) {
+  const c = useThemeColors();
   const isDisabled = disabled || loading;
 
+  const theme = useMemo(() => {
+    const bg: Record<Variant, string> = {
+      primary: c.primary,
+      secondary: c.surfaceElevated,
+      ghost: "transparent",
+      danger: c.error,
+    };
+    const fg: Record<Variant, string> = {
+      primary: c.textOnPrimary,
+      secondary: c.text,
+      ghost: c.accent,
+      danger: c.white,
+    };
+    const border: Record<Variant, string> = {
+      primary: c.primary,
+      secondary: c.border,
+      ghost: "transparent",
+      danger: c.error,
+    };
+    return { bg, fg, border };
+  }, [c]);
+
   const containerStyle: ViewStyle = {
-    backgroundColor: bgColor[variant],
-    borderColor: borderColor[variant],
+    backgroundColor: theme.bg[variant],
+    borderColor: theme.border[variant],
     height: heights[size],
     opacity: isDisabled ? 0.5 : 1,
   };
 
   const labelStyle: TextStyle = {
-    color: textColor[variant],
+    color: theme.fg[variant],
     fontSize: fontSizes[size],
   };
 
@@ -82,7 +88,7 @@ export default function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={textColor[variant]} size="small" />
+        <ActivityIndicator color={theme.fg[variant]} size="small" />
       ) : (
         <Text style={[styles.label, labelStyle]}>{children}</Text>
       )}
