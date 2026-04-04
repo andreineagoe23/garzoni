@@ -1,4 +1,4 @@
-import { selectPrimaryCTA } from "./primaryCtaSelector";
+import { selectPrimaryCTA } from "@monevo/core";
 
 describe("selectPrimaryCTA", () => {
   it("prefers reviews when any are due", () => {

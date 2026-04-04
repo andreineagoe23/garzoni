@@ -26,6 +26,8 @@ function manualChunks(id: string): string | undefined {
   if (id.includes("html2canvas")) return "vendor-html2canvas";
   if (id.includes("recharts")) return "vendor-charts";
   if (id.includes("framer-motion")) return "vendor-motion";
+  if (id.includes("@revenuecat/purchases-js") || id.includes("revenuecat"))
+    return "vendor-revenuecat";
   if (id.includes("react-router")) return "vendor-react";
   if (id.includes("react-dom")) return "vendor-react";
   if (id.includes("/node_modules/react/")) return "vendor-react";

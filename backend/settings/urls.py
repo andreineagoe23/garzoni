@@ -14,11 +14,14 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from django.views.static import serve as static_serve
-from core.views import root_view, robots_txt_view, serve_mascot_media
+from core.views import root_view, robots_txt_view, serve_mascot_media, apple_app_site_association
 
 urlpatterns = [
     path("", root_view),
     path("robots.txt", robots_txt_view),
+    # Universal Links: iOS fetches this to verify the app can handle monevo.tech URLs.
+    # Must be served WITHOUT authentication or trailing-slash redirects.
+    path(".well-known/apple-app-site-association", apple_app_site_association),
     path("admin/", admin.site.urls),
     # Add a direct route for token refresh to avoid cookie path issues
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh-direct"),

@@ -1,5 +1,10 @@
 import apiClient from "./httpClient";
-import type { ProgressSummary, UserProfile, MissionBuckets } from "types/api";
+import type {
+  ProgressSummary,
+  UserProfile,
+  MissionBuckets,
+  PersonalizedPathResponse,
+} from "types/api";
 
 export const fetchProfile = () => apiClient.get<UserProfile>("/userprofile/");
 
@@ -63,11 +68,55 @@ export const fetchLeaderboardFriends = () =>
 export const fetchLeaderboardRank = () =>
   apiClient.get<LeaderboardEntry>("/leaderboard/rank/");
 
+/** Incoming pending requests for the current user (receiver). */
+export type FriendRequestIncoming = {
+  id: number;
+  sender: { id: number; username: string };
+  receiver: { id: number; username: string };
+  status?: string;
+  created_at?: string;
+};
+
+/** Any request the user sent (all statuses); used for pending-by-receiver checks. */
+export type FriendRequestSent = {
+  id: number;
+  sender?: { id: number; username: string };
+  receiver: { id: number; username: string };
+  status?: string;
+};
+
+export type FriendUserBrief = { id: number; username: string };
+
+export const fetchIncomingFriendRequests = () =>
+  apiClient.get<FriendRequestIncoming[]>("/friend-requests/");
+
+export const fetchSentFriendRequests = () =>
+  apiClient.get<FriendRequestSent[]>("/friend-requests/get_sent_requests/");
+
+export const fetchFriendsList = () =>
+  apiClient.get<FriendUserBrief[]>("/friend-requests/get_friends/");
+
+export const sendFriendRequest = (receiverId: number) =>
+  apiClient.post<{ message?: string }>("/friend-requests/", {
+    receiver: receiverId,
+  });
+
+export const respondToFriendRequest = (
+  requestId: number,
+  action: "accept" | "reject"
+) =>
+  apiClient.put<{ message?: string }>(`/friend-requests/${requestId}/`, {
+    action,
+  });
+
 export const fetchRewardsShop = () => apiClient.get("/rewards/shop/");
 export const fetchRewardsDonate = () => apiClient.get("/rewards/donate/");
 
 export const postSubscriptionPortal = () =>
   apiClient.post<{ url?: string }>("/subscriptions/portal/", {});
+
+export const postSubscriptionSync = () =>
+  apiClient.post<{ ok: boolean }>("/subscriptions/sync/", {});
 
 export const postSubscriptionCheckout = (body: {
   plan_id: string;
@@ -76,6 +125,24 @@ export const postSubscriptionCheckout = (body: {
 
 export const fetchSubscriptionPlans = () =>
   apiClient.get<{ plans?: unknown[] }>("/plans/");
+
+export type BadgeCatalogItem = {
+  id: number;
+  name: string;
+  description?: string;
+  image_url: string;
+};
+
+export type UserBadgeItem = {
+  earned_at: string;
+  badge: { id: number };
+};
+
+export const fetchBadges = () =>
+  apiClient.get<BadgeCatalogItem[]>("/badges/");
+
+export const fetchUserBadges = () =>
+  apiClient.get<UserBadgeItem[]>("/user-badges/");
 
 export type SupportEntry = {
   id: number;
@@ -127,12 +194,49 @@ export const fetchReviewQueue = () => apiClient.get("/review-queue/");
 
 export const fetchMasterySummary = () => apiClient.get("/mastery-summary/");
 
+export const fetchPersonalizedPath = () =>
+  apiClient.get<PersonalizedPathResponse>("/personalized-path/");
+
+export const postPersonalizedPathRefresh = () =>
+  apiClient.post("/personalized-path/refresh/");
+
 export const fetchMissions = () => apiClient.get<MissionBuckets>("/missions/");
 
 export type FinanceFact = { id: number; text: string; category?: string };
 
-export const fetchFinanceFact = () =>
-  apiClient.get<FinanceFact>("/finance-fact/");
+/** GET random unread fact; 204 means none available — resolves without throwing. */
+export const fetchFinanceFact = async (): Promise<{ data: FinanceFact | null }> => {
+  const res = await apiClient.get<FinanceFact>("/finance-fact/", {
+    validateStatus: (s) => s === 200 || s === 204,
+  });
+  if (res.status === 204) return { data: null };
+  return { data: res.data ?? null };
+};
+
+export const markFinanceFactRead = (factId: number) =>
+  apiClient.post<{ message?: string }>("/finance-fact/", { fact_id: factId });
+
+export const fetchSavingsBalance = () =>
+  apiClient.get<{ balance: number }>("/savings-account/");
+
+export const postSavingsDeposit = (amount: number) =>
+  apiClient.post<{ message?: string; balance: number }>("/savings-account/", {
+    amount,
+  });
+
+export type StreakItemDto = {
+  type: string;
+  quantity: number;
+  expires_at?: string | null;
+};
+
+export const fetchStreakItems = () =>
+  apiClient.get<{ items: StreakItemDto[] }>("/streak-items/");
+
+export const swapMission = (missionId: number) =>
+  apiClient.post<{ message?: string }>("/missions/swap/", {
+    mission_id: missionId,
+  });
 
 // Hearts (lives) system
 export const fetchHearts = () => apiClient.get("/user/hearts/");

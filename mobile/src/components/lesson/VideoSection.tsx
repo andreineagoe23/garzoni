@@ -2,7 +2,9 @@ import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { ResizeMode, Video } from "expo-av";
 import YoutubePlayer from "react-native-youtube-iframe";
-import { colors, spacing, typography } from "../../theme/tokens";
+import { spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 function youtubeIdFromUrl(url: string): string | null {
   const m = url.match(
@@ -16,7 +18,29 @@ type Props = {
   title?: string;
 };
 
+function createVideoStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    wrap: { marginBottom: spacing.md },
+    title: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: spacing.sm,
+    },
+    box: {
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: c.black,
+      alignSelf: "center",
+    },
+    muted: { color: c.textMuted, fontSize: typography.sm },
+    err: { color: c.error, marginTop: spacing.sm, fontSize: typography.sm },
+  });
+}
+
 export default function VideoSection({ url, title }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createVideoStyles(c), [c]);
   const { width } = useWindowDimensions();
   const w = width - spacing.xl * 2;
   const h = Math.round((w * 9) / 16);
@@ -48,21 +72,3 @@ export default function VideoSection({ url, title }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { marginBottom: spacing.md },
-  title: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  box: {
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: colors.black,
-    alignSelf: "center",
-  },
-  muted: { color: colors.textMuted, fontSize: typography.sm },
-  err: { color: colors.error, marginTop: spacing.sm, fontSize: typography.sm },
-});

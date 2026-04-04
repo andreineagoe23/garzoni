@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
 import { safeNotificationAsync } from "../../utils/safeHaptics";
 import { Card, Button } from "../ui";
-import { colors, spacing, typography, radius } from "../../theme/tokens";
+import { spacing, typography, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 type Props = {
   data: Record<string, unknown>;
@@ -14,14 +16,63 @@ type Props = {
   onComplete?: () => Promise<void> | void;
 };
 
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    question: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      marginBottom: spacing.lg,
+      lineHeight: 24,
+    },
+    options: { gap: spacing.sm },
+    option: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      backgroundColor: c.surface,
+    },
+    optionSelected: {
+      borderColor: c.accent,
+      backgroundColor: c.surfaceElevated,
+    },
+    optionCorrect: {
+      borderColor: c.success,
+      backgroundColor: c.successBg,
+    },
+    optionWrong: {
+      borderColor: c.error,
+      backgroundColor: c.errorBg,
+    },
+    optionText: { fontSize: typography.base, color: c.text },
+    optionTextSelected: { fontWeight: "600" },
+    feedback: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      marginTop: spacing.md,
+    },
+    feedbackSuccess: { color: c.success },
+    feedbackError: { color: c.error },
+    explanation: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginTop: spacing.sm,
+      lineHeight: 20,
+    },
+  });
+}
+
 export default function MultipleChoice({
   data,
-  exerciseId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
   onComplete,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const question = data?.question as string | undefined;
   const options = (data?.options ?? []) as string[];
   const correctAnswer = data?.correctAnswer as number | undefined;
@@ -118,47 +169,3 @@ export default function MultipleChoice({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  question: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.lg,
-    lineHeight: 24,
-  },
-  options: { gap: spacing.sm },
-  option: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  optionSelected: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}10`,
-  },
-  optionCorrect: {
-    borderColor: colors.success,
-    backgroundColor: colors.successBg,
-  },
-  optionWrong: {
-    borderColor: colors.error,
-    backgroundColor: colors.errorBg,
-  },
-  optionText: { fontSize: typography.base, color: colors.text },
-  optionTextSelected: { fontWeight: "600" },
-  feedback: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    marginTop: spacing.md,
-  },
-  feedbackSuccess: { color: colors.success },
-  feedbackError: { color: colors.error },
-  explanation: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
-});

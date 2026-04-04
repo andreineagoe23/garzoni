@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, spacing, typography } from "../../theme/tokens";
+import { spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
 
 type HeartBarProps = {
   hearts: number;
@@ -8,11 +9,9 @@ type HeartBarProps = {
   countdownLabel?: string | null;
 };
 
-function HeartIcon({ filled }: { filled: boolean }) {
+function HeartIcon({ filled, heart, heartEmpty }: { filled: boolean; heart: string; heartEmpty: string }) {
   return (
-    <Text style={[styles.heart, { color: filled ? colors.heart : colors.heartEmpty }]}>
-      ♥
-    </Text>
+    <Text style={[styles.heart, { color: filled ? heart : heartEmpty }]}>♥</Text>
   );
 }
 
@@ -21,13 +20,20 @@ export default function HeartBar({
   maxHearts,
   countdownLabel,
 }: HeartBarProps) {
+  const c = useThemeColors();
+
   return (
     <View style={styles.row}>
       {Array.from({ length: maxHearts }, (_, i) => (
-        <HeartIcon key={i} filled={i < hearts} />
+        <HeartIcon
+          key={i}
+          filled={i < hearts}
+          heart={c.heart}
+          heartEmpty={c.heartEmpty}
+        />
       ))}
       {countdownLabel ? (
-        <Text style={styles.countdown}>{countdownLabel}</Text>
+        <Text style={[styles.countdown, { color: c.textMuted }]}>{countdownLabel}</Text>
       ) : null}
     </View>
   );
@@ -38,7 +44,6 @@ const styles = StyleSheet.create({
   heart: { fontSize: typography.lg },
   countdown: {
     fontSize: typography.xs,
-    color: colors.textMuted,
     marginLeft: spacing.sm,
   },
 });

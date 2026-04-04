@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card, Button } from "../ui";
-import { colors, spacing, typography, radius } from "../../theme/tokens";
+import { spacing, typography, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 type Choice = { id: string | number; label: string };
 
@@ -14,6 +16,47 @@ type Props = {
   onComplete?: () => Promise<void> | void;
 };
 
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    scenario: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      lineHeight: 22,
+      marginBottom: spacing.md,
+    },
+    question: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      lineHeight: 24,
+      marginBottom: spacing.lg,
+    },
+    choices: { gap: spacing.sm },
+    choice: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      backgroundColor: c.surface,
+    },
+    choiceSelected: {
+      borderColor: c.accent,
+      backgroundColor: c.surfaceElevated,
+    },
+    choiceText: { fontSize: typography.base, color: c.text },
+    choiceTextSel: { fontWeight: "600" },
+    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    fOk: { color: c.success },
+    fErr: { color: c.error },
+    explanation: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginTop: spacing.sm,
+      lineHeight: 20,
+    },
+  });
+}
+
 export default function ScenarioSimulation({
   data,
   isCompleted: isCompletedProp,
@@ -21,6 +64,9 @@ export default function ScenarioSimulation({
   onAttempt,
   onComplete,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const scenario = data?.scenario as string | undefined;
   const question = data?.question as string | undefined;
   const choices = (data?.choices ?? data?.options ?? []) as Choice[];
@@ -60,21 +106,21 @@ export default function ScenarioSimulation({
       <Text style={styles.question}>{question}</Text>
 
       <View style={styles.choices}>
-        {choices.map((c) => {
-          const isSel = selected === c.id;
+        {choices.map((ch) => {
+          const isSel = selected === ch.id;
           return (
             <Pressable
-              key={c.id}
+              key={ch.id}
               disabled={isCompleted || disabled}
               onPress={() => {
-                setSelected(c.id);
+                setSelected(ch.id);
                 setFeedback("");
                 setFeedbackType(null);
               }}
               style={[styles.choice, isSel && styles.choiceSelected]}
             >
               <Text style={[styles.choiceText, isSel && styles.choiceTextSel]}>
-                {c.label}
+                {ch.label}
               </Text>
             </Pressable>
           );
@@ -104,41 +150,3 @@ export default function ScenarioSimulation({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  scenario: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    lineHeight: 22,
-    marginBottom: spacing.md,
-  },
-  question: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    lineHeight: 24,
-    marginBottom: spacing.lg,
-  },
-  choices: { gap: spacing.sm },
-  choice: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  choiceSelected: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}10`,
-  },
-  choiceText: { fontSize: typography.base, color: colors.text },
-  choiceTextSel: { fontWeight: "600" },
-  feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
-  fOk: { color: colors.success },
-  fErr: { color: colors.error },
-  explanation: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
-});

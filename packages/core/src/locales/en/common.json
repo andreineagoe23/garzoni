@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "Dashboard",
+    "learn": "Learn",
     "exercises": "Exercises",
     "tools": "Tools",
     "missions": "Missions",
@@ -94,6 +95,7 @@
       "quickPracticeSubtitle": "We'll suggest the best practice area for you right now.",
       "focusOnSkills": "Focus on these skills to boost your overall mastery",
       "lowMasteryIn": "Low mastery in {{skill}}",
+      "lowMasteryLead": "Low mastery in",
       "practice": "Practice",
       "practiceSkillAria": "Practice {{skill}} skill",
       "practiceRecommendationAria": "Practice {{skill}} to improve this recommendation",
@@ -243,7 +245,24 @@
       "ai_tutor": "AI tutor",
       "personalized_path": "Personalized path"
     },
-    "notAvailable": "Not available"
+    "notAvailable": "Not available",
+    "purchaseSuccessTitle": "Success",
+    "purchaseSuccessBody": "Your subscription is now active.",
+    "subscriptionsLegalIos": "Subscriptions renew automatically. Cancel anytime in your Apple ID settings. Payment is charged to your Apple ID account at purchase confirmation.",
+    "openCustomerPortal": "Manage billing (web)",
+    "manageInAppStore": "Apple subscription settings",
+    "restorePurchases": "Restore purchases",
+    "purchaseError": "Purchase could not be completed. Please try again.",
+    "explorePlansMobile": "Compare plans",
+    "stripePortalFallback": "Open the customer portal in your browser to update payment method or cancel.",
+    "noNativePlansHint": "Compare available plans or subscribe using your Apple ID when in-app purchases are enabled.",
+    "restoreSuccessTitle": "Restored",
+    "restoreSuccessBody": "Your purchases have been restored.",
+    "restoreFailed": "Could not restore purchases. Please try again."
+  },
+  "learn": {
+    "lockedPathNeedsPlan": "This path needs a higher plan. View plans to unlock courses.",
+    "viewPlans": "View plans →"
   },
   "allTopics": {
     "loading": "Loading learning paths...",
@@ -271,7 +290,13 @@
     "hideCourses": "Hide Courses",
     "viewCourses": "View Courses",
     "upgradeTo": "Upgrade to {{plan}}",
-    "coursesIn": "Courses in {{title}}"
+    "coursesIn": "Courses in {{title}}",
+    "coursesFilterLabel": "Courses (expanded path)",
+    "coursesFilter": {
+      "all": "All",
+      "inProgress": "In progress",
+      "completed": "Completed"
+    }
   },
   "personalizedPath": {
     "errorTitle": "Error Loading Recommendations",
@@ -774,7 +799,8 @@
     "facts": {
       "markRead": "✓ Mark as Read",
       "empty": "No new financial facts available right now - check back soon!",
-      "tryAgain": "↻ Try Again"
+      "tryAgain": "↻ Try Again",
+      "loading": "Loading fact…"
     },
     "errors": {
       "refreshLesson": "Failed to refresh lesson mission.",
@@ -1026,6 +1052,17 @@
     },
     "fallbackUser": "User",
     "loading": "Loading profile...",
+    "couldNotLoad": "Could not load profile.",
+    "menuSection": "Menu",
+    "quickTogglesSection": "Quick toggles",
+    "heartsUi": "Show hearts bar (UI)",
+    "pushNotifications": "Push notifications",
+    "deleteConfirmTitle": "Delete account",
+    "deleteConfirmBody": "This permanently removes your account and progress. Continue?",
+    "deleteError": "Could not delete account.",
+    "deleteAction": "Delete",
+    "notificationsTitle": "Notifications",
+    "plansMenu": "Plans & pricing",
     "avatarAlt": "Avatar",
     "actions": {
       "personalizedPath": "Jump to Personalized Path",
@@ -1040,11 +1077,14 @@
       "subtitle": "Share your link—when a friend completes their first learning path, you’ll both get 40% off Plus by email.",
       "linkLabel": "Your unique referral link",
       "copied": "Copied!",
+      "shared": "Link shared",
       "copyLink": "Copy Link",
+      "shareLink": "Share link",
       "linkAria": "Referral link"
     },
     "stats": {
       "title": "Statistics",
+      "lessonsShort": "Lessons",
       "balance": "Balance",
       "points": "Points",
       "streak": "Streak",

@@ -8,6 +8,9 @@ export const routes = {
   login: () => router.replace("/(auth)/login"),
   register: () => router.push("/(auth)/register"),
   forgotPassword: () => router.push("/(auth)/forgot-password"),
-  lesson: (id: number | string) => router.push(`/lesson/${id}`),
-  course: (id: number | string) => router.push(`/course/${id}`),
+  lesson: (id: number | string, courseId?: number | string) =>
+    courseId != null && String(courseId) !== ""
+      ? router.push(`/lesson/${id}?courseId=${courseId}`)
+      : router.push(`/lesson/${id}`),
+  course: (id: number | string) => router.push(`/flow/${id}`),
 } as const;

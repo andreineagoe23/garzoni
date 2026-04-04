@@ -126,6 +126,7 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = [
             "id",
+            "course",
             "title",
             "short_description",
             "detailed_content",

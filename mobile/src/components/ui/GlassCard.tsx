@@ -17,6 +17,8 @@ type GlassCardProps = {
   style?: StyleProp<ViewStyle>;
   /** Blur intensity (iOS/Android where supported) */
   intensity?: number;
+  /** When the card uses flex:1 (e.g. equal-height dashboard tiles), stretch inner content vertically. */
+  fillContent?: boolean;
 };
 
 const paddingMap: Record<GlassCardPadding, number> = {
@@ -35,6 +37,7 @@ export default function GlassCard({
   padding = "md",
   style,
   intensity = 48,
+  fillContent = false,
 }: GlassCardProps) {
   const { resolved, colors } = useTheme();
   const p = paddingMap[padding];
@@ -61,7 +64,13 @@ export default function GlassCard({
         tint={tint}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[styles.inner, { padding: p, backgroundColor: overlay }]}>
+      <View
+        style={[
+          styles.inner,
+          fillContent && styles.innerFill,
+          { padding: p, backgroundColor: overlay },
+        ]}
+      >
         {children}
       </View>
     </View>
@@ -71,4 +80,5 @@ export default function GlassCard({
 const styles = StyleSheet.create({
   outer: { position: "relative" },
   inner: { position: "relative", zIndex: 1 },
+  innerFill: { flex: 1, minHeight: 0 },
 });

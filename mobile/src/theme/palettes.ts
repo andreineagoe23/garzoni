@@ -72,7 +72,8 @@ export const darkPalette: ThemeColors = {
   text: "#e0e0e0",
   textMuted: "rgba(224, 224, 224, 0.7)",
   textFaint: "rgba(224, 224, 224, 0.45)",
-  textOnPrimary: "#ffd700",
+  /** Light label on primary-filled controls (green button) — white reads better than gold on dark green */
+  textOnPrimary: "#ffffff",
   error: "#d32f2f",
   errorBg: "rgba(211, 47, 47, 0.12)",
   success: "#2e7d32",

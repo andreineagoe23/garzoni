@@ -1,9 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Image, StyleSheet, Text, View, type ViewStyle } from "react-native";
 import { colors, radius, typography } from "../../theme/tokens";
 
 type AvatarProps = {
   username?: string;
+  /** Full URL for profile image; when set, shown instead of initials. */
+  uri?: string | null;
   size?: number;
   style?: ViewStyle;
 };
@@ -17,14 +19,23 @@ function initials(name?: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function Avatar({ username, size = 48, style }: AvatarProps) {
+export default function Avatar({ username, uri, size = 48, style }: AvatarProps) {
   const fontSize = size * 0.38;
+  const r = size / 2;
+
+  if (uri) {
+    return (
+      <View style={[{ width: size, height: size, borderRadius: r, overflow: "hidden" }, style]}>
+        <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors />
+      </View>
+    );
+  }
 
   return (
     <View
       style={[
         styles.circle,
-        { width: size, height: size, borderRadius: size / 2 },
+        { width: size, height: size, borderRadius: r },
         style,
       ]}
     >
