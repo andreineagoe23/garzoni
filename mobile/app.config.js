@@ -28,6 +28,24 @@ const googleIosUrlScheme =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME?.trim() ||
   googleIosReversedUrlScheme(normalizedGoogleIosClientId);
 
+/** Only register the config plugin when scheme is set (EAS cloud has no local .env unless you add EAS env). */
+const googleSignInPlugin = googleIosUrlScheme
+  ? [
+      "@react-native-google-signin/google-signin",
+      {
+        iosUrlScheme: googleIosUrlScheme,
+      },
+    ]
+  : null;
+
+if (!googleIosUrlScheme && process.env.EAS_BUILD === "true") {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[app.config] Google Sign-In iOS URL scheme missing. Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID or " +
+      "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME in EAS project secrets (or eas.json env) to enable native Google login on iOS.",
+  );
+}
+
 function preferHttpsForRailway(url) {
   const t = (url || "").trim();
   try {
@@ -63,13 +81,7 @@ module.exports = ({ config }) => ({
     "expo-secure-store",
     "expo-font",
     "expo-apple-authentication",
-    [
-      "@react-native-google-signin/google-signin",
-      {
-        // REVERSED_CLIENT_ID; set EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME or we derive it from EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID.
-        iosUrlScheme: googleIosUrlScheme || "",
-      },
-    ],
+    ...(googleSignInPlugin ? [googleSignInPlugin] : []),
     [
       "expo-notifications",
       {

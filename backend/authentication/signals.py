@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -49,10 +49,10 @@ def create_user_profile(sender, instance, created, **kwargs):
         # unavailable, log a warning but do NOT let it crash the registration response.
         try:
             send_welcome_email.delay(instance.id)
-        except Exception as exc:
+        except Exception:
             logger.warning(
                 "send_welcome_email task dispatch failed for user_id=%s — "
-                "broker may be unavailable: %s",
+                "broker may be unavailable (Redis, Celery).",
                 instance.id,
-                exc,
+                exc_info=True,
             )
