@@ -5,7 +5,23 @@ import { getStorageAdapter, storageGet } from "./storageAdapter";
 // This store is UI-only. Do NOT put server-derived balances/counts here (e.g. heartsCount).
 // Server truth lives in React Query (queryKeys.hearts()).
 
-const STORAGE_KEY = "monevo:hearts:outOfHeartsUntilTs";
+/** Colons are invalid for Expo SecureStore keys (only [A-Za-z0-9._-]). */
+const STORAGE_KEY = "monevo.hearts.outOfHeartsUntilTs";
+const LEGACY_HEARTS_STORAGE_KEY = "monevo:hearts:outOfHeartsUntilTs";
+
+function migrateLegacyHeartsLocalStorage(): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    const legacy = localStorage.getItem(LEGACY_HEARTS_STORAGE_KEY);
+    if (legacy == null) return;
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+    }
+    localStorage.removeItem(LEGACY_HEARTS_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 type HeartsStoreState = {
   isOutOfHeartsModalOpen: boolean;
@@ -87,6 +103,7 @@ export function initHeartsTabSync() {
   if (didInitTabSync) return;
   didInitTabSync = true;
 
+  migrateLegacyHeartsLocalStorage();
   void storageGet(STORAGE_KEY).then((raw) => {
     const next = parseTs(raw);
     if (next != null) {

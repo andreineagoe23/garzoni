@@ -1,6 +1,5 @@
 import React, { type ReactNode } from "react";
 import {
-  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -16,7 +15,7 @@ type GlassCardProps = {
   children: ReactNode;
   padding?: GlassCardPadding;
   style?: StyleProp<ViewStyle>;
-  /** iOS blur intensity */
+  /** Blur intensity (iOS/Android where supported) */
   intensity?: number;
 };
 
@@ -29,72 +28,42 @@ const paddingMap: Record<GlassCardPadding, number> = {
 };
 
 /**
- * Translucent surface with blur on iOS; solid themed fallback on Android.
+ * Frosted glass surface (blur + translucent fill), aligned with web GlassCard.
  */
 export default function GlassCard({
   children,
   padding = "md",
   style,
-  intensity = 40,
+  intensity = 48,
 }: GlassCardProps) {
   const { resolved, colors } = useTheme();
   const p = paddingMap[padding];
   const borderColor = colors.glassBorder;
-  const bgFallback = colors.glassFill;
-
-  if (Platform.OS === "ios") {
-    return (
-      <View
-        style={[
-          styles.outer,
-          {
-            borderColor,
-            borderRadius: radius.xl,
-            overflow: "hidden",
-          },
-          shadows.md,
-          style,
-        ]}
-      >
-        <BlurView
-          intensity={intensity}
-          tint={resolved === "dark" ? "dark" : "light"}
-          style={StyleSheet.absoluteFill}
-        />
-        <View
-          style={[
-            styles.inner,
-            {
-              padding: p,
-              backgroundColor:
-                resolved === "dark"
-                  ? "rgba(30,30,30,0.75)"
-                  : "rgba(255,255,255,0.65)",
-            },
-          ]}
-        >
-          {children}
-        </View>
-      </View>
-    );
-  }
+  const tint = resolved === "dark" ? "dark" : "light";
+  const overlay =
+    resolved === "dark" ? "rgba(30,30,30,0.78)" : "rgba(255,255,255,0.72)";
 
   return (
     <View
       style={[
         styles.outer,
         {
-          borderRadius: radius.xl,
-          borderWidth: StyleSheet.hairlineWidth,
           borderColor,
-          backgroundColor: bgFallback,
-          padding: p,
+          borderRadius: radius.xl,
+          overflow: "hidden",
         },
         shadows.md,
         style,
       ]}
     >
-      {children}
+      <BlurView
+        intensity={intensity}
+        tint={tint}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.inner, { padding: p, backgroundColor: overlay }]}>
+        {children}
+      </View>
     </View>
   );
 }

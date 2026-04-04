@@ -48,6 +48,7 @@ export default function WeakSkillsCard() {
       </Text>
       <ScrollView
         horizontal
+        nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ marginTop: spacing.md, gap: spacing.sm }}
       >
