@@ -1,0 +1,2 @@
+# Husky/sh hooks must use LF or macOS /bin/sh treats `set -e` as invalid (CRLF).
+.husky/** text eol=lf
