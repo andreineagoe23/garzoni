@@ -1,11 +1,9 @@
-import * as Device from "expo-device";
 import * as Haptics from "expo-haptics";
 
-/** Skips on simulator to avoid native haptic noise; keyboard haptics are still a Simulator quirk. */
+/** Haptics with errors swallowed (simulator / missing native support). */
 export async function safeImpactAsync(
   style: Haptics.ImpactFeedbackStyle,
 ): Promise<void> {
-  if (!Device.isDevice) return;
   try {
     await Haptics.impactAsync(style);
   } catch {
@@ -16,7 +14,6 @@ export async function safeImpactAsync(
 export async function safeNotificationAsync(
   type: Haptics.NotificationFeedbackType,
 ): Promise<void> {
-  if (!Device.isDevice) return;
   try {
     await Haptics.notificationAsync(type);
   } catch {

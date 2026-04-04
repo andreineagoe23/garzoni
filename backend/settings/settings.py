@@ -480,6 +480,17 @@ if not DEBUG and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
         "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
     )
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = int(os.getenv("CELERY_BROKER_CONNECTION_MAX_RETRIES", "3"))
+# Railway Redis proxy often resets idle TCP connections (Errno 104). Smaller pool + redis
+# transport limits reduce stale pooled connections. Override via env if needed.
+if CELERY_BROKER_URL and (
+    CELERY_BROKER_URL.startswith("redis://") or CELERY_BROKER_URL.startswith("rediss://")
+):
+    CELERY_BROKER_POOL_LIMIT = int(os.getenv("CELERY_BROKER_POOL_LIMIT", "1"))
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        "max_connections": int(os.getenv("CELERY_REDIS_MAX_CONNECTIONS", "2")),
+        "retry_on_timeout": True,
+    }
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
