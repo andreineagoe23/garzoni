@@ -87,6 +87,8 @@ def clear_refresh_cookie(response):
 
 def _recaptcha_required():
     """True if any reCAPTCHA backend is configured (Enterprise or legacy v3)."""
+    if getattr(settings, "RECAPTCHA_DISABLED", False):
+        return False
     if (
         getattr(settings, "RECAPTCHA_SITE_KEY", "").strip()
         and getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
@@ -142,6 +144,13 @@ def verify_recaptcha_enterprise(token, expected_action, request):
                 url,
                 resp.text[:800],
             )
+            if resp.status_code == 403:
+                logger.warning(
+                    "reCAPTCHA Enterprise 403: use Google Cloud **project ID** in "
+                    "RECAPTCHA_ENTERPRISE_PROJECT_ID (not a site key or internal id); "
+                    "ensure the API key allows recaptchaenterprise.googleapis.com. "
+                    "Local bypass: RECAPTCHA_DISABLED=1 in backend/.env."
+                )
             return False
         body = resp.json()
         token_props = body.get("tokenProperties") or {}

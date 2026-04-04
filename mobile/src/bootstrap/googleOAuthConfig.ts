@@ -1,5 +1,14 @@
 import Constants from "expo-constants";
 
+/** Google Cloud often shows the prefix only; the SDK needs `*.apps.googleusercontent.com`. */
+function normalizeGoogleIosClientId(raw: string): string {
+  const t = raw.trim();
+  if (!t) return "";
+  if (t.includes(".apps.googleusercontent.com")) return t;
+  if (/^\d+-[a-zA-Z0-9]+$/.test(t)) return `${t}.apps.googleusercontent.com`;
+  return t;
+}
+
 function readExtraRecord(): Record<string, unknown> {
   return (Constants.expoConfig?.extra ??
     (Constants as { manifest2?: { extra?: Record<string, unknown> } }).manifest2?.extra ??
@@ -17,8 +26,8 @@ export function getGoogleWebClientId(): string {
 /** iOS OAuth client ID from Google Cloud Console (iOS application type). */
 export function getGoogleIosClientId(): string {
   const ex = readExtraRecord().googleIosClientId;
-  if (typeof ex === "string" && ex.trim()) return ex.trim();
-  return process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim() ?? "";
+  if (typeof ex === "string" && ex.trim()) return normalizeGoogleIosClientId(ex);
+  return normalizeGoogleIosClientId(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "");
 }
 
 export function isGoogleSignInConfigured(): boolean {

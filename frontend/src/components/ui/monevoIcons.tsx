@@ -29,6 +29,8 @@ import {
   FaInbox,
   FaWandMagicSparkles,
   FaVolumeHigh,
+  FaBars,
+  FaXmark,
 } from "react-icons/fa6";
 
 export type MonevoIconName =
@@ -60,7 +62,9 @@ export type MonevoIconName =
   | "download"
   | "check"
   | "volume"
-  | "inbox";
+  | "inbox"
+  | "bars"
+  | "xmark";
 
 const ICONS = {
   target: FaBullseye,
@@ -92,6 +96,8 @@ const ICONS = {
   check: FaCheck,
   inbox: FaInbox,
   volume: FaVolumeHigh,
+  bars: FaBars,
+  xmark: FaXmark,
 } as unknown as Record<MonevoIconName, React.ComponentType<any>>;
 
 const EMOJI_TO_ICON_NAME: Partial<Record<string, MonevoIconName>> = {

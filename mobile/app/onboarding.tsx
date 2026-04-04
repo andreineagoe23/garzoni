@@ -13,7 +13,8 @@ import {
   View,
 } from "react-native";
 import { router, Stack } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { ImpactFeedbackStyle, NotificationFeedbackType } from "expo-haptics";
+import { safeImpactAsync, safeNotificationAsync } from "../src/utils/safeHaptics";
 import {
   fetchQuestionnaireProgress,
   fetchNextQuestion,
@@ -259,7 +260,7 @@ export default function OnboardingScreen() {
     }
     setErrorMsg("");
     setSubmitting(true);
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void safeImpactAsync(ImpactFeedbackStyle.Light);
 
     try {
       const timeSpent = Math.round((Date.now() - questionStartRef.current) / 1000);
@@ -273,7 +274,7 @@ export default function OnboardingScreen() {
 
       if (questionData.is_last_question) {
         const result = await completeQuestionnaire();
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void safeNotificationAsync(NotificationFeedbackType.Success);
         setCompletionRewards(result.rewards);
         setPhase("done");
       } else {
@@ -287,7 +288,7 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = async () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void safeImpactAsync(ImpactFeedbackStyle.Light);
     try {
       await abandonQuestionnaire();
     } catch {

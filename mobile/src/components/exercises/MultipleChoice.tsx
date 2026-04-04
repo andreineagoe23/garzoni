@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import * as Haptics from "expo-haptics";
+import { NotificationFeedbackType } from "expo-haptics";
+import { safeNotificationAsync } from "../../utils/safeHaptics";
 import { Card, Button } from "../ui";
 import { colors, spacing, typography, radius } from "../../theme/tokens";
 
@@ -38,7 +39,7 @@ export default function MultipleChoice({
     onAttempt?.({ correct });
 
     if (correct) {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void safeNotificationAsync(NotificationFeedbackType.Success);
       setFeedback("Correct!");
       setFeedbackType("success");
       setIsCompleted(true);
@@ -50,7 +51,7 @@ export default function MultipleChoice({
         setIsCompleted(false);
       }
     } else {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      void safeNotificationAsync(NotificationFeedbackType.Error);
       setFeedback("Not quite. Try again.");
       setFeedbackType("error");
     }

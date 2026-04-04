@@ -54,6 +54,20 @@ ALLOWED_HOSTS = env_csv(
     ),
 )
 
+# Phones/simulators call http://<LAN-IP>:8000; Host must be allowed or Django raises DisallowedHost
+# before the view runs. DJANGO_ALLOW_ALL_HOSTS=1/true/yes forces match-all; docker-compose sets this for local dev.
+# Alternatively set ALLOWED_HOSTS_CSV=localhost,127.0.0.1,* in backend/.env (production compose must not use *).
+if os.getenv("DJANGO_ALLOW_ALL_HOSTS", "").strip().lower() in ("1", "true", "yes"):
+    ALLOWED_HOSTS = ["*"]
+else:
+    _allow_all_hosts = (
+        env_bool("DJANGO_ALLOW_ALL_HOSTS", False)
+        or env_bool("DJANGO_ALLOW_LAN_HOSTS", False)
+        or (DEBUG and env_bool("DJANGO_ALLOW_ALL_HOSTS_IN_DEBUG", True))
+    )
+    if _allow_all_hosts and "*" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS = [*ALLOWED_HOSTS, "*"]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -390,6 +404,9 @@ if STRIPE_SECRET_KEY:
         )
 
 # reCAPTCHA Enterprise (single key from monevo.educational@gmail.com console)
+# Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).
+# Never enable in production.
+RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
 RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
 RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
@@ -403,6 +420,10 @@ RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
 # Google OAuth (login/register with Google)
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+# Optional: public site origin for OAuth redirect_uri only (defaults to FRONTEND_URL).
+# Use when FRONTEND_URL must differ from the URL registered in Google Cloud "Authorized redirect URIs"
+# (e.g. fix redirect_uri_mismatch without changing email links).
+GOOGLE_OAUTH_REDIRECT_BASE = os.getenv("GOOGLE_OAUTH_REDIRECT_BASE", "").strip()
 
 
 def _google_oauth_allowed_client_ids() -> list:

@@ -1,6 +1,8 @@
 # finance/serializers.py
 from decimal import InvalidOperation
 from rest_framework import serializers
+
+from core.media_url import absolute_file_field_url
 from finance.models import (
     FinanceFact,
     SimulatedSavingsAccount,
@@ -31,6 +33,8 @@ class RewardSerializer(serializers.ModelSerializer):
     Represents rewards that users can redeem, including details such as name, description, cost, type, image, and donation organization.
     """
 
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Reward
         fields = [
@@ -42,6 +46,11 @@ class RewardSerializer(serializers.ModelSerializer):
             "image",
             "donation_organization",
         ]
+
+    def get_image(self, obj):
+        if obj.image:
+            return absolute_file_field_url(self.context.get("request"), obj.image)
+        return None
 
 
 class UserPurchaseSerializer(serializers.ModelSerializer):

@@ -1,5 +1,20 @@
 import Constants from "expo-constants";
 
+/** Railway serves HTTPS; `http://` often fails from iOS (ATS) or returns redirects that break clients. */
+export function preferHttpsForRailway(url: string): string {
+  const t = url.trim();
+  try {
+    const u = new URL(t);
+    if (u.protocol === "http:" && /\.railway\.app$/i.test(u.hostname)) {
+      u.protocol = "https:";
+      return u.href.replace(/\/+$/, "");
+    }
+  } catch {
+    /* ignore */
+  }
+  return t;
+}
+
 /**
  * API base URL for native: prefer `app.config.js` extra (EAS), then env inlined by Metro.
  * Must be the Django API origin; `/api` is appended by @monevo/core if missing.
@@ -15,11 +30,11 @@ export function resolveBackendUrlFromExpo(): string | undefined {
 
   const fromExtra = extra?.backendUrl;
   if (typeof fromExtra === "string" && fromExtra.trim()) {
-    return fromExtra.trim();
+    return preferHttpsForRailway(fromExtra.trim());
   }
 
   const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
-  if (fromEnv) return fromEnv;
+  if (fromEnv) return preferHttpsForRailway(fromEnv);
 
   return undefined;
 }

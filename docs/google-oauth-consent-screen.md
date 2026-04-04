@@ -33,3 +33,10 @@ The backend also exposes `POST /api/auth/google/verify-credential/` and the fron
 - Set `REACT_APP_GOOGLE_OAUTH_CLIENT_ID` in the frontend to the same value as the backend `GOOGLE_OAUTH_CLIENT_ID`, and render `GoogleSignIn` on the login/register pages.
 
 If you get **403 "origin not allowed"**: the page origin must match a value in **Authorized JavaScript origins** exactly (check the address bar or `window.location.origin`). **Authorized redirect URIs** is a different list (for the redirect flow only).
+
+### `redirect_uri_mismatch` locally
+
+The backend sends Google a redirect URI of `{origin}/api/auth/google/callback`. It must **exactly** match an entry under **Authorized redirect URIs** (scheme, host, port, path).
+
+- If your Web client lists `http://localhost:8000/api/auth/google/callback`, set **`GOOGLE_OAUTH_REDIRECT_BASE=http://localhost:8000`** in `backend/.env` when **`FRONTEND_URL`** is `http://localhost:3000`, or ensure **`GoogleOAuthInitView`** passes the request into `_google_oauth_redirect_uri` so DEBUG builds the URI from the **Host** that hit the API (typically `:8000` when the app calls `http://localhost:8000/api/...`).
+- Add **`http://127.0.0.1:8000/api/auth/google/callback`** as well if you ever open the API via `127.0.0.1`.

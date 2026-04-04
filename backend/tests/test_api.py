@@ -162,7 +162,13 @@ class RegistrationReferralValidationTest(APITestCase):
 class LoginRegisterRecaptchaMobileTest(APITestCase):
     """reCAPTCHA is required for web when configured; native apps skip via client_type/platform."""
 
-    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    @override_settings(
+        RECAPTCHA_DISABLED=False,
+        RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture",  # pragma: allowlist secret
+        RECAPTCHA_SITE_KEY="",
+        RECAPTCHA_ENTERPRISE_PROJECT_ID="",
+        RECAPTCHA_ENTERPRISE_API_KEY="",
+    )
     def test_login_secure_requires_recaptcha_when_configured(self):
         User.objects.create_user(username="recap-user", password="unit-test-password!")
         response = self.client.post(
@@ -172,6 +178,20 @@ class LoginRegisterRecaptchaMobileTest(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("code"), "recaptcha_missing")
+
+    @override_settings(
+        RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture",  # pragma: allowlist secret
+        RECAPTCHA_DISABLED=True,
+    )
+    def test_login_secure_skips_recaptcha_when_disabled(self):
+        User.objects.create_user(username="recap-off-user", password="unit-test-password!")
+        response = self.client.post(
+            "/api/login-secure/",
+            {"username": "recap-off-user", "password": "unit-test-password!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
 
     @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
     def test_login_secure_skips_recaptcha_for_mobile_client_type(self):
@@ -203,7 +223,13 @@ class LoginRegisterRecaptchaMobileTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
 
-    @override_settings(RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture")  # pragma: allowlist secret
+    @override_settings(
+        RECAPTCHA_DISABLED=False,
+        RECAPTCHA_PRIVATE_KEY="recaptcha-test-fixture",  # pragma: allowlist secret
+        RECAPTCHA_SITE_KEY="",
+        RECAPTCHA_ENTERPRISE_PROJECT_ID="",
+        RECAPTCHA_ENTERPRISE_API_KEY="",
+    )
     def test_register_secure_requires_recaptcha_when_configured(self):
         response = self.client.post(
             "/api/register-secure/",

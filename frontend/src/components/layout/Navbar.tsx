@@ -439,23 +439,11 @@ function Navbar() {
               aria-label={t("nav.ariaToggleMenu")}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              <span className="block h-4 w-6 space-y-[6px]">
-                <span
-                  className={`block h-[2px] w-full rounded bg-current transition ${
-                    menuOpen ? "translate-y-[6px] rotate-45" : ""
-                  }`}
-                />
-                <span
-                  className={`block h-[2px] w-full rounded bg-current transition ${
-                    menuOpen ? "opacity-0" : ""
-                  }`}
-                />
-                <span
-                  className={`block h-[2px] w-full rounded bg-current transition ${
-                    menuOpen ? "-translate-y-[6px] -rotate-45" : ""
-                  }`}
-                />
-              </span>
+              <MonevoIcon
+                name={menuOpen ? "xmark" : "bars"}
+                size={20}
+                className="text-inherit sm:h-[22px] sm:w-[22px]"
+              />
             </button>
           </div>
         </GlassContainer>

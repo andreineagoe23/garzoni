@@ -5,9 +5,21 @@ scripts/cloudinary-upload-results.json (shape: [{ "file", "secure_url" }, ...]).
 Django ImageField values should store the storage-relative public ID, not full
 https:// URLs, so django-cloudinary-storage can build .url correctly.
 
-Run from backend/:
+Run from backend/ (or inside the API container):
+
   python manage.py migrate_cloudinary_images --dry-run
   python manage.py migrate_cloudinary_images
+
+Docker DB + API container (from repo root; JSON lives on the host under scripts/):
+
+  docker compose cp scripts/cloudinary-upload-results.json backend:/app/cloudinary-upload-results.json
+  docker compose exec backend python manage.py migrate_cloudinary_images --dry-run
+  docker compose exec backend python manage.py migrate_cloudinary_images
+
+After updating rows to Cloudinary public IDs, set default file storage to Cloudinary
+(DJANGO_MEDIA_STORAGE_BACKEND + CLOUDINARY_URL) or images will 404 on local disk.
+
+Env override: CLOUDINARY_UPLOAD_MAP_JSON=/path/to/cloudinary-upload-results.json
 """
 
 from __future__ import annotations
@@ -84,22 +96,65 @@ def candidate_lookup_keys(stored_name: str) -> list[str]:
         return []
     name = stored_name.replace("\\", "/").lstrip("/")
     out: list[str] = []
-    for key in {
+    stripped_monevo = name.removeprefix("monevo/backend/media/")
+    variants = {
         name,
+        stripped_monevo,
         name.removeprefix("media/"),
         f"media/{name}",
         f"{MEDIA_ROOT_PREFIX}{name}",
-    }:
+        f"{MEDIA_ROOT_PREFIX}{stripped_monevo}" if stripped_monevo != name else "",
+    }
+    for key in variants:
         if key and key not in out:
             out.append(key)
     return out
+
+
+def resolve_upload_map_json_path(explicit: str | None) -> Path | None:
+    """Locate cloudinary-upload-results.json (Docker /app, monorepo scripts/, env)."""
+    base = Path(settings.BASE_DIR)
+
+    def try_path(p: Path) -> Path | None:
+        if p.is_file():
+            return p
+        alt = Path(os.getcwd()) / p
+        if alt.is_file():
+            return alt
+        return None
+
+    if explicit:
+        found = try_path(Path(explicit))
+        if found:
+            return found
+        return None
+
+    env_p = (os.getenv("CLOUDINARY_UPLOAD_MAP_JSON") or "").strip()
+    if env_p:
+        found = try_path(Path(env_p))
+        if found:
+            return found
+
+    for rel in (
+        "cloudinary-upload-results.json",
+        Path("scripts") / "cloudinary-upload-results.json",
+    ):
+        found = try_path(base / rel)
+        if found:
+            return found
+
+    mono = base.parent / "scripts" / "cloudinary-upload-results.json"
+    found = try_path(mono)
+    if found:
+        return found
+
+    return None
 
 
 class Command(BaseCommand):
     help = "Set ImageField values to Cloudinary public IDs using cloudinary-upload-results.json"
 
     def add_arguments(self, parser):
-        default_json = Path(settings.BASE_DIR).parent / "scripts" / "cloudinary-upload-results.json"
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -107,22 +162,25 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--json-path",
-            default=str(default_json),
-            help="Path to cloudinary-upload-results.json (repo root scripts/ by default)",
+            default="",
+            help="Path to cloudinary-upload-results.json (default: search /app, env, monorepo scripts/)",
         )
 
     def handle(self, *args, **options):
         dry_run: bool = options["dry_run"]
-        json_path = Path(options["json_path"])
+        explicit = (options.get("json_path") or "").strip() or None
+        json_path = resolve_upload_map_json_path(explicit)
 
-        if not json_path.is_file():
-            # Fallback: path relative to CWD (e.g. scripts/... from repo root)
-            alt = Path(os.getcwd()) / json_path
-            if alt.is_file():
-                json_path = alt
-            else:
-                self.stderr.write(self.style.ERROR(f"JSON file not found: {json_path}"))
-                return
+        if json_path is None:
+            self.stderr.write(
+                self.style.ERROR(
+                    "cloudinary-upload-results.json not found. "
+                    "Copy it into the container: "
+                    "`docker compose cp scripts/cloudinary-upload-results.json backend:/app/cloudinary-upload-results.json` "
+                    "or pass --json-path / set CLOUDINARY_UPLOAD_MAP_JSON."
+                )
+            )
+            return
 
         with json_path.open(encoding="utf-8") as f:
             raw = json.load(f)
@@ -201,7 +259,9 @@ class Command(BaseCommand):
                             total_updated += 1
                         continue
 
-                    if current in public_id_values or current.startswith("monevo/"):
+                    # Only skip if this exact string is already a known Cloudinary public_id from the map.
+                    # Do not use startswith("monevo/"): legacy DB paths like monevo/backend/media/... are wrong.
+                    if current in public_id_values:
                         total_ok += 1
                         self.stdout.write(
                             self.style.SUCCESS(

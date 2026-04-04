@@ -19,6 +19,9 @@ const ALLOWED_EXT = new Set([
   ".svg",
 ]);
 
+/** Replaced by Font Awesome (Navbar); do not upload legacy duplicates */
+const SKIP_BASENAMES = new Set(["burger_menu.svg", "burgermenu.svg"]);
+
 /** Basename → public_id for shared `@monevo/core` `Images` (see packages/core/src/images.ts). */
 const MARKETING_PUBLIC_IDS = {
   "login-bg.jpg": "monevo/login-bg",
@@ -43,6 +46,7 @@ function walkFiles(dir, out = []) {
       continue;
     }
     const ext = path.extname(entry.name).toLowerCase();
+    if (SKIP_BASENAMES.has(entry.name)) continue;
     if (ALLOWED_EXT.has(ext)) out.push(full);
   }
   return out;
