@@ -60,10 +60,38 @@ function preferHttpsForRailway(url) {
   return t;
 }
 
+/** Dev / preview: allow http:// to Docker on LAN (iOS ATS + Android cleartext). Production builds should omit this. */
+const allowInsecureLocalHttp =
+  process.env.EXPO_PUBLIC_APP_ENV?.trim().toLowerCase() === "development" ||
+  process.env.EXPO_PUBLIC_ALLOW_INSECURE_LOCAL_HTTP === "1";
+
 module.exports = ({ config }) => ({
   ...config,
+  ios: {
+    ...config.ios,
+    infoPlist: {
+      ...config.ios?.infoPlist,
+      ...(allowInsecureLocalHttp
+        ? {
+            NSAppTransportSecurity: {
+              ...(typeof config.ios?.infoPlist?.NSAppTransportSecurity === "object" &&
+              config.ios.infoPlist.NSAppTransportSecurity !== null
+                ? config.ios.infoPlist.NSAppTransportSecurity
+                : {}),
+              NSAllowsLocalNetworking: true,
+            },
+          }
+        : {}),
+    },
+  },
+  android: {
+    ...config.android,
+    ...(allowInsecureLocalHttp ? { usesCleartextTraffic: true } : {}),
+  },
   extra: {
     ...(config.extra ?? {}),
+    /** `development` | `production` — used for native policy and optional runtime checks. */
+    appEnv: process.env.EXPO_PUBLIC_APP_ENV?.trim() || undefined,
     /** Railway / Django API origin (no trailing slash). `/api` is added automatically in the client. */
     backendUrl: process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || undefined,
     /** Base URL of the web app (for Tools / Legal WebViews), e.g. https://app.example.com */
@@ -75,6 +103,9 @@ module.exports = ({ config }) => ({
       process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim() || undefined,
     /** iOS OAuth client ID from Google Cloud (type: iOS). */
     googleIosClientId: normalizedGoogleIosClientId || undefined,
+    /** RevenueCat iOS API key (public key from RevenueCat dashboard → API keys). */
+    revenueCatApiKeyIos:
+      process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY?.trim() || undefined,
   },
   plugins: [
     "expo-router",

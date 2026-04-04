@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import { colors, radius } from "../../theme/tokens";
+import { radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
 
 type ProgressBarProps = {
   /** 0–1 */
@@ -13,15 +14,23 @@ type ProgressBarProps = {
 
 export default function ProgressBar({
   value,
-  color = colors.primary,
-  trackColor = colors.surfaceOffset,
+  color: colorProp,
+  trackColor: trackProp,
   height = 8,
   style,
 }: ProgressBarProps) {
+  const c = useThemeColors();
+  const color = colorProp ?? c.primary;
+  const trackColor = trackProp ?? c.surfaceOffset;
   const clamped = Math.max(0, Math.min(1, value));
 
+  const trackStyle = useMemo(
+    () => [styles.track, { backgroundColor: trackColor, height }, style],
+    [trackColor, height, style]
+  );
+
   return (
-    <View style={[styles.track, { backgroundColor: trackColor, height }, style]}>
+    <View style={trackStyle}>
       <View
         style={[
           styles.fill,

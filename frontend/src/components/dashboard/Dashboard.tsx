@@ -32,7 +32,7 @@ import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
-import { selectPrimaryCTA } from "./primaryCtaSelector";
+import { selectPrimaryCTA } from "@monevo/core";
 import { getLocale } from "utils/format";
 import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useDashboardSummary } from "hooks/useDashboardSummary";

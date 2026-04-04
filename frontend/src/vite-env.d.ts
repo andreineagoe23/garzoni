@@ -14,6 +14,12 @@ interface ImportMetaEnv {
   readonly VITE_AMPLITUDE_API_KEY?: string;
   /** Cloudinary cloud name for `@monevo/core` `Images` (auth/landing URLs). */
   readonly VITE_CLOUDINARY_CLOUD_NAME?: string;
+  /**
+   * RevenueCat Web SDK public API key.
+   * test_* = sandbox mode (no real charges). Replace with live key for production.
+   * Get from: RevenueCat Dashboard → Project → API Keys → Public app-specific keys.
+   */
+  readonly VITE_REVENUECAT_API_KEY?: string;
 }
 
 interface ImportMeta {

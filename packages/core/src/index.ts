@@ -63,6 +63,7 @@ export {
   defaultRetryDelay,
 } from "./lib/reactQuery";
 export { createMutationOptions } from "./lib/createMutation";
+export { selectPrimaryCTA } from "./lib/primaryCtaSelector";
 
 export { useHearts } from "./hooks/useHearts";
 export { useProgress } from "./hooks/useProgress";
@@ -83,6 +84,8 @@ export type {
   Mission,
   MissionBuckets,
   Entitlements,
+  PersonalizedPathCourse,
+  PersonalizedPathResponse,
 } from "./types/api";
 
 export {
@@ -90,6 +93,9 @@ export {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LANGUAGES,
 } from "./constants/i18n";
+
+export { getUserLevel } from "./utils/userLevel";
+export type { UserLevel } from "./utils/userLevel";
 
 export const pathService = { fetchPaths: fetchLearningPaths };
 export const courseService = {

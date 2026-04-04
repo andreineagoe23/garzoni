@@ -7,23 +7,27 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import {
   courseService,
   fetchLessonsWithProgress,
   queryKeys,
   staleTimes,
 } from "@monevo/core";
+import { useAuthSession } from "../../src/auth/AuthContext";
+import { unwrapApiList } from "../../src/lib/unwrapApiList";
 import {
   Badge,
   Button,
-  Card,
   ErrorState,
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
 import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { useThemeColors } from "../../src/theme/ThemeContext";
 
 type LessonRow = {
   id?: number;
@@ -32,27 +36,63 @@ type LessonRow = {
   short_description?: string;
 };
 
+function lessonsLoadErrorMessage(error: unknown): { upgrade: boolean; message: string } {
+  if (!isAxiosError(error)) {
+    return { upgrade: false, message: "Could not load lessons." };
+  }
+  const status = error.response?.status;
+  const data = error.response?.data as { error?: string; detail?: string } | undefined;
+  const msg = (typeof data?.error === "string" && data.error) ||
+    (typeof data?.detail === "string" && data.detail) ||
+    error.message;
+  if (status === 403) {
+    return {
+      upgrade: true,
+      message:
+        typeof msg === "string" && msg.trim()
+          ? msg
+          : "Upgrade required to access this course.",
+    };
+  }
+  return { upgrade: false, message: typeof msg === "string" ? msg : "Could not load lessons." };
+}
+
 export default function CourseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const courseId = Number(id);
+  const { hydrated } = useAuthSession();
+  const c = useThemeColors();
+  const { t } = useTranslation("common");
+
+  const headerRightHome = useCallback(
+    () => (
+      <Pressable
+        onPress={() => router.replace("/(tabs)")}
+        hitSlop={12}
+        style={{ paddingHorizontal: spacing.sm }}
+      >
+        <Text style={{ color: c.primary, fontWeight: "700", fontSize: typography.sm }}>
+          {t("nav.dashboard")}
+        </Text>
+      </Pressable>
+    ),
+    [c.primary, t]
+  );
 
   const courseQuery = useQuery({
     queryKey: ["course", courseId],
-    enabled: Number.isFinite(courseId),
+    enabled: hydrated && Number.isFinite(courseId),
     queryFn: () => courseService.fetchById(courseId).then((r) => r.data),
     staleTime: staleTimes.content,
   });
 
   const lessonsQuery = useQuery({
     queryKey: queryKeys.lessonsWithProgress(courseId),
-    enabled: Number.isFinite(courseId),
+    enabled: hydrated && Number.isFinite(courseId),
     queryFn: () =>
-      fetchLessonsWithProgress(courseId).then((r) => {
-        const raw = r.data;
-        if (Array.isArray(raw)) return raw as LessonRow[];
-        const results = (raw as { results?: LessonRow[] })?.results;
-        return Array.isArray(results) ? results : [];
-      }),
+      fetchLessonsWithProgress(courseId).then((r) =>
+        unwrapApiList<LessonRow>(r.data)
+      ),
     staleTime: staleTimes.content,
   });
 
@@ -75,10 +115,12 @@ export default function CourseDetailScreen() {
     [lessons]
   );
 
-  if (lessonsQuery.isPending) {
+  if (!hydrated || lessonsQuery.isPending) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ title: "Loading…" }} />
+        <Stack.Screen
+          options={{ title: "Loading…", headerRight: headerRightHome }}
+        />
         <Skeleton width="80%" height={28} style={{ marginBottom: spacing.md }} />
         <Skeleton width="100%" height={10} style={{ marginBottom: spacing.xxl }} />
         {Array.from({ length: 5 }, (_, i) => (
@@ -89,12 +131,17 @@ export default function CourseDetailScreen() {
   }
 
   if (lessonsQuery.isError) {
+    const { upgrade, message } = lessonsLoadErrorMessage(lessonsQuery.error);
     return (
       <>
-        <Stack.Screen options={{ title: courseTitle }} />
+        <Stack.Screen
+          options={{ title: courseTitle, headerRight: headerRightHome }}
+        />
         <ErrorState
-          message="Could not load lessons."
-          onRetry={() => void lessonsQuery.refetch()}
+          message={message}
+          onRetry={upgrade ? undefined : () => void lessonsQuery.refetch()}
+          actionLabel={upgrade ? "View plans" : undefined}
+          onAction={upgrade ? () => router.push("/subscriptions") : undefined}
         />
       </>
     );
@@ -102,7 +149,9 @@ export default function CourseDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: courseTitle }} />
+      <Stack.Screen
+        options={{ title: courseTitle, headerRight: headerRightHome }}
+      />
       <FlatList
         data={lessons}
         keyExtractor={(item, i) => String(item.id ?? i)}
@@ -125,10 +174,7 @@ export default function CourseDetailScreen() {
             {firstIncomplete ? (
               <Button
                 style={{ marginTop: spacing.lg }}
-                onPress={() =>
-                  firstIncomplete.id != null &&
-                  router.push(`/lesson/${firstIncomplete.id}`)
-                }
+                onPress={() => router.push(`/flow/${courseId}`)}
               >
                 {pct > 0 ? "Continue" : "Start learning"}
               </Button>
@@ -147,7 +193,8 @@ export default function CourseDetailScreen() {
             <Pressable
               style={styles.lessonRow}
               onPress={() =>
-                item.id != null && router.push(`/lesson/${item.id}`)
+                item.id != null &&
+                router.push(`/lesson/${item.id}?courseId=${courseId}`)
               }
             >
               <View style={[styles.indexCircle, completed && styles.indexCircleDone]}>

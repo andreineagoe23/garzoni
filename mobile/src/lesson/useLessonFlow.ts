@@ -9,6 +9,7 @@ import {
   queryKeys,
   staleTimes,
 } from "@monevo/core";
+import { unwrapApiList } from "../lib/unwrapApiList";
 
 export type FlowSection = {
   id: number | string;
@@ -60,21 +61,21 @@ export function useLessonFlow(courseId: number) {
   const [courseComplete, setCourseComplete] = useState(false);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const flowEnabled = Number.isFinite(courseId) && courseId > 0;
+
   const lessonsQuery = useQuery({
     queryKey: queryKeys.lessonsWithProgress(courseId),
-    enabled: Number.isFinite(courseId),
+    enabled: flowEnabled,
     queryFn: () =>
-      fetchLessonsWithProgress(courseId).then((r) => {
-        const raw = r.data;
-        if (Array.isArray(raw)) return raw as FlowLesson[];
-        return ((raw as { results?: FlowLesson[] })?.results ?? []) as FlowLesson[];
-      }),
+      fetchLessonsWithProgress(courseId).then((r) =>
+        unwrapApiList<FlowLesson>(r.data)
+      ),
     staleTime: staleTimes.content,
   });
 
   const flowStateQuery = useQuery({
     queryKey: ["flowState", courseId],
-    enabled: Number.isFinite(courseId),
+    enabled: flowEnabled,
     queryFn: () =>
       fetchCourseFlowState(courseId).then(
         (r) => (r.data as { current_index?: number })?.current_index ?? 0
@@ -138,14 +139,14 @@ export function useLessonFlow(courseId: number) {
   useEffect(() => {
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(() => {
-      if (Number.isFinite(courseId)) {
+      if (flowEnabled) {
         void saveCourseFlowState(courseId, currentIndex).catch(() => {});
       }
     }, 2000);
     return () => {
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     };
-  }, [currentIndex, courseId]);
+  }, [currentIndex, courseId, flowEnabled]);
 
   const completeSectionMutation = useMutation({
     mutationFn: completeSection,

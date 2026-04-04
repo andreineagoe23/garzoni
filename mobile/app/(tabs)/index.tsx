@@ -1,106 +1,324 @@
-import { useCallback } from "react";
-import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
 import {
+  fetchEntitlements,
+  fetchMasterySummary,
   fetchMissions,
   fetchProfile,
   fetchProgressSummary,
-  fetchRecentActivity,
+  fetchQuestionnaireProgress,
   fetchReviewQueue,
   queryKeys,
+  selectPrimaryCTA,
   staleTimes,
   useDashboardSummary,
-  useHearts,
+  type Entitlements,
+  type UserProfile,
 } from "@monevo/core";
-import {
-  Button,
-  ErrorState,
-  ScreenScroll,
-  Skeleton,
-} from "../../src/components/ui";
+import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
-import MascotWithMessage from "../../src/components/common/MascotWithMessage";
-import StatusSummaryRow from "../../src/components/dashboard/StatusSummaryRow";
-import DailyGoalCard from "../../src/components/dashboard/DailyGoalCard";
-import WeakSkillsCard from "../../src/components/dashboard/WeakSkillsCard";
-import PersonalizedPathCard from "../../src/components/dashboard/PersonalizedPathCard";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
 import AllTopicsGrid from "../../src/components/dashboard/AllTopicsGrid";
+import DashboardHeaderMobile from "../../src/components/dashboard/DashboardHeaderMobile";
+import DashboardResumeRow from "../../src/components/dashboard/DashboardResumeRow";
+import WeakSkillsQuickCardMobile from "../../src/components/dashboard/WeakSkillsQuickCardMobile";
+import WeakSkillsSectionMobile from "../../src/components/dashboard/WeakSkillsSectionMobile";
+import StatusSummaryGrid from "../../src/components/dashboard/StatusSummaryGrid";
+import PrimaryCTAMobile, {
+  type PrimaryCtaMobileData,
+} from "../../src/components/dashboard/PrimaryCTAMobile";
+import PersonalizedPathContentMobile from "../../src/components/dashboard/PersonalizedPathContentMobile";
+import { useAuthSession } from "../../src/auth/AuthContext";
+import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../../src/theme/tokens";
+import GlassCard from "../../src/components/ui/GlassCard";
+import GlassButton from "../../src/components/ui/GlassButton";
+import { spacing, typography } from "../../src/theme/tokens";
 
-const DAILY_LESSON_GOAL = 3;
+type WeakSkill = {
+  skill: string;
+  proficiency: number;
+  level_label?: string;
+};
 
-function todayCalendarKey(): string {
-  return new Date().toISOString().slice(0, 10);
+type ActivePage = "all-topics" | "personalized-path";
+
+function planRank(plan?: string | null) {
+  if (plan === "plus") return 1;
+  if (plan === "pro") return 2;
+  return 0;
 }
 
 function DashboardInner() {
   const c = useThemeColors();
+  const { t, i18n } = useTranslation("common");
+  const { hydrated, accessToken } = useAuthSession();
+  const authReady = hydrated;
+  const [activePage, setActivePage] = useState<ActivePage>("all-topics");
+  const { segment, tab } = useLocalSearchParams<{
+    segment?: string;
+    tab?: string;
+  }>();
+
+  useEffect(() => {
+    const raw = String(segment ?? tab ?? "").toLowerCase();
+    if (raw === "personalized" || raw === "personalized-path") {
+      setActivePage("personalized-path");
+    }
+  }, [segment, tab]);
+
   const progressQuery = useQuery({
     queryKey: queryKeys.progressSummary(),
     queryFn: () => fetchProgressSummary().then((r) => r.data),
     staleTime: staleTimes.progressSummary,
+    enabled: authReady && Boolean(accessToken),
   });
 
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
-    queryFn: () => fetchProfile().then((r) => r.data),
+    queryFn: () => fetchProfile().then((r) => r.data as UserProfile),
     staleTime: staleTimes.profile,
+    enabled: authReady && Boolean(accessToken),
   });
 
-  const activityQuery = useQuery({
-    queryKey: queryKeys.recentActivity(),
-    queryFn: () => fetchRecentActivity().then((r) => r.data),
-    staleTime: staleTimes.progressSummary,
+  const entitlementsQuery = useQuery({
+    queryKey: queryKeys.entitlements(),
+    queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
+    staleTime: staleTimes.entitlements,
+    enabled: authReady && Boolean(accessToken),
+  });
+
+  const questionnaireQuery = useQuery({
+    queryKey: queryKeys.questionnaireProgress(),
+    queryFn: fetchQuestionnaireProgress,
+    staleTime: 0,
+    refetchOnMount: true,
+    enabled: authReady && Boolean(accessToken),
   });
 
   const reviewQuery = useQuery({
     queryKey: queryKeys.reviewQueue(),
-    queryFn: () => fetchReviewQueue().then((r) => r.data),
+    queryFn: () => fetchReviewQueue().then((r) => r.data as { count?: number; due?: Array<{ skill?: string }> }),
     staleTime: staleTimes.progressSummary,
+    enabled: authReady && Boolean(accessToken),
   });
 
   const missionsQuery = useQuery({
     queryKey: queryKeys.missions(),
     queryFn: () => fetchMissions().then((r) => r.data),
-    staleTime: 30_000,
+    staleTime: 60_000,
+    enabled: authReady && Boolean(accessToken),
   });
 
-  const { hearts, maxHearts } = useHearts({ enabled: true });
+  const masteryQuery = useQuery({
+    queryKey: queryKeys.masterySummary(),
+    queryFn: () => fetchMasterySummary().then((r) => r.data || { masteries: [] }),
+    staleTime: 120_000,
+    enabled: authReady && Boolean(accessToken),
+  });
+
+  const profilePayload = profileQuery.data;
+  const profile = useMemo(() => {
+    if (!profilePayload) return null;
+    const ud = profilePayload.user_data as Record<string, unknown> | undefined;
+    if (ud && typeof ud === "object") {
+      return { ...profilePayload, ...ud } as UserProfile & Record<string, unknown>;
+    }
+    return profilePayload;
+  }, [profilePayload]);
+
+  const entitlements = entitlementsQuery.data;
+  const hasPaidProfile = Boolean(
+    profile?.has_paid ??
+      (profilePayload as UserProfile | undefined)?.has_paid ??
+      (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid
+  );
+  const profilePlanId =
+    profile?.subscription_plan_id ??
+    (profile?.user_data as { subscription_plan_id?: string } | undefined)?.subscription_plan_id ??
+    null;
+  const resolvedPlan: string =
+    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ||
+    (typeof profilePlanId === "string" ? profilePlanId : null) ||
+    (hasPaidProfile ? "plus" : "starter");
+  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+  const hasPaid = hasPlusAccess;
+
+  const isQuestionnaireCompleted = Boolean(
+    profile?.is_questionnaire_completed ??
+      (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
+        ?.is_questionnaire_completed ??
+      (profilePayload as UserProfile | undefined)?.is_questionnaire_completed
+  );
+
+  const questionnaireProgress = questionnaireQuery.data;
+  const questionnaireCompletedForUi =
+    isQuestionnaireCompleted || questionnaireProgress?.status === "completed";
+
+  useEffect(() => {
+    if (!authReady || !accessToken) return;
+    if (hasPlusAccess) return;
+    if (
+      !questionnaireQuery.isFetched ||
+      questionnaireQuery.isPending ||
+      questionnaireQuery.isFetching
+    )
+      return;
+    if (!questionnaireProgress) return;
+    if (questionnaireProgress.status === "completed") return;
+    if (questionnaireProgress.status === "abandoned") return;
+    router.replace(href("/onboarding"));
+  }, [
+    authReady,
+    accessToken,
+    hasPlusAccess,
+    questionnaireQuery.isFetched,
+    questionnaireQuery.isPending,
+    questionnaireQuery.isFetching,
+    questionnaireProgress,
+  ]);
 
   const summary = useDashboardSummary({
-    progressResponse: progressQuery.data
-      ? { data: progressQuery.data }
-      : undefined,
+    progressResponse: progressQuery.data ? { data: progressQuery.data } : undefined,
     reviewQueueData: reviewQuery.data,
     missionsData: missionsQuery.data,
-    profile: profileQuery.data,
+    masteryData: masteryQuery.data,
+    entitlements,
+    profile: profile ?? undefined,
   });
+
+  const weakSkillItems = useMemo(
+    () =>
+      summary.weakestSkills
+        .filter((s): s is WeakSkill & { skill: string } => Boolean((s as WeakSkill).skill))
+        .map((s) => ({
+          skill: s.skill,
+          proficiency: s.proficiency ?? 0,
+          level_label: (s as { level_label?: string }).level_label,
+        })),
+    [summary.weakestSkills]
+  );
+
+  const {
+    handleWeakSkillClick,
+    handleWeakSkillPractice,
+    handleQuickCardSkillExercises,
+  } = useDashboardSkillExercisesNavigation();
+
+  const primaryCTASignal = useMemo(
+    () => selectPrimaryCTA({ reviewsDue: summary.reviewsDue, activeMissions: summary.activeMissions }),
+    [summary.reviewsDue, summary.activeMissions]
+  );
+
+  const primaryCTA = useMemo<PrimaryCtaMobileData | null>(() => {
+    if (!primaryCTASignal) return null;
+    if (primaryCTASignal.type === "continue_lesson") return null;
+
+    switch (primaryCTASignal.type) {
+      case "reviews_due":
+        return {
+          text: t("dashboard.cta.doReviews"),
+          action: () => router.push(href("/(tabs)/exercises")),
+          iconName: primaryCTASignal.iconName,
+          priority: "high",
+          reason: t("dashboard.cta.reviewsDue", {
+            count: primaryCTASignal.reasonCount || 0,
+          }),
+        };
+      case "start_mission":
+        return {
+          text: t("dashboard.cta.startMission"),
+          action: () => router.push(href("/missions")),
+          iconName: primaryCTASignal.iconName,
+          priority: "medium",
+          reason: t("dashboard.cta.missionsAvailable", {
+            count: primaryCTASignal.reasonCount || 0,
+          }),
+        };
+      default:
+        return {
+          text: t("dashboard.cta.continueLearning"),
+          action: () => {
+            setActivePage("all-topics");
+            router.push("/(tabs)/learn");
+          },
+          iconName: primaryCTASignal.iconName,
+          priority: "low",
+          reason: t("dashboard.cta.continueLearningReason"),
+        };
+    }
+  }, [primaryCTASignal, t]);
 
   const refreshing =
     progressQuery.isFetching ||
     profileQuery.isFetching ||
-    activityQuery.isFetching ||
-    missionsQuery.isFetching;
+    missionsQuery.isFetching ||
+    reviewQuery.isFetching ||
+    masteryQuery.isFetching ||
+    entitlementsQuery.isFetching;
 
   const onRefresh = useCallback(() => {
     void progressQuery.refetch();
     void profileQuery.refetch();
-    void activityQuery.refetch();
     void missionsQuery.refetch();
     void reviewQuery.refetch();
-  }, [progressQuery, profileQuery, activityQuery, missionsQuery, reviewQuery]);
+    void masteryQuery.refetch();
+    void entitlementsQuery.refetch();
+    void questionnaireQuery.refetch();
+  }, [
+    progressQuery,
+    profileQuery,
+    missionsQuery,
+    reviewQuery,
+    masteryQuery,
+    entitlementsQuery,
+    questionnaireQuery,
+  ]);
 
-  const dailyDone = (() => {
-    const cal = profileQuery.data?.activity_calendar as Record<string, number> | undefined;
-    if (!cal) return 0;
-    return Number(cal[todayCalendarKey()] ?? 0);
-  })();
+  const displayName =
+    (profile?.first_name as string | undefined)?.trim() ||
+    (profile?.username as string | undefined)?.trim() ||
+    "";
 
-  if (progressQuery.isPending) {
+  const handlePersonalizedPathClick = useCallback(() => {
+    if (hasPlusAccess) {
+      setActivePage("personalized-path");
+      return;
+    }
+    if (!isQuestionnaireCompleted) {
+      router.push(href("/onboarding"));
+      return;
+    }
+    router.push(href("/subscriptions"));
+  }, [hasPlusAccess, isQuestionnaireCompleted]);
+
+  const reviewTopSkill = reviewQuery.data?.due?.[0]?.skill ?? null;
+
+  if (!authReady) {
+    return (
+      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+        <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
+        <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
+      </ScreenScroll>
+    );
+  }
+
+  if (!accessToken) {
+    return (
+      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+        <Text style={[styles.greeting, { color: c.text }]}>{t("dashboard.header.welcomeBack")}</Text>
+        <Text style={{ color: c.textMuted, marginBottom: spacing.lg }}>
+          Sign in on the Profile tab to see your dashboard.
+        </Text>
+      </ScreenScroll>
+    );
+  }
+
+  if (progressQuery.isPending || profileQuery.isPending) {
     return (
       <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
         <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
@@ -119,11 +337,34 @@ function DashboardInner() {
     );
   }
 
-  const profile = profileQuery.data;
-  const recent = activityQuery.data?.recent_activities ?? [];
-  const ud = profile?.user_data as { earned_money?: number } | undefined;
-  const coins = Number(profile?.earned_money ?? ud?.earned_money ?? 0) || 0;
-  const points = profile?.points ?? 0;
+  const navigationButtons = (
+    <View style={styles.segmentRow}>
+      <GlassButton
+        variant={activePage === "all-topics" ? "active" : "ghost"}
+        size="sm"
+        onPress={() => setActivePage("all-topics")}
+      >
+        {t("dashboard.nav.allTopics")}
+      </GlassButton>
+      <View style={styles.segmentPersonalized}>
+        <GlassButton
+          variant={activePage === "personalized-path" ? "active" : "ghost"}
+          size="sm"
+          onPress={handlePersonalizedPathClick}
+          disabled={profileQuery.isPending || profileQuery.isFetching}
+        >
+          {t("dashboard.nav.personalizedPath")}
+        </GlassButton>
+        {!isQuestionnaireCompleted ? (
+          <View style={[styles.onboardingBadge, { backgroundColor: `${c.error}22` }]}>
+            <Text style={[styles.onboardingBadgeText, { color: c.error }]} numberOfLines={1}>
+              {t("dashboard.nav.completeOnboarding")}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
 
   return (
     <ScreenScroll
@@ -132,117 +373,88 @@ function DashboardInner() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
       }
     >
-      <Text style={[styles.greeting, { color: c.text }]}>
-        {profile?.first_name ? `Hey, ${profile.first_name} 👋` : "Welcome back 👋"}
-      </Text>
+      <GlassCard padding="lg" style={{ borderColor: c.border, marginBottom: spacing.lg }}>
+        <DashboardHeaderMobile displayName={displayName || undefined} />
 
-      <View style={{ marginBottom: spacing.lg }}>
-        <QuestionnaireReminderBanner />
-      </View>
+        {!questionnaireCompletedForUi ? (
+          <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
+            <QuestionnaireReminderBanner hasPaid={hasPaid} authReady={authReady && Boolean(accessToken)} />
+          </View>
+        ) : null}
 
-      <View style={{ marginBottom: spacing.lg }}>
-        <StatusSummaryRow
-          streak={profile?.streak ?? 0}
-          points={points}
-          hearts={hearts}
-          maxHearts={maxHearts}
-          coins={coins}
+        {questionnaireCompletedForUi ? (
+          <View style={styles.resumeRow}>
+            <View style={styles.resumeCol}>
+              <DashboardResumeRow
+                style={styles.resumeCardFill}
+                resume={summary.resume}
+                startHere={summary.startHere}
+              />
+            </View>
+            <View style={styles.resumeCol}>
+              <WeakSkillsQuickCardMobile
+                style={styles.resumeCardFill}
+                locale={i18n.language}
+                topSkill={weakSkillItems[0] ?? null}
+                onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
+              />
+            </View>
+          </View>
+        ) : (
+          <WeakSkillsQuickCardMobile
+            locale={i18n.language}
+            topSkill={weakSkillItems[0] ?? null}
+            onRecommendedSkillExercises={handleQuickCardSkillExercises}
+            onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
+          />
+        )}
+
+        <WeakSkillsSectionMobile
+          show
+          masteryError={masteryQuery.isError ? masteryQuery.error : undefined}
+          weakestSkills={weakSkillItems}
+          hasAnyMasteryData={(masteryQuery.data?.masteries?.length ?? 0) > 0}
+          refetchMastery={() => void masteryQuery.refetch()}
+          locale={i18n.language}
+          completedSections={summary.completedSections}
+          totalSections={summary.totalSections}
+          completedLessons={summary.completedLessons}
+          totalLessons={summary.totalLessons}
+          onSkillClick={handleWeakSkillClick}
+          onPracticeClick={handleWeakSkillPractice}
         />
-      </View>
 
-      <View style={{ marginBottom: spacing.lg }}>
-        <PersonalizedPathCard resume={summary.resume} startHere={summary.startHere} />
-      </View>
-
-      <View style={{ marginBottom: spacing.lg }}>
-        <DailyGoalCard
-          progressPct={summary.dailyGoalProgress}
-          currentXp={summary.dailyGoalCurrentXP}
-          targetXp={summary.dailyGoalTargetXP}
+        <StatusSummaryGrid
+          coursesCompleted={summary.coursesCompleted}
+          overallProgress={summary.overallProgress}
+          reviewsDue={summary.reviewsDue}
+          activeMissionsCount={summary.activeMissions.length}
+          dailyGoalProgress={summary.dailyGoalProgress}
+          streakCount={Number(profile?.streak ?? 0)}
+          reviewError={reviewQuery.isError ? reviewQuery.error : undefined}
+          missionsError={missionsQuery.isError ? missionsQuery.error : undefined}
+          refetchReview={() => void reviewQuery.refetch()}
+          refetchMissions={() => void missionsQuery.refetch()}
+          reviewTopSkill={reviewTopSkill}
+          onOpenReviews={() => router.push(href("/(tabs)/exercises"))}
+          locale={i18n.language}
         />
-      </View>
 
-      <View style={styles.lessonGoal}>
-        <Text style={[styles.cardTitle, { color: c.text }]}>Today&apos;s lessons</Text>
-        <Text style={[styles.cardMeta, { color: c.textMuted }]}>
-          {dailyDone} / {DAILY_LESSON_GOAL} lessons completed today
-        </Text>
-      </View>
+        <PrimaryCTAMobile primaryCTA={primaryCTA} />
+      </GlassCard>
 
-      <View style={{ marginBottom: spacing.lg }}>
-        <WeakSkillsCard />
-      </View>
+      {navigationButtons}
 
-      <View style={styles.quickLinks}>
-        <Text style={[styles.sectionHeading, { color: c.text }]}>Quick links</Text>
-        <View style={styles.linkRow}>
-          <Button size="sm" variant="secondary" onPress={() => router.push(href("/leaderboard"))}>
-            Leaderboard
-          </Button>
-          <Button size="sm" variant="secondary" onPress={() => router.push(href("/rewards"))}>
-            Rewards
-          </Button>
-        </View>
-        <View style={styles.linkRow}>
-          <Button size="sm" variant="secondary" onPress={() => router.push(href("/tools"))}>
-            Tools
-          </Button>
-          <Button size="sm" variant="secondary" onPress={() => router.push(href("/missions"))}>
-            Missions
-          </Button>
-        </View>
-      </View>
-
-      <View style={{ marginBottom: spacing.xxl }}>
+      {activePage === "all-topics" ? (
         <AllTopicsGrid />
-      </View>
-
-      <Text style={[styles.sectionHeading, { color: c.text }]}>Recent activity</Text>
-      {activityQuery.isPending ? (
-        <Skeleton width="100%" height={48} style={{ marginBottom: spacing.sm }} />
-      ) : recent.length === 0 ? (
-        <Text style={[styles.emptyActivity, { color: c.textMuted }]}>
-          Complete a lesson to see activity here.
-        </Text>
       ) : (
-        recent.map((item, i) => (
-          <Pressable
-            key={`${item.type}-${i}-${item.timestamp}`}
-            style={[
-              styles.activityRow,
-              { backgroundColor: c.surface, borderColor: c.border },
-            ]}
-            onPress={() => {
-              if (item.type === "lesson" && item.lesson_id != null) {
-                router.push(`/lesson/${item.lesson_id}`);
-              } else if (item.course_id != null) {
-                router.push(`/course/${item.course_id}`);
-              }
-            }}
-          >
-            <Text style={[styles.activityTitle, { color: c.text }]} numberOfLines={1}>
-              {item.title ?? item.name ?? item.type}
-            </Text>
-            {item.course ? (
-              <Text style={[styles.activitySub, { color: c.textMuted }]} numberOfLines={1}>
-                {item.course}
-              </Text>
-            ) : null}
-          </Pressable>
-        ))
+        <PersonalizedPathContentMobile
+          onCourseClick={(courseId) => {
+            router.push(`/flow/${courseId}`);
+          }}
+        />
       )}
-
-      <View style={{ marginTop: spacing.xl }}>
-        <MascotWithMessage mood="encourage" rotationKey={1} />
-      </View>
-
-      <Button
-        variant="secondary"
-        onPress={() => router.push("/(tabs)/learn")}
-        style={{ marginTop: spacing.lg }}
-      >
-        Browse learning paths
-      </Button>
     </ScreenScroll>
   );
 }
@@ -265,32 +477,36 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: spacing.lg,
   },
-  lessonGoal: { marginBottom: spacing.md },
-  cardTitle: { fontSize: typography.sm, fontWeight: "700" },
-  cardMeta: { fontSize: typography.xs, marginTop: 4 },
-  sectionHeading: {
-    fontSize: typography.md,
-    fontWeight: "700",
-    marginBottom: spacing.md,
+  resumeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+    marginTop: spacing.md,
+    alignItems: "stretch",
   },
-  quickLinks: { marginBottom: spacing.lg },
-  linkRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm },
-  emptyActivity: {
-    fontSize: typography.sm,
+  resumeCol: {
+    flex: 1,
+    minWidth: 152,
+    alignSelf: "stretch",
+    maxWidth: "100%",
+  },
+  resumeCardFill: {
+    flex: 1,
+    alignSelf: "stretch",
+  },
+  segmentRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
     marginBottom: spacing.lg,
+    flexWrap: "wrap",
+    alignItems: "flex-start",
   },
-  activityRow: {
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+  segmentPersonalized: { flex: 1, minWidth: 140, gap: spacing.xs },
+  onboardingBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
-  activityTitle: {
-    fontSize: typography.base,
-    fontWeight: "600",
-  },
-  activitySub: {
-    fontSize: typography.xs,
-    marginTop: 2,
-  },
+  onboardingBadgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
 });

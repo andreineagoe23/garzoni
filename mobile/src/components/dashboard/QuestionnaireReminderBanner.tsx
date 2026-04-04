@@ -9,7 +9,17 @@ import GlassButton from "../ui/GlassButton";
 import ProgressBar from "../ui/ProgressBar";
 import { spacing, typography } from "../../theme/tokens";
 
-export default function QuestionnaireReminderBanner() {
+type Props = {
+  /** Passed for parity with web; reserved for future gating. */
+  hasPaid?: boolean;
+  /** When false, defer fetching until the session is attached (avoids 401 on cold start). */
+  authReady?: boolean;
+};
+
+export default function QuestionnaireReminderBanner({
+  hasPaid: _hasPaid,
+  authReady = true,
+}: Props) {
   const c = useThemeColors();
 
   const q = useQuery({
@@ -17,9 +27,10 @@ export default function QuestionnaireReminderBanner() {
     queryFn: fetchQuestionnaireProgress,
     staleTime: 0,
     refetchOnMount: true,
+    enabled: authReady,
   });
 
-  if (q.isPending && !q.data) {
+  if (!authReady || (q.isPending && !q.data)) {
     return (
       <GlassCard padding="md" style={{ borderColor: c.primary }}>
         <Text style={{ color: c.textMuted }}>

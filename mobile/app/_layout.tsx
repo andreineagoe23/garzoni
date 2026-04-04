@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { queryClient } from "@monevo/core";
 import { AuthProvider } from "../src/auth/AuthContext";
@@ -27,6 +28,8 @@ function ThemedRoot() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="lesson" options={{ headerShown: false }} />
           <Stack.Screen name="course" options={{ headerShown: false }} />
+          <Stack.Screen name="flow" options={{ headerShown: false }} />
+          <Stack.Screen name="path" options={{ headerShown: false }} />
           <Stack.Screen name="quiz" options={{ headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen
@@ -44,7 +47,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <ThemedRoot />
+          <SafeAreaProvider>
+            <ThemedRoot />
+          </SafeAreaProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "Acasă",
+    "learn": "Învață",
     "exercises": "Exerciții",
     "tools": "Instrumente",
     "missions": "Misiuni",
@@ -94,6 +95,7 @@
       "quickPracticeSubtitle": "Îți sugerăm acum cea mai bună zonă de exersat.",
       "focusOnSkills": "Concentrează-te pe aceste abilități pentru a-ți îmbunătăți stăpânirea",
       "lowMasteryIn": "Stăpânire scăzută la {{skill}}",
+      "lowMasteryLead": "Stăpânire scăzută la",
       "practice": "Exersează",
       "practiceSkillAria": "Exersează abilitatea {{skill}}",
       "practiceRecommendationAria": "Exersează {{skill}} pentru a îmbunătăți recomandarea",
@@ -243,7 +245,24 @@
       "ai_tutor": "Tutor AI",
       "personalized_path": "Traseu personalizat"
     },
-    "notAvailable": "Indisponibil"
+    "notAvailable": "Indisponibil",
+    "purchaseSuccessTitle": "Succes",
+    "purchaseSuccessBody": "Abonamentul tău este acum activ.",
+    "subscriptionsLegalIos": "Abonamentele se reînnoiesc automat. Anulează oricând din setările Apple ID. Plata se încarcă la contul tău Apple ID la confirmarea achiziției.",
+    "openCustomerPortal": "Gestionează facturarea (web)",
+    "manageInAppStore": "Setări abonament Apple",
+    "restorePurchases": "Restaurează achizițiile",
+    "purchaseError": "Achiziția nu a putut fi finalizată. Te rugăm să încerci din nou.",
+    "explorePlansMobile": "Compară planurile",
+    "stripePortalFallback": "Deschide portalul pentru clienți în browser pentru a actualiza plata sau a anula.",
+    "noNativePlansHint": "Compară planurile disponibile sau abonează-te cu Apple ID când achizițiile în aplicație sunt activate.",
+    "restoreSuccessTitle": "Restaurat",
+    "restoreSuccessBody": "Achizițiile tale au fost restaurate.",
+    "restoreFailed": "Nu am putut restaura achizițiile. Te rugăm să încerci din nou."
+  },
+  "learn": {
+    "lockedPathNeedsPlan": "Acest traseu necesită un plan superior. Vezi planurile pentru a debloca cursurile.",
+    "viewPlans": "Vezi planurile →"
   },
   "allTopics": {
     "loading": "Se încarcă traseele de învățare...",
@@ -271,7 +290,13 @@
     "hideCourses": "Ascunde cursurile",
     "viewCourses": "Vezi cursurile",
     "upgradeTo": "Upgrade la {{plan}}",
-    "coursesIn": "Cursuri în {{title}}"
+    "coursesIn": "Cursuri în {{title}}",
+    "coursesFilterLabel": "Cursuri (traseu deschis)",
+    "coursesFilter": {
+      "all": "Toate",
+      "inProgress": "În progres",
+      "completed": "Finalizate"
+    }
   },
   "personalizedPath": {
     "errorTitle": "Eroare la încărcarea recomandărilor",
@@ -774,7 +799,8 @@
     "facts": {
       "markRead": "✓ Marchează ca citit",
       "empty": "Nu există fapte financiare noi acum - revino curând!",
-      "tryAgain": "↻ Încearcă din nou"
+      "tryAgain": "↻ Încearcă din nou",
+      "loading": "Se încarcă faptul…"
     },
     "errors": {
       "refreshLesson": "Nu s-a putut reîmprospăta misiunea de lecție.",
@@ -1026,6 +1052,17 @@
     },
     "fallbackUser": "Utilizator",
     "loading": "Se încarcă profilul...",
+    "couldNotLoad": "Nu s-a putut încărca profilul.",
+    "menuSection": "Meniu",
+    "quickTogglesSection": "Comutatoare rapide",
+    "heartsUi": "Afișează bara de inimi (UI)",
+    "pushNotifications": "Notificări push",
+    "deleteConfirmTitle": "Șterge contul",
+    "deleteConfirmBody": "Aceasta îți elimină definitiv contul și progresul. Continui?",
+    "deleteError": "Nu s-a putut șterge contul.",
+    "deleteAction": "Șterge",
+    "notificationsTitle": "Notificări",
+    "plansMenu": "Planuri și prețuri",
     "avatarAlt": "Avatar",
     "actions": {
       "personalizedPath": "Mergi la Traseu personalizat",
@@ -1040,11 +1077,14 @@
       "subtitle": "Partajează linkul tău — când un prieten finalizează primul traseu de învățare, primiți amândoi 40% reducere la Plus prin email.",
       "linkLabel": "Linkul tău unic de recomandare",
       "copied": "Copiat!",
+      "shared": "Link partajat",
       "copyLink": "Copiază link",
+      "shareLink": "Partajează linkul",
       "linkAria": "Link de recomandare"
     },
     "stats": {
       "title": "Statistici",
+      "lessonsShort": "Lecții",
       "balance": "Sold",
       "points": "Puncte",
       "streak": "Serie",

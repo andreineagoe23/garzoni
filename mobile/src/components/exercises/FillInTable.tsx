@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Card, Button } from "../ui";
-import { colors, spacing, typography, radius } from "../../theme/tokens";
+import { spacing, typography, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 type Props = {
   data: Record<string, unknown>;
@@ -12,6 +14,49 @@ type Props = {
   onComplete?: () => Promise<void> | void;
 };
 
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    question: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      lineHeight: 24,
+    },
+    headerRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderColor: c.border,
+    },
+    dataRow: {
+      flexDirection: "row",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+    },
+    labelCell: { width: 100, padding: spacing.sm, justifyContent: "center" },
+    cell: { width: 100, padding: spacing.xs },
+    headerText: {
+      fontSize: typography.xs,
+      fontWeight: "700",
+      color: c.textMuted,
+      textTransform: "uppercase",
+    },
+    rowLabel: { fontSize: typography.sm, fontWeight: "600", color: c.text },
+    input: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.sm,
+      padding: spacing.xs,
+      fontSize: typography.sm,
+      color: c.text,
+      textAlign: "center",
+      backgroundColor: c.inputBg,
+    },
+    feedback: { fontSize: typography.sm, fontWeight: "600" },
+    fSuccess: { color: c.success },
+    fError: { color: c.error },
+  });
+}
+
 export default function FillInTable({
   data,
   isCompleted: isCompletedProp,
@@ -19,6 +64,9 @@ export default function FillInTable({
   onAttempt,
   onComplete,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const question = data?.question as string | undefined;
   const columns = (data?.columns ?? []) as string[];
   const rows = (data?.rows ?? []) as { id: string; label?: string }[];
@@ -76,7 +124,6 @@ export default function FillInTable({
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator>
         <View>
-          {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.labelCell} />
             {columns.map((col, ci) => (
@@ -85,7 +132,6 @@ export default function FillInTable({
               </View>
             ))}
           </View>
-          {/* Rows */}
           {rows.map((row) => (
             <View key={row.id} style={styles.dataRow}>
               <View style={styles.labelCell}>
@@ -104,7 +150,7 @@ export default function FillInTable({
                         return { ...prev, [row.id]: rowVals };
                       })
                     }
-                    placeholderTextColor={colors.textFaint}
+                    placeholderTextColor={c.textFaint}
                   />
                 </View>
               ))}
@@ -137,35 +183,3 @@ export default function FillInTable({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  question: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    lineHeight: 24,
-  },
-  headerRow: { flexDirection: "row", borderBottomWidth: 1, borderColor: colors.border },
-  dataRow: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  labelCell: { width: 100, padding: spacing.sm, justifyContent: "center" },
-  cell: { width: 100, padding: spacing.xs },
-  headerText: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    color: colors.textMuted,
-    textTransform: "uppercase",
-  },
-  rowLabel: { fontSize: typography.sm, fontWeight: "600", color: colors.text },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    padding: spacing.xs,
-    fontSize: typography.sm,
-    color: colors.text,
-    textAlign: "center",
-  },
-  feedback: { fontSize: typography.sm, fontWeight: "600" },
-  fSuccess: { color: colors.success },
-  fError: { color: colors.error },
-});

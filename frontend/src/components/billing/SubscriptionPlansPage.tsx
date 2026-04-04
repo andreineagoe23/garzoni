@@ -1,6 +1,10 @@
 /**
  * Subscriptions / plans page. Rendered at /subscriptions.
  * Imported statically in App so it stays in the main bundle (avoids chunk resolution issues).
+ *
+ * Billing flow:
+ *   When VITE_REVENUECAT_API_KEY is set → RevenueCat Paywall (RC Billing / Stripe via RC).
+ *   Otherwise                           → Legacy Django/Stripe backend checkout.
  */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -13,6 +17,9 @@ import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
+import { isRevenueCatEnabled, rcIsEntitled } from "services/revenueCatService";
+import type { CustomerInfo } from "@revenuecat/purchases-js";
+import RevenueCatPaywall from "components/billing/RevenueCatPaywall";
 
 type PlanFeature = {
   name?: string;
@@ -68,6 +75,23 @@ const SubscriptionPlansPage = () => {
     "yearly"
   );
   const locale = getLocale();
+
+  // RevenueCat paywall overlay — shown instead of redirecting to Stripe
+  // when the RC Web SDK is configured (VITE_REVENUECAT_API_KEY is set).
+  const rcEnabled = isRevenueCatEnabled();
+  const [showRCPaywall, setShowRCPaywall] = useState(false);
+
+  const handleRCSuccess = useCallback(
+    (customerInfo: CustomerInfo) => {
+      if (rcIsEntitled(customerInfo)) {
+        setSubscriptionInfo({ hasPaid: true });
+        reloadEntitlements?.();
+        setShowRCPaywall(false);
+        navigate("/personalized-path");
+      }
+    },
+    [reloadEntitlements, navigate]
+  );
 
   const { data: questionnaireProgress } = useQuery({
     queryKey: ["questionnaire-progress"],
@@ -161,6 +185,14 @@ const SubscriptionPlansPage = () => {
         navigate("/onboarding");
         return;
       }
+
+      // ── RevenueCat flow (preferred when SDK is configured) ──────────────────
+      if (rcEnabled) {
+        setShowRCPaywall(true);
+        return;
+      }
+
+      // ── Legacy Stripe/Django flow ────────────────────────────────────────────
       try {
         const r = await apiClient.post("/subscriptions/create/", {
           plan_id: plan.plan_id,
@@ -189,6 +221,7 @@ const SubscriptionPlansPage = () => {
       questionnaireComplete,
       reloadEntitlements,
       getAccessToken,
+      rcEnabled,
       t,
     ]
   );
@@ -243,6 +276,7 @@ const SubscriptionPlansPage = () => {
   }, [plans, t]);
 
   return (
+    <>
     <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
       <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -537,6 +571,23 @@ const SubscriptionPlansPage = () => {
         </div>
       </GlassCard>
     </section>
+
+    {/* ── RevenueCat Paywall overlay ──────────────────────────────────────── */}
+    {showRCPaywall && rcEnabled && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Subscription paywall"
+      >
+        <RevenueCatPaywall
+          userId={String((user as { id?: number } | null)?.id ?? "anonymous")}
+          onSuccess={handleRCSuccess}
+          onClose={() => setShowRCPaywall(false)}
+        />
+      </div>
+    )}
+  </>
   );
 };
 

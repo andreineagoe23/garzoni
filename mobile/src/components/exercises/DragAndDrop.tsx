@@ -1,13 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card, Button, Badge } from "../ui";
-import { colors, spacing, typography, radius } from "../../theme/tokens";
-
-/**
- * "Tap to order" implementation — user taps items in the correct order.
- * Same onAttempt/onComplete contract as the web DragAndDropExercise.
- * Can be upgraded to real drag-and-drop later with react-native-reanimated.
- */
+import { spacing, typography, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import type { ThemeColors } from "../../theme/palettes";
 
 type Item = { id: string | number; label?: string };
 type Target = { id: string | number; label?: string };
@@ -21,6 +17,50 @@ type Props = {
   onComplete?: () => Promise<void> | void;
 };
 
+function createStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    question: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: c.text,
+      lineHeight: 24,
+      marginBottom: spacing.lg,
+    },
+    placed: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+      alignItems: "center",
+    },
+    undo: { color: c.error, fontSize: typography.sm, fontWeight: "600" },
+    pool: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      backgroundColor: c.surfaceOffset,
+    },
+    chipText: { fontSize: typography.base, color: c.text },
+    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    fOk: { color: c.success },
+    fErr: { color: c.error },
+    explanation: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginTop: spacing.sm,
+      lineHeight: 20,
+    },
+  });
+}
+
 export default function DragAndDrop({
   data,
   isCompleted: isCompletedProp,
@@ -28,6 +68,9 @@ export default function DragAndDrop({
   onAttempt,
   onComplete,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const items = (data?.items ?? []) as Item[];
   const targets = (data?.targets ?? []) as Target[];
   const explanation = data?.explanation as string | undefined;
@@ -95,11 +138,10 @@ export default function DragAndDrop({
         {(data?.question as string) ?? "Tap items in the correct order"}
       </Text>
 
-      {/* Placed items */}
       {order.length > 0 ? (
         <View style={styles.placed}>
           {order.map((id, i) => (
-            <Badge key={`${id}-${i}`} label={`${i + 1}. ${itemLabel(id)}`} color={colors.primary} />
+            <Badge key={`${id}-${i}`} label={`${i + 1}. ${itemLabel(id)}`} color={c.accent} />
           ))}
           {!isCompleted ? (
             <Pressable onPress={handleUndo}>
@@ -109,7 +151,6 @@ export default function DragAndDrop({
         </View>
       ) : null}
 
-      {/* Available items */}
       {!isCompleted ? (
         <View style={styles.pool}>
           {available.map((it) => (
@@ -148,45 +189,3 @@ export default function DragAndDrop({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  question: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.text,
-    lineHeight: 24,
-    marginBottom: spacing.lg,
-  },
-  placed: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-    alignItems: "center",
-  },
-  undo: { color: colors.error, fontSize: typography.sm, fontWeight: "600" },
-  pool: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceOffset,
-  },
-  chipText: { fontSize: typography.base, color: colors.text },
-  feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
-  fOk: { color: colors.success },
-  fErr: { color: colors.error },
-  explanation: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
-});

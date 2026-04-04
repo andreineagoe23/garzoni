@@ -42,6 +42,7 @@ from .views_hearts import (
     UserHeartsRefillView,
 )
 from .views_push import ExpoPushTokenView
+from .views_revenuecat import RevenueCatWebhookView
 
 router = DefaultRouter()
 router.register(r"friend-requests", FriendRequestView, basename="friend-request")
@@ -96,6 +97,11 @@ urlpatterns = [
         name="validate-referral-code",
     ),
     path("csrf/", get_csrf_token, name="get_csrf_token"),
+    path(
+        "revenuecat-webhook/",
+        RevenueCatWebhookView.as_view(),
+        name="revenuecat-webhook",
+    ),
     # Hearts (lives) system
     path("user/hearts/", UserHeartsView.as_view(), name="user-hearts"),
     path(

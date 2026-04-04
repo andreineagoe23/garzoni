@@ -6,13 +6,26 @@ import Button from "./Button";
 type ErrorStateProps = {
   message: string;
   onRetry?: () => void;
+  /** e.g. “View plans” when the API returns 403 upgrade required */
+  actionLabel?: string;
+  onAction?: () => void;
 };
 
-export default function ErrorState({ message, onRetry }: ErrorStateProps) {
+export default function ErrorState({
+  message,
+  onRetry,
+  actionLabel,
+  onAction,
+}: ErrorStateProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>⚠️</Text>
       <Text style={styles.message}>{message}</Text>
+      {onAction && actionLabel ? (
+        <Button variant="primary" size="sm" onPress={onAction}>
+          {actionLabel}
+        </Button>
+      ) : null}
       {onRetry ? (
         <Button variant="secondary" size="sm" onPress={onRetry}>
           Try again
