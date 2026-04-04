@@ -1,6 +1,7 @@
 # gamification/serializers.py
 from rest_framework import serializers
 
+from core.media_url import absolute_file_field_url
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
 from gamification.models import Badge, UserBadge, Mission, MissionCompletion
@@ -31,8 +32,7 @@ class BadgeSerializer(serializers.ModelSerializer):
         Returns the absolute URL of the badge image if it exists.
         """
         if obj.image:
-            request = self.context.get("request")
-            return request.build_absolute_uri(obj.image.url)
+            return absolute_file_field_url(self.context.get("request"), obj.image)
         return None
 
 

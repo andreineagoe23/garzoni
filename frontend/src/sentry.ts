@@ -2,9 +2,7 @@ import * as Sentry from "@sentry/react";
 import { browserTracingIntegration } from "@sentry/react";
 
 const dsn =
-  import.meta.env.VITE_SENTRY_DSN ||
-  import.meta.env.REACT_APP_SENTRY_DSN ||
-  "";
+  import.meta.env.VITE_SENTRY_DSN || import.meta.env.REACT_APP_SENTRY_DSN || "";
 const isProd = import.meta.env.PROD;
 
 /** Safe profile fields only (no PII). Use for context in errors. */

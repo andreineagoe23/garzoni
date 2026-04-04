@@ -29,8 +29,8 @@ The app loads `https://www.google.com/recaptcha/enterprise.js?render=KEY` and ca
 Set these in the backend environment (e.g. Railway, `.env`):
 
 - **`RECAPTCHA_SITE_KEY`** = same key ID as the frontend (used in the assessment `event.siteKey`).
-- **`RECAPTCHA_ENTERPRISE_PROJECT_ID`** = your Google Cloud project ID.
-  You can find it in the reCAPTCHA Admin / API URL, e.g. `project-9f648322-8205-4cdf-812`.
+- **`RECAPTCHA_ENTERPRISE_PROJECT_ID`** = your Google Cloud **project ID** (string like `project-9f648322-8205-4cdf-812`).
+  Do not truncate it (a shortened value causes API `403 PERMISSION_DENIED`). The **project number** (e.g. `285624538344`) is different; either works in some Google URLs, but this backend uses the **project ID** in `projects/{id}/assessments`.
 - **`RECAPTCHA_ENTERPRISE_API_KEY`** = a **Google Cloud API key** that has access to the reCAPTCHA Enterprise API.
 
 ### How to get the API key

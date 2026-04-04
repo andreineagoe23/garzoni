@@ -26,7 +26,8 @@ import {
 } from "../../src/components/ui";
 import MascotImage from "../../src/components/common/MascotImage";
 import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
-import * as Haptics from "expo-haptics";
+import { NotificationFeedbackType } from "expo-haptics";
+import { safeNotificationAsync } from "../../src/utils/safeHaptics";
 
 type QuizRow = {
   id: number;
@@ -96,12 +97,12 @@ export default function QuizScreen() {
       setCorrect(isOk);
       setFeedback(res.data.message ?? "");
       if (isOk) {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void safeNotificationAsync(NotificationFeedbackType.Success);
         setEarned(Number(res.data.earned_money ?? 0));
         setCorrectAnswerSnapshot(selected);
         setDone(true);
       } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        void safeNotificationAsync(NotificationFeedbackType.Error);
         decrementHeart();
         setSelected(null);
       }

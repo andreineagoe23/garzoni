@@ -2,8 +2,9 @@
 Google OAuth 2.0 flow for login and register.
 - GET /api/auth/google/ redirects to Google consent.
 - GET /api/auth/google/callback exchanges code, creates or gets user, issues JWT, redirects to frontend.
-  The OAuth redirect_uri sent to Google is always FRONTEND_URL + /api/auth/google/callback (not
-  request.build_absolute_uri), so production matches the public site (e.g. Vercel → /api proxy).
+  redirect_uri = {FRONTEND_URL or GOOGLE_OAUTH_REDIRECT_BASE}/api/auth/google/callback.
+  In DEBUG, defaults to the request Host (see GOOGLE_OAUTH_REDIRECT_FROM_REQUEST) so LAN/dev
+  matches Google Console (e.g. http://192.168.x.x:8000/api/auth/google/callback).
 - POST /api/auth/google/verify-credential/ accepts Google One Tap / Sign-in button ID token,
   verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
@@ -77,9 +78,28 @@ def _get_google_config():
     return client_id.strip(), client_secret.strip()
 
 
-def _google_oauth_redirect_uri():
-    """Callback URL registered with Google; uses FRONTEND_URL so it matches the browser-facing /api host."""
-    base = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+def _google_oauth_redirect_uri(request=None):
+    """Callback URL registered with Google; must match Authorized redirect URIs in Google Cloud."""
+    override = (getattr(settings, "GOOGLE_OAUTH_REDIRECT_BASE", "") or "").strip()
+    if override:
+        base = override.rstrip("/")
+    elif request is not None and env_bool(
+        "GOOGLE_OAUTH_REDIRECT_FROM_REQUEST",
+        settings.DEBUG,
+    ):
+        xf_proto = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").strip().lower()
+        scheme = xf_proto if xf_proto in ("http", "https") else request.scheme
+        try:
+            host = request.get_host()
+        except Exception:
+            host = ""
+        base = (
+            f"{scheme}://{host}".rstrip("/")
+            if host and scheme
+            else (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+        )
+    else:
+        base = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
     return f"{base}/api/auth/google/callback"
 
 
@@ -95,7 +115,8 @@ class GoogleOAuthInitView(APIView):
             frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = _google_oauth_redirect_uri()
+        redirect_uri = _google_oauth_redirect_uri(request)
+        logger.info("Google OAuth redirect_uri=%s", redirect_uri)
         state = request.GET.get("state", "")
         params = {
             "client_id": client_id,
@@ -135,7 +156,7 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google OAuth not configured")
             return redirect(f"{frontend_url}/login?error=oauth_not_configured")
 
-        redirect_uri = _google_oauth_redirect_uri()
+        redirect_uri = _google_oauth_redirect_uri(request)
 
         # Exchange code for tokens
         token_data = {

@@ -32,6 +32,14 @@ Set these on the **backend** service (the names below are what Django reads).
 | `CLOUDINARY_URL` **or** `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` |
 | `DJANGO_MEDIA_STORAGE_BACKEND` (if you override storage) |
 
+**Course / badge / reward images (paths, Cloudinary, local Docker)**
+
+1. **Local filesystem (Docker default):** Files must exist under `backend/media/` with the same relative paths the DB expects (e.g. `path_images/basicfinance.png`). The API normalizes bogus `monevo/backend/media/` prefixes in URLs, but if the DB still points at random upload names (e.g. `ew8l….png`), images 404. Run **`python manage.py fix_local_media_image_paths`** inside the backend container (use `--dry-run` first) to remap Path/Course/Badge/Reward rows to seed filenames that exist on disk.
+2. **Serve from Cloudinary in production:** Set `DJANGO_MEDIA_STORAGE_BACKEND` to your Cloudinary storage backend (see Django `django-cloudinary-storage`), set `CLOUDINARY_URL`, then upload and align DB:
+   - From repo root: `node scripts/upload-cloudinary-images.js` (needs `CLOUDINARY_*` or `CLOUDINARY_URL`).
+   - Then in `backend/`: `python manage.py migrate_cloudinary_images` (uses `scripts/cloudinary-upload-results.json`; see the command module for flags).
+3. **Marketing-only assets** (login backgrounds, topic fallbacks): configured in `packages/core/src/images.ts` via `VITE_CLOUDINARY_CLOUD_NAME` / `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and the `monevo/…` public IDs from the upload script.
+
 **Google (web redirect + ID tokens)**
 
 | Variable |
@@ -41,6 +49,8 @@ Set these on the **backend** service (the names below are what Django reads).
 | `GOOGLE_OAUTH_IOS_CLIENT_ID` (native iOS Sign-In `aud`) |
 | `GOOGLE_OAUTH_ANDROID_CLIENT_ID` (native Android, if used) |
 | `GOOGLE_OAUTH_CLIENT_IDS_CSV` (optional extra client IDs, comma-separated) |
+| `GOOGLE_OAUTH_REDIRECT_BASE` (optional; public origin for OAuth callback only, e.g. `https://www.monevo.tech` — must match **Authorized redirect URIs** in Google Cloud) |
+| `GOOGLE_OAUTH_REDIRECT_FROM_REQUEST` (`1` / `true` — use request `Host` for redirect_uri; defaults **on when `DEBUG`** so LAN hits like `http://192.168.x.x:8000` match Google; set `0` to force `FRONTEND_URL` only) |
 
 **Sign in with Apple (native)**
 
@@ -67,9 +77,10 @@ Set these on the **backend** service (the names below are what Django reads).
 | Variable |
 |----------|
 | `RECAPTCHA_SITE_KEY` |
-| `RECAPTCHA_ENTERPRISE_PROJECT_ID` |
+| `RECAPTCHA_ENTERPRISE_PROJECT_ID` (Google Cloud **project ID**, e.g. `my-project-123` — not a key string; wrong id → API 403 `PERMISSION_DENIED`) |
 | `RECAPTCHA_ENTERPRISE_API_KEY` |
 | `RECAPTCHA_REQUIRED_SCORE` (optional) |
+| `RECAPTCHA_DISABLED` (`1` / `true` — **local only**; skips token check on login/register) |
 
 **Email**
 
@@ -118,7 +129,7 @@ CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix ab
 | File | Used by |
 |------|---------|
 | `backend/.env` | `python manage.py runserver`, Docker backend (same names as Railway) |
-| `frontend/.env` or `frontend/.env.development.local` | Vite (`VITE_*` only) |
+| `frontend/.env` or `frontend/.env.development.local` | Vite (`VITE_*` only). **Do not** set `VITE_RECAPTCHA_SITE_KEY` / `REACT_APP_RECAPTCHA_SITE_KEY` to an empty string in `.env.development.local` — it overrides `frontend/.env` and causes `recaptcha_missing` while the backend still expects a token. |
 | `mobile/.env` | Expo / Metro (`EXPO_PUBLIC_*` + optional `CLOUDINARY_*` for scripts) |
 | Repo root `.env` | **Docker Compose only** (`POSTGRES_*` for the db container) — not read by Django |
 
@@ -148,12 +159,15 @@ CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix ab
 | Symptom | Add / fix |
 |---------|-----------|
 | Web login backgrounds empty | `VITE_CLOUDINARY_CLOUD_NAME` on **Vercel** + images uploaded to Cloudinary under `monevo/…` |
+| `Not Found: /media/.../path_images` or doubled `monevo/backend/media` in URL | Backend serializers normalize paths; ensure files exist under `backend/media/path_images/` (Docker seed) or migrate to Cloudinary + `migrate_cloudinary_images` |
 | Mobile Google “not configured” / invalid token | `GOOGLE_OAUTH_IOS_CLIENT_ID` (and/or Android / CSV) on **Railway** |
 | Mobile Google “missing URL scheme com.googleusercontent.apps.…” | Set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` (or explicit `EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME`), then **rebuild the iOS app** (scheme is baked into `Info.plist` at prebuild). |
 | Vercel `REACT_APP_BACKEND_URL` | Use **`https://`** for production API origin (match Railway’s public URL). |
 | Mobile Apple fails after token | `APPLE_SIGNIN_BUNDLE_ID` or `APPLE_SIGNIN_AUDIENCES_CSV` on **Railway** |
 | Frontend Sentry never reports | `VITE_SENTRY_DSN` on **Vercel** |
 | CORS errors from production web | `CORS_ALLOWED_ORIGINS_CSV` on **Railway** includes your exact site origin |
+| Google **redirect_uri_mismatch** (web) | In Google Cloud → Credentials → Web client, add **Authorized redirect URI** exactly `{FRONTEND_URL}/api/auth/google/callback` (same scheme/host as users’ browser, e.g. `https://www.monevo.tech/api/auth/google/callback`). Ensure Railway `FRONTEND_URL` matches that origin, or set `GOOGLE_OAUTH_REDIRECT_BASE` to that origin. Backend logs `Google OAuth redirect_uri=…` on each sign-in attempt. |
+| **recaptcha_missing** (local dev) | Remove empty recaptcha keys from `frontend/.env.development.local`, or set `RECAPTCHA_DISABLED=1` in `backend/.env` (never in production). |
 
 ---
 

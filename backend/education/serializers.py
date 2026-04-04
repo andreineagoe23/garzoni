@@ -26,6 +26,7 @@ from education.models import (
     ExerciseTranslation,
 )
 from education.utils import get_request_language, resolve_path_access_tier
+from core.media_url import absolute_file_field_url
 
 
 def _get_translation(instance, language, rel_name="translations"):
@@ -180,8 +181,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         if obj.image:
-            request = self.context.get("request")
-            return request.build_absolute_uri(obj.image.url)
+            return absolute_file_field_url(self.context.get("request"), obj.image)
         return None
 
     def get_completed_lessons(self, obj):
@@ -231,8 +231,7 @@ class CourseSummarySerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         if obj.image:
-            request = self.context.get("request")
-            return request.build_absolute_uri(obj.image.url)
+            return absolute_file_field_url(self.context.get("request"), obj.image)
         return None
 
     def get_total_lessons(self, obj):
@@ -258,6 +257,7 @@ class PathSerializer(serializers.ModelSerializer):
 
     courses = CourseSerializer(many=True, read_only=True)
     is_locked = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Path
@@ -282,6 +282,11 @@ class PathSerializer(serializers.ModelSerializer):
         plan = get_user_plan(user)
         required_tier = resolve_path_access_tier(obj)
         return not plan_allows(plan, required_tier)
+
+    def get_image(self, obj):
+        if obj.image:
+            return absolute_file_field_url(self.context.get("request"), obj.image)
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -300,6 +305,7 @@ class PathListSerializer(serializers.ModelSerializer):
 
     courses = CourseSummarySerializer(many=True, read_only=True)
     is_locked = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Path
@@ -324,6 +330,11 @@ class PathListSerializer(serializers.ModelSerializer):
         plan = get_user_plan(user)
         required_tier = resolve_path_access_tier(obj)
         return not plan_allows(plan, required_tier)
+
+    def get_image(self, obj):
+        if obj.image:
+            return absolute_file_field_url(self.context.get("request"), obj.image)
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

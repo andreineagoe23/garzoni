@@ -11,6 +11,13 @@ services:
       - ./backend/.env
     environment:
       DJANGO_SETTINGS_MODULE: settings.settings
+      # After: docker compose cp scripts/cloudinary-upload-results.json backend:/app/cloudinary-upload-results.json
+      # Rebuilt images also resolve this via migrate_cloudinary_images without --json-path.
+      CLOUDINARY_UPLOAD_MAP_JSON: /app/cloudinary-upload-results.json
+      # Lets Expo/iOS use EXPO_PUBLIC_BACKEND_URL=http://<your-LAN-ip>:8000 (any Host header).
+      # Or set ALLOWED_HOSTS_CSV=localhost,127.0.0.1,* in backend/.env instead of the flags below.
+      DJANGO_ALLOW_ALL_HOSTS: "1"
+      DJANGO_ALLOW_LAN_HOSTS: "true"
       ENABLE_DJANGO_EXTENSIONS: "${ENABLE_DJANGO_EXTENSIONS:-false}"
       # Use Postgres in Docker so the DB persists in backend_db_data (avoids re-running all migrations on every rebuild)
       DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"

@@ -163,7 +163,9 @@ function Login() {
       <div
         className="relative flex min-h-screen flex-col overflow-hidden bg-cover bg-center bg-fixed"
         style={{
-          backgroundImage: Images.loginBg ? `url(${Images.loginBg})` : undefined,
+          backgroundImage: Images.loginBg
+            ? `url(${Images.loginBg})`
+            : undefined,
         }}
       >
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
