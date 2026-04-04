@@ -98,8 +98,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck (mobile / Expo)
-        run: pnpm --filter @monevo/mobile exec tsc --noEmit
+      - name: Typecheck (core + web + mobile)
+        run: pnpm run typecheck
 
       - name: Lint (eslint)
         run: pnpm --filter @monevo/web lint

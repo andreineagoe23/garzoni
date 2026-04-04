@@ -74,14 +74,14 @@ export default function AllTopicsGrid() {
   const [pathFilter, setPathFilter] = useState("all");
   const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
 
-  const q = useQuery({
+  const q = useQuery<PathRow[]>({
     queryKey: queryKeys.learningPaths(),
     enabled: hydrated,
     queryFn: () => fetchLearningPaths().then((r) => unwrapApiList<PathRow>(r.data)),
     staleTime: staleTimes.content,
   });
 
-  const paths = useMemo(() => q.data ?? [], [q.data]);
+  const paths = useMemo((): PathRow[] => q.data ?? [], [q.data]);
 
   const orderedPaths = useMemo(
     () => applyPathSortAndFilter(paths, sortBy, pathFilter),

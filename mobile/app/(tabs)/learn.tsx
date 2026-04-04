@@ -149,7 +149,7 @@ function LearnInner() {
   const [pathSortBy, setPathSortBy] = useState("default");
   const [pathListFilter, setPathListFilter] = useState("all");
 
-  const pathsQuery = useQuery({
+  const pathsQuery = useQuery<PathRow[]>({
     queryKey: queryKeys.learningPaths(),
     enabled: hydrated,
     queryFn: () => pathService.fetchPaths().then((r) => unwrapApiList<PathRow>(r.data)),
@@ -165,7 +165,7 @@ function LearnInner() {
   );
   const expandedLocked = expandedPath?.is_locked === true;
 
-  const coursesQuery = useQuery({
+  const coursesQuery = useQuery<CourseRow[]>({
     queryKey: ["courses", expandedPathId],
     enabled: hydrated && expandedPathId != null && !expandedLocked,
     queryFn: () =>

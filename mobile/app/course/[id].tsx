@@ -86,7 +86,7 @@ export default function CourseDetailScreen() {
     staleTime: staleTimes.content,
   });
 
-  const lessonsQuery = useQuery({
+  const lessonsQuery = useQuery<LessonRow[]>({
     queryKey: queryKeys.lessonsWithProgress(courseId),
     enabled: hydrated && Number.isFinite(courseId),
     queryFn: () =>
@@ -96,7 +96,7 @@ export default function CourseDetailScreen() {
     staleTime: staleTimes.content,
   });
 
-  const lessons = lessonsQuery.data ?? [];
+  const lessons: LessonRow[] = lessonsQuery.data ?? [];
   const completedCount = useMemo(
     () => lessons.filter((l) => l.is_completed).length,
     [lessons]

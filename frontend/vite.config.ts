@@ -65,7 +65,10 @@ export default defineConfig(({ mode }) => {
       find: /^services\/revenueCatService$/,
       replacement: r("src/services/revenueCatService.ts"),
     },
-    { find: /^services\/(.+)$/, replacement: `${path.join(coreSrc, "services")}/$1` },
+    {
+      find: /^services\/(.+)$/,
+      replacement: `${path.join(coreSrc, "services")}/$1`,
+    },
     { find: "utils", replacement: r("src/utils") },
     { find: "lib", replacement: r("src/lib") },
     { find: "types", replacement: path.join(coreSrc, "types") },

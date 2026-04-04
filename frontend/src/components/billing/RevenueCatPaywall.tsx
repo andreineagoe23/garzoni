@@ -60,7 +60,7 @@ interface PlanCard {
 
 const PACKAGE_SORT_ORDER: Record<string, number> = {
   $rc_monthly: 1,
-  $rc_annual: 0,   // show yearly first (best value)
+  $rc_annual: 0, // show yearly first (best value)
   $rc_lifetime: 2,
   MONTHLY: 1,
   ANNUAL: 0,
@@ -78,11 +78,7 @@ function sortedPlans(packages: Package[]): PlanCard[] {
       const type = pkg.packageType as string;
       const isYearly = type === "ANNUAL" || type === "$rc_annual";
       const isLifetime = type === "LIFETIME" || type === "$rc_lifetime";
-      const label = isLifetime
-        ? "Lifetime"
-        : isYearly
-          ? "Yearly"
-          : "Monthly";
+      const label = isLifetime ? "Lifetime" : isYearly ? "Yearly" : "Monthly";
       return {
         pkg,
         label,
@@ -127,9 +123,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           : offerings.current;
 
         if (!offering || !offering.availablePackages.length) {
-          setError(
-            "No plans available at the moment. Please try again later."
-          );
+          setError("No plans available at the moment. Please try again later.");
           return;
         }
 
@@ -170,14 +164,15 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           );
         }
       } catch (err) {
-        const rcErr = err as { userCancelledPurchase?: boolean; message?: string };
+        const rcErr = err as {
+          userCancelledPurchase?: boolean;
+          message?: string;
+        };
         if (rcErr?.userCancelledPurchase) {
           // User closed Stripe Checkout — not an error.
           return;
         }
-        setError(
-          rcErr?.message || "Purchase failed. Please try again."
-        );
+        setError(rcErr?.message || "Purchase failed. Please try again.");
         console.error("[RevenueCat Paywall] purchase error:", err);
       } finally {
         setPurchasing(null);
@@ -196,9 +191,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         setAlreadyEntitled(true);
         onSuccess?.(customerInfo);
       } else {
-        setError(
-          "No active subscription found for this account."
-        );
+        setError("No active subscription found for this account.");
       }
     } catch (err) {
       const rcErr = err as { message?: string };

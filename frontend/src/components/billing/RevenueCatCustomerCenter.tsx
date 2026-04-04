@@ -15,7 +15,10 @@
  */
 
 import React, { useCallback, useState } from "react";
-import { configureRevenueCat, rcShowCustomerCenter } from "services/revenueCatService";
+import {
+  configureRevenueCat,
+  rcShowCustomerCenter,
+} from "services/revenueCatService";
 import { GlassButton } from "components/ui";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
