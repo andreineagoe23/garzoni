@@ -13,6 +13,9 @@ services:
       DJANGO_SETTINGS_MODULE: settings.settings
       DJANGO_ENV: "development"
       DEBUG: "True"
+      # Same as root compose: mobile hits http://<LAN-IP>:8000. Override via ALLOWED_HOSTS_CSV in backend/.env if needed.
+      DJANGO_ALLOW_ALL_HOSTS: "1"
+      DJANGO_ALLOW_LAN_HOSTS: "true"
       CELERY_TASK_ALWAYS_EAGER: "True"
       # Use same POSTGRES_* as db service (set in project root .env or backend/.env)
       DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
