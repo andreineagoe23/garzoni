@@ -23,6 +23,7 @@ export default function StatusSummaryRow({
   return (
     <ScrollView
       horizontal
+      nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scroll}
     >

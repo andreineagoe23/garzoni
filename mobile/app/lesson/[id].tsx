@@ -30,14 +30,140 @@ import TextSection from "../../src/components/lesson/TextSection";
 import VideoSection from "../../src/components/lesson/VideoSection";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
 import { useLessonFlow, type FlowItem } from "../../src/lesson/useLessonFlow";
-import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
 import { useShowHeartsMobile } from "../../src/hooks/useShowHeartsMobile";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import type { ThemeColors } from "../../src/theme/palettes";
 
 function formatCountdown(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
   const m = Math.floor(s / 60);
   const r = s % 60;
   return `${m}:${r.toString().padStart(2, "0")}`;
+}
+
+function createLessonStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: c.bg },
+    centered: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xxxl,
+    },
+    loadingContainer: { padding: spacing.xl },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: c.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+      ...shadows.sm,
+    },
+    backBtn: { padding: spacing.sm, marginRight: spacing.sm },
+    backText: { fontSize: typography.xl, color: c.primary },
+    headerCenter: { flex: 1, marginRight: spacing.md },
+    headerTitle: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      color: c.text,
+    },
+    content: {
+      padding: spacing.xl,
+      paddingBottom: 120,
+    },
+    sectionTitle: {
+      fontSize: typography.lg,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: spacing.lg,
+    },
+    noContent: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      textAlign: "center",
+      marginTop: spacing.xxxxl,
+    },
+    bottomBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      backgroundColor: c.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.border,
+    },
+    midNav: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    midLink: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      color: c.primary,
+    },
+    midSep: { color: c.textFaint, fontSize: typography.sm },
+    navBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
+    navBtnDisabled: { opacity: 0.3 },
+    navBtnText: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      color: c.primary,
+    },
+    navBtnTextDisabled: { color: c.textFaint },
+    stepFoot: {
+      textAlign: "center",
+      fontSize: typography.xs,
+      color: c.textMuted,
+      paddingBottom: spacing.sm,
+      backgroundColor: c.surface,
+    },
+
+    completeEmoji: { fontSize: 72, marginBottom: spacing.lg },
+    completeTitle: {
+      fontSize: typography.xxl,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: spacing.sm,
+    },
+    completeSubtitle: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      textAlign: "center",
+      marginBottom: spacing.xxl,
+    },
+    completeActions: { gap: spacing.md, width: "100%" },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: c.overlay,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xxl,
+    },
+    modalCard: {
+      backgroundColor: c.surface,
+      borderRadius: radius.xl,
+      padding: spacing.xxl,
+      width: "100%",
+      alignItems: "center",
+      ...shadows.lg,
+    },
+    modalEmoji: { fontSize: 56, marginBottom: spacing.lg },
+    modalTitle: {
+      fontSize: typography.xl,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: spacing.sm,
+    },
+    modalMessage: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      textAlign: "center",
+      marginBottom: spacing.lg,
+      lineHeight: 22,
+    },
+    modalActions: { width: "100%", gap: spacing.sm },
+  });
 }
 
 export default function LessonScreen() {
@@ -129,6 +255,9 @@ export default function LessonScreen() {
     await handleCompleteCurrent();
     goNext();
   }, [handleCompleteCurrent, goNext]);
+
+  const themeColors = useThemeColors();
+  const styles = useMemo(() => createLessonStyles(themeColors), [themeColors]);
 
   const lessonTitle =
     (lessonQuery.data?.title as string) ?? `Lesson ${id}`;
@@ -232,11 +361,14 @@ export default function LessonScreen() {
       </View>
 
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
       >
         {currentItem ? (
           <FlowItemRenderer
+            lessonStyles={styles}
             item={currentItem}
             onAttempt={handleAttempt}
             onComplete={handleSectionComplete}
@@ -330,10 +462,12 @@ export default function LessonScreen() {
 }
 
 function FlowItemRenderer({
+  lessonStyles,
   item,
   onAttempt,
   onComplete,
 }: {
+  lessonStyles: ReturnType<typeof createLessonStyles>;
   item: FlowItem;
   onAttempt: (p: { correct: boolean }) => void;
   onComplete: () => Promise<void>;
@@ -341,7 +475,7 @@ function FlowItemRenderer({
   if (item.kind === "lesson-text") {
     return (
       <View>
-        <Text style={styles.sectionTitle}>{item.lessonTitle}</Text>
+        <Text style={lessonStyles.sectionTitle}>{item.lessonTitle}</Text>
         <TextSection html={item.detailedContent} />
         {!item.isCompleted ? (
           <Button
@@ -362,7 +496,7 @@ function FlowItemRenderer({
     return (
       <View>
         {section.title ? (
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <Text style={lessonStyles.sectionTitle}>{section.title}</Text>
         ) : null}
         <VideoSection url={section.video_url} title={section.title} />
         {!item.isCompleted ? (
@@ -382,7 +516,7 @@ function FlowItemRenderer({
     return (
       <View>
         {section.title ? (
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <Text style={lessonStyles.sectionTitle}>{section.title}</Text>
         ) : null}
         <ExerciseSection
           exerciseType={section.exercise_type}
@@ -399,7 +533,7 @@ function FlowItemRenderer({
   return (
     <View>
       {section.title ? (
-        <Text style={styles.sectionTitle}>{section.title}</Text>
+        <Text style={lessonStyles.sectionTitle}>{section.title}</Text>
       ) : null}
       <TextSection
         html={section.text_content}
@@ -417,125 +551,3 @@ function FlowItemRenderer({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
-  centered: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxxl,
-  },
-  loadingContainer: { padding: spacing.xl },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    ...shadows.sm,
-  },
-  backBtn: { padding: spacing.sm, marginRight: spacing.sm },
-  backText: { fontSize: typography.xl, color: colors.primary },
-  headerCenter: { flex: 1, marginRight: spacing.md },
-  headerTitle: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  content: {
-    padding: spacing.xl,
-    paddingBottom: 120,
-  },
-  sectionTitle: {
-    fontSize: typography.lg,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.lg,
-  },
-  noContent: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginTop: spacing.xxxxl,
-  },
-  bottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-  },
-  midNav: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  midLink: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    color: colors.primary,
-  },
-  midSep: { color: colors.textFaint, fontSize: typography.sm },
-  navBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
-  navBtnDisabled: { opacity: 0.3 },
-  navBtnText: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    color: colors.primary,
-  },
-  navBtnTextDisabled: { color: colors.textFaint },
-  stepFoot: {
-    textAlign: "center",
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    paddingBottom: spacing.sm,
-    backgroundColor: colors.surface,
-  },
-
-  completeEmoji: { fontSize: 72, marginBottom: spacing.lg },
-  completeTitle: {
-    fontSize: typography.xxl,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  completeSubtitle: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginBottom: spacing.xxl,
-  },
-  completeActions: { gap: spacing.md, width: "100%" },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxl,
-  },
-  modalCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.xxl,
-    width: "100%",
-    alignItems: "center",
-    ...shadows.lg,
-  },
-  modalEmoji: { fontSize: 56, marginBottom: spacing.lg },
-  modalTitle: {
-    fontSize: typography.xl,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  modalMessage: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginBottom: spacing.lg,
-    lineHeight: 22,
-  },
-  modalActions: { width: "100%", gap: spacing.sm },
-});

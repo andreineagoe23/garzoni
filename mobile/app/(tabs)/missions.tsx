@@ -1,16 +1,10 @@
 import { useCallback } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFinanceFact, fetchMissions, queryKeys } from "@monevo/core";
 import MissionCard from "../../src/components/engagement/MissionCard";
 import FactCard from "../../src/components/engagement/FactCard";
-import { ErrorState, Skeleton } from "../../src/components/ui";
+import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
@@ -40,7 +34,7 @@ function MissionsInner() {
   const weekly = missionsQuery.data?.weekly_missions ?? [];
 
   return (
-    <ScrollView
+    <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
         <RefreshControl
@@ -81,7 +75,7 @@ function MissionsInner() {
           ))}
         </>
       )}
-    </ScrollView>
+    </ScreenScroll>
   );
 }
 
@@ -94,7 +88,7 @@ export default function MissionsTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.xl, paddingBottom: 80 },
+  container: { padding: spacing.xl, paddingBottom: spacing.lg },
   title: { fontSize: typography.xl, fontWeight: "800" },
   sub: { fontSize: typography.sm, marginTop: spacing.xs, marginBottom: spacing.lg, lineHeight: 20 },
   section: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.md },

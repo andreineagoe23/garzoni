@@ -37,7 +37,8 @@ function resolveMode(
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>("system");
+  /** Match web `ThemeProvider`: dark-first when nothing stored (`prefers-color-scheme` default). */
+  const [mode, setModeState] = useState<ThemeMode>("dark");
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -88,9 +89,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return (
       <ThemeContext.Provider
         value={{
-          mode: "system",
-          resolved: systemScheme === "dark" ? "dark" : "light",
-          colors: systemScheme === "dark" ? darkPalette : lightPalette,
+          mode: "dark",
+          resolved: "dark",
+          colors: darkPalette,
           setMode,
           toggleDark,
         }}

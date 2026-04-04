@@ -3,7 +3,6 @@ import {
   Alert,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -26,6 +25,7 @@ import {
   Button,
   Card,
   ErrorState,
+  ScreenScroll,
   Skeleton,
 } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
@@ -117,7 +117,7 @@ function ProfileInner() {
 
   if (profileQuery.isPending) {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScreenScroll contentContainerStyle={styles.container}>
         <View style={styles.avatarRow}>
           <Skeleton width={64} height={64} borderRadius={32} />
           <View style={{ marginLeft: spacing.lg, flex: 1 }}>
@@ -126,7 +126,7 @@ function ProfileInner() {
           </View>
         </View>
         <Skeleton width="100%" height={80} style={{ marginTop: spacing.xxl }} />
-      </ScrollView>
+      </ScreenScroll>
     );
   }
 
@@ -153,7 +153,7 @@ function ProfileInner() {
   const lessonsDone = progressQuery.data?.completed_lessons ?? 0;
 
   return (
-    <ScrollView
+    <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: colors.bg }]}
       refreshControl={
         <RefreshControl
@@ -290,7 +290,7 @@ function ProfileInner() {
           Delete account
         </Button>
       </View>
-    </ScrollView>
+    </ScreenScroll>
   );
 }
 
@@ -394,7 +394,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.xl,
-    paddingBottom: 60,
+    paddingBottom: spacing.lg,
   },
   errorWrapper: {
     flex: 1,

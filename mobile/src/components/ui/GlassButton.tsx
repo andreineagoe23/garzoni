@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -62,14 +63,21 @@ export default function GlassButton({
 
   const { bg, border, text } = resolveVariant(c, variant);
 
+  const ripple =
+    Platform.OS === "android"
+      ? { color: variant === "active" || variant === "success" ? "rgba(255,255,255,0.25)" : `${c.primary}33` }
+      : undefined;
+
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      android_ripple={ripple}
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor: bg,
+          backgroundColor:
+            pressed && !isDisabled && variant === "primary" ? c.surfaceElevated : bg,
           borderColor: border,
           minHeight: heights[size],
           opacity: isDisabled ? 0.5 : 1,

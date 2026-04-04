@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { pathService, courseService, queryKeys, staleTimes } from "@monevo/core";
+import { pathService, courseService, staleTimes } from "@monevo/core";
 import {
   Badge,
   Card,
@@ -20,7 +20,9 @@ import {
   Skeleton,
 } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
-import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import type { ThemeColors } from "../../src/theme/palettes";
+import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
 
 type PathRow = {
   id?: number;
@@ -46,7 +48,103 @@ function unwrap<T>(raw: unknown): T[] {
 
 type FilterMode = "all" | "in_progress" | "completed";
 
+function createLearnStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      padding: spacing.xl,
+      paddingBottom: spacing.xxxl,
+      backgroundColor: c.bg,
+    },
+    loadingWrap: { flex: 1, padding: spacing.xl, backgroundColor: c.bg },
+    headerBlock: { marginBottom: spacing.md },
+    heading: {
+      fontSize: typography.xl,
+      fontWeight: "700",
+      color: c.text,
+      marginBottom: spacing.md,
+    },
+    search: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: typography.base,
+      color: c.text,
+      backgroundColor: c.surface,
+      marginBottom: spacing.md,
+    },
+    chips: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    chip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: c.border,
+      backgroundColor: c.surface,
+    },
+    chipOn: {
+      borderColor: c.primary,
+      backgroundColor: c.surfaceElevated,
+    },
+    chipText: { fontSize: typography.xs, fontWeight: "600", color: c.textMuted },
+    chipTextOn: { color: c.primary },
+    pathTitle: {
+      fontSize: typography.lg,
+      fontWeight: "700",
+      color: c.text,
+    },
+    pathDesc: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginTop: spacing.xs,
+      lineHeight: 20,
+    },
+    expandHint: {
+      fontSize: typography.xs,
+      color: c.primary,
+      fontWeight: "600",
+      marginTop: spacing.md,
+    },
+    coursesList: {
+      marginTop: spacing.sm,
+      paddingLeft: spacing.md,
+      gap: spacing.sm,
+    },
+    courseRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      ...shadows.sm,
+    },
+    courseInfo: { flex: 1, marginRight: spacing.md },
+    courseTitle: {
+      fontSize: typography.base,
+      fontWeight: "600",
+      color: c.text,
+    },
+    courseMeta: {
+      fontSize: typography.xs,
+      color: c.textMuted,
+      marginTop: 2,
+    },
+    error: { color: c.error, fontSize: typography.sm },
+  });
+}
+
 function LearnInner() {
+  const c = useThemeColors();
+  const styles = useMemo(() => createLearnStyles(c), [c]);
+
   const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
@@ -84,9 +182,9 @@ function LearnInner() {
 
   const filterCourses = useCallback(
     (courses: CourseRow[]) => {
-      return courses.filter((c) => {
-        const total = c.total_lessons ?? 0;
-        const done = c.completed_lessons ?? 0;
+      return courses.filter((course) => {
+        const total = course.total_lessons ?? 0;
+        const done = course.completed_lessons ?? 0;
         const pct = total > 0 ? done / total : 0;
         if (filter === "completed") return pct >= 1;
         if (filter === "in_progress") return pct > 0 && pct < 1;
@@ -98,7 +196,7 @@ function LearnInner() {
 
   if (pathsQuery.isPending) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingWrap}>
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton
             key={i}
@@ -122,14 +220,16 @@ function LearnInner() {
 
   return (
     <FlatList
+      style={{ flex: 1 }}
       data={filteredPaths}
       keyExtractor={(item, i) => String(item.id ?? i)}
+      nestedScrollEnabled
       contentContainerStyle={styles.container}
       refreshControl={
         <RefreshControl
           refreshing={pathsQuery.isFetching}
           onRefresh={() => void pathsQuery.refetch()}
-          tintColor={colors.primary}
+          tintColor={c.primary}
         />
       }
       ListHeaderComponent={
@@ -138,7 +238,7 @@ function LearnInner() {
           <TextInput
             style={styles.search}
             placeholder="Search paths…"
-            placeholderTextColor={colors.textFaint}
+            placeholderTextColor={c.textFaint}
             value={query}
             onChangeText={setQuery}
           />
@@ -199,11 +299,7 @@ function LearnInner() {
                     const status =
                       pct >= 1 ? "Completed" : pct > 0 ? "In progress" : "Start";
                     const statusColor =
-                      pct >= 1
-                        ? colors.success
-                        : pct > 0
-                          ? colors.accent
-                          : colors.primary;
+                      pct >= 1 ? c.success : pct > 0 ? c.accent : c.primary;
 
                     return (
                       <Pressable
@@ -252,84 +348,3 @@ export default function LearnScreen() {
     </TabErrorBoundary>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: spacing.xl, paddingBottom: 60, backgroundColor: colors.bg },
-  headerBlock: { marginBottom: spacing.md },
-  heading: {
-    fontSize: typography.xl,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  search: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: typography.base,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    marginBottom: spacing.md,
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  chipOn: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}12`,
-  },
-  chipText: { fontSize: typography.xs, fontWeight: "600", color: colors.textMuted },
-  chipTextOn: { color: colors.primary },
-  pathTitle: {
-    fontSize: typography.lg,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  pathDesc: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    lineHeight: 20,
-  },
-  expandHint: {
-    fontSize: typography.xs,
-    color: colors.primary,
-    fontWeight: "600",
-    marginTop: spacing.md,
-  },
-  coursesList: {
-    marginTop: spacing.sm,
-    paddingLeft: spacing.md,
-    gap: spacing.sm,
-  },
-  courseRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    ...shadows.sm,
-  },
-  courseInfo: { flex: 1, marginRight: spacing.md },
-  courseTitle: {
-    fontSize: typography.base,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  courseMeta: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  error: { color: colors.error, fontSize: typography.sm },
-});
