@@ -15,7 +15,7 @@
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/canvas-confetti": "^1.9.0",
-    "@revenuecat/purchases-js": "^2.0.0",
+    "@revenuecat/purchases-js": "^1.30.0",
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.4",
     "classnames": "^2.5.1",
