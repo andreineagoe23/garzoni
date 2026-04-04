@@ -13,6 +13,7 @@
       "serviceWorkerRegistration": ["src/serviceWorkerRegistration.ts"],
       "contexts/*": ["src/contexts/*"],
       "components/*": ["src/components/*"],
+      "services/revenueCatService": ["src/services/revenueCatService.ts"],
       "services/*": ["../packages/core/src/services/*"],
       "constants/*": ["src/constants/*", "../packages/core/src/constants/*"],
       "utils/*": ["src/utils/*"],
