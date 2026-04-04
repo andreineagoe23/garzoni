@@ -15,6 +15,7 @@ export const navIcons = {
   leaderboard: "trophy-outline",
   rewards: "gift-outline",
   tools: "construct-outline",
+  toolsFilled: "construct",
   support: "help-circle-outline",
   settings: "settings-outline",
   billing: "card-outline",

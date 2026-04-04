@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,7 +11,7 @@ import {
 } from "@monevo/core";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
-import { Button, ErrorState, Skeleton } from "../../src/components/ui";
+import { Button, ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../src/theme/tokens";
@@ -74,7 +68,7 @@ function ExercisesInner() {
   }, [list, mergedCategory]);
 
   return (
-    <ScrollView
+    <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
         <RefreshControl
@@ -92,7 +86,12 @@ function ExercisesInner() {
       <MascotWithMessage mood="encourage" rotationKey={2} />
 
       <Text style={[styles.section, { color: c.accent }]}>Category</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        showsHorizontalScrollIndicator={false}
+        style={{ marginBottom: spacing.md }}
+      >
         <Pressable
           onPress={() => setCategory(undefined)}
           style={[
@@ -163,7 +162,7 @@ function ExercisesInner() {
           />
         </View>
       ) : null}
-    </ScrollView>
+    </ScreenScroll>
   );
 }
 
@@ -176,7 +175,7 @@ export default function ExercisesTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.xl, paddingBottom: 80 },
+  container: { padding: spacing.xl, paddingBottom: spacing.lg },
   title: { fontSize: typography.xl, fontWeight: "800", marginBottom: spacing.xs },
   sub: { fontSize: typography.sm, marginBottom: spacing.lg, lineHeight: 20 },
   section: { fontSize: typography.sm, fontWeight: "700", marginBottom: spacing.sm },

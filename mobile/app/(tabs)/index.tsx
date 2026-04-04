@@ -1,12 +1,5 @@
 import { useCallback } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { href } from "../../src/navigation/href";
@@ -24,6 +17,7 @@ import {
 import {
   Button,
   ErrorState,
+  ScreenScroll,
   Skeleton,
 } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
@@ -108,11 +102,11 @@ function DashboardInner() {
 
   if (progressQuery.isPending) {
     return (
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
         <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
-      </ScrollView>
+      </ScreenScroll>
     );
   }
 
@@ -132,7 +126,7 @@ function DashboardInner() {
   const points = profile?.points ?? 0;
 
   return (
-    <ScrollView
+    <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
@@ -249,7 +243,7 @@ function DashboardInner() {
       >
         Browse learning paths
       </Button>
-    </ScrollView>
+    </ScreenScroll>
   );
 }
 
@@ -264,7 +258,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.xl,
-    paddingBottom: 60,
+    paddingBottom: spacing.lg,
   },
   greeting: {
     fontSize: typography.xl,
