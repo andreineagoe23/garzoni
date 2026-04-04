@@ -117,11 +117,10 @@ export const rcPurchase = async (rcPackage: Package): Promise<CustomerInfo> => {
 
 /**
  * Restore purchases for the current user.
- * On web this re-syncs the Stripe subscription state with RevenueCat.
+ * Web SDK v1 has no `restorePurchases`; refreshing customer info re-syncs subscription state.
  */
 export const rcRestorePurchases = async (): Promise<CustomerInfo> => {
-  const { customerInfo } = await sdk().restorePurchases();
-  return customerInfo;
+  return sdk().getCustomerInfo();
 };
 
 /**
@@ -132,11 +131,19 @@ export const rcIsEntitled = (customerInfo: CustomerInfo): boolean =>
   RC_ENTITLEMENT in customerInfo.entitlements.active;
 
 /**
- * Open the RevenueCat Customer Center (RC-hosted subscription management UI).
- * On web this shows a modal overlay managed by the RC SDK.
+ * Open subscription management (Web SDK v1: use CustomerInfo.managementURL in a new tab).
  */
-export const rcShowCustomerCenter = (): Promise<void> =>
-  sdk().showCustomerCenter();
+export const rcShowCustomerCenter = async (): Promise<void> => {
+  const info = await sdk().getCustomerInfo();
+  const url = info.managementURL;
+  if (url && typeof window !== "undefined") {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+  throw new Error(
+    "[RevenueCat] No management URL available. The user may have no active subscription."
+  );
+};
 
 // ─── Price formatting helper ───────────────────────────────────────────────────
 

@@ -437,28 +437,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             count: primaryCTASignal.reasonCount || 0,
           }),
         };
-      case "continue_lesson": {
-        const lessonMission = primaryCTASignal.mission;
-        return {
-          text: t("dashboard.cta.continueLesson"),
-          action: () => {
-            trackEvent("cta_click", {
-              reason: "continue_lesson",
-              mission_id: lessonMission?.id,
-            });
-            if (lessonMission?.goal_reference?.course_id) {
-              navigate(
-                `/lessons/${lessonMission.goal_reference.course_id}/flow`
-              );
-            } else {
-              navigate("/all-topics");
-            }
-          },
-          iconName: primaryCTASignal.iconName,
-          priority: "medium",
-          reason: t("dashboard.cta.continueWhereLeftOff"),
-        };
-      }
       case "start_mission":
         return {
           text: t("dashboard.cta.startMission"),

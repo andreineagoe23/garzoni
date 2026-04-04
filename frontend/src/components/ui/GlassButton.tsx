@@ -7,6 +7,8 @@ type GlassButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: GlassButtonVariant;
   size?: GlassButtonSize;
   icon?: React.ReactNode;
+  /** Shows busy state and disables the button. */
+  loading?: boolean;
   children: React.ReactNode;
 };
 
@@ -17,6 +19,7 @@ const GlassButton = ({
   size = "md",
   className = "",
   disabled = false,
+  loading = false,
   type = "button",
   icon,
   ...props
@@ -44,7 +47,8 @@ const GlassButton = ({
       "border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/70 text-[color:var(--color-text-muted,var(--muted-text,#6b7280))] hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))]/60 hover:bg-[color:var(--color-brand-primary,var(--primary,#1d5330))]/10 hover:text-[color:var(--color-brand-primary,var(--primary,#1d5330))] focus:ring-[color:var(--primary,#1d5330)]/40",
   };
 
-  const disabledStyles = disabled
+  const isDisabled = disabled || loading;
+  const disabledStyles = isDisabled
     ? "opacity-50 cursor-not-allowed pointer-events-none"
     : "";
 
@@ -69,7 +73,8 @@ const GlassButton = ({
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       className={combinedClassName}
       style={{ backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
       {...props}
