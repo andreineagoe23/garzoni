@@ -16,10 +16,11 @@ export type RewardItem = {
 type Props = {
   item: RewardItem;
   balance?: number;
-  onPress?: () => void;
+  isDonate?: boolean;
+  onPress?: (item: RewardItem) => void;
 };
 
-export default function RewardCard({ item, balance = 0, onPress }: Props) {
+export default function RewardCard({ item, balance = 0, isDonate = false, onPress }: Props) {
   const c = useThemeColors();
   const title = item.title || item.name || "Reward";
   const cost = item.cost ?? 0;
@@ -31,7 +32,7 @@ export default function RewardCard({ item, balance = 0, onPress }: Props) {
     : null;
 
   return (
-    <Pressable onPress={onPress} disabled={!onPress}>
+    <Pressable onPress={onPress ? () => onPress(item) : undefined} disabled={!onPress}>
       <GlassCard padding="md">
         {uri ? (
           <Image source={{ uri }} style={styles.img} resizeMode="cover" />
@@ -48,7 +49,7 @@ export default function RewardCard({ item, balance = 0, onPress }: Props) {
             { color: canAfford ? c.primary : c.textMuted },
           ]}
         >
-          {cost} coins
+          {cost} coins · {isDonate ? "Donate" : "Buy"}
         </Text>
       </GlassCard>
     </Pressable>

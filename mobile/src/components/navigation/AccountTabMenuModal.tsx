@@ -115,6 +115,112 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
               <View style={[styles.divider, { backgroundColor: c.border }]} />
 
               <Text style={[styles.sectionLabel, { color: c.accent }]}>
+                {t("nav.navigateSection", { defaultValue: "Navigate" })}
+              </Text>
+
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/leaderboard")}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name={navIcons.leaderboard as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color={c.primary}
+                />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("nav.leaderboard", { defaultValue: "Leaderboard" })}
+                </Text>
+                <Ionicons
+                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/rewards")}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name={navIcons.rewards as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color={c.primary}
+                />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("nav.rewards", { defaultValue: "Rewards" })}
+                </Text>
+                <Ionicons
+                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/(tabs)/missions")}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name={navIcons.missions as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color={c.primary}
+                />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("nav.missions", { defaultValue: "Missions" })}
+                </Text>
+                <Ionicons
+                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/support")}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name={navIcons.support as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color={c.primary}
+                />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("nav.support", { defaultValue: "Support" })}
+                </Text>
+                <Ionicons
+                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/feedback")}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name={navIcons.chat as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color={c.primary}
+                />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("nav.sendFeedback", { defaultValue: "Send Feedback" })}
+                </Text>
+                <Ionicons
+                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
+              <View style={[styles.divider, { backgroundColor: c.border }]} />
+
+              <Text style={[styles.sectionLabel, { color: c.accent }]}>
                 {t("language.label", { defaultValue: "Language" })}
               </Text>
               {SUPPORTED_LANGUAGES.filter(
@@ -214,7 +320,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  scroll: { maxHeight: 420 },
+  scroll: { maxHeight: 560 },
   menuRow: {
     flexDirection: "row",
     alignItems: "center",

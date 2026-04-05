@@ -467,6 +467,56 @@
         "sampleUseCase": "Primește o listă scurtă de pași de învățare și instrumente care contează.",
         "whoItsFor": "Oricine vrea pași următori clari și prioritizați.",
         "questionItAnswers": "Ce ar trebui să învăț următorul pas acum?"
+      },
+      "financial-goals": {
+        "title": "Urmărire obiective financiare",
+        "promise": "Urmărește obiectivele de economii cu progres și termene clare.",
+        "description": "Adaugă obiective, actualizează soldurile și vezi cât mai ai până la fiecare țintă.",
+        "mostUsefulFor": "Oricine își construiește fond de urgență, vacanță sau rambursare datorii.",
+        "whatItDoes": "Salvează obiectivele în contul tău și arată progresul către fiecare dată țintă.",
+        "sampleUseCase": "Urmărește un fond de urgență de 10.000 și o vacanță în același loc.",
+        "whoItsFor": "Cei care vor urmăriere structurată, nu doar un singur calculator.",
+        "questionItAnswers": "Cum stau cu progresul obiectivelor mele financiare?"
+      },
+      "financial-sandbox": {
+        "title": "Sandbox financiar",
+        "promise": "Testează rapid ipoteze simple de investiție lunară.",
+        "description": "Ajustează contribuția, anii și randamentul pentru un sold final estimat.",
+        "mostUsefulFor": "Începători care explorează dobânda compusă fără conturi reale.",
+        "whatItDoes": "Rulează o proiecție lunară simplă din datele introduse.",
+        "sampleUseCase": "Vezi ce ar însemna ~7% la 100$/lună timp de 5 ani.",
+        "whoItsFor": "Cei care vor un scenariu rapid fără foi de calcul.",
+        "questionItAnswers": "Cum ar arăta soldul dacă continui să contribui?"
+      },
+      "news-calendars": {
+        "title": "Calendar economic (embed)",
+        "promise": "Răsfoiește un calendar economic complet într-o vedere integrată.",
+        "description": "Calendar economic terț cu evenimente majore (furnizor extern).",
+        "mostUsefulFor": "Oricine vrea o vedere densă alături de lecțiile Monevo.",
+        "whatItDoes": "Încarcă un calendar economic extern în instrument.",
+        "sampleUseCase": "Vezi CPI, locuri de muncă și evenimente despre rate în această săptămână.",
+        "whoItsFor": "Învățăcei care folosesc deja calendare macro în altă parte.",
+        "questionItAnswers": "Ce evenimente economice majore sunt programate săptămâna aceasta?"
+      },
+      "crypto-tools": {
+        "title": "Instrumente crypto",
+        "promise": "Explorează prețuri și grafice crypto într-un widget interactiv.",
+        "description": "Grafic crypto TradingView cu simboluri în listă de urmărire.",
+        "mostUsefulFor": "Curioși care compară perechi crypto majore.",
+        "whatItDoes": "Integrează un grafic crypto live pe care îl poți explora.",
+        "sampleUseCase": "Compară tendințe BTC, ETH și SOL înainte de mai multă documentare.",
+        "whoItsFor": "Cei care învață cum se mișcă piețele crypto (educativ, nu sfat).",
+        "questionItAnswers": "Cum se mișcă în prezent criptomonedele majore?"
+      },
+      "forex-tools": {
+        "title": "Instrumente forex",
+        "promise": "Folosește un calculator de pip pentru perechi majore.",
+        "description": "Calculator de valoare pip integrat de la un site financiar cunoscut.",
+        "mostUsefulFor": "Oricine învață cum mărimea poziției se leagă de valoarea pip.",
+        "whatItDoes": "Deschide un calculator de pip potrivit pentru perechi forex uzuale.",
+        "sampleUseCase": "Estimează valoarea pip înainte să mergi mai adânc în concepte FX.",
+        "whoItsFor": "Învățăcei care explorează mecanica forex, nu execuția live.",
+        "questionItAnswers": "Care este valoarea pip pentru perechea și lotul meu?"
       }
     },
     "realityCheck": {
@@ -545,7 +595,25 @@
       "notSet": "Nesetat",
       "progress": "Progres",
       "remaining": "Rămas",
-      "delete": "Șterge"
+      "delete": "Șterge",
+      "edit": "Editează",
+      "addFunds": "Adaugă fonduri",
+      "newGoalSheet": "Obiectiv nou",
+      "editGoalSheet": "Editează obiectivul",
+      "addFundsSheet": "Adaugă la obiectiv",
+      "amount": "Sumă",
+      "amountPlaceholder": "ex. 100",
+      "save": "Salvează",
+      "cancel": "Anulează",
+      "addAmount": "Adaugă",
+      "deleteGoalTitle": "Ștergi acest obiectiv?",
+      "deleteGoalMessage": "Obiectivul va fi eliminat din contul tău.",
+      "requestFailed": "A apărut o problemă. Încearcă din nou.",
+      "positiveAmount": "Introdu o sumă pozitivă",
+      "addGoalFab": "Adaugă obiectiv",
+      "statusNotStarted": "Neînceput",
+      "statusInProgress": "În progres",
+      "statusCompleted": "Finalizat"
     },
     "savingsCalc": {
       "starterGoal": "Obiectiv de start",
@@ -754,6 +822,7 @@
     },
     "crypto": {
       "title": "Tranzacționare criptomonede",
+      "tabLabel": "Crypto",
       "subtitle": "Urmărește și analizează prețurile criptomonedelor",
       "errors": {
         "loadFailed": "Graficul nu s-a putut încărca.",
@@ -780,6 +849,9 @@
     },
     "forex": {
       "title": "Calculator pip & poziție Forex",
+      "tabLabel": "Forex",
+      "loadFailed": "Calculatorul nu s-a putut încărca în aplicație.",
+      "openExternal": "Deschide în browser",
       "subtitle": "Calculează valorile pip și dimensiunea poziției pentru perechile tale Forex",
       "iframeTitle": "Calculator pip Forex",
       "fallback": "Calculator oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
@@ -1826,6 +1898,7 @@
       },
       "demoModal": {
         "aria": "Fereastră demo",
+        "trackLabel": "Fără subtitrări disponibile",
         "videoAria": "Video demo Monevo",
         "closeAria": "Închide fereastra demo",
         "title": "Vezi demo",

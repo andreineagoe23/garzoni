@@ -8,27 +8,31 @@ import {
   View,
 } from "react-native";
 import { router, Stack } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
 import {
   fetchBadges,
   fetchProfile,
   fetchRewardsDonate,
   fetchRewardsShop,
   fetchUserBadges,
+  purchaseReward,
   queryKeys,
   staleTimes,
 } from "@monevo/core";
 import RewardCard, { type RewardItem } from "../src/components/rewards/RewardCard";
 import BadgeGrid from "../src/components/rewards/BadgeGrid";
 import XPProgressCard from "../src/components/rewards/XPProgressCard";
-import RewardUnlockModal from "../src/components/rewards/RewardUnlockModal";
+import ConfirmRedeemSheet from "../src/components/rewards/ConfirmRedeemSheet";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography } from "../src/theme/tokens";
 
 export default function RewardsScreen() {
   const c = useThemeColors();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<"shop" | "donate">("shop");
-  const [unlockTitle, setUnlockTitle] = useState<string | null>(null);
+  const [confirmItem, setConfirmItem] = useState<RewardItem | null>(null);
 
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
@@ -60,6 +64,27 @@ export default function RewardsScreen() {
     staleTime: staleTimes.progressSummary,
   });
 
+  const purchaseMutation = useMutation({
+    mutationFn: (rewardId: number | string) => purchaseReward(rewardId),
+    onSuccess: () => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      setConfirmItem(null);
+      Toast.show({
+        type: "success",
+        text1: tab === "donate" ? "Donation sent!" : "Reward redeemed!",
+        text2: "Your balance has been updated.",
+      });
+    },
+    onError: (err: unknown) => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || "Something went wrong. Please try again.";
+      Toast.show({ type: "error", text1: "Failed", text2: msg });
+    },
+  });
+
   const balance = Number(profileQuery.data?.earned_money ?? 0) || 0;
   const points = Number(profileQuery.data?.points ?? 0) || 0;
   const data = tab === "shop" ? shopQuery.data ?? [] : donateQuery.data ?? [];
@@ -83,7 +108,8 @@ export default function RewardsScreen() {
   const listHeader = (
     <View style={{ marginBottom: spacing.md }}>
       <Text style={[styles.balance, { color: c.text }]}>
-        Coin balance: <Text style={{ color: c.accent, fontWeight: "800" }}>{balance}</Text>
+        Coin balance:{" "}
+        <Text style={{ color: c.accent, fontWeight: "800" }}>{balance}</Text>
       </Text>
       <XPProgressCard points={points} />
       <View style={{ marginTop: spacing.md }}>
@@ -95,9 +121,14 @@ export default function RewardsScreen() {
       </View>
       <Pressable
         onPress={() => router.push("/leaderboard")}
-        style={[styles.lbLink, { borderColor: c.primary, backgroundColor: `${c.primary}12` }]}
+        style={[
+          styles.lbLink,
+          { borderColor: c.primary, backgroundColor: `${c.primary}12` },
+        ]}
       >
-        <Text style={{ color: c.primary, fontWeight: "800", fontSize: typography.sm }}>
+        <Text
+          style={{ color: c.primary, fontWeight: "800", fontSize: typography.sm }}
+        >
           View leaderboard
         </Text>
       </Pressable>
@@ -127,7 +158,13 @@ export default function RewardsScreen() {
         ))}
       </View>
       {tabLoading ? (
-        <Text style={{ color: c.textMuted, textAlign: "center", marginTop: spacing.lg }}>
+        <Text
+          style={{
+            color: c.textMuted,
+            textAlign: "center",
+            marginTop: spacing.lg,
+          }}
+        >
           Loading…
         </Text>
       ) : null}
@@ -136,44 +173,74 @@ export default function RewardsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Rewards", headerShown: true, headerTintColor: c.primary }} />
+      <Stack.Screen
+        options={{
+          title: "Rewards",
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
       <View style={[styles.screen, { backgroundColor: c.bg }]}>
         <FlatList
           data={tabLoading ? [] : data}
           keyExtractor={(item) => String(item.id)}
           numColumns={2}
-          columnWrapperStyle={data.length && !tabLoading ? { gap: spacing.md } : undefined}
-          contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl }}
+          columnWrapperStyle={
+            data.length && !tabLoading ? { gap: spacing.md } : undefined
+          }
+          contentContainerStyle={{
+            padding: spacing.lg,
+            gap: spacing.md,
+            paddingBottom: spacing.xxxl,
+          }}
           ListHeaderComponent={listHeader}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={c.primary}
+            />
           }
           renderItem={({ item }) => (
             <View style={{ flex: 1, maxWidth: "48%" }}>
               <RewardCard
                 item={item}
                 balance={balance}
-                onPress={() => {
-                  const title = item.title || item.name || "Reward";
-                  setUnlockTitle(title);
+                isDonate={tab === "donate"}
+                onPress={(selected) => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setConfirmItem(selected);
                 }}
               />
             </View>
           )}
           ListEmptyComponent={
             !tabLoading ? (
-              <Text style={{ color: c.textMuted, textAlign: "center", marginTop: spacing.md }}>
+              <Text
+                style={{
+                  color: c.textMuted,
+                  textAlign: "center",
+                  marginTop: spacing.md,
+                }}
+              >
                 Nothing here yet.
               </Text>
             ) : null
           }
         />
       </View>
-      <RewardUnlockModal
-        visible={unlockTitle != null}
-        title={unlockTitle ?? ""}
-        subtitle="Redeem rewards on the web for now; mobile redemption is coming soon."
-        onClose={() => setUnlockTitle(null)}
+
+      <ConfirmRedeemSheet
+        item={confirmItem}
+        balance={balance}
+        isDonate={tab === "donate"}
+        isPending={purchaseMutation.isPending}
+        onConfirm={() => {
+          if (confirmItem) {
+            purchaseMutation.mutate(confirmItem.id);
+          }
+        }}
+        onCancel={() => setConfirmItem(null)}
       />
     </>
   );
@@ -182,7 +249,11 @@ export default function RewardsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   balance: { fontSize: typography.md, marginBottom: spacing.md },
-  sectionTitle: { fontSize: typography.sm, fontWeight: "800", marginBottom: spacing.sm },
+  sectionTitle: {
+    fontSize: typography.sm,
+    fontWeight: "800",
+    marginBottom: spacing.sm,
+  },
   lbLink: {
     marginTop: spacing.md,
     paddingVertical: spacing.md,
