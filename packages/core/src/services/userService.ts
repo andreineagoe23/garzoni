@@ -111,6 +111,18 @@ export const respondToFriendRequest = (
 
 export const fetchRewardsShop = () => apiClient.get("/rewards/shop/");
 export const fetchRewardsDonate = () => apiClient.get("/rewards/donate/");
+export const purchaseReward = (rewardId: number | string) =>
+  apiClient.post("/purchases/", { reward_id: rewardId });
+
+export type FeedbackPayload = {
+  email?: string;
+  topic?: string;
+  message: string;
+  feedback_type?: string;
+  context_url?: string;
+};
+export const submitFeedback = (payload: FeedbackPayload) =>
+  apiClient.post("/contact/", payload);
 
 export const postSubscriptionPortal = () =>
   apiClient.post<{ url?: string }>("/subscriptions/portal/", {});

@@ -212,6 +212,7 @@ class FinancialGoalSerializer(serializers.ModelSerializer):
     progress_percentage = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = FinancialGoal
@@ -226,8 +227,36 @@ class FinancialGoalSerializer(serializers.ModelSerializer):
             "progress_percentage",
             "remaining_amount",
             "days_remaining",
+            "status",
         ]
         read_only_fields = ["created_at", "updated_at"]
+
+    def to_internal_value(self, data):
+        """Map legacy client keys (name, target_date) to model fields."""
+        if hasattr(data, "keys"):
+            data = dict(data)
+            if "name" in data:
+                raw = data.pop("name")
+                if (
+                    raw is not None
+                    and str(raw).strip()
+                    and "goal_name" not in data
+                ):
+                    data["goal_name"] = str(raw).strip()
+            if "target_date" in data and "deadline" not in data:
+                data["deadline"] = data.pop("target_date")
+            elif "target_date" in data:
+                data.pop("target_date")
+        return super().to_internal_value(data)
+
+    def get_status(self, obj):
+        if obj.target_amount <= 0:
+            return "not_started"
+        if obj.current_amount >= obj.target_amount:
+            return "completed"
+        if obj.current_amount > 0:
+            return "in_progress"
+        return "not_started"
 
     def get_progress_percentage(self, obj):
         return obj.progress_percentage()

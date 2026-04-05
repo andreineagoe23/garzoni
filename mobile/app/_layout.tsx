@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet } from "react-native";
+import Toast from "react-native-toast-message";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { I18nextProvider } from "react-i18next";
@@ -37,8 +38,10 @@ function ThemedRoot() {
             name="change-password"
             options={{ headerShown: true, title: "Change password" }}
           />
+          <Stack.Screen name="feedback" options={{ headerShown: false }} />
         </Stack>
       </View>
+      <Toast />
     </View>
   );
 }

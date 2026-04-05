@@ -467,6 +467,56 @@
         "sampleUseCase": "Get a short list of learning and tool steps that matter.",
         "whoItsFor": "Anyone who wants clear, prioritized learning next steps.",
         "questionItAnswers": "What should I learn next right now?"
+      },
+      "financial-goals": {
+        "title": "Financial Goals Tracker",
+        "promise": "Track savings goals with clear progress and deadlines.",
+        "description": "Add goals, update balances, and see how close you are to each target.",
+        "mostUsefulFor": "Anyone building an emergency fund, vacation fund, or debt payoff plan.",
+        "whatItDoes": "Stores your goals on your account and shows progress toward each target date.",
+        "sampleUseCase": "Track a $10k emergency fund and a vacation fund in one place.",
+        "whoItsFor": "Savers who want structured goal tracking beyond a single calculator.",
+        "questionItAnswers": "How am I progressing on my financial goals?"
+      },
+      "financial-sandbox": {
+        "title": "Financial Sandbox",
+        "promise": "Stress-test simple monthly investing assumptions.",
+        "description": "Adjust contribution, years, and return to see a projected ending balance.",
+        "mostUsefulFor": "Beginners exploring compound growth without linking real accounts.",
+        "whatItDoes": "Runs a basic month-by-month projection from your inputs.",
+        "sampleUseCase": "See what 7% average returns might mean for $100/month over 5 years.",
+        "whoItsFor": "Learners who want a quick what-if without spreadsheets.",
+        "questionItAnswers": "What might my balance look like if I keep contributing?"
+      },
+      "news-calendars": {
+        "title": "Economic calendar (embed)",
+        "promise": "Browse a full economic calendar in an embedded view.",
+        "description": "Third-party economic calendar with major releases (external provider).",
+        "mostUsefulFor": "Anyone who wants a dense calendar view alongside Monevo lessons.",
+        "whatItDoes": "Loads an external economic calendar inside the tool.",
+        "sampleUseCase": "Scan this week's CPI, jobs, and rate events in one place.",
+        "whoItsFor": "Learners who already use macro calendars elsewhere.",
+        "questionItAnswers": "What major economic events are scheduled this week?"
+      },
+      "crypto-tools": {
+        "title": "Crypto tools",
+        "promise": "Explore crypto prices and charts in an interactive widget.",
+        "description": "TradingView-powered crypto chart with watchlist symbols.",
+        "mostUsefulFor": "Curious learners comparing major crypto pairs.",
+        "whatItDoes": "Embeds a live crypto chart you can resize and explore.",
+        "sampleUseCase": "Compare BTC, ETH, and SOL trends before doing more research.",
+        "whoItsFor": "People learning how crypto markets move (educational, not advice).",
+        "questionItAnswers": "How are major cryptocurrencies moving lately?"
+      },
+      "forex-tools": {
+        "title": "Forex tools",
+        "promise": "Use a pip calculator for major currency pairs.",
+        "description": "Embedded pip value calculator from a trusted finance site.",
+        "mostUsefulFor": "Anyone learning how position size relates to pip value.",
+        "whatItDoes": "Opens a pip calculator suited to common forex pairs.",
+        "sampleUseCase": "Estimate pip value before diving deeper into FX concepts.",
+        "whoItsFor": "Learners exploring forex mechanics, not live trading execution.",
+        "questionItAnswers": "What is the pip value for my pair and lot size?"
       }
     },
     "realityCheck": {
@@ -545,7 +595,25 @@
       "notSet": "Not set",
       "progress": "Progress",
       "remaining": "Remaining",
-      "delete": "Delete"
+      "delete": "Delete",
+      "edit": "Edit",
+      "addFunds": "Add funds",
+      "newGoalSheet": "New goal",
+      "editGoalSheet": "Edit goal",
+      "addFundsSheet": "Add to goal",
+      "amount": "Amount",
+      "amountPlaceholder": "e.g. 100",
+      "save": "Save",
+      "cancel": "Cancel",
+      "addAmount": "Add",
+      "deleteGoalTitle": "Delete this goal?",
+      "deleteGoalMessage": "This removes the goal from your account.",
+      "requestFailed": "Something went wrong. Try again.",
+      "positiveAmount": "Enter a positive amount",
+      "addGoalFab": "Add goal",
+      "statusNotStarted": "Not started",
+      "statusInProgress": "In progress",
+      "statusCompleted": "Completed"
     },
     "savingsCalc": {
       "starterGoal": "Starter goal",
@@ -754,6 +822,7 @@
     },
     "crypto": {
       "title": "Cryptocurrency Trading",
+      "tabLabel": "Crypto",
       "subtitle": "Track and analyze cryptocurrency prices",
       "errors": {
         "loadFailed": "Chart failed to load.",
@@ -780,6 +849,9 @@
     },
     "forex": {
       "title": "Forex Pip & Position Calculator",
+      "tabLabel": "Forex",
+      "loadFailed": "Could not load the calculator in the app.",
+      "openExternal": "Open in browser",
       "subtitle": "Calculate pip values and position sizes for your forex pairs",
       "iframeTitle": "Forex Pip Calculator",
       "fallback": "Calculator by <provider>Investing.com</provider>. If it doesn't load above, <open>open it in a new tab</open>.",
@@ -1826,6 +1898,7 @@
       },
       "demoModal": {
         "aria": "Demo modal",
+        "trackLabel": "No captions available",
         "videoAria": "Monevo demo video",
         "closeAria": "Close demo modal",
         "title": "Watch Demo",

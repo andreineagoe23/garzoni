@@ -46,6 +46,30 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     plusOnly: true,
   },
   {
+    id: "financial-goals",
+    route: "financial-goals",
+    title: "Financial goals tracker",
+    subtitle: "Track savings goals on your account",
+  },
+  {
+    id: "currency-tools",
+    route: "currency-tools",
+    title: "Currency tools",
+    subtitle: "Crypto charts & forex pip calculator",
+  },
+  {
+    id: "financial-sandbox",
+    route: "financial-sandbox",
+    title: "Financial sandbox",
+    subtitle: "What-if projections without touching your data",
+  },
+  {
+    id: "news-calendars",
+    route: "news-calendars",
+    title: "Economic calendar (embed)",
+    subtitle: "Full calendar view via external provider",
+  },
+  {
     id: "basic-finance",
     route: "basic-finance",
     title: "Basic finance tools",

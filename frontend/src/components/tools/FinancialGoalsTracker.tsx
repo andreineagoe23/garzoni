@@ -251,14 +251,24 @@ const FinancialGoalsTracker = () => {
               const progress =
                 goal.target_amount > 0
                   ? Math.min(
-                      (goal.current_amount / goal.target_amount) * 100,
+                      (Number(goal.current_amount) /
+                        Number(goal.target_amount)) *
+                        100,
                       100
                     )
                   : 0;
               const remainingAmount = Math.max(
-                goal.target_amount - goal.current_amount,
+                Number(goal.target_amount) - Number(goal.current_amount),
                 0
               );
+              const statusKey =
+                goal.status === "completed" ||
+                goal.status === "in_progress" ||
+                goal.status === "not_started"
+                  ? goal.status
+                  : "not_started";
+              const displayName = goal.goal_name ?? goal.name ?? "";
+              const deadline = goal.deadline ?? goal.target_date;
               return (
                 <article
                   key={goal.id}
@@ -266,16 +276,16 @@ const FinancialGoalsTracker = () => {
                 >
                   <div className="flex items-center justify-between">
                     <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
-                      {goal.name}
+                      {displayName}
                     </h4>
                     <span
                       className={[
                         "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
-                        STATUS_COLORS[goal.status] ||
+                        STATUS_COLORS[statusKey] ||
                           STATUS_COLORS["not_started"],
                       ].join(" ")}
                     >
-                      {goal.status
+                      {statusKey
                         .replace("_", " ")
                         .replace(/\b\w/g, (l) => l.toUpperCase())}
                     </span>
@@ -299,8 +309,8 @@ const FinancialGoalsTracker = () => {
                   </p>
                   <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
                     {t("tools.goalsTracker.targetDateLabel")}:{" "}
-                    {goal.target_date
-                      ? formatDate(goal.target_date, locale)
+                    {deadline
+                      ? formatDate(deadline, locale)
                       : t("tools.goalsTracker.notSet")}
                   </p>
 

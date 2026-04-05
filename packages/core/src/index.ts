@@ -19,6 +19,7 @@ export { default as apiClient } from "./services/httpClient";
 
 export * from "./services/authService";
 export * from "./services/userService";
+export type { FeedbackPayload } from "./services/userService";
 export {
   fetchEntitlements,
   consumeEntitlement,

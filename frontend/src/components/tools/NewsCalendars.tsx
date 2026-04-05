@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useTheme } from "contexts/ThemeContext";
 import { Trans, useTranslation } from "react-i18next";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
+const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:news-calendars";
 
 // Investing.com economic calendar - embeddable iframe (allows framing). No Cashback Forex, no gtag.
 const INVESTING_CALENDAR_BASE = "https://sslecal2.investing.com";

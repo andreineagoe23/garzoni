@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { RefreshControl, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
 import {
@@ -22,7 +22,6 @@ import {
 import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
-import AllTopicsGrid from "../../src/components/dashboard/AllTopicsGrid";
 import DashboardHeaderMobile from "../../src/components/dashboard/DashboardHeaderMobile";
 import DashboardResumeRow from "../../src/components/dashboard/DashboardResumeRow";
 import WeakSkillsQuickCardMobile from "../../src/components/dashboard/WeakSkillsQuickCardMobile";
@@ -31,12 +30,10 @@ import StatusSummaryGrid from "../../src/components/dashboard/StatusSummaryGrid"
 import PrimaryCTAMobile, {
   type PrimaryCtaMobileData,
 } from "../../src/components/dashboard/PrimaryCTAMobile";
-import PersonalizedPathContentMobile from "../../src/components/dashboard/PersonalizedPathContentMobile";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import GlassCard from "../../src/components/ui/GlassCard";
-import GlassButton from "../../src/components/ui/GlassButton";
 import { spacing, typography } from "../../src/theme/tokens";
 
 type WeakSkill = {
@@ -44,8 +41,6 @@ type WeakSkill = {
   proficiency: number;
   level_label?: string;
 };
-
-type ActivePage = "all-topics" | "personalized-path";
 
 function planRank(plan?: string | null) {
   if (plan === "plus") return 1;
@@ -63,18 +58,6 @@ function DashboardInner() {
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const authReady = hydrated;
-  const [activePage, setActivePage] = useState<ActivePage>("all-topics");
-  const { segment, tab } = useLocalSearchParams<{
-    segment?: string;
-    tab?: string;
-  }>();
-
-  useEffect(() => {
-    const raw = String(segment ?? tab ?? "").toLowerCase();
-    if (raw === "personalized" || raw === "personalized-path") {
-      setActivePage("personalized-path");
-    }
-  }, [segment, tab]);
 
   const progressQuery = useQuery({
     queryKey: queryKeys.progressSummary(),
@@ -247,10 +230,7 @@ function DashboardInner() {
       default:
         return {
           text: t("dashboard.cta.continueLearning"),
-          action: () => {
-            setActivePage("all-topics");
-            router.push("/(tabs)/learn");
-          },
+          action: () => router.push(href("/(tabs)/learn")),
           iconName: primaryCTASignal.iconName,
           priority: "low",
           reason: t("dashboard.cta.continueLearningReason"),
@@ -288,18 +268,6 @@ function DashboardInner() {
     (profile?.first_name as string | undefined)?.trim() ||
     (profile?.username as string | undefined)?.trim() ||
     "";
-
-  const handlePersonalizedPathClick = useCallback(() => {
-    if (hasPlusAccess) {
-      setActivePage("personalized-path");
-      return;
-    }
-    if (!isQuestionnaireCompleted) {
-      router.push(href("/onboarding"));
-      return;
-    }
-    router.push(href("/subscriptions"));
-  }, [hasPlusAccess, isQuestionnaireCompleted]);
 
   const reviewTopSkill = reviewQuery.data?.due?.[0]?.skill ?? null;
 
@@ -347,35 +315,6 @@ function DashboardInner() {
       />
     );
   }
-
-  const navigationButtons = (
-    <View style={styles.segmentRow}>
-      <GlassButton
-        variant={activePage === "all-topics" ? "active" : "ghost"}
-        size="sm"
-        onPress={() => setActivePage("all-topics")}
-      >
-        {t("dashboard.nav.allTopics")}
-      </GlassButton>
-      <View style={styles.segmentPersonalized}>
-        <GlassButton
-          variant={activePage === "personalized-path" ? "active" : "ghost"}
-          size="sm"
-          onPress={handlePersonalizedPathClick}
-          disabled={profileQuery.isPending || profileQuery.isFetching}
-        >
-          {t("dashboard.nav.personalizedPath")}
-        </GlassButton>
-        {!isQuestionnaireCompleted ? (
-          <View style={[styles.onboardingBadge, { backgroundColor: `${c.error}22` }]}>
-            <Text style={[styles.onboardingBadgeText, { color: c.error }]} numberOfLines={1}>
-              {t("dashboard.nav.completeOnboarding")}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    </View>
-  );
 
   return (
     <ScreenScroll
@@ -464,18 +403,6 @@ function DashboardInner() {
 
         <PrimaryCTAMobile primaryCTA={primaryCTA} />
       </GlassCard>
-
-      {navigationButtons}
-
-      {activePage === "all-topics" ? (
-        <AllTopicsGrid />
-      ) : (
-        <PersonalizedPathContentMobile
-          onCourseClick={(courseId) => {
-            router.push(`/flow/${courseId}`);
-          }}
-        />
-      )}
     </ScreenScroll>
   );
 }
@@ -525,19 +452,4 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     flexGrow: 0,
   },
-  segmentRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-    flexWrap: "wrap",
-    alignItems: "flex-start",
-  },
-  segmentPersonalized: { flex: 1, minWidth: 140, gap: spacing.xs },
-  onboardingBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  onboardingBadgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
 });

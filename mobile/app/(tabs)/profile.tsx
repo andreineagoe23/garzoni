@@ -670,6 +670,12 @@ function ProfileInner() {
           colors={colors}
         />
         <MenuRow
+          icon={navIcons.chat}
+          label="Send Feedback"
+          onPress={() => router.push("/feedback")}
+          colors={colors}
+        />
+        <MenuRow
           icon={navIcons.leaderboard}
           label={t("footer.leaderboards")}
           onPress={() => router.push(href("/leaderboard"))}
