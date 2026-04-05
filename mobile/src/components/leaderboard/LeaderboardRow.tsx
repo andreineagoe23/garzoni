@@ -13,6 +13,7 @@ type Props = {
   isFriend: boolean;
   pending: boolean;
   onAddFriend?: () => void;
+  onPrimaryPress?: () => void;
   busy?: boolean;
   t: (key: string, opts?: Record<string, unknown>) => string;
   formatPoints: (n: number) => string;
@@ -26,6 +27,7 @@ export default function LeaderboardRow({
   isFriend,
   pending,
   onAddFriend,
+  onPrimaryPress,
   busy,
   t,
   formatPoints,
@@ -45,33 +47,39 @@ export default function LeaderboardRow({
       ]}
     >
       <View style={styles.row}>
-        <View style={[styles.rankBadge, { backgroundColor: c.surfaceOffset }]}>
-          <Text style={[styles.rankText, { color: c.text }]}>#{position}</Text>
-        </View>
-        {uri ? (
-          <Image source={{ uri }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, { backgroundColor: c.surfaceOffset }]} />
-        )}
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={styles.nameRow}>
-            <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
-              {entry.user?.username ?? "—"}
-            </Text>
-            {isYou ? (
-              <View style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}>
-                <Text style={[styles.youPillText, { color: c.primary }]}>
-                  {t("leaderboard.youBadge")}
-                </Text>
-              </View>
-            ) : null}
+        <Pressable
+          onPress={onPrimaryPress}
+          disabled={!onPrimaryPress}
+          style={styles.primaryTap}
+        >
+          <View style={[styles.rankBadge, { backgroundColor: c.surfaceOffset }]}>
+            <Text style={[styles.rankText, { color: c.text }]}>#{position}</Text>
           </View>
-          <Text style={[styles.points, { color: c.textMuted }]}>
-            {t("leaderboard.points", {
-              points: formatPoints(entry.points ?? 0),
-            })}
-          </Text>
-        </View>
+          {uri ? (
+            <Image source={{ uri }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: c.surfaceOffset }]} />
+          )}
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={styles.nameRow}>
+              <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+                {entry.user?.username ?? "—"}
+              </Text>
+              {isYou ? (
+                <View style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}>
+                  <Text style={[styles.youPillText, { color: c.primary }]}>
+                    {t("leaderboard.youBadge")}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <Text style={[styles.points, { color: c.textMuted }]}>
+              {t("leaderboard.points", {
+                points: formatPoints(entry.points ?? 0),
+              })}
+            </Text>
+          </View>
+        </Pressable>
         {showFriendButton ? (
           <Pressable
             onPress={onAddFriend}
@@ -122,6 +130,7 @@ export default function LeaderboardRow({
 const styles = StyleSheet.create({
   card: { marginBottom: spacing.md, borderWidth: StyleSheet.hairlineWidth },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  primaryTap: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0 },
   rankBadge: {
     width: 40,
     height: 40,

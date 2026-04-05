@@ -1,18 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import * as Haptics from "expo-haptics";
+import ConfettiCannon from "react-native-confetti-cannon";
 import {
   fetchExerciseById,
   fetchExerciseCategories,
   fetchExercisesList,
+  fetchProfile,
   queryKeys,
   staleTimes,
 } from "@monevo/core";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
+import ExerciseTimer from "../../src/components/exercises/ExerciseTimer";
+import StreakBanner from "../../src/components/exercises/StreakBanner";
+import SwipeableExerciseCard from "../../src/components/exercises/SwipeableExerciseCard";
 import { Button, ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
+import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import { Pressable } from "react-native";
@@ -21,6 +28,8 @@ type ExerciseListItem = { id: number; type?: string; category?: string };
 
 function ExercisesInner() {
   const c = useThemeColors();
+  const { hydrated, accessToken } = useAuthSession();
+  const confettiRef = useRef<ConfettiCannon>(null);
   const { category: categoryParam, skill: skillParam } = useLocalSearchParams<{
     category?: string;
     skill?: string;
@@ -56,6 +65,13 @@ function ExercisesInner() {
     staleTime: staleTimes.progressSummary,
   });
 
+  const profileQuery = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: () => fetchProfile().then((r) => r.data),
+    staleTime: staleTimes.profile,
+    enabled: hydrated && Boolean(accessToken),
+  });
+
   const detailQuery = useQuery({
     queryKey: queryKeys.exerciseDetail(pickedId ?? 0),
     queryFn: () => fetchExerciseById(pickedId!).then((r) => r.data as Record<string, unknown>),
@@ -78,13 +94,43 @@ function ExercisesInner() {
     return list.filter((x) => (x.category || "").toLowerCase() === mergedCategory.toLowerCase());
   }, [list, mergedCategory]);
 
+  const skipToNext = useCallback(
+    (currentId: number) => {
+      const idx = filteredList.findIndex((x) => x.id === currentId);
+      const next = filteredList[idx + 1] ?? filteredList[0];
+      if (next && next.id !== currentId) setPickedId(next.id);
+    },
+    [filteredList]
+  );
+
+  const streak = Number(
+    (profileQuery.data as { streak?: number } | undefined)?.streak ?? 0
+  );
+
+  const timerSeconds = useMemo(() => {
+    const d = detailQuery.data as Record<string, unknown> | undefined;
+    if (!d) return 0;
+    const raw =
+      d.time_limit_seconds ?? d.time_limit ?? d.duration_seconds ?? d.timer_seconds;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Math.min(3600, Math.floor(n)) : 0;
+  }, [detailQuery.data]);
+
+  const fireConfetti = useCallback(() => {
+    setTimeout(() => confettiRef.current?.start(), 200);
+  }, []);
+
   return (
+    <>
     <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
         <RefreshControl
-          refreshing={listQuery.isFetching}
-          onRefresh={() => void listQuery.refetch()}
+          refreshing={listQuery.isFetching || profileQuery.isFetching}
+          onRefresh={() => {
+            void listQuery.refetch();
+            void profileQuery.refetch();
+          }}
           tintColor={c.primary}
         />
       }
@@ -95,6 +141,8 @@ function ExercisesInner() {
       </Text>
 
       <MascotWithMessage mood="encourage" rotationKey={2} />
+
+      <StreakBanner streakCount={streak} />
 
       <Text style={[styles.section, { color: c.accent }]}>Category</Text>
       <ScrollView
@@ -143,19 +191,24 @@ function ExercisesInner() {
       ) : (
         <View style={styles.listCol}>
           {filteredList.slice(0, 12).map((ex) => (
-            <Pressable
+            <SwipeableExerciseCard
               key={ex.id}
-              onPress={() => setPickedId(ex.id)}
-              style={[
-                styles.row,
-                { borderColor: c.border, backgroundColor: c.surface },
-              ]}
+              onStart={() => setPickedId(ex.id)}
+              onSkipNext={() => skipToNext(ex.id)}
             >
-              <Text style={{ color: c.text, fontWeight: "600" }}>#{ex.id}</Text>
-              <Text style={{ color: c.textMuted, marginLeft: spacing.sm }} numberOfLines={1}>
-                {ex.type ?? "Exercise"} · {ex.category ?? "General"}
-              </Text>
-            </Pressable>
+              <Pressable
+                onPress={() => setPickedId(ex.id)}
+                style={[
+                  styles.row,
+                  { borderColor: c.border, backgroundColor: c.surface },
+                ]}
+              >
+                <Text style={{ color: c.text, fontWeight: "600" }}>#{ex.id}</Text>
+                <Text style={{ color: c.textMuted, marginLeft: spacing.sm }} numberOfLines={1}>
+                  {ex.type ?? "Exercise"} · {ex.category ?? "General"}
+                </Text>
+              </Pressable>
+            </SwipeableExerciseCard>
           ))}
         </View>
       )}
@@ -164,16 +217,34 @@ function ExercisesInner() {
         <Skeleton width="100%" height={200} style={{ marginTop: spacing.lg }} />
       ) : detailQuery.data ? (
         <View style={{ marginTop: spacing.xl }}>
+          {timerSeconds > 0 ? (
+            <ExerciseTimer key={pickedId ?? 0} totalSeconds={timerSeconds} active />
+          ) : null}
           <ExerciseSection
             exerciseType={String(detailQuery.data.type ?? "")}
             exerciseData={
               (detailQuery.data.exercise_data as Record<string, unknown>) ?? {}
             }
             exerciseId={detailQuery.data.id as number}
+            onAttempt={({ correct }) => {
+              if (!correct) {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              }
+            }}
+            onComplete={fireConfetti}
           />
         </View>
       ) : null}
     </ScreenScroll>
+    <ConfettiCannon
+      ref={confettiRef}
+      count={72}
+      origin={{ x: -10, y: 0 }}
+      fadeOut
+      autoStart={false}
+      colors={["#ffd700", c.primary, "#ffffff", c.accent]}
+    />
+    </>
   );
 }
 

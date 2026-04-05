@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshControl, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -53,7 +53,12 @@ function planRank(plan?: string | null) {
   return 0;
 }
 
+/** Side-by-side resume + practice only when there is enough width for readable copy. */
+const RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH = 600;
+
 function DashboardInner() {
+  const { width: windowWidth } = useWindowDimensions();
+  const resumeTilesSideBySide = windowWidth >= RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH;
   const c = useThemeColors();
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
@@ -232,7 +237,7 @@ function DashboardInner() {
       case "start_mission":
         return {
           text: t("dashboard.cta.startMission"),
-          action: () => router.push(href("/missions")),
+          action: () => router.push(href("/(tabs)/missions")),
           iconName: primaryCTASignal.iconName,
           priority: "medium",
           reason: t("dashboard.cta.missionsAvailable", {
@@ -322,6 +327,12 @@ function DashboardInner() {
     return (
       <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
         <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
+        <Skeleton width="100%" height={88} style={{ marginBottom: spacing.md }} />
+        <View style={{ flexDirection: "row", gap: spacing.md, marginBottom: spacing.lg }}>
+          <Skeleton width={158} height={120} />
+          <Skeleton width={158} height={120} />
+          <Skeleton width={158} height={120} />
+        </View>
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
         <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
       </ScreenScroll>
@@ -383,17 +394,26 @@ function DashboardInner() {
         ) : null}
 
         {questionnaireCompletedForUi ? (
-          <View style={styles.resumeRow}>
-            <View style={styles.resumeCol}>
+          <View
+            style={[
+              styles.resumeRow,
+              !resumeTilesSideBySide && styles.resumeRowStacked,
+            ]}
+          >
+            <View
+              style={[styles.resumeCol, !resumeTilesSideBySide && styles.resumeColFullWidth]}
+            >
               <DashboardResumeRow
-                style={styles.resumeCardFill}
+                style={!resumeTilesSideBySide ? styles.resumeCardFullWidth : styles.resumeCardFill}
                 resume={summary.resume}
                 startHere={summary.startHere}
               />
             </View>
-            <View style={styles.resumeCol}>
+            <View
+              style={[styles.resumeCol, !resumeTilesSideBySide && styles.resumeColFullWidth]}
+            >
               <WeakSkillsQuickCardMobile
-                style={styles.resumeCardFill}
+                style={!resumeTilesSideBySide ? styles.resumeCardFullWidth : styles.resumeCardFill}
                 locale={i18n.language}
                 topSkill={weakSkillItems[0] ?? null}
                 onRecommendedSkillExercises={handleQuickCardSkillExercises}
@@ -438,6 +458,7 @@ function DashboardInner() {
           refetchMissions={() => void missionsQuery.refetch()}
           reviewTopSkill={reviewTopSkill}
           onOpenReviews={() => router.push(href("/(tabs)/exercises"))}
+          onOpenMissions={() => router.push(href("/(tabs)/missions"))}
           locale={i18n.language}
         />
 
@@ -479,20 +500,30 @@ const styles = StyleSheet.create({
   },
   resumeRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    flexWrap: "nowrap",
     gap: spacing.md,
     marginTop: spacing.md,
     alignItems: "stretch",
   },
+  resumeRowStacked: {
+    flexDirection: "column",
+  },
   resumeCol: {
     flex: 1,
-    minWidth: 152,
+    minWidth: 0,
     alignSelf: "stretch",
-    maxWidth: "100%",
+  },
+  resumeColFullWidth: {
+    alignSelf: "stretch",
   },
   resumeCardFill: {
     flex: 1,
     alignSelf: "stretch",
+  },
+  resumeCardFullWidth: {
+    width: "100%",
+    alignSelf: "stretch",
+    flexGrow: 0,
   },
   segmentRow: {
     flexDirection: "row",

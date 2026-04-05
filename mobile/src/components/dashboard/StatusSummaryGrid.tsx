@@ -1,9 +1,9 @@
-import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassButton from "../ui/GlassButton";
+import KPIScrollRow, { KPITile } from "./KPIScrollRow";
 import { spacing, typography, radius } from "../../theme/tokens";
 
 function formatPct(n: number, locale?: string) {
@@ -30,6 +30,7 @@ type Props = {
   refetchMissions?: () => void;
   reviewTopSkill?: string | null;
   onOpenReviews?: () => void;
+  onOpenMissions?: () => void;
   locale?: string;
 };
 
@@ -46,71 +47,47 @@ export default function StatusSummaryGrid({
   refetchMissions,
   reviewTopSkill,
   onOpenReviews,
+  onOpenMissions,
   locale,
 }: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
 
-  const tile = (children: ReactNode, urgent?: boolean) => (
-    <View
-      style={[
-        styles.tile,
-        {
-          borderColor: urgent ? `${c.error}66` : c.border,
-          backgroundColor: urgent ? `${c.error}14` : c.surface,
-        },
-      ]}
-    >
-      {children}
-    </View>
-  );
-
   return (
-    <View style={styles.grid}>
-      <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-        <Text style={[styles.label, { color: c.textMuted }]}>
-          {t("dashboard.dailyGoal.label")}
-        </Text>
-        <Text style={[styles.value, { color: c.text }]}>
-          {formatPct(dailyGoalProgress, locale)}
-        </Text>
-      </View>
-
-      <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-        <Text style={[styles.label, { color: c.textMuted }]}>
-          {t("dashboard.statusSummary.overallProgress")}
-        </Text>
-        <Text style={[styles.value, { color: c.text }]}>
-          {formatPct(overallProgress, locale)}
-        </Text>
-      </View>
-
-      <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-        <Text style={[styles.label, { color: c.textMuted }]}>
-          {t("dashboard.statusSummary.coursesCompleted")}
-        </Text>
-        <Text style={[styles.value, { color: c.text }]}>
-          {formatNum(coursesCompleted, locale)}
-        </Text>
-      </View>
-
-      {reviewError ? (
-        <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-          <Text style={[styles.label, { color: c.error }]}>
-            {t("dashboard.statusSummary.failedLoadReviews")}
+    <View style={styles.wrap}>
+      <KPIScrollRow>
+        <KPITile>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            {t("dashboard.dailyGoal.label")}
           </Text>
-          <Text style={[styles.meta, { color: c.textMuted }]}>
-            {t("dashboard.statusSummary.couldNotFetchReviews")}
+          <Text style={[styles.value, { color: c.text }]}>
+            {formatPct(dailyGoalProgress, locale)}
           </Text>
-          {refetchReview ? (
-            <GlassButton variant="primary" size="sm" onPress={refetchReview}>
-              {t("onboarding.reminderBanner.tryAgain")}
-            </GlassButton>
-          ) : null}
-        </View>
-      ) : (
-        tile(
-          <>
+        </KPITile>
+
+        <KPITile>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            {t("dashboard.statusSummary.overallProgress")}
+          </Text>
+          <Text style={[styles.value, { color: c.text }]}>
+            {formatPct(overallProgress, locale)}
+          </Text>
+        </KPITile>
+
+        <KPITile>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            {t("dashboard.statusSummary.coursesCompleted")}
+          </Text>
+          <Text style={[styles.value, { color: c.text }]}>
+            {formatNum(coursesCompleted, locale)}
+          </Text>
+        </KPITile>
+
+        {reviewError ? null : (
+          <KPITile
+            urgent={reviewsDue > 0}
+            onPress={reviewsDue > 0 && onOpenReviews ? onOpenReviews : undefined}
+          >
             <View style={styles.rowBetween}>
               <View style={styles.iconRow}>
                 <MaterialCommunityIcons
@@ -137,7 +114,7 @@ export default function StatusSummaryGrid({
               {formatNum(reviewsDue, locale)}
             </Text>
             {reviewTopSkill ? (
-              <Text style={[styles.meta, { color: c.textMuted }]}>
+              <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={2}>
                 {t("dashboard.statusSummary.nextReviewSkill", { skill: reviewTopSkill })}
               </Text>
             ) : null}
@@ -146,13 +123,52 @@ export default function StatusSummaryGrid({
                 {t("dashboard.statusSummary.startReviews")}
               </GlassButton>
             ) : null}
-          </>,
-          reviewsDue > 0
-        )
-      )}
+          </KPITile>
+        )}
+
+        {missionsError ? null : (
+          <KPITile onPress={onOpenMissions}>
+            <View style={styles.iconRow}>
+              <MaterialCommunityIcons name="rocket-launch" size={16} color={c.textMuted} />
+              <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
+                {t("dashboard.statusSummary.activeMissions")}
+              </Text>
+            </View>
+            <Text style={[styles.value, { color: c.text }]}>
+              {formatNum(activeMissionsCount, locale)}
+            </Text>
+          </KPITile>
+        )}
+
+        <KPITile>
+          <View style={styles.iconRow}>
+            <MaterialCommunityIcons name="fire" size={16} color={c.textMuted} />
+            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
+              {t("dashboard.statusSummary.streak")}
+            </Text>
+          </View>
+          <Text style={[styles.value, { color: c.text }]}>{formatNum(streakCount, locale)}</Text>
+        </KPITile>
+      </KPIScrollRow>
+
+      {reviewError ? (
+        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
+          <Text style={[styles.label, { color: c.error }]}>
+            {t("dashboard.statusSummary.failedLoadReviews")}
+          </Text>
+          <Text style={[styles.meta, { color: c.textMuted }]}>
+            {t("dashboard.statusSummary.couldNotFetchReviews")}
+          </Text>
+          {refetchReview ? (
+            <GlassButton variant="primary" size="sm" onPress={refetchReview}>
+              {t("onboarding.reminderBanner.tryAgain")}
+            </GlassButton>
+          ) : null}
+        </View>
+      ) : null}
 
       {missionsError ? (
-        <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
           <Text style={[styles.label, { color: c.error }]}>
             {t("dashboard.statusSummary.failedLoadMissions")}
           </Text>
@@ -165,44 +181,17 @@ export default function StatusSummaryGrid({
             </GlassButton>
           ) : null}
         </View>
-      ) : (
-        <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-          <View style={styles.iconRow}>
-            <MaterialCommunityIcons name="rocket-launch" size={16} color={c.textMuted} />
-            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
-              {t("dashboard.statusSummary.activeMissions")}
-            </Text>
-          </View>
-          <Text style={[styles.value, { color: c.text }]}>
-            {formatNum(activeMissionsCount, locale)}
-          </Text>
-        </View>
-      )}
-
-      <View style={[styles.tile, { borderColor: c.border, backgroundColor: c.surface }]}>
-        <View style={styles.iconRow}>
-          <MaterialCommunityIcons name="fire" size={16} color={c.textMuted} />
-          <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
-            {t("dashboard.statusSummary.streak")}
-          </Text>
-        </View>
-        <Text style={[styles.value, { color: c.text }]}>{formatNum(streakCount, locale)}</Text>
-      </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
+  wrap: {
     marginTop: spacing.lg,
+    gap: spacing.md,
   },
-  tile: {
-    width: "47%",
-    minWidth: 140,
-    flexGrow: 1,
+  errorTile: {
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
