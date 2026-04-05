@@ -1,28 +1,52 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   LayoutAnimation,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { fetchProgressSummary, pathService, courseService, queryKeys, staleTimes } from "@monevo/core";
+import {
+  courseService,
+  fetchEntitlements,
+  fetchProfile,
+  fetchProgressSummary,
+  fetchQuestionnaireProgress,
+  pathService,
+  queryKeys,
+  staleTimes,
+  type Entitlements,
+  type UserProfile,
+} from "@monevo/core";
 import { Card, ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
+import GlassButton from "../../src/components/ui/GlassButton";
 import CourseCard from "../../src/components/learn/CourseCard";
 import ContinueLearningCard from "../../src/components/learn/ContinueLearningCard";
+import PersonalizedPathContentMobile from "../../src/components/dashboard/PersonalizedPathContentMobile";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
+import { href } from "../../src/navigation/href";
 import { unwrapApiList } from "../../src/lib/unwrapApiList";
 import { applyPathSortAndFilter } from "../../src/lib/pathProgress";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+
+type LearnActiveView = "all-topics" | "personalized-path";
+
+function planRank(plan?: string | null) {
+  if (plan === "plus") return 1;
+  if (plan === "pro") return 2;
+  return 0;
+}
 
 type CourseRow = {
   id?: number;
@@ -107,17 +131,48 @@ function createLearnStyles(c: ThemeColors) {
       gap: spacing.sm,
     },
     error: { color: c.error, fontSize: typography.sm },
+    segmentRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+    },
+    segmentPersonalized: { flex: 1, minWidth: 140, gap: spacing.xs },
+    onboardingBadge: {
+      alignSelf: "flex-start",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    onboardingBadgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
+    personalizedLoading: {
+      flex: 1,
+      minHeight: 200,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
 }
 
 function LearnInner() {
   const c = useThemeColors();
   const styles = useMemo(() => createLearnStyles(c), [c]);
+  const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();
   const { t } = useTranslation("common");
 
+  const [activeView, setActiveView] = useState<LearnActiveView>("all-topics");
+  const { expandPath, view } = useLocalSearchParams<{ expandPath?: string; view?: string }>();
+
+  useLayoutEffect(() => {
+    const v = String(view ?? "").toLowerCase();
+    if (v === "personalized" || v === "personalized-path") {
+      setActiveView("personalized-path");
+    }
+  }, [view]);
+
   const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
-  const { expandPath } = useLocalSearchParams<{ expandPath?: string }>();
   const [query, setQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<FilterMode>("all");
   const [pathSortBy, setPathSortBy] = useState("default");
@@ -136,6 +191,112 @@ function LearnInner() {
     staleTime: staleTimes.progressSummary,
     enabled: hydrated && Boolean(accessToken),
   });
+
+  const profileQuery = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: () => fetchProfile().then((r) => r.data as UserProfile),
+    staleTime: staleTimes.profile,
+    enabled: hydrated && Boolean(accessToken),
+  });
+
+  const entitlementsQuery = useQuery({
+    queryKey: queryKeys.entitlements(),
+    queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
+    staleTime: staleTimes.entitlements,
+    enabled: hydrated && Boolean(accessToken),
+  });
+
+  const questionnaireQuery = useQuery({
+    queryKey: queryKeys.questionnaireProgress(),
+    queryFn: fetchQuestionnaireProgress,
+    staleTime: 0,
+    refetchOnMount: true,
+    enabled: hydrated && Boolean(accessToken),
+  });
+
+  const profilePayload = profileQuery.data;
+  const profile = useMemo(() => {
+    if (!profilePayload) return null;
+    const ud = profilePayload.user_data as Record<string, unknown> | undefined;
+    if (ud && typeof ud === "object") {
+      return { ...profilePayload, ...ud } as UserProfile & Record<string, unknown>;
+    }
+    return profilePayload;
+  }, [profilePayload]);
+
+  const entitlements = entitlementsQuery.data;
+  const hasPaidProfile = Boolean(
+    profile?.has_paid ??
+      (profilePayload as UserProfile | undefined)?.has_paid ??
+      (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid
+  );
+  const profilePlanId =
+    profile?.subscription_plan_id ??
+    (profile?.user_data as { subscription_plan_id?: string } | undefined)?.subscription_plan_id ??
+    null;
+  const resolvedPlan: string =
+    (typeof entitlements?.plan === "string" ? entitlements.plan : null) ||
+    (typeof profilePlanId === "string" ? profilePlanId : null) ||
+    (hasPaidProfile ? "plus" : "starter");
+  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+
+  const isQuestionnaireCompleted = Boolean(
+    profile?.is_questionnaire_completed ??
+      (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
+        ?.is_questionnaire_completed ??
+      (profilePayload as UserProfile | undefined)?.is_questionnaire_completed
+  );
+
+  const questionnaireProgress = questionnaireQuery.data;
+  const questionnaireCompletedForUi =
+    isQuestionnaireCompleted || questionnaireProgress?.status === "completed";
+
+  const handlePersonalizedPathClick = useCallback(() => {
+    if (!accessToken) {
+      router.push(href("/login"));
+      return;
+    }
+    if (hasPlusAccess) {
+      setActiveView("personalized-path");
+      return;
+    }
+    if (!isQuestionnaireCompleted) {
+      router.push(href("/onboarding"));
+      return;
+    }
+    router.push(href("/subscriptions"));
+  }, [accessToken, hasPlusAccess, isQuestionnaireCompleted]);
+
+  useEffect(() => {
+    if (activeView !== "personalized-path") return;
+    if (!hydrated) return;
+    if (!accessToken) {
+      router.replace(href("/login"));
+      return;
+    }
+    if (
+      profileQuery.isPending ||
+      entitlementsQuery.isPending ||
+      questionnaireQuery.isPending
+    ) {
+      return;
+    }
+    if (hasPlusAccess) return;
+    if (!isQuestionnaireCompleted) {
+      router.replace(href("/onboarding"));
+      return;
+    }
+    router.replace(href("/subscriptions"));
+  }, [
+    activeView,
+    hydrated,
+    accessToken,
+    hasPlusAccess,
+    isQuestionnaireCompleted,
+    profileQuery.isPending,
+    entitlementsQuery.isPending,
+    questionnaireQuery.isPending,
+  ]);
 
   const expandedPath = useMemo(
     () =>
@@ -272,6 +433,58 @@ function LearnInner() {
     [t]
   );
 
+  const onRefreshPersonalized = useCallback(() => {
+    void profileQuery.refetch();
+    void questionnaireQuery.refetch();
+    void progressQuery.refetch();
+    void queryClient.invalidateQueries({ queryKey: queryKeys.personalizedPath() });
+  }, [profileQuery, questionnaireQuery, progressQuery, queryClient]);
+
+  const segmentRow = useMemo(
+    () => (
+      <View style={styles.segmentRow}>
+        <GlassButton
+          variant={activeView === "all-topics" ? "active" : "ghost"}
+          size="sm"
+          onPress={() => setActiveView("all-topics")}
+        >
+          {t("dashboard.nav.allTopics")}
+        </GlassButton>
+        <View style={styles.segmentPersonalized}>
+          <GlassButton
+            variant={activeView === "personalized-path" ? "active" : "ghost"}
+            size="sm"
+            onPress={handlePersonalizedPathClick}
+            disabled={Boolean(accessToken) && (profileQuery.isPending || profileQuery.isFetching)}
+          >
+            {t("dashboard.nav.personalizedPath")}
+          </GlassButton>
+          {accessToken && !questionnaireCompletedForUi ? (
+            <View style={[styles.onboardingBadge, { backgroundColor: `${c.error}22` }]}>
+              <Text style={[styles.onboardingBadgeText, { color: c.error }]} numberOfLines={1}>
+                {t("dashboard.nav.completeOnboarding")}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+    ),
+    [
+      accessToken,
+      activeView,
+      c.error,
+      handlePersonalizedPathClick,
+      profileQuery.isFetching,
+      profileQuery.isPending,
+      questionnaireCompletedForUi,
+      styles.onboardingBadge,
+      styles.onboardingBadgeText,
+      styles.segmentPersonalized,
+      styles.segmentRow,
+      t,
+    ]
+  );
+
   if (!hydrated) {
     return (
       <View style={styles.loadingWrap}>
@@ -287,27 +500,81 @@ function LearnInner() {
     );
   }
 
-  if (pathsQuery.isPending) {
+  if (activeView === "all-topics" && pathsQuery.isPending) {
     return (
-      <View style={styles.loadingWrap}>
-        {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton
-            key={i}
-            width="100%"
-            height={90}
-            style={{ marginBottom: spacing.md }}
-          />
-        ))}
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        <View style={styles.loadingWrap}>
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton
+              key={i}
+              width="100%"
+              height={90}
+              style={{ marginBottom: spacing.md }}
+            />
+          ))}
+        </View>
       </View>
     );
   }
 
-  if (pathsQuery.isError) {
+  if (activeView === "all-topics" && pathsQuery.isError) {
     return (
-      <ErrorState
-        message="Could not load learning paths."
-        onRetry={() => void pathsQuery.refetch()}
-      />
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        <ErrorState
+          message="Could not load learning paths."
+          onRetry={() => void pathsQuery.refetch()}
+        />
+      </View>
+    );
+  }
+
+  if (activeView === "personalized-path") {
+    const personalizedGatingWait =
+      Boolean(accessToken) &&
+      (profileQuery.isPending ||
+        entitlementsQuery.isPending ||
+        questionnaireQuery.isPending);
+
+    return (
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        {personalizedGatingWait ? (
+          <View style={styles.personalizedLoading}>
+            <ActivityIndicator size="large" color={c.primary} />
+          </View>
+        ) : hasPlusAccess ? (
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingHorizontal: spacing.xl,
+              paddingBottom: spacing.xxxl,
+            }}
+            refreshControl={
+              <RefreshControl
+                refreshing={
+                  profileQuery.isFetching ||
+                  questionnaireQuery.isFetching ||
+                  progressQuery.isFetching
+                }
+                onRefresh={onRefreshPersonalized}
+                tintColor={c.primary}
+              />
+            }
+          >
+            <PersonalizedPathContentMobile
+              onCourseClick={(courseId) => {
+                router.push(`/flow/${courseId}`);
+              }}
+            />
+          </ScrollView>
+        ) : (
+          <View style={styles.personalizedLoading}>
+            <ActivityIndicator size="large" color={c.primary} />
+          </View>
+        )}
+      </View>
     );
   }
 
@@ -339,6 +606,7 @@ function LearnInner() {
       }
       ListHeaderComponent={
         <View style={styles.headerBlock}>
+          {segmentRow}
           <ContinueLearningCard resume={progressQuery.data?.resume} />
           <Text style={styles.heading}>Learning paths</Text>
           <TextInput
