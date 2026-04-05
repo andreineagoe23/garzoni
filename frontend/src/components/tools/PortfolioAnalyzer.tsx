@@ -114,55 +114,49 @@ function PortfolioAnalyzer() {
   const [aiMeaning, setAiMeaning] = useState<string>("");
   const [isAiMeaningLoading, setIsAiMeaningLoading] = useState(false);
   const [aiMeaningError, setAiMeaningError] = useState<string | null>(null);
-  const { getAccessToken, financialProfile } = useAuth();
+  const { financialProfile } = useAuth();
   const formRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchStockPrice = useCallback(
-    async (symbol) => {
-      try {
-        const response = await apiClient.get("/stock-price/", {
-          params: { symbol },
-        });
+  const fetchStockPrice = useCallback(async (symbol) => {
+    try {
+      const response = await apiClient.get("/stock-price/", {
+        params: { symbol },
+      });
 
-        return response.data?.price ?? null;
-      } catch (err) {
-        console.error("Error fetching stock price:", err);
-        return null;
-      }
-    },
-    [getAccessToken]
-  );
+      return response.data?.price ?? null;
+    } catch (err) {
+      console.error("Error fetching stock price:", err);
+      return null;
+    }
+  }, []);
 
-  const fetchCryptoPrice = useCallback(
-    async (symbol) => {
-      try {
-        const normalized = String(symbol || "")
-          .trim()
-          .toLowerCase();
-        const COINGECKO_ID_MAP: Record<string, string> = {
-          btc: "bitcoin",
-          bitcoin: "bitcoin",
-          eth: "ethereum",
-          ethereum: "ethereum",
-          sol: "solana",
-          solana: "solana",
-          xrp: "ripple",
-          ada: "cardano",
-          doge: "dogecoin",
-          bnb: "binancecoin",
-        };
-        const cryptoId = COINGECKO_ID_MAP[normalized] || normalized;
-        const response = await apiClient.get("/crypto-price/", {
-          params: { id: cryptoId },
-        });
-        return response.data?.price ?? null;
-      } catch (err) {
-        console.error("Error fetching crypto price:", err);
-        return null;
-      }
-    },
-    [getAccessToken]
-  );
+  const fetchCryptoPrice = useCallback(async (symbol) => {
+    try {
+      const normalized = String(symbol || "")
+        .trim()
+        .toLowerCase();
+      const COINGECKO_ID_MAP: Record<string, string> = {
+        btc: "bitcoin",
+        bitcoin: "bitcoin",
+        eth: "ethereum",
+        ethereum: "ethereum",
+        sol: "solana",
+        solana: "solana",
+        xrp: "ripple",
+        ada: "cardano",
+        doge: "dogecoin",
+        bnb: "binancecoin",
+      };
+      const cryptoId = COINGECKO_ID_MAP[normalized] || normalized;
+      const response = await apiClient.get("/crypto-price/", {
+        params: { id: cryptoId },
+      });
+      return response.data?.price ?? null;
+    } catch (err) {
+      console.error("Error fetching crypto price:", err);
+      return null;
+    }
+  }, []);
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -231,7 +225,7 @@ function PortfolioAnalyzer() {
     } finally {
       setLoading(false);
     }
-  }, [fetchCryptoPrice, fetchStockPrice, getAccessToken]);
+  }, [fetchCryptoPrice, fetchStockPrice, t]);
 
   useEffect(() => {
     fetchPortfolio();
@@ -315,7 +309,7 @@ function PortfolioAnalyzer() {
     return () => {
       window.removeEventListener(EXPORT_EVENT, handleExport as EventListener);
     };
-  }, [entries]);
+  }, [entries, t]);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

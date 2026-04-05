@@ -86,4 +86,6 @@ const ActivityCalendar = React.memo(
   }
 );
 
+ActivityCalendar.displayName = "ActivityCalendar";
+
 export default ActivityCalendar;

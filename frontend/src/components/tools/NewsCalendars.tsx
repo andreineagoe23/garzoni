@@ -60,6 +60,7 @@ const NewsCalendars = () => {
                       href={CALENDAR_OPEN_URL}
                       rel="noopener noreferrer"
                       target="_blank"
+                      aria-label="Calendar provider"
                       className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
                     />
                   ),
@@ -68,6 +69,7 @@ const NewsCalendars = () => {
                       href={CALENDAR_OPEN_URL}
                       rel="noopener noreferrer"
                       target="_blank"
+                      aria-label="Open calendar in new tab"
                       className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
                     />
                   ),

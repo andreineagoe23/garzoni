@@ -1,26 +1,29 @@
 import React from "react";
 import { GlassCard } from "components/ui";
 import { MonevoIcon } from "components/ui/monevoIcons";
+import type { Mission } from "@monevo/core";
 import CoinStack from "./CoinStack";
 import FactCard from "./FactCard";
 
+type Fact = Record<string, unknown>;
+
 type MissionCardProps = {
-  mission: any;
+  mission: Mission;
   isDaily: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
   canSwap: boolean;
-  onSwap: (missionId: number) => void;
+  onSwap: (missionId: string | number) => void;
   showSavingsMenu: boolean;
   setShowSavingsMenu: React.Dispatch<React.SetStateAction<boolean>>;
   virtualBalance: number;
-  currentFact: any;
+  currentFact: Fact | null | undefined;
   onMarkFactRead: () => void;
   onLoadFact: () => void;
   savingsAmount: string;
   setSavingsAmount: React.Dispatch<React.SetStateAction<string>>;
   onSavingsSubmit: (event: React.FormEvent) => void;
-  getLessonRequirement: (mission: any) => number;
-  purposeStatement: (mission: any) => string;
+  getLessonRequirement: (mission: Mission) => number;
+  purposeStatement: (mission: Mission) => string;
 };
 
 const MissionCard = ({

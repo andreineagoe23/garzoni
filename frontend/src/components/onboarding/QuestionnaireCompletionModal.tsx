@@ -75,17 +75,18 @@ const QuestionnaireCompletionModal: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[3000] flex items-center justify-center px-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="completion-modal-title"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#1d5330)]/10 p-8 text-center shadow-2xl">
+      <button
+        type="button"
+        className="absolute inset-0 border-0 bg-black/60 backdrop-blur-sm"
+        aria-label={t("onboarding.completionModal.close")}
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#1d5330)]/10 p-8 text-center shadow-2xl">
         {/* Mascot */}
         <div className="mx-auto mb-4 flex flex-col items-center gap-2">
           <MascotMedia mascot="owl" className="h-20 w-20 object-contain" />

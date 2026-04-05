@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "contexts/AuthContext";
 import apiClient from "services/httpClient";
 import {
   formatCurrency,
@@ -30,7 +29,6 @@ const FinancialGoalsTracker = () => {
     current_amount: "",
     target_date: "",
   });
-  const { getAccessToken } = useAuth();
   const locale = getLocale();
   const presets = useMemo(
     () => [
@@ -73,7 +71,7 @@ const FinancialGoalsTracker = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAccessToken, t]);
+  }, [t]);
 
   useEffect(() => {
     fetchGoals();

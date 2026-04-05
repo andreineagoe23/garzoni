@@ -118,7 +118,7 @@ const EconomicCalendar = () => {
         // Do not clear container on unmount: TradingView script may still load and query parent.
       }
     };
-  }, [darkMode, showAllEvents]);
+  }, [darkMode, showAllEvents, i18n.language]);
 
   useEffect(() => {
     if (!loaded || typeof window === "undefined") return;
@@ -201,6 +201,7 @@ const EconomicCalendar = () => {
                   href="https://www.tradingview.com/economic-calendar/"
                   rel="noopener noreferrer"
                   target="_blank"
+                  aria-label="TradingView economic calendar"
                   className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
                 />
               ),
@@ -209,6 +210,7 @@ const EconomicCalendar = () => {
                   href="https://www.tradingview.com/economic-calendar/"
                   rel="noopener noreferrer"
                   target="_blank"
+                  aria-label="Open economic calendar in new tab"
                   className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
                 />
               ),
