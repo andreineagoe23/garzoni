@@ -89,7 +89,7 @@ export default function AllTopicsGrid() {
   );
 
   const expandedPathRow = useMemo(
-    () => orderedPaths.find((x) => Number(x.id) === Number(expandedPathId)),
+    () => orderedPaths.find((x: PathRow) => Number(x.id) === Number(expandedPathId)),
     [orderedPaths, expandedPathId]
   );
 
@@ -226,7 +226,7 @@ export default function AllTopicsGrid() {
           nestedScrollEnabled
           showsVerticalScrollIndicator={false}
         >
-          {orderedPaths.map((p) => {
+          {orderedPaths.map((p: PathRow) => {
             const uri = coverForPath(p);
             const pct = pathProgressPercent(p);
             const isExpanded = Number(expandedPathId) === Number(p.id);
