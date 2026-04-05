@@ -36,15 +36,14 @@ export default function HeroSection({
     >
       {/* Preload demo video as soon as the page is open so the modal opens quickly */}
       <video
+        data-testid="hero-demo-preload-video"
         src={demoVideoUrl}
         preload="auto"
         muted
         autoPlay
         className="absolute w-0 h-0 opacity-0 pointer-events-none"
         aria-hidden="true"
-      >
-        <track kind="captions" src="" label="No captions available" default />
-      </video>
+      />
       <div className="w-full px-4 sm:pl-10 sm:pr-5 lg:pl-14 lg:pr-8 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]">
         <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)] items-stretch">
           {/* Left: copy + CTAs */}
@@ -295,12 +294,6 @@ export default function HeroSection({
             preload="auto"
             aria-label={t("landing.hero.demoModal.videoAria")}
           >
-            <track
-              kind="captions"
-              src=""
-              label="No captions available"
-              default
-            />
             Your browser does not support the video tag.
           </video>
         </div>
