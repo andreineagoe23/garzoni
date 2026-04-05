@@ -29,7 +29,7 @@ describe("HeroSection demo modal", () => {
 
   it("renders a hidden preloading video for the demo", () => {
     renderHero();
-    const preloadVideo = screen.getByRole("presentation", { hidden: true });
+    const preloadVideo = screen.getByTestId("hero-demo-preload-video");
     expect(preloadVideo).toHaveAttribute(
       "src",
       "http://localhost:8000/media/welcome/monevo-demo.mp4"
