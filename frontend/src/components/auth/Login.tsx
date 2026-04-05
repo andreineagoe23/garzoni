@@ -68,7 +68,7 @@ function Login() {
     const remaining = params.toString();
     const nextUrl = remaining ? `/login?${remaining}` : "/login";
     navigate(nextUrl, { replace: true, state: location.state });
-  }, [location.search, location.state, navigate, t]);
+  }, [location.search, location.state, location.pathname, navigate, t]);
 
   useEffect(() => {
     if (isAuthenticated) {

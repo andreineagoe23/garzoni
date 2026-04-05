@@ -84,7 +84,7 @@ const CryptoTools = () => {
         currentContainer.innerHTML = "";
       }
     };
-  }, [darkMode]);
+  }, [darkMode, i18n.language]);
 
   return (
     <section className="space-y-4 min-w-0 w-full">

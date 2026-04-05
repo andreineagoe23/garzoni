@@ -43,11 +43,11 @@ const ShareAchievementButton = ({
       await consumeEntitlement("downloads");
       queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
       return true;
-    } catch (error: any) {
+    } catch (error) {
       onLocked();
-      toast.error(
-        error?.response?.data?.error || t("rewards.errors.downloadAllowance")
-      );
+      const apiError = (error as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
+      toast.error(apiError || t("rewards.errors.downloadAllowance"));
       return false;
     }
   }, [downloadsFeature, onLocked, queryClient, t]);

@@ -467,7 +467,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     }
   }, [
     primaryCTASignal,
-    resume,
     reviewsDue,
     activeMissions.length,
     navigate,

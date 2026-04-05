@@ -98,7 +98,10 @@ const ICONS = {
   volume: FaVolumeHigh,
   bars: FaBars,
   xmark: FaXmark,
-} as unknown as Record<MonevoIconName, React.ComponentType<any>>;
+} as unknown as Record<
+  MonevoIconName,
+  React.ComponentType<Record<string, unknown>>
+>;
 
 const EMOJI_TO_ICON_NAME: Partial<Record<string, MonevoIconName>> = {
   "🎯": "target",

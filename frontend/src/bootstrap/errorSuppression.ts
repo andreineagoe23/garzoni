@@ -88,11 +88,10 @@ export const initErrorSuppression = () => {
     const hook = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__;
     if (!hook || hook.__monevo_patched) return;
     const isSuppressible = (value: unknown) => {
+      const valueObj = value as { message?: unknown; stack?: unknown } | null;
       const msg =
-        typeof value === "string"
-          ? value
-          : String((value as any)?.message ?? "");
-      const stack = (value as any)?.stack ?? "";
+        typeof value === "string" ? value : String(valueObj?.message ?? "");
+      const stack = String(valueObj?.stack ?? "");
       return isThirdPartyOrScriptError(msg, undefined, stack);
     };
     const originalOnError = hook.onError;

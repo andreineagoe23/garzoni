@@ -66,9 +66,11 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
         setConfirmingId(null);
         await onAction();
       }
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = (error as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
       toast.error(
-        error?.response?.data?.error ||
+        apiError ||
           (isDonate
             ? t("rewards.donate.donationFailed")
             : t("rewards.shop.purchaseFailed"))
