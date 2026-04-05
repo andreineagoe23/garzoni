@@ -131,15 +131,17 @@ describe("ExercisePage skill intent pipeline", () => {
       "exercise_skill_intent_received",
       expect.objectContaining({ skill: "investing", source: "query" })
     );
-    expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
-      "exercise_skill_intent_mapped",
-      expect.objectContaining({
-        skill: "investing",
-        category: "Investing",
-        result_count: 1,
-        mapped_zero_results: false,
-      })
-    );
+    await waitFor(() => {
+      expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
+        "exercise_skill_intent_mapped",
+        expect.objectContaining({
+          skill: "investing",
+          category: "Investing",
+          result_count: 1,
+          mapped_zero_results: false,
+        })
+      );
+    });
   });
 
   it("prefers ?skill= over location.state.targetSkill", async () => {
