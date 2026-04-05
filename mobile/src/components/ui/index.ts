@@ -14,3 +14,4 @@ export { default as GlassCard } from "./GlassCard";
 export { default as GlassButton } from "./GlassButton";
 export { default as ScreenScroll } from "./ScreenScroll";
 export { default as SelectMenu } from "./SelectMenu";
+export { default as HapticPressable, useHapticTap } from "./HapticPressable";

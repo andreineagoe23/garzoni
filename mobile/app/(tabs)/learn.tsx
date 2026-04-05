@@ -12,22 +12,17 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { pathService, courseService, queryKeys, staleTimes } from "@monevo/core";
-import {
-  Badge,
-  Card,
-  ErrorState,
-  ProgressBar,
-  SelectMenu,
-  Skeleton,
-} from "../../src/components/ui";
+import { fetchProgressSummary, pathService, courseService, queryKeys, staleTimes } from "@monevo/core";
+import { Card, ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
+import CourseCard from "../../src/components/learn/CourseCard";
+import ContinueLearningCard from "../../src/components/learn/ContinueLearningCard";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { unwrapApiList } from "../../src/lib/unwrapApiList";
 import { applyPathSortAndFilter } from "../../src/lib/pathProgress";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
-import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { spacing, typography, radius } from "../../src/theme/tokens";
 
 type CourseRow = {
   id?: number;
@@ -111,27 +106,6 @@ function createLearnStyles(c: ThemeColors) {
       paddingLeft: spacing.md,
       gap: spacing.sm,
     },
-    courseRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      ...shadows.sm,
-    },
-    courseInfo: { flex: 1, marginRight: spacing.md },
-    courseTitle: {
-      fontSize: typography.base,
-      fontWeight: "600",
-      color: c.text,
-    },
-    courseMeta: {
-      fontSize: typography.xs,
-      color: c.textMuted,
-      marginTop: 2,
-    },
     error: { color: c.error, fontSize: typography.sm },
   });
 }
@@ -139,7 +113,7 @@ function createLearnStyles(c: ThemeColors) {
 function LearnInner() {
   const c = useThemeColors();
   const styles = useMemo(() => createLearnStyles(c), [c]);
-  const { hydrated } = useAuthSession();
+  const { hydrated, accessToken } = useAuthSession();
   const { t } = useTranslation("common");
 
   const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
@@ -154,6 +128,13 @@ function LearnInner() {
     enabled: hydrated,
     queryFn: () => pathService.fetchPaths().then((r) => unwrapApiList<PathRow>(r.data)),
     staleTime: staleTimes.content,
+  });
+
+  const progressQuery = useQuery({
+    queryKey: queryKeys.progressSummary(),
+    queryFn: () => fetchProgressSummary().then((r) => r.data),
+    staleTime: staleTimes.progressSummary,
+    enabled: hydrated && Boolean(accessToken),
   });
 
   const expandedPath = useMemo(
@@ -339,8 +320,11 @@ function LearnInner() {
       contentContainerStyle={styles.container}
       refreshControl={
         <RefreshControl
-          refreshing={pathsQuery.isFetching}
-          onRefresh={() => void pathsQuery.refetch()}
+          refreshing={pathsQuery.isFetching || progressQuery.isFetching}
+          onRefresh={() => {
+            void pathsQuery.refetch();
+            void progressQuery.refetch();
+          }}
           tintColor={c.primary}
         />
       }
@@ -355,6 +339,7 @@ function LearnInner() {
       }
       ListHeaderComponent={
         <View style={styles.headerBlock}>
+          <ContinueLearningCard resume={progressQuery.data?.resume} />
           <Text style={styles.heading}>Learning paths</Text>
           <TextInput
             style={styles.search}
@@ -440,45 +425,17 @@ function LearnInner() {
                     Django host.
                   </Text>
                 ) : (
-                  expandedCourses.map((course, ci) => {
-                    const done = course.completed_lessons ?? 0;
-                    const total = courseTotalLessons(course);
-                    const pct = total > 0 ? done / total : 0;
-                    const status =
-                      pct >= 1 ? "Completed" : pct > 0 ? "In progress" : "Start";
-                    const statusColor =
-                      pct >= 1 ? c.success : pct > 0 ? c.accent : c.primary;
-
-                    return (
-                      <Pressable
-                        key={course.id ?? ci}
-                        style={styles.courseRow}
+                  expandedCourses.map((course, ci) => (
+                    <View key={course.id ?? ci} style={{ marginBottom: spacing.sm }}>
+                      <CourseCard
+                        course={course}
+                        totalLessons={courseTotalLessons(course)}
                         onPress={() =>
                           course.id != null && router.push(`/flow/${course.id}`)
                         }
-                      >
-                        <View style={styles.courseInfo}>
-                          <Text style={styles.courseTitle}>
-                            {course.title ?? course.name ?? `Course ${course.id}`}
-                          </Text>
-                          {total > 0 ? (
-                            <Text style={styles.courseMeta}>
-                              {done}/{total} lessons
-                            </Text>
-                          ) : null}
-                          {total > 0 ? (
-                            <ProgressBar
-                              value={pct}
-                              color={statusColor}
-                              height={4}
-                              style={{ marginTop: spacing.xs }}
-                            />
-                          ) : null}
-                        </View>
-                        <Badge label={status} color={statusColor} />
-                      </Pressable>
-                    );
-                  })
+                      />
+                    </View>
+                  ))
                 )}
               </View>
             ) : null}

@@ -10,6 +10,8 @@ import type { ThemeColors } from "../../theme/palettes";
 type TextSectionProps = {
   html?: string;
   fallbackText?: string;
+  /** Multiplier for body / HTML text (reading comfort). */
+  fontScale?: number;
 };
 
 function fixImagePaths(html: string): string {
@@ -29,16 +31,16 @@ function extractYoutubeId(html: string): string | null {
 
 const systemFonts = ["-apple-system", "system-ui", "sans-serif"];
 
-function createPlainStyles(c: ThemeColors) {
+function createPlainStyles(c: ThemeColors, fontScale: number) {
   return StyleSheet.create({
     container: { flex: 1 },
     plain: {
-      fontSize: typography.base,
-      lineHeight: 24,
+      fontSize: typography.base * fontScale,
+      lineHeight: 24 * fontScale,
       color: c.text,
     },
     empty: {
-      fontSize: typography.base,
+      fontSize: typography.base * fontScale,
       color: c.textMuted,
       fontStyle: "italic",
     },
@@ -51,11 +53,15 @@ function createPlainStyles(c: ThemeColors) {
   });
 }
 
-export default function TextSection({ html, fallbackText }: TextSectionProps) {
+export default function TextSection({
+  html,
+  fallbackText,
+  fontScale = 1,
+}: TextSectionProps) {
   const c = useThemeColors();
   const { width } = useWindowDimensions();
   const contentWidth = width - spacing.xl * 2;
-  const plainStyles = useMemo(() => createPlainStyles(c), [c]);
+  const plainStyles = useMemo(() => createPlainStyles(c, fontScale), [c, fontScale]);
 
   const sourceHtml = html ?? fallbackText ?? "";
   const prepared = useMemo(() => fixImagePaths(sourceHtml), [sourceHtml]);
@@ -67,36 +73,36 @@ export default function TextSection({ html, fallbackText }: TextSectionProps) {
       p: {
         marginTop: 0,
         marginBottom: spacing.sm,
-        lineHeight: 22,
+        lineHeight: 22 * fontScale,
         color: c.text,
       },
       li: { color: c.text, marginBottom: spacing.xs },
       h1: {
         color: c.text,
-        fontSize: typography.xl,
+        fontSize: typography.xl * fontScale,
         marginBottom: spacing.sm,
       },
       h2: {
         color: c.text,
-        fontSize: typography.lg,
+        fontSize: typography.lg * fontScale,
         marginBottom: spacing.sm,
       },
       h3: {
         color: c.text,
-        fontSize: typography.md,
+        fontSize: typography.md * fontScale,
         marginBottom: spacing.xs,
       },
       a: { color: c.accent },
     }),
-    [c]
+    [c, fontScale]
   );
 
   const htmlBase = useMemo(
     () => ({
-      fontSize: typography.base,
+      fontSize: typography.base * fontScale,
       color: c.text,
     }),
-    [c]
+    [c, fontScale]
   );
 
   if (!prepared.trim()) {
