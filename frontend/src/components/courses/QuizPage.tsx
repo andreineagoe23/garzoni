@@ -64,7 +64,7 @@ function QuizPage() {
     };
 
     fetchQuiz();
-  }, [courseId]);
+  }, [courseId, t]);
 
   const handleSubmit = async () => {
     if (!quiz) return;

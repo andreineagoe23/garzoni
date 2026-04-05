@@ -9,13 +9,16 @@ describe("ReferralLink", () => {
   const originalLocation = window.location;
 
   beforeAll(() => {
-    // @ts-ignore
-    delete (window as any).location;
-    (window as any).location = { origin: "https://app.monevo.com" };
+    // @ts-expect-error — deleting read-only location for test mock
+    delete (window as Window & typeof globalThis).location;
+    (window as Window & typeof globalThis).location = {
+      ...originalLocation,
+      origin: "https://app.monevo.com",
+    };
   });
 
   afterAll(() => {
-    // @ts-ignore
+    // @ts-expect-error — restoring original location after test mock
     window.location = originalLocation;
   });
 

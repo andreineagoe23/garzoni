@@ -131,7 +131,7 @@ const DragAndDropExercise = ({
     };
 
     fetchExerciseProgress();
-  }, [exerciseId, getAccessToken, targetsArray]);
+  }, [exerciseId, getAccessToken, targetsArray, t]);
 
   const handleDrop = (target, item) => {
     if (isCompleted || disabled) return;

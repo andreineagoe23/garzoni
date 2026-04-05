@@ -3,8 +3,13 @@ const CHUNK_ERROR_KEY = "monevo-chunk-reloaded";
 export const initChunkRecovery = () => {
   if (typeof window === "undefined") return;
 
-  const handleChunkError = (errorEvent: any) => {
-    const { error, message, target } = errorEvent || {};
+  const handleChunkError = (
+    errorEvent:
+      | ErrorEvent
+      | { error?: unknown; message?: string; target?: unknown }
+  ) => {
+    const { error, message } = errorEvent || {};
+    const target = (errorEvent as { target?: Record<string, unknown> })?.target;
 
     const isLinkTag = target?.tagName === "LINK";
     const source = target?.href || target?.src;

@@ -172,6 +172,12 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                   preload="metadata"
                   aria-label={t("landing.hero.demoModal.videoAria")}
                 >
+                  <track
+                    kind="captions"
+                    src=""
+                    label="No captions available"
+                    default
+                  />
                   Your browser does not support the video tag.
                 </video>
               </GlassCard>

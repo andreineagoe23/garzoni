@@ -1225,6 +1225,12 @@ function CourseFlowPage() {
               ) : (
                 <video controls className="h-full w-full">
                   <source src={section.video_url} type="video/mp4" />
+                  <track
+                    kind="captions"
+                    src=""
+                    label="No captions available"
+                    default
+                  />
                   {t("courses.flow.videoNotSupported")}
                 </video>
               )}

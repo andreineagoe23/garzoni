@@ -44,8 +44,8 @@ const FillInTableExercise = ({
   const { t } = useTranslation();
   const { question, table, correctAnswer, learn_more_url, explanation } =
     data || {};
-  const columns = table?.columns || [];
-  const rows = table?.rows || [];
+  const columns = useMemo(() => table?.columns || [], [table?.columns]);
+  const rows = useMemo(() => table?.rows || [], [table?.rows]);
 
   const emptyAnswers = useMemo(() => {
     return rows.reduce(
@@ -55,7 +55,7 @@ const FillInTableExercise = ({
       },
       {} as Record<string | number, string[]>
     );
-  }, [rows, columns.length]);
+  }, [rows, columns]);
 
   const [answers, setAnswers] =
     useState<Record<string | number, string[]>>(emptyAnswers);

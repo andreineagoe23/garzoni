@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
@@ -48,38 +48,43 @@ function Register() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const validateReferralCode = async (rawCode: string): Promise<boolean> => {
-    const code = rawCode.trim();
-    if (!code) {
-      setReferralValidationState("idle");
-      setReferralValidationMessage("");
-      return true;
-    }
-
-    setReferralValidationState("checking");
-    setReferralValidationMessage("");
-    try {
-      const response = await apiClient.get("/referrals/validate/", {
-        params: { code },
-        skipAuthRedirect: true,
-      });
-      const isValid = Boolean(response.data?.valid);
-      if (isValid) {
-        setReferralValidationState("valid");
-        setReferralValidationMessage(t("auth.register.referralCodeValid"));
+  const validateReferralCode = useCallback(
+    async (rawCode: string): Promise<boolean> => {
+      const code = rawCode.trim();
+      if (!code) {
+        setReferralValidationState("idle");
+        setReferralValidationMessage("");
         return true;
       }
-      setReferralValidationState("invalid");
-      setReferralValidationMessage(
-        response.data?.message || t("auth.register.referralCodeInvalid")
-      );
-      return false;
-    } catch {
-      setReferralValidationState("invalid");
-      setReferralValidationMessage(t("auth.register.referralCodeCheckFailed"));
-      return false;
-    }
-  };
+
+      setReferralValidationState("checking");
+      setReferralValidationMessage("");
+      try {
+        const response = await apiClient.get("/referrals/validate/", {
+          params: { code },
+          skipAuthRedirect: true,
+        });
+        const isValid = Boolean(response.data?.valid);
+        if (isValid) {
+          setReferralValidationState("valid");
+          setReferralValidationMessage(t("auth.register.referralCodeValid"));
+          return true;
+        }
+        setReferralValidationState("invalid");
+        setReferralValidationMessage(
+          response.data?.message || t("auth.register.referralCodeInvalid")
+        );
+        return false;
+      } catch {
+        setReferralValidationState("invalid");
+        setReferralValidationMessage(
+          t("auth.register.referralCodeCheckFailed")
+        );
+        return false;
+      }
+    },
+    [t]
+  );
 
   useEffect(() => {
     const code = formData.referral_code.trim();
@@ -94,7 +99,7 @@ function Register() {
     }, 450);
 
     return () => window.clearTimeout(timer);
-  }, [formData.referral_code]);
+  }, [formData.referral_code, validateReferralCode]);
 
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -49,6 +49,7 @@ const ForexTools = () => {
                   href={FOREX_CALC_OPEN_URL}
                   rel="noopener noreferrer"
                   target="_blank"
+                  aria-label="Forex calculator provider"
                   className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
                 />
               ),
@@ -57,6 +58,7 @@ const ForexTools = () => {
                   href={FOREX_CALC_OPEN_URL}
                   rel="noopener noreferrer"
                   target="_blank"
+                  aria-label="Open forex calculator in new tab"
                   className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
                 />
               ),

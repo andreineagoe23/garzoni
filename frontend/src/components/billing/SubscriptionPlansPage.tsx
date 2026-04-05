@@ -63,7 +63,6 @@ const SubscriptionPlansPage = () => {
     reloadEntitlements,
     loadProfile,
     isAuthenticated,
-    getAccessToken,
     user,
     profile,
   } = useAuth();
@@ -131,7 +130,7 @@ const SubscriptionPlansPage = () => {
     } catch (e) {
       console.error("Error fetching subscription info:", e);
     }
-  }, [entitlements?.entitled, loadProfile]);
+  }, [entitlements?.entitled, entitlements?.plan, loadProfile]);
 
   useEffect(() => {
     fetchSubscriptionInfo();
@@ -222,7 +221,6 @@ const SubscriptionPlansPage = () => {
       navigate,
       questionnaireComplete,
       reloadEntitlements,
-      getAccessToken,
       rcEnabled,
       t,
     ]

@@ -771,7 +771,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return fallbackEntitlements;
       }
     },
-    [cacheRequest, isAuthenticated]
+    [cacheRequest, isAuthenticated, t]
   );
 
   const reloadEntitlements = useCallback(
