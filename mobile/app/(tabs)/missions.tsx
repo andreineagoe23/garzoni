@@ -22,12 +22,15 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Keyboard,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import MissionCard from "../../src/components/engagement/MissionCard";
+import AnimatedMissionCard from "../../src/components/engagement/AnimatedMissionCard";
+import RewardClaimModal from "../../src/components/engagement/RewardClaimModal";
 import MascotImage from "../../src/components/common/MascotImage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
@@ -46,6 +49,8 @@ function MissionsInner() {
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const [missionScope, setMissionScope] = useState<"daily" | "weekly">("daily");
+  const [claimModal, setClaimModal] = useState<{ name: string; xp: number } | null>(null);
 
   const savingsMenuInitializedRef = useRef(false);
   const completedMissionsRef = useRef(new Set<string | number>());
@@ -229,7 +234,7 @@ function MissionsInner() {
           (mission as { name?: string }).name || t("missions.missionFallback");
         const xp = (mission as { points_reward?: number }).points_reward || 0;
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert("", t("missions.toast.completed", { name, xp }));
+        setClaimModal({ name, xp });
         completedMissionsRef.current.add(mission.id);
       }
       previousMissionsRef.current.set(mission.id, mission.status);
@@ -327,14 +332,46 @@ function MissionsInner() {
   const errorMessages = Object.values(errors).filter(Boolean);
 
   return (
-    <ScreenScroll
-      contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-      refreshControl={
-        <RefreshControl refreshing={pullRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
-      }
-    >
+    <>
+      {/*
+        Expiring-mission push reminders: use expo-notifications + server or local scheduling in a
+        dedicated change (credentials, copy, quiet hours).
+      */}
+      <ScreenScroll
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        refreshControl={
+          <RefreshControl refreshing={pullRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
+        }
+      >
       <Text style={[styles.title, { color: c.accent }]}>{t("missions.header.title")}</Text>
       <Text style={[styles.sub, { color: c.textMuted }]}>{t("missions.header.subtitle")}</Text>
+
+      <View style={styles.tabRow}>
+        <Pressable
+          onPress={() => setMissionScope("daily")}
+          style={[
+            styles.tabChip,
+            {
+              borderColor: c.border,
+              backgroundColor: missionScope === "daily" ? c.accentMuted : c.surface,
+            },
+          ]}
+        >
+          <Text style={{ color: c.text, fontWeight: "700" }}>{t("missions.badge.daily")}</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setMissionScope("weekly")}
+          style={[
+            styles.tabChip,
+            {
+              borderColor: c.border,
+              backgroundColor: missionScope === "weekly" ? c.accentMuted : c.surface,
+            },
+          ]}
+        >
+          <Text style={{ color: c.text, fontWeight: "700" }}>{t("missions.badge.weekly")}</Text>
+        </Pressable>
+      </View>
 
       <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
         <View style={styles.summaryRow}>
@@ -420,32 +457,68 @@ function MissionsInner() {
         />
       ) : (
         <>
-          <View style={styles.grid}>
-            {dailyMissions.map((m, index) => (
-              <MissionCard
-                key={`daily-${m.id}-${index}`}
-                mission={m}
-                isDaily
-                t={t}
-                canSwap={canSwap}
-                onSwap={handleMissionSwap}
-                showSavingsMenu={showSavingsMenu}
-                onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
-                virtualBalance={virtualBalance}
-                currentFact={currentFact}
-                factLoading={factQuery.isFetching && !currentFact}
-                onMarkFactRead={() => void markFactRead()}
-                onLoadFact={loadNewFact}
-                savingsAmount={savingsAmount}
-                onSavingsAmountChange={setSavingsAmount}
-                onSavingsSubmit={() => void handleSavingsSubmit()}
-                getLessonRequirement={getLessonRequirement}
-                purposeStatement={purposeStatement}
-              />
-            ))}
-          </View>
+          {missionScope === "daily" ? (
+            <View style={styles.grid}>
+              {dailyMissions.map((m, index) => (
+                <AnimatedMissionCard key={`daily-${m.id}-${index}`} index={index}>
+                  <MissionCard
+                    mission={m}
+                    isDaily
+                    t={t}
+                    canSwap={canSwap}
+                    onSwap={handleMissionSwap}
+                    showSavingsMenu={showSavingsMenu}
+                    onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
+                    virtualBalance={virtualBalance}
+                    currentFact={currentFact}
+                    factLoading={factQuery.isFetching && !currentFact}
+                    onMarkFactRead={() => void markFactRead()}
+                    onLoadFact={loadNewFact}
+                    savingsAmount={savingsAmount}
+                    onSavingsAmountChange={setSavingsAmount}
+                    onSavingsSubmit={() => void handleSavingsSubmit()}
+                    getLessonRequirement={getLessonRequirement}
+                    purposeStatement={purposeStatement}
+                  />
+                </AnimatedMissionCard>
+              ))}
+            </View>
+          ) : weeklyMissions.length > 0 ? (
+            <View style={styles.grid}>
+              <Text style={[styles.sectionTitle, { color: c.accent }]}>
+                {t("missions.weekly.title")}
+              </Text>
+              {weeklyMissions.map((m, index) => (
+                <AnimatedMissionCard key={`weekly-${m.id}-${index}`} index={index}>
+                  <MissionCard
+                    mission={m}
+                    isDaily={false}
+                    t={t}
+                    canSwap={canSwap}
+                    onSwap={handleMissionSwap}
+                    showSavingsMenu={showSavingsMenu}
+                    onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
+                    virtualBalance={virtualBalance}
+                    currentFact={currentFact}
+                    factLoading={factQuery.isFetching && !currentFact}
+                    onMarkFactRead={() => void markFactRead()}
+                    onLoadFact={loadNewFact}
+                    savingsAmount={savingsAmount}
+                    onSavingsAmountChange={setSavingsAmount}
+                    onSavingsSubmit={() => void handleSavingsSubmit()}
+                    getLessonRequirement={getLessonRequirement}
+                    purposeStatement={purposeStatement}
+                  />
+                </AnimatedMissionCard>
+              ))}
+            </View>
+          ) : (
+            <Text style={[styles.sub, { color: c.textMuted, marginBottom: spacing.lg }]}>
+              {t("missions.weekly.title")}: none available right now.
+            </Text>
+          )}
 
-          {allDailyCompleted ? (
+          {missionScope === "daily" && allDailyCompleted ? (
             <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
               <View style={styles.wrapRow}>
                 <View style={styles.wrapMascot}>
@@ -477,41 +550,16 @@ function MissionsInner() {
               </View>
             </GlassCard>
           ) : null}
-
-          {weeklyMissions.length > 0 ? (
-            <>
-              <Text style={[styles.sectionTitle, { color: c.accent }]}>
-                {t("missions.weekly.title")}
-              </Text>
-              <View style={styles.grid}>
-                {weeklyMissions.map((m, index) => (
-                  <MissionCard
-                    key={`weekly-${m.id}-${index}`}
-                    mission={m}
-                    isDaily={false}
-                    t={t}
-                    canSwap={canSwap}
-                    onSwap={handleMissionSwap}
-                    showSavingsMenu={showSavingsMenu}
-                    onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
-                    virtualBalance={virtualBalance}
-                    currentFact={currentFact}
-                    factLoading={factQuery.isFetching && !currentFact}
-                    onMarkFactRead={() => void markFactRead()}
-                    onLoadFact={loadNewFact}
-                    savingsAmount={savingsAmount}
-                    onSavingsAmountChange={setSavingsAmount}
-                    onSavingsSubmit={() => void handleSavingsSubmit()}
-                    getLessonRequirement={getLessonRequirement}
-                    purposeStatement={purposeStatement}
-                  />
-                ))}
-              </View>
-            </>
-          ) : null}
         </>
       )}
     </ScreenScroll>
+    <RewardClaimModal
+      visible={claimModal != null}
+      missionName={claimModal?.name ?? ""}
+      xp={claimModal?.xp ?? 0}
+      onDismiss={() => setClaimModal(null)}
+    />
+    </>
   );
 }
 
@@ -527,6 +575,13 @@ const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingBottom: spacing.lg },
   title: { fontSize: typography.xl, fontWeight: "800" },
   sub: { fontSize: typography.sm, marginTop: spacing.xs, marginBottom: spacing.lg, lineHeight: 20 },
+  tabRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md, flexWrap: "wrap" },
+  tabChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   summaryRow: { flexDirection: "column", gap: spacing.md },
   summaryLeft: { flex: 1 },
   summaryKicker: { fontSize: 10, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" },

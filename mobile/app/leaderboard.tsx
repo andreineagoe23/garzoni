@@ -14,15 +14,15 @@ import {
   type UserProfile,
 } from "@monevo/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -32,6 +32,7 @@ import LeaderboardFriendRequestsCard from "../src/components/leaderboard/Leaderb
 import LeaderboardPodium from "../src/components/leaderboard/LeaderboardPodium";
 import LeaderboardReferralCard from "../src/components/leaderboard/LeaderboardReferralCard";
 import LeaderboardRow from "../src/components/leaderboard/LeaderboardRow";
+import LeaderboardSelfBar from "../src/components/leaderboard/LeaderboardSelfBar";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import GlassCard from "../src/components/ui/GlassCard";
 import { spacing, typography } from "../src/theme/tokens";
@@ -227,10 +228,193 @@ export default function LeaderboardScreen() {
   const rankForEntry = (entry: LeaderboardEntry, fallbackRank: number) =>
     entry.rank ?? fallbackRank;
 
+  const pinnedSelf = useMemo(() => {
+    if (currentUserId == null || pageLoading || loadError) return null;
+    const idx = filteredLeaderboard.findIndex((e) => e.user?.id === currentUserId);
+    if (idx >= 0) {
+      const entry = filteredLeaderboard[idx]!;
+      return { entry, rank: rankForEntry(entry, idx + 1) };
+    }
+    if (
+      userRank &&
+      userRank.user?.id === currentUserId &&
+      (userRank.rank !== undefined || userRank.points !== undefined)
+    ) {
+      return { entry: userRank, rank: userRank.rank ?? 0 };
+    }
+    return null;
+  }, [
+    currentUserId,
+    pageLoading,
+    loadError,
+    filteredLeaderboard,
+    userRank,
+  ]);
+
   const headerTitle =
     activeTab === "global"
       ? t("leaderboard.title.global")
       : t("leaderboard.title.friends");
+
+  const listHeader = (
+    <>
+      <LeaderboardReferralCard referralCode={referralCode} />
+      <LeaderboardFriendRequestsCard />
+
+      <Text style={[styles.h1, { color: c.text }]}>{headerTitle}</Text>
+      <Text style={[styles.subtitle, { color: c.textMuted }]}>
+        {t("leaderboard.subtitle")}
+      </Text>
+
+      <View style={[styles.tabBar, { borderColor: c.border, backgroundColor: c.surface }]}>
+        {(["global", "friends"] as const).map((tab) => (
+          <Pressable
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[
+              styles.tabBtn,
+              {
+                backgroundColor: activeTab === tab ? c.primary : "transparent",
+              },
+            ]}
+          >
+            <Text
+              style={{
+                textAlign: "center",
+                fontWeight: "700",
+                fontSize: typography.sm,
+                color: activeTab === tab ? c.textOnPrimary : c.textMuted,
+              }}
+            >
+              {tab === "global"
+                ? t("leaderboard.tabs.global")
+                : t("leaderboard.tabs.friends")}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {activeTab === "global" ? (
+        <View style={styles.timeRow}>
+          {timeOptions.map((opt) => (
+            <Pressable
+              key={opt.value}
+              onPress={() => setTimeFilter(opt.value)}
+              style={[
+                styles.timeChip,
+                {
+                  borderColor: c.border,
+                  backgroundColor:
+                    timeFilter === opt.value ? c.accentMuted : c.surface,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: typography.xs,
+                  fontWeight: "700",
+                  color: c.text,
+                }}
+              >
+                {opt.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
+      <TextInput
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder={t("leaderboard.searchPlaceholder")}
+        placeholderTextColor={c.textFaint}
+        accessibilityLabel={t("leaderboard.searchAriaLabel")}
+        style={[
+          styles.search,
+          {
+            borderColor: c.border,
+            backgroundColor: c.surface,
+            color: c.text,
+          },
+        ]}
+      />
+
+      {loadError ? (
+        <GlassCard padding="md" style={{ borderColor: `${c.error}55`, marginBottom: spacing.md }}>
+          <Text style={{ color: c.error, fontSize: typography.sm }}>
+            {t("leaderboard.errors.loadFailed")}
+          </Text>
+        </GlassCard>
+      ) : null}
+
+      {activeTab === "global" && globalQuery.isFetching && globalQuery.data ? (
+        <Text style={[styles.busy, { color: c.textMuted }]}>
+          {t("leaderboard.loading")}
+        </Text>
+      ) : null}
+
+      {showOutOfListRank && userRank?.user ? (
+        <GlassCard
+          padding="md"
+          style={{
+            marginBottom: spacing.lg,
+            borderColor: `${c.accent}66`,
+            backgroundColor: `${c.accent}12`,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <View
+              style={[
+                styles.rankCircleLarge,
+                { backgroundColor: c.accent },
+              ]}
+            >
+              <Text style={styles.rankCircleLargeText}>
+                #{userRank.rank ?? "—"}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: c.text, fontWeight: "700" }}>
+                {t("leaderboard.you", { username: userRank.user.username ?? "" })}
+              </Text>
+              <Text style={{ color: c.accent, marginTop: 4, fontWeight: "600" }}>
+                {t("leaderboard.points", {
+                  points: formatPoints(userRank.points ?? 0),
+                })}
+              </Text>
+            </View>
+          </View>
+        </GlassCard>
+      ) : null}
+
+      {!pageLoading && loadError === false && filteredLeaderboard.length > 0 ? (
+        <LeaderboardPodium
+          entries={podiumEntries}
+          currentUserId={currentUserId}
+          t={t}
+          formatPoints={formatPoints}
+        />
+      ) : null}
+    </>
+  );
+
+  const listEmpty = pageLoading ? (
+    <View style={styles.loader}>
+      <ActivityIndicator color={c.primary} size="large" />
+      <Text style={{ color: c.textMuted, marginTop: spacing.md }}>
+        {t("leaderboard.loading")}
+      </Text>
+    </View>
+  ) : filteredLeaderboard.length === 0 && !loadError ? (
+    <GlassCard padding="lg">
+      <Text style={{ color: c.textMuted, textAlign: "center", fontSize: typography.sm }}>
+        {t("leaderboard.empty")}
+      </Text>
+    </GlassCard>
+  ) : null;
+
+  const flatData =
+    pageLoading || filteredLeaderboard.length === 0 ? [] : visibleRemainder;
 
   return (
     <>
@@ -241,189 +425,47 @@ export default function LeaderboardScreen() {
           headerTintColor: c.primary,
         }}
       />
-      <ScrollView
-        style={[styles.screen, { backgroundColor: c.bg }]}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl refreshing={pullRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
-        }
-      >
-        <LeaderboardReferralCard referralCode={referralCode} />
-        <LeaderboardFriendRequestsCard />
-
-        <Text style={[styles.h1, { color: c.text }]}>{headerTitle}</Text>
-        <Text style={[styles.subtitle, { color: c.textMuted }]}>
-          {t("leaderboard.subtitle")}
-        </Text>
-
-        <View style={[styles.tabBar, { borderColor: c.border, backgroundColor: c.surface }]}>
-          {(["global", "friends"] as const).map((tab) => (
-            <Pressable
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              style={[
-                styles.tabBtn,
-                {
-                  backgroundColor: activeTab === tab ? c.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  fontWeight: "700",
-                  fontSize: typography.sm,
-                  color: activeTab === tab ? c.textOnPrimary : c.textMuted,
-                }}
-              >
-                {tab === "global"
-                  ? t("leaderboard.tabs.global")
-                  : t("leaderboard.tabs.friends")}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {activeTab === "global" ? (
-          <View style={styles.timeRow}>
-            {timeOptions.map((opt) => (
-              <Pressable
-                key={opt.value}
-                onPress={() => setTimeFilter(opt.value)}
-                style={[
-                  styles.timeChip,
-                  {
-                    borderColor: c.border,
-                    backgroundColor:
-                      timeFilter === opt.value ? c.accentMuted : c.surface,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.xs,
-                    fontWeight: "700",
-                    color: c.text,
-                  }}
-                >
-                  {opt.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-
-        <TextInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder={t("leaderboard.searchPlaceholder")}
-          placeholderTextColor={c.textFaint}
-          accessibilityLabel={t("leaderboard.searchAriaLabel")}
-          style={[
-            styles.search,
-            {
-              borderColor: c.border,
-              backgroundColor: c.surface,
-              color: c.text,
-            },
-          ]}
-        />
-
-        {loadError ? (
-          <GlassCard padding="md" style={{ borderColor: `${c.error}55`, marginBottom: spacing.md }}>
-            <Text style={{ color: c.error, fontSize: typography.sm }}>
-              {t("leaderboard.errors.loadFailed")}
-            </Text>
-          </GlassCard>
-        ) : null}
-
-        {activeTab === "global" && globalQuery.isFetching && globalQuery.data ? (
-          <Text style={[styles.busy, { color: c.textMuted }]}>
-            {t("leaderboard.loading")}
-          </Text>
-        ) : null}
-
-        {showOutOfListRank && userRank?.user ? (
-          <GlassCard
-            padding="md"
-            style={{
-              marginBottom: spacing.lg,
-              borderColor: `${c.accent}66`,
-              backgroundColor: `${c.accent}12`,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <View
-                style={[
-                  styles.rankCircleLarge,
-                  { backgroundColor: c.accent },
-                ]}
-              >
-                <Text style={styles.rankCircleLargeText}>
-                  #{userRank.rank ?? "—"}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: c.text, fontWeight: "700" }}>
-                  {t("leaderboard.you", { username: userRank.user.username ?? "" })}
-                </Text>
-                <Text style={{ color: c.accent, marginTop: 4, fontWeight: "600" }}>
-                  {t("leaderboard.points", {
-                    points: formatPoints(userRank.points ?? 0),
-                  })}
-                </Text>
-              </View>
-            </View>
-          </GlassCard>
-        ) : null}
-
-        {pageLoading ? (
-          <View style={styles.loader}>
-            <ActivityIndicator color={c.primary} size="large" />
-            <Text style={{ color: c.textMuted, marginTop: spacing.md }}>
-              {t("leaderboard.loading")}
-            </Text>
-          </View>
-        ) : filteredLeaderboard.length === 0 ? (
-          <GlassCard padding="lg">
-            <Text style={{ color: c.textMuted, textAlign: "center", fontSize: typography.sm }}>
-              {t("leaderboard.empty")}
-            </Text>
-          </GlassCard>
-        ) : (
-          <>
-            <LeaderboardPodium
-              entries={podiumEntries}
-              currentUserId={currentUserId}
-              t={t}
-              formatPoints={formatPoints}
-            />
-            {visibleRemainder.map((entry, i) => {
-              const position = rankForEntry(entry, 3 + i + 1);
-              const uid = entry.user?.id;
-              const isYou = currentUserId !== null && uid === currentUserId;
-              const showFriend =
-                activeTab === "global" && uid != null && !isYou;
-              return (
-                <LeaderboardRow
-                  key={uid ?? `row-${i}`}
-                  entry={entry}
-                  position={position}
-                  isYou={isYou}
-                  showFriendButton={showFriend}
-                  isFriend={uid != null ? isAlreadyFriend(uid) : false}
-                  pending={uid != null ? hasPendingRequest(uid) : false}
-                  busy={sendMut.isPending}
-                  onAddFriend={
-                    uid != null ? () => sendMut.mutate(uid) : undefined
-                  }
-                  t={t}
-                  formatPoints={formatPoints}
-                />
-              );
-            })}
-            {hasMoreList ? (
+      <View style={[styles.screen, { backgroundColor: c.bg }]}>
+        <FlatList
+          data={flatData}
+          keyExtractor={(item, i) => String(item.user?.id ?? `row-${i}`)}
+          renderItem={({ item, index }) => {
+            const position = rankForEntry(item, 3 + index + 1);
+            const uid = item.user?.id;
+            const isYou = currentUserId !== null && uid === currentUserId;
+            const showFriend = activeTab === "global" && uid != null && !isYou;
+            return (
+              <LeaderboardRow
+                entry={item}
+                position={position}
+                isYou={isYou}
+                showFriendButton={showFriend}
+                isFriend={uid != null ? isAlreadyFriend(uid) : false}
+                pending={uid != null ? hasPendingRequest(uid) : false}
+                busy={sendMut.isPending}
+                onAddFriend={uid != null ? () => sendMut.mutate(uid) : undefined}
+                onPrimaryPress={
+                  isYou
+                    ? () => {
+                        router.push("/(tabs)/profile");
+                      }
+                    : uid != null
+                      ? () =>
+                          Alert.alert(
+                            item.user?.username ?? "",
+                            "Use Add friend to connect. Your own profile opens from the Profile tab."
+                          )
+                      : undefined
+                }
+                t={t}
+                formatPoints={formatPoints}
+              />
+            );
+          }}
+          ListHeaderComponent={listHeader}
+          ListEmptyComponent={listEmpty}
+          ListFooterComponent={
+            hasMoreList ? (
               <Pressable
                 onPress={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
                 style={[
@@ -435,17 +477,42 @@ export default function LeaderboardScreen() {
                   {t("leaderboard.loadMore")}
                 </Text>
               </Pressable>
-            ) : null}
-          </>
-        )}
-      </ScrollView>
+            ) : null
+          }
+          contentContainerStyle={[
+            styles.content,
+            {
+              flexGrow: 1,
+              paddingBottom: pinnedSelf ? 100 : spacing.xxxl,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={pullRefreshing}
+              onRefresh={onRefresh}
+              tintColor={c.primary}
+            />
+          }
+        />
+        {pinnedSelf ? (
+          <LeaderboardSelfBar
+            entry={pinnedSelf.entry}
+            rank={pinnedSelf.rank}
+            formatPoints={formatPoints}
+            onPress={() => {
+              router.push("/(tabs)/profile");
+            }}
+          />
+        ) : null}
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: spacing.lg, paddingBottom: 48 },
+  content: { paddingBottom: 48 },
   h1: { fontSize: typography.xl, fontWeight: "800", marginTop: spacing.sm },
   subtitle: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
   tabBar: {

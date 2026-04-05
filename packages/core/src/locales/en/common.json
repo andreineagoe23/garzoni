@@ -1,4 +1,7 @@
 {
+  "common": {
+    "dismiss": "Maybe later"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "learn": "Learn",

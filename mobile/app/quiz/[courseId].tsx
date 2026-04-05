@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -7,6 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
+import ConfettiCannon from "react-native-confetti-cannon";
+import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -49,6 +52,7 @@ export default function QuizScreen() {
   const [done, setDone] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [correctAnswerSnapshot, setCorrectAnswerSnapshot] = useState<string | null>(null);
+  const confettiRef = useRef<ConfettiCannon>(null);
 
   const { hearts, maxHearts, decrementHeart } = useHearts({
     enabled: true,
@@ -80,8 +84,15 @@ export default function QuizScreen() {
     if (done) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      setTimeout(() => confettiRef.current?.start(), 300);
     }
   }, [done, queryClient]);
+
+  const resetAttempt = useCallback(() => {
+    setSelected(null);
+    setFeedback("");
+    setCorrect(null);
+  }, []);
 
   const submit = useCallback(async () => {
     if (!quiz || selected == null) {
@@ -104,7 +115,6 @@ export default function QuizScreen() {
       } else {
         void safeNotificationAsync(NotificationFeedbackType.Error);
         decrementHeart();
-        setSelected(null);
       }
     } catch {
       setFeedback("Something went wrong.");
@@ -158,6 +168,13 @@ export default function QuizScreen() {
     return (
       <SafeAreaView style={[styles.safeArea, styles.centered]}>
         <Stack.Screen options={{ title: "Quiz", headerShown: true }} />
+        <ConfettiCannon
+          ref={confettiRef}
+          count={90}
+          origin={{ x: -10, y: 0 }}
+          fadeOut
+          autoStart={false}
+        />
         <MascotImage mascot="owl" size={88} />
         <Text style={styles.resultTitle}>Quiz complete!</Text>
         <Text style={styles.resultSub}>{feedback}</Text>
@@ -198,48 +215,70 @@ export default function QuizScreen() {
         <View style={styles.headerMid}>
           <Text style={styles.headerHint}>Answer correctly to earn rewards</Text>
           <ProgressBar value={selected ? 0.5 : 0.15} height={4} />
+          <View style={styles.dotsRow}>
+            <View style={[styles.dot, styles.dotOn]} />
+            <View style={[styles.dot, selected ? styles.dotOn : styles.dotOff]} />
+            <View style={[styles.dot, correct === false ? styles.dotWarn : styles.dotOff]} />
+          </View>
         </View>
         <HeartBar hearts={hearts} maxHearts={maxHearts} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.question}>{quiz.question}</Text>
-        {(quiz.choices ?? []).map((c, i) => {
-          const active = selected === c.text;
-          return (
-            <Pressable
-              key={`${i}-${c.text}`}
-              style={[styles.choice, active && styles.choiceOn]}
-              onPress={() => setSelected(c.text)}
-            >
-              <Text style={[styles.choiceText, active && styles.choiceTextOn]}>
-                {c.text}
-              </Text>
-            </Pressable>
-          );
-        })}
+        <Animated.View entering={FadeIn.duration(280)}>
+          <Text style={styles.question}>{quiz.question}</Text>
+          {(quiz.choices ?? []).map((c, i) => {
+            const active = selected === c.text;
+            return (
+              <Pressable
+                key={`${i}-${c.text}`}
+                style={[styles.choice, active && styles.choiceOn]}
+                onPress={() => {
+                  void Haptics.selectionAsync();
+                  setSelected(c.text);
+                }}
+              >
+                <Text style={[styles.choiceText, active && styles.choiceTextOn]}>
+                  {c.text}
+                </Text>
+              </Pressable>
+            );
+          })}
 
-        <Button style={{ marginTop: spacing.lg }} onPress={() => void submit()}>
-          Submit answer
-        </Button>
+          <Button style={{ marginTop: spacing.lg }} onPress={() => void submit()}>
+            Submit answer
+          </Button>
 
-        {feedback ? (
-          <View style={styles.feedbackRow}>
-            <MascotImage
-              mascot={correct === true ? "owl" : "bull"}
-              size={56}
-              style={{ marginRight: spacing.md }}
-            />
-            <Text
-              style={[
-                styles.feedbackText,
-                correct !== true && styles.feedbackBad,
-              ]}
-            >
-              {feedback}
+          {correct === false && quiz.correct_answer ? (
+            <Text style={[styles.inlineCorrect, { marginTop: spacing.md }]}>
+              Correct answer: {quiz.correct_answer}
             </Text>
-          </View>
-        ) : null}
+          ) : null}
+
+          {correct === false ? (
+            <Button variant="secondary" style={{ marginTop: spacing.md }} onPress={resetAttempt}>
+              Try again
+            </Button>
+          ) : null}
+
+          {feedback ? (
+            <View style={styles.feedbackRow}>
+              <MascotImage
+                mascot={correct === true ? "owl" : "bull"}
+                size={56}
+                style={{ marginRight: spacing.md }}
+              />
+              <Text
+                style={[
+                  styles.feedbackText,
+                  correct !== true && styles.feedbackBad,
+                ]}
+              >
+                {feedback}
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -331,4 +370,19 @@ const styles = StyleSheet.create({
   reviewQ: { fontSize: typography.sm, fontWeight: "600", color: colors.text },
   reviewA: { fontSize: typography.sm, color: colors.textMuted, marginTop: spacing.sm },
   reviewOk: { fontSize: typography.sm, color: colors.success, marginTop: spacing.xs },
+  dotsRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: spacing.sm,
+    alignItems: "center",
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  dotOn: { backgroundColor: colors.primary },
+  dotOff: { backgroundColor: colors.border },
+  dotWarn: { backgroundColor: colors.error },
+  inlineCorrect: {
+    fontSize: typography.sm,
+    fontWeight: "700",
+    color: colors.success,
+  },
 });

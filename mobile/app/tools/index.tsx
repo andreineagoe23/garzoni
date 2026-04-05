@@ -24,7 +24,7 @@ export default function ToolsHubScreen() {
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
       <Text style={[styles.sub, { color: c.textMuted }]}>
-        Open a tool in the web app (sign in there if prompted).
+        Native tools — no web browser required.
       </Text>
       {MOBILE_TOOLS.map((tool) => {
         const locked = tool.plusOnly && !hasPlus;

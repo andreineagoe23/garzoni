@@ -3,7 +3,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { queryClient } from "@monevo/core";
+import { I18nextProvider } from "react-i18next";
+import { i18n, queryClient } from "@monevo/core";
 import { AuthProvider } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
 import { initI18nMobile } from "../src/bootstrap/i18nMobile";
@@ -44,15 +45,19 @@ function ThemedRoot() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <SafeAreaProvider>
-            <ThemedRoot />
-          </SafeAreaProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <View style={styles.root}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <AuthProvider>
+              <SafeAreaProvider>
+                <ThemedRoot />
+              </SafeAreaProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </View>
+    </I18nextProvider>
   );
 }
 

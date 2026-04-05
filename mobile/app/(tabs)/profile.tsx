@@ -5,9 +5,11 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  Share,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
@@ -51,8 +53,10 @@ import type { ThemeColors } from "../../src/theme/palettes";
 import EntitlementUsageMobile from "../../src/components/profile/EntitlementUsageMobile";
 import ActivityCalendarMobile from "../../src/components/profile/ActivityCalendarMobile";
 import { formatRelativeTime } from "../../src/utils/formatRelativeTime";
+import AnimatedStatValue from "../../src/components/profile/AnimatedStatValue";
 
 const SHOW_HEARTS_KEY = "monevo:show_hearts_ui";
+const PROFILE_TAGLINE_KEY = "monevo:profile_tagline";
 
 type BadgeRow = {
   badge: BadgeCatalogItem;
@@ -70,6 +74,8 @@ function ProfileInner() {
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeFilter, setBadgeFilter] = useState<"all" | "earned" | "locked">("all");
+  const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
+  const [tagline, setTagline] = useState("");
 
   const enabled = Boolean(accessToken);
 
@@ -138,6 +144,46 @@ function ProfileInner() {
     await clearSession();
     router.replace("/login");
   }, [clearSession]);
+
+  const shareProfile = useCallback(async () => {
+    const data = profileQuery.data as Record<string, unknown> | undefined;
+    const name =
+      [data?.first_name, data?.last_name].filter(Boolean).join(" ").trim() ||
+      String(data?.username ?? "Monevo");
+    try {
+      await Share.share({
+        message: `I'm building money skills on Monevo — ${name}`,
+      });
+    } catch {
+      /* user dismissed share sheet */
+    }
+  }, [profileQuery.data]);
+
+  const pickAvatar = useCallback(async () => {
+    try {
+      const ImagePicker = await import("expo-image-picker");
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(
+          "Photos",
+          "Allow photo library access in Settings to pick a profile picture."
+        );
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!res.canceled && res.assets[0]?.uri) setLocalAvatarUri(res.assets[0].uri);
+    } catch {
+      Alert.alert(
+        "Photos",
+        "Image picking needs a dev build that includes expo-image-picker. Run `pnpm exec expo run:ios` (or android) from the mobile app folder."
+      );
+    }
+  }, []);
 
   const onDeleteAccount = useCallback(() => {
     Alert.alert(t("profile.deleteConfirmTitle"), t("profile.deleteConfirmBody"), [
@@ -369,12 +415,26 @@ function ProfileInner() {
       }
     >
       <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
-        <Avatar username={displayName || username} uri={avatarUri} size={64} />
+        <Pressable onPress={() => void pickAvatar()} accessibilityRole="button">
+          <Avatar username={displayName || username} uri={localAvatarUri ?? avatarUri} size={64} />
+        </Pressable>
         <View style={styles.nameCol}>
           <Text style={[styles.displayName, { color: colors.text }]}>
             {displayName || username || t("profile.fallbackUser")}
           </Text>
           <Text style={[styles.email, { color: colors.textMuted }]}>{email}</Text>
+          <TextInput
+            value={tagline}
+            onChangeText={setTagline}
+            placeholder="Short bio (saved on this device)"
+            placeholderTextColor={colors.textFaint}
+            multiline
+            maxLength={160}
+            style={[
+              styles.taglineInput,
+              { color: colors.text, borderColor: colors.border, backgroundColor: colors.surfaceOffset },
+            ]}
+          />
         </View>
       </View>
 
@@ -385,6 +445,9 @@ function ProfileInner() {
           style={styles.actionBtn}
         >
           {t("profile.actions.personalizedPath")}
+        </Button>
+        <Button variant="secondary" onPress={() => void shareProfile()} style={styles.actionBtn}>
+          Share profile
         </Button>
         <Button
           variant="secondary"
@@ -432,14 +495,25 @@ function ProfileInner() {
         <View style={styles.statsRowPair}>
           <StatBox
             label={t("profile.stats.balance")}
-            value={earnedMoney.toLocaleString(i18n.language)}
             colors={colors}
+            animated={earnedMoney}
+            formatAnimated={(n) => Math.round(n).toLocaleString(i18n.language)}
           />
-          <StatBox label={t("profile.stats.points")} value={String(points)} colors={colors} />
+          <StatBox
+            label={t("profile.stats.points")}
+            colors={colors}
+            animated={points}
+            formatAnimated={(n) => String(Math.round(n))}
+          />
         </View>
         <View style={styles.statsRowPair}>
           <StatBox label={t("profile.stats.streak")} value={`${streak} 🔥`} colors={colors} />
-          <StatBox label={t("profile.stats.lessonsShort")} value={String(lessonsDone)} colors={colors} />
+          <StatBox
+            label={t("profile.stats.lessonsShort")}
+            colors={colors}
+            animated={lessonsDone}
+            formatAnimated={(n) => String(Math.round(n))}
+          />
         </View>
       </View>
 
@@ -706,16 +780,29 @@ function StatBox({
   label,
   value,
   colors,
+  animated,
+  formatAnimated,
 }: {
   label: string;
-  value: string;
+  value?: string;
   colors: ThemeColors;
+  animated?: number;
+  formatAnimated?: (n: number) => string;
 }) {
+  const useAnimated = animated != null && Number.isFinite(animated);
   return (
     <View style={styles.statBox}>
-      <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1}>
-        {value}
-      </Text>
+      {useAnimated ? (
+        <AnimatedStatValue
+          value={animated}
+          formatter={(n) => formatAnimated?.(n) ?? String(Math.round(n))}
+          style={[styles.statValue, { color: colors.text }]}
+        />
+      ) : (
+        <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1}>
+          {value ?? ""}
+        </Text>
+      )}
       <Text style={[styles.statLabel, { color: colors.textMuted }]} numberOfLines={2}>
         {label}
       </Text>
@@ -824,6 +911,17 @@ const styles = StyleSheet.create({
   email: {
     fontSize: typography.sm,
     marginTop: 2,
+  },
+  taglineInput: {
+    marginTop: spacing.sm,
+    minHeight: 40,
+    maxHeight: 88,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    fontSize: typography.sm,
+    textAlignVertical: "top",
   },
   actionRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
   actionBtn: { flex: 1, minWidth: 140 },

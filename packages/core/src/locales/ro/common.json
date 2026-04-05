@@ -1,4 +1,7 @@
 {
+  "common": {
+    "dismiss": "Poate mai târziu"
+  },
   "nav": {
     "dashboard": "Acasă",
     "learn": "Învață",
