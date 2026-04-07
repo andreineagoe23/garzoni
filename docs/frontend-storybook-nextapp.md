@@ -9,7 +9,7 @@ The main frontend (CRA) has **Storybook story files** for some UI components und
 
 ## next-app
 
-The directory `frontend/next-app/` is a **separate Next.js 14 app** (e.g. “monevo-marketing” or a landing/marketing site). It is **not** the main CRA React app that talks to the Django backend.
+The directory `frontend/next-app/` is a **separate Next.js 14 app** (e.g. “garzoni-marketing” or a landing/marketing site). It is **not** the main CRA React app that talks to the Django backend.
 
 - **Purpose:** Typically used for a dedicated marketing or static site (e.g. Next.js SSR/SSG).
 - **Deployment:** Can be deployed separately (e.g. Vercel) with its own build and env.

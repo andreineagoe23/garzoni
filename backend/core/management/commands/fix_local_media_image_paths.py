@@ -2,7 +2,7 @@
 Point ImageFields at files that exist under MEDIA_ROOT (seed layout).
 
 Use when the DB has random upload names (e.g. ew8lwersp2vlwc3x8yee.png) or bogus
-monevo/backend/media/... prefixes so /media/path_images/... 404s locally.
+legacy backend/media prefixes so /media/path_images/... 404s locally.
 
 Does not upload to Cloudinary. For Cloudinary IDs + storage, use migrate_cloudinary_images.
 
@@ -146,7 +146,7 @@ def _reward_image_for_name(name: str) -> str | None:
 
 
 def _lesson_fallback_image() -> str | None:
-    rel = "lesson_images/monevo.png"
+    rel = "path_images/basicfinance.png"
     return rel if _media_subpath_exists(rel) else None
 
 

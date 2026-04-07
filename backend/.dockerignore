@@ -16,7 +16,16 @@ media/**
 !media/path_images/
 !media/path_images/*.png
 !media/mascots/
-!media/mascots/monevo-*.png
+!media/mascots/*.png
+!media/logo/
+!media/logo/*.svg
+!media/logo/*.png
+!media/welcome/
+!media/welcome/*.mp4
+!media/tools/
+!media/tools/*.png
+!media/rewards/
+!media/rewards/*.png
 staticfiles/
 node_modules/
 .git/
@@ -89,7 +98,7 @@ cookies.txt
 
 # Credentials
 *credentials.json
-monevocredentials.json
+garzonicredentials.json
 
 # OS
 .DS_Store

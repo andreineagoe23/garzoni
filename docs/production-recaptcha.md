@@ -53,13 +53,13 @@ If registration still fails in production after fixing reCAPTCHA, check the foll
 ### Frontend (e.g. Vercel)
 
 1. **`REACT_APP_RECAPTCHA_SITE_KEY`** – Set to your reCAPTCHA v3 **site** key. A **new build** must run after adding or changing it (redeploy).
-2. **`REACT_APP_BACKEND_URL`** – Must point to your real API (e.g. `https://your-api.railway.app/api` or `https://api.yourdomain.com/api`). If unset, the app uses the same host as the frontend (e.g. `https://monevo.tech/api`), which often 404s when the backend is on another host.
+2. **`REACT_APP_BACKEND_URL`** – Must point to your real API (e.g. `https://your-api.railway.app/api` or `https://api.yourdomain.com/api`). If unset, the app uses the same host as the frontend (e.g. `https://garzoni.app/api`), which often 404s when the backend is on another host.
 
 ### Backend
 
 3. **`RECAPTCHA_PRIVATE_KEY`** – Set to the **secret** key of the same reCAPTCHA v3 key pair.
-4. **CORS** – Backend must allow your frontend origin (e.g. `https://monevo.tech`) in `CORS_ALLOWED_ORIGINS` (or equivalent). Otherwise the browser blocks the register request.
-5. **Cookies (if frontend and backend are on different domains/subdomains)** – After a successful register, the backend sets a refresh cookie. If the frontend is `https://monevo.tech` and the backend is `https://api.monevo.tech`, set **`REFRESH_COOKIE_DOMAIN=.monevo.tech`** and use **`SameSite=Lax`** (or `None` with **`Secure=true`** if you need cross-site). Otherwise the cookie may not be stored and the user may appear logged out after register.
+4. **CORS** – Backend must allow your frontend origin (e.g. `https://garzoni.app`) in `CORS_ALLOWED_ORIGINS` (or equivalent). Otherwise the browser blocks the register request.
+5. **Cookies (if frontend and backend are on different domains/subdomains)** – After a successful register, the backend sets a refresh cookie. If the frontend is `https://garzoni.app` and the backend is `https://api.garzoni.app`, set **`REFRESH_COOKIE_DOMAIN=.garzoni.app`** and use **`SameSite=Lax`** (or `None` with **`Secure=true`** if you need cross-site). Otherwise the cookie may not be stored and the user may appear logged out after register.
 
 ### What you’ll see when it’s fixed
 

@@ -24,17 +24,22 @@ const SKIP_BASENAMES = new Set(["burger_menu.svg", "burgermenu.svg"]);
 
 /** Basename → public_id for shared `@garzoni/core` `Images` (see packages/core/src/images.ts). */
 const MARKETING_PUBLIC_IDS = {
-  "login-bg.jpg": "monevo/login-bg",
-  "register-bg.jpg": "monevo/register-bg",
-  "basicfinance.png": "monevo/basicfinance",
-  "crypto.png": "monevo/crypto",
-  "forex.png": "monevo/forex",
-  "mindset.png": "monevo/mindset",
-  "personalfinance.png": "monevo/personalfinance",
-  "realestate.png": "monevo/realestate",
-  "mobile-1.png": "monevo/mobile-1",
-  "mobile-2.png": "monevo/mobile-2",
-  "mobile-3.png": "monevo/mobile-3",
+  "login-bg.jpg": "garzoni/login-bg",
+  "register-bg.jpg": "garzoni/register-bg",
+  "basicfinance.png": "garzoni/basicfinance",
+  "crypto.png": "garzoni/crypto",
+  "forex.png": "garzoni/forex",
+  "mindset.png": "garzoni/mindset",
+  "personalfinance.png": "garzoni/personalfinance",
+  "realestate.png": "garzoni/realestate",
+  "mobile-1.png": "garzoni/mobile-1",
+  "mobile-2.png": "garzoni/mobile-2",
+  "mobile-3.png": "garzoni/mobile-3",
+  "garzoni-logo.svg": "garzoni/logo/garzoni-logo",
+  "garzoni-black.svg": "garzoni/logo/garzoni-black",
+  "garzoni-logo-rectangle-no-bg.png": "garzoni/logo/garzoni-logo-rectangle-no-bg",
+  "garzoni-logo-square-no-bg.png": "garzoni/logo/garzoni-logo-square-no-bg",
+  "garzoni-logo-white-bg.png": "garzoni/logo/garzoni-logo-white-bg",
 };
 
 function walkFiles(dir, out = []) {
@@ -54,7 +59,7 @@ function walkFiles(dir, out = []) {
 
 function toCloudinaryFolder(filePath) {
   const rel = path.relative(ROOT, path.dirname(filePath)).replace(/\\/g, "/");
-  return `monevo/${rel}`;
+  return `garzoni/${rel}`;
 }
 
 async function main() {

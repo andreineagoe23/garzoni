@@ -51,6 +51,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
     : t("rewards.shop.empty");
 
   const cardRows = useMemo(() => items, [items]);
+  const fallbackRewardImage = "/media/logo/garzoni-logo-square-no-bg.png";
 
   const handleAction = async (rewardId: number) => {
     try {
@@ -127,7 +128,11 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                 <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color)]">
                   {item.image && !brokenImages[item.id] ? (
                     <img
-                      src={item.image}
+                      src={
+                        item.image.includes("/media/rewards/")
+                          ? fallbackRewardImage
+                          : item.image
+                      }
                       alt={item.name}
                       className="h-40 w-full object-cover"
                       loading="lazy"

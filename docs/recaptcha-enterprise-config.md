@@ -1,6 +1,6 @@
 # reCAPTCHA Enterprise config (single key)
 
-We use **reCAPTCHA Enterprise** with the key from the monevo.educational@gmail.com console. There is one **site key** (used on the frontend and in the backend assessment). Backend verification uses the **Recaptcha Enterprise API** (createAssessment) with a **Google Cloud project** and **API key**.
+We use **reCAPTCHA Enterprise** with the key from the Garzoni Google workspace console. There is one **site key** (used on the frontend and in the backend assessment). Backend verification uses the **Recaptcha Enterprise API** (createAssessment) with a **Google Cloud project** and **API key**.
 
 ## 1. reCAPTCHA key (console)
 
@@ -8,8 +8,8 @@ We use **reCAPTCHA Enterprise** with the key from the monevo.educational@gmail.c
 - **Key ID (site key)**: `6LexDmIsAAAAACphH4dd8HSWtYiNjdsMKevIrKkp`
 - **Type**: Website • Score
 - **Domain list**: Add every domain where the app runs, e.g.:
-  - `www.monevo.tech`
-  - `monevo.tech` (if you use the root domain)
+  - `www.garzoni.app`
+  - `garzoni.app` (if you use the root domain)
   - `localhost`
   - `127.0.0.1`
 

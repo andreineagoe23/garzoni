@@ -1,6 +1,6 @@
-# Monevo: Gamified Financial Learning Platform
+# Garzoni: Gamified Financial Learning Platform
 
-Monevo delivers interactive personal finance education with gamified progression and AI tutoring. Users complete learning paths, earn badges, compete on leaderboards, and explore finance tools across budgeting, investing, and trading.
+Garzoni delivers interactive personal finance education with gamified progression and AI tutoring. Users complete learning paths, earn badges, compete on leaderboards, and explore finance tools across budgeting, investing, and trading.
 
 ## What you can do in the app
 
@@ -86,8 +86,8 @@ Monevo delivers interactive personal finance education with gamified progression
 
 ### Clone
 
-git clone https://github.com/andreineagoe23/monevo.git
-cd monevo
+git clone https://github.com/andreineagoe23/garzoni.git
+cd garzoni
 
 ### Docker (recommended)
 
@@ -129,16 +129,16 @@ npm install
 npm start
 
 - Set `VITE_BACKEND_URL` (or legacy `REACT_APP_BACKEND_URL`) to your API base if it is not same-origin (must end with `/api` or be the site origin without `/api`; it is normalized).
-- Build for production with `pnpm --filter @monevo/web build` (or `npm run build` from `frontend/`).
+- Build for production with `pnpm --filter @garzoni/web build` (or `npm run build` from `frontend/`).
 
 ## Deployment Notes
 
 - Docker deployment guide: `docs/deployment-docker.md`
 - Railway production runbook: `docs/railway-production-runbook.md` (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
-- **Mobile (Expo):** For Google OAuth native flows, add your app’s authorised redirect URI in Google Cloud (e.g. `com.monevo.app:/oauth2redirect/google` or the value from `app.json` / `app.config` `scheme`). Keep web callback URLs (`https://www…/api/auth/google/callback`) as well.
+- **Mobile (Expo):** For Google OAuth native flows, add your app’s authorised redirect URI in Google Cloud (e.g. `com.garzoni.app:/oauth2redirect/google` or the value from `app.json` / `app.config` `scheme`). Keep web callback URLs (`https://www…/api/auth/google/callback`) as well.
 
 - Frontend on **Vercel**: `frontend/vercel.json` (and root `vercel.json` if you deploy from the monorepo root) includes a **CDN rewrite** as the first rule: `/api/:path*` → your Django host (see the `destination` URL). Order matters: API proxy first, then the SPA fallback that excludes `/api`. Change the Railway URL in both files when you use a different backend. Omit `VITE_BACKEND_URL` / `REACT_APP_BACKEND_URL` in Vercel if you want the browser to call same-origin `/api` (proxied). For **Google OAuth (redirect flow)**, add every callback URL you use to **Authorised redirect URIs** in Google Cloud — e.g. both `https://www.<your-domain>/api/auth/google/callback` (via the proxy) and `https://<your-railway-host>/api/auth/google/callback` if Django ever issues that host, so you avoid `redirect_uri_mismatch`.
-- Frontend: Vercel-friendly static build (`pnpm --filter @monevo/web build`).
+- Frontend: Vercel-friendly static build (`pnpm --filter @garzoni/web build`).
 - Backend: WSGI-compatible (e.g., PythonAnywhere). Configure ALLOWED_HOSTS, CORS/CSRF origins, SECRET_KEY, DB credentials, Stripe keys, reCAPTCHA, and email settings via environment variables.
 - Static files served by WhiteNoise; media served from MEDIA_ROOT or external storage in production.
 
