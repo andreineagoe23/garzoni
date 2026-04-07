@@ -46,7 +46,7 @@ We maintain a Cookie Policy that describes what we use (session vs persistent, c
 
 - **Banner**: Clear message that we use cookies and need consent for non-essential ones; necessary cookies are used without consent. “Accept all”, “Reject non-essential”, “Cookie settings” with equal prominence for accept and reject.
 - **Settings modal**: “Necessary cookies are always on (no consent required).” Toggles for Analytics and Marketing (unchecked by default); “Save” applies the choice.
-- **Storage**: Choice stored in `localStorage` under `monevo_cookie_consent`. We only load Google Analytics when the user has consented to analytics.
+- **Storage**: Choice stored in `localStorage` under `garzoni_cookie_consent`. We only load Google Analytics when the user has consented to analytics.
 - **Withdraw**: Footer “Cookie settings” and Cookie Policy link open the same preferences modal.
 - **Cookie Policy**: Sections on what cookies are, session vs persistent, categories, consent requirements (informed/express/unambiguous + essential exception), managing consent, third parties, and a short declaration. No third-party CMP script.
 

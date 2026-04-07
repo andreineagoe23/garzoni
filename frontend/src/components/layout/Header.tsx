@@ -6,6 +6,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { GlassButton, GlassContainer } from "components/ui";
 import LanguageSelector from "components/common/LanguageSelector";
+import { getMediaBaseUrl } from "services/backendUrl";
 const VISIBLE_PATHS = new Set([
   "/",
   "/welcome",
@@ -24,6 +25,10 @@ function Header() {
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
   const { isAuthenticated, isInitialized } = useAuth();
+  const mediaBase = getMediaBaseUrl();
+  const garzoniLogo = darkMode
+    ? `${mediaBase}/media/logo/garzoni-logo-white-rectangular.png`
+    : `${mediaBase}/media/logo/garzoni-logo-black-rectangular.png`;
 
   if (!VISIBLE_PATHS.has(location.pathname)) {
     return null;
@@ -57,9 +62,16 @@ function Header() {
         <div className="flex items-center gap-3">
           <Link
             to="/"
-            className="text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:opacity-90 hover:no-underline sm:text-lg"
+            aria-label="Garzoni home"
+            className="inline-flex items-center no-underline transition hover:opacity-90 hover:no-underline"
           >
-            garzoni
+            <img
+              src={garzoniLogo}
+              alt="Garzoni"
+              className="relative top-1 h-16 w-auto object-contain sm:h-20 md:h-24 lg:h-28 xl:h-32"
+              loading="eager"
+              decoding="async"
+            />
           </Link>
 
           {isInitialized && isAuthenticated && (

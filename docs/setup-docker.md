@@ -11,7 +11,7 @@ This repo ships with:
 
 ### Quick start (dev, recommended for local)
 
-- **From the repo root** (`monevo/`), ensure Postgres credentials are shared between the db container and the backend. Either create a `.env` in the **repo root** (not only `backend/.env`) with `POSTGRES_PASSWORD=yourpassword` so both the `db` service and the backend’s `DATABASE_URL` (injected by Compose) use the same value, or use the defaults (user/password `monevo`). **If you see "password authentication failed for user monevo"**: the backend is using a different password than the one Postgres was initialized with (stored in the volume). Fix: use the same `POSTGRES_PASSWORD` everywhere and reset the DB volume so Postgres re-initializes with that password:
+- **From the repo root** (`garzoni/`), ensure Postgres credentials are shared between the db container and the backend. Either create a `.env` in the **repo root** (not only `backend/.env`) with `POSTGRES_PASSWORD=yourpassword` so both the `db` service and the backend’s `DATABASE_URL` (injected by Compose) use the same value, or use the defaults (user/password `garzoni`). **If you see "password authentication failed for user garzoni"**: the backend is using a different password than the one Postgres was initialized with (stored in the volume). Fix: use the same `POSTGRES_PASSWORD` everywhere and reset the DB volume so Postgres re-initializes with that password:
 
 ```bash
 docker compose down -v
@@ -62,9 +62,9 @@ See `backend/backups/README.md` for details and the SQL restore option.
 3. **Restore** (after the db container is up):
    ```bash
    # If you have a .sql file:
-   docker compose -f docker-compose.dev.yml exec -T db psql -U monevo -d monevo < backup.sql
+   docker compose -f docker-compose.dev.yml exec -T db psql -U garzoni -d garzoni < backup.sql
    # If you have a custom-format dump:
-   docker compose -f docker-compose.dev.yml exec -T db pg_restore -U monevo -d monevo --no-owner --no-acl < backup.dump
+   docker compose -f docker-compose.dev.yml exec -T db pg_restore -U garzoni -d garzoni --no-owner --no-acl < backup.dump
    ```
 4. Restart the backend: `docker compose -f docker-compose.dev.yml restart backend`
 

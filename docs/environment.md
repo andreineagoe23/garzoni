@@ -34,11 +34,11 @@ Set these on the **backend** service (the names below are what Django reads).
 
 **Course / badge / reward images (paths, Cloudinary, local Docker)**
 
-1. **Local filesystem (Docker default):** Files must exist under `backend/media/` with the same relative paths the DB expects (e.g. `path_images/basicfinance.png`). The API normalizes bogus `monevo/backend/media/` prefixes in URLs, but if the DB still points at random upload names (e.g. `ew8l….png`), images 404. Run **`python manage.py fix_local_media_image_paths`** inside the backend container (use `--dry-run` first) to remap Path/Course/Badge/Reward rows to seed filenames that exist on disk.
+1. **Local filesystem (Docker default):** Files must exist under `backend/media/` with the same relative paths the DB expects (e.g. `path_images/basicfinance.png`). The API normalizes bogus legacy `*/backend/media/` prefixes in URLs, but if the DB still points at random upload names (e.g. `ew8l….png`), images 404. Run **`python manage.py fix_local_media_image_paths`** inside the backend container (use `--dry-run` first) to remap Path/Course/Badge/Reward rows to seed filenames that exist on disk.
 2. **Serve from Cloudinary in production:** Set `DJANGO_MEDIA_STORAGE_BACKEND` to your Cloudinary storage backend (see Django `django-cloudinary-storage`), set `CLOUDINARY_URL`, then upload and align DB:
    - From repo root: `node scripts/upload-cloudinary-images.js` (needs `CLOUDINARY_*` or `CLOUDINARY_URL`).
    - Then in `backend/`: `python manage.py migrate_cloudinary_images` (uses `scripts/cloudinary-upload-results.json`; see the command module for flags).
-3. **Marketing-only assets** (login backgrounds, topic fallbacks): configured in `packages/core/src/images.ts` via `VITE_CLOUDINARY_CLOUD_NAME` / `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and the `monevo/…` public IDs from the upload script.
+3. **Marketing-only assets** (login backgrounds, topic fallbacks): configured in `packages/core/src/images.ts` via `VITE_CLOUDINARY_CLOUD_NAME` / `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and the `garzoni/…` public IDs from the upload script.
 
 **Google (web redirect + ID tokens)**
 
@@ -49,7 +49,7 @@ Set these on the **backend** service (the names below are what Django reads).
 | `GOOGLE_OAUTH_IOS_CLIENT_ID` (native iOS Sign-In `aud`) |
 | `GOOGLE_OAUTH_ANDROID_CLIENT_ID` (native Android, if used) |
 | `GOOGLE_OAUTH_CLIENT_IDS_CSV` (optional extra client IDs, comma-separated) |
-| `GOOGLE_OAUTH_REDIRECT_BASE` (optional; public origin for OAuth callback only, e.g. `https://www.monevo.tech` — must match **Authorized redirect URIs** in Google Cloud) |
+| `GOOGLE_OAUTH_REDIRECT_BASE` (optional; public origin for OAuth callback only, e.g. `https://www.garzoni.app` — must match **Authorized redirect URIs** in Google Cloud) |
 | `GOOGLE_OAUTH_REDIRECT_FROM_REQUEST` (`1` / `true` — use request `Host` for redirect_uri; defaults **on when `DEBUG`** so LAN hits like `http://192.168.x.x:8000` match Google; set `0` to force `FRONTEND_URL` only) |
 
 **Sign in with Apple (native)**
@@ -114,7 +114,7 @@ The Vite config exposes **`VITE_*`** and **`REACT_APP_*`** to the browser bundle
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_BACKEND_URL` or `REACT_APP_BACKEND_URL` | API base; normalized to `…/api` in `@monevo/core` |
+| `VITE_BACKEND_URL` or `REACT_APP_BACKEND_URL` | API base; normalized to `…/api` in `@garzoni/core` |
 | `VITE_CLOUDINARY_CLOUD_NAME` or `REACT_APP_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name for `Images.*` (login/register backgrounds) |
 | `VITE_GOOGLE_OAUTH_CLIENT_ID` or `REACT_APP_GOOGLE_OAUTH_CLIENT_ID` | Web Google One Tap / button (same value as `GOOGLE_OAUTH_CLIENT_ID` on Railway) |
 | `VITE_RECAPTCHA_SITE_KEY` or `REACT_APP_RECAPTCHA_SITE_KEY` | Must match backend `RECAPTCHA_SITE_KEY` |
@@ -158,15 +158,15 @@ CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix ab
 
 | Symptom | Add / fix |
 |---------|-----------|
-| Web login backgrounds empty | `VITE_CLOUDINARY_CLOUD_NAME` on **Vercel** + images uploaded to Cloudinary under `monevo/…` |
-| `Not Found: /media/.../path_images` or doubled `monevo/backend/media` in URL | Backend serializers normalize paths; ensure files exist under `backend/media/path_images/` (Docker seed) or migrate to Cloudinary + `migrate_cloudinary_images` |
+| Web login backgrounds empty | `VITE_CLOUDINARY_CLOUD_NAME` on **Vercel** + images uploaded to Cloudinary under `garzoni/…` |
+| `Not Found: /media/.../path_images` or doubled legacy `*/backend/media` in URL | Backend serializers normalize paths; ensure files exist under `backend/media/path_images/` (Docker seed) or migrate to Cloudinary + `migrate_cloudinary_images` |
 | Mobile Google “not configured” / invalid token | `GOOGLE_OAUTH_IOS_CLIENT_ID` (and/or Android / CSV) on **Railway** |
 | Mobile Google “missing URL scheme com.googleusercontent.apps.…” | Set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` (or explicit `EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME`), then **rebuild the iOS app** (scheme is baked into `Info.plist` at prebuild). |
 | Vercel `REACT_APP_BACKEND_URL` | Use **`https://`** for production API origin (match Railway’s public URL). |
 | Mobile Apple fails after token | `APPLE_SIGNIN_BUNDLE_ID` or `APPLE_SIGNIN_AUDIENCES_CSV` on **Railway** |
 | Frontend Sentry never reports | `VITE_SENTRY_DSN` on **Vercel** |
 | CORS errors from production web | `CORS_ALLOWED_ORIGINS_CSV` on **Railway** includes your exact site origin |
-| Google **redirect_uri_mismatch** (web) | In Google Cloud → Credentials → Web client, add **Authorized redirect URI** exactly `{FRONTEND_URL}/api/auth/google/callback` (same scheme/host as users’ browser, e.g. `https://www.monevo.tech/api/auth/google/callback`). Ensure Railway `FRONTEND_URL` matches that origin, or set `GOOGLE_OAUTH_REDIRECT_BASE` to that origin. Backend logs `Google OAuth redirect_uri=…` on each sign-in attempt. |
+| Google **redirect_uri_mismatch** (web) | In Google Cloud → Credentials → Web client, add **Authorized redirect URI** exactly `{FRONTEND_URL}/api/auth/google/callback` (same scheme/host as users’ browser, e.g. `https://www.garzoni.app/api/auth/google/callback`). Ensure Railway `FRONTEND_URL` matches that origin, or set `GOOGLE_OAUTH_REDIRECT_BASE` to that origin. Backend logs `Google OAuth redirect_uri=…` on each sign-in attempt. |
 | **recaptcha_missing** (local dev) | Remove empty recaptcha keys from `frontend/.env.development.local`, or set `RECAPTCHA_DISABLED=1` in `backend/.env` (never in production). |
 
 ---

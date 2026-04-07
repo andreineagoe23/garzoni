@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY ${BUILD_SRC}/ /app/
 
 # Verify essential media seed assets are present (small PNG assets only)
-RUN test -f /app/media/path_images/basicfinance.png && test -f /app/media/mascots/monevo-bear.png || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
+RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \

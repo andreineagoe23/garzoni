@@ -6,7 +6,7 @@ A **separate Railway service** that only runs backend tests (and queues Celery t
 
 ## Add the service in Railway
 
-1. **New service** from the same repo (e.g. “Backend Tests” or “monevo-backend-tests”).
+1. **New service** from the same repo (e.g. “Backend Tests” or “garzoni-backend-tests”).
 2. **Root directory:** `backend`
 3. **Build:** same as backend
    - Builder: Dockerfile

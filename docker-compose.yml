@@ -20,7 +20,7 @@ services:
       DJANGO_ALLOW_LAN_HOSTS: "true"
       ENABLE_DJANGO_EXTENSIONS: "${ENABLE_DJANGO_EXTENSIONS:-false}"
       # Use Postgres in Docker so the DB persists in backend_db_data (avoids re-running all migrations on every rebuild)
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-monevo}:${POSTGRES_PASSWORD:-monevo}@db:5432/${POSTGRES_DB:-monevo}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-garzoni}:${POSTGRES_PASSWORD:-garzoni}@db:5432/${POSTGRES_DB:-garzoni}"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
     volumes:
@@ -38,9 +38,9 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-monevo}
-      POSTGRES_USER: ${POSTGRES_USER:-monevo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monevo}
+      POSTGRES_DB: ${POSTGRES_DB:-garzoni}
+      POSTGRES_USER: ${POSTGRES_USER:-garzoni}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-garzoni}
     volumes:
       - backend_db_data:/var/lib/postgresql/data
     # Ports are set per-environment (see docker-compose.prod.yml for exposed Postgres port)

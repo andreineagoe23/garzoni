@@ -52,14 +52,14 @@ mkdir -p /app/staticfiles /app/media
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
 if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
-  echo "[entrypoint] Seeding /app/media from image (monevo-volume mount)..." >&2
+  echo "[entrypoint] Seeding /app/media from image (media volume mount)..." >&2
   if cp -rn /app/media_seed/. /app/media/; then
     echo "[entrypoint] Seed copy OK" >&2
   else
     echo "[entrypoint] WARN: seed copy had errors (check volume permissions; try RAILWAY_RUN_UID=0)" >&2
   fi
   # Verify so we see in logs whether files are present
-  if [ -f /app/media/path_images/basicfinance.png ] && [ -f /app/media/mascots/monevo-bear.png ]; then
+  if [ -f /app/media/path_images/basicfinance.png ] && ls /app/media/mascots/*.png >/dev/null 2>&1; then
     echo "[entrypoint] /app/media verified: path_images and mascots present" >&2
   else
     echo "[entrypoint] WARN: /app/media missing expected files after seed" >&2
@@ -70,11 +70,11 @@ if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
   # Always refresh shipped static media assets that should match the app release.
   # This keeps mascots/path images in sync even when volume already has older files.
   mkdir -p /app/media/mascots /app/media/path_images
-  cp -f /app/media_seed/mascots/monevo-*.png /app/media/mascots/ 2>/dev/null || true
+  cp -f /app/media_seed/mascots/*.png /app/media/mascots/ 2>/dev/null || true
   cp -f /app/media_seed/path_images/*.png /app/media/path_images/ 2>/dev/null || true
 else
   # Fallback: mascots only if media_seed missing (old image)
-  if [ -d /app/media_mascots_template ] && [ ! -f /app/media/mascots/monevo-bear.png ]; then
+  if [ -d /app/media_mascots_template ] && ! ls /app/media/mascots/*.png >/dev/null 2>&1; then
     mkdir -p /app/media/mascots
     cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
     echo "[entrypoint] Populated /app/media/mascots from image" >&2
