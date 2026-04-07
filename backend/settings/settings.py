@@ -69,6 +69,16 @@ else:
     if _allow_all_hosts and "*" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS = [*ALLOWED_HOSTS, "*"]
 
+# Railway injects the service's public hostname; allow it even when ALLOWED_HOSTS_CSV is stale
+# (e.g. after renaming the deployment) so requests to *.up.railway.app are not rejected.
+_railway_public_domain = (os.getenv("RAILWAY_PUBLIC_DOMAIN") or "").strip()
+if (
+    _railway_public_domain
+    and "*" not in ALLOWED_HOSTS
+    and _railway_public_domain not in ALLOWED_HOSTS
+):
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, _railway_public_domain]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
