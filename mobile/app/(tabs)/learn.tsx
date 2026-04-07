@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   LayoutAnimation,
   Pressable,
   RefreshControl,
@@ -20,13 +21,16 @@ import {
   fetchProfile,
   fetchProgressSummary,
   fetchQuestionnaireProgress,
+  getMediaBaseUrl,
+  Images,
   pathService,
   queryKeys,
   staleTimes,
   type Entitlements,
   type UserProfile,
 } from "@monevo/core";
-import { Card, ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
+import { ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
+import GlassCard from "../../src/components/ui/GlassCard";
 import GlassButton from "../../src/components/ui/GlassButton";
 import CourseCard from "../../src/components/learn/CourseCard";
 import ContinueLearningCard from "../../src/components/learn/ContinueLearningCard";
@@ -35,7 +39,7 @@ import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { href } from "../../src/navigation/href";
 import { unwrapApiList } from "../../src/lib/unwrapApiList";
-import { applyPathSortAndFilter } from "../../src/lib/pathProgress";
+import { applyPathSortAndFilter, pathProgressPercent } from "../../src/lib/pathProgress";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
@@ -56,6 +60,7 @@ type CourseRow = {
   completed_lessons?: number;
   total_lessons?: number;
   lesson_count?: number;
+  image?: string;
 };
 
 type PathRow = {
@@ -63,11 +68,27 @@ type PathRow = {
   title?: string;
   name?: string;
   description?: string;
+  image?: string;
   /** From API: path requires a higher plan than the user has */
   is_locked?: boolean;
   /** Included on GET /paths/ — use when /courses/?path= is slow or fails */
   courses?: CourseRow[];
 };
+
+function coverForPath(p: PathRow): string {
+  if (p.image) {
+    return p.image.startsWith("http")
+      ? p.image
+      : `${getMediaBaseUrl()}/media/${String(p.image).replace(/^\/+/, "")}`;
+  }
+  const title = (p.title ?? p.name ?? "").toLowerCase();
+  if (title.includes("crypto")) return Images.crypto;
+  if (title.includes("forex") || title.includes("fx")) return Images.forex;
+  if (title.includes("mindset")) return Images.mindset;
+  if (title.includes("real estate") || title.includes("property")) return Images.realEstate;
+  if (title.includes("personal")) return Images.personalFinance;
+  return Images.basicFinance;
+}
 
 function courseTotalLessons(c: CourseRow): number {
   return c.total_lessons ?? c.lesson_count ?? 0;
@@ -124,6 +145,17 @@ function createLearnStyles(c: ThemeColors) {
       color: c.primary,
       fontWeight: "600",
       marginTop: spacing.md,
+    },
+    pathCover: {
+      width: "100%",
+      height: 96,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+    },
+    progressMeta: {
+      fontSize: typography.xs,
+      fontWeight: "600",
+      marginTop: spacing.sm,
     },
     coursesList: {
       marginTop: spacing.sm,
@@ -645,52 +677,61 @@ function LearnInner() {
           item.id != null && Number(item.id) === Number(expandedPathId);
         const title = item.title ?? item.name ?? `Path ${item.id}`;
         const desc = item.description ?? "";
+        const coverUri = coverForPath(item);
+        const pct = pathProgressPercent(item);
         return (
-          <View style={{ marginBottom: spacing.md }}>
+          <GlassCard
+            padding="none"
+            style={{ marginBottom: spacing.lg, overflow: "hidden" }}
+          >
             <Pressable
-              onPress={() => item.id != null && togglePath(Number(item.id))}
+              onPress={() => {
+                if (item.is_locked) {
+                  router.push("/subscriptions");
+                  return;
+                }
+                item.id != null && togglePath(Number(item.id));
+              }}
             >
-              <Card>
-                <Text style={styles.pathTitle}>{title}</Text>
+              <Image source={{ uri: coverUri }} style={styles.pathCover} resizeMode="cover" />
+              <View style={{ padding: spacing.md }}>
+                <Text style={[styles.pathTitle, { color: c.text }]} numberOfLines={2}>
+                  {title}
+                </Text>
                 {desc ? (
-                  <Text style={styles.pathDesc} numberOfLines={2}>
+                  <Text style={[styles.pathDesc, { color: c.textMuted }]} numberOfLines={2}>
                     {desc}
                   </Text>
                 ) : null}
-                <Text style={styles.expandHint}>
-                  {isExpanded ? t("allTopics.hideCourses") : t("allTopics.viewCourses")}
+                <Text style={[styles.progressMeta, { color: c.primary }]}>
+                  {t("allTopics.pathProgress")}: {pct}%
                 </Text>
-              </Card>
+                {item.is_locked ? (
+                  <Text style={[styles.pathDesc, { color: c.accent, marginTop: 6, fontWeight: "700" }]}>
+                    {t("allTopics.upgradeTo", { plan: "Plus" })}
+                  </Text>
+                ) : (
+                  <Text style={styles.expandHint}>
+                    {isExpanded ? t("allTopics.hideCourses") : t("allTopics.viewCourses")}
+                  </Text>
+                )}
+              </View>
             </Pressable>
 
-            {isExpanded ? (
-              <View style={styles.coursesList}>
-                {expandedLocked ? (
-                  <View style={{ marginTop: spacing.sm }}>
-                    <Text style={styles.pathDesc}>
-                      {t("learn.lockedPathNeedsPlan")}
-                    </Text>
-                    <Pressable onPress={() => router.push("/subscriptions")}>
-                      <Text style={[styles.expandHint, { marginTop: spacing.sm }]}>
-                        {t("learn.viewPlans")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : coursesQuery.isPending && expandedCourses.length === 0 ? (
+            {isExpanded && !item.is_locked ? (
+              <View style={[styles.coursesList, { paddingHorizontal: spacing.md, paddingBottom: spacing.md }]}>
+                {coursesQuery.isPending && expandedCourses.length === 0 ? (
                   <Skeleton width="100%" height={70} />
                 ) : coursesQuery.isError && expandedCourses.length === 0 ? (
                   <Text style={styles.error}>Failed to load courses.</Text>
                 ) : filterHidesAllCourses ? (
-                  <Text style={[styles.pathDesc, { marginTop: spacing.sm }]}>
+                  <Text style={[styles.pathDesc, { color: c.textMuted, marginTop: spacing.sm }]}>
                     No courses match this filter. Tap <Text style={{ fontWeight: "700" }}>All</Text>{" "}
                     above to see every course in this path.
                   </Text>
                 ) : expandedCourses.length === 0 ? (
-                  <Text style={[styles.pathDesc, { marginTop: spacing.sm }]}>
-                    No courses for this path. If you use Docker locally, ensure the API has content
-                    (migrations + seed commands in backend logs). Use a Starter-tier path (e.g. Basic
-                    Finance) or upgrade under Billing. API: EXPO_PUBLIC_BACKEND_URL must reach your
-                    Django host.
+                  <Text style={[styles.pathDesc, { color: c.textMuted, marginTop: spacing.sm }]}>
+                    No courses for this path yet.
                   </Text>
                 ) : (
                   expandedCourses.map((course, ci) => (
@@ -707,7 +748,7 @@ function LearnInner() {
                 )}
               </View>
             ) : null}
-          </View>
+          </GlassCard>
         );
       }}
     />

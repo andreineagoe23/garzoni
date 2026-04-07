@@ -14,6 +14,7 @@ import logging
 import stripe
 from django.conf import settings
 from finance.utils import record_funnel_event
+from authentication.services.profile import invalidate_profile_cache
 
 from education.models import (
     Path,
@@ -233,6 +234,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Section not available."}, status=403)
             progress.completed_sections.add(section)
             progress.save()
+            invalidate_profile_cache(request.user)
             return Response({"message": "Section completed!"})
         except LessonSection.DoesNotExist:
             return Response({"error": "Section not found"}, status=400)
@@ -442,6 +444,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             if completed_lessons == total_lessons:
                 user_progress.mark_course_complete()
 
+            invalidate_profile_cache(user)
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -760,6 +763,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             progress.completed_sections.add(section)
             _grant_initial_mastery(user, _extract_section_skill(section))
             progress.save()
+            invalidate_profile_cache(user)
             return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
             return Response({"error": "Invalid section"}, status=400)

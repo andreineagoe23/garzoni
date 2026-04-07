@@ -12,6 +12,7 @@ from .views_auth import (
     get_csrf_token,
 )
 from .views_profile import (
+    ActivityHeatmapView,
     UserProfileView,
     FinancialProfileView,
     UserSettingsView,
@@ -58,6 +59,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("auth/push-token/", ExpoPushTokenView.as_view(), name="expo-push-token"),
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
+    path("activity-heatmap/", ActivityHeatmapView.as_view(), name="activity-heatmap"),
     path("me/profile/", FinancialProfileView.as_view(), name="financial-profile"),
     path("update-avatar/", update_avatar, name="update_avatar"),
     path("entitlements/", EntitlementsView.as_view(), name="entitlements"),

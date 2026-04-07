@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -30,6 +30,9 @@ import StatusSummaryGrid from "../../src/components/dashboard/StatusSummaryGrid"
 import PrimaryCTAMobile, {
   type PrimaryCtaMobileData,
 } from "../../src/components/dashboard/PrimaryCTAMobile";
+import DashboardActivityHeatmap, {
+  type ActivityCalendarMap,
+} from "../../src/components/dashboard/DashboardActivityHeatmap";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
@@ -55,6 +58,7 @@ function DashboardInner() {
   const { width: windowWidth } = useWindowDimensions();
   const resumeTilesSideBySide = windowWidth >= RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH;
   const c = useThemeColors();
+  const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(null);
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const authReady = hydrated;
@@ -109,6 +113,7 @@ function DashboardInner() {
     enabled: authReady && Boolean(accessToken),
   });
 
+
   const profilePayload = profileQuery.data;
   const profile = useMemo(() => {
     if (!profilePayload) return null;
@@ -118,6 +123,45 @@ function DashboardInner() {
     }
     return profilePayload;
   }, [profilePayload]);
+
+  const heatmapMap = useMemo<ActivityCalendarMap>(() => {
+    const raw = profilePayload?.activity_calendar as Record<string, unknown> | undefined;
+    if (!raw) return {};
+    const map: ActivityCalendarMap = {};
+    for (const [date, val] of Object.entries(raw)) {
+      const count = typeof val === "number" ? val : 0;
+      map[date] = {
+        date,
+        totalActivities: count,
+        lessonsCompleted: count,
+        sectionsCompleted: 0,
+        exercisesCompleted: 0,
+      };
+    }
+    return map;
+  }, [profilePayload?.activity_calendar]);
+
+  const heatmapDates = useMemo<{ firstDay: string; lastDay: string; monthLabel: string }>(() => {
+    const raw = profilePayload?.current_month as {
+      first_day?: string | null;
+      last_day?: string | null;
+      month_name?: string;
+      year?: number | string | null;
+    } | undefined;
+    const today = new Date();
+    const firstDay = (typeof raw?.first_day === "string" ? raw.first_day : null)
+      ?? `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+    // Always use the real last day of the month so the full grid is shown
+    const lastDay = (typeof raw?.last_day === "string" ? raw.last_day : null)
+      ?? (() => {
+        const d = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      })();
+    const monthLabel = raw?.month_name && raw?.year
+      ? `${raw.month_name} ${raw.year}`
+      : today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    return { firstDay, lastDay, monthLabel };
+  }, [profilePayload?.current_month]);
 
   const entitlements = entitlementsQuery.data;
   const hasPaidProfile = Boolean(
@@ -384,6 +428,25 @@ function DashboardInner() {
           onPracticeClick={handleWeakSkillPractice}
         />
 
+        <View style={[styles.heatmapCard, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}>
+          <Text style={[styles.sectionTitle, { color: c.text }]}>Your consistency</Text>
+          <Text style={[styles.sectionSub, { color: c.textMuted }]}>
+            {heatmapDates.monthLabel}
+          </Text>
+          <DashboardActivityHeatmap
+            activityMap={heatmapMap}
+            firstDay={heatmapDates.firstDay}
+            lastDay={heatmapDates.lastDay}
+            colors={c}
+            selectedDate={selectedHeatmapDay}
+            onDaySelected={(s) =>
+              setSelectedHeatmapDay((prev) =>
+                prev === (s?.date ?? null) ? null : (s?.date ?? null)
+              )
+            }
+          />
+        </View>
+
         <StatusSummaryGrid
           coursesCompleted={summary.coursesCompleted}
           overallProgress={summary.overallProgress}
@@ -424,6 +487,22 @@ const styles = StyleSheet.create({
     fontSize: typography.xl,
     fontWeight: "700",
     marginBottom: spacing.lg,
+  },
+  heatmapCard: {
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: typography.base,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  sectionSub: {
+    fontSize: typography.xs,
+    marginBottom: spacing.md,
   },
   resumeRow: {
     flexDirection: "row",

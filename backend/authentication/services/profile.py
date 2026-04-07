@@ -5,12 +5,18 @@ from django.conf import settings
 
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
-from education.models import LessonCompletion
+from education.models import ExerciseCompletion, LessonCompletion, SectionCompletion
 from onboarding.models import QuestionnaireProgress
 
 
 def build_activity_calendar(user, first_day, last_day):
-    lesson_completions = (
+    # Initialise every date in range to 0
+    activity_calendar = {
+        str(first_day + timezone.timedelta(days=x)): 0
+        for x in range((last_day - first_day).days + 1)
+    }
+
+    for row in (
         LessonCompletion.objects.filter(
             user_progress__user=user,
             completed_at__date__gte=first_day,
@@ -18,19 +24,92 @@ def build_activity_calendar(user, first_day, last_day):
         )
         .values("completed_at__date")
         .annotate(count=models.Count("id"))
-    )
+    ):
+        activity_calendar[str(row["completed_at__date"])] = (
+            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
+        )
 
-    activity_calendar = {
-        str(date): 0
-        for date in [
-            first_day + timezone.timedelta(days=x) for x in range((last_day - first_day).days + 1)
-        ]
-    }
+    for row in (
+        SectionCompletion.objects.filter(
+            user_progress__user=user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    ):
+        activity_calendar[str(row["completed_at__date"])] = (
+            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
+        )
 
-    for completion in lesson_completions:
-        activity_calendar[str(completion["completed_at__date"])] = completion["count"]
+    for row in (
+        ExerciseCompletion.objects.filter(
+            user=user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    ):
+        activity_calendar[str(row["completed_at__date"])] = (
+            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
+        )
 
     return activity_calendar
+
+
+def build_activity_heatmap(user, days: int = 60) -> list:
+    today = timezone.now().date()
+    start = today - timezone.timedelta(days=days - 1)
+
+    lesson_rows = (
+        LessonCompletion.objects.filter(
+            user_progress__user=user,
+            completed_at__date__gte=start,
+            completed_at__date__lte=today,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    )
+    section_rows = (
+        SectionCompletion.objects.filter(
+            user_progress__user=user,
+            completed_at__date__gte=start,
+            completed_at__date__lte=today,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    )
+    exercise_rows = (
+        ExerciseCompletion.objects.filter(
+            user=user,
+            completed_at__date__gte=start,
+            completed_at__date__lte=today,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    )
+
+    lessons_by_date = {str(r["completed_at__date"]): r["count"] for r in lesson_rows}
+    sections_by_date = {str(r["completed_at__date"]): r["count"] for r in section_rows}
+    exercises_by_date = {str(r["completed_at__date"]): r["count"] for r in exercise_rows}
+
+    result = []
+    for i in range(days):
+        date = start + timezone.timedelta(days=i)
+        date_str = date.isoformat()
+        l = lessons_by_date.get(date_str, 0)
+        s = sections_by_date.get(date_str, 0)
+        e = exercises_by_date.get(date_str, 0)
+        result.append({
+            "date": date_str,
+            "totalActivities": l + s + e,
+            "lessonsCompleted": l,
+            "sectionsCompleted": s,
+            "exercisesCompleted": e,
+        })
+
+    return result
 
 
 def build_profile_payload(user, profile: UserProfile):
