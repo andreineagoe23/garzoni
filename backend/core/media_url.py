@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from django.conf import settings
 
 
@@ -13,8 +15,8 @@ def normalize_media_relative_path(stored_name: str) -> str:
     if not stored_name:
         return ""
     n = str(stored_name).replace("\\", "/").lstrip("/")
+    n = re.sub(r"^[^/]+/backend/media/", "", n)
     for prefix in (
-        "monevo/backend/media/",
         "backend/media/",
         "media/",
     ):

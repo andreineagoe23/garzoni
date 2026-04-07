@@ -22,6 +22,7 @@ import { UserProfile } from "types/api";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { useTranslation } from "react-i18next";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
+import { getMediaBaseUrl } from "services/backendUrl";
 
 const NAV_ITEMS = [
   { path: "/all-topics", key: "nav.dashboard", icon: "🏠", label: "Dashboard" },
@@ -66,6 +67,10 @@ function Navbar() {
   const { adminMode, canAdminister } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
+  const mediaBase = getMediaBaseUrl();
+  const garzoniLogo = darkMode
+    ? `${mediaBase}/media/logo/garzoni-logo-white-rectangular.png`
+    : `${mediaBase}/media/logo/garzoni-logo-black-rectangular.png`;
 
   const navItems = useMemo(
     () =>
@@ -230,15 +235,22 @@ function Navbar() {
           className="relative z-[1201] grid min-h-[56px] grid-cols-3 items-center gap-2 px-2 py-2 sm:min-h-[72px] sm:gap-4 sm:px-3 sm:py-3 md:gap-6 md:px-4"
           style={{ pointerEvents: "auto" }}
         >
-          <div className="flex max-md:pl-2 items-center justify-start gap-2 sm:gap-3">
-            <div className="flex items-center gap-2">
+          <div className="relative flex max-md:pl-2 items-center justify-start gap-2 sm:gap-3">
+            <div className="relative h-full w-[140px] sm:w-[180px] md:w-[220px] lg:w-[250px]">
               <NavLink
                 to="/all-topics"
                 onClick={closeMenu}
-                className="app-navbar__brand relative z-10 text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:opacity-90 hover:no-underline touch-manipulation sm:text-lg"
+                aria-label="Garzoni dashboard"
+                className="app-navbar__brand absolute left-0 top-1/2 z-10 inline-flex -translate-y-1/2 items-center no-underline transition hover:opacity-90 hover:no-underline touch-manipulation"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
-                Garzoni
+                <img
+                  src={garzoniLogo}
+                  alt="Garzoni"
+                  className="relative top-1 h-16 w-auto object-contain sm:h-20 md:h-24 lg:h-28 xl:h-32"
+                  loading="eager"
+                  decoding="async"
+                />
               </NavLink>
             </div>
           </div>

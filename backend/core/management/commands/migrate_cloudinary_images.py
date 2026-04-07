@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -96,14 +97,14 @@ def candidate_lookup_keys(stored_name: str) -> list[str]:
         return []
     name = stored_name.replace("\\", "/").lstrip("/")
     out: list[str] = []
-    stripped_monevo = name.removeprefix("monevo/backend/media/")
+    stripped_legacy = re.sub(r"^[^/]+/backend/media/", "", name)
     variants = {
         name,
-        stripped_monevo,
+        stripped_legacy,
         name.removeprefix("media/"),
         f"media/{name}",
         f"{MEDIA_ROOT_PREFIX}{name}",
-        f"{MEDIA_ROOT_PREFIX}{stripped_monevo}" if stripped_monevo != name else "",
+        f"{MEDIA_ROOT_PREFIX}{stripped_legacy}" if stripped_legacy != name else "",
     }
     for key in variants:
         if key and key not in out:
@@ -260,7 +261,7 @@ class Command(BaseCommand):
                         continue
 
                     # Only skip if this exact string is already a known Cloudinary public_id from the map.
-                    # Do not use startswith("monevo/"): legacy DB paths like monevo/backend/media/... are wrong.
+                    # Legacy namespaced backend/media paths are DB artifacts, not Cloudinary IDs.
                     if current in public_id_values:
                         total_ok += 1
                         self.stdout.write(
