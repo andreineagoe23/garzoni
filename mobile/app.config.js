@@ -1,6 +1,12 @@
 /** @type {import('expo/config').ExpoConfig} */
 
 /**
+ * EAS: after creating a new Expo project (old one deleted), run once from `mobile/`:
+ *   pnpm exec eas init
+ * That writes `extra.eas.projectId` into app.json. Slug in app.json should match the new project (e.g. garzoni).
+ */
+
+/**
  * Google Sign-In iOS plugin needs REVERSED_CLIENT_ID as URL scheme, e.g.
  * `com.googleusercontent.apps.123456789-abc` from client id `123456789-abc.apps.googleusercontent.com`.
  */
