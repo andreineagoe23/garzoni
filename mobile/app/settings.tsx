@@ -9,7 +9,7 @@ import {
   SUPPORTED_LANGUAGES,
   i18n,
   normalizeLanguage,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useTheme, useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 

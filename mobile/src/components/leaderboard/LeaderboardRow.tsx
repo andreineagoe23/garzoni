@@ -1,4 +1,4 @@
-import type { LeaderboardEntry } from "@monevo/core";
+import type { LeaderboardEntry } from "@garzoni/core";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";

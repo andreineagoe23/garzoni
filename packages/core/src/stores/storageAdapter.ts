@@ -1,5 +1,5 @@
 /**
- * Pluggable persistence for @monevo/core stores (localStorage on web, SecureStore on native).
+ * Pluggable persistence for @garzoni/core stores (localStorage on web, SecureStore on native).
  * Default implementation uses localStorage when `window` exists; no-ops otherwise.
  */
 

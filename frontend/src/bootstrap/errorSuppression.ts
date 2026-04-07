@@ -1,7 +1,7 @@
 type ReactErrorOverlayHook = {
   onError?: (error: unknown, info: unknown) => void;
   onUnhandledRejection?: (reason: unknown, promise: Promise<unknown>) => void;
-  __monevo_patched?: boolean;
+  __garzoni_patched?: boolean;
 };
 
 declare global {
@@ -86,7 +86,7 @@ export const initErrorSuppression = () => {
 
   const patchOverlay = () => {
     const hook = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__;
-    if (!hook || hook.__monevo_patched) return;
+    if (!hook || hook.__garzoni_patched) return;
     const isSuppressible = (value: unknown) => {
       const valueObj = value as { message?: unknown; stack?: unknown } | null;
       const msg =
@@ -107,7 +107,7 @@ export const initErrorSuppression = () => {
       if (isSuppressible(reason)) return;
       return originalOnRejection?.(reason, promise);
     };
-    hook.__monevo_patched = true;
+    hook.__garzoni_patched = true;
   };
 
   patchOverlay();

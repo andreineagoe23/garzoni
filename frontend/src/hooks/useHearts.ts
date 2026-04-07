@@ -1,1 +1,1 @@
-export { useHearts } from "@monevo/core";
+export { useHearts } from "@garzoni/core";

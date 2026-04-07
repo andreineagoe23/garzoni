@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import type { ProgressSummary } from "@monevo/core";
+import type { ProgressSummary } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import GlassButton from "../ui/GlassButton";

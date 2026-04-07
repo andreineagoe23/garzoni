@@ -24,18 +24,18 @@ def apple_app_site_association(request):
     Serve the Apple App Site Association (AASA) file for Universal Links.
 
     This allows iOS to open password-reset emails and other links directly in
-    the Monevo app instead of Safari.
+    the Garzoni app instead of Safari.
 
     Required configuration:
     - Replace APPLE_TEAM_ID in APPLE_TEAM_ID setting (e.g. "AB12CD34EF").
       Find it at: https://developer.apple.com/account → Membership Details.
     - Add APPLE_TEAM_ID to backend/.env.
     - Add 'com.apple.developer.associated-domains' to the iOS entitlements
-      with value 'applinks:monevo.tech' (done in Monevo.entitlements).
-    - Deploy this backend to monevo.tech so Apple can fetch this file.
+      with value 'applinks:garzoni.app' (done in Garzoni.entitlements).
+    - Deploy this backend to garzoni.app so Apple can fetch this file.
     """
     team_id = getattr(settings, "APPLE_TEAM_ID", "TEAMID").strip()
-    bundle_id = "tech.monevo.app"
+    bundle_id = "app.garzoni.mobile"
     app_id = f"{team_id}.{bundle_id}"
 
     aasa = {

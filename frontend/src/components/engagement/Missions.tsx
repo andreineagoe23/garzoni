@@ -20,7 +20,7 @@ import {
   isOnline,
 } from "services/offlineQueue";
 import { useTranslation } from "react-i18next";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { formatNumber } from "utils/format";
 import MissionCard from "./MissionCard";
 import { useQuery } from "@tanstack/react-query";
@@ -236,7 +236,7 @@ function Missions() {
         setCelebrationMessage(announcement);
         toast.success(announcement, {
           icon: (
-            <MonevoIcon
+            <GarzoniIcon
               name="sparkles"
               size={18}
               className="text-[color:var(--primary)]"
@@ -418,7 +418,7 @@ function Missions() {
                   role="status"
                   aria-live="polite"
                 >
-                  <MonevoIcon
+                  <GarzoniIcon
                     name="warning"
                     size={14}
                     className="mr-2 inline-block text-amber-500"
@@ -429,7 +429,7 @@ function Missions() {
 
               {adaptiveSuggestions && (
                 <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--accent)]/25 bg-[color:var(--accent)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--accent)] leading-tight">
-                  <MonevoIcon
+                  <GarzoniIcon
                     name="lightbulb"
                     size={14}
                     className="mr-2 inline-block text-[color:var(--accent)]"
@@ -468,13 +468,13 @@ function Missions() {
                   })}
                 >
                   {item.type === "streak_freeze" ? (
-                    <MonevoIcon
+                    <GarzoniIcon
                       name="snowflake"
                       size={14}
                       className="inline-block text-[color:var(--accent)]"
                     />
                   ) : (
-                    <MonevoIcon
+                    <GarzoniIcon
                       name="bolt"
                       size={14}
                       className="inline-block text-[color:var(--accent)]"

@@ -77,16 +77,16 @@
     <meta name="theme-color" content="#1a1a1a" />
     <meta name="google" content="notranslate" />
 
-    <title>Monevo - Personal Finance</title>
-    <meta name="title" content="Monevo - Personal Finance Education" />
+    <title>Garzoni - Personal Finance</title>
+    <meta name="title" content="Garzoni - Personal Finance Education" />
     <meta
       name="description"
       content="Master financial literacy with interactive courses, quizzes, and tools. Learn budgeting, investing, and wealth management."
     />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://monevo.tech/" />
-    <meta property="og:title" content="Monevo - Personal Finance Education" />
+    <meta property="og:url" content="https://garzoni.app/" />
+    <meta property="og:title" content="Garzoni - Personal Finance Education" />
     <meta
       property="og:description"
       content="Master financial literacy with interactive courses, quizzes, and tools."
@@ -94,10 +94,10 @@
     <meta property="og:image" content="/og-image.jpg" />
 
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://monevo.tech/" />
+    <meta property="twitter:url" content="https://garzoni.app/" />
     <meta
       property="twitter:title"
-      content="Monevo - Personal Finance Education"
+      content="Garzoni - Personal Finance Education"
     />
     <meta
       property="twitter:description"
@@ -155,8 +155,8 @@
           });
         }
         function loadGA() {
-          if (window.__MONEVO_GA_LOADED__) return;
-          window.__MONEVO_GA_LOADED__ = true;
+          if (window.__GARZONI_GA_LOADED__) return;
+          window.__GARZONI_GA_LOADED__ = true;
           var gaScript = document.createElement("script");
           gaScript.async = true;
           gaScript.src =
@@ -181,7 +181,7 @@
         }
         function maybeLoadGA() {
           try {
-            var raw = localStorage.getItem("monevo_cookie_consent");
+            var raw = localStorage.getItem("garzoni_cookie_consent");
             if (raw) {
               var c = JSON.parse(raw);
               if (c && c.analytics) {
@@ -193,7 +193,7 @@
           return false;
         }
         maybeLoadGA();
-        window.addEventListener("MonevoCookieConsent", function (ev) {
+        window.addEventListener("GarzoniCookieConsent", function (ev) {
           var detail = ev.detail;
           if (detail && detail.analytics) {
             loadGA();
@@ -207,7 +207,7 @@
   <body>
     <noscript>
       <strong
-        >We're sorry but Monevo doesn't work properly without JavaScript
+        >We're sorry but Garzoni doesn't work properly without JavaScript
         enabled. Please enable it to continue.</strong
       >
     </noscript>
@@ -218,13 +218,13 @@
       {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
-        "name": "Monevo",
-        "url": "https://monevo.tech",
+        "name": "Garzoni",
+        "url": "https://garzoni.app",
         "logo": "/logo-512x512.png",
         "description": "Interactive personal finance education platform",
         "sameAs": [
-          "https://twitter.com/monevo",
-          "https://linkedin.com/company/monevo"
+          "https://twitter.com/garzoni",
+          "https://linkedin.com/company/garzoni"
         ]
       }
     </script>

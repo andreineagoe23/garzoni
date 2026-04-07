@@ -4,8 +4,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@monevo/core": ["../packages/core/src/index.ts"],
-      "@monevo/core/*": ["../packages/core/src/*"],
+      "@garzoni/core": ["../packages/core/src/index.ts"],
+      "@garzoni/core/*": ["../packages/core/src/*"],
       "services/*": ["../packages/core/src/services/*"],
       "constants/*": ["../packages/core/src/constants/*"],
       "types/*": ["../packages/core/src/types/*"],

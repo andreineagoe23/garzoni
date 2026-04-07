@@ -28,7 +28,7 @@ import {
   staleTimes,
   type Entitlements,
   type UserProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
 import GlassCard from "../../src/components/ui/GlassCard";
 import GlassButton from "../../src/components/ui/GlassButton";

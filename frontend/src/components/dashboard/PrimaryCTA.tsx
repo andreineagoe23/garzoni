@@ -1,11 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { MonevoIcon, type MonevoIconName } from "components/ui/monevoIcons";
+import { GarzoniIcon, type GarzoniIconName } from "components/ui/garzoniIcons";
 
 type PrimaryCtaData = {
   text: string;
   action: () => void;
-  iconName?: MonevoIconName;
+  iconName?: GarzoniIconName;
   priority?: "high" | "medium" | "low";
   reason?: string;
 };
@@ -27,7 +27,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {primaryCTA.iconName && (
-            <MonevoIcon
+            <GarzoniIcon
               name={primaryCTA.iconName}
               size={24}
               className="text-[color:var(--primary,#1d5330)]"

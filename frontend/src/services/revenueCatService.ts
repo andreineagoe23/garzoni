@@ -1,10 +1,10 @@
 /**
- * RevenueCat Web SDK service for Monevo.
+ * RevenueCat Web SDK service for Garzoni.
  *
  * Wraps @revenuecat/purchases-js with a singleton pattern so the SDK is
  * configured once per user session and reused across all billing components.
  *
- * Entitlement:  "Monevo Educational Pro"
+ * Entitlement:  "Garzoni Educational Pro"
  * Products:     monthly · yearly · lifetime  (configured in RC Dashboard)
  * API key:      VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
  */
@@ -20,7 +20,7 @@ import {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 /** Entitlement identifier as configured in the RevenueCat Dashboard. */
-export const RC_ENTITLEMENT = "Monevo Educational Pro";
+export const RC_ENTITLEMENT = "Garzoni Educational Pro";
 
 /**
  * Expected offering identifiers in the RevenueCat Dashboard.
@@ -123,7 +123,7 @@ export const rcRestorePurchases = async (): Promise<CustomerInfo> => {
 };
 
 /**
- * Returns true when the customer holds an active "Monevo Educational Pro"
+ * Returns true when the customer holds an active "Garzoni Educational Pro"
  * entitlement.
  */
 export const rcIsEntitled = (customerInfo: CustomerInfo): boolean =>

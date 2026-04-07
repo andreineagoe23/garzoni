@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import DOMPurify from "dompurify";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import { useTranslation } from "react-i18next";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 const InteractiveSection = ({ section, onComplete, isCompleted }) => {
   const { t } = useTranslation();
@@ -82,7 +82,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
                 aria-label={t("lessonSection.completedAria")}
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-500"
               >
-                <MonevoIcon name="check" size={14} />{" "}
+                <GarzoniIcon name="check" size={14} />{" "}
                 {t("lessonSection.completed")}
               </span>
             )}

@@ -10,11 +10,6 @@ if [ "${DJANGO_ENV:-production}" = "production" ] && [ "${DEBUG:-}" != "True" ] 
 fi
 
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
-  if [ "${SKIP_CORE_FAKE:-0}" != "1" ]; then
-    echo "[entrypoint] Pre-faking legacy core migrations..." >&2
-    python manage.py migrate --fake core --noinput 2>/dev/null || true
-  fi
-
   i=0
   until python manage.py migrate --noinput --fake-initial 2>/dev/null || python manage.py migrate --noinput; do
     i=$((i+1))
@@ -29,6 +24,13 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     echo "[entrypoint] waiting for database... ($i/${MIGRATE_MAX_TRIES})" >&2
     sleep "$MIGRATE_SLEEP_SECONDS"
   done
+
+  # Legacy compatibility: opt-in only. Never run by default because it can fake
+  # framework migrations (e.g. contenttypes/auth) before schema exists.
+  if [ "${RUN_LEGACY_CORE_FAKE_AFTER_MIGRATE:-0}" = "1" ]; then
+    echo "[entrypoint] Opt-in: faking legacy core migrations..." >&2
+    python manage.py migrate --fake core --noinput 2>/dev/null || true
+  fi
 fi
 
 # Optional: seed exercises and lesson sections (dev only; set SEED_AFTER_MIGRATE=1)

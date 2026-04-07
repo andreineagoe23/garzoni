@@ -4,7 +4,7 @@ import axios from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 
-const REFRESH_TOKEN_STORAGE_KEY = "monevo_refresh_token";
+const REFRESH_TOKEN_STORAGE_KEY = "garzoni_refresh_token";
 
 const AuthConsumer = () => {
   const { isAuthenticated, isInitialized } = useAuth();

@@ -1,13 +1,13 @@
 import React from "react";
 import { Image, type ImageStyle, type StyleProp } from "react-native";
-import { getMediaBaseUrl } from "@monevo/core";
+import { getMediaBaseUrl } from "@garzoni/core";
 
 export type MascotType = "owl" | "bull" | "bear";
 
 const FILES: Record<MascotType, string> = {
-  owl: "monevo-owl.png",
-  bull: "monevo-bull.png",
-  bear: "monevo-bear.png",
+  owl: "garzoni-owl.png",
+  bull: "garzoni-bull.png",
+  bear: "garzoni-bear.png",
 };
 
 type Props = {

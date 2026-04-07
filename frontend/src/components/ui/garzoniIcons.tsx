@@ -33,7 +33,7 @@ import {
   FaXmark,
 } from "react-icons/fa6";
 
-export type MonevoIconName =
+export type GarzoniIconName =
   | "target"
   | "book"
   | "bookOpen"
@@ -99,11 +99,11 @@ const ICONS = {
   bars: FaBars,
   xmark: FaXmark,
 } as unknown as Record<
-  MonevoIconName,
+  GarzoniIconName,
   React.ComponentType<Record<string, unknown>>
 >;
 
-const EMOJI_TO_ICON_NAME: Partial<Record<string, MonevoIconName>> = {
+const EMOJI_TO_ICON_NAME: Partial<Record<string, GarzoniIconName>> = {
   "🎯": "target",
   "📚": "book",
   "📖": "bookOpen",
@@ -134,8 +134,8 @@ const EMOJI_TO_ICON_NAME: Partial<Record<string, MonevoIconName>> = {
   "📭": "inbox",
 };
 
-type MonevoIconProps = {
-  name: MonevoIconName | string;
+type GarzoniIconProps = {
+  name: GarzoniIconName | string;
   size?: number;
   className?: string;
   "aria-hidden"?: true;
@@ -145,15 +145,15 @@ type MonevoIconProps = {
  * Single place to import and render FontAwesome Free icons (via react-icons).
  * This avoids sprinkling emojis/emoji-like spans around the UI.
  */
-export function MonevoIcon({
+export function GarzoniIcon({
   name,
   size = 16,
   className = "",
   ...rest
-}: MonevoIconProps) {
+}: GarzoniIconProps) {
   const resolvedName =
     (Object.prototype.hasOwnProperty.call(ICONS, name)
-      ? (name as MonevoIconName)
+      ? (name as GarzoniIconName)
       : EMOJI_TO_ICON_NAME[name]) ?? null;
 
   if (!resolvedName) return null;
@@ -163,7 +163,7 @@ export function MonevoIcon({
     size,
     className,
     "aria-hidden": rest["aria-hidden"] ?? true,
-    "data-testid": "monevo-icon",
+    "data-testid": "garzoni-icon",
     focusable: "false",
   });
 }

@@ -33,10 +33,10 @@ logger = logging.getLogger(__name__)
 # Map RevenueCat product identifier → internal plan ID.
 # Update these to match the product IDs you create in App Store Connect.
 PRODUCT_PLAN_MAP: dict[str, str] = {
-    "tech.monevo.app.plus_monthly": "plus",
-    "tech.monevo.app.plus_yearly": "plus",
-    "tech.monevo.app.pro_monthly": "pro",
-    "tech.monevo.app.pro_yearly": "pro",
+    "app.garzoni.mobile.plus_monthly": "plus",
+    "app.garzoni.mobile.plus_yearly": "plus",
+    "app.garzoni.mobile.pro_monthly": "pro",
+    "app.garzoni.mobile.pro_yearly": "pro",
 }
 
 # RevenueCat event types that activate a subscription.

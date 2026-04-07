@@ -1,5 +1,5 @@
 /**
- * Monorepo Metro config: watches the repo root and resolves `@monevo/core` from source.
+ * Monorepo Metro config: watches the repo root and resolves `@garzoni/core` from source.
  * `expo-doctor` may warn about watchFolders vs defaults — expected for pnpm workspace + core package.
  */
 const { getDefaultConfig } = require("expo/metro-config");
@@ -22,7 +22,7 @@ const mobileReact = path.resolve(projectRoot, "node_modules", "react");
 const mobileReactDom = path.resolve(projectRoot, "node_modules", "react-dom");
 
 config.resolver.extraNodeModules = {
-  "@monevo/core": coreSrc,
+  "@garzoni/core": coreSrc,
   react: mobileReact,
   "react-dom": mobileReactDom,
 };

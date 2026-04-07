@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { Stack } from "expo-router";
-import { requestAiTutorResponse } from "@monevo/core";
+import { requestAiTutorResponse } from "@garzoni/core";
 import GlassButton from "../src/components/ui/GlassButton";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
@@ -23,7 +23,7 @@ export default function ChatScreen() {
     {
       role: "assistant",
       content:
-        "Hi! I'm your Monevo study coach. Ask me anything about the lessons or personal finance basics.",
+        "Hi! I'm your Garzoni study coach. Ask me anything about the lessons or personal finance basics.",
     },
   ]);
   const [busy, setBusy] = useState(false);

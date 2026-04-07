@@ -36,7 +36,7 @@ export type IntroSlide = {
 const DEFAULT_SLIDES: IntroSlide[] = [
   {
     key: "welcome",
-    title: "Welcome to Monevo",
+    title: "Welcome to Garzoni",
     body: "Build real money skills with bite-sized lessons, quizzes, and practice.",
     emoji: "👋",
   },

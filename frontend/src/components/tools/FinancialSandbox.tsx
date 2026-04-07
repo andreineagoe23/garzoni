@@ -4,7 +4,7 @@ import Skeleton from "components/common/Skeleton";
 import { formatCurrency, getLocale } from "utils/format";
 import { useTranslation } from "react-i18next";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:sandbox";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:sandbox";
 
 const FinancialSandbox = () => {
   const { t } = useTranslation();

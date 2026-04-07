@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const PREFERENCES_KEY = "monevo:dashboard-preferences";
+const PREFERENCES_KEY = "garzoni:dashboard-preferences";
 
 const DEFAULT_PREFERENCES = {
   showWeakSkills: true,

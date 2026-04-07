@@ -19,7 +19,7 @@ from core.views import root_view, robots_txt_view, serve_mascot_media, apple_app
 urlpatterns = [
     path("", root_view),
     path("robots.txt", robots_txt_view),
-    # Universal Links: iOS fetches this to verify the app can handle monevo.tech URLs.
+    # Universal Links: iOS fetches this to verify the app can handle garzoni.app URLs.
     # Must be served WITHOUT authentication or trailing-slash redirects.
     path(".well-known/apple-app-site-association", apple_app_site_association),
     path("admin/", admin.site.urls),

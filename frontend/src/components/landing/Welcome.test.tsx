@@ -32,7 +32,9 @@ describe("Welcome referral flow", () => {
   it("shows referral modal when ref query param is present", () => {
     renderWelcome("/welcome?ref=INVITE-123");
 
-    expect(screen.getByText(/You were invited to Monevo/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/You were invited to Garzoni/i)
+    ).toBeInTheDocument();
   });
 
   it("navigates to register with ref when clicking start with invite", () => {

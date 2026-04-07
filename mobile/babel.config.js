@@ -5,7 +5,7 @@ module.exports = function (api) {
       [
         "babel-preset-expo",
         {
-          // Hermes has no import.meta; @monevo/core uses it for EXPO_PUBLIC_* via publicEnv.ts
+          // Hermes has no import.meta; @garzoni/core uses it for EXPO_PUBLIC_* via publicEnv.ts
           unstable_transformImportMeta: true,
         },
       ],

@@ -13,7 +13,7 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "monevo:theme";
+const STORAGE_KEY = "garzoni:theme";
 
 const getInitialTheme = () => {
   if (typeof window === "undefined") return true;

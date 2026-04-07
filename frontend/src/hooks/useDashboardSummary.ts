@@ -1,1 +1,1 @@
-export { useDashboardSummary } from "@monevo/core";
+export { useDashboardSummary } from "@garzoni/core";

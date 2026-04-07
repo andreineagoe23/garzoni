@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
-import { Images } from "@monevo/core";
+import { Images } from "@garzoni/core";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";

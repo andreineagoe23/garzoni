@@ -19,7 +19,7 @@ import {
   queryKeys,
   staleTimes,
   useHearts,
-} from "@monevo/core";
+} from "@garzoni/core";
 import {
   Button,
   ErrorState,

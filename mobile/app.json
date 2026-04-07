@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Monevo",
-    "slug": "monevo",
+    "name": "Garzoni",
+    "slug": "garzoni",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "monevo",
+    "scheme": "garzoni",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true,
-      "bundleIdentifier": "tech.monevo.app",
+      "bundleIdentifier": "app.garzoni.mobile",
       "buildNumber": "1",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
@@ -43,7 +43,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "tech.monevo.app",
+      "package": "app.garzoni.mobile",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

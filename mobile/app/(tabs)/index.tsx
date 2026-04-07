@@ -18,7 +18,7 @@ import {
   useDashboardSummary,
   type Entitlements,
   type UserProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";

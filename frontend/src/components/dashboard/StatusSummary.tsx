@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { formatNumber, formatPercentage } from "utils/format";
 import { ErrorState } from "./ErrorState";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import StatBadge from "components/common/StatBadge";
 
 type StatusSummaryProps = {
@@ -73,7 +73,7 @@ const StatusSummary = ({
             <div
               className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--muted-text,#6b7280)]"}`}
             >
-              <MonevoIcon
+              <GarzoniIcon
                 name="sync"
                 size={16}
                 className={
@@ -123,7 +123,7 @@ const StatusSummary = ({
       ) : (
         <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-            <MonevoIcon
+            <GarzoniIcon
               name="rocket"
               size={16}
               className="text-[color:var(--muted-text,#6b7280)]"
@@ -138,7 +138,7 @@ const StatusSummary = ({
 
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-          <MonevoIcon
+          <GarzoniIcon
             name="fire"
             size={16}
             className="text-[color:var(--muted-text,#6b7280)]"

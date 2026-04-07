@@ -27,7 +27,7 @@ declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
     /** Set by our cookie consent (CookieConsentContext). Use for analytics gating. */
-    __MONEVO_CONSENT__?: {
+    __GARZONI_CONSENT__?: {
       necessary: true;
       analytics: boolean;
       marketing: boolean;

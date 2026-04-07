@@ -26,7 +26,7 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
   const baseUrl = useMemo(() => {
     const raw = Constants.expoConfig?.extra?.webAppUrl as string | undefined;
     const trimmed = raw?.replace(/\/$/, "").trim();
-    return trimmed && trimmed.length > 0 ? trimmed : "https://monevo.tech";
+    return trimmed && trimmed.length > 0 ? trimmed : "https://garzoni.app";
   }, []);
 
   const referralLink = useMemo(() => {

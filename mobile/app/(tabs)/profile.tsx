@@ -33,7 +33,7 @@ import {
   type Entitlements,
   type RecentActivityItem,
   type UserBadgeItem,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import {
   Avatar,
@@ -55,8 +55,8 @@ import ActivityCalendarMobile from "../../src/components/profile/ActivityCalenda
 import { formatRelativeTime } from "../../src/utils/formatRelativeTime";
 import AnimatedStatValue from "../../src/components/profile/AnimatedStatValue";
 
-const SHOW_HEARTS_KEY = "monevo:show_hearts_ui";
-const PROFILE_TAGLINE_KEY = "monevo:profile_tagline";
+const SHOW_HEARTS_KEY = "garzoni:show_hearts_ui";
+const PROFILE_TAGLINE_KEY = "garzoni:profile_tagline";
 
 type BadgeRow = {
   badge: BadgeCatalogItem;
@@ -149,10 +149,10 @@ function ProfileInner() {
     const data = profileQuery.data as Record<string, unknown> | undefined;
     const name =
       [data?.first_name, data?.last_name].filter(Boolean).join(" ").trim() ||
-      String(data?.username ?? "Monevo");
+      String(data?.username ?? "Garzoni");
     try {
       await Share.share({
-        message: `I'm building money skills on Monevo — ${name}`,
+        message: `I'm building money skills on Garzoni — ${name}`,
       });
     } catch {
       /* user dismissed share sheet */

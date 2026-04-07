@@ -2,7 +2,7 @@ import React, { useEffect, useRef, memo } from "react";
 import { useTheme } from "contexts/ThemeContext";
 import { recordToolEvent } from "services/toolsAnalytics";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:market-explorer";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:market-explorer";
 
 const MARKET_EXPLORER_HEIGHT = "95vh";
 
@@ -57,7 +57,7 @@ function TradingViewMarketExplorer() {
     });
 
     script.onload = () => {
-      const key = "monevo:tools:completed:market-explorer";
+      const key = "garzoni:tools:completed:market-explorer";
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "true");
       if (typeof window.gtag === "function") {

@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { href } from "../../src/navigation/href";
 import { useQuery } from "@tanstack/react-query";
-import { fetchEntitlements, queryKeys, staleTimes } from "@monevo/core";
+import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
 import ToolCard from "../../src/components/tools/ToolCard";
 import { MOBILE_TOOLS } from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";

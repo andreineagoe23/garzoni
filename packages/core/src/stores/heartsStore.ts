@@ -6,8 +6,8 @@ import { getStorageAdapter, storageGet } from "./storageAdapter";
 // Server truth lives in React Query (queryKeys.hearts()).
 
 /** Colons are invalid for Expo SecureStore keys (only [A-Za-z0-9._-]). */
-const STORAGE_KEY = "monevo.hearts.outOfHeartsUntilTs";
-const LEGACY_HEARTS_STORAGE_KEY = "monevo:hearts:outOfHeartsUntilTs";
+const STORAGE_KEY = "garzoni.hearts.outOfHeartsUntilTs";
+const LEGACY_HEARTS_STORAGE_KEY = "garzoni:hearts:outOfHeartsUntilTs";
 
 function migrateLegacyHeartsLocalStorage(): void {
   if (typeof localStorage === "undefined") return;

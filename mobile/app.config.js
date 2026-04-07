@@ -72,7 +72,7 @@ module.exports = ({ config }) => ({
     infoPlist: {
       ...config.ios?.infoPlist,
       NSPhotoLibraryUsageDescription:
-        "Allow Monevo to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
+        "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {

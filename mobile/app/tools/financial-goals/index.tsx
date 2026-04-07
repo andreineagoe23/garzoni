@@ -11,7 +11,7 @@ import {
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
-import { apiClient } from "@monevo/core";
+import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
 import type { FinancialGoalDto, GoalStatus } from "../../../src/types/financial-goals";

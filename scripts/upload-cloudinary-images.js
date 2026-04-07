@@ -22,7 +22,7 @@ const ALLOWED_EXT = new Set([
 /** Replaced by Font Awesome (Navbar); do not upload legacy duplicates */
 const SKIP_BASENAMES = new Set(["burger_menu.svg", "burgermenu.svg"]);
 
-/** Basename → public_id for shared `@monevo/core` `Images` (see packages/core/src/images.ts). */
+/** Basename → public_id for shared `@garzoni/core` `Images` (see packages/core/src/images.ts). */
 const MARKETING_PUBLIC_IDS = {
   "login-bg.jpg": "monevo/login-bg",
   "register-bg.jpg": "monevo/register-bg",

@@ -16,7 +16,7 @@
  *   - VITE_REVENUECAT_API_KEY must be set in frontend/.env
  *   - Products configured in RC Dashboard with identifiers:
  *       $rc_monthly · $rc_annual · $rc_lifetime
- *   - Entitlement "Monevo Educational Pro" linked to those products
+ *   - Entitlement "Garzoni Educational Pro" linked to those products
  */
 
 import React, { useCallback, useEffect, useState } from "react";

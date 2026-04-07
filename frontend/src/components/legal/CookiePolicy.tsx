@@ -85,9 +85,7 @@ const CookiePolicy = () => {
       <h2>{t("legal.cookiePolicy.sections.contact.title")}</h2>
       <p>
         {t("legal.cookiePolicy.sections.contact.body")}{" "}
-        <a href="mailto:monevo.educational@gmail.com">
-          monevo.educational@gmail.com
-        </a>
+        <a href="mailto:hello@garzoni.app">hello@garzoni.app</a>
       </p>
       <p>
         <Trans

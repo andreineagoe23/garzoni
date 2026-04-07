@@ -39,8 +39,28 @@ export default defineConfig(({ mode }) => {
       ? [{ find: "axios", replacement: r("src/test-utils/axios-mock.ts") }]
       : [];
 
+  const garzoniCoreAliases: { find: string | RegExp; replacement: string }[] = [
+    {
+      find: "@garzoni/core/lib/reactQuery",
+      replacement: path.join(coreSrc, "lib/reactQuery.ts"),
+    },
+    {
+      find: "@garzoni/core/lib/createMutation",
+      replacement: path.join(coreSrc, "lib/createMutation.ts"),
+    },
+    {
+      find: "@garzoni/core/i18n",
+      replacement: path.join(coreSrc, "i18n/index.ts"),
+    },
+    {
+      find: "@garzoni/core",
+      replacement: path.join(coreSrc, "index.ts"),
+    },
+  ];
+
   const aliases: { find: string | RegExp; replacement: string }[] = [
     ...testOnly,
+    ...garzoniCoreAliases,
     {
       find: "constants/i18n",
       replacement: path.join(coreSrc, "constants/i18n.ts"),

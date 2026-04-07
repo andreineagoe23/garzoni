@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { formatCurrency, getLocale } from "utils/format";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:savings";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:savings";
 
 const SavingsGoalCalculator = () => {
   const { t } = useTranslation();

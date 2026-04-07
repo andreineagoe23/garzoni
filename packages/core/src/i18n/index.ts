@@ -19,7 +19,7 @@ const supportedLanguageCodes = SUPPORTED_LANGUAGES.filter(
   (lang) => !("comingSoon" in lang && lang.comingSoon)
 ).map((lang) => lang.code);
 
-export type MonevoI18nPlatformHooks = {
+export type GarzoniI18nPlatformHooks = {
   /** Resolve starting language (e.g. localStorage + navigator on web, AsyncStorage on native). */
   getInitialLanguage?: () => string;
   /** Persist when the user or app changes language. */
@@ -32,8 +32,8 @@ export type MonevoI18nPlatformHooks = {
  * Single shared i18next instance for web and React Native.
  * Call once at app entry with platform-specific hooks (storage, document, etc.).
  */
-export function initMonevoI18n(
-  hooks: MonevoI18nPlatformHooks = {}
+export function initGarzoniI18n(
+  hooks: GarzoniI18nPlatformHooks = {}
 ): typeof i18n {
   if (i18n.isInitialized) {
     return i18n;

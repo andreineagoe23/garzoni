@@ -5,7 +5,7 @@ export default function Pricing() {
   return (
     <>
       <Head>
-        <title>Monevo Pricing</title>
+        <title>Garzoni Pricing</title>
         <meta
           name="description"
           content="Flexible plans for learners at every stage."

@@ -35,7 +35,7 @@ export default function CTASection() {
           </GlassButton>
         </div>
         <p className="mt-6 text-xs text-white/60">
-          Monevo is a financial education platform, not a financial adviser.
+          Garzoni is a financial education platform, not a financial adviser.
         </p>
         {/* Welcome-page "footer" links: grid on mobile for better scanning */}
         <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-white/70">

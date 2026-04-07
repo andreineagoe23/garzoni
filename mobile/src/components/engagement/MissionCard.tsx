@@ -5,7 +5,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { FinanceFact, Mission } from "@monevo/core";
+import type { FinanceFact, Mission } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import ProgressBar from "../ui/ProgressBar";

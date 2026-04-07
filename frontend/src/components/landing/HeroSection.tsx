@@ -12,7 +12,7 @@ export default function HeroSection({
 }: {
   scrollToFeatures: () => void;
 }) {
-  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/monevo-demo.mp4`;
+  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/garzoni-demo.mp4`;
   const { t } = useTranslation();
   const navigate = useNavigate();
 

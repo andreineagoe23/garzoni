@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useTheme } from "contexts/ThemeContext";
 import { recordToolEvent } from "services/toolsAnalytics";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:economic-map";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:economic-map";
 const WIDGET_SCRIPT_SRC =
   "https://widgets.tradingview-widget.com/w/en/tv-economic-map.js";
 
@@ -28,7 +28,7 @@ const EconomicMap = () => {
     }
 
     const timer = window.setTimeout(() => {
-      const key = "monevo:tools:completed:economic-map";
+      const key = "garzoni:tools:completed:economic-map";
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "true");
       if (typeof window.gtag === "function") {

@@ -166,7 +166,7 @@ class EmailUnsubscribeView(APIView):
             )
         try:
             payload = signing.loads(
-                token, salt="monevo.email.unsubscribe", max_age=60 * 60 * 24 * 365
+                token, salt="garzoni.email.unsubscribe", max_age=60 * 60 * 24 * 365
             )
             profile_id = payload.get("profile_id")
             profile = UserProfile.objects.select_related("user").get(id=profile_id)
@@ -180,7 +180,7 @@ class EmailUnsubscribeView(APIView):
         profile.email_reminder_preference = "none"
         profile.save(update_fields=["email_reminder_preference"])
 
-        frontend = getattr(settings, "FRONTEND_URL", "https://monevo.tech").rstrip("/")
+        frontend = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
         html = f"""
 <!doctype html>
 <html lang="en">
@@ -193,7 +193,7 @@ class EmailUnsubscribeView(APIView):
     <div style="max-width:640px;margin:40px auto;padding:0 16px;">
       <div style="border:1px solid rgba(255,255,255,0.10);border-radius:16px;overflow:hidden;background:#111827;">
         <div style="padding:18px 20px;background:linear-gradient(135deg, rgba(29,83,48,0.60), rgba(11,15,20,0.20));border-bottom:1px solid rgba(255,255,255,0.10);">
-          <div style="font-size:14px;font-weight:800;color:#E6C87A;text-transform:uppercase;">Monevo</div>
+          <div style="font-size:14px;font-weight:800;color:#E6C87A;text-transform:uppercase;">Garzoni</div>
           <div style="margin-top:4px;font-size:20px;font-weight:900;color:#FFFFFF;">You’re unsubscribed</div>
         </div>
         <div style="padding:18px 20px;font-size:15px;line-height:1.6;">

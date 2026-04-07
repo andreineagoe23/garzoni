@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play } from "lucide-react";
 import { GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { useLandingData } from "./landingData";
 import { useTranslation } from "react-i18next";
 import { getMediaBaseUrl } from "services/backendUrl";
@@ -11,7 +11,7 @@ type FeatureSectionProps = {
 };
 
 export default function FeatureSection({ featureRef }: FeatureSectionProps) {
-  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/monevo-demo.mp4`;
+  const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/garzoni-demo.mp4`;
   const { features } = useLandingData();
   const { t } = useTranslation();
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -118,7 +118,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                           {feature.bullets.map((bullet) => (
                             <li key={bullet} className="flex items-start gap-2">
                               <span className="mt-[3px] inline-flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/20 text-[color:var(--primary,#1d5330)]">
-                                <MonevoIcon name="check" size={14} />
+                                <GarzoniIcon name="check" size={14} />
                               </span>
                               <span>{bullet}</span>
                             </li>
@@ -234,7 +234,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                           {feature.bullets.map((bullet) => (
                             <li key={bullet} className="flex items-start gap-2">
                               <span className="mt-[3px] inline-flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/20 text-[color:var(--primary,#1d5330)]">
-                                <MonevoIcon name="check" size={14} />
+                                <GarzoniIcon name="check" size={14} />
                               </span>
                               <span>{bullet}</span>
                             </li>

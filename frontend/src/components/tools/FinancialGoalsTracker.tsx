@@ -16,7 +16,7 @@ const STATUS_COLORS = {
   completed: "bg-emerald-500/10 text-[color:var(--accent,#ffd700)]",
 };
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:goals";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:goals";
 
 const FinancialGoalsTracker = () => {
   const { t } = useTranslation();
