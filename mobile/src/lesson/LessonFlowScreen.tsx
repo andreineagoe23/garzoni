@@ -16,7 +16,7 @@ import {
   queryKeys,
   staleTimes,
   fetchProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
 import {
   Button,
@@ -35,7 +35,7 @@ import { useThemeColors } from "../theme/ThemeContext";
 import type { ThemeColors } from "../theme/palettes";
 import { useTranslation } from "react-i18next";
 
-const LESSON_FONT_SCALE_KEY = "monevo:lesson_font_scale";
+const LESSON_FONT_SCALE_KEY = "garzoni:lesson_font_scale";
 
 function isExerciseItem(item: FlowItem | null): boolean {
   if (!item || item.kind !== "section") return false;

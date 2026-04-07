@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 type WeakSkill = {
   skill: string;
@@ -111,7 +111,7 @@ const WeakSkills = ({
         <div className="mt-6">
           <EmptyState
             icon={
-              <MonevoIcon
+              <GarzoniIcon
                 name="target"
                 size={44}
                 className="text-[color:var(--primary,#1d5330)]"
@@ -127,7 +127,7 @@ const WeakSkills = ({
       <div className="mt-6">
         <EmptyState
           icon={
-            <MonevoIcon
+            <GarzoniIcon
               name="target"
               size={44}
               className="text-[color:var(--primary,#1d5330)]"

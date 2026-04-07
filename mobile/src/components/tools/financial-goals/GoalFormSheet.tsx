@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
-import { apiClient } from "@monevo/core";
+import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
 import type { FinancialGoalDto } from "../../../types/financial-goals";

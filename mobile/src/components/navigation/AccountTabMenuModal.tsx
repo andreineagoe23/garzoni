@@ -14,7 +14,7 @@ import {
   i18n,
   normalizeLanguage,
   SUPPORTED_LANGUAGES,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useAuthSession } from "../../auth/AuthContext";
 import { href } from "../../navigation/href";
 import { useTheme, useThemeColors } from "../../theme/ThemeContext";

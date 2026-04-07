@@ -1,5 +1,5 @@
 import { Platform, StyleSheet, Text, View } from "react-native";
-import { getBackendUrl } from "@monevo/core";
+import { getBackendUrl } from "@garzoni/core";
 import { useThemeColors } from "../theme/ThemeContext";
 import { spacing, typography, radius } from "../theme/tokens";
 

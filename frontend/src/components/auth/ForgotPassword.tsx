@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
-import logo from "assets/logo/monevo-logo-svg.svg";
+import logo from "assets/logo/garzoni-logo-svg.svg";
 
 function ForgotPassword() {
   const { t } = useTranslation();

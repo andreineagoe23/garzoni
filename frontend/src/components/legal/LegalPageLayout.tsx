@@ -13,7 +13,7 @@ type LegalPageLayoutProps = {
 
 /**
  * Shared layout for all legal pages (Privacy, Cookie, Terms, Financial Disclaimer).
- * Aligns with Monevo GlassCard and theme variables; consistent spacing between header and body.
+ * Aligns with Garzoni GlassCard and theme variables; consistent spacing between header and body.
  */
 export default function LegalPageLayout({
   lastUpdated,

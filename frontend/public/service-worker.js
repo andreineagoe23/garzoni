@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "monevo-static-v1";
-const API_CACHE = "monevo-api-v1";
+const CACHE_NAME = "garzoni-static-v1";
+const API_CACHE = "garzoni-api-v1";
 const CORE_ASSETS = ["/", "/index.html", "/manifest.json", "/offline.html"];
 
 self.addEventListener("install", (event) => {

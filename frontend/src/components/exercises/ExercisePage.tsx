@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
@@ -20,8 +20,9 @@ import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
 import ExerciseIntentBanner from "./ExerciseIntentBanner";
 import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
 
-const LESSON_SESSION_STORAGE_KEY = "monevo_exercise_lesson_session_v1";
-const SUPPORTS_PROGRESS_BATCH_STORAGE_KEY = "monevo_supports_progress_batch_v1";
+const LESSON_SESSION_STORAGE_KEY = "garzoni_exercise_lesson_session_v1";
+const SUPPORTS_PROGRESS_BATCH_STORAGE_KEY =
+  "garzoni_supports_progress_batch_v1";
 const MAX_VISIBLE_PROGRESS_ITEMS = 8;
 
 const ExercisePage = () => {
@@ -1124,7 +1125,7 @@ const ExercisePage = () => {
       userAnswer ?? "No answer"
     }\nExplanation: ${explanation || submissionFeedback || "N/A"}`;
     window.dispatchEvent(
-      new CustomEvent("monevo:tutor", { detail: { context } })
+      new CustomEvent("garzoni:tutor", { detail: { context } })
     );
   }, [currentExercise, explanation, submissionFeedback, userAnswer]);
 
@@ -2594,7 +2595,7 @@ const ExercisePage = () => {
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
               <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 <span className="mr-2">
-                  <MonevoIcon name="trophy" size={18} />
+                  <GarzoniIcon name="trophy" size={18} />
                 </span>{" "}
                 {t("exercises.summary.title")}
               </h2>

@@ -69,7 +69,7 @@ function Welcome() {
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 px-4">
           <div className="max-w-md rounded-2xl bg-[color:var(--card-bg,#ffffff)] px-6 py-5 text-[color:var(--text-color,#111827)] shadow-2xl">
             <h2 className="text-lg font-semibold">
-              {t("welcome.referral.title", "You were invited to Monevo")}
+              {t("welcome.referral.title", "You were invited to Garzoni")}
             </h2>
             <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
               {t(

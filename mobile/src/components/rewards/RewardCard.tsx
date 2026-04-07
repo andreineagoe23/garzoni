@@ -2,7 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
-import { getMediaBaseUrl } from "@monevo/core";
+import { getMediaBaseUrl } from "@garzoni/core";
 
 export type RewardItem = {
   id: number | string;

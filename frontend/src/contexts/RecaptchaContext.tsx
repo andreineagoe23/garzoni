@@ -1,6 +1,6 @@
 /**
  * reCAPTCHA Enterprise: load enterprise.js and expose executeRecaptcha for Login/Register.
- * Uses the single site key from the monevo.educational@gmail.com console.
+ * Uses the single site key from the hello@garzoni.app console.
  */
 import React, {
   createContext,

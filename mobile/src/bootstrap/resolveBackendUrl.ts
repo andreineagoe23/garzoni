@@ -17,7 +17,7 @@ export function preferHttpsForRailway(url: string): string {
 
 /**
  * API base URL for native: prefer `app.config.js` extra (EAS), then env inlined by Metro.
- * Must be the Django API origin; `/api` is appended by @monevo/core if missing.
+ * Must be the Django API origin; `/api` is appended by @garzoni/core if missing.
  */
 export function resolveBackendUrlFromExpo(): string | undefined {
   const extra =

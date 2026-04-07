@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 type WeakSkill = {
   skill: string;
@@ -37,7 +37,7 @@ export default function WeakSkillsQuickCard({
             className="flex shrink-0 justify-center text-lg sm:text-2xl"
             aria-hidden="true"
           >
-            <MonevoIcon name="lightbulb" size={24} />
+            <GarzoniIcon name="lightbulb" size={24} />
           </span>
           <div className="min-w-0 w-full sm:flex-1">
             <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">

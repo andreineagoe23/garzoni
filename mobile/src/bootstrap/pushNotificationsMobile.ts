@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
-import { submitExpoPushToken } from "@monevo/core";
+import { submitExpoPushToken } from "@garzoni/core";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

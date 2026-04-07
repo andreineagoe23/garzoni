@@ -5,7 +5,7 @@ const MESSAGES: Record<string, string> = {
   ro: "Ceva n-a mers bine. Te rugăm să încerci din nou.",
 };
 
-/** Fallback when i18n is not available (e.g. httpClient in @monevo/core). */
+/** Fallback when i18n is not available (e.g. httpClient in @garzoni/core). */
 export function getApiErrorFallbackMessage(): string {
   const lang = getCurrentAppLanguage();
   return MESSAGES[lang] ?? MESSAGES.en;

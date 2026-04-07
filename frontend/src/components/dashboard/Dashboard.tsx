@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPathContent";
 import { GlassButton, GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import {
   fetchReviewQueue,
@@ -32,7 +32,7 @@ import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
-import { selectPrimaryCTA } from "@monevo/core";
+import { selectPrimaryCTA } from "@garzoni/core";
 import { getLocale } from "utils/format";
 import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useDashboardSummary } from "hooks/useDashboardSummary";
@@ -144,7 +144,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             .filter(Boolean)
             .join(" • ");
           toast.success(message, {
-            icon: <MonevoIcon name="sparkles" size={18} />,
+            icon: <GarzoniIcon name="sparkles" size={18} />,
             duration: 4000,
           });
         }, 500);
@@ -595,7 +595,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           className="flex shrink-0 justify-center text-lg sm:text-2xl"
                           aria-hidden="true"
                         >
-                          <MonevoIcon name="bookOpen" size={24} />
+                          <GarzoniIcon name="bookOpen" size={24} />
                         </span>
                         <div className="min-w-0 w-full sm:flex-1">
                           <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
@@ -631,7 +631,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           className="flex shrink-0 justify-center text-lg sm:text-2xl"
                           aria-hidden="true"
                         >
-                          <MonevoIcon name="bookOpen" size={24} />
+                          <GarzoniIcon name="bookOpen" size={24} />
                         </span>
                         <div className="min-w-0 w-full sm:flex-1">
                           <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">

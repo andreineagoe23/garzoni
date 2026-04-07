@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 const FriendRequests = () => {
   const { t } = useTranslation();
@@ -78,7 +78,7 @@ const FriendRequests = () => {
           </div>
         ) : requests.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-[color:var(--muted-text,#6b7280)]">
-            <MonevoIcon name="inbox" size={40} />
+            <GarzoniIcon name="inbox" size={40} />
             <p className="text-sm">{t("profile.friendRequests.empty")}</p>
           </div>
         ) : (
@@ -89,7 +89,7 @@ const FriendRequests = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 text-xl">
-                  <MonevoIcon name="user" size={20} />
+                  <GarzoniIcon name="user" size={20} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">

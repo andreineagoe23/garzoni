@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:crypto";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:crypto";
 const WIDGET_LOAD_TIMEOUT_MS = 15000;
 
 // Note: TradingView embed may log a moment.defineLocale deprecation in the console; that comes from their script and cannot be fixed here.

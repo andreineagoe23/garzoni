@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { lessonService, staleTimes } from "@monevo/core";
+import { lessonService, staleTimes } from "@garzoni/core";
 import { ErrorState, Skeleton } from "../../src/components/ui";
 import LessonFlowScreen from "../../src/lesson/LessonFlowScreen";
 import { parseCourseIdFromLesson } from "../../src/lesson/parseCourseId";

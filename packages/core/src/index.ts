@@ -1,6 +1,6 @@
 /**
- * @monevo/core — shared API client, i18n, services, and stores for web and native.
- * Metro must map `@monevo/core` → `packages/core/src` and resolve `services/*`, `constants/*`, etc.
+ * @garzoni/core — shared API client, i18n, services, and stores for web and native.
+ * Metro must map `@garzoni/core` → `packages/core/src` and resolve `services/*`, `constants/*`, etc.
  */
 
 import {
@@ -27,7 +27,7 @@ export {
 } from "./services/entitlementsService";
 export { requestAiTutorResponse } from "./services/aiTutor";
 
-export { initMonevoI18n, i18n, normalizeLanguage } from "./i18n";
+export { initGarzoniI18n, i18n, normalizeLanguage } from "./i18n";
 
 export { useProgressStore } from "./stores/progressStore";
 

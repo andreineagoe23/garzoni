@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { apiClient, requestAiTutorResponse } from "@monevo/core";
+import { apiClient, requestAiTutorResponse } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../../src/theme/tokens";
 import {

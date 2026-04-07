@@ -1,4 +1,4 @@
-import { getMediaBaseUrl } from "@monevo/core";
+import { getMediaBaseUrl } from "@garzoni/core";
 
 export function leaderboardAvatarUri(
   profileAvatar: string | null | undefined

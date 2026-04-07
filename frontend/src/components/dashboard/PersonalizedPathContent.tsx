@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import apiClient from "services/httpClient";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import {
@@ -290,7 +290,7 @@ function PersonalizedPathContent({
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5">
-                        <MonevoIcon
+                        <GarzoniIcon
                           name={courseIcon(heroCourse.path_title)}
                           size={12}
                         />
@@ -381,7 +381,7 @@ function PersonalizedPathContent({
                     <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--primary,#1d5330)]/50 to-[color:var(--border-color,#d1d5db)]" />
                   )}
                   <div className="relative z-10 mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)]/30 bg-[color:var(--card-bg,#ffffff)]">
-                    <MonevoIcon
+                    <GarzoniIcon
                       name={courseIcon(course.path_title)}
                       size={14}
                       className="text-[color:var(--primary,#1d5330)]"

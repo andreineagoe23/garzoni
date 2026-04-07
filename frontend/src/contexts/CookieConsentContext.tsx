@@ -13,9 +13,9 @@ import React, {
   useState,
 } from "react";
 
-const STORAGE_KEY = "monevo_cookie_consent";
-export const CONSENT_EVENT = "MonevoCookieConsent";
-export const OPEN_SETTINGS_EVENT = "monevo-open-cookie-settings";
+const STORAGE_KEY = "garzoni_cookie_consent";
+export const CONSENT_EVENT = "GarzoniCookieConsent";
+export const OPEN_SETTINGS_EVENT = "garzoni-open-cookie-settings";
 
 export type ConsentState = {
   necessary: true;
@@ -56,8 +56,8 @@ function saveConsent(state: ConsentState) {
     const toSave = { ...state, timestamp: Date.now() };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     (
-      window as Window & { __MONEVO_CONSENT__?: ConsentState }
-    ).__MONEVO_CONSENT__ = toSave;
+      window as Window & { __GARZONI_CONSENT__?: ConsentState }
+    ).__GARZONI_CONSENT__ = toSave;
     window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: toSave }));
   } catch (_) {
     // ignore
@@ -97,8 +97,8 @@ export function CookieConsentProvider({
   useEffect(() => {
     if (consent) {
       (
-        window as Window & { __MONEVO_CONSENT__?: ConsentState }
-      ).__MONEVO_CONSENT__ = consent;
+        window as Window & { __GARZONI_CONSENT__?: ConsentState }
+      ).__GARZONI_CONSENT__ = consent;
     }
   }, [consent]);
 
@@ -184,11 +184,11 @@ export function useCookieConsent() {
   return ctx;
 }
 
-/** Use outside React (e.g. in index.html GA loader): read from localStorage or window.__MONEVO_CONSENT__. */
+/** Use outside React (e.g. in index.html GA loader): read from localStorage or window.__GARZONI_CONSENT__. */
 export function hasAnalyticsConsent(): boolean {
   if (typeof window === "undefined") return false;
-  const w = window as Window & { __MONEVO_CONSENT__?: ConsentState };
-  if (w.__MONEVO_CONSENT__?.analytics) return true;
+  const w = window as Window & { __GARZONI_CONSENT__?: ConsentState };
+  if (w.__GARZONI_CONSENT__?.analytics) return true;
   const stored = loadConsent();
   return stored?.analytics ?? false;
 }

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import type { MascotMood } from "@monevo/core";
-import { useMascotMessage } from "@monevo/core";
+import type { MascotMood } from "@garzoni/core";
+import { useMascotMessage } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography, radius } from "../../theme/tokens";

@@ -14,7 +14,7 @@ import {
   type PersonalizedPathCourse,
   type ProgressSummary,
   type UserProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { href } from "../../navigation/href";
 import { useAuthSession } from "../../auth/AuthContext";
 import { useThemeColors } from "../../theme/ThemeContext";

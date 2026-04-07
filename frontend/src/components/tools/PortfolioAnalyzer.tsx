@@ -24,8 +24,8 @@ import { recordToolEvent } from "services/toolsAnalytics";
 import { requestAiTutorResponse } from "services/aiTutor";
 
 const COLORS = ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b"];
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:portfolio";
-const EXPORT_EVENT = "monevo:tools:export";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:portfolio";
+const EXPORT_EVENT = "garzoni:tools:export";
 
 const CRYPTO_SYMBOLS = new Set([
   "btc",
@@ -244,7 +244,7 @@ function PortfolioAnalyzer() {
   useEffect(() => {
     if (!summary || entries.length === 0 || typeof window === "undefined")
       return;
-    const key = "monevo:tools:completed:portfolio";
+    const key = "garzoni:tools:completed:portfolio";
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "true");
     if (typeof window.gtag === "function") {
@@ -749,7 +749,7 @@ function PortfolioAnalyzer() {
   useEffect(() => {
     if (!insight || typeof window === "undefined") return;
     sessionStorage.setItem(
-      "monevo:tools:signal:portfolio_risk",
+      "garzoni:tools:signal:portfolio_risk",
       insight.riskLevel
     );
   }, [insight]);

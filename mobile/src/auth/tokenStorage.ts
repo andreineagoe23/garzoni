@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 
-const ACCESS_KEY = "monevo_access_token";
-const REFRESH_KEY = "monevo_refresh_token";
+const ACCESS_KEY = "garzoni_access_token";
+const REFRESH_KEY = "garzoni_refresh_token";
 
 async function safeDelete(key: string) {
   try {

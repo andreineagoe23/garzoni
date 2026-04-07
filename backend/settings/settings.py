@@ -48,8 +48,9 @@ ALLOWED_HOSTS = env_csv(
         default=[
             "localhost",
             "127.0.0.1",
-            "monevo-production-bc08.up.railway.app",
-            "andreineagoe23.pythonanywhere.com",
+            "garzoni-production.up.railway.app",
+            "www.garzoni.app",
+            "garzoni.app",
         ],
     ),
 )
@@ -150,7 +151,7 @@ if database_url and database_url.startswith("postgres://"):
 if not database_url:
     raise ImproperlyConfigured(
         "DATABASE_URL (or DATABASE_PUBLIC_URL) must be set. "
-        "Use PostgreSQL in dev and prod: e.g. postgresql://user:pass@localhost:5432/monevo for local, "  # pragma: allowlist secret
+        "Use PostgreSQL in dev and prod: e.g. postgresql://user:pass@localhost:5432/garzoni for local, "  # pragma: allowlist secret
         "or on Railway add a PostgreSQL service (DATABASE_URL is set automatically)."
     )
 
@@ -200,10 +201,10 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": os.getenv("API_TITLE", "Monevo API"),
+    "TITLE": os.getenv("API_TITLE", "Garzoni API"),
     "DESCRIPTION": os.getenv(
         "API_DESCRIPTION",
-        "Monevo backend API (Django REST Framework). Use the Swagger UI for discovery and testing.",
+        "Garzoni backend API (Django REST Framework). Use the Swagger UI for discovery and testing.",
     ),
     "VERSION": os.getenv("API_VERSION", "0.1.0"),
     "SERVE_INCLUDE_SCHEMA": False,
@@ -367,7 +368,7 @@ CONTACT_EMAIL = (
 if DEBUG:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 else:
-    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.monevo.tech")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.garzoni.app")
 
 # Base API URL (including /api). Used to generate absolute links in emails.
 BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/api").rstrip("/")
@@ -403,7 +404,7 @@ if STRIPE_SECRET_KEY:
             "Stripe is enabled but required price IDs are missing: " + ", ".join(missing_prices)
         )
 
-# reCAPTCHA Enterprise (single key from monevo.educational@gmail.com console)
+# reCAPTCHA Enterprise (single key from hello@garzoni.app console)
 # Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).
 # Never enable in production.
 RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)

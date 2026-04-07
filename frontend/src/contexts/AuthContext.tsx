@@ -80,10 +80,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // Access token is kept in memory; sessionStorage is used to survive full reloads.
 let inMemoryToken: string | null = null;
-const ACCESS_TOKEN_STORAGE_KEY = "monevo_access_token";
-const REFRESH_TOKEN_STORAGE_KEY = "monevo_refresh_token";
+const ACCESS_TOKEN_STORAGE_KEY = "garzoni_access_token";
+const REFRESH_TOKEN_STORAGE_KEY = "garzoni_refresh_token";
 const ENTITLEMENT_SUPPORT_URL =
-  "mailto:monevo.educational@gmail.com?subject=Billing%20support";
+  "mailto:hello@garzoni.app?subject=Billing%20support";
 const isDevelopment = import.meta.env.DEV;
 const authLog = (...args: unknown[]) => {
   if (isDevelopment) {

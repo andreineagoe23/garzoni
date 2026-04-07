@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILD_SRC: "."
-    image: monevo-backend:dev
+    image: garzoni-backend:dev
     restart: unless-stopped
     env_file:
       - ./backend/.env

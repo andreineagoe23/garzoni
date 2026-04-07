@@ -8,7 +8,7 @@ import {
   saveCourseFlowState,
   queryKeys,
   staleTimes,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { unwrapApiList } from "../lib/unwrapApiList";
 
 export type FlowSection = {

@@ -16,7 +16,7 @@ import {
   fetchLessonsWithProgress,
   queryKeys,
   staleTimes,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { unwrapApiList } from "../../src/lib/unwrapApiList";
 import {

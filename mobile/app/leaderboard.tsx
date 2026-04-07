@@ -12,7 +12,7 @@ import {
   type FriendUserBrief,
   type LeaderboardEntry,
   type UserProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";

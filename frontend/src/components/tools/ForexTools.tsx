@@ -12,7 +12,7 @@ const ForexTools = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem(
-        "monevo:tools:activity:forex",
+        "garzoni:tools:activity:forex",
         JSON.stringify({ label: t("tools.forex.activityLabel") })
       );
     }

@@ -5,7 +5,7 @@ import { GOALS_LEVER_LESSONS } from "./lessonMapping";
 import { formatCurrency, getLocale } from "utils/format";
 import { requestAiTutorResponse } from "services/aiTutor";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:reality-check";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:reality-check";
 
 const demoPreset = {
   goalName: "",
@@ -134,7 +134,7 @@ const GoalsRealityCheck = () => {
 
   React.useEffect(() => {
     if (!hasInputs || typeof window === "undefined") return;
-    const key = "monevo:tools:completed:reality-check";
+    const key = "garzoni:tools:completed:reality-check";
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "true");
     if (typeof window.gtag === "function") {
@@ -151,9 +151,9 @@ const GoalsRealityCheck = () => {
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     if (warnings.length > 0) {
-      sessionStorage.setItem("monevo:tools:signal:goals_warning", "true");
+      sessionStorage.setItem("garzoni:tools:signal:goals_warning", "true");
     } else {
-      sessionStorage.removeItem("monevo:tools:signal:goals_warning");
+      sessionStorage.removeItem("garzoni:tools:signal:goals_warning");
     }
   }, [warnings.length]);
 

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
-const SHOW_HEARTS_KEY = "monevo:show_hearts_ui";
+const SHOW_HEARTS_KEY = "garzoni:show_hearts_ui";
 
 export function useShowHeartsMobile() {
   const [show, setShow] = useState(true);

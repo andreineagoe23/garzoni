@@ -1,5 +1,5 @@
 {
-  "name": "@monevo/mobile",
+  "name": "@garzoni/mobile",
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
-    "@monevo/core": "workspace:^",
+    "@garzoni/core": "workspace:^",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-google-signin/google-signin": "^16.1.2",

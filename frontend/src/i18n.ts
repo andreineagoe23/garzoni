@@ -1,4 +1,4 @@
-import { initMonevoI18n, i18n, normalizeLanguage } from "@monevo/core/i18n";
+import { initGarzoniI18n, i18n, normalizeLanguage } from "@garzoni/core/i18n";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "constants/i18n";
 
 const getInitialLanguage = () => {
@@ -16,7 +16,7 @@ const getInitialLanguage = () => {
   return normalizeLanguage(browserLanguage);
 };
 
-initMonevoI18n({
+initGarzoniI18n({
   getInitialLanguage,
   persistLanguage: (language) => {
     if (typeof window === "undefined") return;

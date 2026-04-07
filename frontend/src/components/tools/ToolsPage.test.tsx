@@ -72,9 +72,9 @@ vi.mock("./toolsRegistry", async () => {
   ];
   const toolByRoute = new Map(toolsRegistry.map((tool) => [tool.route, tool]));
   const TOOL_STORAGE_KEYS = {
-    lastTool: "monevo:tools:last-tool",
-    sessionId: "monevo:tools:session-id",
-    navSource: "monevo:tools:last-source",
+    lastTool: "garzoni:tools:last-tool",
+    sessionId: "garzoni:tools:session-id",
+    navSource: "garzoni:tools:last-source",
   };
 
   return {

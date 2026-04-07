@@ -1,4 +1,4 @@
-import { selectPrimaryCTA } from "@monevo/core";
+import { selectPrimaryCTA } from "@garzoni/core";
 
 describe("selectPrimaryCTA", () => {
   it("prefers reviews when any are due", () => {

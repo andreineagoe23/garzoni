@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { fetchQuestionnaireProgress, i18n, queryKeys } from "@monevo/core";
+import { fetchQuestionnaireProgress, i18n, queryKeys } from "@garzoni/core";
 import { href } from "../../navigation/href";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";

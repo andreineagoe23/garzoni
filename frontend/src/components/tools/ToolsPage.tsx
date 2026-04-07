@@ -26,7 +26,7 @@ import {
 } from "./toolsRegistry";
 
 const TOOL_BASE_PATH = "/tools";
-const TOOL_FEEDBACK_EMAIL = "monevo.educational@gmail.com";
+const TOOL_FEEDBACK_EMAIL = "hello@garzoni.app";
 
 type ToolNavSource = "hub_card" | "sidebar" | "mobile_dropdown" | "deep_link";
 
@@ -337,7 +337,7 @@ const ToolsPage = () => {
     }
     const returned = toolsRegistry.filter((tool) =>
       typeof window !== "undefined"
-        ? sessionStorage.getItem(`monevo:tools:return:${tool.id}`)
+        ? sessionStorage.getItem(`garzoni:tools:return:${tool.id}`)
         : false
     );
     returned.forEach((tool) => {
@@ -367,7 +367,7 @@ const ToolsPage = () => {
 
   const handleExport = (toolId: string) => {
     window.dispatchEvent(
-      new CustomEvent("monevo:tools:export", {
+      new CustomEvent("garzoni:tools:export", {
         detail: { toolId },
       })
     );
@@ -416,7 +416,7 @@ const ToolsPage = () => {
       recordToolEvent("tool_open", currentToolId, { source });
 
       if (activeTool?.id && lastToolStored === activeTool.id) {
-        const returnKey = `monevo:tools:return:${activeTool.id}`;
+        const returnKey = `garzoni:tools:return:${activeTool.id}`;
         if (!sessionStorage.getItem(returnKey)) {
           sessionStorage.setItem(returnKey, "true");
           window.gtag("event", "tool_return", {

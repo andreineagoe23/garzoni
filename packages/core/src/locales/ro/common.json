@@ -156,7 +156,7 @@
   },
   "welcome": {
     "referral": {
-      "title": "Ai fost invitat(ă) la Monevo",
+      "title": "Ai fost invitat(ă) la Garzoni",
       "body": "După ce finalizezi primul tău traseu de învățare, tu și prietenul tău veți primi fiecare 40% reducere la Plus prin email.",
       "cta": "Începe cu invitația ta",
       "dismiss": "Poate mai târziu"
@@ -492,7 +492,7 @@
         "title": "Calendar economic (embed)",
         "promise": "Răsfoiește un calendar economic complet într-o vedere integrată.",
         "description": "Calendar economic terț cu evenimente majore (furnizor extern).",
-        "mostUsefulFor": "Oricine vrea o vedere densă alături de lecțiile Monevo.",
+        "mostUsefulFor": "Oricine vrea o vedere densă alături de lecțiile Garzoni.",
         "whatItDoes": "Încarcă un calendar economic extern în instrument.",
         "sampleUseCase": "Vezi CPI, locuri de muncă și evenimente despre rate în această săptămână.",
         "whoItsFor": "Învățăcei care folosesc deja calendare macro în altă parte.",
@@ -1008,7 +1008,7 @@
       "downloadAllowance": "Nu am putut verifica limita de descărcări. Te rugăm să încerci din nou."
     },
     "share": {
-      "title": "Tocmai am deblocat recompense pe Monevo!",
+      "title": "Tocmai am deblocat recompense pe Garzoni!",
       "text": "Vezi ultima mea realizare.",
       "downloaded": "Imaginea de partajare a fost descărcată. Posteaz-o oriunde!",
       "unavailable": "Nu putem genera imaginea de partajare acum."
@@ -1421,7 +1421,7 @@
     },
     "forgotPassword": {
       "title": "Ai uitat parola",
-      "logoAlt": "Logo Monevo",
+      "logoAlt": "Logo Garzoni",
       "subtitle": "Introdu adresa de email și îți vom trimite un link pentru resetarea parolei.",
       "email": "Email",
       "emailPlaceholder": "Introdu emailul",
@@ -1516,7 +1516,7 @@
     "questionOf": "Întrebarea {{current}} din {{total}}",
     "tellUsAboutYourself": "Spune-ne despre tine",
     "answerFewQuestions": "Răspunde la câteva întrebări rapide ca să îți personalizăm experiența.",
-    "noAdviceNotice": "Înțeleg că Monevo oferă doar informații educaționale și nu oferă sfaturi financiare.",
+    "noAdviceNotice": "Înțeleg că Garzoni oferă doar informații educaționale și nu oferă sfaturi financiare.",
     "financialDisclaimer": "Declinare de responsabilitate financiară",
     "noFinancialAdvice": "Fără sfaturi financiare",
     "progress": "Progres",
@@ -1562,7 +1562,7 @@
   },
   "footer": {
     "tagline": "Învață abilități financiare cu lecții, misiuni și exerciții.",
-    "disclaimer": "Doar platformă educațională. Monevo nu oferă sfaturi financiare.",
+    "disclaimer": "Doar platformă educațională. Garzoni nu oferă sfaturi financiare.",
     "legal": "Legal",
     "company": "Companie",
     "product": "Produs",
@@ -1581,10 +1581,10 @@
     "tools": "Instrumente",
     "leaderboards": "Clasamente",
     "rewards": "Recompense",
-    "copyright": "© {{year}} Monevo. Toate drepturile rezervate.",
+    "copyright": "© {{year}} Garzoni. Toate drepturile rezervate.",
     "infoDisclaimer": "Informațiile sunt educaționale și generale, nu sfaturi financiare personalizate.",
     "buyMeACoffee": "Cumpără-mi o cafea",
-    "monevoOn": "Monevo pe {{platform}}",
+    "garzoniOn": "Garzoni pe {{platform}}",
     "ariaLabel": "Subsolul site-ului",
     "cookieSettings": "Setări cookie-uri",
     "backToWelcome": "Înapoi la Welcome"
@@ -1922,11 +1922,11 @@
       "demoModal": {
         "aria": "Fereastră demo",
         "trackLabel": "Fără subtitrări disponibile",
-        "videoAria": "Video demo Monevo",
+        "videoAria": "Video demo Garzoni",
         "closeAria": "Închide fereastra demo",
         "title": "Vezi demo",
         "close": "Închide",
-        "subtitle": "Vezi cum Monevo te ajută să stăpânești finanțele. Urmărește demo-ul nostru interactiv pentru a explora platforma.",
+        "subtitle": "Vezi cum Garzoni te ajută să stăpânești finanțele. Urmărește demo-ul nostru interactiv pentru a explora platforma.",
         "startLearning": "Începe să înveți"
       }
     },
@@ -1990,7 +1990,7 @@
       "items": {
         "sarah": {
           "title": "Consultant financiar",
-          "quote": "Monevo mi-a transformat modul în care învăț despre finanțe. Cursurile interactive sunt captivante și practice."
+          "quote": "Garzoni mi-a transformat modul în care învăț despre finanțe. Cursurile interactive sunt captivante și practice."
         },
         "michael": {
           "title": "Antreprenor",
@@ -2019,11 +2019,11 @@
     },
     "privacy": {
       "title": "Politica de confidențialitate",
-      "intro": "Monevo este o platformă educațională. Această politică explică ce date personale colectăm, de ce le colectăm și drepturile tale. Este redactată în conformitate cu UK GDPR, cu UK Data Protection Act 2018 și, unde se aplică, cu Regulamentul (UE) 2016/679 pentru utilizatorii din SEE.",
+      "intro": "Garzoni este o platformă educațională. Această politică explică ce date personale colectăm, de ce le colectăm și drepturile tale. Este redactată în conformitate cu UK GDPR, cu UK Data Protection Act 2018 și, unde se aplică, cu Regulamentul (UE) 2016/679 pentru utilizatorii din SEE.",
       "sections": {
         "who": {
           "title": "1. Cine suntem",
-          "body": "Această politică se aplică aplicației web Monevo și serviciilor conexe („Serviciul”). În scopuri de protecție a datelor, operatorul este Monevo, Regatul Unit. Dacă te afli în SEE, putem acționa ca operator pentru datele prelucrate în legătură cu Serviciul."
+          "body": "Această politică se aplică aplicației web Garzoni și serviciilor conexe („Serviciul”). În scopuri de protecție a datelor, operatorul este Garzoni, Regatul Unit. Dacă te afli în SEE, putem acționa ca operator pentru datele prelucrate în legătură cu Serviciul."
         },
         "data": {
           "title": "2. Datele pe care le colectăm",
@@ -2146,7 +2146,7 @@
         },
         "children": {
           "title": "11. Copiii",
-          "body": "Monevo nu este destinat copiilor sub 16 ani. Dacă crezi că un copil a furnizat date personale, contactează-ne și vom investiga."
+          "body": "Garzoni nu este destinat copiilor sub 16 ani. Dacă crezi că un copil a furnizat date personale, contactează-ne și vom investiga."
         },
         "changes": {
           "title": "12. Modificări ale politicii",
@@ -2162,14 +2162,14 @@
     },
     "financialDisclaimer": {
       "title": "Declinare de responsabilitate financiară",
-      "intro": "Conținutul Monevo este doar în scopuri <strong>educaționale și informative</strong>. Această declinare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / SEE.",
+      "intro": "Conținutul Garzoni este doar în scopuri <strong>educaționale și informative</strong>. Această declinare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / SEE.",
       "sections": {
         "meaning": {
           "title": "Ce înseamnă asta",
           "items": {
             "general": "Conținutul este informațional și nu este adaptat circumstanțelor tale personale.",
             "noProfile": "Nu luăm în considerare întreaga ta situație financiară, toleranța la risc, orizontul de timp sau obiectivele de investiții.",
-            "noRecommendation": "Nimic de pe Monevo nu reprezintă o recomandare sau solicitare de a cumpăra, vinde, deține sau investi în vreun activ.",
+            "noRecommendation": "Nimic de pe Garzoni nu reprezintă o recomandare sau solicitare de a cumpăra, vinde, deține sau investi în vreun activ.",
             "examples": "Exemplele, scenariile sau rezultatele instrumentelor sunt ilustrative și pot folosi presupuneri care nu reflectă rezultate reale.",
             "pastPerformance": "Performanța trecută, datele istorice și rezultatele modelelor nu garantează rezultate viitoare."
           }
@@ -2259,11 +2259,11 @@
       "sections": {
         "agreement": {
           "title": "1. Acceptarea termenilor",
-          "body": "Prin crearea unui cont, accesarea sau utilizarea Monevo, accepți acești Termeni, <privacy>Politica de confidențialitate</privacy> și <cookie>Politica de cookie-uri</cookie>."
+          "body": "Prin crearea unui cont, accesarea sau utilizarea Garzoni, accepți acești Termeni, <privacy>Politica de confidențialitate</privacy> și <cookie>Politica de cookie-uri</cookie>."
         },
         "about": {
-          "title": "2. Ce este Monevo (și ce nu este)",
-          "body1": "Monevo este o platformă de educație financiară și suport decizional. Monevo nu este consultant financiar, consilier de investiții, broker sau fiduciary.",
+          "title": "2. Ce este Garzoni (și ce nu este)",
+          "body1": "Garzoni este o platformă de educație financiară și suport decizional. Garzoni nu este consultant financiar, consilier de investiții, broker sau fiduciary.",
           "body2": "Vezi <financial>Declinarea de responsabilitate financiară</financial>."
         },
         "security": {
@@ -2290,11 +2290,11 @@
         },
         "thirdParty": {
           "title": "7. Servicii și linkuri terțe",
-          "body": "Monevo poate integra sau oferi linkuri către servicii terțe. Nu suntem responsabili pentru conținutul, acuratețea, disponibilitatea sau practicile terților."
+          "body": "Garzoni poate integra sau oferi linkuri către servicii terțe. Nu suntem responsabili pentru conținutul, acuratețea, disponibilitatea sau practicile terților."
         },
         "ip": {
           "title": "8. Proprietate intelectuală",
-          "body": "Platforma, brandingul și conținutul original sunt deținute de Monevo sau licențiatori și sunt protejate de legile aplicabile. Primești o licență limitată, neexclusivă și revocabilă pentru utilizarea serviciului în scop personal și legal."
+          "body": "Platforma, brandingul și conținutul original sunt deținute de Garzoni sau licențiatori și sunt protejate de legile aplicabile. Primești o licență limitată, neexclusivă și revocabilă pentru utilizarea serviciului în scop personal și legal."
         },
         "disclaimers": {
           "title": "9. Declarații de exonerare",
@@ -2302,11 +2302,11 @@
         },
         "liability": {
           "title": "10. Limitarea răspunderii",
-          "body": "În măsura maximă permisă de lege, Monevo și afiliații săi nu sunt răspunzători pentru daune indirecte, incidentale, consecutive, speciale sau punitive, ori pentru pierderi de profit, venit, date, câștiguri din investiții sau oportunități de afaceri rezultate din utilizarea serviciului."
+          "body": "În măsura maximă permisă de lege, Garzoni și afiliații săi nu sunt răspunzători pentru daune indirecte, incidentale, consecutive, speciale sau punitive, ori pentru pierderi de profit, venit, date, câștiguri din investiții sau oportunități de afaceri rezultate din utilizarea serviciului."
         },
         "indemnity": {
           "title": "11. Despăgubiri",
-          "body": "Ești de acord să despăgubești și să exonerezi Monevo de pretenții, pierderi, răspunderi și cheltuieli rezultate din utilizarea necorespunzătoare a serviciului sau încălcarea acestor termeni."
+          "body": "Ești de acord să despăgubești și să exonerezi Garzoni de pretenții, pierderi, răspunderi și cheltuieli rezultate din utilizarea necorespunzătoare a serviciului sau încălcarea acestor termeni."
         },
         "termination": {
           "title": "12. Suspendare și încetare",
@@ -2328,16 +2328,16 @@
     },
     "noAdvice": {
       "title": "Notificare privind lipsa sfaturilor financiare",
-      "intro": "Monevo nu oferă sfaturi financiare, de investiții, fiscale sau juridice. Această notificare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / Spațiul Economic European.",
+      "intro": "Garzoni nu oferă sfaturi financiare, de investiții, fiscale sau juridice. Această notificare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / Spațiul Economic European.",
       "sections": {
         "regulatory": {
           "title": "Poziționare de reglementare",
           "items": {
-            "position": "Monevo este poziționat ca platformă de educație financiară și instrument informativ.",
-            "fca": "În UK: Monevo nu este autorizat de FCA să ofere consultanță de investiții reglementată.",
-            "euRegulation": "În UE/SEE: Monevo nu oferă sfaturi de investiții în sensul Directivelor 2014/65/UE (MiFID II) sau al legilor naționale echivalente.",
-            "noAdvisor": "Monevo nu acționează ca adviser financiar, consilier de investiții, broker sau fiduciary.",
-            "noRelationship": "Utilizarea Monevo nu creează o relație adviser-client sau fiduciary."
+            "position": "Garzoni este poziționat ca platformă de educație financiară și instrument informativ.",
+            "fca": "În UK: Garzoni nu este autorizat de FCA să ofere consultanță de investiții reglementată.",
+            "euRegulation": "În UE/SEE: Garzoni nu oferă sfaturi de investiții în sensul Directivelor 2014/65/UE (MiFID II) sau al legilor naționale echivalente.",
+            "noAdvisor": "Garzoni nu acționează ca adviser financiar, consilier de investiții, broker sau fiduciary.",
+            "noRelationship": "Utilizarea Garzoni nu creează o relație adviser-client sau fiduciary."
           }
         },
         "infer": {
