@@ -14,7 +14,7 @@ import {
   type Mission,
   type StreakItemDto,
   type UserProfile,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

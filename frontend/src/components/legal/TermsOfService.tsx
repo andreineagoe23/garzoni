@@ -77,9 +77,7 @@ const TermsOfService = () => {
       <h2>{t("legal.terms.sections.contact.title")}</h2>
       <p>
         {t("legal.terms.sections.contact.body")}{" "}
-        <a href="mailto:monevo.educational@gmail.com">
-          monevo.educational@gmail.com
-        </a>
+        <a href="mailto:hello@garzoni.app">hello@garzoni.app</a>
       </p>
     </LegalPageLayout>
   );

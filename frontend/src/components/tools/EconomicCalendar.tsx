@@ -6,7 +6,7 @@ import { recordToolEvent } from "services/toolsAnalytics";
 import { reportWidgetLoadError } from "../../sentry";
 import { Trans, useTranslation } from "react-i18next";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:calendar";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:calendar";
 
 const WIDGET_LOAD_TIMEOUT_MS = 15000;
 
@@ -122,7 +122,7 @@ const EconomicCalendar = () => {
 
   useEffect(() => {
     if (!loaded || typeof window === "undefined") return;
-    const key = "monevo:tools:completed:calendar";
+    const key = "garzoni:tools:completed:calendar";
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "true");
     if (typeof window.gtag === "function") {

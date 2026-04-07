@@ -1,1 +1,1 @@
-export { useOnlineSync } from "@monevo/core";
+export { useOnlineSync } from "@garzoni/core";

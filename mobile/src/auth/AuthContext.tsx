@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { attachToken } from "@monevo/core";
+import { attachToken } from "@garzoni/core";
 import { tokenStorage } from "./tokenStorage";
 
 type AuthSessionValue = {

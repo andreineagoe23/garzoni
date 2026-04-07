@@ -8,7 +8,7 @@ import {
   configureCloudinaryCloudName,
   configureHttpClient,
   refreshAccessToken,
-} from "@monevo/core";
+} from "@garzoni/core";
 import type { InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../auth/tokenStorage";
 import { resolveBackendUrlFromExpo } from "./resolveBackendUrl";
@@ -47,14 +47,14 @@ export function initHttpClientMobile() {
     const appEnv = process.env.EXPO_PUBLIC_APP_ENV?.trim().toLowerCase();
     if (appEnv === "development") {
       console.warn(
-        "[Monevo] EXPO_PUBLIC_BACKEND_URL is not set while EXPO_PUBLIC_APP_ENV=development. " +
+        "[Garzoni] EXPO_PUBLIC_BACKEND_URL is not set while EXPO_PUBLIC_APP_ENV=development. " +
           "Copy mobile/.env.example to .env.development.local, set EXPO_PUBLIC_BACKEND_URL " +
           "(e.g. http://127.0.0.1:8000/api for the iOS Simulator, http://<LAN-IP>:8000/api for a device + Docker, " +
           "http://10.0.2.2:8000/api for the Android emulator), then restart Expo with --clear."
       );
     } else {
       console.warn(
-        "[Monevo] EXPO_PUBLIC_BACKEND_URL is not set. API calls fall back to localhost and fail on real devices. " +
+        "[Garzoni] EXPO_PUBLIC_BACKEND_URL is not set. API calls fall back to localhost and fail on real devices. " +
           "Set it in mobile/.env (see mobile/.env.example). For EAS production builds, define it in EAS project secrets."
       );
     }

@@ -1,1 +1,1 @@
-export { useProgressSummaryQuery } from "@monevo/core";
+export { useProgressSummaryQuery } from "@garzoni/core";

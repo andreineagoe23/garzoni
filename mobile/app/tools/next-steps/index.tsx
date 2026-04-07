@@ -10,7 +10,7 @@ import {
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import { apiClient } from '@monevo/core';
+import { apiClient } from '@garzoni/core';
 import { useThemeColors } from '../../../src/theme/ThemeContext';
 import { spacing, typography, radius } from '../../../src/theme/tokens';
 import { DEMO_STEPS } from '../../../src/types/next-steps';

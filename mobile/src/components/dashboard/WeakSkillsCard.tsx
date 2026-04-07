@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { href } from "../../navigation/href";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMasterySummary, queryKeys, staleTimes } from "@monevo/core";
+import { fetchMasterySummary, queryKeys, staleTimes } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography, radius } from "../../theme/tokens";

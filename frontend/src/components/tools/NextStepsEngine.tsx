@@ -2,14 +2,14 @@ import React, { useMemo, useState } from "react";
 import { useAuth } from "contexts/AuthContext";
 import { recordToolEvent } from "services/toolsAnalytics";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:next-steps";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:next-steps";
 
 const TOOL_ACTIVITY_KEYS = [
-  "monevo:tools:activity:calendar",
-  "monevo:tools:activity:news-context",
-  "monevo:tools:activity:portfolio",
-  "monevo:tools:activity:reality-check",
-  "monevo:tools:activity:market-explorer",
+  "garzoni:tools:activity:calendar",
+  "garzoni:tools:activity:news-context",
+  "garzoni:tools:activity:portfolio",
+  "garzoni:tools:activity:reality-check",
+  "garzoni:tools:activity:market-explorer",
 ];
 
 const NextStepsEngine = () => {
@@ -49,11 +49,11 @@ const NextStepsEngine = () => {
 
     const portfolioRisk =
       typeof window !== "undefined"
-        ? sessionStorage.getItem("monevo:tools:signal:portfolio_risk")
+        ? sessionStorage.getItem("garzoni:tools:signal:portfolio_risk")
         : null;
     const newsBrowsing =
       typeof window !== "undefined"
-        ? sessionStorage.getItem("monevo:tools:activity:news-context")
+        ? sessionStorage.getItem("garzoni:tools:activity:news-context")
         : null;
 
     const candidates: Array<{
@@ -161,7 +161,7 @@ const NextStepsEngine = () => {
       ACTIVITY_STORAGE_KEY,
       JSON.stringify({ label: "Viewed next steps" })
     );
-    const key = "monevo:tools:completed:next-steps";
+    const key = "garzoni:tools:completed:next-steps";
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "true");
     if (typeof window.gtag === "function") {

@@ -4,7 +4,7 @@ import {
   queryKeys,
   respondToFriendRequest,
   type FriendRequestIncoming,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

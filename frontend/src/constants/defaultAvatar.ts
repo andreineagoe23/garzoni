@@ -1,4 +1,4 @@
-import monevoLogo from "assets/logo/monevo-logo-svg.svg";
+import garzoniLogo from "assets/logo/garzoni-logo-svg.svg";
 
-/** Default profile avatar (Monevo logo) when user has no custom avatar. */
-export const DEFAULT_AVATAR_URL = monevoLogo;
+/** Default profile avatar (Garzoni logo) when user has no custom avatar. */
+export const DEFAULT_AVATAR_URL = garzoniLogo;

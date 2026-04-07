@@ -1,4 +1,4 @@
-export const LANGUAGE_STORAGE_KEY = "monevo:lang";
+export const LANGUAGE_STORAGE_KEY = "garzoni:lang";
 
 export const DEFAULT_LANGUAGE = "en";
 

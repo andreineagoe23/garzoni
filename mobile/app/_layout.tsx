@@ -5,7 +5,7 @@ import Toast from "react-native-toast-message";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { I18nextProvider } from "react-i18next";
-import { i18n, queryClient } from "@monevo/core";
+import { i18n, queryClient } from "@garzoni/core";
 import { AuthProvider } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
 import { initI18nMobile } from "../src/bootstrap/i18nMobile";

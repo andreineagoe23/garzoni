@@ -1,11 +1,11 @@
 {
   "installCommand": "cd .. && corepack enable && pnpm install --frozen-lockfile",
-  "buildCommand": "cd .. && pnpm --filter @monevo/web build",
+  "buildCommand": "cd .. && pnpm --filter @garzoni/web build",
   "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://monevo-production-bc08.up.railway.app/api/:path*"
+      "destination": "https://garzoni-production.up.railway.app/api/:path*"
     },
     {
       "source": "/((?!api(?:/|$)).*)",

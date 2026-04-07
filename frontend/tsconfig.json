@@ -5,6 +5,14 @@
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "paths": {
+      "@garzoni/core/lib/createMutation": [
+        "../packages/core/src/lib/createMutation.ts"
+      ],
+      "@garzoni/core/lib/reactQuery": [
+        "../packages/core/src/lib/reactQuery.ts"
+      ],
+      "@garzoni/core/i18n": ["../packages/core/src/i18n/index.ts"],
+      "@garzoni/core": ["../packages/core/src/index.ts"],
       "App": ["src/App.tsx"],
       "routes/*": ["src/routes/*"],
       "bootstrap/*": ["src/bootstrap/*"],

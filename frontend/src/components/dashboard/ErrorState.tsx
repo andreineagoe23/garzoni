@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { GlassButton } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 /**
  * Error state component with retry functionality
@@ -32,7 +32,7 @@ export const ErrorState = ({
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl" aria-hidden="true">
-          <MonevoIcon name="warning" size={28} />
+          <GarzoniIcon name="warning" size={28} />
         </span>
         <div className="flex-1">
           <h3 className="text-base font-semibold text-[color:var(--error,#dc2626)] mb-1">

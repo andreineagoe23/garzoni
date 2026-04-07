@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { getUserLevel, type UserLevel } from "@monevo/core";
+import { getUserLevel, type UserLevel } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { ProgressBar } from "../ui";

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { FEATURE_COPY } from "services/entitlementsService";
 
 const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
@@ -86,7 +86,7 @@ const FeatureRow = ({
               : "bg-amber-50 text-amber-600"
           }`}
         >
-          <MonevoIcon
+          <GarzoniIcon
             name={userFeature?.enabled ? "check" : "lock"}
             size={16}
           />

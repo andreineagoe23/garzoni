@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { apiClient } from '@monevo/core';
+import { apiClient } from '@garzoni/core';
 import { useThemeColors } from '../../../src/theme/ThemeContext';
 import { spacing, typography, radius, shadows } from '../../../src/theme/tokens';
 import type { Asset, MarketTab, QuoteDetail } from '../../../src/types/market-explorer';

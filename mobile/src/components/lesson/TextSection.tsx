@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import RenderHTML from "react-native-render-html";
 import YoutubePlayer from "react-native-youtube-iframe";
-import { getMediaBaseUrl } from "@monevo/core";
+import { getMediaBaseUrl } from "@garzoni/core";
 import { spacing, typography } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";

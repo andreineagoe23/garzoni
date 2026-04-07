@@ -20,7 +20,7 @@ const FaYoutubeIcon = FaYoutube as React.ComponentType<{ size?: number }>;
 const FaLinkedinInIcon = FaLinkedinIn as React.ComponentType<{ size?: number }>;
 
 const BMC_BUTTON_IMG =
-  "https://img.buymeacoffee.com/button-api/?slug=monevo&button_colour=FFDD00&font_colour=000000&font_family=Cookie&text=Buy%20me%20a%20coffee&outline_colour=000000&coffee_colour=ffffff";
+  "https://img.buymeacoffee.com/button-api/?slug=garzoni&button_colour=FFDD00&font_colour=000000&font_family=Cookie&text=Buy%20me%20a%20coffee&outline_colour=000000&coffee_colour=ffffff";
 
 // We no longer need a flat links array because the footer is organized into
 // sections. Each section defines its own list of links below.
@@ -85,7 +85,7 @@ function Footer() {
             <div className="grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 lg:grid-cols-5">
               <div className="col-span-3 space-y-4 sm:col-span-3 lg:col-span-2">
                 <span className="footer-brand text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#ffd700)]">
-                  monevo
+                  Garzoni
                 </span>
                 <p className="footer-muted max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
                   {t("footer.tagline")}
@@ -141,29 +141,29 @@ function Footer() {
             <div className="flex flex-col items-center justify-between gap-3 pb-4 sm:flex-row sm:items-center">
               <div className="grid w-full max-w-sm grid-cols-3 justify-items-center gap-3 sm:w-auto sm:max-w-none sm:grid-cols-6 sm:justify-items-start">
                 <a
-                  href="https://www.tiktok.com/@monevo.educational"
+                  href="https://www.tiktok.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "TikTok" })}
+                  aria-label={t("footer.garzoniOn", { platform: "TikTok" })}
                 >
                   <FaTiktokIcon size={18} />
                 </a>
                 <a
-                  href="https://x.com/monevo_"
+                  href="https://x.com/garzoni_"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "X" })}
+                  aria-label={t("footer.garzoniOn", { platform: "X" })}
                 >
                   <FaXTwitterIcon size={18} />
                 </a>
                 <a
-                  href="https://www.instagram.com/monevo.educational/"
+                  href="https://www.instagram.com/garzoni.educational/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "Instagram" })}
+                  aria-label={t("footer.garzoniOn", { platform: "Instagram" })}
                 >
                   <FaInstagramIcon size={18} />
                 </a>
@@ -172,32 +172,32 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "Facebook" })}
+                  aria-label={t("footer.garzoniOn", { platform: "Facebook" })}
                 >
                   <FaFacebookFIcon size={18} />
                 </a>
                 <a
-                  href="https://www.youtube.com/@monevo.educational"
+                  href="https://www.youtube.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "YouTube" })}
+                  aria-label={t("footer.garzoniOn", { platform: "YouTube" })}
                 >
                   <FaYoutubeIcon size={18} />
                 </a>
                 <a
-                  href="https://www.linkedin.com/in/monevo-educational-3594283ab/"
+                  href="https://www.linkedin.com/company/garzoni"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
-                  aria-label={t("footer.monevoOn", { platform: "LinkedIn" })}
+                  aria-label={t("footer.garzoniOn", { platform: "LinkedIn" })}
                 >
                   <FaLinkedinInIcon size={18} />
                 </a>
               </div>
               <div className="flex shrink-0 justify-center sm:justify-end">
                 <a
-                  href="https://www.buymeacoffee.com/monevo"
+                  href="https://www.buymeacoffee.com/garzoni"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block transition opacity-90 hover:opacity-100"

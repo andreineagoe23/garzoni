@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 const STEPS: { percent: number; messageKey: string }[] = [
   { percent: 25, messageKey: "subscriptions.paymentSuccess.fetchingAnswers" },
@@ -76,7 +76,7 @@ const PaymentSuccessPage = () => {
     >
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 text-4xl">
-          <MonevoIcon name="check" size={28} />
+          <GarzoniIcon name="check" size={28} />
         </div>
         <h1 className="text-xl font-bold text-[color:var(--text-color,#111827)] sm:text-2xl">
           {t("subscriptions.paymentSuccess.title")}

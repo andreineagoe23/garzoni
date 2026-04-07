@@ -28,7 +28,7 @@ import {
   formatCurrency,
 } from "../../../types/portfolio";
 import type { NewEntryForm } from "../../../types/portfolio";
-import { apiClient } from "@monevo/core";
+import { apiClient } from "@garzoni/core";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP_PARTIAL = SCREEN_HEIGHT * 0.75;

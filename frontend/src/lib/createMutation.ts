@@ -1,1 +1,1 @@
-export * from "@monevo/core/lib/createMutation";
+export * from "@garzoni/core/lib/createMutation";

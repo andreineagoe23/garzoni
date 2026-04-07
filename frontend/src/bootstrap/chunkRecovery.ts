@@ -1,4 +1,4 @@
-const CHUNK_ERROR_KEY = "monevo-chunk-reloaded";
+const CHUNK_ERROR_KEY = "garzoni-chunk-reloaded";
 
 export const initChunkRecovery = () => {
   if (typeof window === "undefined") return;

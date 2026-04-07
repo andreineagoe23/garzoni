@@ -11,7 +11,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GlassButton, GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
@@ -478,7 +478,7 @@ const SubscriptionPlansPage = () => {
                 variant="ghost"
                 onClick={handleSubscriptionNavigate}
                 icon={
-                  <MonevoIcon
+                  <GarzoniIcon
                     name={subscriptionInfo.hasPaid ? "star" : "rocket"}
                     size={16}
                   />

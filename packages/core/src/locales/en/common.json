@@ -156,7 +156,7 @@
   },
   "welcome": {
     "referral": {
-      "title": "You were invited to Monevo",
+      "title": "You were invited to Garzoni",
       "body": "After you complete your first learning path, you and your friend will both receive 40% off the Plus plan by email.",
       "cta": "Start with your invite",
       "dismiss": "Maybe later"
@@ -492,7 +492,7 @@
         "title": "Economic calendar (embed)",
         "promise": "Browse a full economic calendar in an embedded view.",
         "description": "Third-party economic calendar with major releases (external provider).",
-        "mostUsefulFor": "Anyone who wants a dense calendar view alongside Monevo lessons.",
+        "mostUsefulFor": "Anyone who wants a dense calendar view alongside Garzoni lessons.",
         "whatItDoes": "Loads an external economic calendar inside the tool.",
         "sampleUseCase": "Scan this week's CPI, jobs, and rate events in one place.",
         "whoItsFor": "Learners who already use macro calendars elsewhere.",
@@ -1008,7 +1008,7 @@
       "downloadAllowance": "We couldn't verify your download allowance. Please try again."
     },
     "share": {
-      "title": "I just unlocked rewards on Monevo!",
+      "title": "I just unlocked rewards on Garzoni!",
       "text": "Check out my latest achievement.",
       "downloaded": "Share image downloaded. Post it anywhere!",
       "unavailable": "Unable to generate share image right now."
@@ -1421,7 +1421,7 @@
     },
     "forgotPassword": {
       "title": "Forgot Password",
-      "logoAlt": "Monevo logo",
+      "logoAlt": "Garzoni logo",
       "subtitle": "Enter your email address and we'll send you a link to reset your password.",
       "email": "Email",
       "emailPlaceholder": "Enter your email",
@@ -1516,7 +1516,7 @@
     "questionOf": "Question {{current}} of {{total}}",
     "tellUsAboutYourself": "Tell us about yourself",
     "answerFewQuestions": "Answer a few quick questions so we can tailor your learning experience.",
-    "noAdviceNotice": "I understand Monevo provides educational information only and does not provide financial advice.",
+    "noAdviceNotice": "I understand Garzoni provides educational information only and does not provide financial advice.",
     "financialDisclaimer": "Financial Disclaimer",
     "noFinancialAdvice": "No Financial Advice",
     "progress": "Progress",
@@ -1562,7 +1562,7 @@
   },
   "footer": {
     "tagline": "Learn money skills with lessons, missions, and practice.",
-    "disclaimer": "Educational platform only. Monevo does not provide financial advice.",
+    "disclaimer": "Educational platform only. Garzoni does not provide financial advice.",
     "legal": "Legal",
     "company": "Company",
     "product": "Product",
@@ -1581,10 +1581,10 @@
     "tools": "Tools",
     "leaderboards": "Leaderboards",
     "rewards": "Rewards",
-    "copyright": "© {{year}} Monevo. All rights reserved.",
+    "copyright": "© {{year}} Garzoni. All rights reserved.",
     "infoDisclaimer": "Information is educational and general, not personalized financial advice.",
     "buyMeACoffee": "Buy me a coffee",
-    "monevoOn": "Monevo on {{platform}}",
+    "garzoniOn": "Garzoni on {{platform}}",
     "ariaLabel": "Site footer",
     "cookieSettings": "Cookie settings",
     "backToWelcome": "Back to Welcome"
@@ -1922,11 +1922,11 @@
       "demoModal": {
         "aria": "Demo modal",
         "trackLabel": "No captions available",
-        "videoAria": "Monevo demo video",
+        "videoAria": "Garzoni demo video",
         "closeAria": "Close demo modal",
         "title": "Watch Demo",
         "close": "Close",
-        "subtitle": "See how Monevo can help you master finance. Watch our interactive demo to explore the platform.",
+        "subtitle": "See how Garzoni can help you master finance. Watch our interactive demo to explore the platform.",
         "startLearning": "Start Learning"
       }
     },
@@ -1990,7 +1990,7 @@
       "items": {
         "sarah": {
           "title": "Financial Advisor",
-          "quote": "Monevo has transformed how I learn about finance. The interactive courses are engaging and practical."
+          "quote": "Garzoni has transformed how I learn about finance. The interactive courses are engaging and practical."
         },
         "michael": {
           "title": "Entrepreneur",
@@ -2019,11 +2019,11 @@
     },
     "privacy": {
       "title": "Privacy Policy",
-      "intro": "Monevo is an educational platform. This policy explains what personal data we collect, why we collect it, and your rights. It is written to comply with the UK General Data Protection Regulation (UK GDPR), the UK Data Protection Act 2018, and where applicable the EU General Data Protection Regulation (Regulation (EU) 2016/679) for users in the European Economic Area.",
+      "intro": "Garzoni is an educational platform. This policy explains what personal data we collect, why we collect it, and your rights. It is written to comply with the UK General Data Protection Regulation (UK GDPR), the UK Data Protection Act 2018, and where applicable the EU General Data Protection Regulation (Regulation (EU) 2016/679) for users in the European Economic Area.",
       "sections": {
         "who": {
           "title": "1. Who we are",
-          "body": "This policy applies to the Monevo web app and related services (\"Service\"). For data protection purposes, the data controller is Monevo, United Kingdom. If you are in the European Economic Area (EEA), we may act as controller for personal data processed in connection with the Service."
+          "body": "This policy applies to the Garzoni web app and related services (\"Service\"). For data protection purposes, the data controller is Garzoni, United Kingdom. If you are in the European Economic Area (EEA), we may act as controller for personal data processed in connection with the Service."
         },
         "data": {
           "title": "2. Data we collect",
@@ -2146,7 +2146,7 @@
         },
         "children": {
           "title": "11. Children",
-          "body": "Monevo is not intended for children under 16. If you believe a child has provided personal data, contact us and we will investigate."
+          "body": "Garzoni is not intended for children under 16. If you believe a child has provided personal data, contact us and we will investigate."
         },
         "changes": {
           "title": "12. Changes to this policy",
@@ -2162,14 +2162,14 @@
     },
     "financialDisclaimer": {
       "title": "Financial Disclaimer",
-      "intro": "Monevo content is for <strong>educational and informational</strong> purposes only. This disclaimer applies to users in the United Kingdom and the European Union / European Economic Area.",
+      "intro": "Garzoni content is for <strong>educational and informational</strong> purposes only. This disclaimer applies to users in the United Kingdom and the European Union / European Economic Area.",
       "sections": {
         "meaning": {
           "title": "What this means",
           "items": {
             "general": "Content is general information and not tailored to your personal circumstances.",
             "noProfile": "We do not consider your full financial situation, risk tolerance, time horizon, or investment objectives.",
-            "noRecommendation": "Nothing on Monevo is a recommendation or solicitation to buy, sell, hold, or invest in any asset.",
+            "noRecommendation": "Nothing on Garzoni is a recommendation or solicitation to buy, sell, hold, or invest in any asset.",
             "examples": "Examples, scenarios, or tool outputs are illustrative and may use assumptions that do not match real-world outcomes.",
             "pastPerformance": "Past performance, historical data, and model outputs do not guarantee future results."
           }
@@ -2259,11 +2259,11 @@
       "sections": {
         "agreement": {
           "title": "1. Agreement to these terms",
-          "body": "By creating an account, accessing, or using Monevo, you agree to these Terms, our <privacy>Privacy Policy</privacy>, and our <cookie>Cookie Policy</cookie>."
+          "body": "By creating an account, accessing, or using Garzoni, you agree to these Terms, our <privacy>Privacy Policy</privacy>, and our <cookie>Cookie Policy</cookie>."
         },
         "about": {
-          "title": "2. What Monevo is (and is not)",
-          "body1": "Monevo is a financial education and decision-support platform. Monevo is not a financial adviser, investment adviser, broker, or fiduciary.",
+          "title": "2. What Garzoni is (and is not)",
+          "body1": "Garzoni is a financial education and decision-support platform. Garzoni is not a financial adviser, investment adviser, broker, or fiduciary.",
           "body2": "See our <financial>Financial Disclaimer</financial>."
         },
         "security": {
@@ -2290,11 +2290,11 @@
         },
         "thirdParty": {
           "title": "7. Third-party services and links",
-          "body": "Monevo may integrate with or link to third-party services. We are not responsible for third-party content, accuracy, availability, or practices."
+          "body": "Garzoni may integrate with or link to third-party services. We are not responsible for third-party content, accuracy, availability, or practices."
         },
         "ip": {
           "title": "8. Intellectual property",
-          "body": "The platform, branding, and original content are owned by Monevo or licensors and are protected by applicable intellectual property laws. You receive a limited, non-exclusive, revocable license to use the service for personal lawful use."
+          "body": "The platform, branding, and original content are owned by Garzoni or licensors and are protected by applicable intellectual property laws. You receive a limited, non-exclusive, revocable license to use the service for personal lawful use."
         },
         "disclaimers": {
           "title": "9. Disclaimers",
@@ -2302,11 +2302,11 @@
         },
         "liability": {
           "title": "10. Limitation of liability",
-          "body": "To the maximum extent permitted by law, Monevo and its affiliates are not liable for indirect, incidental, consequential, special, or punitive damages, or for loss of profits, revenue, data, investment gains, or business opportunities arising from use of the service."
+          "body": "To the maximum extent permitted by law, Garzoni and its affiliates are not liable for indirect, incidental, consequential, special, or punitive damages, or for loss of profits, revenue, data, investment gains, or business opportunities arising from use of the service."
         },
         "indemnity": {
           "title": "11. Indemnity",
-          "body": "You agree to indemnify and hold harmless Monevo from claims, losses, liabilities, and expenses arising out of your misuse of the service or breach of these terms."
+          "body": "You agree to indemnify and hold harmless Garzoni from claims, losses, liabilities, and expenses arising out of your misuse of the service or breach of these terms."
         },
         "termination": {
           "title": "12. Suspension and termination",
@@ -2328,16 +2328,16 @@
     },
     "noAdvice": {
       "title": "No Financial Advice Notice",
-      "intro": "Monevo does not provide financial, investment, tax, or legal advice. This notice applies to users in the United Kingdom and the European Union / European Economic Area.",
+      "intro": "Garzoni does not provide financial, investment, tax, or legal advice. This notice applies to users in the United Kingdom and the European Union / European Economic Area.",
       "sections": {
         "regulatory": {
           "title": "Regulatory position",
           "items": {
-            "position": "Monevo is positioned as a financial education platform and information tool.",
-            "fca": "In the UK: Monevo is not authorised by the Financial Conduct Authority (FCA) to provide regulated investment advice.",
-            "euRegulation": "In the EU/EEA: Monevo does not provide investment advice as defined under Directive 2014/65/EU (MiFID II) or equivalent national law.",
-            "noAdvisor": "Monevo does not act as your financial adviser, investment adviser, broker, or fiduciary.",
-            "noRelationship": "Use of Monevo does not create an adviser-client or fiduciary relationship."
+            "position": "Garzoni is positioned as a financial education platform and information tool.",
+            "fca": "In the UK: Garzoni is not authorised by the Financial Conduct Authority (FCA) to provide regulated investment advice.",
+            "euRegulation": "In the EU/EEA: Garzoni does not provide investment advice as defined under Directive 2014/65/EU (MiFID II) or equivalent national law.",
+            "noAdvisor": "Garzoni does not act as your financial adviser, investment adviser, broker, or fiduciary.",
+            "noRelationship": "Use of Garzoni does not create an adviser-client or fiduciary relationship."
           }
         },
         "infer": {

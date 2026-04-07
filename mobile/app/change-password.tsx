@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { changePassword } from "@monevo/core";
+import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
 import { colors, spacing, typography, radius } from "../src/theme/tokens";
 

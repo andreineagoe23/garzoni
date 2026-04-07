@@ -14,7 +14,7 @@ import { router, Stack } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
-import { submitFeedback, type FeedbackPayload } from "@monevo/core";
+import { submitFeedback, type FeedbackPayload } from "@garzoni/core";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
@@ -40,7 +40,7 @@ export default function FeedbackScreen() {
       Toast.show({
         type: "success",
         text1: "Feedback sent!",
-        text2: "Thanks for helping us improve Monevo.",
+        text2: "Thanks for helping us improve Garzoni.",
       });
       router.back();
     },

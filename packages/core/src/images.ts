@@ -15,7 +15,7 @@ function getCloudName(): string {
   );
 }
 
-/** Build a Cloudinary delivery URL. `publicId` uses folder/id form, e.g. `monevo/login-bg`. */
+/** Build a Cloudinary delivery URL. `publicId` uses folder/id form, e.g. `garzoni/login-bg`. */
 export function cloudinaryImageUrl(
   publicId: string,
   transforms = "f_auto,q_auto"
@@ -27,41 +27,41 @@ export function cloudinaryImageUrl(
 }
 
 /**
- * Shared marketing / auth image URLs (upload public IDs under `monevo/` in Cloudinary).
+ * Shared marketing / auth image URLs (upload public IDs under `garzoni/` in Cloudinary).
  * Set `VITE_CLOUDINARY_CLOUD_NAME` (web) or `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` (native).
  */
 export const Images = {
   get loginBg() {
-    return cloudinaryImageUrl("monevo/login-bg", "f_auto,q_auto,w_1200");
+    return cloudinaryImageUrl("garzoni/login-bg", "f_auto,q_auto,w_1200");
   },
   get registerBg() {
-    return cloudinaryImageUrl("monevo/register-bg", "f_auto,q_auto,w_1200");
+    return cloudinaryImageUrl("garzoni/register-bg", "f_auto,q_auto,w_1200");
   },
   get basicFinance() {
-    return cloudinaryImageUrl("monevo/basicfinance", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/basicfinance", "f_auto,q_auto,w_800");
   },
   get crypto() {
-    return cloudinaryImageUrl("monevo/crypto", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/crypto", "f_auto,q_auto,w_800");
   },
   get forex() {
-    return cloudinaryImageUrl("monevo/forex", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/forex", "f_auto,q_auto,w_800");
   },
   get mindset() {
-    return cloudinaryImageUrl("monevo/mindset", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/mindset", "f_auto,q_auto,w_800");
   },
   get personalFinance() {
-    return cloudinaryImageUrl("monevo/personalfinance", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/personalfinance", "f_auto,q_auto,w_800");
   },
   get realEstate() {
-    return cloudinaryImageUrl("monevo/realestate", "f_auto,q_auto,w_800");
+    return cloudinaryImageUrl("garzoni/realestate", "f_auto,q_auto,w_800");
   },
   get mobile1() {
-    return cloudinaryImageUrl("monevo/mobile-1", "f_auto,q_auto,w_600");
+    return cloudinaryImageUrl("garzoni/mobile-1", "f_auto,q_auto,w_600");
   },
   get mobile2() {
-    return cloudinaryImageUrl("monevo/mobile-2", "f_auto,q_auto,w_600");
+    return cloudinaryImageUrl("garzoni/mobile-2", "f_auto,q_auto,w_600");
   },
   get mobile3() {
-    return cloudinaryImageUrl("monevo/mobile-3", "f_auto,q_auto,w_600");
+    return cloudinaryImageUrl("garzoni/mobile-3", "f_auto,q_auto,w_600");
   },
 } as const;

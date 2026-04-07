@@ -2,5 +2,5 @@ export type {
   MascotMood,
   MascotType,
   UseMascotMessageOptions,
-} from "@monevo/core";
-export { useMascotMessage } from "@monevo/core";
+} from "@garzoni/core";
+export { useMascotMessage } from "@garzoni/core";

@@ -16,7 +16,7 @@ type AdminContextValue = {
 
 const AdminContext = createContext<AdminContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "monevo:admin-mode";
+const STORAGE_KEY = "garzoni:admin-mode";
 
 export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();

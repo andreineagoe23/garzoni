@@ -21,7 +21,7 @@ import {
   queryKeys,
   staleTimes,
   type Entitlements,
-} from "@monevo/core";
+} from "@garzoni/core";
 import GlassButton from "../src/components/ui/GlassButton";
 import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
@@ -30,10 +30,10 @@ import { getRevenueCatPurchases } from "../src/billing/safeRevenueCat";
 import { href } from "../src/navigation/href";
 
 const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
-  "tech.monevo.app.plus_monthly": "plus",
-  "tech.monevo.app.plus_yearly": "plus",
-  "tech.monevo.app.pro_monthly": "pro",
-  "tech.monevo.app.pro_yearly": "pro",
+  "tech.garzoni.app.plus_monthly": "plus",
+  "tech.garzoni.app.plus_yearly": "plus",
+  "tech.garzoni.app.pro_monthly": "pro",
+  "tech.garzoni.app.pro_yearly": "pro",
 };
 
 let revenueCatConfigured = false;

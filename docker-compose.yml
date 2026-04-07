@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILD_SRC: "."
-    image: monevo-backend:latest
+    image: garzoni-backend:latest
     restart: unless-stopped
     env_file:
       - ./backend/.env
@@ -64,7 +64,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILD_SRC: "."
-    image: monevo-backend:latest
+    image: garzoni-backend:latest
     restart: unless-stopped
     profiles:
       - celery
@@ -88,7 +88,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILD_SRC: "."
-    image: monevo-backend:latest
+    image: garzoni-backend:latest
     restart: unless-stopped
     profiles:
       - celery

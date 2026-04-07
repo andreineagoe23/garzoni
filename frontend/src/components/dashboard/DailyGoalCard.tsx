@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 type DailyGoalCardProps = {
   dailyGoalProgress: number;
@@ -24,7 +24,7 @@ const DailyGoalCard = ({
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MonevoIcon
+          <GarzoniIcon
             name="target"
             size={20}
             className="text-[color:var(--primary,#1d5330)]"

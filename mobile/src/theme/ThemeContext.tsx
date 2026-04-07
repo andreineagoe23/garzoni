@@ -11,7 +11,7 @@ import { Appearance, useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { darkPalette, lightPalette, type ThemeColors } from "./palettes";
 
-const STORAGE_KEY = "monevo:theme";
+const STORAGE_KEY = "garzoni:theme";
 
 export type ThemeMode = "light" | "dark" | "system";
 

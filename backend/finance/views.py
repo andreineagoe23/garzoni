@@ -91,8 +91,8 @@ NEWS_FEEDS = [
 SOURCE_LOGO_FALLBACK = {f["name"]: f.get("logo_url") for f in NEWS_FEEDS if f.get("logo_url")}
 
 NEWS_FEED_TIMEOUT_SECONDS = 8
-NEWS_CACHE_KEY = "monevo:news-feed:v1"
-NEWS_LAST_GOOD_CACHE_KEY = "monevo:news-feed:last-good"
+NEWS_CACHE_KEY = "garzoni:news-feed:v1"
+NEWS_LAST_GOOD_CACHE_KEY = "garzoni:news-feed:last-good"
 NEWS_CACHE_TTL_SECONDS = 60 * 3  # 3 min for fresher updates
 
 NEWS_CATEGORY_KEYWORDS = {

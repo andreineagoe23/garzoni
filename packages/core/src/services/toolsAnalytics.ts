@@ -5,7 +5,7 @@ export type ToolAnalyticsEvent = {
   meta?: Record<string, unknown>;
 };
 
-const STORAGE_KEY = "monevo:tools:analytics";
+const STORAGE_KEY = "garzoni:tools:analytics";
 
 type AnalyticsState = {
   counts: Record<string, { total: number; byTool: Record<string, number> }>;

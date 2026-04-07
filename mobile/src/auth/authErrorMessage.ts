@@ -1,4 +1,4 @@
-import { getBackendUrl } from "@monevo/core";
+import { getBackendUrl } from "@garzoni/core";
 
 /** User-facing message for password / register failures (includes offline / wrong API URL). */
 export function formatAuthRequestError(

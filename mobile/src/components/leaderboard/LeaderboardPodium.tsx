@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import type { LeaderboardEntry } from "@monevo/core";
+import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";

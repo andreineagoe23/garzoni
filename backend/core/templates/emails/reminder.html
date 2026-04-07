@@ -1,6 +1,6 @@
 {% extends "emails/_base.html" %}
 
-{% block title %}Your Monevo reminder{% endblock %}
+{% block title %}Your Garzoni reminder{% endblock %}
 {% block header %}Your {{ frequency|default:"weekly" }} reminder{% endblock %}
 {% block preheader %}A quick nudge to keep your learning streak alive.{% endblock %}
 
@@ -16,7 +16,7 @@
   <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 18px 0;">
     <tr>
       <td>
-        <a href="{{ app_url|default:'https://monevo.tech' }}"
+        <a href="{{ app_url|default:'https://garzoni.app' }}"
            style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;padding:12px 16px;border-radius:12px;">
           Continue learning
         </a>

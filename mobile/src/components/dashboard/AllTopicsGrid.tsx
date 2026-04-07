@@ -17,7 +17,7 @@ import {
   Images,
   queryKeys,
   staleTimes,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../auth/AuthContext";
 import { unwrapApiList } from "../../lib/unwrapApiList";

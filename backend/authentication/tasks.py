@@ -40,8 +40,8 @@ def _send_reminder_email(profile: UserProfile, frequency: str, now=None):
     context = {
         "user": profile.user,
         "frequency": frequency,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
-        "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/settings",
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+        "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/settings",
         "unsubscribe_link": f"{api_base}/email/unsubscribe/?token={profile.get_unsubscribe_token()}",
         "year": now.year,
     }
@@ -84,13 +84,13 @@ def _send_weekly_digest_email(profile: UserProfile, now=None):
         "coins_earned_this_week": 0,
         "coins_spent_this_week": coins_spent,
         "recommended_next_lesson": "Continue where you left off in your latest lesson.",
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
-        "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/dashboard",
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+        "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/dashboard",
         "year": now.year,
     }
     html_message = render_to_string("emails/weekly_digest.html", context)
     send_mail(
-        "Your Weekly Monevo Progress Digest",
+        "Your Weekly Garzoni Progress Digest",
         strip_tags(html_message),
         settings.DEFAULT_FROM_EMAIL,
         [profile.user.email],
@@ -198,7 +198,7 @@ def send_trial_ending_reminder(self):
             context = {
                 "display_name": display_name,
                 "trial_end_str": trial_end_str,
-                "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/billing",
+                "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing",
             }
             html_message = render_to_string("emails/trial_ending.html", context)
             send_mail(
@@ -251,7 +251,7 @@ def send_subscription_cancelled_email(
         context = {
             "display_name": display_name,
             "access_until_str": access_until_str,
-            "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/billing",
+            "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing",
             "year": timezone.now().year,
         }
         html_message = render_to_string("emails/subscription_cancelled.html", context)
@@ -284,12 +284,12 @@ def send_welcome_email(self, user_id: int):
     display_name = normalize_display_string(user.first_name or user.username or "there")
     context = {
         "display_name": display_name,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
     html_message = render_to_string("emails/welcome.html", context)
     send_mail(
-        "Welcome to Monevo",
+        "Welcome to Garzoni",
         strip_tags(html_message),
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
@@ -318,7 +318,7 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
             referred.first_name or referred.username or "your friend"
         ),
         "bonus_coins": 10,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
     referred_context = {
@@ -329,7 +329,7 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
             referrer.first_name or referrer.username or "your friend"
         ),
         "bonus_coins": 5,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
 
@@ -339,7 +339,7 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
     html_referrer = render_to_string("emails/referral_reward_referrer.html", referrer_context)
     if not referrer_prefs or referrer_prefs.reminders:
         send_mail(
-            "Your friend joined Monevo! You earned bonus coins",
+            "Your friend joined Garzoni! You earned bonus coins",
             strip_tags(html_referrer),
             settings.DEFAULT_FROM_EMAIL,
             [referrer.email],
@@ -374,7 +374,7 @@ def send_streak_broken_email(self, user_id: int, streak_count: int):
     context = {
         "display_name": normalize_display_string(user.first_name or user.username or "there"),
         "streak_count": streak_count,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://monevo.tech"),
+        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
     html_message = render_to_string("emails/streak_broken.html", context)
@@ -428,7 +428,7 @@ def send_renewal_reminder(self):
                     profile.user.first_name or profile.user.username or "there"
                 ),
                 "renewal_date": renewal_dt.strftime("%B %d, %Y"),
-                "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://monevo.tech').rstrip('/')}/billing",
+                "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing",
                 "year": timezone.now().year,
             }
             html_message = render_to_string("emails/renewal_reminder.html", context)

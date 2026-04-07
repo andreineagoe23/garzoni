@@ -21,7 +21,7 @@ import LanguageSelector from "components/common/LanguageSelector";
 import { UserProfile } from "types/api";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { useTranslation } from "react-i18next";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 const NAV_ITEMS = [
   { path: "/all-topics", key: "nav.dashboard", icon: "🏠", label: "Dashboard" },
@@ -238,7 +238,7 @@ function Navbar() {
                 className="app-navbar__brand relative z-10 text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:opacity-90 hover:no-underline touch-manipulation sm:text-lg"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
-                Monevo
+                Garzoni
               </NavLink>
             </div>
           </div>
@@ -261,7 +261,7 @@ function Navbar() {
                     }
                     style={{ WebkitTapHighlightColor: "transparent" }}
                   >
-                    <MonevoIcon
+                    <GarzoniIcon
                       name={item.icon}
                       size={16}
                       className="shrink-0 text-inherit"
@@ -372,7 +372,7 @@ function Navbar() {
                           className={menuRowClass}
                           onClick={handleProfileClick}
                         >
-                          <MonevoIcon
+                          <GarzoniIcon
                             name="👤"
                             size={18}
                             className="shrink-0 text-inherit"
@@ -385,7 +385,7 @@ function Navbar() {
                           className={menuRowClass}
                           onClick={handleSettingsClick}
                         >
-                          <MonevoIcon
+                          <GarzoniIcon
                             name="⚙️"
                             size={18}
                             className="shrink-0 text-inherit"
@@ -439,7 +439,7 @@ function Navbar() {
               aria-label={t("nav.ariaToggleMenu")}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              <MonevoIcon
+              <GarzoniIcon
                 name={menuOpen ? "xmark" : "bars"}
                 size={20}
                 className="text-inherit sm:h-[22px] sm:w-[22px]"
@@ -469,7 +469,7 @@ function Navbar() {
                 onClick={closeMenu}
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
-                <MonevoIcon
+                <GarzoniIcon
                   name={item.icon}
                   size={16}
                   className="shrink-0 text-inherit"

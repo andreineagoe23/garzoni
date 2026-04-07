@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "contexts/AdminContext";
 import { GlassButton, GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
 import { fetchFunnelMetrics } from "services/analyticsService";
 import { queryKeys } from "lib/reactQuery";
@@ -86,7 +86,7 @@ const PricingFunnelDashboard = () => {
           </div>
           <GlassButton
             icon={
-              <MonevoIcon name={isFetching ? "hourglass" : "sync"} size={16} />
+              <GarzoniIcon name={isFetching ? "hourglass" : "sync"} size={16} />
             }
             onClick={() => refetch()}
             variant="ghost"

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { QuestionnaireQuestion } from "@monevo/core";
+import type { QuestionnaireQuestion } from "@garzoni/core";
 import { colors, radius, shadows, spacing, typography } from "../../../theme/tokens";
 
 type Props = {

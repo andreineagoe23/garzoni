@@ -20,7 +20,7 @@ import {
   purchaseReward,
   queryKeys,
   staleTimes,
-} from "@monevo/core";
+} from "@garzoni/core";
 import RewardCard, { type RewardItem } from "../src/components/rewards/RewardCard";
 import BadgeGrid from "../src/components/rewards/BadgeGrid";
 import XPProgressCard from "../src/components/rewards/XPProgressCard";

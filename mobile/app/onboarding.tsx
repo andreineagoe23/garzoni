@@ -24,7 +24,7 @@ import {
   abandonQuestionnaire,
   type QuestionnaireQuestion,
   type NextQuestionResponse,
-} from "@monevo/core";
+} from "@garzoni/core";
 import { Button, ProgressBar } from "../src/components/ui";
 import OnboardingIntroPager from "../src/components/onboarding/steps/OnboardingIntroPager";
 import OnboardingCompletionOverlay from "../src/components/onboarding/steps/OnboardingCompletionOverlay";
@@ -34,7 +34,7 @@ import QuestionnaireTextAnswer from "../src/components/onboarding/steps/Question
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { colors, spacing, typography, radius, shadows } from "../src/theme/tokens";
 
-const INTRO_STORAGE_KEY = "monevo:onboarding_intro_v1";
+const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
 function useSlideAnim() {
   const anim = useRef(new Animated.Value(0)).current;

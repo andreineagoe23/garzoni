@@ -3,12 +3,12 @@ import { useTranslation } from "react-i18next";
 import { GlassButton, GlassCard } from "components/ui";
 import { useAuth } from "contexts/AuthContext";
 const CHECKOUT_URL =
-  import.meta.env.VITE_CHECKOUT_URL || "https://pay.monevo.app/checkout";
+  import.meta.env.VITE_CHECKOUT_URL || "https://pay.garzoni.app/checkout";
 
 const canSendAnalytics = () =>
   typeof window !== "undefined" &&
   typeof window.gtag === "function" &&
-  window.__MONEVO_CONSENT__?.analytics;
+  window.__GARZONI_CONSENT__?.analytics;
 
 const trackPremiumEvent = (
   eventName: string,
@@ -31,7 +31,7 @@ const PremiumUpsellPanel = () => {
   const appOrigin =
     typeof window !== "undefined"
       ? window.location.origin
-      : "https://app.monevo.com";
+      : "https://app.garzoni.app";
 
   useEffect(() => {
     let cancelled = false;

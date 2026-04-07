@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
-import { appleVerifyIdentity, getBackendUrl } from "@monevo/core";
+import { appleVerifyIdentity, getBackendUrl } from "@garzoni/core";
 import type { SocialAuthSuccessMeta } from "./GoogleSignInButton";
 
 type Props = {

@@ -59,7 +59,7 @@ function Header() {
             to="/"
             className="text-[15px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-color,#111827)] no-underline transition hover:opacity-90 hover:no-underline sm:text-lg"
           >
-            monevo
+            garzoni
           </Link>
 
           {isInitialized && isAuthenticated && (

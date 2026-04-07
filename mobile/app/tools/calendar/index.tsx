@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { Stack } from 'expo-router';
-import { apiClient } from '@monevo/core';
+import { apiClient } from '@garzoni/core';
 import { useThemeColors } from '../../../src/theme/ThemeContext';
 import { spacing, typography, radius } from '../../../src/theme/tokens';
 import {

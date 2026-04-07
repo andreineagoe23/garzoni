@@ -29,7 +29,7 @@ type TrackFn = (
   metadata?: Record<string, unknown>
 ) => void;
 
-const COLLAPSED_INTENT_STORAGE_KEY = "monevo_exercise_collapsed_intent_v1";
+const COLLAPSED_INTENT_STORAGE_KEY = "garzoni_exercise_collapsed_intent_v1";
 
 type UseExerciseSkillIntentParams = {
   categories: string[];

@@ -62,7 +62,7 @@ class ErrorBoundary extends React.Component<
     if (!isChunkLoadError) return;
 
     try {
-      const key = "monevo_chunkload_recovered_v1";
+      const key = "garzoni_chunkload_recovered_v1";
       if (sessionStorage.getItem(key) === "1") return;
       sessionStorage.setItem(key, "1");
 

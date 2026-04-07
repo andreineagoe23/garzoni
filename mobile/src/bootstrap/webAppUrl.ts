@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import { getBackendUrl } from "@monevo/core";
+import { getBackendUrl } from "@garzoni/core";
 
 /**
  * Base origin for loading web-only routes (tools, legal) in a WebView.

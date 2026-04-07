@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { Link, router } from "expo-router";
-import { obtainTokenPair, registerSecure } from "@monevo/core";
+import { obtainTokenPair, registerSecure } from "@garzoni/core";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
 import { formatAuthRequestError } from "../../src/auth/authErrorMessage";

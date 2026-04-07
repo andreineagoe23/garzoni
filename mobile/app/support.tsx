@@ -13,7 +13,7 @@ import {
   fetchSupportEntries,
   postContactForm,
   type SupportEntry,
-} from "@monevo/core";
+} from "@garzoni/core";
 import GlassButton from "../src/components/ui/GlassButton";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";

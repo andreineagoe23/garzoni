@@ -32,7 +32,7 @@ describe("HeroSection demo modal", () => {
     const preloadVideo = screen.getByTestId("hero-demo-preload-video");
     expect(preloadVideo).toHaveAttribute(
       "src",
-      "http://localhost:8000/media/welcome/monevo-demo.mp4"
+      "http://localhost:8000/media/welcome/garzoni-demo.mp4"
     );
   });
 
@@ -50,7 +50,7 @@ describe("HeroSection demo modal", () => {
     const modalVideo = screen.getByLabelText(/demo video/i);
     expect(modalVideo).toHaveAttribute(
       "src",
-      "http://localhost:8000/media/welcome/monevo-demo.mp4"
+      "http://localhost:8000/media/welcome/garzoni-demo.mp4"
     );
   });
 });

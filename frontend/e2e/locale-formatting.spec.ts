@@ -11,7 +11,7 @@ test.describe("Locale formatting", () => {
   test("formats currency correctly in English", async ({ page }) => {
     // Set language to English
     await page.evaluate(() => {
-      localStorage.setItem("monevo:lang", "en");
+      localStorage.setItem("garzoni:lang", "en");
       window.location.reload();
     });
     await page.waitForLoadState("networkidle");
@@ -25,7 +25,7 @@ test.describe("Locale formatting", () => {
   test("formats currency correctly in Spanish", async ({ page }) => {
     // Set language to Spanish
     await page.evaluate(() => {
-      localStorage.setItem("monevo:lang", "es");
+      localStorage.setItem("garzoni:lang", "es");
       window.location.reload();
     });
     await page.waitForLoadState("networkidle");
@@ -37,7 +37,7 @@ test.describe("Locale formatting", () => {
   test("switches language and preserves formatting", async ({ page }) => {
     // Start in English
     await page.evaluate(() => {
-      localStorage.setItem("monevo:lang", "en");
+      localStorage.setItem("garzoni:lang", "en");
     });
     await page.reload();
     await page.waitForLoadState("networkidle");
@@ -47,7 +47,7 @@ test.describe("Locale formatting", () => {
 
     // Switch to Spanish
     await page.evaluate(() => {
-      localStorage.setItem("monevo:lang", "es");
+      localStorage.setItem("garzoni:lang", "es");
       window.location.reload();
     });
     await page.waitForLoadState("networkidle");

@@ -9,9 +9,9 @@ type MascotMediaProps = {
 };
 
 const MASCOT_FILES: Record<MascotType, { file: string; alt: string }> = {
-  owl: { file: "monevo-owl.png", alt: "Owl mascot" },
-  bull: { file: "monevo-bull.png", alt: "Bull mascot" },
-  bear: { file: "monevo-bear.png", alt: "Bear mascot" },
+  owl: { file: "garzoni-owl.png", alt: "Owl mascot" },
+  bull: { file: "garzoni-bull.png", alt: "Bull mascot" },
+  bear: { file: "garzoni-bear.png", alt: "Bear mascot" },
 };
 
 const MascotMedia = ({ mascot, className }: MascotMediaProps) => {

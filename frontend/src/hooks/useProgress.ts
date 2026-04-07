@@ -1,1 +1,1 @@
-export { useProgress } from "@monevo/core";
+export { useProgress } from "@garzoni/core";

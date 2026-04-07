@@ -13,7 +13,7 @@ describe("ReferralLink", () => {
     delete (window as Window & typeof globalThis).location;
     (window as Window & typeof globalThis).location = {
       ...originalLocation,
-      origin: "https://app.monevo.com",
+      origin: "https://app.garzoni.app",
     };
   });
 
@@ -30,7 +30,7 @@ describe("ReferralLink", () => {
     );
 
     const input = screen.getByLabelText(/Referral link/i) as HTMLInputElement;
-    expect(input.value).toBe("https://app.monevo.com/welcome?ref=TEST-CODE");
+    expect(input.value).toBe("https://app.garzoni.app/welcome?ref=TEST-CODE");
   });
 
   it("copies the referral link to clipboard when clicking copy", () => {
@@ -51,7 +51,7 @@ describe("ReferralLink", () => {
     fireEvent.click(button);
 
     expect(writeText).toHaveBeenCalledWith(
-      "https://app.monevo.com/welcome?ref=FRIEND-123"
+      "https://app.garzoni.app/welcome?ref=FRIEND-123"
     );
   });
 });

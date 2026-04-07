@@ -1,7 +1,7 @@
 import React from "react";
 import { GlassCard } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
-import type { Mission } from "@monevo/core";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
+import type { Mission } from "@garzoni/core";
 import CoinStack from "./CoinStack";
 import FactCard from "./FactCard";
 
@@ -135,7 +135,7 @@ const MissionCard = ({
             <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
               {isCompleted ? (
                 <span className="inline-flex items-center gap-2">
-                  <MonevoIcon
+                  <GarzoniIcon
                     name="sparkles"
                     size={14}
                     className="text-[color:var(--accent,#111827)]"

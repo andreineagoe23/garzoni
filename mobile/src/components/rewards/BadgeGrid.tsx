@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
-import type { BadgeCatalogItem, UserBadgeItem } from "@monevo/core";
-import { getMediaBaseUrl } from "@monevo/core";
+import type { BadgeCatalogItem, UserBadgeItem } from "@garzoni/core";
+import { getMediaBaseUrl } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";

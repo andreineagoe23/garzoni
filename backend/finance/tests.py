@@ -44,7 +44,7 @@ class NewsFeedViewTest(APITestCase):
             ],
             "generated_at": "2024-01-01T12:00:00Z",
         }
-        cache.set("monevo:news-feed:last-good", last_good, timeout=3600)
+        cache.set("garzoni:news-feed:last-good", last_good, timeout=3600)
         with patch("finance.views.requests.get") as mock_get:
             mock_get.side_effect = Exception("timeout")
             url = reverse("news-feed")

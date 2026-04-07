@@ -11,7 +11,7 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { getBackendUrl, googleVerifyCredential } from "@monevo/core";
+import { getBackendUrl, googleVerifyCredential } from "@garzoni/core";
 import {
   getGoogleIosClientId,
   getGoogleWebClientId,

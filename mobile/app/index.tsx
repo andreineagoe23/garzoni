@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthSession } from "../src/auth/AuthContext";
-import { fetchQuestionnaireProgress } from "@monevo/core";
+import { fetchQuestionnaireProgress } from "@garzoni/core";
 import { colors } from "../src/theme/tokens";
 
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";

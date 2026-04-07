@@ -144,7 +144,7 @@ class UserProfile(models.Model):
         """
         return signing.dumps(
             {"profile_id": self.pk},
-            salt="monevo.email.unsubscribe",
+            salt="garzoni.email.unsubscribe",
         )
 
     class Meta:

@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { requestPasswordReset } from "@monevo/core";
+import { requestPasswordReset } from "@garzoni/core";
 import { Button, FormInput } from "../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../src/theme/tokens";
 

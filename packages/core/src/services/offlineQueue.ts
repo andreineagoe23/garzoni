@@ -3,7 +3,7 @@
  * Queues mission completions when offline and syncs when back online.
  */
 
-const OFFLINE_QUEUE_KEY = "monevo:mission-offline-queue";
+const OFFLINE_QUEUE_KEY = "garzoni:mission-offline-queue";
 const MAX_QUEUE_SIZE = 50;
 
 export type OfflineMission = {

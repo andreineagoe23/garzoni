@@ -1,1 +1,1 @@
-export { useRetry } from "@monevo/core";
+export { useRetry } from "@garzoni/core";

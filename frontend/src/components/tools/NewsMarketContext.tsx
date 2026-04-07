@@ -3,7 +3,7 @@ import { useTheme } from "contexts/ThemeContext";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { reportWidgetLoadError } from "../../sentry";
 
-const ACTIVITY_STORAGE_KEY = "monevo:tools:activity:news-context";
+const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:news-context";
 const WIDGET_HEIGHT = "82vh";
 
 function TradingViewNewsWidget() {
@@ -42,7 +42,7 @@ function TradingViewNewsWidget() {
     });
 
     script.onload = () => {
-      const key = "monevo:tools:completed:news-context";
+      const key = "garzoni:tools:completed:news-context";
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "true");
       if (typeof window.gtag === "function") {

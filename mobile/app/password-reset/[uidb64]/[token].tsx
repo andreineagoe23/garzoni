@@ -1,6 +1,6 @@
 /**
  * Password reset confirm screen — handles the Universal Link deep link
- * emailed to the user: https://monevo.tech/password-reset/<uidb64>/<token>
+ * emailed to the user: https://garzoni.app/password-reset/<uidb64>/<token>
  *
  * When iOS Universal Links are configured (AASA file + entitlements), tapping
  * the reset link in the email opens this screen instead of Safari.
@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { confirmPasswordReset } from "@monevo/core";
+import { confirmPasswordReset } from "@garzoni/core";
 import { Button, FormInput } from "../../../src/components/ui";
 import { colors, spacing, typography, radius } from "../../../src/theme/tokens";
 

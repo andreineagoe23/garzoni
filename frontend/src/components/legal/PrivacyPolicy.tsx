@@ -166,14 +166,10 @@ const PrivacyPolicy = () => {
       <h2>{t("legal.privacy.sections.contact.title")}</h2>
       <p>
         {t("legal.privacy.sections.contact.email")}{" "}
-        <a href="mailto:monevo.educational@gmail.com">
-          monevo.educational@gmail.com
-        </a>
+        <a href="mailto:hello@garzoni.app">hello@garzoni.app</a>
         <br />
         {t("legal.privacy.sections.contact.support")}{" "}
-        <a href="mailto:monevo.educational@gmail.com">
-          monevo.educational@gmail.com
-        </a>
+        <a href="mailto:hello@garzoni.app">hello@garzoni.app</a>
         <br />
         {t("legal.privacy.sections.contact.country")}
       </p>

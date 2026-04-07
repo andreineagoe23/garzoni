@@ -36,9 +36,9 @@ export type ToolDefinition = {
 };
 
 export const TOOL_STORAGE_KEYS = {
-  lastTool: "monevo:tools:last-tool",
-  sessionId: "monevo:tools:session-id",
-  navSource: "monevo:tools:last-source",
+  lastTool: "garzoni:tools:last-tool",
+  sessionId: "garzoni:tools:session-id",
+  navSource: "garzoni:tools:last-source",
 };
 
 export const toolsRegistry: ToolDefinition[] = [
@@ -51,7 +51,7 @@ export const toolsRegistry: ToolDefinition[] = [
     exportable: true,
     cardImage: "tools/portfolio_analyzer.png",
     keywords: ["stocks", "allocation", "diversification", "returns"],
-    activityStorageKey: "monevo:tools:activity:portfolio",
+    activityStorageKey: "garzoni:tools:activity:portfolio",
   },
   {
     id: "reality-check",
@@ -61,7 +61,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=saving",
     cardImage: "tools/savings_goals.png",
     keywords: ["savings", "goals", "budget", "reality check"],
-    activityStorageKey: "monevo:tools:activity:reality-check",
+    activityStorageKey: "garzoni:tools:activity:reality-check",
   },
   {
     id: "financial-goals",
@@ -71,7 +71,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=saving",
     cardImage: "tools/savings_goals.png",
     keywords: ["goals", "savings", "emergency fund", "tracking"],
-    activityStorageKey: "monevo:tools:activity:goals",
+    activityStorageKey: "garzoni:tools:activity:goals",
   },
   {
     id: "financial-sandbox",
@@ -80,7 +80,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: FinancialSandbox,
     learnPath: "/all-topics?topic=saving",
     keywords: ["projection", "simulation", "compound", "what-if"],
-    activityStorageKey: "monevo:tools:activity:sandbox",
+    activityStorageKey: "garzoni:tools:activity:sandbox",
   },
   {
     id: "calendar",
@@ -90,7 +90,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_calendar.png",
     keywords: ["calendar", "macro", "events", "inflation", "rates"],
-    activityStorageKey: "monevo:tools:activity:calendar",
+    activityStorageKey: "garzoni:tools:activity:calendar",
   },
   {
     id: "economic-map",
@@ -101,7 +101,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_map.png",
     keywords: ["macro", "economy", "map", "global"],
-    activityStorageKey: "monevo:tools:activity:economic-map",
+    activityStorageKey: "garzoni:tools:activity:economic-map",
   },
   {
     id: "news-context",
@@ -112,7 +112,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=markets",
     cardImage: "tools/news_market.png",
     keywords: ["news", "markets", "macro", "context"],
-    activityStorageKey: "monevo:tools:activity:news-context",
+    activityStorageKey: "garzoni:tools:activity:news-context",
   },
   {
     id: "news-calendars",
@@ -122,7 +122,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=macro",
     cardImage: "tools/economic_calendar.png",
     keywords: ["calendar", "economic", "investing.com", "events"],
-    activityStorageKey: "monevo:tools:activity:news-calendars",
+    activityStorageKey: "garzoni:tools:activity:news-calendars",
   },
   {
     id: "market-explorer",
@@ -133,7 +133,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=investing",
     cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],
-    activityStorageKey: "monevo:tools:activity:market-explorer",
+    activityStorageKey: "garzoni:tools:activity:market-explorer",
   },
   {
     id: "crypto-tools",
@@ -142,7 +142,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: CryptoTools,
     learnPath: "/all-topics?topic=investing",
     keywords: ["crypto", "bitcoin", "tradingview", "prices"],
-    activityStorageKey: "monevo:tools:activity:crypto",
+    activityStorageKey: "garzoni:tools:activity:crypto",
   },
   {
     id: "forex-tools",
@@ -151,7 +151,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: ForexTools,
     learnPath: "/all-topics?topic=macro",
     keywords: ["forex", "pip", "currency", "fx"],
-    activityStorageKey: "monevo:tools:activity:forex",
+    activityStorageKey: "garzoni:tools:activity:forex",
   },
   {
     id: "next-steps",
@@ -160,7 +160,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: NextStepsEngine,
     learnPath: "/all-topics?topic=planning",
     keywords: ["recommendations", "next steps", "plan"],
-    activityStorageKey: "monevo:tools:activity:next-steps",
+    activityStorageKey: "garzoni:tools:activity:next-steps",
   },
 ];
 

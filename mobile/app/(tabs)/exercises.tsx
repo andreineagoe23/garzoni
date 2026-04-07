@@ -24,7 +24,7 @@ import {
   fetchReviewQueue,
   queryKeys,
   staleTimes,
-} from "@monevo/core";
+} from "@garzoni/core";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import ExerciseTimer from "../../src/components/exercises/ExerciseTimer";

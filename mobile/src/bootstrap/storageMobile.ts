@@ -1,5 +1,5 @@
 import * as SecureStore from "expo-secure-store";
-import { configureStorage } from "@monevo/core";
+import { configureStorage } from "@garzoni/core";
 
 let initialized = false;
 

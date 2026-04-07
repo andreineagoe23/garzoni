@@ -1,6 +1,6 @@
 import React, { RefObject, useCallback } from "react";
 import { GlassButton } from "components/ui";
-import { MonevoIcon } from "components/ui/monevoIcons";
+import { GarzoniIcon } from "components/ui/garzoniIcons";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { consumeEntitlement } from "services/entitlementsService";
@@ -63,7 +63,7 @@ const ShareAchievementButton = ({
       const canvas = await html2canvas(target);
       const dataUrl = canvas.toDataURL("image/png");
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "monevo-achievement.png", {
+      const file = new File([blob], "garzoni-achievement.png", {
         type: "image/png",
       });
 
@@ -81,7 +81,7 @@ const ShareAchievementButton = ({
       } else {
         const link = document.createElement("a");
         link.href = dataUrl;
-        link.download = "monevo-achievement.png";
+        link.download = "garzoni-achievement.png";
         link.click();
         toast.success(t("rewards.share.downloaded"));
       }
@@ -95,7 +95,7 @@ const ShareAchievementButton = ({
       variant="ghost"
       onClick={handleShare}
       icon={
-        <MonevoIcon
+        <GarzoniIcon
           name={
             downloadsFeature && !downloadsFeature.enabled ? "lock" : "download"
           }
