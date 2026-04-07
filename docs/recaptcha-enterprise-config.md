@@ -47,11 +47,11 @@ Optional:
 
 ## 4. Summary
 
-| Where        | Variable                         | Value |
-|-------------|-----------------------------------|-------|
-| Frontend    | `REACT_APP_RECAPTCHA_SITE_KEY`   | Key ID (e.g. `6LexDmIsAAAAACphH4dd8HSWtYiNjdsMKevIrKkp`) |
-| Backend     | `RECAPTCHA_SITE_KEY`             | Same key ID |
-| Backend     | `RECAPTCHA_ENTERPRISE_PROJECT_ID`| Google Cloud project ID (e.g. `project-9f648322-8205-4cdf-812`) |
-| Backend     | `RECAPTCHA_ENTERPRISE_API_KEY`   | Google Cloud API key (Recaptcha Enterprise API enabled) |
+| Where    | Variable                          | Value                                                           |
+| -------- | --------------------------------- | --------------------------------------------------------------- |
+| Frontend | `REACT_APP_RECAPTCHA_SITE_KEY`    | Key ID (e.g. `6LexDmIsAAAAACphH4dd8HSWtYiNjdsMKevIrKkp`)        |
+| Backend  | `RECAPTCHA_SITE_KEY`              | Same key ID                                                     |
+| Backend  | `RECAPTCHA_ENTERPRISE_PROJECT_ID` | Google Cloud project ID (e.g. `project-9f648322-8205-4cdf-812`) |
+| Backend  | `RECAPTCHA_ENTERPRISE_API_KEY`    | Google Cloud API key (Recaptcha Enterprise API enabled)         |
 
 After setting these, **rebuild** the frontend and **restart** the backend. Login and Register will use reCAPTCHA Enterprise; the “Verifying you’re human…” step will run and tokens will be verified via the createAssessment API.
