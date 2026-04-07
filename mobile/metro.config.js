@@ -12,6 +12,11 @@ const coreSrc = path.join(workspaceRoot, "packages", "core", "src");
 
 const config = getDefaultConfig(projectRoot);
 
+// Expo/RN can inject watcher.unstable_workerThreads; older Metro validators log warnings (expo-doctor / EAS).
+if (config.watcher && Object.prototype.hasOwnProperty.call(config.watcher, "unstable_workerThreads")) {
+  delete config.watcher.unstable_workerThreads;
+}
+
 config.watchFolders = [workspaceRoot];
 // Only the app package's node_modules — do not add the repo root, or Metro can pick
 // `react@19.2.4` from the web workspace while RN ships `react-native-renderer@19.1.0`
