@@ -12,6 +12,7 @@ from authentication.serializers import (
     UserEmailPreferenceSerializer,
 )
 from authentication.services.profile import (
+    build_activity_heatmap,
     build_profile_payload,
     invalidate_profile_cache,
 )
@@ -174,6 +175,20 @@ def update_avatar(request):
     invalidate_profile_cache(request.user)
 
     return Response({"status": "success", "avatar_url": avatar_url})
+
+
+class ActivityHeatmapView(generics.GenericAPIView):
+    """Returns per-day activity counts for the last N days (default 60)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            days = max(1, min(int(request.query_params.get("days", 60)), 365))
+        except (TypeError, ValueError):
+            days = 60
+        data = build_activity_heatmap(request.user, days=days)
+        return Response(data)
 
 
 class FinancialProfileView(APIView):

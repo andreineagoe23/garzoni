@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
@@ -6,9 +6,10 @@ import { spacing, typography, radius } from "../../theme/tokens";
 type Props = {
   streakCount: number;
   label?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function StreakBanner({ streakCount, label = "Day streak" }: Props) {
+export default function StreakBanner({ streakCount, label = "Day streak", style }: Props) {
   const c = useThemeColors();
   if (!Number.isFinite(streakCount) || streakCount <= 0) return null;
 
@@ -17,6 +18,7 @@ export default function StreakBanner({ streakCount, label = "Day streak" }: Prop
       style={[
         styles.wrap,
         { borderColor: `${c.accent}55`, backgroundColor: `${c.accent}18` },
+        style,
       ]}
     >
       <MaterialCommunityIcons name="fire" size={22} color={c.accent} />

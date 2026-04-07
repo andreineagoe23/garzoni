@@ -32,6 +32,7 @@ export default function TabsLayout() {
       />
       <Tabs
         screenOptions={({ route }) => ({
+          sceneStyle: { backgroundColor: colors.bg },
           headerTitleAlign: "center",
           headerTitleStyle: {
             fontWeight: "700",
@@ -43,7 +44,15 @@ export default function TabsLayout() {
           tabBarInactiveTintColor: colors.textMuted,
           tabBarStyle: {
             borderTopColor: colors.border,
+            borderTopWidth: 1,
             backgroundColor: colors.surface,
+            height: 72,
+            paddingBottom: 12,
+            paddingTop: 8,
+          },
+          tabBarLabelStyle: {
+            fontSize: typography.xs,
+            fontWeight: "600",
           },
           tabBarIcon: ({ focused, color, size }) => {
             if (route.name === "account-menu") {

@@ -9,6 +9,9 @@ import MascotImage from "./MascotImage";
 type Props = {
   mood?: MascotMood;
   rotationKey?: number;
+  /** Omit outer GlassCard so the block can sit inside a parent hero card. */
+  embedded?: boolean;
+  mascotSize?: number;
 };
 
 /**
@@ -17,6 +20,8 @@ type Props = {
 export default function MascotWithMessage({
   mood = "encourage",
   rotationKey = 0,
+  embedded = false,
+  mascotSize = 64,
 }: Props) {
   const c = useThemeColors();
   const { mascot, message } = useMascotMessage(mood, {
@@ -24,14 +29,22 @@ export default function MascotWithMessage({
     rotationKey,
   });
 
+  const inner = (
+    <View style={styles.row}>
+      <MascotImage mascot={mascot} size={mascotSize} />
+      <View style={[styles.bubble, { backgroundColor: c.surface }]}>
+        <Text style={[styles.msg, { color: c.text }]}>{message}</Text>
+      </View>
+    </View>
+  );
+
+  if (embedded) {
+    return inner;
+  }
+
   return (
     <GlassCard padding="md" style={{ backgroundColor: c.accentMuted, borderColor: c.accent }}>
-      <View style={styles.row}>
-        <MascotImage mascot={mascot} size={64} />
-        <View style={[styles.bubble, { backgroundColor: c.surface }]}>
-          <Text style={[styles.msg, { color: c.text }]}>{message}</Text>
-        </View>
-      </View>
+      {inner}
     </GlassCard>
   );
 }
