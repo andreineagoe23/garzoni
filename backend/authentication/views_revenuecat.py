@@ -54,7 +54,13 @@ def _verify_authorization(request: Request) -> bool:
     """
     secret = getattr(settings, "REVENUECAT_WEBHOOK_SECRET", "").strip()
     if not secret:
-        # No secret configured — accept all (development only; log a warning).
+        if not settings.DEBUG:
+            logger.error(
+                "[RevenueCat] REVENUECAT_WEBHOOK_SECRET is not set in production. "
+                "Rejecting webhook request."
+            )
+            return False
+        # Development only: accept without verification but warn loudly.
         logger.warning(
             "[RevenueCat] REVENUECAT_WEBHOOK_SECRET is not set. "
             "All webhook requests are accepted without verification."
