@@ -1,4 +1,25 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow: /admin/
+Allow: /
+
+Disallow: /onboarding
+Disallow: /all-topics
+Disallow: /personalized-path
+Disallow: /profile
+Disallow: /settings
+Disallow: /billing
+Disallow: /rewards
+Disallow: /courses/
+Disallow: /lessons/
+Disallow: /quiz/
+Disallow: /leaderboards
+Disallow: /missions
+Disallow: /pricing-dashboard
+Disallow: /tools/
+Disallow: /exercises
+Disallow: /exercise/
+Disallow: /support
+Disallow: /feedback
+Disallow: /payment-success
 Disallow: /api/
+
+Sitemap: https://www.garzoni.app/sitemap.xml

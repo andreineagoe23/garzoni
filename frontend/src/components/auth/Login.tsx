@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -158,6 +159,10 @@ function Login() {
 
   return (
     <>
+      <Helmet>
+        <title>Sign In | Garzoni</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
       <div
