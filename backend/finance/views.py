@@ -1196,6 +1196,104 @@ class VerifySessionView(APIView):
             return Response({"error": "Server error"}, status=500)
 
 
+def _stripe_price_id_for_plan(plan_id: str, billing_interval: str):
+    """Resolve configured Stripe price id for a catalog plan and billing interval."""
+    price_id = None
+    if billing_interval == "yearly":
+        if plan_id == "plus":
+            price_id = getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
+        elif plan_id == "pro":
+            price_id = getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None)
+    else:
+        if plan_id == "plus":
+            price_id = getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
+        elif plan_id == "pro":
+            price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
+    if not price_id:
+        price_id = (
+            getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
+            or getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
+            or getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
+        )
+    return price_id
+
+
+def _plan_id_from_stripe_price_id(price_id) -> str | None:
+    """Map a Stripe price id back to plus/pro for profile updates."""
+    if not price_id:
+        return None
+    pid = price_id if isinstance(price_id, str) else getattr(price_id, "id", None)
+    if not pid:
+        return None
+    mapping = (
+        (getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None), "plus"),
+        (getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None), "plus"),
+        (getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None), "pro"),
+        (getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None), "pro"),
+    )
+    for configured, plan in mapping:
+        if configured and configured == pid:
+            return plan
+    return None
+
+
+def _stripe_subscription_ui_snapshot(profile) -> dict:
+    """
+    Live Stripe subscription fields for billing UI (period end, cancel-at-period-end).
+    Cached briefly to avoid hitting Stripe on every entitlements poll.
+    """
+    stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+    if not stripe_key:
+        return {}
+    cache_key = f"stripe_sub_ui_{profile.user_id}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    out: dict = {}
+    stripe.api_key = stripe_key
+    sub = None
+    sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+    try:
+        if sub_id:
+            sub = stripe.Subscription.retrieve(sub_id)
+        else:
+            cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
+            if cid:
+                subs = stripe.Subscription.list(customer=cid, status="all", limit=10)
+                for s in subs.data:
+                    if getattr(s, "status", None) in ("active", "trialing", "past_due"):
+                        sub = s
+                        break
+        if sub:
+            cpe = getattr(sub, "current_period_end", None)
+            cps = getattr(sub, "current_period_start", None)
+            out = {
+                "cancel_at_period_end": bool(getattr(sub, "cancel_at_period_end", False)),
+                "current_period_end": (
+                    datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
+                ),
+                "current_period_start": (
+                    datetime.fromtimestamp(cps, tz=timezone.utc).isoformat() if cps else None
+                ),
+            }
+    except stripe.error.StripeError as e:
+        logger.warning(
+            "Stripe subscription UI snapshot failed for user %s: %s",
+            getattr(profile, "user_id", None),
+            e,
+        )
+
+    if out:
+        cache.set(cache_key, out, 90)
+    return out
+
+
+def _invalidate_stripe_subscription_ui_cache(user_id: int | None) -> None:
+    if user_id:
+        cache.delete(f"stripe_sub_ui_{user_id}")
+
+
 class SubscriptionCreateView(APIView):
     """Create a Stripe checkout session for a plan (for users who already completed questionnaire)."""
 
@@ -1220,24 +1318,7 @@ class SubscriptionCreateView(APIView):
                 {"error": "Payment is not configured. Please try again later."},
                 status=503,
             )
-        # Resolve Stripe price by plan and billing interval (yearly first; trial only on yearly)
-        price_id = None
-        if billing_interval == "yearly":
-            if plan_id == "plus":
-                price_id = getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
-            elif plan_id == "pro":
-                price_id = getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None)
-        else:
-            if plan_id == "plus":
-                price_id = getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
-            elif plan_id == "pro":
-                price_id = getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None)
-        if not price_id:
-            price_id = (
-                getattr(settings, "STRIPE_DEFAULT_PRICE_ID", None)
-                or getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None)
-                or getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
-            )
+        price_id = _stripe_price_id_for_plan(plan_id, billing_interval)
         if not price_id:
             logger.error("No Stripe price configured for plan_id=%s", plan_id)
             return Response(
@@ -1419,6 +1500,157 @@ def _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False):
     return None
 
 
+class SubscriptionChangeView(APIView):
+    """Switch an existing Stripe subscription to another configured price (Plus/Pro, monthly/yearly)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        plan_id = request.data.get("plan_id")
+        billing_interval = request.data.get("billing_interval", "monthly")
+        if not plan_id:
+            return Response({"error": "plan_id is required"}, status=400)
+        if plan_id in ("starter", "free"):
+            return Response(
+                {
+                    "error": "To use Starter, cancel your paid subscription at period end or use the customer portal."
+                },
+                status=400,
+            )
+        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        if not stripe_key:
+            return Response(
+                {"error": "Payment is not configured. Please try again later."},
+                status=503,
+            )
+        price_id = _stripe_price_id_for_plan(plan_id, billing_interval)
+        if not price_id:
+            return Response(
+                {"error": "This plan is not configured for billing. Contact support."},
+                status=503,
+            )
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=404)
+
+        stripe.api_key = stripe_key
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
+        if not sub_id:
+            cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
+            if cid:
+                try:
+                    for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
+                        if getattr(sub, "status", None) in ("active", "trialing", "past_due"):
+                            found = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
+                            if found:
+                                sub_id = found
+                                profile.stripe_subscription_id = sub_id
+                                profile.save(update_fields=["stripe_subscription_id"])
+                                cache.delete_many(
+                                    [
+                                        f"user_payment_status_{profile.user_id}",
+                                        f"user_profile_{profile.user_id}",
+                                    ]
+                                )
+                                invalidate_profile_cache(profile.user)
+                                break
+                except stripe.error.StripeError as e:
+                    logger.warning(
+                        "Change plan: list subs for customer_id=%s failed: %s",
+                        cid,
+                        e,
+                    )
+        if not sub_id:
+            return Response(
+                {
+                    "error": "No active subscription found. Refresh the page to sync, or subscribe from the plans page.",
+                },
+                status=400,
+            )
+
+        try:
+            subscription = stripe.Subscription.retrieve(sub_id)
+            st = getattr(subscription, "status", None)
+            if st not in ("active", "trialing", "past_due"):
+                return Response(
+                    {
+                        "error": "Your subscription can't be changed right now. Use Manage subscription (portal) instead."
+                    },
+                    status=400,
+                )
+            items_obj = getattr(subscription, "items", None)
+            item_list = list(getattr(items_obj, "data", []) or [])
+            if not item_list:
+                return Response({"error": "No subscription items found."}, status=400)
+            first = item_list[0]
+            item_id = getattr(first, "id", None) or (
+                first.get("id") if isinstance(first, dict) else None
+            )
+            if not item_id:
+                return Response({"error": "Invalid subscription item."}, status=400)
+            price_obj = (
+                getattr(first, "price", None)
+                if not isinstance(first, dict)
+                else first.get("price")
+            )
+            cur_pid = (
+                price_obj
+                if isinstance(price_obj, str)
+                else (getattr(price_obj, "id", None) if price_obj else None)
+            )
+            if cur_pid == price_id:
+                return Response({"success": True, "unchanged": True}, status=200)
+
+            meta = dict(getattr(subscription, "metadata", None) or {})
+            meta["plan_id"] = plan_id
+
+            subscription = stripe.Subscription.modify(
+                sub_id,
+                cancel_at_period_end=False,
+                items=[{"id": item_id, "price": price_id}],
+                proration_behavior="create_prorations",
+                metadata=meta,
+            )
+            new_plan = _plan_id_from_stripe_price_id(price_id) or plan_id
+            apply_subscription_to_profile(
+                profile,
+                subscription_status=getattr(subscription, "status", "active"),
+                subscription_plan_id=new_plan,
+            )
+            _invalidate_stripe_subscription_ui_cache(profile.user_id)
+            cpe = getattr(subscription, "current_period_end", None)
+            period_end_iso = (
+                datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
+            )
+            record_funnel_event(
+                "subscription_plan_changed",
+                user=request.user,
+                metadata={"plan_id": new_plan, "billing_interval": billing_interval},
+            )
+            return Response(
+                {
+                    "success": True,
+                    "plan_id": new_plan,
+                    "current_period_end": period_end_iso,
+                    "cancel_at_period_end": bool(getattr(subscription, "cancel_at_period_end", False)),
+                },
+                status=200,
+            )
+        except stripe.error.StripeError as e:
+            logger.error("Stripe subscription change error: %s", e)
+            return Response(
+                {"error": "Could not change plan. Try Manage subscription or contact support."},
+                status=400,
+            )
+        except Exception as e:
+            logger.error("Subscription change error: %s", e, exc_info=True)
+            return Response(
+                {"error": "Server error. Please try again later."},
+                status=500,
+            )
+
+
 class SubscriptionSyncView(APIView):
     """
     Try to resolve and save stripe_subscription_id for the current user (e.g. by email lookup).
@@ -1444,6 +1676,7 @@ class SubscriptionSyncView(APIView):
         stripe.api_key = stripe_key
         sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=True)
         if sub_id:
+            _invalidate_stripe_subscription_ui_cache(profile.user_id)
             return Response({"ok": True}, status=200)
         if getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False):
             return Response(
@@ -1506,7 +1739,7 @@ class SubscriptionPortalView(APIView):
                 status=400,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
-        return_url = f"{frontend_url.rstrip('/')}/subscriptions"
+        return_url = f"{frontend_url.rstrip('/')}/billing"
         try:
             session = stripe.billing_portal.Session.create(
                 customer=customer_id,
@@ -1605,6 +1838,7 @@ class SubscriptionCancelView(APIView):
                     ),
                     access_until_iso=period_end_iso,
                 )
+            _invalidate_stripe_subscription_ui_cache(profile.user_id)
             return Response(
                 {
                     "success": True,
@@ -1645,6 +1879,9 @@ class EntitlementStatusView(APIView):
                 "plan_id": plan,
                 "trial_end": trial_end.isoformat() if trial_end else None,
             }
+            stripe_ui = _stripe_subscription_ui_snapshot(profile)
+            if stripe_ui:
+                subscription.update(stripe_ui)
             payload = {
                 "entitled": plan != "starter",
                 "plan": plan,

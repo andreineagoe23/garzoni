@@ -282,7 +282,7 @@ const SubscriptionPlansPage = () => {
         <title>Plans &amp; Pricing | Garzoni</title>
         <meta
           name="description"
-          content="Compare Garzoni's Starter, Plus, and Pro plans. Get full access to personal finance courses, tools, and quizzes. Start for free."
+          content="Compare Garzoni's Starter, Plus, and Pro plans. Structured learning paths, AI tutor, and finance tools. Free to start — no credit card needed."
         />
         <link rel="canonical" href="https://www.garzoni.app/subscriptions" />
       </Helmet>
@@ -290,10 +290,11 @@ const SubscriptionPlansPage = () => {
         <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-[color:var(--accent,#111827)]">
+              <div className="mx-auto h-px w-12 bg-gradient-to-r from-transparent via-[color:var(--primary,#1d5330)]/40 to-transparent" />
+              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--accent,#111827)]">
                 {t("subscriptions.choosePlan")}
               </h2>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="max-w-lg text-sm text-[color:var(--muted-text,#6b7280)]">
                 {t("subscriptions.intro")}
               </p>
               {upgradeComplete && (
@@ -370,12 +371,17 @@ const SubscriptionPlansPage = () => {
                 return (
                   <div
                     key={plan.plan_id}
-                    className={`flex flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
+                    className={`relative flex flex-col gap-4 rounded-2xl border bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left transition-shadow duration-200 ${
                       isHighlight
-                        ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--primary,#1d5330)]/20"
-                        : ""
+                        ? "border-[color:var(--gold,#E6C87A)]/50 shadow-lg shadow-[color:var(--gold,#E6C87A)]/10 ring-1 ring-[color:var(--gold,#E6C87A)]/20"
+                        : "border-[color:var(--border-color,rgba(0,0,0,0.1))] shadow-sm hover:shadow-md"
                     }`}
                   >
+                    {isHighlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[color:var(--gold,#E6C87A)] px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#0B0F14]">
+                        Recommended
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="text-lg font-semibold text-[color:var(--accent,#111827)]">
@@ -410,17 +416,24 @@ const SubscriptionPlansPage = () => {
                         </span>
                       </div>
                     </div>
-                    <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
+                    <ul className="space-y-2.5 text-sm text-[color:var(--text-color,#111827)]">
                       {(features.length
                         ? features
                         : [t("subscriptions.premiumLearningAccess")]
                       ).map((fe) => (
-                        <li key={fe}>• {fe}</li>
+                        <li key={fe} className="flex items-start gap-2">
+                          <GarzoniIcon
+                            name="check"
+                            size={14}
+                            className="mt-0.5 shrink-0 text-[color:var(--primary,#1d5330)]"
+                          />
+                          <span>{fe}</span>
+                        </li>
                       ))}
                     </ul>
                     <GlassButton
-                      variant={isHighlight ? "primary" : "ghost"}
-                      className="w-full"
+                      variant={isHighlight ? "active" : "ghost"}
+                      className="mt-auto w-full"
                       onClick={() => handlePlanSelect(plan)}
                     >
                       {isStarter

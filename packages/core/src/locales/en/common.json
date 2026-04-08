@@ -237,6 +237,11 @@
     "cancelConfirmActiveShort": "You'll keep access until the end of your billing period. You won't be charged again.",
     "cancelSuccess": "You've cancelled. You'll have access until {{date}}.",
     "cancelSuccessNoDate": "You've cancelled. You'll have access until the end of your billing period.",
+    "cancellationScheduled": "Cancellation is scheduled. You keep full access until {{date}} (end of the current billing period).",
+    "accessThrough": "Current billing period ends on {{date}}.",
+    "switchClearsCancellation": "Choosing a different paid plan here will resume your subscription and clear the scheduled cancellation.",
+    "planUpdated": "Your plan was updated.",
+    "planAlreadyOn": "You're already on this plan.",
     "keepTrial": "Keep trial",
     "keepSubscription": "Keep subscription",
     "features": {
@@ -1447,8 +1452,8 @@
     }
   },
   "subscriptions": {
-    "choosePlan": "Choose Your Plan",
-    "intro": "Starter is free after onboarding. Plus and Pro unlock your personalized path and premium features via secure Stripe checkout.",
+    "choosePlan": "Build Your Path",
+    "intro": "Start free — no credit card needed. Upgrade to Plus or Pro when you're ready to unlock your personalized learning path and the full suite of tools.",
     "paymentConfirmed": "Payment confirmed! Your subscription is now active.",
     "fallbackEntitlements": "Using fallback entitlements. Please contact support if this persists.",
     "loadingPlans": "Loading plans...",
@@ -1460,10 +1465,10 @@
     "perYear": "year",
     "billingYearly": "Yearly",
     "billingMonthly": "Monthly",
-    "unlocksPath": "Unlocks personalized path + secure Stripe checkout",
-    "startStarter": "Start with Starter (Free)",
+    "unlocksPath": "Unlocks your personalized path and premium tools",
+    "startStarter": "Start free",
     "choosePlanCheckout": "Choose {{name}}",
-    "premiumLearningAccess": "Premium learning access",
+    "premiumLearningAccess": "Full learning access",
     "selectPlanError": "Please choose a plan to continue.",
     "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
     "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
@@ -1479,9 +1484,9 @@
     "retryEntitlements": "Retry entitlement check",
     "contactSupport": "Contact support",
     "subscriptionStatus": "Subscription status",
-    "statusPaid": "You're on Plus or Pro - personalized path and premium features unlocked.",
-    "statusStarterComplete": "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path.",
-    "statusOnboarding": "Complete onboarding, then choose Starter (free) or upgrade to Plus/Pro.",
+    "statusPaid": "You're on Plus or Pro — your personalized path and premium tools are fully unlocked.",
+    "statusStarterComplete": "You're on Starter (free). Upgrade to Plus or Pro to unlock your personalized path and premium tools.",
+    "statusOnboarding": "Complete onboarding first, then choose Starter or upgrade to Plus/Pro.",
     "trialEndsOn": "Trial ends on {{date}}",
     "viewPersonalizedPath": "View your personalized path",
     "goToDashboard": "Go to dashboard",
@@ -1896,16 +1901,16 @@
     "hero": {
       "aria": "Hero section",
       "badge": "{{count}}+ lessons",
-      "titleLine1": "Master Finance",
-      "titleLine2": "The Smart Way",
-      "subtitle": "Learn financial skills at your own pace with interactive courses, AI-powered guidance, and real-world tools.",
-      "ctaStartShort": "Start",
-      "ctaStart": "Get Started",
+      "titleLine1": "Build Financial Skills",
+      "titleLine2": "That Actually Last",
+      "subtitle": "Structured learning paths, an AI tutor that answers your exact question, and daily habits that make financial mastery possible — at your own pace.",
+      "ctaStartShort": "Start free",
+      "ctaStart": "Start learning free",
       "ctaDemoShort": "Demo",
       "ctaDemo": "Watch Demo",
       "ctaExploreAria": "Scroll to explore features",
-      "ctaExploreShort": "Explore",
-      "ctaExplore": "Explore Features",
+      "ctaExploreShort": "See how",
+      "ctaExplore": "See how it works",
       "stats": {
         "currentStreak": "Current Streak",
         "days": "days",
@@ -1926,87 +1931,87 @@
         "closeAria": "Close demo modal",
         "title": "Watch Demo",
         "close": "Close",
-        "subtitle": "See how Garzoni can help you master finance. Watch our interactive demo to explore the platform.",
-        "startLearning": "Start Learning"
+        "subtitle": "See the learning paths, AI tutor, and tools in action — then start building your own path.",
+        "startLearning": "Begin your path"
       }
     },
     "features": {
-      "title": "Everything You Need to Master Finance",
-      "subtitle": "Discover powerful features designed to accelerate your financial learning journey",
+      "title": "Every Tool on the Path to Mastery",
+      "subtitle": "Five features built around one goal — helping you understand money deeply, not just learn about it.",
       "featureLabel": "Feature {{count}}",
       "items": {
         "learning-paths": {
-          "title": "Comprehensive Learning Paths",
-          "text": "Structured courses designed to build your financial knowledge from the ground up.",
+          "title": "Structured Learning Paths",
+          "text": "A clear, progressive curriculum from budgeting basics to investing and beyond — so you always know what to learn next.",
           "bullets": [
-            "Step-by-step learning modules",
-            "Interactive quizzes and assessments",
-            "Progress tracking and certificates"
+            "Step-by-step modules across 10+ finance topics",
+            "Interactive exercises and quizzes at every stage",
+            "Progress tracking and completion certificates"
           ]
         },
         "achievement-system": {
-          "title": "Achievement System",
-          "text": "Gamified learning experience that keeps you motivated and engaged.",
+          "title": "Daily Habits That Build Real Skills",
+          "text": "Streaks, badges, and missions keep you coming back — and each one is tied to genuine progress, not just points.",
           "bullets": [
-            "Earn badges and rewards",
-            "Track your learning streak",
-            "Compete on leaderboards"
+            "Daily and weekly missions with XP rewards",
+            "Streak system that builds a real learning habit",
+            "Leaderboards to track your progress against others"
           ]
         },
         "ai-tutor": {
-          "title": "AI-Powered Tutor",
-          "text": "Get personalized guidance and answers to your financial questions.",
+          "title": "An AI Tutor That Answers Your Exact Question",
+          "text": "Not a generic FAQ — a 24/7 finance tutor that understands your question and gives you a direct, practical answer.",
           "bullets": [
-            "24/7 available assistant",
-            "Context-aware responses",
-            "Learning recommendations"
+            "Available 24/7, for any finance topic",
+            "Context-aware: understands what you're studying",
+            "Suggests what to learn next based on your progress"
           ]
         },
         "real-time-tools": {
-          "title": "Real-Time Tools",
-          "text": "Access powerful financial calculators and analysis tools.",
+          "title": "Finance Tools Linked to Your Learning",
+          "text": "Apply what you learn immediately — every tool connects to the lesson behind it, so the knowledge sticks.",
           "bullets": [
-            "Portfolio analyzer",
-            "Savings goal calculator",
-            "Currency converter"
+            "Portfolio analyzer for investment decisions",
+            "Savings and goals reality check",
+            "Currency converter and financial calculators"
           ]
         },
         "market-insights": {
-          "title": "Market Insights",
-          "text": "Stay updated with the latest financial news and market trends.",
+          "title": "Market Context, Not Just Market Data",
+          "text": "Understand what's happening in global markets — and why it matters to your personal finances.",
           "bullets": [
-            "Economic calendar",
-            "Market analysis",
-            "News aggregation"
+            "Economic calendar with plain-language context",
+            "Market explorer for stocks, ETFs, and crypto",
+            "Curated news and macro analysis"
           ]
         }
       }
     },
     "reviews": {
-      "title": "Loved by Learners Worldwide",
-      "subtitle": "See what our community has to say about their learning experience",
+      "title": "Real People. Real Progress.",
+      "subtitle": "From first-time learners to seasoned investors — here's what building financial skills with Garzoni looks like.",
       "aria": "Customer reviews",
       "cardAria": "Review by {{name}}",
       "items": {
         "sarah": {
           "title": "Financial Advisor",
-          "quote": "Garzoni has transformed how I learn about finance. The interactive courses are engaging and practical."
+          "quote": "I recommend Garzoni to clients who want to understand the advice they're getting. The curriculum is genuinely thorough — and it actually holds their attention."
         },
         "michael": {
           "title": "Entrepreneur",
-          "quote": "The AI tutor is incredibly helpful. It answers my questions instantly and helps me understand complex concepts."
+          "quote": "I had gaps in my financial knowledge that I'd been papering over for years. The AI tutor helped me fill them without feeling like I was back in school."
         },
         "emily": {
           "title": "Student",
-          "quote": "I love the gamification aspect. Earning badges and competing on leaderboards makes learning fun!"
+          "quote": "I've tried apps that teach finance before. Garzoni is the first one I've kept coming back to — the streak system makes it feel like a daily habit, not a chore."
         },
         "david": {
           "title": "Investor",
-          "quote": "The financial tools are top-notch. The portfolio analyzer has been invaluable for my investment decisions."
+          "quote": "The portfolio analyzer isn't just a tool — it links back to lessons that explain what the numbers mean. That combination is what makes it useful."
         },
         "lisa": {
           "title": "Small Business Owner",
-          "quote": "Finally, a platform that makes financial education accessible and enjoyable. Highly recommend!"
+          "quote": "I always felt like I was guessing with money. Garzoni gave me a structured path through the things I actually needed to understand. Finally."
         }
       }
     }

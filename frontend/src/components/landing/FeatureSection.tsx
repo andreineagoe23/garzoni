@@ -57,10 +57,11 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
   return (
     <section ref={featureRef} className="relative scroll-mt-[110px]">
       <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto mb-4 h-px w-12 bg-gradient-to-r from-transparent via-[#E6C87A]/50 to-transparent" />
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
           {t("landing.features.title")}
         </h2>
-        <p className="mt-4 text-sm text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
+        <p className="mt-4 text-[15px] text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
           {t("landing.features.subtitle")}
         </p>
       </div>
@@ -101,10 +102,10 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                 >
                   <GlassCard
                     padding="lg"
-                    className="p-6 lg:p-8 bg-[#0B0F14] border-white/10"
+                    className="p-6 lg:p-8 bg-[#0B0F14] border-white/10 landing-feature-card"
                   >
                     <div className="flex items-start gap-4">
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/90">
+                      <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#E6C87A]/15 bg-[#E6C87A]/[0.06] text-[#E6C87A]/90">
                         {feature.icon}
                       </span>
                       <div className="min-w-0 text-left">
@@ -131,7 +132,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
 
                 {/* Middle node - always centered on the vertical line */}
                 <div className="relative hidden lg:order-2 lg:col-start-2 lg:flex lg:items-center lg:justify-center">
-                  <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--primary,#1d5330)]/70 blur-[0.5px]" />
+                  <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E6C87A]/40 blur-[1px]" />
                   <div
                     key={`feature-number-${index}`}
                     className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#0B0F14] text-sm font-bold text-white/85 shadow-lg shadow-black/40 backdrop-blur"
@@ -217,10 +218,10 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
                 >
                   <GlassCard
                     padding="lg"
-                    className="p-6 lg:p-8 bg-[#0B0F14] border-white/10"
+                    className="p-6 lg:p-8 bg-[#0B0F14] border-white/10 landing-feature-card"
                   >
                     <div className="flex items-start gap-4">
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/90">
+                      <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#E6C87A]/15 bg-[#E6C87A]/[0.06] text-[#E6C87A]/90">
                         {feature.icon}
                       </span>
                       <div className="min-w-0 text-left">
@@ -247,7 +248,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
 
                 {/* Middle node - always centered on the vertical line */}
                 <div className="relative hidden lg:order-2 lg:col-start-2 lg:flex lg:items-center lg:justify-center">
-                  <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--primary,#1d5330)]/70 blur-[0.5px]" />
+                  <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E6C87A]/40 blur-[1px]" />
                   <div
                     key={`feature-number-${index}`}
                     className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#0B0F14] text-sm font-bold text-white/85 shadow-lg shadow-black/40 backdrop-blur"

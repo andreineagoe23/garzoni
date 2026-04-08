@@ -54,33 +54,33 @@ export default function HeroSection({
         <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)] items-stretch">
           {/* Left: copy + CTAs */}
           <div className="relative z-10 flex flex-col items-center sm:items-start justify-center py-6 sm:py-8 lg:py-0 sm:pl-6">
-            <div className="inline-flex w-fit self-center sm:self-start items-center gap-1.5 whitespace-nowrap rounded-full border border-[#1D5330]/25 bg-[#1D5330]/10 px-2.5 py-0.5 backdrop-blur-sm">
+            <div className="inline-flex w-fit self-center sm:self-start items-center gap-2 whitespace-nowrap rounded-full border border-[#E6C87A]/20 bg-[#E6C87A]/[0.06] px-3 py-1 backdrop-blur-sm">
               <span className="relative inline-flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E6C87A] opacity-40" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E6C87A]" />
               </span>
-              <span className="welcome-font-mono text-[11px] uppercase tracking-wide text-[#E6C87A]">
+              <span className="welcome-font-mono text-[11px] uppercase tracking-wider text-[#E6C87A]">
                 {t("landing.hero.badge", { count: 500 })}
               </span>
             </div>
 
-            <h1 className="welcome-font-display mt-7 text-center sm:text-left text-3xl font-semibold tracking-tight text-white leading-[0.95] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
+            <h1 className="welcome-font-display mt-8 text-center sm:text-left text-3xl font-bold tracking-tight text-white leading-[0.92] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
               {t("landing.hero.titleLine1")} <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E6C87A] to-[#E6C87A]/60">
                 {t("landing.hero.titleLine2")}
               </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-center sm:text-left mx-auto sm:mx-0 text-sm leading-relaxed text-neutral-400 sm:text-base">
+            <p className="mt-6 max-w-xl text-center sm:text-left mx-auto sm:mx-0 text-[15px] leading-relaxed text-neutral-400 sm:text-base">
               {t("landing.hero.subtitle")}
             </p>
 
-            <div className="mt-8 flex flex-row flex-wrap items-center justify-center sm:justify-start gap-2 pointer-events-auto sm:gap-4">
+            <div className="mt-8 flex flex-row flex-wrap items-center justify-center sm:justify-start gap-3 pointer-events-auto sm:gap-4">
               <GlassButton
                 onClick={() => navigate("/register")}
                 variant="active"
-                size="md"
-                className="group whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
+                size="lg"
+                className="group whitespace-nowrap ring-1 ring-[#E6C87A]/25 px-5 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-sm"
               >
                 <span className="sm:hidden">
                   {t("landing.hero.ctaStartShort")}
@@ -109,7 +109,7 @@ export default function HeroSection({
               <button
                 type="button"
                 onClick={scrollToFeatures}
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/85 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-3 sm:text-sm"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-semibold text-white/70 backdrop-blur hover:bg-white/10 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-2.5 sm:text-sm transition-colors duration-200"
                 aria-label={t("landing.hero.ctaExploreAria")}
               >
                 <span className="sm:hidden">
@@ -130,32 +130,35 @@ export default function HeroSection({
             </div>
 
             {/* Stats */}
-            <div className="mt-10 hidden md:flex gap-8 pointer-events-auto">
-              <div className="flex flex-col gap-1">
-                <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
-                  {t("landing.hero.stats.currentStreak")}
-                </span>
-                <div className="flex items-end gap-1">
-                  <span className="welcome-font-display text-2xl font-medium text-white">
-                    12
+            <div className="mt-10 hidden md:flex flex-col gap-5 pointer-events-auto">
+              <div className="h-px w-16 bg-gradient-to-r from-[#E6C87A]/40 to-transparent" />
+              <div className="flex gap-8">
+                <div className="flex flex-col gap-1">
+                  <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
+                    {t("landing.hero.stats.currentStreak")}
                   </span>
-                  <span className="text-xs text-neutral-500 mb-1">
-                    {t("landing.hero.stats.days")}
-                  </span>
+                  <div className="flex items-end gap-1">
+                    <span className="welcome-font-display text-2xl font-semibold text-white">
+                      12
+                    </span>
+                    <span className="text-xs text-neutral-500 mb-1">
+                      {t("landing.hero.stats.days")}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="h-10 w-px bg-white/10" />
-              <div className="flex flex-col gap-1">
-                <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
-                  {t("landing.hero.stats.totalXp")}
-                </span>
-                <div className="flex items-end gap-1">
-                  <span className="welcome-font-display text-2xl font-medium text-white">
-                    8,450
+                <div className="h-10 w-px bg-white/10" />
+                <div className="flex flex-col gap-1">
+                  <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
+                    {t("landing.hero.stats.totalXp")}
                   </span>
-                  <span className="text-xs text-[#E6C87A] mb-1">
-                    {t("landing.hero.stats.today")}
-                  </span>
+                  <div className="flex items-end gap-1">
+                    <span className="welcome-font-display text-2xl font-semibold text-white">
+                      8,450
+                    </span>
+                    <span className="text-xs text-[#E6C87A] mb-1">
+                      {t("landing.hero.stats.today")}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -314,7 +317,7 @@ export default function HeroSection({
           </p>
           <button
             type="button"
-            className="mt-5 rounded bg-[#E6C87A] px-5 py-2 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669]"
+            className="mt-5 rounded-full bg-[#E6C87A] px-6 py-2.5 text-sm font-semibold text-[#0B0F14] hover:bg-[#d4b669] transition-colors duration-200 shadow-lg shadow-[#E6C87A]/20"
             onClick={() => navigate("/register")}
           >
             {t("landing.hero.demoModal.startLearning")}

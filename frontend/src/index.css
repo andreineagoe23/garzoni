@@ -340,6 +340,23 @@ html[data-theme="dark"] .ck.ck-list__item .ck-button:hover,
   }
 }
 
+/* ---------------------------------------------
+   Landing feature cards — gold top-edge accent
+   --------------------------------------------- */
+.landing-feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(230, 200, 122, 0.3) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
 /* TradingView embed: script injects iframe as direct child of container; make it fill height; responsive */
 .tradingview-widget-container {
   display: flex;

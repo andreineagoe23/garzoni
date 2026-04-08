@@ -170,9 +170,10 @@ if not database_url:
         "or on Railway add a PostgreSQL service (DATABASE_URL is set automatically)."
     )
 
-# Require SSL for external connections (DATABASE_PUBLIC_URL from outside Railway).
-# Railway's internal private URL (postgres.railway.internal) doesn't need SSL.
-_is_external_db = "railway.internal" not in database_url
+# Require SSL only for truly external connections (DATABASE_PUBLIC_URL from outside Railway).
+# Railway's internal private URL and local Docker hosts don't need SSL.
+_is_local_db = any(host in database_url for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1"))
+_is_external_db = not _is_local_db
 default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=_is_external_db)
 if "OPTIONS" not in default_db:
     default_db["OPTIONS"] = {}
