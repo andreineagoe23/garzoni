@@ -28,8 +28,7 @@ export default function CircularProgressRing({
   const cx = size / 2;
   const cy = size / 2;
 
-  const displayLabel =
-    label ?? `${Math.round(clamped * 100)}%`;
+  const displayLabel = label ?? `${Math.round(clamped * 100)}%`;
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
@@ -65,7 +64,11 @@ export default function CircularProgressRing({
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: "relative", alignItems: "center", justifyContent: "center" },
+  wrap: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   labelBox: {
     flex: 1,
     alignItems: "center",

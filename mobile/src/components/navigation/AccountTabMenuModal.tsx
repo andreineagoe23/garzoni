@@ -10,11 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import {
-  i18n,
-  normalizeLanguage,
-  SUPPORTED_LANGUAGES,
-} from "@garzoni/core";
+import { i18n, normalizeLanguage, SUPPORTED_LANGUAGES } from "@garzoni/core";
 import { useAuthSession } from "../../auth/AuthContext";
 import { href } from "../../navigation/href";
 import { useTheme, useThemeColors } from "../../theme/ThemeContext";
@@ -39,7 +35,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
       onClose();
       router.push(href(path));
     },
-    [onClose, router]
+    [onClose, router],
   );
 
   const signOut = useCallback(async () => {
@@ -86,7 +82,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.profile", { defaultValue: "Profile" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -106,7 +104,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.settings", { defaultValue: "Settings" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -132,7 +132,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.leaderboard", { defaultValue: "Leaderboard" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -152,7 +154,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.rewards", { defaultValue: "Rewards" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -172,7 +176,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.missions", { defaultValue: "Missions" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -192,7 +198,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.support", { defaultValue: "Support" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -212,7 +220,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                   {t("nav.sendFeedback", { defaultValue: "Send Feedback" })}
                 </Text>
                 <Ionicons
-                  name={navIcons.chevronForward as keyof typeof Ionicons.glyphMap}
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
                   size={18}
                   color={c.textFaint}
                 />
@@ -224,7 +234,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                 {t("language.label", { defaultValue: "Language" })}
               </Text>
               {SUPPORTED_LANGUAGES.filter(
-                (l) => !("comingSoon" in l && l.comingSoon)
+                (l) => !("comingSoon" in l && l.comingSoon),
               ).map((lng) => {
                 const active = normalizeLanguage(i18n.language) === lng.code;
                 return (

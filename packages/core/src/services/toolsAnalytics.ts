@@ -20,7 +20,7 @@ const getEmptyState = (): AnalyticsState => ({
 export const recordToolEvent = (
   type: string,
   toolId?: string,
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>,
 ) => {
   if (typeof window === "undefined") return;
   try {

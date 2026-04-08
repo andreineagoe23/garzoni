@@ -49,14 +49,14 @@ export default function WeakSkillsSectionMobile({
   const { t } = useTranslation("common");
   const c = useThemeColors();
   const [justUnlockedSkills, setJustUnlockedSkills] = useState<Set<string>>(
-    () => new Set()
+    () => new Set(),
   );
   const prevProficiencyMapRef = useRef<Map<string, number>>(new Map());
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const nextMap = new Map<string, number>(
-      weakestSkills.map((s) => [s.skill, s.proficiency])
+      weakestSkills.map((s) => [s.skill, s.proficiency]),
     );
     const prevMap = prevProficiencyMapRef.current;
     const newlyUnlocked = new Set<string>();
@@ -81,7 +81,10 @@ export default function WeakSkillsSectionMobile({
     prevProficiencyMapRef.current = nextMap;
 
     if (newlyUnlocked.size > 0) {
-      clearTimerRef.current = setTimeout(() => setJustUnlockedSkills(new Set()), 5000);
+      clearTimerRef.current = setTimeout(
+        () => setJustUnlockedSkills(new Set()),
+        5000,
+      );
     }
 
     return () => {
@@ -133,7 +136,10 @@ export default function WeakSkillsSectionMobile({
   const safeTotalLessons = totalLessons ?? 0;
 
   return (
-    <GlassCard padding="md" style={{ marginTop: spacing.lg, borderColor: c.border }}>
+    <GlassCard
+      padding="md"
+      style={{ marginTop: spacing.lg, borderColor: c.border }}
+    >
       <Text style={[styles.h2, { color: c.text }]}>
         {t("dashboard.weakSkills.areasToImprove")}
       </Text>
@@ -150,7 +156,10 @@ export default function WeakSkillsSectionMobile({
         {weakestSkills.map((skill) => (
           <View
             key={skill.skill}
-            style={[styles.skillCard, { borderColor: c.border, backgroundColor: c.surface }]}
+            style={[
+              styles.skillCard,
+              { borderColor: c.border, backgroundColor: c.surface },
+            ]}
           >
             <Pressable
               onPress={() => onSkillClick?.(skill)}
@@ -160,12 +169,17 @@ export default function WeakSkillsSectionMobile({
               })}
             >
               <View style={styles.skillHeader}>
-                <Text style={[styles.skillName, { color: c.text }]} numberOfLines={2}>
+                <Text
+                  style={[styles.skillName, { color: c.text }]}
+                  numberOfLines={2}
+                >
                   {skill.skill}
                 </Text>
                 <View style={styles.skillHeaderRight}>
                   {justUnlockedSkills.has(skill.skill) ? (
-                    <Text style={styles.badge}>{t("dashboard.skillInsights.justUnlocked")}</Text>
+                    <Text style={styles.badge}>
+                      {t("dashboard.skillInsights.justUnlocked")}
+                    </Text>
                   ) : null}
                   <Text style={[styles.pct, { color: c.textMuted }]}>
                     {formatPct(skill.proficiency, locale)}
@@ -174,7 +188,13 @@ export default function WeakSkillsSectionMobile({
               </View>
               <View style={[styles.barTrack, { backgroundColor: c.border }]}>
                 <View
-                  style={[styles.barFill, { width: `${skill.proficiency}%`, backgroundColor: c.primary }]}
+                  style={[
+                    styles.barFill,
+                    {
+                      width: `${skill.proficiency}%`,
+                      backgroundColor: c.primary,
+                    },
+                  ]}
                 />
               </View>
               <Text style={[styles.lowMastery, { color: c.textMuted }]}>
@@ -201,11 +221,19 @@ export default function WeakSkillsSectionMobile({
 }
 
 const styles = StyleSheet.create({
-  sectionTitle: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.sm },
+  sectionTitle: {
+    fontSize: typography.md,
+    fontWeight: "800",
+    marginBottom: spacing.sm,
+  },
   desc: { fontSize: typography.sm, lineHeight: 20 },
   h2: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.sm },
   focus: { fontSize: typography.sm, marginBottom: spacing.xs },
-  lessonsMeta: { fontSize: typography.xs, marginBottom: spacing.md, lineHeight: 18 },
+  lessonsMeta: {
+    fontSize: typography.xs,
+    marginBottom: spacing.md,
+    lineHeight: 18,
+  },
   grid: { gap: spacing.md },
   skillCard: {
     borderRadius: radius.md,
@@ -213,7 +241,12 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  skillHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.sm },
+  skillHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
   skillName: { flex: 1, fontSize: typography.sm, fontWeight: "700" },
   skillHeaderRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   badge: {
@@ -228,8 +261,18 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   pct: { fontSize: typography.xs, fontWeight: "600" },
-  barTrack: { height: 8, borderRadius: 4, overflow: "hidden", marginTop: spacing.sm },
+  barTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginTop: spacing.sm,
+  },
   barFill: { height: "100%", borderRadius: 4 },
   lowMastery: { fontSize: typography.xs, marginTop: spacing.sm },
-  levelLabel: { fontSize: 10, fontWeight: "600", textTransform: "uppercase", marginTop: 4 },
+  levelLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    marginTop: 4,
+  },
 });

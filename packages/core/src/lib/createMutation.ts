@@ -16,24 +16,24 @@ type MutationOptionsArgs = {
     queryClient: QueryClient,
     data: unknown,
     variables: unknown,
-    context: unknown
+    context: unknown,
   ) => void;
   onMutate?: (variables: unknown) => Promise<unknown> | unknown;
   onError?: (
     error: unknown,
     variables: unknown,
-    context: unknown
+    context: unknown,
   ) => Promise<void> | void;
   onSuccess?: (
     data: unknown,
     variables: unknown,
-    context: unknown
+    context: unknown,
   ) => Promise<void> | void;
   onSettled?: (
     data: unknown,
     error: unknown,
     variables: unknown,
-    context: unknown
+    context: unknown,
   ) => Promise<void> | void;
 };
 
@@ -72,7 +72,7 @@ export function createMutationOptions({
       const keys = resolveKeys(variables);
       if (keys.length) {
         await Promise.all(
-          keys.map((queryKey) => queryClient.invalidateQueries({ queryKey }))
+          keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
         );
       }
 
@@ -89,7 +89,7 @@ export function createMutationOptions({
       data: unknown,
       error: unknown,
       variables: unknown,
-      context: unknown
+      context: unknown,
     ) => {
       if (onSettled) {
         await onSettled(data, error, variables, context);

@@ -3,7 +3,13 @@ import { Animated, StyleSheet, View } from "react-native";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { radius, spacing } from "../../../theme/tokens";
 
-function PulseBlock({ width, height }: { width: number | `${number}%`; height: number }) {
+function PulseBlock({
+  width,
+  height,
+}: {
+  width: number | `${number}%`;
+  height: number;
+}) {
   const c = useThemeColors();
   const opacity = useRef(new Animated.Value(0.35)).current;
 
@@ -20,7 +26,7 @@ function PulseBlock({ width, height }: { width: number | `${number}%`; height: n
           duration: 700,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     loop.start();
     return () => loop.stop();
@@ -48,7 +54,10 @@ export function GoalsSkeleton() {
       {[0, 1].map((k) => (
         <View
           key={k}
-          style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}
+          style={[
+            styles.card,
+            { backgroundColor: c.surface, borderColor: c.border },
+          ]}
         >
           <View style={styles.row}>
             <PulseBlock width={"55%"} height={18} />

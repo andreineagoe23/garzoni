@@ -1,10 +1,7 @@
 import { getBackendUrl } from "@garzoni/core";
 
 /** User-facing message for password / register failures (includes offline / wrong API URL). */
-export function formatAuthRequestError(
-  e: unknown,
-  fallback: string
-): string {
+export function formatAuthRequestError(e: unknown, fallback: string): string {
   const err = e as {
     response?: { status?: number; data?: { detail?: string } };
     message?: string;

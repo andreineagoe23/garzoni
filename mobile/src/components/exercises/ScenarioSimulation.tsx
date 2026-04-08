@@ -45,7 +45,11 @@ function createStyles(c: ThemeColors) {
     },
     choiceText: { fontSize: typography.base, color: c.text },
     choiceTextSel: { fontWeight: "600" },
-    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    feedback: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      marginTop: spacing.md,
+    },
     fOk: { color: c.success },
     fErr: { color: c.error },
     explanation: {
@@ -75,7 +79,9 @@ export default function ScenarioSimulation({
 
   const [selected, setSelected] = useState<string | number | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
 
   const handleSubmit = async () => {
@@ -143,7 +149,11 @@ export default function ScenarioSimulation({
       ) : null}
 
       {!isCompleted && selected !== null ? (
-        <Button size="sm" onPress={() => void handleSubmit()} style={{ marginTop: spacing.md }}>
+        <Button
+          size="sm"
+          onPress={() => void handleSubmit()}
+          style={{ marginTop: spacing.md }}
+        >
           Submit
         </Button>
       ) : null}

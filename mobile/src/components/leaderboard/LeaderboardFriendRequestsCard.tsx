@@ -32,29 +32,30 @@ export default function LeaderboardFriendRequestsCard() {
   });
 
   const respondMutation = useMutation({
-    mutationFn: ({
-      id,
-      action,
-    }: {
-      id: number;
-      action: "accept" | "reject";
-    }) => respondToFriendRequest(id, action),
+    mutationFn: ({ id, action }: { id: number; action: "accept" | "reject" }) =>
+      respondToFriendRequest(id, action),
     onSuccess: (_, { action }) => {
       setMessage(
         action === "accept"
           ? t("profile.friendRequests.accepted")
-          : t("profile.friendRequests.declined")
+          : t("profile.friendRequests.declined"),
       );
-      void queryClient.invalidateQueries({ queryKey: queryKeys.friendRequestsIncoming() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.friendRequestsIncoming(),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.friendsList() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardFriends() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.leaderboardFriends(),
+      });
     },
     onError: (err: unknown) => {
-      const e = err as { response?: { data?: { error?: string; detail?: string } } };
+      const e = err as {
+        response?: { data?: { error?: string; detail?: string } };
+      };
       setMessage(
         e?.response?.data?.error ||
           e?.response?.data?.detail ||
-          t("profile.friendRequests.error")
+          t("profile.friendRequests.error"),
       );
     },
   });
@@ -63,7 +64,7 @@ export default function LeaderboardFriendRequestsCard() {
     (id: number, action: "accept" | "reject") => {
       respondMutation.mutate({ id, action });
     },
-    [respondMutation]
+    [respondMutation],
   );
 
   const requests = requestsQuery.data ?? [];
@@ -81,7 +82,9 @@ export default function LeaderboardFriendRequestsCard() {
           </Text>
         </View>
         <View style={[styles.badge, { backgroundColor: `${c.primary}22` }]}>
-          <Text style={[styles.badgeText, { color: c.accent }]}>{requests.length}</Text>
+          <Text style={[styles.badgeText, { color: c.accent }]}>
+            {requests.length}
+          </Text>
         </View>
       </View>
 
@@ -92,7 +95,9 @@ export default function LeaderboardFriendRequestsCard() {
             { borderColor: `${c.accent}44`, backgroundColor: `${c.accent}14` },
           ]}
         >
-          <Text style={{ color: c.accent, fontSize: typography.sm }}>{message}</Text>
+          <Text style={{ color: c.accent, fontSize: typography.sm }}>
+            {message}
+          </Text>
         </View>
       ) : null}
 
@@ -127,7 +132,12 @@ export default function LeaderboardFriendRequestsCard() {
               ]}
             >
               <View style={styles.reqLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: `${c.primary}18` }]}>
+                <View
+                  style={[
+                    styles.iconCircle,
+                    { backgroundColor: `${c.primary}18` },
+                  ]}
+                >
                   <Ionicons name="person" size={20} color={c.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -177,7 +187,11 @@ export default function LeaderboardFriendRequestsCard() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+  },
   title: { fontSize: typography.md, fontWeight: "800" },
   sub: { fontSize: typography.sm, marginTop: 4, lineHeight: 20 },
   badge: {
@@ -189,7 +203,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badgeText: { fontSize: typography.sm, fontWeight: "800" },
-  msg: { marginTop: spacing.md, padding: spacing.md, borderRadius: 10, borderWidth: 1 },
+  msg: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
   center: { paddingVertical: spacing.xl, alignItems: "center" },
   empty: {
     alignItems: "center",

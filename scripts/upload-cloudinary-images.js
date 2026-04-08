@@ -22,14 +22,7 @@ const TARGET_DIRS = [
   path.join(ROOT, "mobile", "assets"),
 ];
 
-const ALLOWED_EXT = new Set([
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".webp",
-  ".gif",
-  ".svg",
-]);
+const ALLOWED_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"]);
 
 /** Replaced by Font Awesome (Navbar); do not upload legacy duplicates */
 const SKIP_BASENAMES = new Set(["burger_menu.svg", "burgermenu.svg"]);
@@ -53,12 +46,15 @@ const MARKETING_PUBLIC_IDS = {
   "garzoni-logo.svg": "garzoni/logo/garzoni-logo",
   "garzoni-black.svg": "garzoni/logo/garzoni-black",
   "garzoni-logo.png": "garzoni/logo/garzoni-logo-png",
-  "garzoni-logo-rectangle-no-bg.png": "garzoni/logo/garzoni-logo-rectangle-no-bg",
+  "garzoni-logo-rectangle-no-bg.png":
+    "garzoni/logo/garzoni-logo-rectangle-no-bg",
   "garzoni-logo-square-no-bg.png": "garzoni/logo/garzoni-logo-square-no-bg",
   "garzoni-logo-white-bg.png": "garzoni/logo/garzoni-logo-white-bg",
   "garzoni-logo-white.png": "garzoni/logo/garzoni-logo-white",
-  "garzoni-logo-black-rectangular.png": "garzoni/logo/garzoni-logo-black-rectangular",
-  "garzoni-logo-white-rectangular.png": "garzoni/logo/garzoni-logo-white-rectangular",
+  "garzoni-logo-black-rectangular.png":
+    "garzoni/logo/garzoni-logo-black-rectangular",
+  "garzoni-logo-white-rectangular.png":
+    "garzoni/logo/garzoni-logo-white-rectangular",
 };
 
 /** Lower number = wins when two files map to the same public_id */
@@ -179,7 +175,7 @@ async function main() {
 
   if (!dryRun && (!cloudName || !apiKey || !apiSecret)) {
     console.error(
-      "Missing Cloudinary credentials. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET (or CLOUDINARY_URL)."
+      "Missing Cloudinary credentials. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET (or CLOUDINARY_URL).",
     );
     process.exit(1);
   }
@@ -202,7 +198,7 @@ async function main() {
   const uploads = [...byId.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   console.log(
-    `${dryRun ? "[dry-run] Would upload" : "Uploading"} ${uploads.length} unique public_id(s) (from ${files.length} files)...`
+    `${dryRun ? "[dry-run] Would upload" : "Uploading"} ${uploads.length} unique public_id(s) (from ${files.length} files)...`,
   );
 
   const results = [];

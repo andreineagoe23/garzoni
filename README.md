@@ -97,7 +97,7 @@ See `docs/setup-docker.md`.
 
 cd backend
 python -m venv venv
-venv\Scripts\activate  # on Windows; use source venv/bin/activate on macOS/Linux
+venv\Scripts\activate # on Windows; use source venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver

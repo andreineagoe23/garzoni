@@ -25,14 +25,16 @@ import { spacing, typography, radius } from "../../theme/tokens";
 
 function courseIconName(pathTitle?: string) {
   const title = String(pathTitle || "").toLowerCase();
-  if (title.includes("budget") || title.includes("saving")) return "target" as const;
+  if (title.includes("budget") || title.includes("saving"))
+    return "target" as const;
   if (
     title.includes("invest") ||
     title.includes("stock") ||
     title.includes("crypto")
   )
     return "chart-line" as const;
-  if (title.includes("debt") || title.includes("credit")) return "flash" as const;
+  if (title.includes("debt") || title.includes("credit"))
+    return "flash" as const;
   if (title.includes("mindset")) return "lightbulb-on-outline" as const;
   return "book-open-variant" as const;
 }
@@ -41,7 +43,9 @@ type Props = {
   onCourseClick?: (courseId: number, pathId?: number) => void;
 };
 
-export default function PersonalizedPathContentMobile({ onCourseClick }: Props) {
+export default function PersonalizedPathContentMobile({
+  onCourseClick,
+}: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
   const { accessToken } = useAuthSession();
@@ -57,9 +61,12 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
   const profilePayload = profileQuery.data;
   const questionnaireCompleted = Boolean(
     profilePayload?.is_questionnaire_completed ??
-      (profilePayload?.user_data as { is_questionnaire_completed?: boolean } | undefined)
-        ?.is_questionnaire_completed ??
-      false
+    (
+      profilePayload?.user_data as
+        | { is_questionnaire_completed?: boolean }
+        | undefined
+    )?.is_questionnaire_completed ??
+    false,
   );
 
   const personalizedQuery = useQuery({
@@ -72,7 +79,8 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
 
   const progressSummaryQuery = useQuery({
     queryKey: queryKeys.progressSummary(),
-    queryFn: () => fetchProgressSummary().then((r) => r.data as ProgressSummary),
+    queryFn: () =>
+      fetchProgressSummary().then((r) => r.data as ProgressSummary),
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: staleTimes.progressSummary,
     refetchInterval: 20_000,
@@ -177,11 +185,16 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
     );
   }
 
-  if (profileQuery.isPending || (questionnaireCompleted && personalizedQuery.isPending)) {
+  if (
+    profileQuery.isPending ||
+    (questionnaireCompleted && personalizedQuery.isPending)
+  ) {
     return (
       <GlassCard padding="lg" style={{ gap: spacing.md }}>
         <View style={[styles.skel, { backgroundColor: c.border }]} />
-        <View style={[styles.skel, { height: 100, backgroundColor: c.border }]} />
+        <View
+          style={[styles.skel, { height: 100, backgroundColor: c.border }]}
+        />
       </GlassCard>
     );
   }
@@ -189,8 +202,14 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
   if (!questionnaireCompleted) {
     return (
       <GlassCard padding="md">
-        <Text style={{ color: c.textMuted }}>{t("dashboard.nav.completeOnboarding")}</Text>
-        <GlassButton variant="primary" size="sm" onPress={() => router.push(href("/onboarding"))}>
+        <Text style={{ color: c.textMuted }}>
+          {t("dashboard.nav.completeOnboarding")}
+        </Text>
+        <GlassButton
+          variant="primary"
+          size="sm"
+          onPress={() => router.push(href("/onboarding"))}
+        >
           {t("onboarding.reminderBanner.start")}
         </GlassButton>
       </GlassCard>
@@ -200,7 +219,9 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
   if (personalizedQuery.isError) {
     return (
       <GlassCard padding="md">
-        <Text style={{ color: c.error }}>{t("personalizedPath.errors.recommendationsFailed")}</Text>
+        <Text style={{ color: c.error }}>
+          {t("personalizedPath.errors.recommendationsFailed")}
+        </Text>
       </GlassCard>
     );
   }
@@ -213,19 +234,24 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
             const metrics = getCourseMetrics(heroCourse);
             return (
               <View style={{ gap: spacing.md, position: "relative" }}>
-                <View style={[styles.heroHead, { borderBottomColor: c.border }]}>
+                <View
+                  style={[styles.heroHead, { borderBottomColor: c.border }]}
+                >
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.heroTitle, { color: c.text }]}>
                       {t("personalizedPath.title")}
                     </Text>
                     <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                      {(personalizedQuery.data?.meta?.onboarding_goals || []).join(" • ")}
+                      {(
+                        personalizedQuery.data?.meta?.onboarding_goals || []
+                      ).join(" • ")}
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end", gap: spacing.xs }}>
                     <Text style={[styles.heroSub, { color: c.textMuted }]}>
                       {t("personalizedPath.overallCompletion", {
-                        value: personalizedQuery.data?.meta?.overall_completion ?? 0,
+                        value:
+                          personalizedQuery.data?.meta?.overall_completion ?? 0,
                       })}
                     </Text>
                     <GlassButton
@@ -243,10 +269,16 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
                 <Text style={[styles.kicker, { color: c.textMuted }]}>
                   {t("personalizedPath.continue")}
                 </Text>
-                <Text style={[styles.courseTitle, { color: c.text }]}>{heroCourse.title}</Text>
-                <Text style={[styles.reason, { color: c.textMuted }]}>{heroCourse.reason}</Text>
+                <Text style={[styles.courseTitle, { color: c.text }]}>
+                  {heroCourse.title}
+                </Text>
+                <Text style={[styles.reason, { color: c.textMuted }]}>
+                  {heroCourse.reason}
+                </Text>
                 <View style={styles.heroMetaRow}>
-                  <View style={[styles.pill, { backgroundColor: `${c.primary}22` }]}>
+                  <View
+                    style={[styles.pill, { backgroundColor: `${c.primary}22` }]}
+                  >
                     <MaterialCommunityIcons
                       name={courseIconName(heroCourse.path_title)}
                       size={14}
@@ -257,7 +289,9 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
                     </Text>
                   </View>
                   <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                    {t("personalizedPath.eta", { minutes: metrics.estimatedMinutes })}
+                    {t("personalizedPath.eta", {
+                      minutes: metrics.estimatedMinutes,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.heroActions}>
@@ -272,20 +306,33 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
                   <View style={{ flex: 1 }}>
                     {metrics.totalSections > 0 ? (
                       <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                        {metrics.completedSections}/{metrics.totalSections} sections
+                        {metrics.completedSections}/{metrics.totalSections}{" "}
+                        sections
                       </Text>
                     ) : (
                       <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                        {metrics.completedLessons}/{metrics.totalLessons} lessons
+                        {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                        lessons
                       </Text>
                     )}
                   </View>
-                  <GlassButton variant="primary" size="sm" onPress={() => openCourse(heroCourse)}>
-                    {heroCourse.locked ? t("personalizedPath.unlock") : t("personalizedPath.open")}
+                  <GlassButton
+                    variant="primary"
+                    size="sm"
+                    onPress={() => openCourse(heroCourse)}
+                  >
+                    {heroCourse.locked
+                      ? t("personalizedPath.unlock")
+                      : t("personalizedPath.open")}
                   </GlassButton>
                 </View>
                 {heroCourse.locked ? (
-                  <View style={[styles.lockedOverlay, { backgroundColor: `${c.bg}99` }]}>
+                  <View
+                    style={[
+                      styles.lockedOverlay,
+                      { backgroundColor: `${c.bg}99` },
+                    ]}
+                  >
                     <Text style={[styles.lockedLabel, { color: c.primary }]}>
                       {t("personalizedPath.locked")}
                     </Text>
@@ -297,7 +344,9 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
         </GlassCard>
       ) : (
         <GlassCard padding="md">
-          <Text style={[styles.heroTitle, { color: c.text }]}>{t("personalizedPath.title")}</Text>
+          <Text style={[styles.heroTitle, { color: c.text }]}>
+            {t("personalizedPath.title")}
+          </Text>
           <Text style={[styles.heroSub, { color: c.textMuted }]}>
             {(personalizedQuery.data?.meta?.onboarding_goals || []).join(" • ")}
           </Text>
@@ -323,9 +372,13 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
           <View key={course.id} style={styles.timelineRow}>
             <View style={styles.timelineCol}>
               {index < restCourses.length - 1 ? (
-                <View style={[styles.timelineLine, { backgroundColor: c.border }]} />
+                <View
+                  style={[styles.timelineLine, { backgroundColor: c.border }]}
+                />
               ) : null}
-              <View style={[styles.timelineDot, { borderColor: `${c.primary}55` }]}>
+              <View
+                style={[styles.timelineDot, { borderColor: `${c.primary}55` }]}
+              >
                 <MaterialCommunityIcons
                   name={courseIconName(course.path_title)}
                   size={14}
@@ -336,11 +389,24 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
             <GlassCard padding="md" style={{ flex: 1, borderColor: c.border }}>
               <View style={styles.restHead}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.pathTitle, { color: c.textMuted }]}>{course.path_title}</Text>
-                  <Text style={[styles.courseTitle, { color: c.text }]}>{course.title}</Text>
-                  <Text style={[styles.reason, { color: c.textMuted }]}>{course.reason}</Text>
-                  <Text style={[styles.focusHint, { color: c.textMuted }]}>{focusHint}</Text>
-                  <Text style={[styles.heroSub, { color: c.textMuted, marginTop: spacing.sm }]}>
+                  <Text style={[styles.pathTitle, { color: c.textMuted }]}>
+                    {course.path_title}
+                  </Text>
+                  <Text style={[styles.courseTitle, { color: c.text }]}>
+                    {course.title}
+                  </Text>
+                  <Text style={[styles.reason, { color: c.textMuted }]}>
+                    {course.reason}
+                  </Text>
+                  <Text style={[styles.focusHint, { color: c.textMuted }]}>
+                    {focusHint}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.heroSub,
+                      { color: c.textMuted, marginTop: spacing.sm },
+                    ]}
+                  >
                     {metrics.totalSections > 0
                       ? `${metrics.completedSections}/${metrics.totalSections} sections • ${metrics.completedLessons}/${metrics.totalLessons} lessons`
                       : `${metrics.completedLessons}/${metrics.totalLessons} lessons`}
@@ -353,7 +419,10 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
                   {!course.next_lesson_title && starterTasks.length > 0 ? (
                     <View style={{ marginTop: spacing.xs }}>
                       {starterTasks.map((task, taskIdx) => (
-                        <Text key={`${course.id}-t-${taskIdx}`} style={[styles.heroSub, { color: c.textMuted }]}>
+                        <Text
+                          key={`${course.id}-t-${taskIdx}`}
+                          style={[styles.heroSub, { color: c.textMuted }]}
+                        >
                           • {task}
                         </Text>
                       ))}
@@ -371,14 +440,27 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
               </View>
               <View style={styles.restFooter}>
                 <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                  {t("personalizedPath.eta", { minutes: metrics.estimatedMinutes })}
+                  {t("personalizedPath.eta", {
+                    minutes: metrics.estimatedMinutes,
+                  })}
                 </Text>
-                <GlassButton variant="ghost" size="sm" onPress={() => openCourse(course)}>
-                  {course.locked ? t("personalizedPath.unlock") : t("personalizedPath.open")}
+                <GlassButton
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => openCourse(course)}
+                >
+                  {course.locked
+                    ? t("personalizedPath.unlock")
+                    : t("personalizedPath.open")}
                 </GlassButton>
               </View>
               {course.locked ? (
-                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `${c.bg}88` }]} />
+                <View
+                  style={[
+                    StyleSheet.absoluteFillObject,
+                    { backgroundColor: `${c.bg}88` },
+                  ]}
+                />
               ) : null}
             </GlassCard>
           </View>
@@ -388,7 +470,11 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
       <Text style={[styles.sectionH, { color: c.text }]}>
         {t("personalizedPath.skillsToReinforce")}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: spacing.sm }}
+      >
         {reviewQueue.length === 0 ? (
           <GlassCard padding="sm">
             <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
@@ -397,10 +483,18 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
           </GlassCard>
         ) : (
           reviewQueue.map((item, idx) => (
-            <GlassCard key={`${item.skill || "s"}-${idx}`} padding="sm" style={{ minWidth: 160 }}>
-              <Text style={[styles.heroSub, { color: c.textMuted }]}>{item.skill}</Text>
+            <GlassCard
+              key={`${item.skill || "s"}-${idx}`}
+              padding="sm"
+              style={{ minWidth: 160 }}
+            >
+              <Text style={[styles.heroSub, { color: c.textMuted }]}>
+                {item.skill}
+              </Text>
               <Text style={[styles.courseTitle, { color: c.text }]}>
-                {t("personalizedPath.skillScore", { value: item.proficiency ?? 0 })}
+                {t("personalizedPath.skillScore", {
+                  value: item.proficiency ?? 0,
+                })}
               </Text>
             </GlassCard>
           ))
@@ -409,17 +503,25 @@ export default function PersonalizedPathContentMobile({ onCourseClick }: Props) 
 
       {isPreview && personalizedQuery.data?.upgrade_prompt ? (
         <GlassCard padding="md" style={{ alignItems: "center" }}>
-          <Text style={[styles.reason, { color: c.textMuted, textAlign: "center" }]}>
+          <Text
+            style={[styles.reason, { color: c.textMuted, textAlign: "center" }]}
+          >
             {personalizedQuery.data.upgrade_prompt}
           </Text>
-          <GlassButton variant="primary" size="sm" onPress={() => router.push(href("/subscriptions"))}>
+          <GlassButton
+            variant="primary"
+            size="sm"
+            onPress={() => router.push(href("/subscriptions"))}
+          >
             {t("personalizedPath.upgrade")}
           </GlassButton>
         </GlassCard>
       ) : null}
 
       <GlassCard padding="md">
-        <Text style={[styles.reason, { color: c.textMuted, textAlign: "center" }]}>
+        <Text
+          style={[styles.reason, { color: c.textMuted, textAlign: "center" }]}
+        >
           {t("personalizedPath.basedOnOnboarding")}{" "}
           <Text
             onPress={() => router.push(href("/onboarding"))}
@@ -444,10 +546,20 @@ const styles = StyleSheet.create({
   },
   heroTitle: { fontSize: typography.sm, fontWeight: "800" },
   heroSub: { fontSize: typography.xs, marginTop: 4, lineHeight: 16 },
-  kicker: { fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 },
+  kicker: {
+    fontSize: 10,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
   courseTitle: { fontSize: typography.md, fontWeight: "800" },
   reason: { fontSize: typography.xs, marginTop: spacing.xs, lineHeight: 18 },
-  heroMetaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm },
+  heroMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   pill: {
     flexDirection: "row",
     alignItems: "center",
@@ -465,7 +577,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   lockedLabel: { fontSize: typography.xs, fontWeight: "800" },
-  sectionH: { fontSize: typography.sm, fontWeight: "800", marginTop: spacing.sm },
+  sectionH: {
+    fontSize: typography.sm,
+    fontWeight: "800",
+    marginTop: spacing.sm,
+  },
   timelineRow: { flexDirection: "row", gap: spacing.md },
   timelineCol: { width: 28, alignItems: "center" },
   timelineLine: {
@@ -488,7 +604,11 @@ const styles = StyleSheet.create({
   restHead: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
   pathTitle: { fontSize: typography.xs },
   focusHint: { fontSize: typography.xs, marginTop: spacing.sm, lineHeight: 16 },
-  nextLesson: { fontSize: typography.xs, marginTop: spacing.xs, fontWeight: "600" },
+  nextLesson: {
+    fontSize: typography.xs,
+    marginTop: spacing.xs,
+    fontWeight: "600",
+  },
   restFooter: {
     marginTop: spacing.md,
     flexDirection: "row",

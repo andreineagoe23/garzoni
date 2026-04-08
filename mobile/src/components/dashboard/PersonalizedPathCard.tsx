@@ -15,9 +15,16 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
   const c = useThemeColors();
   if (resume) {
     return (
-      <GlassCard padding="lg" style={{ borderColor: c.primary, backgroundColor: c.primary + "18" }}>
-        <Text style={[styles.kicker, { color: c.textOnPrimary }]}>Continue</Text>
-        <Text style={[styles.title, { color: c.text }]}>{resume.course_title}</Text>
+      <GlassCard
+        padding="lg"
+        style={{ borderColor: c.primary, backgroundColor: c.primary + "18" }}
+      >
+        <Text style={[styles.kicker, { color: c.textOnPrimary }]}>
+          Continue
+        </Text>
+        <Text style={[styles.title, { color: c.text }]}>
+          {resume.course_title}
+        </Text>
         <View style={{ marginTop: spacing.md }}>
           <GlassButton
             variant="active"
@@ -33,7 +40,9 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
   if (startHere?.course_id) {
     return (
       <GlassCard padding="lg">
-        <Text style={[styles.kicker, { color: c.textMuted }]}>Personalized path</Text>
+        <Text style={[styles.kicker, { color: c.textMuted }]}>
+          Personalized path
+        </Text>
         <Text style={[styles.title, { color: c.text }]}>
           Start your first tailored learning journey
         </Text>
@@ -56,7 +65,11 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
         Pick a learning path below or browse the Learn tab.
       </Text>
       <View style={{ marginTop: spacing.md }}>
-        <GlassButton variant="primary" size="md" onPress={() => router.push("/(tabs)/learn")}>
+        <GlassButton
+          variant="primary"
+          size="md"
+          onPress={() => router.push("/(tabs)/learn")}
+        >
           Browse paths
         </GlassButton>
       </View>

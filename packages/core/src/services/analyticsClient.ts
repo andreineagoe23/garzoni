@@ -4,7 +4,10 @@ import { readPublicEnv } from "../runtime/publicEnv";
 let isInitialized = false;
 
 export const initAnalytics = () => {
-  const apiKey = readPublicEnv("VITE_AMPLITUDE_API_KEY", "REACT_APP_AMPLITUDE_API_KEY");
+  const apiKey = readPublicEnv(
+    "VITE_AMPLITUDE_API_KEY",
+    "REACT_APP_AMPLITUDE_API_KEY",
+  );
   if (!apiKey || isInitialized) return;
   init(apiKey, undefined, {
     defaultTracking: {
@@ -18,7 +21,7 @@ export const initAnalytics = () => {
 
 export const trackAnalyticsEvent = (
   eventName: string,
-  properties: Record<string, unknown> = {}
+  properties: Record<string, unknown> = {},
 ) => {
   if (!isInitialized) return;
   track(eventName, properties);

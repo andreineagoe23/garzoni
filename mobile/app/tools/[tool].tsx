@@ -17,7 +17,9 @@ export default function ToolWebScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: String(tool ?? "Tool"), headerShown: true }} />
+      <Stack.Screen
+        options={{ title: String(tool ?? "Tool"), headerShown: true }}
+      />
       <View style={[styles.flex, { backgroundColor: c.bg }]}>
         {!uri ? (
           <View style={styles.center}>
@@ -43,6 +45,11 @@ export default function ToolWebScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
   msg: { fontSize: typography.sm, textAlign: "center", lineHeight: 22 },
 });

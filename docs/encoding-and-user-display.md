@@ -30,6 +30,7 @@ This keeps mojibake from reappearing and ensures one place to extend fixes (e.g.
 To correct values already stored in the DB (e.g. for Django admin):
 
 **Locally:**
+
 ```bash
 cd backend
 python manage.py fix_user_mojibake --dry-run   # preview
@@ -37,6 +38,7 @@ python manage.py fix_user_mojibake             # apply
 ```
 
 **On production (Railway):**
+
 ```bash
 cd backend
 railway link   # if not already linked

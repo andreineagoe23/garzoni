@@ -9,7 +9,11 @@ type Props = {
 };
 
 /** Theme-aware course progress ring (wraps shared CircularProgressRing). */
-export default function ProgressRing({ value, size = 52, strokeWidth = 5 }: Props) {
+export default function ProgressRing({
+  value,
+  size = 52,
+  strokeWidth = 5,
+}: Props) {
   const c = useThemeColors();
   return (
     <CircularProgressRing

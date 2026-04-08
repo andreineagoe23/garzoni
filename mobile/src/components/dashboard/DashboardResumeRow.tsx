@@ -1,4 +1,10 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -18,7 +24,11 @@ type Props = {
  * Mirrors web dashboard tiles: inner stack is column (icon+text, then full-width CTA).
  * Web: `flex-col gap-3 sm:flex-row` — on phone the CTA is full width under the copy.
  */
-export default function DashboardResumeRow({ resume, startHere, style }: Props) {
+export default function DashboardResumeRow({
+  resume,
+  startHere,
+  style,
+}: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
 
@@ -42,13 +52,19 @@ export default function DashboardResumeRow({ resume, startHere, style }: Props) 
       >
         <View style={[styles.sheet, { backgroundColor: fillResume }]}>
           <View style={styles.topRow}>
-            <MaterialCommunityIcons name="book-open-variant" size={26} color={c.primary} />
+            <MaterialCommunityIcons
+              name="book-open-variant"
+              size={26}
+              color={c.primary}
+            />
             <View style={styles.copy}>
               <Text style={[styles.title, { color: c.text }]}>
                 {t("dashboard.resume.title")}
               </Text>
               <Text style={[styles.body, { color: c.textMuted }]}>
-                {t("dashboard.resume.continueWith", { course: resume.course_title })}
+                {t("dashboard.resume.continueWith", {
+                  course: resume.course_title,
+                })}
               </Text>
             </View>
           </View>
@@ -80,7 +96,11 @@ export default function DashboardResumeRow({ resume, startHere, style }: Props) 
     >
       <View style={[styles.sheet, { backgroundColor: fillEmpty }]}>
         <View style={styles.topRow}>
-          <MaterialCommunityIcons name="book-open-variant" size={26} color={c.primary} />
+          <MaterialCommunityIcons
+            name="book-open-variant"
+            size={26}
+            color={c.primary}
+          />
           <View style={styles.copy}>
             <Text style={[styles.title, { color: c.text }]}>
               {t("dashboard.resume.title")}

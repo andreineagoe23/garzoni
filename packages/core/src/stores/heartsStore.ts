@@ -55,7 +55,9 @@ function writeOutOfHeartsUntilTs(value: number | null) {
     if (value == null) {
       void Promise.resolve(a.removeItem(STORAGE_KEY)).catch(() => {});
     } else {
-      void Promise.resolve(a.setItem(STORAGE_KEY, String(value))).catch(() => {});
+      void Promise.resolve(a.setItem(STORAGE_KEY, String(value))).catch(
+        () => {},
+      );
     }
   } catch {
     // ignore storage failures (private mode, quota, etc.)

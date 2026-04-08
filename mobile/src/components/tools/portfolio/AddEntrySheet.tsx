@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -103,9 +98,12 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
         { options: [...options, "Cancel"], cancelButtonIndex: options.length },
         (idx) => {
           if (idx < options.length) {
-            setForm((prev) => ({ ...prev, asset_type: ASSET_TYPES[idx].value }));
+            setForm((prev) => ({
+              ...prev,
+              asset_type: ASSET_TYPES[idx].value,
+            }));
           }
-        }
+        },
       );
     }
     // Android: inline buttons used (see picker row below)
@@ -126,12 +124,21 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
       if (assetType === "crypto") {
         const normalized = symbol.trim().toLowerCase();
         const COINGECKO: Record<string, string> = {
-          btc: "bitcoin", bitcoin: "bitcoin", eth: "ethereum", ethereum: "ethereum",
-          sol: "solana", solana: "solana", xrp: "ripple", ada: "cardano",
-          doge: "dogecoin", bnb: "binancecoin",
+          btc: "bitcoin",
+          bitcoin: "bitcoin",
+          eth: "ethereum",
+          ethereum: "ethereum",
+          sol: "solana",
+          solana: "solana",
+          xrp: "ripple",
+          ada: "cardano",
+          doge: "dogecoin",
+          bnb: "binancecoin",
         };
         const id = COINGECKO[normalized] || normalized;
-        const res = await (apiClient as any).get("/crypto-price/", { params: { id } });
+        const res = await (apiClient as any).get("/crypto-price/", {
+          params: { id },
+        });
         const price = res.data?.price ?? null;
         if (price != null) {
           setLookupPrice(price);
@@ -242,22 +249,38 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
               {Platform.OS === "ios" ? (
                 <Pressable
                   onPress={handleAssetTypePicker}
-                  style={[styles.input, styles.selectBtn, { backgroundColor: c.inputBg, borderColor: c.border }]}
+                  style={[
+                    styles.input,
+                    styles.selectBtn,
+                    { backgroundColor: c.inputBg, borderColor: c.border },
+                  ]}
                 >
-                  <Text style={[styles.inputText, { color: c.text }]}>{currentAssetLabel}</Text>
-                  <Text style={{ color: c.textMuted, fontSize: typography.sm }}>▾</Text>
+                  <Text style={[styles.inputText, { color: c.text }]}>
+                    {currentAssetLabel}
+                  </Text>
+                  <Text style={{ color: c.textMuted, fontSize: typography.sm }}>
+                    ▾
+                  </Text>
                 </Pressable>
               ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.chipScroll}
+                >
                   {ASSET_TYPES.map((t) => (
                     <Pressable
                       key={t.value}
-                      onPress={() => setForm((prev) => ({ ...prev, asset_type: t.value }))}
+                      onPress={() =>
+                        setForm((prev) => ({ ...prev, asset_type: t.value }))
+                      }
                       style={[
                         styles.chip,
                         {
                           backgroundColor:
-                            form.asset_type === t.value ? c.primary : c.surfaceOffset,
+                            form.asset_type === t.value
+                              ? c.primary
+                              : c.surfaceOffset,
                           borderColor:
                             form.asset_type === t.value ? c.primary : c.border,
                         },
@@ -266,7 +289,12 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
                       <Text
                         style={[
                           styles.chipText,
-                          { color: form.asset_type === t.value ? c.textOnPrimary : c.textMuted },
+                          {
+                            color:
+                              form.asset_type === t.value
+                                ? c.textOnPrimary
+                                : c.textMuted,
+                          },
                         ]}
                       >
                         {t.label}
@@ -281,7 +309,15 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
             <FieldLabel label="Symbol">
               <View style={styles.symbolRow}>
                 <TextInput
-                  style={[styles.input, styles.symbolInput, { backgroundColor: c.inputBg, borderColor: c.border, color: c.text }]}
+                  style={[
+                    styles.input,
+                    styles.symbolInput,
+                    {
+                      backgroundColor: c.inputBg,
+                      borderColor: c.border,
+                      color: c.text,
+                    },
+                  ]}
                   placeholder="e.g. AAPL, bitcoin"
                   placeholderTextColor={c.textFaint}
                   value={form.symbol}
@@ -291,23 +327,34 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
                   returnKeyType="done"
                 />
                 <Pressable
-                  onPress={() => { void handleLookupPrice(); }}
+                  onPress={() => {
+                    void handleLookupPrice();
+                  }}
                   disabled={lookupLoading || !form.symbol.trim()}
                   style={({ pressed }) => [
                     styles.lookupBtn,
                     {
                       backgroundColor: c.primary,
-                      opacity: (lookupLoading || !form.symbol.trim()) ? 0.4 : pressed ? 0.8 : 1,
+                      opacity:
+                        lookupLoading || !form.symbol.trim()
+                          ? 0.4
+                          : pressed
+                            ? 0.8
+                            : 1,
                     },
                   ]}
                 >
-                  <Text style={[styles.lookupBtnText, { color: c.textOnPrimary }]}>
+                  <Text
+                    style={[styles.lookupBtnText, { color: c.textOnPrimary }]}
+                  >
                     {lookupLoading ? "…" : "Get Price"}
                   </Text>
                 </Pressable>
               </View>
               {lookupError && (
-                <Text style={[styles.fieldError, { color: c.error }]}>{lookupError}</Text>
+                <Text style={[styles.fieldError, { color: c.error }]}>
+                  {lookupError}
+                </Text>
               )}
               {lookupPrice != null && !lookupError && (
                 <Text style={[styles.fieldHint, { color: c.textMuted }]}>
@@ -319,11 +366,20 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
             {/* Quantity */}
             <FieldLabel label="Quantity">
               <TextInput
-                style={[styles.input, { backgroundColor: c.inputBg, borderColor: c.border, color: c.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: c.inputBg,
+                    borderColor: c.border,
+                    color: c.text,
+                  },
+                ]}
                 placeholder="e.g. 10"
                 placeholderTextColor={c.textFaint}
                 value={form.quantity}
-                onChangeText={(v) => setForm((prev) => ({ ...prev, quantity: v }))}
+                onChangeText={(v) =>
+                  setForm((prev) => ({ ...prev, quantity: v }))
+                }
                 keyboardType="decimal-pad"
                 returnKeyType="done"
               />
@@ -332,11 +388,20 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
             {/* Purchase Price */}
             <FieldLabel label="Purchase Price (USD)">
               <TextInput
-                style={[styles.input, { backgroundColor: c.inputBg, borderColor: c.border, color: c.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: c.inputBg,
+                    borderColor: c.border,
+                    color: c.text,
+                  },
+                ]}
                 placeholder="e.g. 185.00"
                 placeholderTextColor={c.textFaint}
                 value={form.purchase_price}
-                onChangeText={(v) => setForm((prev) => ({ ...prev, purchase_price: v }))}
+                onChangeText={(v) =>
+                  setForm((prev) => ({ ...prev, purchase_price: v }))
+                }
                 keyboardType="decimal-pad"
                 returnKeyType="done"
               />
@@ -345,11 +410,20 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
             {/* Purchase Date */}
             <FieldLabel label="Purchase Date (YYYY-MM-DD)">
               <TextInput
-                style={[styles.input, { backgroundColor: c.inputBg, borderColor: c.border, color: c.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: c.inputBg,
+                    borderColor: c.border,
+                    color: c.text,
+                  },
+                ]}
                 placeholder="2024-01-15"
                 placeholderTextColor={c.textFaint}
                 value={form.purchase_date}
-                onChangeText={(v) => setForm((prev) => ({ ...prev, purchase_date: v }))}
+                onChangeText={(v) =>
+                  setForm((prev) => ({ ...prev, purchase_date: v }))
+                }
                 keyboardType="numbers-and-punctuation"
                 returnKeyType="done"
                 maxLength={10}
@@ -357,17 +431,29 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
             </FieldLabel>
 
             {submitError && (
-              <View style={[styles.errorBox, { backgroundColor: c.errorBg, borderColor: c.error }]}>
-                <Text style={[styles.errorText, { color: c.error }]}>{submitError}</Text>
+              <View
+                style={[
+                  styles.errorBox,
+                  { backgroundColor: c.errorBg, borderColor: c.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: c.error }]}>
+                  {submitError}
+                </Text>
               </View>
             )}
 
             <Pressable
-              onPress={() => { void handleSubmit(); }}
+              onPress={() => {
+                void handleSubmit();
+              }}
               disabled={submitting}
               style={({ pressed }) => [
                 styles.submitBtn,
-                { backgroundColor: c.primary, opacity: submitting ? 0.6 : pressed ? 0.85 : 1 },
+                {
+                  backgroundColor: c.primary,
+                  opacity: submitting ? 0.6 : pressed ? 0.85 : 1,
+                },
               ]}
               accessibilityRole="button"
               accessibilityLabel="Add holding"
@@ -383,7 +469,13 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
   );
 }
 
-function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
+function FieldLabel({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   const c = useThemeColors();
   return (
     <View style={fieldStyles.wrapper}>

@@ -37,7 +37,11 @@ function cellBg(count: number, primary: string, surfaceOffset: string): string {
 
 function formatDisplayDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export default function DashboardActivityHeatmap({
@@ -57,7 +61,10 @@ export default function DashboardActivityHeatmap({
   const firstDayOfWeek = firstDate.getDay(); // 0=Sun
 
   // Build cells: null placeholders + day numbers 1..daysToShow
-  const placeholders: null[] = Array.from({ length: firstDayOfWeek }, () => null);
+  const placeholders: null[] = Array.from(
+    { length: firstDayOfWeek },
+    () => null,
+  );
   const days: number[] = Array.from({ length: daysToShow }, (_, i) => i + 1);
   const cells: (number | null)[] = [...placeholders, ...days];
 
@@ -72,7 +79,9 @@ export default function DashboardActivityHeatmap({
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   })();
 
-  const selectedSummary = selectedDate ? (activityMap[selectedDate] ?? null) : null;
+  const selectedSummary = selectedDate
+    ? (activityMap[selectedDate] ?? null)
+    : null;
 
   return (
     <View>
@@ -80,7 +89,9 @@ export default function DashboardActivityHeatmap({
       <View style={styles.weekRow}>
         {WEEKDAY_LABELS.map((label, i) => (
           <View key={i} style={styles.cellSlot}>
-            <Text style={[styles.weekday, { color: colors.textMuted }]}>{label}</Text>
+            <Text style={[styles.weekday, { color: colors.textMuted }]}>
+              {label}
+            </Text>
           </View>
         ))}
       </View>
@@ -104,7 +115,9 @@ export default function DashboardActivityHeatmap({
             const count = isFuture ? 0 : (summary?.totalActivities ?? 0);
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === selectedDate;
-            const bg = isFuture ? colors.surfaceOffset + "60" : cellBg(count, colors.primary, colors.surfaceOffset);
+            const bg = isFuture
+              ? colors.surfaceOffset + "60"
+              : cellBg(count, colors.primary, colors.surfaceOffset);
 
             return (
               <TouchableOpacity
@@ -122,9 +135,10 @@ export default function DashboardActivityHeatmap({
                       borderColor: isSelected
                         ? colors.accent
                         : isToday
-                        ? colors.primary
-                        : colors.border,
-                      borderWidth: isSelected || isToday ? 1.5 : StyleSheet.hairlineWidth,
+                          ? colors.primary
+                          : colors.border,
+                      borderWidth:
+                        isSelected || isToday ? 1.5 : StyleSheet.hairlineWidth,
                       opacity: isFuture ? 0.35 : 1,
                     },
                   ]}
@@ -133,11 +147,12 @@ export default function DashboardActivityHeatmap({
                     style={[
                       styles.dayNum,
                       {
-                        color: count > 5
-                          ? colors.surface
-                          : isToday
-                          ? colors.primary
-                          : colors.text,
+                        color:
+                          count > 5
+                            ? colors.surface
+                            : isToday
+                              ? colors.primary
+                              : colors.text,
                       },
                     ]}
                   >
@@ -147,7 +162,10 @@ export default function DashboardActivityHeatmap({
                     <View
                       style={[
                         styles.dot,
-                        { backgroundColor: count > 5 ? colors.surface : colors.accent },
+                        {
+                          backgroundColor:
+                            count > 5 ? colors.surface : colors.accent,
+                        },
                       ]}
                     />
                   ) : null}
@@ -160,18 +178,37 @@ export default function DashboardActivityHeatmap({
 
       {/* Detail card */}
       {selectedDate ? (
-        <View style={[styles.detail, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+        <View
+          style={[
+            styles.detail,
+            { borderColor: colors.border, backgroundColor: colors.surface },
+          ]}
+        >
           <Text style={[styles.detailDate, { color: colors.text }]}>
             {formatDisplayDate(selectedDate)}
           </Text>
           {selectedSummary && selectedSummary.totalActivities > 0 ? (
             <View style={styles.statsRow}>
-              <Stat label="Lessons" value={selectedSummary.lessonsCompleted} color={colors.primary} />
-              <Stat label="Sections" value={selectedSummary.sectionsCompleted} color={colors.primary} />
-              <Stat label="Exercises" value={selectedSummary.exercisesCompleted} color={colors.accent} />
+              <Stat
+                label="Lessons"
+                value={selectedSummary.lessonsCompleted}
+                color={colors.primary}
+              />
+              <Stat
+                label="Sections"
+                value={selectedSummary.sectionsCompleted}
+                color={colors.primary}
+              />
+              <Stat
+                label="Exercises"
+                value={selectedSummary.exercisesCompleted}
+                color={colors.accent}
+              />
             </View>
           ) : (
-            <Text style={[styles.noActivity, { color: colors.textMuted }]}>No activity this day</Text>
+            <Text style={[styles.noActivity, { color: colors.textMuted }]}>
+              No activity this day
+            </Text>
           )}
         </View>
       ) : null}
@@ -179,7 +216,15 @@ export default function DashboardActivityHeatmap({
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function Stat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
   return (
     <View style={styles.statItem}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>

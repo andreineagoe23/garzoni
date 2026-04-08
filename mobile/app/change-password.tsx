@@ -46,7 +46,7 @@ export default function ChangePasswordScreen() {
       setError(
         typeof err.response?.data?.error === "string"
           ? err.response.data.error
-          : "Could not change password."
+          : "Could not change password.",
       );
     } finally {
       setLoading(false);
@@ -55,44 +55,44 @@ export default function ChangePasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
-          {error ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-          <FormInput
-            label="Current password"
-            secureTextEntry
-            value={current}
-            onChangeText={setCurrent}
-            autoCapitalize="none"
-          />
-          <FormInput
-            label="New password"
-            secureTextEntry
-            value={next}
-            onChangeText={setNext}
-            autoCapitalize="none"
-          />
-          <FormInput
-            label="Confirm new password"
-            secureTextEntry
-            value={confirm}
-            onChangeText={setConfirm}
-            autoCapitalize="none"
-          />
-          <Button loading={loading} onPress={() => void onSubmit()}>
-            Update password
-          </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+        <FormInput
+          label="Current password"
+          secureTextEntry
+          value={current}
+          onChangeText={setCurrent}
+          autoCapitalize="none"
+        />
+        <FormInput
+          label="New password"
+          secureTextEntry
+          value={next}
+          onChangeText={setNext}
+          autoCapitalize="none"
+        />
+        <FormInput
+          label="Confirm new password"
+          secureTextEntry
+          value={confirm}
+          onChangeText={setConfirm}
+          autoCapitalize="none"
+        />
+        <Button loading={loading} onPress={() => void onSubmit()}>
+          Update password
+        </Button>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

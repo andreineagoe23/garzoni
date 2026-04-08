@@ -12,7 +12,11 @@ import { appleVerifyIdentity, getBackendUrl } from "@garzoni/core";
 import type { SocialAuthSuccessMeta } from "./GoogleSignInButton";
 
 type Props = {
-  onSuccess: (access: string, refresh?: string, meta?: SocialAuthSuccessMeta) => void;
+  onSuccess: (
+    access: string,
+    refresh?: string,
+    meta?: SocialAuthSuccessMeta,
+  ) => void;
   onError: (message: string) => void;
 };
 
@@ -58,7 +62,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
       const msg = err.message ?? "";
       if (/network|fetch|failed to connect|could not connect/i.test(msg)) {
         onError(
-          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL and restart Expo.`
+          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL and restart Expo.`,
         );
         return;
       }

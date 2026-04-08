@@ -1,29 +1,49 @@
-{% extends "emails/_base.html" %}
-
-{% block title %}Your weekly progress digest{% endblock %}
-{% block header %}Your weekly Garzoni digest{% endblock %}
-{% block preheader %}A quick snapshot of your progress this week.{% endblock %}
-
-{% block content %}
-  <p style="margin:0 0 14px 0;">Hi {{ display_name }},</p>
-  <p style="margin:0 0 14px 0;">Here is your progress from the last 7 days:</p>
-  <ul style="margin:0 0 16px 20px;padding:0;">
-    <li style="margin:0 0 8px 0;">Lessons completed: <strong>{{ lessons_completed_this_week }}</strong></li>
-    <li style="margin:0 0 8px 0;">Current streak: <strong>{{ current_streak }}</strong></li>
-    <li style="margin:0 0 8px 0;">Coins earned this week: <strong>{{ coins_earned_this_week }}</strong></li>
-    <li style="margin:0;">Coins spent this week: <strong>{{ coins_spent_this_week }}</strong></li>
-  </ul>
-  <p style="margin:0 0 14px 0;">
-    Recommended next step: {{ recommended_next_lesson }}
-  </p>
-  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;">
-    <tr>
-      <td>
-        <a href="{{ manage_url }}"
-           style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;padding:12px 16px;border-radius:12px;">
-          Continue learning
-        </a>
-      </td>
-    </tr>
-  </table>
+{% extends "emails/_base.html" %} {% block title %}Your weekly progress digest{%
+endblock %} {% block header %}Your weekly Garzoni digest{% endblock %} {% block
+preheader %}A quick snapshot of your progress this week.{% endblock %} {% block
+content %}
+<p style="margin: 0 0 14px 0">Hi {{ display_name }},</p>
+<p style="margin: 0 0 14px 0">Here is your progress from the last 7 days:</p>
+<ul style="margin: 0 0 16px 20px; padding: 0">
+  <li style="margin: 0 0 8px 0">
+    Lessons completed: <strong>{{ lessons_completed_this_week }}</strong>
+  </li>
+  <li style="margin: 0 0 8px 0">
+    Current streak: <strong>{{ current_streak }}</strong>
+  </li>
+  <li style="margin: 0 0 8px 0">
+    Coins earned this week: <strong>{{ coins_earned_this_week }}</strong>
+  </li>
+  <li style="margin: 0">
+    Coins spent this week: <strong>{{ coins_spent_this_week }}</strong>
+  </li>
+</ul>
+<p style="margin: 0 0 14px 0">
+  Recommended next step: {{ recommended_next_lesson }}
+</p>
+<table
+  role="presentation"
+  cellpadding="0"
+  cellspacing="0"
+  style="margin: 18px 0"
+>
+  <tr>
+    <td>
+      <a
+        href="{{ manage_url }}"
+        style="
+          display: inline-block;
+          background: #1d5330;
+          color: #ffffff;
+          text-decoration: none;
+          font-weight: 800;
+          padding: 12px 16px;
+          border-radius: 12px;
+        "
+      >
+        Continue learning
+      </a>
+    </td>
+  </tr>
+</table>
 {% endblock %}

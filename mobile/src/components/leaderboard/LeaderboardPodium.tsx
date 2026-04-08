@@ -51,7 +51,8 @@ export default function LeaderboardPodium({
         const uid = entry.user?.id;
         const isYou = currentUserId !== null && uid === currentUserId;
         const uri = leaderboardAvatarUri(entry.user?.profile_avatar ?? null);
-        const border = PODIUM_BORDER[Math.min(idxInTopThree, 2)] ?? PODIUM_BORDER[2];
+        const border =
+          PODIUM_BORDER[Math.min(idxInTopThree, 2)] ?? PODIUM_BORDER[2];
         const placeLabel =
           rank === 1
             ? t("leaderboard.podium.place1")
@@ -68,7 +69,8 @@ export default function LeaderboardPodium({
               {
                 borderColor: border[1],
                 backgroundColor: c.surface,
-                marginTop: rank === 2 ? spacing.md : rank === 3 ? spacing.lg : 0,
+                marginTop:
+                  rank === 2 ? spacing.md : rank === 3 ? spacing.lg : 0,
               },
             ]}
           >
@@ -88,7 +90,9 @@ export default function LeaderboardPodium({
             {uri ? (
               <Image source={{ uri }} style={styles.avatar} />
             ) : (
-              <View style={[styles.avatar, { backgroundColor: c.surfaceOffset }]} />
+              <View
+                style={[styles.avatar, { backgroundColor: c.surfaceOffset }]}
+              />
             )}
             <Text
               style={[styles.username, { color: c.text }]}
@@ -97,7 +101,9 @@ export default function LeaderboardPodium({
               {entry.user?.username ?? "—"}
             </Text>
             {isYou ? (
-              <View style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}>
+              <View
+                style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}
+              >
                 <Text style={[styles.youPillText, { color: c.primary }]}>
                   {t("leaderboard.youBadge")}
                 </Text>

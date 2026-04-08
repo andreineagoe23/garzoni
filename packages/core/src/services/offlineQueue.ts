@@ -39,7 +39,7 @@ export function queueMissionCompletion(missionData: OfflineMission): boolean {
 
     // Prevent duplicates
     const existing = queue.find(
-      (item) => item.idempotency_key === missionData.idempotency_key
+      (item) => item.idempotency_key === missionData.idempotency_key,
     );
     if (existing) {
       return false;
@@ -69,7 +69,7 @@ export function removeFromQueue(idempotencyKey: string): boolean {
   try {
     const queue = getOfflineQueue();
     const filtered = queue.filter(
-      (item) => item.idempotency_key !== idempotencyKey
+      (item) => item.idempotency_key !== idempotencyKey,
     );
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filtered));
     return true;
@@ -102,7 +102,7 @@ export function isOnline(): boolean {
  */
 export function generateIdempotencyKey(
   missionId: string | number,
-  userId: string | number
+  userId: string | number,
 ) {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(7);

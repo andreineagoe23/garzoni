@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { AppState, type AppStateStatus, StyleSheet, Text, View } from "react-native";
+import {
+  AppState,
+  type AppStateStatus,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
 
@@ -21,7 +27,11 @@ function formatMmSs(sec: number) {
 /**
  * Countdown for timed drills. Pauses while app is backgrounded.
  */
-export default function ExerciseTimer({ totalSeconds, onExpire, active = true }: Props) {
+export default function ExerciseTimer({
+  totalSeconds,
+  onExpire,
+  active = true,
+}: Props) {
   const c = useThemeColors();
   const [left, setLeft] = useState(totalSeconds);
   const expiredRef = useRef(false);
@@ -74,7 +84,9 @@ export default function ExerciseTimer({ totalSeconds, onExpire, active = true }:
       ]}
     >
       <Text style={[styles.label, { color: c.textMuted }]}>Time</Text>
-      <Text style={[styles.time, { color: urgent ? c.error : c.text }]}>{formatMmSs(left)}</Text>
+      <Text style={[styles.time, { color: urgent ? c.error : c.text }]}>
+        {formatMmSs(left)}
+      </Text>
     </View>
   );
 }
@@ -90,5 +102,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   label: { fontSize: typography.sm, fontWeight: "700" },
-  time: { fontSize: typography.lg, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  time: {
+    fontSize: typography.lg,
+    fontWeight: "800",
+    fontVariant: ["tabular-nums"],
+  },
 });

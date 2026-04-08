@@ -46,7 +46,11 @@ export default function QuestionnaireReminderBanner({
         <Text style={{ color: c.textMuted, marginBottom: spacing.sm }}>
           {i18n.t("onboarding.reminderBanner.error")}
         </Text>
-        <GlassButton variant="primary" size="sm" onPress={() => void q.refetch()}>
+        <GlassButton
+          variant="primary"
+          size="sm"
+          onPress={() => void q.refetch()}
+        >
           {i18n.t("onboarding.reminderBanner.tryAgain")}
         </GlassButton>
       </GlassCard>
@@ -62,7 +66,10 @@ export default function QuestionnaireReminderBanner({
   const totalSections = Math.max(1, progress.total_sections ?? 0);
   const totalQuestions = progress.total_questions ?? 0;
   const currentQuestionNumber = progress.current_question_number ?? 0;
-  const pct = Math.min(1, Math.max(0, (progress.progress_percentage ?? 0) / 100));
+  const pct = Math.min(
+    1,
+    Math.max(0, (progress.progress_percentage ?? 0) / 100),
+  );
 
   const primaryCtaLabel =
     completedSections > 0
@@ -83,14 +90,21 @@ export default function QuestionnaireReminderBanner({
         });
 
   return (
-    <GlassCard padding="md" style={{ borderColor: c.primary, backgroundColor: c.accentMuted }}>
+    <GlassCard
+      padding="md"
+      style={{ borderColor: c.primary, backgroundColor: c.accentMuted }}
+    >
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.h, { color: c.text }]}>
             {i18n.t("onboarding.reminderBanner.status")}
           </Text>
           <Text style={[styles.p, { color: c.textMuted }]}>{detail}</Text>
-          <ProgressBar value={pct} color={c.primary} style={{ marginTop: spacing.sm }} />
+          <ProgressBar
+            value={pct}
+            color={c.primary}
+            style={{ marginTop: spacing.sm }}
+          />
         </View>
         <GlassButton
           variant="primary"

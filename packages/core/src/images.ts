@@ -11,14 +11,17 @@ export function configureCloudinaryCloudName(name: string): void {
 function getCloudName(): string {
   if (cloudNameOverride) return cloudNameOverride;
   return (
-    readPublicEnv("VITE_CLOUDINARY_CLOUD_NAME", "REACT_APP_CLOUDINARY_CLOUD_NAME") || ""
+    readPublicEnv(
+      "VITE_CLOUDINARY_CLOUD_NAME",
+      "REACT_APP_CLOUDINARY_CLOUD_NAME",
+    ) || ""
   );
 }
 
 /** Build a Cloudinary delivery URL. `publicId` uses folder/id form, e.g. `garzoni/login-bg`. */
 export function cloudinaryImageUrl(
   publicId: string,
-  transforms = "f_auto,q_auto"
+  transforms = "f_auto,q_auto",
 ): string {
   const cloud = getCloudName();
   if (!cloud) return "";

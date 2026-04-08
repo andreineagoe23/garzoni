@@ -1,4 +1,4 @@
-export type ImpactLevel = 'high' | 'medium' | 'low';
+export type ImpactLevel = "high" | "medium" | "low";
 
 export type CalendarEvent = {
   id: string;
@@ -11,9 +11,11 @@ export type CalendarEvent = {
   currency?: string;
 };
 
-export type FilterOption = 'all' | 'high' | 'medium' | 'low';
+export type FilterOption = "all" | "high" | "medium" | "low";
 
-export function groupEventsByDate(events: CalendarEvent[]): { date: string; data: CalendarEvent[] }[] {
+export function groupEventsByDate(
+  events: CalendarEvent[],
+): { date: string; data: CalendarEvent[] }[] {
   const map = new Map<string, CalendarEvent[]>();
   for (const event of events) {
     const list = map.get(event.date) ?? [];
@@ -27,15 +29,19 @@ export function groupEventsByDate(events: CalendarEvent[]): { date: string; data
 
 export function formatEventDate(dateStr: string): string {
   try {
-    const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   } catch {
     return dateStr;
   }
 }
 
 export const IMPACT_COLORS: Record<ImpactLevel, string> = {
-  high: '#ef4444',
-  medium: '#f59e0b',
-  low: '#6b7280',
+  high: "#ef4444",
+  medium: "#f59e0b",
+  low: "#6b7280",
 };

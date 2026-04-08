@@ -98,7 +98,7 @@ apiClient.interceptors.response.use(
       callbacks.onError(String(message));
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const attachToken = (token: string | null) => {

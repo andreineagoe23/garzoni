@@ -49,7 +49,11 @@ function createStyles(c: ThemeColors) {
       backgroundColor: c.surfaceOffset,
     },
     chipText: { fontSize: typography.base, color: c.text },
-    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    feedback: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      marginTop: spacing.md,
+    },
     fOk: { color: c.success },
     fErr: { color: c.error },
     explanation: {
@@ -77,18 +81,17 @@ export default function DragAndDrop({
 
   const [order, setOrder] = useState<(string | number)[]>([]);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
 
   const available = useMemo(
     () => items.filter((it) => !order.includes(it.id)),
-    [items, order]
+    [items, order],
   );
 
-  const correctOrder = useMemo(
-    () => targets.map((t) => t.id),
-    [targets]
-  );
+  const correctOrder = useMemo(() => targets.map((t) => t.id), [targets]);
 
   const handleTap = (id: string | number) => {
     if (isCompleted || disabled) return;
@@ -141,7 +144,11 @@ export default function DragAndDrop({
       {order.length > 0 ? (
         <View style={styles.placed}>
           {order.map((id, i) => (
-            <Badge key={`${id}-${i}`} label={`${i + 1}. ${itemLabel(id)}`} color={c.accent} />
+            <Badge
+              key={`${id}-${i}`}
+              label={`${i + 1}. ${itemLabel(id)}`}
+              color={c.accent}
+            />
           ))}
           {!isCompleted ? (
             <Pressable onPress={handleUndo}>
@@ -182,7 +189,11 @@ export default function DragAndDrop({
       ) : null}
 
       {!isCompleted && order.length === items.length ? (
-        <Button size="sm" onPress={() => void handleSubmit()} style={{ marginTop: spacing.md }}>
+        <Button
+          size="sm"
+          onPress={() => void handleSubmit()}
+          style={{ marginTop: spacing.md }}
+        >
           Check order
         </Button>
       ) : null}

@@ -24,11 +24,19 @@ export default function ContinueLearningCard({ resume }: Props) {
       padding="md"
       style={[
         styles.card,
-        { borderColor: c.primary, backgroundColor: `${c.primary}18`, marginBottom: spacing.lg },
+        {
+          borderColor: c.primary,
+          backgroundColor: `${c.primary}18`,
+          marginBottom: spacing.lg,
+        },
       ]}
     >
       <View style={styles.row}>
-        <MaterialCommunityIcons name="play-circle" size={28} color={c.primary} />
+        <MaterialCommunityIcons
+          name="play-circle"
+          size={28}
+          color={c.primary}
+        />
         <View style={styles.copy}>
           <Text style={[styles.label, { color: c.textMuted }]}>
             {t("dashboard.resume.title")}
@@ -57,6 +65,10 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
   copy: { flex: 1, minWidth: 0 },
-  label: { fontSize: typography.xs, fontWeight: "700", textTransform: "uppercase" },
+  label: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
   title: { fontSize: typography.base, fontWeight: "700", marginTop: 2 },
 });

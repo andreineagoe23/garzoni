@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshControl, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import {
+  RefreshControl,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -56,9 +62,12 @@ const RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH = 600;
 
 function DashboardInner() {
   const { width: windowWidth } = useWindowDimensions();
-  const resumeTilesSideBySide = windowWidth >= RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH;
+  const resumeTilesSideBySide =
+    windowWidth >= RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH;
   const c = useThemeColors();
-  const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(null);
+  const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(
+    null,
+  );
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const authReady = hydrated;
@@ -94,7 +103,10 @@ function DashboardInner() {
 
   const reviewQuery = useQuery({
     queryKey: queryKeys.reviewQueue(),
-    queryFn: () => fetchReviewQueue().then((r) => r.data as { count?: number; due?: Array<{ skill?: string }> }),
+    queryFn: () =>
+      fetchReviewQueue().then(
+        (r) => r.data as { count?: number; due?: Array<{ skill?: string }> },
+      ),
     staleTime: staleTimes.progressSummary,
     enabled: authReady && Boolean(accessToken),
   });
@@ -108,24 +120,27 @@ function DashboardInner() {
 
   const masteryQuery = useQuery({
     queryKey: queryKeys.masterySummary(),
-    queryFn: () => fetchMasterySummary().then((r) => r.data || { masteries: [] }),
+    queryFn: () =>
+      fetchMasterySummary().then((r) => r.data || { masteries: [] }),
     staleTime: 120_000,
     enabled: authReady && Boolean(accessToken),
   });
-
 
   const profilePayload = profileQuery.data;
   const profile = useMemo(() => {
     if (!profilePayload) return null;
     const ud = profilePayload.user_data as Record<string, unknown> | undefined;
     if (ud && typeof ud === "object") {
-      return { ...profilePayload, ...ud } as UserProfile & Record<string, unknown>;
+      return { ...profilePayload, ...ud } as UserProfile &
+        Record<string, unknown>;
     }
     return profilePayload;
   }, [profilePayload]);
 
   const heatmapMap = useMemo<ActivityCalendarMap>(() => {
-    const raw = profilePayload?.activity_calendar as Record<string, unknown> | undefined;
+    const raw = profilePayload?.activity_calendar as
+      | Record<string, unknown>
+      | undefined;
     if (!raw) return {};
     const map: ActivityCalendarMap = {};
     for (const [date, val] of Object.entries(raw)) {
@@ -141,50 +156,64 @@ function DashboardInner() {
     return map;
   }, [profilePayload?.activity_calendar]);
 
-  const heatmapDates = useMemo<{ firstDay: string; lastDay: string; monthLabel: string }>(() => {
-    const raw = profilePayload?.current_month as {
-      first_day?: string | null;
-      last_day?: string | null;
-      month_name?: string;
-      year?: number | string | null;
-    } | undefined;
+  const heatmapDates = useMemo<{
+    firstDay: string;
+    lastDay: string;
+    monthLabel: string;
+  }>(() => {
+    const raw = profilePayload?.current_month as
+      | {
+          first_day?: string | null;
+          last_day?: string | null;
+          month_name?: string;
+          year?: number | string | null;
+        }
+      | undefined;
     const today = new Date();
-    const firstDay = (typeof raw?.first_day === "string" ? raw.first_day : null)
-      ?? `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+    const firstDay =
+      (typeof raw?.first_day === "string" ? raw.first_day : null) ??
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
     // Always use the real last day of the month so the full grid is shown
-    const lastDay = (typeof raw?.last_day === "string" ? raw.last_day : null)
-      ?? (() => {
+    const lastDay =
+      (typeof raw?.last_day === "string" ? raw.last_day : null) ??
+      (() => {
         const d = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       })();
-    const monthLabel = raw?.month_name && raw?.year
-      ? `${raw.month_name} ${raw.year}`
-      : today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const monthLabel =
+      raw?.month_name && raw?.year
+        ? `${raw.month_name} ${raw.year}`
+        : today.toLocaleDateString(undefined, {
+            month: "long",
+            year: "numeric",
+          });
     return { firstDay, lastDay, monthLabel };
   }, [profilePayload?.current_month]);
 
   const entitlements = entitlementsQuery.data;
   const hasPaidProfile = Boolean(
     profile?.has_paid ??
-      (profilePayload as UserProfile | undefined)?.has_paid ??
-      (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid
+    (profilePayload as UserProfile | undefined)?.has_paid ??
+    (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid,
   );
   const profilePlanId =
     profile?.subscription_plan_id ??
-    (profile?.user_data as { subscription_plan_id?: string } | undefined)?.subscription_plan_id ??
+    (profile?.user_data as { subscription_plan_id?: string } | undefined)
+      ?.subscription_plan_id ??
     null;
   const resolvedPlan: string =
     (typeof entitlements?.plan === "string" ? entitlements.plan : null) ||
     (typeof profilePlanId === "string" ? profilePlanId : null) ||
     (hasPaidProfile ? "plus" : "starter");
-  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+  const hasPlusAccess =
+    planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
   const hasPaid = hasPlusAccess;
 
   const isQuestionnaireCompleted = Boolean(
     profile?.is_questionnaire_completed ??
-      (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
-        ?.is_questionnaire_completed ??
-      (profilePayload as UserProfile | undefined)?.is_questionnaire_completed
+    (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
+      ?.is_questionnaire_completed ??
+    (profilePayload as UserProfile | undefined)?.is_questionnaire_completed,
   );
 
   const questionnaireProgress = questionnaireQuery.data;
@@ -215,7 +244,9 @@ function DashboardInner() {
   ]);
 
   const summary = useDashboardSummary({
-    progressResponse: progressQuery.data ? { data: progressQuery.data } : undefined,
+    progressResponse: progressQuery.data
+      ? { data: progressQuery.data }
+      : undefined,
     reviewQueueData: reviewQuery.data,
     missionsData: missionsQuery.data,
     masteryData: masteryQuery.data,
@@ -226,13 +257,15 @@ function DashboardInner() {
   const weakSkillItems = useMemo(
     () =>
       summary.weakestSkills
-        .filter((s): s is WeakSkill & { skill: string } => Boolean((s as WeakSkill).skill))
+        .filter((s): s is WeakSkill & { skill: string } =>
+          Boolean((s as WeakSkill).skill),
+        )
         .map((s) => ({
           skill: s.skill,
           proficiency: s.proficiency ?? 0,
           level_label: (s as { level_label?: string }).level_label,
         })),
-    [summary.weakestSkills]
+    [summary.weakestSkills],
   );
 
   const {
@@ -242,8 +275,12 @@ function DashboardInner() {
   } = useDashboardSkillExercisesNavigation();
 
   const primaryCTASignal = useMemo(
-    () => selectPrimaryCTA({ reviewsDue: summary.reviewsDue, activeMissions: summary.activeMissions }),
-    [summary.reviewsDue, summary.activeMissions]
+    () =>
+      selectPrimaryCTA({
+        reviewsDue: summary.reviewsDue,
+        activeMissions: summary.activeMissions,
+      }),
+    [summary.reviewsDue, summary.activeMissions],
   );
 
   const primaryCTA = useMemo<PrimaryCtaMobileData | null>(() => {
@@ -317,17 +354,31 @@ function DashboardInner() {
 
   if (!authReady) {
     return (
-      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
-        <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
-        <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
+      <ScreenScroll
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
+        <Skeleton
+          width="60%"
+          height={28}
+          style={{ marginBottom: spacing.lg }}
+        />
+        <Skeleton
+          width="100%"
+          height={100}
+          style={{ marginBottom: spacing.md }}
+        />
       </ScreenScroll>
     );
   }
 
   if (!accessToken) {
     return (
-      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
-        <Text style={[styles.greeting, { color: c.text }]}>{t("dashboard.header.welcomeBack")}</Text>
+      <ScreenScroll
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
+        <Text style={[styles.greeting, { color: c.text }]}>
+          {t("dashboard.header.welcomeBack")}
+        </Text>
         <Text style={{ color: c.textMuted, marginBottom: spacing.lg }}>
           Sign in on the Profile tab to see your dashboard.
         </Text>
@@ -337,16 +388,40 @@ function DashboardInner() {
 
   if (progressQuery.isPending || profileQuery.isPending) {
     return (
-      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
-        <Skeleton width="60%" height={28} style={{ marginBottom: spacing.lg }} />
-        <Skeleton width="100%" height={88} style={{ marginBottom: spacing.md }} />
-        <View style={{ flexDirection: "row", gap: spacing.md, marginBottom: spacing.lg }}>
+      <ScreenScroll
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
+        <Skeleton
+          width="60%"
+          height={28}
+          style={{ marginBottom: spacing.lg }}
+        />
+        <Skeleton
+          width="100%"
+          height={88}
+          style={{ marginBottom: spacing.md }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            marginBottom: spacing.lg,
+          }}
+        >
           <Skeleton width={158} height={120} />
           <Skeleton width={158} height={120} />
           <Skeleton width={158} height={120} />
         </View>
-        <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
-        <Skeleton width="100%" height={100} style={{ marginBottom: spacing.md }} />
+        <Skeleton
+          width="100%"
+          height={100}
+          style={{ marginBottom: spacing.md }}
+        />
+        <Skeleton
+          width="100%"
+          height={100}
+          style={{ marginBottom: spacing.md }}
+        />
       </ScreenScroll>
     );
   }
@@ -364,15 +439,25 @@ function DashboardInner() {
     <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={c.primary}
+        />
       }
     >
-      <GlassCard padding="lg" style={{ borderColor: c.border, marginBottom: spacing.lg }}>
+      <GlassCard
+        padding="lg"
+        style={{ borderColor: c.border, marginBottom: spacing.lg }}
+      >
         <DashboardHeaderMobile displayName={displayName || undefined} />
 
         {!questionnaireCompletedForUi ? (
           <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
-            <QuestionnaireReminderBanner hasPaid={hasPaid} authReady={authReady && Boolean(accessToken)} />
+            <QuestionnaireReminderBanner
+              hasPaid={hasPaid}
+              authReady={authReady && Boolean(accessToken)}
+            />
           </View>
         ) : null}
 
@@ -384,19 +469,33 @@ function DashboardInner() {
             ]}
           >
             <View
-              style={[styles.resumeCol, !resumeTilesSideBySide && styles.resumeColFullWidth]}
+              style={[
+                styles.resumeCol,
+                !resumeTilesSideBySide && styles.resumeColFullWidth,
+              ]}
             >
               <DashboardResumeRow
-                style={!resumeTilesSideBySide ? styles.resumeCardFullWidth : styles.resumeCardFill}
+                style={
+                  !resumeTilesSideBySide
+                    ? styles.resumeCardFullWidth
+                    : styles.resumeCardFill
+                }
                 resume={summary.resume}
                 startHere={summary.startHere}
               />
             </View>
             <View
-              style={[styles.resumeCol, !resumeTilesSideBySide && styles.resumeColFullWidth]}
+              style={[
+                styles.resumeCol,
+                !resumeTilesSideBySide && styles.resumeColFullWidth,
+              ]}
             >
               <WeakSkillsQuickCardMobile
-                style={!resumeTilesSideBySide ? styles.resumeCardFullWidth : styles.resumeCardFill}
+                style={
+                  !resumeTilesSideBySide
+                    ? styles.resumeCardFullWidth
+                    : styles.resumeCardFill
+                }
                 locale={i18n.language}
                 topSkill={weakSkillItems[0] ?? null}
                 onRecommendedSkillExercises={handleQuickCardSkillExercises}
@@ -428,8 +527,15 @@ function DashboardInner() {
           onPracticeClick={handleWeakSkillPractice}
         />
 
-        <View style={[styles.heatmapCard, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}>
-          <Text style={[styles.sectionTitle, { color: c.text }]}>Your consistency</Text>
+        <View
+          style={[
+            styles.heatmapCard,
+            { backgroundColor: c.surfaceOffset, borderColor: c.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: c.text }]}>
+            Your consistency
+          </Text>
           <Text style={[styles.sectionSub, { color: c.textMuted }]}>
             {heatmapDates.monthLabel}
           </Text>
@@ -441,7 +547,7 @@ function DashboardInner() {
             selectedDate={selectedHeatmapDay}
             onDaySelected={(s) =>
               setSelectedHeatmapDay((prev) =>
-                prev === (s?.date ?? null) ? null : (s?.date ?? null)
+                prev === (s?.date ?? null) ? null : (s?.date ?? null),
               )
             }
           />
@@ -455,7 +561,9 @@ function DashboardInner() {
           dailyGoalProgress={summary.dailyGoalProgress}
           streakCount={Number(profile?.streak ?? 0)}
           reviewError={reviewQuery.isError ? reviewQuery.error : undefined}
-          missionsError={missionsQuery.isError ? missionsQuery.error : undefined}
+          missionsError={
+            missionsQuery.isError ? missionsQuery.error : undefined
+          }
           refetchReview={() => void reviewQuery.refetch()}
           refetchMissions={() => void missionsQuery.refetch()}
           reviewTopSkill={reviewTopSkill}

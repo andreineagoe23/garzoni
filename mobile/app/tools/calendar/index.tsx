@@ -1,40 +1,43 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
   RefreshControl,
   SectionList,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { Stack } from 'expo-router';
-import { apiClient } from '@garzoni/core';
-import { useThemeColors } from '../../../src/theme/ThemeContext';
-import { spacing, typography, radius } from '../../../src/theme/tokens';
+} from "react-native";
+import { Stack } from "expo-router";
+import { apiClient } from "@garzoni/core";
+import { useThemeColors } from "../../../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../../../src/theme/tokens";
 import {
   groupEventsByDate,
   formatEventDate,
-} from '../../../src/types/economic-calendar';
-import type { CalendarEvent, FilterOption } from '../../../src/types/economic-calendar';
-import { EventCard } from '../../../src/components/tools/calendar/EventCard';
-import { FilterChips } from '../../../src/components/tools/calendar/FilterChips';
-import { CalendarSkeleton } from '../../../src/components/tools/calendar/CalendarSkeleton';
+} from "../../../src/types/economic-calendar";
+import type {
+  CalendarEvent,
+  FilterOption,
+} from "../../../src/types/economic-calendar";
+import { EventCard } from "../../../src/components/tools/calendar/EventCard";
+import { FilterChips } from "../../../src/components/tools/calendar/FilterChips";
+import { CalendarSkeleton } from "../../../src/components/tools/calendar/CalendarSkeleton";
 
 export default function EconomicCalendarScreen() {
   const c = useThemeColors();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [filter, setFilter] = useState<FilterOption>('all');
+  const [filter, setFilter] = useState<FilterOption>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     try {
-      const res = await (apiClient as any).get('/economic-calendar/');
+      const res = await (apiClient as any).get("/economic-calendar/");
       const data: CalendarEvent[] = res.data ?? [];
       setEvents(data);
       setError(null);
     } catch {
-      setError('Could not load calendar events.');
+      setError("Could not load calendar events.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -50,14 +53,15 @@ export default function EconomicCalendarScreen() {
     void fetchEvents();
   }, [fetchEvents]);
 
-  const filtered = filter === 'all' ? events : events.filter((e) => e.impact === filter);
+  const filtered =
+    filter === "all" ? events : events.filter((e) => e.impact === filter);
   const sections = groupEventsByDate(filtered);
 
   if (loading) return <CalendarSkeleton />;
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Economic Calendar' }} />
+      <Stack.Screen options={{ title: "Economic Calendar" }} />
       <SectionList
         style={[styles.root, { backgroundColor: c.bg }]}
         sections={sections}
@@ -82,22 +86,33 @@ export default function EconomicCalendarScreen() {
             {error ? (
               <>
                 <Text style={[styles.emptyIcon]}>📅</Text>
-                <Text style={[styles.emptyTitle, { color: c.text }]}>No events loaded</Text>
-                <Text style={[styles.emptyBody, { color: c.textMuted }]}>{error}</Text>
+                <Text style={[styles.emptyTitle, { color: c.text }]}>
+                  No events loaded
+                </Text>
+                <Text style={[styles.emptyBody, { color: c.textMuted }]}>
+                  {error}
+                </Text>
               </>
             ) : (
               <>
                 <Text style={styles.emptyIcon}>✅</Text>
-                <Text style={[styles.emptyTitle, { color: c.text }]}>No events</Text>
+                <Text style={[styles.emptyTitle, { color: c.text }]}>
+                  No events
+                </Text>
                 <Text style={[styles.emptyBody, { color: c.textMuted }]}>
-                  No {filter !== 'all' ? filter + '-impact' : ''} events this period.
+                  No {filter !== "all" ? filter + "-impact" : ""} events this
+                  period.
                 </Text>
               </>
             )}
           </View>
         }
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={c.primary}
+          />
         }
         contentContainerStyle={styles.listContent}
         stickySectionHeadersEnabled
@@ -116,8 +131,8 @@ const styles = StyleSheet.create({
   },
   sectionDate: {
     fontSize: typography.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   eventWrapper: {
@@ -126,10 +141,10 @@ const styles = StyleSheet.create({
   },
   empty: {
     padding: spacing.xxxxl,
-    alignItems: 'center',
+    alignItems: "center",
     gap: spacing.md,
   },
   emptyIcon: { fontSize: 40 },
-  emptyTitle: { fontSize: typography.lg, fontWeight: '700' },
-  emptyBody: { fontSize: typography.sm, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: typography.lg, fontWeight: "700" },
+  emptyBody: { fontSize: typography.sm, textAlign: "center", lineHeight: 20 },
 });

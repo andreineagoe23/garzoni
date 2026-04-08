@@ -8,7 +8,7 @@ import type { ThemeColors } from "../../theme/palettes";
 
 function youtubeIdFromUrl(url: string): string | null {
   const m = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
   );
   return m?.[1] ?? null;
 }

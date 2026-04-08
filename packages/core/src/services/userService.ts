@@ -21,7 +21,7 @@ export const fetchLearningPathCourses = (pathId: string | number) =>
 
 export const fetchLessonsWithProgress = (
   courseId: string | number,
-  includeUnpublished?: boolean
+  includeUnpublished?: boolean,
 ) =>
   apiClient.get(`/lessons/with_progress/`, {
     params: {
@@ -103,7 +103,7 @@ export const sendFriendRequest = (receiverId: number) =>
 
 export const respondToFriendRequest = (
   requestId: number,
-  action: "accept" | "reject"
+  action: "accept" | "reject",
 ) =>
   apiClient.put<{ message?: string }>(`/friend-requests/${requestId}/`, {
     action,
@@ -150,8 +150,7 @@ export type UserBadgeItem = {
   badge: { id: number };
 };
 
-export const fetchBadges = () =>
-  apiClient.get<BadgeCatalogItem[]>("/badges/");
+export const fetchBadges = () => apiClient.get<BadgeCatalogItem[]>("/badges/");
 
 export const fetchUserBadges = () =>
   apiClient.get<UserBadgeItem[]>("/user-badges/");
@@ -183,23 +182,23 @@ export const completeLesson = (lessonId: string | number) =>
 
 export const reorderLessonSections = (
   lessonId: string | number,
-  order: Array<string | number>
+  order: Array<string | number>,
 ) => apiClient.post(`/lessons/${lessonId}/sections/reorder/`, { order });
 
 export const createLessonSection = (
   lessonId: string | number,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) => apiClient.post(`/lessons/${lessonId}/sections/`, payload);
 
 export const updateLessonSection = (
   lessonId: string | number,
   sectionId: string | number,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) => apiClient.patch(`/lessons/${lessonId}/sections/${sectionId}/`, payload);
 
 export const deleteLessonSection = (
   lessonId: string | number,
-  sectionId: string | number
+  sectionId: string | number,
 ) => apiClient.delete(`/lessons/${lessonId}/sections/${sectionId}/`);
 
 export const fetchReviewQueue = () => apiClient.get("/review-queue/");
@@ -217,7 +216,9 @@ export const fetchMissions = () => apiClient.get<MissionBuckets>("/missions/");
 export type FinanceFact = { id: number; text: string; category?: string };
 
 /** GET random unread fact; 204 means none available — resolves without throwing. */
-export const fetchFinanceFact = async (): Promise<{ data: FinanceFact | null }> => {
+export const fetchFinanceFact = async (): Promise<{
+  data: FinanceFact | null;
+}> => {
   const res = await apiClient.get<FinanceFact>("/finance-fact/", {
     validateStatus: (s) => s === 200 || s === 204,
   });
@@ -269,7 +270,7 @@ export const fetchCourseFlowState = (courseId: string | number) =>
   apiClient.get("/userprogress/flow_state/", { params: { course: courseId } });
 export const saveCourseFlowState = (
   courseId: string | number,
-  currentIndex: number
+  currentIndex: number,
 ) =>
   apiClient.post("/userprogress/flow_state/", {
     course: courseId,
@@ -289,7 +290,7 @@ export type RecentActivityItem = {
 
 export const fetchRecentActivity = () =>
   apiClient.get<{ recent_activities: RecentActivityItem[] }>(
-    "/recent-activity/"
+    "/recent-activity/",
   );
 
 export type CourseQuiz = {

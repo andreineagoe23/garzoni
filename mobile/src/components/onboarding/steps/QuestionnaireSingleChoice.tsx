@@ -1,6 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { QuestionnaireQuestion } from "@garzoni/core";
-import { colors, radius, shadows, spacing, typography } from "../../../theme/tokens";
+import {
+  colors,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../../theme/tokens";
 
 type Props = {
   question: QuestionnaireQuestion;
@@ -26,7 +32,9 @@ export default function QuestionnaireSingleChoice({
             <View style={[styles.radio, active && styles.radioActive]}>
               {active ? <View style={styles.radioDot} /> : null}
             </View>
-            <Text style={[styles.optionLabel, active && styles.optionLabelActive]}>
+            <Text
+              style={[styles.optionLabel, active && styles.optionLabelActive]}
+            >
               {opt.label}
             </Text>
           </Pressable>

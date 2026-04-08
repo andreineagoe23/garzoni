@@ -8,7 +8,7 @@ export const useRetry = (maxRetries = 3, initialDelay = 1000) => {
   const [isRetrying, setIsRetrying] = useState(false);
 
   const retry = useCallback(
-    async <T,>(fn: () => Promise<T>) => {
+    async <T>(fn: () => Promise<T>) => {
       if (retryCount >= maxRetries) {
         setRetryCount(0);
         return {
@@ -32,7 +32,7 @@ export const useRetry = (maxRetries = 3, initialDelay = 1000) => {
         return { success: false as const, error };
       }
     },
-    [retryCount, maxRetries, initialDelay]
+    [retryCount, maxRetries, initialDelay],
   );
 
   const reset = useCallback(() => {

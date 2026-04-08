@@ -22,7 +22,10 @@ export function InsightCard({ card }: Props) {
   return (
     <Pressable
       onPress={() => setExpanded((v) => !v)}
-      style={[styles.card, { backgroundColor: c.surfaceElevated, borderColor: c.border }]}
+      style={[
+        styles.card,
+        { backgroundColor: c.surfaceElevated, borderColor: c.border },
+      ]}
       accessibilityRole="button"
       accessibilityLabel={`${card.title} insight. Tap to ${expanded ? "collapse" : "expand"}.`}
     >
@@ -39,24 +42,37 @@ export function InsightCard({ card }: Props) {
       </View>
 
       {/* Always visible: meaning */}
-      <Text style={[styles.sectionLabel, { color: c.textMuted }]}>What it means</Text>
+      <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+        What it means
+      </Text>
       <Text style={[styles.body, { color: c.text }]}>{card.meaning}</Text>
 
       {/* Expandable */}
       {expanded && (
         <>
           <View style={[styles.divider, { backgroundColor: c.border }]} />
-          <Text style={[styles.sectionLabel, { color: c.textMuted }]}>Why it matters</Text>
+          <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+            Why it matters
+          </Text>
           <Text style={[styles.body, { color: c.text }]}>{card.why}</Text>
 
-          <Text style={[styles.sectionLabel, { color: c.textMuted, marginTop: spacing.sm }]}>
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: c.textMuted, marginTop: spacing.sm },
+            ]}
+          >
             Next steps
           </Text>
           <View style={styles.stepsList}>
             {card.nextSteps.map((step, i) => (
               <View key={i} style={styles.stepRow}>
-                <View style={[styles.stepDot, { backgroundColor: c.primary }]} />
-                <Text style={[styles.stepText, { color: c.textMuted }]}>{step}</Text>
+                <View
+                  style={[styles.stepDot, { backgroundColor: c.primary }]}
+                />
+                <Text style={[styles.stepText, { color: c.textMuted }]}>
+                  {step}
+                </Text>
               </View>
             ))}
           </View>
