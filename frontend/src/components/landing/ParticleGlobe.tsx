@@ -162,6 +162,37 @@ export default function ParticleGlobe({
     const container = canvasContainerRef.current;
     if (!container) return undefined;
 
+    const setHudVisible = (visible: boolean) => {
+      const opacity = visible ? "1" : "0";
+      Object.values(
+        topicRefs.current as Record<string, HTMLDivElement | null>
+      ).forEach((el) => {
+        if (el) el.style.opacity = opacity;
+      });
+      (lineRefs.current as Array<SVGLineElement | null>).forEach((line) => {
+        if (line) line.style.opacity = opacity;
+      });
+    };
+
+    const hasWebGLSupport = (() => {
+      try {
+        const testCanvas = document.createElement("canvas");
+        return Boolean(
+          testCanvas.getContext("webgl2") ||
+          testCanvas.getContext("webgl") ||
+          testCanvas.getContext("experimental-webgl")
+        );
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!hasWebGLSupport) {
+      // Graceful no-WebGL fallback: keep hero layout, hide only animated globe HUD.
+      setHudVisible(false);
+      return undefined;
+    }
+
     const prefersReducedMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     )?.matches;
@@ -177,11 +208,18 @@ export default function ParticleGlobe({
     );
     camera.position.set(0, 0, 24);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !prefersReducedMotion,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !prefersReducedMotion,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      // Some iOS/headless environments disable WebGL at runtime.
+      setHudVisible(false);
+      return undefined;
+    }
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x0b0f14, 0);

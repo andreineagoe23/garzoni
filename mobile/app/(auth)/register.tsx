@@ -65,7 +65,13 @@ function extractTokens(payload: TokenResponseLike): {
   return { access, refresh };
 }
 
-type FieldKey = "username" | "email" | "password" | "confirmPassword" | "first_name" | "last_name";
+type FieldKey =
+  | "username"
+  | "email"
+  | "password"
+  | "confirmPassword"
+  | "first_name"
+  | "last_name";
 
 export default function RegisterScreen() {
   const { applyTokens } = useAuthSession();
@@ -78,7 +84,9 @@ export default function RegisterScreen() {
     last_name: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<FieldKey, string>>
+  >({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -90,17 +98,24 @@ export default function RegisterScreen() {
 
   const update = (key: FieldKey, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
-    setFieldErrors((prev) => { const next = { ...prev }; delete next[key]; return next; });
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const validate = (): boolean => {
     const errs: Partial<Record<FieldKey, string>> = {};
     if (!form.username.trim()) errs.username = "Username is required.";
     if (!form.email.trim()) errs.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(form.email.trim())) errs.email = "Enter a valid email address.";
+    else if (!/\S+@\S+\.\S+/.test(form.email.trim()))
+      errs.email = "Enter a valid email address.";
     if (!form.password) errs.password = "Password is required.";
-    else if (form.password.length < 8) errs.password = "Use at least 8 characters.";
-    if (form.password !== form.confirmPassword) errs.confirmPassword = "The two entries do not match.";
+    else if (form.password.length < 8)
+      errs.password = "Use at least 8 characters.";
+    if (form.password !== form.confirmPassword)
+      errs.confirmPassword = "The two entries do not match.";
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -124,20 +139,28 @@ export default function RegisterScreen() {
         await applyTokens(access, refresh);
         router.replace("/onboarding");
       } else {
-        const fallback = await obtainTokenPair({ username: form.username.trim(), password: form.password });
+        const fallback = await obtainTokenPair({
+          username: form.username.trim(),
+          password: form.password,
+        });
         const fallbackAccess = fallback.data?.access;
         if (fallbackAccess) {
           await applyTokens(fallbackAccess, fallback.data?.refresh);
           router.replace("/onboarding");
         } else {
-          const keys = data && typeof data === "object"
-            ? Object.keys(data as Record<string, unknown>).join(", ")
-            : typeof data;
-          setError(`No access token returned from server. Response keys: ${keys || "none"}`);
+          const keys =
+            data && typeof data === "object"
+              ? Object.keys(data as Record<string, unknown>).join(", ")
+              : typeof data;
+          setError(
+            `No access token returned from server. Response keys: ${keys || "none"}`,
+          );
         }
       }
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { detail?: string; [k: string]: unknown } } };
+      const err = e as {
+        response?: { data?: { detail?: string; [k: string]: unknown } };
+      };
       if (!err.response) {
         setError(formatAuthRequestError(e, "Could not register."));
       } else {
@@ -196,7 +219,9 @@ export default function RegisterScreen() {
             <AuthBackendBanner />
 
             <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Start your financial learning journey</Text>
+            <Text style={styles.subtitle}>
+              Start your financial learning journey
+            </Text>
 
             {error ? (
               <View style={styles.errorBanner}>
@@ -266,7 +291,11 @@ export default function RegisterScreen() {
               <View style={styles.passwordWrap}>
                 <RNTextInput
                   ref={passwordRef}
-                  style={[styles.input, styles.passwordInput, fieldErrors.password && styles.inputError]}
+                  style={[
+                    styles.input,
+                    styles.passwordInput,
+                    fieldErrors.password && styles.inputError,
+                  ]}
                   placeholder="At least 8 characters"
                   placeholderTextColor={brand.textMuted}
                   secureTextEntry={!showPassword}
@@ -275,11 +304,19 @@ export default function RegisterScreen() {
                   onChangeText={(v) => update("password", v)}
                   onSubmitEditing={() => confirmRef.current?.focus()}
                 />
-                <Pressable style={styles.eyeBtn} onPress={() => setShowPassword((v) => !v)} hitSlop={8}>
-                  <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁"}</Text>
+                <Pressable
+                  style={styles.eyeBtn}
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={8}
+                >
+                  <Text style={styles.eyeText}>
+                    {showPassword ? "🙈" : "👁"}
+                  </Text>
                 </Pressable>
               </View>
-              {fieldErrors.password ? <Text style={styles.fieldError}>{fieldErrors.password}</Text> : null}
+              {fieldErrors.password ? (
+                <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+              ) : null}
             </View>
 
             <Field
@@ -295,7 +332,11 @@ export default function RegisterScreen() {
             />
 
             <Pressable
-              style={({ pressed }) => [styles.primaryBtn, pressed && styles.primaryBtnPressed, loading && styles.primaryBtnDisabled]}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                pressed && styles.primaryBtnPressed,
+                loading && styles.primaryBtnDisabled,
+              ]}
               onPress={() => void onSubmit()}
               disabled={loading}
             >
@@ -335,20 +376,21 @@ export default function RegisterScreen() {
 import { forwardRef } from "react";
 import type { TextInputProps } from "react-native";
 
-const Field = forwardRef<RNTextInput, TextInputProps & { label: string; error?: string }>(
-  ({ label, error, ...rest }, ref) => (
-    <View style={styles.fieldWrap}>
-      <Text style={styles.label}>{label}</Text>
-      <RNTextInput
-        ref={ref}
-        style={[styles.input, error && styles.inputError]}
-        placeholderTextColor={brand.textMuted}
-        {...rest}
-      />
-      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
-    </View>
-  )
-);
+const Field = forwardRef<
+  RNTextInput,
+  TextInputProps & { label: string; error?: string }
+>(({ label, error, ...rest }, ref) => (
+  <View style={styles.fieldWrap}>
+    <Text style={styles.label}>{label}</Text>
+    <RNTextInput
+      ref={ref}
+      style={[styles.input, error && styles.inputError]}
+      placeholderTextColor={brand.textMuted}
+      {...rest}
+    />
+    {error ? <Text style={styles.fieldError}>{error}</Text> : null}
+  </View>
+));
 Field.displayName = "Field";
 
 const styles = StyleSheet.create({
@@ -474,7 +516,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: spacing.xl,
   },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: brand.border },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: brand.border,
+  },
   dividerText: {
     marginHorizontal: spacing.md,
     fontSize: typography.xs,
@@ -487,5 +533,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   bottomText: { fontSize: typography.sm, color: brand.textMuted },
-  bottomLink: { fontSize: typography.sm, fontWeight: "600", color: brand.primary },
+  bottomLink: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    color: brand.primary,
+  },
 });

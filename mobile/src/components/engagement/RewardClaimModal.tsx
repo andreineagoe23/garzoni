@@ -22,9 +22,20 @@ export default function RewardClaimModal({
   const { t } = useTranslation("common");
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
-      <Pressable style={[styles.backdrop, { backgroundColor: "#000a" }]} onPress={onDismiss}>
-        <Pressable style={styles.sheetWrap} onPress={(e) => e.stopPropagation()}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onDismiss}
+    >
+      <Pressable
+        style={[styles.backdrop, { backgroundColor: "#000a" }]}
+        onPress={onDismiss}
+      >
+        <Pressable
+          style={styles.sheetWrap}
+          onPress={(e) => e.stopPropagation()}
+        >
           <Animated.View
             entering={SlideInDown.springify().damping(18)}
             exiting={SlideOutDown.duration(220)}
@@ -39,7 +50,11 @@ export default function RewardClaimModal({
             <Text style={[styles.title, { color: c.text }]} numberOfLines={3}>
               {t("missions.toast.completed", { name: missionName, xp })}
             </Text>
-            <GlassButton variant="primary" onPress={onDismiss} style={{ marginTop: spacing.lg }}>
+            <GlassButton
+              variant="primary"
+              onPress={onDismiss}
+              style={{ marginTop: spacing.lg }}
+            >
               {t("personalizedPath.open")}
             </GlassButton>
           </Animated.View>
@@ -63,5 +78,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  title: { fontSize: typography.md, fontWeight: "700", marginTop: spacing.sm, lineHeight: 22 },
+  title: {
+    fontSize: typography.md,
+    fontWeight: "700",
+    marginTop: spacing.sm,
+    lineHeight: 22,
+  },
 });

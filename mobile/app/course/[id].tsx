@@ -26,7 +26,13 @@ import {
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
-import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import {
+  colors,
+  spacing,
+  typography,
+  radius,
+  shadows,
+} from "../../src/theme/tokens";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 
 type LessonRow = {
@@ -36,13 +42,19 @@ type LessonRow = {
   short_description?: string;
 };
 
-function lessonsLoadErrorMessage(error: unknown): { upgrade: boolean; message: string } {
+function lessonsLoadErrorMessage(error: unknown): {
+  upgrade: boolean;
+  message: string;
+} {
   if (!isAxiosError(error)) {
     return { upgrade: false, message: "Could not load lessons." };
   }
   const status = error.response?.status;
-  const data = error.response?.data as { error?: string; detail?: string } | undefined;
-  const msg = (typeof data?.error === "string" && data.error) ||
+  const data = error.response?.data as
+    | { error?: string; detail?: string }
+    | undefined;
+  const msg =
+    (typeof data?.error === "string" && data.error) ||
     (typeof data?.detail === "string" && data.detail) ||
     error.message;
   if (status === 403) {
@@ -54,7 +66,10 @@ function lessonsLoadErrorMessage(error: unknown): { upgrade: boolean; message: s
           : "Upgrade required to access this course.",
     };
   }
-  return { upgrade: false, message: typeof msg === "string" ? msg : "Could not load lessons." };
+  return {
+    upgrade: false,
+    message: typeof msg === "string" ? msg : "Could not load lessons.",
+  };
 }
 
 export default function CourseDetailScreen() {
@@ -71,12 +86,18 @@ export default function CourseDetailScreen() {
         hitSlop={12}
         style={{ paddingHorizontal: spacing.sm }}
       >
-        <Text style={{ color: c.primary, fontWeight: "700", fontSize: typography.sm }}>
+        <Text
+          style={{
+            color: c.primary,
+            fontWeight: "700",
+            fontSize: typography.sm,
+          }}
+        >
           {t("nav.dashboard")}
         </Text>
       </Pressable>
     ),
-    [c.primary, t]
+    [c.primary, t],
   );
 
   const courseQuery = useQuery({
@@ -91,7 +112,7 @@ export default function CourseDetailScreen() {
     enabled: hydrated && Number.isFinite(courseId),
     queryFn: () =>
       fetchLessonsWithProgress(courseId).then((r) =>
-        unwrapApiList<LessonRow>(r.data)
+        unwrapApiList<LessonRow>(r.data),
       ),
     staleTime: staleTimes.content,
   });
@@ -99,11 +120,12 @@ export default function CourseDetailScreen() {
   const lessons: LessonRow[] = lessonsQuery.data ?? [];
   const completedCount = useMemo(
     () => lessons.filter((l) => l.is_completed).length,
-    [lessons]
+    [lessons],
   );
   const pct = lessons.length > 0 ? completedCount / lessons.length : 0;
 
-  const courseTitle = (courseQuery.data as { title?: string })?.title ?? `Course ${id}`;
+  const courseTitle =
+    (courseQuery.data as { title?: string })?.title ?? `Course ${id}`;
 
   const onRefresh = useCallback(() => {
     void courseQuery.refetch();
@@ -112,7 +134,7 @@ export default function CourseDetailScreen() {
 
   const firstIncomplete = useMemo(
     () => lessons.find((l) => !l.is_completed),
-    [lessons]
+    [lessons],
   );
 
   if (!hydrated || lessonsQuery.isPending) {
@@ -121,10 +143,23 @@ export default function CourseDetailScreen() {
         <Stack.Screen
           options={{ title: "Loading…", headerRight: headerRightHome }}
         />
-        <Skeleton width="80%" height={28} style={{ marginBottom: spacing.md }} />
-        <Skeleton width="100%" height={10} style={{ marginBottom: spacing.xxl }} />
+        <Skeleton
+          width="80%"
+          height={28}
+          style={{ marginBottom: spacing.md }}
+        />
+        <Skeleton
+          width="100%"
+          height={10}
+          style={{ marginBottom: spacing.xxl }}
+        />
         {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton key={i} width="100%" height={64} style={{ marginBottom: spacing.sm }} />
+          <Skeleton
+            key={i}
+            width="100%"
+            height={64}
+            style={{ marginBottom: spacing.sm }}
+          />
         ))}
       </View>
     );
@@ -197,8 +232,15 @@ export default function CourseDetailScreen() {
                 router.push(`/lesson/${item.id}?courseId=${courseId}`)
               }
             >
-              <View style={[styles.indexCircle, completed && styles.indexCircleDone]}>
-                <Text style={[styles.indexText, completed && styles.indexTextDone]}>
+              <View
+                style={[
+                  styles.indexCircle,
+                  completed && styles.indexCircleDone,
+                ]}
+              >
+                <Text
+                  style={[styles.indexText, completed && styles.indexTextDone]}
+                >
                   {completed ? "✓" : index + 1}
                 </Text>
               </View>

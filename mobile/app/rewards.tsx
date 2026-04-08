@@ -21,7 +21,9 @@ import {
   queryKeys,
   staleTimes,
 } from "@garzoni/core";
-import RewardCard, { type RewardItem } from "../src/components/rewards/RewardCard";
+import RewardCard, {
+  type RewardItem,
+} from "../src/components/rewards/RewardCard";
 import BadgeGrid from "../src/components/rewards/BadgeGrid";
 import XPProgressCard from "../src/components/rewards/XPProgressCard";
 import ConfirmRedeemSheet from "../src/components/rewards/ConfirmRedeemSheet";
@@ -87,8 +89,10 @@ export default function RewardsScreen() {
 
   const balance = Number(profileQuery.data?.earned_money ?? 0) || 0;
   const points = Number(profileQuery.data?.points ?? 0) || 0;
-  const data = tab === "shop" ? shopQuery.data ?? [] : donateQuery.data ?? [];
-  const tabLoading = tab === "shop" ? shopQuery.isPending : donateQuery.isPending;
+  const data =
+    tab === "shop" ? (shopQuery.data ?? []) : (donateQuery.data ?? []);
+  const tabLoading =
+    tab === "shop" ? shopQuery.isPending : donateQuery.isPending;
 
   const onRefresh = useCallback(() => {
     void profileQuery.refetch();
@@ -96,7 +100,13 @@ export default function RewardsScreen() {
     void donateQuery.refetch();
     void badgesCatalogQuery.refetch();
     void userBadgesQuery.refetch();
-  }, [profileQuery, shopQuery, donateQuery, badgesCatalogQuery, userBadgesQuery]);
+  }, [
+    profileQuery,
+    shopQuery,
+    donateQuery,
+    badgesCatalogQuery,
+    userBadgesQuery,
+  ]);
 
   const refreshing =
     shopQuery.isFetching ||
@@ -127,7 +137,11 @@ export default function RewardsScreen() {
         ]}
       >
         <Text
-          style={{ color: c.primary, fontWeight: "800", fontSize: typography.sm }}
+          style={{
+            color: c.primary,
+            fontWeight: "800",
+            fontSize: typography.sm,
+          }}
         >
           View leaderboard
         </Text>

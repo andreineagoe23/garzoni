@@ -37,7 +37,7 @@ export default function SupportScreen() {
     onSuccess: (res) => {
       setFormMsg(
         (res as { data?: { message?: string } }).data?.message ??
-          "Thanks — we received your message."
+          "Thanks — we received your message.",
       );
       setEmail("");
       setTopic("");
@@ -50,7 +50,11 @@ export default function SupportScreen() {
 
   const onSubmit = useCallback(() => {
     setFormMsg("");
-    mutation.mutate({ email: email.trim(), topic: topic.trim(), message: message.trim() });
+    mutation.mutate({
+      email: email.trim(),
+      topic: topic.trim(),
+      message: message.trim(),
+    });
   }, [email, topic, message, mutation]);
 
   const renderEntry = useCallback(
@@ -66,12 +70,14 @@ export default function SupportScreen() {
         >
           <Text style={[styles.q, { color: c.text }]}>{item.question}</Text>
           {expanded ? (
-            <Text style={[styles.a, { color: c.textMuted }]}>{item.answer}</Text>
+            <Text style={[styles.a, { color: c.textMuted }]}>
+              {item.answer}
+            </Text>
           ) : null}
         </Pressable>
       );
     },
-    [c, openId]
+    [c, openId],
   );
 
   const listHeader = useMemo(
@@ -85,14 +91,28 @@ export default function SupportScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
-          style={[styles.input, { borderColor: c.border, color: c.text, backgroundColor: c.inputBg }]}
+          style={[
+            styles.input,
+            {
+              borderColor: c.border,
+              color: c.text,
+              backgroundColor: c.inputBg,
+            },
+          ]}
         />
         <TextInput
           placeholder="Topic"
           placeholderTextColor={c.textFaint}
           value={topic}
           onChangeText={setTopic}
-          style={[styles.input, { borderColor: c.border, color: c.text, backgroundColor: c.inputBg }]}
+          style={[
+            styles.input,
+            {
+              borderColor: c.border,
+              color: c.text,
+              backgroundColor: c.inputBg,
+            },
+          ]}
         />
         <TextInput
           placeholder="Message"
@@ -103,7 +123,11 @@ export default function SupportScreen() {
           style={[
             styles.input,
             styles.area,
-            { borderColor: c.border, color: c.text, backgroundColor: c.inputBg },
+            {
+              borderColor: c.border,
+              color: c.text,
+              backgroundColor: c.inputBg,
+            },
           ]}
         />
         <GlassButton
@@ -116,26 +140,44 @@ export default function SupportScreen() {
           Send
         </GlassButton>
         {formMsg ? (
-          <Text style={{ color: c.textMuted, marginTop: spacing.sm }}>{formMsg}</Text>
+          <Text style={{ color: c.textMuted, marginTop: spacing.sm }}>
+            {formMsg}
+          </Text>
         ) : null}
-        <Text style={[styles.h2, { color: c.accent, marginTop: spacing.xxl }]}>FAQ</Text>
+        <Text style={[styles.h2, { color: c.accent, marginTop: spacing.xxl }]}>
+          FAQ
+        </Text>
       </View>
     ),
-    [c, email, topic, message, formMsg, mutation.isPending, onSubmit]
+    [c, email, topic, message, formMsg, mutation.isPending, onSubmit],
   );
 
   return (
     <>
-      <Stack.Screen options={{ title: "Support", headerShown: true, headerTintColor: c.primary }} />
+      <Stack.Screen
+        options={{
+          title: "Support",
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
       <FlatList
         data={entries}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderEntry}
         ListHeaderComponent={listHeader}
         refreshControl={
-          <RefreshControl refreshing={q.isFetching} onRefresh={() => void q.refetch()} tintColor={c.primary} />
+          <RefreshControl
+            refreshing={q.isFetching}
+            onRefresh={() => void q.refetch()}
+            tintColor={c.primary}
+          />
         }
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: 48, backgroundColor: c.bg }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: 48,
+          backgroundColor: c.bg,
+        }}
       />
     </>
   );

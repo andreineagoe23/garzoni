@@ -73,12 +73,7 @@ export default function AuthBackendBanner() {
         },
       ]}
     >
-      <Text
-        style={[
-          styles.title,
-          { color: androidBad ? c.error : c.primary },
-        ]}
-      >
+      <Text style={[styles.title, { color: androidBad ? c.error : c.primary }]}>
         {androidBad
           ? "Check API URL (Android)"
           : onLan
@@ -88,7 +83,9 @@ export default function AuthBackendBanner() {
       <Text style={[styles.body, { color: c.text }]}>
         Current API base: <Text style={{ fontWeight: "700" }}>{url}</Text>
       </Text>
-      <Text style={[styles.body, { color: c.textMuted, marginTop: spacing.xs }]}>
+      <Text
+        style={[styles.body, { color: c.textMuted, marginTop: spacing.xs }]}
+      >
         {androidBad
           ? "On the Android emulator, localhost is the emulator itself, not your Mac. Use http://10.0.2.2:8000/api for Django in Docker on the host, or a public HTTPS API URL in EXPO_PUBLIC_BACKEND_URL."
           : onLan
@@ -106,6 +103,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
-  title: { fontSize: typography.sm, fontWeight: "800", marginBottom: spacing.xs },
+  title: {
+    fontSize: typography.sm,
+    fontWeight: "800",
+    marginBottom: spacing.xs,
+  },
   body: { fontSize: typography.sm, lineHeight: 20 },
 });

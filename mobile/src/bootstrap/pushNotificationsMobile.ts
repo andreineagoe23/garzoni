@@ -41,7 +41,7 @@ export async function registerForPushAndSubmitToken(): Promise<{
   try {
     const projectId = resolveEasProjectId();
     const tokenRes = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
+      projectId ? { projectId } : undefined,
     );
     const token = tokenRes.data;
     if (!token) {

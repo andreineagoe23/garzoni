@@ -9,5 +9,7 @@ export default function PathRedirectScreen() {
   if (!raw) {
     return <Redirect href="/(tabs)/learn" />;
   }
-  return <Redirect href={`/(tabs)/learn?expandPath=${encodeURIComponent(raw)}`} />;
+  return (
+    <Redirect href={`/(tabs)/learn?expandPath=${encodeURIComponent(raw)}`} />
+  );
 }

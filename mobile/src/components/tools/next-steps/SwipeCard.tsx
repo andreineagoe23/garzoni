@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -7,14 +7,14 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import * as Haptics from 'expo-haptics';
-import { useThemeColors } from '../../../theme/ThemeContext';
-import { spacing, typography, radius, shadows } from '../../../theme/tokens';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../types/next-steps';
-import type { NextStep } from '../../../types/next-steps';
+} from "react-native";
+import * as Haptics from "expo-haptics";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { spacing, typography, radius, shadows } from "../../../theme/tokens";
+import { CATEGORY_COLORS, CATEGORY_LABELS } from "../../../types/next-steps";
+import type { NextStep } from "../../../types/next-steps";
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_WIDTH = Dimensions.get("window").width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 
 type Props = {
@@ -28,17 +28,17 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
   const translateX = useRef(new Animated.Value(0)).current;
   const rotate = translateX.interpolate({
     inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
-    outputRange: ['-12deg', '0deg', '12deg'],
+    outputRange: ["-12deg", "0deg", "12deg"],
   });
   const completeOpacity = translateX.interpolate({
     inputRange: [0, SWIPE_THRESHOLD],
     outputRange: [0, 1],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
   const skipOpacity = translateX.interpolate({
     inputRange: [-SWIPE_THRESHOLD, 0],
     outputRange: [1, 0],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const panResponder = useRef(
@@ -49,7 +49,9 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
       },
       onPanResponderRelease: (_, g) => {
         if (g.dx > SWIPE_THRESHOLD) {
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          void Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          );
           Animated.timing(translateX, {
             toValue: SCREEN_WIDTH * 1.5,
             duration: 250,
@@ -70,7 +72,7 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   const categoryColor = CATEGORY_COLORS[step.category];
@@ -86,15 +88,28 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
       ]}
     >
       {/* Swipe indicators */}
-      <Animated.View style={[styles.swipeHint, styles.completeHint, { opacity: completeOpacity }]}>
+      <Animated.View
+        style={[
+          styles.swipeHint,
+          styles.completeHint,
+          { opacity: completeOpacity },
+        ]}
+      >
         <Text style={styles.hintText}>✓ Done</Text>
       </Animated.View>
-      <Animated.View style={[styles.swipeHint, styles.skipHint, { opacity: skipOpacity }]}>
+      <Animated.View
+        style={[styles.swipeHint, styles.skipHint, { opacity: skipOpacity }]}
+      >
         <Text style={styles.hintText}>Skip →</Text>
       </Animated.View>
 
       {/* Category badge */}
-      <View style={[styles.categoryBadge, { backgroundColor: categoryColor + '20' }]}>
+      <View
+        style={[
+          styles.categoryBadge,
+          { backgroundColor: categoryColor + "20" },
+        ]}
+      >
         <Text style={[styles.categoryLabel, { color: categoryColor }]}>
           {CATEGORY_LABELS[step.category]}
         </Text>
@@ -103,7 +118,9 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
       {/* Content */}
       <View style={styles.body}>
         <Text style={[styles.title, { color: c.text }]}>{step.title}</Text>
-        <Text style={[styles.description, { color: c.textMuted }]}>{step.description}</Text>
+        <Text style={[styles.description, { color: c.textMuted }]}>
+          {step.description}
+        </Text>
       </View>
 
       {/* XP badge */}
@@ -114,7 +131,9 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
       {/* Swipe hints */}
       <View style={styles.swipeGuide}>
         <Text style={[styles.guideText, { color: c.textFaint }]}>← Skip</Text>
-        <Text style={[styles.guideText, { color: c.textFaint }]}>Complete →</Text>
+        <Text style={[styles.guideText, { color: c.textFaint }]}>
+          Complete →
+        </Text>
       </View>
     </Animated.View>
   );
@@ -127,10 +146,10 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.lg,
     minHeight: 240,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   swipeHint: {
-    position: 'absolute',
+    position: "absolute",
     top: spacing.lg,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
@@ -138,38 +157,38 @@ const styles = StyleSheet.create({
   },
   completeHint: {
     right: spacing.lg,
-    backgroundColor: 'rgba(46,125,50,0.15)',
+    backgroundColor: "rgba(46,125,50,0.15)",
   },
   skipHint: {
     left: spacing.lg,
-    backgroundColor: 'rgba(107,114,128,0.15)',
+    backgroundColor: "rgba(107,114,128,0.15)",
   },
-  hintText: { fontSize: typography.sm, fontWeight: '700' },
+  hintText: { fontSize: typography.sm, fontWeight: "700" },
   categoryBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   categoryLabel: {
     fontSize: typography.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   body: { gap: spacing.sm, flex: 1 },
-  title: { fontSize: typography.lg, fontWeight: '700', lineHeight: 24 },
+  title: { fontSize: typography.lg, fontWeight: "700", lineHeight: 24 },
   description: { fontSize: typography.sm, lineHeight: 20 },
   xpBadge: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
-  xpText: { fontSize: typography.xs, fontWeight: '800' },
+  xpText: { fontSize: typography.xs, fontWeight: "800" },
   swipeGuide: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   guideText: { fontSize: typography.xs },
 });

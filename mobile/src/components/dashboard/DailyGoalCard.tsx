@@ -24,7 +24,10 @@ export default function DailyGoalCard({
         {currentXp} / {targetXp} XP toward today&apos;s ring
       </Text>
       <View style={styles.row}>
-        <CircularProgressRing value={frac} label={`${Math.round(progressPct)}%`} />
+        <CircularProgressRing
+          value={frac}
+          label={`${Math.round(progressPct)}%`}
+        />
         <View style={styles.copy}>
           <Text style={[styles.body, { color: c.text }]}>
             Complete lessons and exercises to fill your daily XP ring.

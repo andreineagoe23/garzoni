@@ -1,7 +1,7 @@
 import { getMediaBaseUrl } from "@garzoni/core";
 
 export function leaderboardAvatarUri(
-  profileAvatar: string | null | undefined
+  profileAvatar: string | null | undefined,
 ): string | undefined {
   if (!profileAvatar) return undefined;
   const s = String(profileAvatar);

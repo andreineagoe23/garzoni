@@ -39,7 +39,7 @@ export default function FinancialSandboxScreen() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(projection),
-    [projection]
+    [projection],
   );
 
   return (
@@ -50,8 +50,12 @@ export default function FinancialSandboxScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.title, { color: c.text }]}>{t("tools.sandbox.title")}</Text>
-        <Text style={[styles.sub, { color: c.textMuted }]}>{t("tools.sandbox.subtitle")}</Text>
+        <Text style={[styles.title, { color: c.text }]}>
+          {t("tools.sandbox.title")}
+        </Text>
+        <Text style={[styles.sub, { color: c.textMuted }]}>
+          {t("tools.sandbox.subtitle")}
+        </Text>
 
         <View style={[styles.field, { borderColor: c.border }]}>
           <Text style={[styles.label, { color: c.textMuted }]}>
@@ -65,13 +69,19 @@ export default function FinancialSandboxScreen() {
             placeholderTextColor={c.textFaint}
             style={[
               styles.input,
-              { color: c.text, borderColor: c.border, backgroundColor: c.inputBg },
+              {
+                color: c.text,
+                borderColor: c.border,
+                backgroundColor: c.inputBg,
+              },
             ]}
           />
         </View>
 
         <View style={[styles.field, { borderColor: c.border }]}>
-          <Text style={[styles.label, { color: c.textMuted }]}>{t("tools.sandbox.years")}</Text>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            {t("tools.sandbox.years")}
+          </Text>
           <TextInput
             value={years}
             onChangeText={setYears}
@@ -80,7 +90,11 @@ export default function FinancialSandboxScreen() {
             placeholderTextColor={c.textFaint}
             style={[
               styles.input,
-              { color: c.text, borderColor: c.border, backgroundColor: c.inputBg },
+              {
+                color: c.text,
+                borderColor: c.border,
+                backgroundColor: c.inputBg,
+              },
             ]}
           />
         </View>
@@ -97,13 +111,19 @@ export default function FinancialSandboxScreen() {
             placeholderTextColor={c.textFaint}
             style={[
               styles.input,
-              { color: c.text, borderColor: c.border, backgroundColor: c.inputBg },
+              {
+                color: c.text,
+                borderColor: c.border,
+                backgroundColor: c.inputBg,
+              },
             ]}
           />
         </View>
 
         <Pressable
-          onPress={() => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+          onPress={() =>
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+          }
           style={({ pressed }) => [
             styles.cta,
             { backgroundColor: c.primary, opacity: pressed ? 0.9 : 1 },
@@ -114,7 +134,12 @@ export default function FinancialSandboxScreen() {
           </Text>
         </Pressable>
 
-        <View style={[styles.tips, { borderColor: c.border, backgroundColor: c.surfaceOffset }]}>
+        <View
+          style={[
+            styles.tips,
+            { borderColor: c.border, backgroundColor: c.surfaceOffset },
+          ]}
+        >
           <Text style={[styles.tipsTitle, { color: c.textMuted }]}>
             {t("tools.sandbox.tryThis")}
           </Text>
@@ -129,14 +154,21 @@ export default function FinancialSandboxScreen() {
           </Text>
         </View>
 
-        <View style={[styles.result, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.result,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <Text style={[styles.resultLabel, { color: c.textMuted }]}>
             {t("tools.sandbox.projectedValue", {
               count: Math.max(1, Math.round(Number(years) || 1)),
               years: Math.max(1, Math.round(Number(years) || 1)),
             })}
           </Text>
-          <Text style={[styles.resultValue, { color: c.text }]}>{formatted}</Text>
+          <Text style={[styles.resultValue, { color: c.text }]}>
+            {formatted}
+          </Text>
         </View>
       </ScrollView>
     </>
@@ -195,5 +227,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  resultValue: { fontSize: typography.xxl, fontWeight: "800", marginTop: spacing.sm },
+  resultValue: {
+    fontSize: typography.xxl,
+    fontWeight: "800",
+    marginTop: spacing.sm,
+  },
 });

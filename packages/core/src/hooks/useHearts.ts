@@ -34,18 +34,18 @@ export function useHearts({
   }, []);
 
   const isOutOfHeartsModalOpen = useHeartsStore(
-    (s) => s.isOutOfHeartsModalOpen
+    (s) => s.isOutOfHeartsModalOpen,
   );
   const setOutOfHeartsModalOpen = useHeartsStore(
-    (s) => s.setOutOfHeartsModalOpen
+    (s) => s.setOutOfHeartsModalOpen,
   );
   const outOfHeartsUntilTs = useHeartsStore((s) => s.outOfHeartsUntilTs);
   const setOutOfHeartsUntilTs = useHeartsStore((s) => s.setOutOfHeartsUntilTs);
   const lastSeenServerHeartsTs = useHeartsStore(
-    (s) => s.lastSeenServerHeartsTs
+    (s) => s.lastSeenServerHeartsTs,
   );
   const setLastSeenServerHeartsTs = useHeartsStore(
-    (s) => s.setLastSeenServerHeartsTs
+    (s) => s.setLastSeenServerHeartsTs,
   );
 
   const heartsQuery = useQuery({
@@ -128,7 +128,7 @@ export function useHearts({
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
       },
-    })
+    }),
   );
 
   const grantMutation = useMutation<unknown, Error, unknown>(
@@ -140,7 +140,7 @@ export function useHearts({
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
       },
-    }) as UseMutationOptions<unknown, Error, unknown>
+    }) as UseMutationOptions<unknown, Error, unknown>,
   );
 
   const refillMutation = useMutation(
@@ -151,7 +151,7 @@ export function useHearts({
       updateQueryData: (qc, data) => {
         qc.setQueryData(queryKeys.hearts(), data);
       },
-    })
+    }),
   );
 
   // Concurrency guardrails: prevent rapid double-spends (double taps, retries, etc.).
@@ -179,7 +179,7 @@ export function useHearts({
         grantLockRef.current = false;
       }
     },
-    [grantMutation]
+    [grantMutation],
   );
 
   const refillHeartsSafe = useCallback(async () => {

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -39,7 +45,10 @@ import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { href } from "../../src/navigation/href";
 import { unwrapApiList } from "../../src/lib/unwrapApiList";
-import { applyPathSortAndFilter, pathProgressPercent } from "../../src/lib/pathProgress";
+import {
+  applyPathSortAndFilter,
+  pathProgressPercent,
+} from "../../src/lib/pathProgress";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
@@ -85,7 +94,8 @@ function coverForPath(p: PathRow): string {
   if (title.includes("crypto")) return Images.crypto;
   if (title.includes("forex") || title.includes("fx")) return Images.forex;
   if (title.includes("mindset")) return Images.mindset;
-  if (title.includes("real estate") || title.includes("property")) return Images.realEstate;
+  if (title.includes("real estate") || title.includes("property"))
+    return Images.realEstate;
   if (title.includes("personal")) return Images.personalFinance;
   return Images.basicFinance;
 }
@@ -177,7 +187,11 @@ function createLearnStyles(c: ThemeColors) {
       paddingVertical: 4,
       borderRadius: 999,
     },
-    onboardingBadgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
+    onboardingBadgeText: {
+      fontSize: 10,
+      fontWeight: "800",
+      textTransform: "uppercase",
+    },
     personalizedLoading: {
       flex: 1,
       minHeight: 200,
@@ -195,7 +209,10 @@ function LearnInner() {
   const { t } = useTranslation("common");
 
   const [activeView, setActiveView] = useState<LearnActiveView>("all-topics");
-  const { expandPath, view } = useLocalSearchParams<{ expandPath?: string; view?: string }>();
+  const { expandPath, view } = useLocalSearchParams<{
+    expandPath?: string;
+    view?: string;
+  }>();
 
   useLayoutEffect(() => {
     const v = String(view ?? "").toLowerCase();
@@ -213,7 +230,8 @@ function LearnInner() {
   const pathsQuery = useQuery<PathRow[]>({
     queryKey: queryKeys.learningPaths(),
     enabled: hydrated,
-    queryFn: () => pathService.fetchPaths().then((r) => unwrapApiList<PathRow>(r.data)),
+    queryFn: () =>
+      pathService.fetchPaths().then((r) => unwrapApiList<PathRow>(r.data)),
     staleTime: staleTimes.content,
   });
 
@@ -251,7 +269,8 @@ function LearnInner() {
     if (!profilePayload) return null;
     const ud = profilePayload.user_data as Record<string, unknown> | undefined;
     if (ud && typeof ud === "object") {
-      return { ...profilePayload, ...ud } as UserProfile & Record<string, unknown>;
+      return { ...profilePayload, ...ud } as UserProfile &
+        Record<string, unknown>;
     }
     return profilePayload;
   }, [profilePayload]);
@@ -259,24 +278,26 @@ function LearnInner() {
   const entitlements = entitlementsQuery.data;
   const hasPaidProfile = Boolean(
     profile?.has_paid ??
-      (profilePayload as UserProfile | undefined)?.has_paid ??
-      (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid
+    (profilePayload as UserProfile | undefined)?.has_paid ??
+    (profilePayload?.user_data as { has_paid?: boolean } | undefined)?.has_paid,
   );
   const profilePlanId =
     profile?.subscription_plan_id ??
-    (profile?.user_data as { subscription_plan_id?: string } | undefined)?.subscription_plan_id ??
+    (profile?.user_data as { subscription_plan_id?: string } | undefined)
+      ?.subscription_plan_id ??
     null;
   const resolvedPlan: string =
     (typeof entitlements?.plan === "string" ? entitlements.plan : null) ||
     (typeof profilePlanId === "string" ? profilePlanId : null) ||
     (hasPaidProfile ? "plus" : "starter");
-  const hasPlusAccess = planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
+  const hasPlusAccess =
+    planRank(resolvedPlan) >= 1 || Boolean(entitlements?.entitled);
 
   const isQuestionnaireCompleted = Boolean(
     profile?.is_questionnaire_completed ??
-      (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
-        ?.is_questionnaire_completed ??
-      (profilePayload as UserProfile | undefined)?.is_questionnaire_completed
+    (profile?.user_data as { is_questionnaire_completed?: boolean } | undefined)
+      ?.is_questionnaire_completed ??
+    (profilePayload as UserProfile | undefined)?.is_questionnaire_completed,
   );
 
   const questionnaireProgress = questionnaireQuery.data;
@@ -333,9 +354,9 @@ function LearnInner() {
   const expandedPath = useMemo(
     () =>
       (pathsQuery.data ?? []).find(
-        (p) => p.id != null && Number(p.id) === Number(expandedPathId)
+        (p) => p.id != null && Number(p.id) === Number(expandedPathId),
       ),
-    [pathsQuery.data, expandedPathId]
+    [pathsQuery.data, expandedPathId],
   );
   const expandedLocked = expandedPath?.is_locked === true;
 
@@ -370,14 +391,15 @@ function LearnInner() {
     const q = query.trim().toLowerCase();
     if (!q) return paths;
     return paths.filter((p) => {
-      const hay = `${p.title ?? p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
+      const hay =
+        `${p.title ?? p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
   }, [pathsQuery.data, query]);
 
   const displayPaths = useMemo(
     () => applyPathSortAndFilter(filteredPaths, pathSortBy, pathListFilter),
-    [filteredPaths, pathSortBy, pathListFilter]
+    [filteredPaths, pathSortBy, pathListFilter],
   );
 
   const filterCourses = useCallback(
@@ -391,7 +413,7 @@ function LearnInner() {
         return true;
       });
     },
-    [courseFilter]
+    [courseFilter],
   );
 
   /**
@@ -420,7 +442,7 @@ function LearnInner() {
 
   const expandedCourses = useMemo(
     () => filterCourses(mergedCourseRowsRaw),
-    [filterCourses, mergedCourseRowsRaw]
+    [filterCourses, mergedCourseRowsRaw],
   );
 
   const filterHidesAllCourses =
@@ -440,7 +462,7 @@ function LearnInner() {
           ["progress-desc", t("allTopics.sort.progressDesc")],
         ] as const
       ).map(([value, label]) => ({ value, label })),
-    [t]
+    [t],
   );
 
   const pathListMenuOptions = useMemo(
@@ -453,23 +475,31 @@ function LearnInner() {
           ["completed", t("allTopics.filter.completed")],
         ] as const
       ).map(([value, label]) => ({ value, label })),
-    [t]
+    [t],
   );
 
   const courseFilterMenuOptions = useMemo(
     () => [
       { value: "all" as const, label: t("allTopics.coursesFilter.all") },
-      { value: "in_progress" as const, label: t("allTopics.coursesFilter.inProgress") },
-      { value: "completed" as const, label: t("allTopics.coursesFilter.completed") },
+      {
+        value: "in_progress" as const,
+        label: t("allTopics.coursesFilter.inProgress"),
+      },
+      {
+        value: "completed" as const,
+        label: t("allTopics.coursesFilter.completed"),
+      },
     ],
-    [t]
+    [t],
   );
 
   const onRefreshPersonalized = useCallback(() => {
     void profileQuery.refetch();
     void questionnaireQuery.refetch();
     void progressQuery.refetch();
-    void queryClient.invalidateQueries({ queryKey: queryKeys.personalizedPath() });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.personalizedPath(),
+    });
   }, [profileQuery, questionnaireQuery, progressQuery, queryClient]);
 
   const segmentRow = useMemo(
@@ -487,13 +517,24 @@ function LearnInner() {
             variant={activeView === "personalized-path" ? "active" : "ghost"}
             size="sm"
             onPress={handlePersonalizedPathClick}
-            disabled={Boolean(accessToken) && (profileQuery.isPending || profileQuery.isFetching)}
+            disabled={
+              Boolean(accessToken) &&
+              (profileQuery.isPending || profileQuery.isFetching)
+            }
           >
             {t("dashboard.nav.personalizedPath")}
           </GlassButton>
           {accessToken && !questionnaireCompletedForUi ? (
-            <View style={[styles.onboardingBadge, { backgroundColor: `${c.error}22` }]}>
-              <Text style={[styles.onboardingBadgeText, { color: c.error }]} numberOfLines={1}>
+            <View
+              style={[
+                styles.onboardingBadge,
+                { backgroundColor: `${c.error}22` },
+              ]}
+            >
+              <Text
+                style={[styles.onboardingBadgeText, { color: c.error }]}
+                numberOfLines={1}
+              >
                 {t("dashboard.nav.completeOnboarding")}
               </Text>
             </View>
@@ -514,7 +555,7 @@ function LearnInner() {
       styles.segmentPersonalized,
       styles.segmentRow,
       t,
-    ]
+    ],
   );
 
   if (!hydrated) {
@@ -535,7 +576,9 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isPending) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+          {segmentRow}
+        </View>
         <View style={styles.loadingWrap}>
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton
@@ -553,7 +596,9 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isError) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+          {segmentRow}
+        </View>
         <ErrorState
           message="Could not load learning paths."
           onRetry={() => void pathsQuery.refetch()}
@@ -571,7 +616,9 @@ function LearnInner() {
 
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>{segmentRow}</View>
+        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+          {segmentRow}
+        </View>
         {personalizedGatingWait ? (
           <View style={styles.personalizedLoading}>
             <ActivityIndicator size="large" color={c.primary} />
@@ -693,13 +740,23 @@ function LearnInner() {
                 item.id != null && togglePath(Number(item.id));
               }}
             >
-              <Image source={{ uri: coverUri }} style={styles.pathCover} resizeMode="cover" />
+              <Image
+                source={{ uri: coverUri }}
+                style={styles.pathCover}
+                resizeMode="cover"
+              />
               <View style={{ padding: spacing.md }}>
-                <Text style={[styles.pathTitle, { color: c.text }]} numberOfLines={2}>
+                <Text
+                  style={[styles.pathTitle, { color: c.text }]}
+                  numberOfLines={2}
+                >
                   {title}
                 </Text>
                 {desc ? (
-                  <Text style={[styles.pathDesc, { color: c.textMuted }]} numberOfLines={2}>
+                  <Text
+                    style={[styles.pathDesc, { color: c.textMuted }]}
+                    numberOfLines={2}
+                  >
                     {desc}
                   </Text>
                 ) : null}
@@ -707,35 +764,61 @@ function LearnInner() {
                   {t("allTopics.pathProgress")}: {pct}%
                 </Text>
                 {item.is_locked ? (
-                  <Text style={[styles.pathDesc, { color: c.accent, marginTop: 6, fontWeight: "700" }]}>
+                  <Text
+                    style={[
+                      styles.pathDesc,
+                      { color: c.accent, marginTop: 6, fontWeight: "700" },
+                    ]}
+                  >
                     {t("allTopics.upgradeTo", { plan: "Plus" })}
                   </Text>
                 ) : (
                   <Text style={styles.expandHint}>
-                    {isExpanded ? t("allTopics.hideCourses") : t("allTopics.viewCourses")}
+                    {isExpanded
+                      ? t("allTopics.hideCourses")
+                      : t("allTopics.viewCourses")}
                   </Text>
                 )}
               </View>
             </Pressable>
 
             {isExpanded && !item.is_locked ? (
-              <View style={[styles.coursesList, { paddingHorizontal: spacing.md, paddingBottom: spacing.md }]}>
+              <View
+                style={[
+                  styles.coursesList,
+                  { paddingHorizontal: spacing.md, paddingBottom: spacing.md },
+                ]}
+              >
                 {coursesQuery.isPending && expandedCourses.length === 0 ? (
                   <Skeleton width="100%" height={70} />
                 ) : coursesQuery.isError && expandedCourses.length === 0 ? (
                   <Text style={styles.error}>Failed to load courses.</Text>
                 ) : filterHidesAllCourses ? (
-                  <Text style={[styles.pathDesc, { color: c.textMuted, marginTop: spacing.sm }]}>
-                    No courses match this filter. Tap <Text style={{ fontWeight: "700" }}>All</Text>{" "}
-                    above to see every course in this path.
+                  <Text
+                    style={[
+                      styles.pathDesc,
+                      { color: c.textMuted, marginTop: spacing.sm },
+                    ]}
+                  >
+                    No courses match this filter. Tap{" "}
+                    <Text style={{ fontWeight: "700" }}>All</Text> above to see
+                    every course in this path.
                   </Text>
                 ) : expandedCourses.length === 0 ? (
-                  <Text style={[styles.pathDesc, { color: c.textMuted, marginTop: spacing.sm }]}>
+                  <Text
+                    style={[
+                      styles.pathDesc,
+                      { color: c.textMuted, marginTop: spacing.sm },
+                    ]}
+                  >
                     No courses for this path yet.
                   </Text>
                 ) : (
                   expandedCourses.map((course, ci) => (
-                    <View key={course.id ?? ci} style={{ marginBottom: spacing.sm }}>
+                    <View
+                      key={course.id ?? ci}
+                      style={{ marginBottom: spacing.sm }}
+                    >
                       <CourseCard
                         course={course}
                         totalLessons={courseTotalLessons(course)}

@@ -1,4 +1,10 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
@@ -9,7 +15,11 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-export default function StreakBanner({ streakCount, label = "Day streak", style }: Props) {
+export default function StreakBanner({
+  streakCount,
+  label = "Day streak",
+  style,
+}: Props) {
   const c = useThemeColors();
   if (!Number.isFinite(streakCount) || streakCount <= 0) return null;
 

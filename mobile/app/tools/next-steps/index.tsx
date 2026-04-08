@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   RefreshControl,
@@ -6,18 +6,21 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { Stack } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import ConfettiCannon from 'react-native-confetti-cannon';
-import { apiClient } from '@garzoni/core';
-import { useThemeColors } from '../../../src/theme/ThemeContext';
-import { spacing, typography, radius } from '../../../src/theme/tokens';
-import { DEMO_STEPS } from '../../../src/types/next-steps';
-import type { NextStep, NextStepsResponse } from '../../../src/types/next-steps';
-import { SwipeCard } from '../../../src/components/tools/next-steps/SwipeCard';
-import { ProgressBar } from '../../../src/components/tools/next-steps/ProgressBar';
-import { EmptyState } from '../../../src/components/tools/next-steps/EmptyState';
+} from "react-native";
+import { Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
+import ConfettiCannon from "react-native-confetti-cannon";
+import { apiClient } from "@garzoni/core";
+import { useThemeColors } from "../../../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { DEMO_STEPS } from "../../../src/types/next-steps";
+import type {
+  NextStep,
+  NextStepsResponse,
+} from "../../../src/types/next-steps";
+import { SwipeCard } from "../../../src/components/tools/next-steps/SwipeCard";
+import { ProgressBar } from "../../../src/components/tools/next-steps/ProgressBar";
+import { EmptyState } from "../../../src/components/tools/next-steps/EmptyState";
 
 export default function NextStepsScreen() {
   const c = useThemeColors();
@@ -31,7 +34,7 @@ export default function NextStepsScreen() {
 
   const fetchSteps = useCallback(async () => {
     try {
-      const res = await (apiClient as any).get('/next-steps/');
+      const res = await (apiClient as any).get("/next-steps/");
       const data: NextStepsResponse = res.data;
       setSteps(data.steps ?? []);
       setCompletedToday(data.completed_today ?? 0);
@@ -56,13 +59,24 @@ export default function NextStepsScreen() {
     void fetchSteps();
   }, [fetchSteps]);
 
-  const animateCardOut = useCallback((cb: () => void) => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-    setTimeout(cb, 150);
-  }, [fadeAnim]);
+  const animateCardOut = useCallback(
+    (cb: () => void) => {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      setTimeout(cb, 150);
+    },
+    [fadeAnim],
+  );
 
   const handleComplete = useCallback(async () => {
     if (steps.length === 0) return;
@@ -94,11 +108,17 @@ export default function NextStepsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Next Steps' }} />
+      <Stack.Screen options={{ title: "Next Steps" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={c.primary}
+          />
+        }
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerSection}>
@@ -111,8 +131,15 @@ export default function NextStepsScreen() {
         <ProgressBar completed={completedToday} total={dailyLimit} />
 
         {loading ? (
-          <View style={[styles.loadingCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[styles.loadingText, { color: c.textMuted }]}>Loading your steps…</Text>
+          <View
+            style={[
+              styles.loadingCard,
+              { backgroundColor: c.surface, borderColor: c.border },
+            ]}
+          >
+            <Text style={[styles.loadingText, { color: c.textMuted }]}>
+              Loading your steps…
+            </Text>
           </View>
         ) : isDone ? (
           <EmptyState />
@@ -120,7 +147,9 @@ export default function NextStepsScreen() {
           <Animated.View style={{ opacity: fadeAnim }}>
             <SwipeCard
               step={steps[0]}
-              onComplete={() => { void handleComplete(); }}
+              onComplete={() => {
+                void handleComplete();
+              }}
               onSkip={handleSkip}
             />
           </Animated.View>
@@ -129,7 +158,8 @@ export default function NextStepsScreen() {
         {/* Remaining count */}
         {!isDone && steps.length > 1 && (
           <Text style={[styles.remaining, { color: c.textFaint }]}>
-            {steps.length - 1} more step{steps.length - 1 !== 1 ? 's' : ''} queued
+            {steps.length - 1} more step{steps.length - 1 !== 1 ? "s" : ""}{" "}
+            queued
           </Text>
         )}
       </ScrollView>
@@ -140,7 +170,7 @@ export default function NextStepsScreen() {
         origin={{ x: -10, y: 0 }}
         autoStart={false}
         fadeOut
-        colors={['#ffd700', '#2a6041', '#ffffff', '#f59e0b']}
+        colors={["#ffd700", "#2a6041", "#ffffff", "#f59e0b"]}
       />
     </>
   );
@@ -148,16 +178,24 @@ export default function NextStepsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxxl },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+    paddingBottom: spacing.xxxxl,
+  },
   headerSection: { gap: spacing.xs },
-  heroTitle: { fontSize: typography.xxl, fontWeight: '800', letterSpacing: -0.5 },
+  heroTitle: {
+    fontSize: typography.xxl,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
   heroSubtitle: { fontSize: typography.sm, lineHeight: 20 },
   loadingCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
     padding: spacing.xxxxl,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: { fontSize: typography.sm },
-  remaining: { textAlign: 'center', fontSize: typography.xs },
+  remaining: { textAlign: "center", fontSize: typography.xs },
 });

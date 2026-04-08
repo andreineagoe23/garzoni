@@ -75,7 +75,12 @@ export default function ConfirmRedeemSheet({
           ) : null}
 
           {/* Cost */}
-          <View style={[styles.costRow, { backgroundColor: c.surfaceOffset, borderRadius: radius.full }]}>
+          <View
+            style={[
+              styles.costRow,
+              { backgroundColor: c.surfaceOffset, borderRadius: radius.full },
+            ]}
+          >
             <Text style={[styles.costLabel, { color: c.textMuted }]}>Cost</Text>
             <Text style={[styles.costValue, { color: c.accent }]}>
               {cost} coins
@@ -84,10 +89,7 @@ export default function ConfirmRedeemSheet({
 
           {/* Balance */}
           <Text
-            style={[
-              styles.balance,
-              { color: canAfford ? c.success : c.error },
-            ]}
+            style={[styles.balance, { color: canAfford ? c.success : c.error }]}
           >
             Your balance: {balance} coins
             {!canAfford ? "  (not enough)" : ""}
@@ -118,7 +120,10 @@ export default function ConfirmRedeemSheet({
           {/* Cancel */}
           <Pressable
             onPress={onCancel}
-            style={({ pressed }) => [styles.cancelBtn, { opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [
+              styles.cancelBtn,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
             accessibilityRole="button"
           >
             <Text style={[styles.cancelText, { color: c.textMuted }]}>

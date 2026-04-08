@@ -41,13 +41,16 @@ const LIST_PAGE_SIZE = 25;
 
 function referralCodeFromProfile(profile: UserProfile | undefined): string {
   if (!profile) return "";
-  const top = typeof profile.referral_code === "string" ? profile.referral_code : "";
+  const top =
+    typeof profile.referral_code === "string" ? profile.referral_code : "";
   if (top.trim()) return top.trim();
   const ud = profile.user_data as { referral_code?: string } | undefined;
   return typeof ud?.referral_code === "string" ? ud.referral_code.trim() : "";
 }
 
-function currentUserIdFromProfile(profile: UserProfile | undefined): number | null {
+function currentUserIdFromProfile(
+  profile: UserProfile | undefined,
+): number | null {
   if (!profile?.id && profile?.id !== 0) return null;
   const n = Number(profile.id);
   return Number.isFinite(n) ? n : null;
@@ -101,8 +104,14 @@ export default function LeaderboardScreen() {
   });
 
   const profile = profileQuery.data;
-  const referralCode = useMemo(() => referralCodeFromProfile(profile), [profile]);
-  const currentUserId = useMemo(() => currentUserIdFromProfile(profile), [profile]);
+  const referralCode = useMemo(
+    () => referralCodeFromProfile(profile),
+    [profile],
+  );
+  const currentUserId = useMemo(
+    () => currentUserIdFromProfile(profile),
+    [profile],
+  );
 
   const sourceList = useMemo(() => {
     if (activeTab === "global") return globalQuery.data ?? [];
@@ -113,7 +122,7 @@ export default function LeaderboardScreen() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return sourceList;
     return sourceList.filter((row) =>
-      (row.user?.username ?? "").toLowerCase().includes(q)
+      (row.user?.username ?? "").toLowerCase().includes(q),
     );
   }, [sourceList, searchQuery]);
 
@@ -123,7 +132,7 @@ export default function LeaderboardScreen() {
 
   const podiumEntries = useMemo(
     () => filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
-    [filteredLeaderboard]
+    [filteredLeaderboard],
   );
 
   const listRemainder = useMemo(() => {
@@ -133,7 +142,7 @@ export default function LeaderboardScreen() {
 
   const visibleRemainder = useMemo(
     () => listRemainder.slice(0, listVisible),
-    [listRemainder, listVisible]
+    [listRemainder, listVisible],
   );
 
   const hasMoreList = listRemainder.length > listVisible;
@@ -143,37 +152,43 @@ export default function LeaderboardScreen() {
 
   const isAlreadyFriend = useCallback(
     (userId: number) => friends.some((f) => f.id === userId),
-    [friends]
+    [friends],
   );
 
   const hasPendingRequest = useCallback(
     (userId: number) =>
       sentRequests.some(
-        (r) => r.status === "pending" && r.receiver?.id === userId
+        (r) => r.status === "pending" && r.receiver?.id === userId,
       ),
-    [sentRequests]
+    [sentRequests],
   );
 
   const formatPoints = useCallback(
     (n: number) => n.toLocaleString(i18n.language),
-    [i18n.language]
+    [i18n.language],
   );
 
   const sendMut = useMutation({
     mutationFn: (receiverId: number) => sendFriendRequest(receiverId),
     onSuccess: () => {
       Alert.alert("", t("leaderboard.friendRequestSent"));
-      void queryClient.invalidateQueries({ queryKey: queryKeys.friendRequestsSent() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.friendRequestsSent(),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.friendsList() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardGlobal(timeFilter) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.leaderboardGlobal(timeFilter),
+      });
     },
     onError: (err: unknown) => {
-      const e = err as { response?: { data?: { error?: string; detail?: string } } };
+      const e = err as {
+        response?: { data?: { error?: string; detail?: string } };
+      };
       Alert.alert(
         "",
         e?.response?.data?.error ||
           e?.response?.data?.detail ||
-          t("leaderboard.errors.friendRequestFailed")
+          t("leaderboard.errors.friendRequestFailed"),
       );
     },
   });
@@ -188,7 +203,9 @@ export default function LeaderboardScreen() {
         rankQuery.refetch(),
         sentQuery.refetch(),
         friendsListQuery.refetch(),
-        queryClient.invalidateQueries({ queryKey: queryKeys.friendRequestsIncoming() }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.friendRequestsIncoming(),
+        }),
       ]);
     } finally {
       setPullRefreshing(false);
@@ -214,12 +231,14 @@ export default function LeaderboardScreen() {
       { value: "month", label: t("leaderboard.time.thisMonth") },
       { value: "week", label: t("leaderboard.time.thisWeek") },
     ],
-    [t]
+    [t],
   );
 
   const pageLoading =
     (activeTab === "global" && globalQuery.isPending && !globalQuery.data) ||
-    (activeTab === "friends" && friendsBoardQuery.isPending && !friendsBoardQuery.data);
+    (activeTab === "friends" &&
+      friendsBoardQuery.isPending &&
+      !friendsBoardQuery.data);
 
   const loadError =
     (activeTab === "global" && globalQuery.isError) ||
@@ -230,7 +249,9 @@ export default function LeaderboardScreen() {
 
   const pinnedSelf = useMemo(() => {
     if (currentUserId == null || pageLoading || loadError) return null;
-    const idx = filteredLeaderboard.findIndex((e) => e.user?.id === currentUserId);
+    const idx = filteredLeaderboard.findIndex(
+      (e) => e.user?.id === currentUserId,
+    );
     if (idx >= 0) {
       const entry = filteredLeaderboard[idx]!;
       return { entry, rank: rankForEntry(entry, idx + 1) };
@@ -243,13 +264,7 @@ export default function LeaderboardScreen() {
       return { entry: userRank, rank: userRank.rank ?? 0 };
     }
     return null;
-  }, [
-    currentUserId,
-    pageLoading,
-    loadError,
-    filteredLeaderboard,
-    userRank,
-  ]);
+  }, [currentUserId, pageLoading, loadError, filteredLeaderboard, userRank]);
 
   const headerTitle =
     activeTab === "global"
@@ -266,7 +281,12 @@ export default function LeaderboardScreen() {
         {t("leaderboard.subtitle")}
       </Text>
 
-      <View style={[styles.tabBar, { borderColor: c.border, backgroundColor: c.surface }]}>
+      <View
+        style={[
+          styles.tabBar,
+          { borderColor: c.border, backgroundColor: c.surface },
+        ]}
+      >
         {(["global", "friends"] as const).map((tab) => (
           <Pressable
             key={tab}
@@ -340,7 +360,10 @@ export default function LeaderboardScreen() {
       />
 
       {loadError ? (
-        <GlassCard padding="md" style={{ borderColor: `${c.error}55`, marginBottom: spacing.md }}>
+        <GlassCard
+          padding="md"
+          style={{ borderColor: `${c.error}55`, marginBottom: spacing.md }}
+        >
           <Text style={{ color: c.error, fontSize: typography.sm }}>
             {t("leaderboard.errors.loadFailed")}
           </Text>
@@ -362,12 +385,15 @@ export default function LeaderboardScreen() {
             backgroundColor: `${c.accent}12`,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+            }}
+          >
             <View
-              style={[
-                styles.rankCircleLarge,
-                { backgroundColor: c.accent },
-              ]}
+              style={[styles.rankCircleLarge, { backgroundColor: c.accent }]}
             >
               <Text style={styles.rankCircleLargeText}>
                 #{userRank.rank ?? "—"}
@@ -375,9 +401,13 @@ export default function LeaderboardScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: c.text, fontWeight: "700" }}>
-                {t("leaderboard.you", { username: userRank.user.username ?? "" })}
+                {t("leaderboard.you", {
+                  username: userRank.user.username ?? "",
+                })}
               </Text>
-              <Text style={{ color: c.accent, marginTop: 4, fontWeight: "600" }}>
+              <Text
+                style={{ color: c.accent, marginTop: 4, fontWeight: "600" }}
+              >
                 {t("leaderboard.points", {
                   points: formatPoints(userRank.points ?? 0),
                 })}
@@ -407,7 +437,13 @@ export default function LeaderboardScreen() {
     </View>
   ) : filteredLeaderboard.length === 0 && !loadError ? (
     <GlassCard padding="lg">
-      <Text style={{ color: c.textMuted, textAlign: "center", fontSize: typography.sm }}>
+      <Text
+        style={{
+          color: c.textMuted,
+          textAlign: "center",
+          fontSize: typography.sm,
+        }}
+      >
         {t("leaderboard.empty")}
       </Text>
     </GlassCard>
@@ -443,7 +479,9 @@ export default function LeaderboardScreen() {
                 isFriend={uid != null ? isAlreadyFriend(uid) : false}
                 pending={uid != null ? hasPendingRequest(uid) : false}
                 busy={sendMut.isPending}
-                onAddFriend={uid != null ? () => sendMut.mutate(uid) : undefined}
+                onAddFriend={
+                  uid != null ? () => sendMut.mutate(uid) : undefined
+                }
                 onPrimaryPress={
                   isYou
                     ? () => {
@@ -453,7 +491,7 @@ export default function LeaderboardScreen() {
                       ? () =>
                           Alert.alert(
                             item.user?.username ?? "",
-                            "Use Add friend to connect. Your own profile opens from the Profile tab."
+                            "Use Add friend to connect. Your own profile opens from the Profile tab.",
                           )
                       : undefined
                 }
@@ -473,7 +511,13 @@ export default function LeaderboardScreen() {
                   { borderColor: c.border, backgroundColor: c.surface },
                 ]}
               >
-                <Text style={{ color: c.primary, fontWeight: "700", fontSize: typography.sm }}>
+                <Text
+                  style={{
+                    color: c.primary,
+                    fontWeight: "700",
+                    fontSize: typography.sm,
+                  }}
+                >
                   {t("leaderboard.loadMore")}
                 </Text>
               </Pressable>
@@ -549,7 +593,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     fontSize: typography.sm,
   },
-  busy: { textAlign: "center", marginBottom: spacing.sm, fontSize: typography.sm },
+  busy: {
+    textAlign: "center",
+    marginBottom: spacing.sm,
+    fontSize: typography.sm,
+  },
   loader: { paddingVertical: spacing.xxl, alignItems: "center" },
   rankCircleLarge: {
     width: 48,
@@ -558,7 +606,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  rankCircleLargeText: { color: "#fff", fontWeight: "800", fontSize: typography.md },
+  rankCircleLargeText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: typography.md,
+  },
   loadMore: {
     alignSelf: "center",
     marginTop: spacing.md,

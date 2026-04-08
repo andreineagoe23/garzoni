@@ -82,8 +82,8 @@ module.exports = ({ config }) => ({
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {
-              ...(typeof config.ios?.infoPlist?.NSAppTransportSecurity === "object" &&
-              config.ios.infoPlist.NSAppTransportSecurity !== null
+              ...(typeof config.ios?.infoPlist?.NSAppTransportSecurity ===
+                "object" && config.ios.infoPlist.NSAppTransportSecurity !== null
                 ? config.ios.infoPlist.NSAppTransportSecurity
                 : {}),
               NSAllowsLocalNetworking: true,

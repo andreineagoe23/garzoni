@@ -59,7 +59,8 @@ function coverForPath(p: PathRow): string {
   if (t.includes("crypto")) return Images.crypto;
   if (t.includes("forex") || t.includes("fx")) return Images.forex;
   if (t.includes("mindset")) return Images.mindset;
-  if (t.includes("real estate") || t.includes("property")) return Images.realEstate;
+  if (t.includes("real estate") || t.includes("property"))
+    return Images.realEstate;
   if (t.includes("personal")) return Images.personalFinance;
   return Images.basicFinance;
 }
@@ -77,7 +78,8 @@ export default function AllTopicsGrid() {
   const q = useQuery<PathRow[]>({
     queryKey: queryKeys.learningPaths(),
     enabled: hydrated,
-    queryFn: () => fetchLearningPaths().then((r) => unwrapApiList<PathRow>(r.data)),
+    queryFn: () =>
+      fetchLearningPaths().then((r) => unwrapApiList<PathRow>(r.data)),
     staleTime: staleTimes.content,
   });
 
@@ -85,12 +87,15 @@ export default function AllTopicsGrid() {
 
   const orderedPaths = useMemo(
     () => applyPathSortAndFilter(paths, sortBy, pathFilter),
-    [paths, sortBy, pathFilter]
+    [paths, sortBy, pathFilter],
   );
 
   const expandedPathRow = useMemo(
-    () => orderedPaths.find((x: PathRow) => Number(x.id) === Number(expandedPathId)),
-    [orderedPaths, expandedPathId]
+    () =>
+      orderedPaths.find(
+        (x: PathRow) => Number(x.id) === Number(expandedPathId),
+      ),
+    [orderedPaths, expandedPathId],
   );
 
   const expandedLocked = expandedPathRow?.is_locked === true;
@@ -100,7 +105,7 @@ export default function AllTopicsGrid() {
     enabled: hydrated && expandedPathId != null && !expandedLocked,
     queryFn: () =>
       fetchLearningPathCourses(expandedPathId!).then((r) =>
-        unwrapApiList<CourseInPath>(r.data)
+        unwrapApiList<CourseInPath>(r.data),
       ),
     staleTime: staleTimes.content,
   });
@@ -143,7 +148,7 @@ export default function AllTopicsGrid() {
         ["progress-asc", t("allTopics.sort.progressAsc")],
         ["progress-desc", t("allTopics.sort.progressDesc")],
       ] as const,
-    [t]
+    [t],
   );
 
   const filterOptions = useMemo(
@@ -154,16 +159,16 @@ export default function AllTopicsGrid() {
         ["in-progress", t("allTopics.filter.inProgress")],
         ["completed", t("allTopics.filter.completed")],
       ] as const,
-    [t]
+    [t],
   );
 
   const sortMenuOptions = useMemo(
     () => sortOptions.map(([v, lbl]) => ({ value: v, label: lbl })),
-    [sortOptions]
+    [sortOptions],
   );
   const filterMenuOptions = useMemo(
     () => filterOptions.map(([v, lbl]) => ({ value: v, label: lbl })),
-    [filterOptions]
+    [filterOptions],
   );
 
   if (!hydrated || q.isPending) {
@@ -232,11 +237,20 @@ export default function AllTopicsGrid() {
             const isExpanded = Number(expandedPathId) === Number(p.id);
             const courses = isExpanded ? expandedCoursesMerged : [];
             return (
-              <GlassCard key={p.id} padding="none" style={[styles.pathCard, { marginBottom: spacing.lg }]}>
-                <Pressable onPress={() => togglePath(p.id, p.is_locked === true)}>
+              <GlassCard
+                key={p.id}
+                padding="none"
+                style={[styles.pathCard, { marginBottom: spacing.lg }]}
+              >
+                <Pressable
+                  onPress={() => togglePath(p.id, p.is_locked === true)}
+                >
                   <Image source={{ uri }} style={styles.pathCover} />
                   <View style={{ padding: spacing.md }}>
-                    <Text style={[styles.pathTitle, { color: c.text }]} numberOfLines={2}>
+                    <Text
+                      style={[styles.pathTitle, { color: c.text }]}
+                      numberOfLines={2}
+                    >
                       {p.title}
                     </Text>
                     {p.description ? (
@@ -252,20 +266,33 @@ export default function AllTopicsGrid() {
                     </Text>
                     {p.is_locked ? (
                       <Text
-                        style={[styles.cardDesc, { color: c.accent, marginTop: 6, fontWeight: "700" }]}
+                        style={[
+                          styles.cardDesc,
+                          { color: c.accent, marginTop: 6, fontWeight: "700" },
+                        ]}
                       >
                         {t("allTopics.upgradeTo", { plan: "Plus" })}
                       </Text>
                     ) : (
                       <Text style={[styles.expandHint, { color: c.primary }]}>
-                        {isExpanded ? t("allTopics.hideCourses") : t("allTopics.viewCourses")}
+                        {isExpanded
+                          ? t("allTopics.hideCourses")
+                          : t("allTopics.viewCourses")}
                       </Text>
                     )}
                   </View>
                 </Pressable>
 
-                {!p.is_locked && isExpanded && pathCoursesQuery.isPending && courses.length === 0 ? (
-                  <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+                {!p.is_locked &&
+                isExpanded &&
+                pathCoursesQuery.isPending &&
+                courses.length === 0 ? (
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.md,
+                      paddingBottom: spacing.md,
+                    }}
+                  >
                     <Text style={[styles.cardDesc, { color: c.textMuted }]}>
                       {t("allTopics.loading")}
                     </Text>
@@ -273,7 +300,13 @@ export default function AllTopicsGrid() {
                 ) : null}
 
                 {!p.is_locked && isExpanded && courses.length > 0 ? (
-                  <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md, gap: spacing.sm }}>
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.md,
+                      paddingBottom: spacing.md,
+                      gap: spacing.sm,
+                    }}
+                  >
                     {courses.map((course) => {
                       const nLessons = getCourseLessonCount(course);
                       return (
@@ -282,14 +315,25 @@ export default function AllTopicsGrid() {
                           onPress={() => router.push(`/flow/${course.id}`)}
                           style={[
                             styles.courseRow,
-                            { borderColor: c.border, backgroundColor: c.surface },
+                            {
+                              borderColor: c.border,
+                              backgroundColor: c.surface,
+                            },
                           ]}
                         >
                           <View style={{ flex: 1 }}>
-                            <Text style={[styles.courseTitle, { color: c.text }]} numberOfLines={2}>
+                            <Text
+                              style={[styles.courseTitle, { color: c.text }]}
+                              numberOfLines={2}
+                            >
                               {course.title ?? `Course ${course.id}`}
                             </Text>
-                            <Text style={[styles.lessonMeta, { color: c.textMuted }]}>
+                            <Text
+                              style={[
+                                styles.lessonMeta,
+                                { color: c.textMuted },
+                              ]}
+                            >
                               {tc("learningPath.lesson", { count: nLessons })}
                             </Text>
                           </View>
@@ -299,8 +343,16 @@ export default function AllTopicsGrid() {
                   </View>
                 ) : null}
 
-                {!p.is_locked && isExpanded && !pathCoursesQuery.isPending && courses.length === 0 ? (
-                  <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+                {!p.is_locked &&
+                isExpanded &&
+                !pathCoursesQuery.isPending &&
+                courses.length === 0 ? (
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.md,
+                      paddingBottom: spacing.md,
+                    }}
+                  >
                     <Text style={[styles.cardDesc, { color: c.textMuted }]}>
                       {tc("learningPath.noCoursesInPath")}
                     </Text>
@@ -334,8 +386,16 @@ const styles = StyleSheet.create({
   },
   pathTitle: { fontSize: typography.lg, fontWeight: "700" },
   cardDesc: { fontSize: typography.xs, marginTop: 4, lineHeight: 16 },
-  progressMeta: { fontSize: typography.xs, fontWeight: "600", marginTop: spacing.sm },
-  expandHint: { fontSize: typography.xs, fontWeight: "700", marginTop: spacing.sm },
+  progressMeta: {
+    fontSize: typography.xs,
+    fontWeight: "600",
+    marginTop: spacing.sm,
+  },
+  expandHint: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    marginTop: spacing.sm,
+  },
   courseRow: {
     flexDirection: "row",
     alignItems: "center",

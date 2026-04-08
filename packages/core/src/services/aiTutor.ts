@@ -12,7 +12,7 @@ type AiTutorOptions = {
 
 export async function requestAiTutorResponse(
   prompt: string,
-  options: AiTutorOptions = {}
+  options: AiTutorOptions = {},
 ): Promise<string> {
   const response = await apiClient.post("/proxy/openai/", {
     inputs: prompt,

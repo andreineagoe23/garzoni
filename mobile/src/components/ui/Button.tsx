@@ -1,6 +1,9 @@
 import React from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import GlassButton, { type GlassButtonSize, type GlassButtonVariant } from "./GlassButton";
+import GlassButton, {
+  type GlassButtonSize,
+  type GlassButtonVariant,
+} from "./GlassButton";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";

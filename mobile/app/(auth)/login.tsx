@@ -79,8 +79,14 @@ export default function LoginScreen() {
 
   const onSubmit = async () => {
     setError("");
-    if (!username.trim()) { setError("Username is required."); return; }
-    if (!password) { setError("Password is required."); return; }
+    if (!username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+    if (!password) {
+      setError("Password is required.");
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await loginSecure({
@@ -94,20 +100,28 @@ export default function LoginScreen() {
         await applyTokens(access, refresh);
         router.replace("/(tabs)");
       } else {
-        const fallback = await obtainTokenPair({ username: username.trim(), password });
+        const fallback = await obtainTokenPair({
+          username: username.trim(),
+          password,
+        });
         const fallbackAccess = fallback.data?.access;
         if (fallbackAccess) {
           await applyTokens(fallbackAccess, fallback.data?.refresh);
           router.replace("/(tabs)");
         } else {
-          const keys = data && typeof data === "object"
-            ? Object.keys(data as Record<string, unknown>).join(", ")
-            : typeof data;
-          setError(`No access token returned from server. Response keys: ${keys || "none"}`);
+          const keys =
+            data && typeof data === "object"
+              ? Object.keys(data as Record<string, unknown>).join(", ")
+              : typeof data;
+          setError(
+            `No access token returned from server. Response keys: ${keys || "none"}`,
+          );
         }
       }
     } catch (e: unknown) {
-      setError(formatAuthRequestError(e, "Could not sign in. Check your credentials."));
+      setError(
+        formatAuthRequestError(e, "Could not sign in. Check your credentials."),
+      );
     } finally {
       setLoading(false);
     }
@@ -197,7 +211,9 @@ export default function LoginScreen() {
                   onPress={() => setShowPassword((v) => !v)}
                   hitSlop={8}
                 >
-                  <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁"}</Text>
+                  <Text style={styles.eyeText}>
+                    {showPassword ? "🙈" : "👁"}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -209,7 +225,11 @@ export default function LoginScreen() {
 
             {/* Submit */}
             <Pressable
-              style={({ pressed }) => [styles.primaryBtn, pressed && styles.primaryBtnPressed, loading && styles.primaryBtnDisabled]}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                pressed && styles.primaryBtnPressed,
+                loading && styles.primaryBtnDisabled,
+              ]}
               onPress={() => void onSubmit()}
               disabled={loading}
             >
@@ -369,7 +389,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: spacing.xl,
   },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: brand.border },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: brand.border,
+  },
   dividerText: {
     marginHorizontal: spacing.md,
     fontSize: typography.xs,
@@ -383,5 +407,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   bottomText: { fontSize: typography.sm, color: brand.textMuted },
-  bottomLink: { fontSize: typography.sm, fontWeight: "600", color: brand.primary },
+  bottomLink: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    color: brand.primary,
+  },
 });

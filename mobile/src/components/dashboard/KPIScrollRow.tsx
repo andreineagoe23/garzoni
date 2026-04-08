@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import HapticPressable from "../ui/HapticPressable";
 import { spacing, typography, radius } from "../../theme/tokens";

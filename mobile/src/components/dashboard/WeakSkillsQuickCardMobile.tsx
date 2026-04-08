@@ -1,4 +1,10 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import type { DashboardWeakSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
@@ -55,7 +61,11 @@ export default function WeakSkillsQuickCardMobile({
     >
       <View style={[styles.sheet, { backgroundColor: fill }]}>
         <View style={styles.topRow}>
-          <MaterialCommunityIcons name="lightbulb-on-outline" size={26} color={c.primary} />
+          <MaterialCommunityIcons
+            name="lightbulb-on-outline"
+            size={26}
+            color={c.primary}
+          />
           <View style={styles.copy}>
             <Text style={[styles.title, { color: c.text }]}>
               {t("dashboard.weakSkills.quickPracticeTitle")}

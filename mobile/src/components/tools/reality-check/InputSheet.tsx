@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -12,12 +12,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useThemeColors } from '../../../theme/ThemeContext';
-import { spacing, typography, radius } from '../../../theme/tokens';
-import type { RealityCheckForm } from '../../../types/reality-check';
+} from "react-native";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { spacing, typography, radius } from "../../../theme/tokens";
+import type { RealityCheckForm } from "../../../types/reality-check";
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP = SCREEN_HEIGHT * 0.88;
 
 type Props = {
@@ -28,7 +28,13 @@ type Props = {
   onCalculate: () => void;
 };
 
-export function InputSheet({ visible, form, onChange, onClose, onCalculate }: Props) {
+export function InputSheet({
+  visible,
+  form,
+  onChange,
+  onClose,
+  onCalculate,
+}: Props) {
   const c = useThemeColors();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -41,39 +47,66 @@ export function InputSheet({ visible, form, onChange, onClose, onCalculate }: Pr
   }, [visible, translateY]);
 
   const field = useCallback(
-    (label: string, key: keyof RealityCheckForm, placeholder: string, hint?: string) => (
+    (
+      label: string,
+      key: keyof RealityCheckForm,
+      placeholder: string,
+      hint?: string,
+    ) => (
       <View style={fieldStyles.wrapper}>
         <Text style={[fieldStyles.label, { color: c.textMuted }]}>{label}</Text>
         <TextInput
-          style={[fieldStyles.input, { backgroundColor: c.inputBg, borderColor: c.border, color: c.text }]}
+          style={[
+            fieldStyles.input,
+            {
+              backgroundColor: c.inputBg,
+              borderColor: c.border,
+              color: c.text,
+            },
+          ]}
           placeholder={placeholder}
           placeholderTextColor={c.textFaint}
           value={form[key]}
           onChangeText={(v) => onChange(key, v)}
-          keyboardType={key === 'goalName' ? 'default' : 'decimal-pad'}
+          keyboardType={key === "goalName" ? "default" : "decimal-pad"}
           returnKeyType="done"
         />
-        {hint ? <Text style={[fieldStyles.hint, { color: c.textFaint }]}>{hint}</Text> : null}
+        {hint ? (
+          <Text style={[fieldStyles.hint, { color: c.textFaint }]}>{hint}</Text>
+        ) : null}
       </View>
     ),
-    [c, form, onChange]
+    [c, form, onChange],
   );
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />
       </Pressable>
 
       <Animated.View
-        style={[styles.sheet, { backgroundColor: c.surface, transform: [{ translateY }] }]}
+        style={[
+          styles.sheet,
+          { backgroundColor: c.surface, transform: [{ translateY }] },
+        ]}
       >
-        <TouchableOpacity style={styles.handleArea} onPress={onClose} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.handleArea}
+          onPress={onClose}
+          activeOpacity={0.7}
+        >
           <View style={[styles.handle, { backgroundColor: c.border }]} />
         </TouchableOpacity>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
           <ScrollView
@@ -86,22 +119,46 @@ export function InputSheet({ visible, form, onChange, onClose, onCalculate }: Pr
               Enter your goal and financial details
             </Text>
 
-            {field('Goal Name', 'goalName', 'e.g. Emergency fund')}
-            {field('Goal Amount ($)', 'goalAmount', 'e.g. 10000')}
-            {field('Timeline (months)', 'months', 'e.g. 12')}
-            {field('Already Saved ($)', 'currentSaved', 'e.g. 1000')}
+            {field("Goal Name", "goalName", "e.g. Emergency fund")}
+            {field("Goal Amount ($)", "goalAmount", "e.g. 10000")}
+            {field("Timeline (months)", "months", "e.g. 12")}
+            {field("Already Saved ($)", "currentSaved", "e.g. 1000")}
 
             <View style={[styles.sectionDivider, { borderColor: c.border }]}>
-              <Text style={[styles.sectionLabel, { color: c.textMuted }]}>Monthly Income Range</Text>
+              <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+                Monthly Income Range
+              </Text>
             </View>
-            {field('Income Low ($)', 'incomeLow', 'e.g. 2800', 'Your lowest expected monthly income')}
-            {field('Income High ($)', 'incomeHigh', 'e.g. 3200', 'Your highest expected monthly income')}
+            {field(
+              "Income Low ($)",
+              "incomeLow",
+              "e.g. 2800",
+              "Your lowest expected monthly income",
+            )}
+            {field(
+              "Income High ($)",
+              "incomeHigh",
+              "e.g. 3200",
+              "Your highest expected monthly income",
+            )}
 
             <View style={[styles.sectionDivider, { borderColor: c.border }]}>
-              <Text style={[styles.sectionLabel, { color: c.textMuted }]}>Monthly Expenses Range</Text>
+              <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+                Monthly Expenses Range
+              </Text>
             </View>
-            {field('Expenses Low ($)', 'expenseLow', 'e.g. 1900', 'Minimum expected monthly spending')}
-            {field('Expenses High ($)', 'expenseHigh', 'e.g. 2200', 'Maximum expected monthly spending')}
+            {field(
+              "Expenses Low ($)",
+              "expenseLow",
+              "e.g. 1900",
+              "Minimum expected monthly spending",
+            )}
+            {field(
+              "Expenses High ($)",
+              "expenseHigh",
+              "e.g. 2200",
+              "Maximum expected monthly spending",
+            )}
 
             <Pressable
               onPress={onCalculate}
@@ -111,7 +168,9 @@ export function InputSheet({ visible, form, onChange, onClose, onCalculate }: Pr
               ]}
               accessibilityRole="button"
             >
-              <Text style={[styles.calcBtnText, { color: c.textOnPrimary }]}>Calculate</Text>
+              <Text style={[styles.calcBtnText, { color: c.textOnPrimary }]}>
+                Calculate
+              </Text>
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -124,8 +183,8 @@ const fieldStyles = StyleSheet.create({
   wrapper: { gap: spacing.xs },
   label: {
     fontSize: typography.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   input: {
@@ -139,22 +198,22 @@ const fieldStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end' },
+  backdrop: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end" },
   backdropFill: { flex: 1 },
   sheet: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     height: SCREEN_HEIGHT,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-  handleArea: { alignItems: 'center', paddingVertical: spacing.md },
+  handleArea: { alignItems: "center", paddingVertical: spacing.md },
   handle: { width: 36, height: 4, borderRadius: 2 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: 48 },
-  title: { fontSize: typography.xl, fontWeight: '700' },
+  title: { fontSize: typography.xl, fontWeight: "700" },
   subtitle: { fontSize: typography.sm, marginTop: -spacing.xs },
   sectionDivider: {
     borderTopWidth: 1,
@@ -163,15 +222,15 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: typography.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   calcBtn: {
     borderRadius: radius.full,
     paddingVertical: spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: spacing.md,
   },
-  calcBtnText: { fontSize: typography.base, fontWeight: '700' },
+  calcBtnText: { fontSize: typography.base, fontWeight: "700" },
 });

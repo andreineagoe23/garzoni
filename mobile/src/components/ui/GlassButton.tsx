@@ -78,7 +78,9 @@ export default function GlassButton({
     Platform.OS === "android"
       ? {
           color:
-            variant === "active" || variant === "success" || variant === "danger"
+            variant === "active" ||
+            variant === "success" ||
+            variant === "danger"
               ? "rgba(255,255,255,0.25)"
               : `${c.primary}33`,
         }
@@ -93,7 +95,9 @@ export default function GlassButton({
         styles.base,
         {
           backgroundColor:
-            pressed && !isDisabled && (variant === "primary" || variant === "secondary")
+            pressed &&
+            !isDisabled &&
+            (variant === "primary" || variant === "secondary")
               ? c.surfaceOffset
               : bg,
           borderColor: border,
@@ -110,7 +114,9 @@ export default function GlassButton({
       ) : (
         <>
           {icon}
-          <Text style={[styles.label, { color: text, fontSize: fontSizes[size] }]}>
+          <Text
+            style={[styles.label, { color: text, fontSize: fontSizes[size] }]}
+          >
             {children}
           </Text>
         </>

@@ -56,7 +56,7 @@ export function getStorageAdapter(): StorageAdapter {
 /** Resolve getItem to a value (supports async adapters). */
 export function storageGet(key: string): Promise<string | null> {
   return Promise.resolve(adapter.getItem(key)).then((v) =>
-    v == null ? null : String(v)
+    v == null ? null : String(v),
   );
 }
 

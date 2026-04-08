@@ -39,10 +39,10 @@ To re-enable: set the DSN env vars and uncomment the Sentry init in `frontend/sr
 
 ## Environment variables
 
-| Variable | Where | Value | Required |
-|----------|--------|--------|----------|
+| Variable               | Where                                               | Value                                            | Required                            |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------------ | ----------------------------------- |
 | `REACT_APP_SENTRY_DSN` | Frontend (e.g. `frontend/.env`, Vercel/Railway env) | Sentry **DSN URL** for your **frontend** project | No – if missing, Sentry is disabled |
-| `SENTRY_DSN` | Backend (e.g. `backend/.env`, Railway env) | Sentry **DSN URL** for your **backend** project | No – if missing, Sentry is disabled |
+| `SENTRY_DSN`           | Backend (e.g. `backend/.env`, Railway env)          | Sentry **DSN URL** for your **backend** project  | No – if missing, Sentry is disabled |
 
 ### What the value should be
 

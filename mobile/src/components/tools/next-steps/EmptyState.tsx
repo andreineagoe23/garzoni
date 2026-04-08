@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useThemeColors } from '../../../theme/ThemeContext';
-import { spacing, typography } from '../../../theme/tokens';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { spacing, typography } from "../../../theme/tokens";
 
 export function EmptyState() {
   const c = useThemeColors();
@@ -17,8 +17,8 @@ export function EmptyState() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { alignItems: 'center', gap: spacing.md, padding: spacing.xxxxl },
+  wrapper: { alignItems: "center", gap: spacing.md, padding: spacing.xxxxl },
   icon: { fontSize: 56 },
-  title: { fontSize: typography.xl, fontWeight: '700' },
-  body: { fontSize: typography.sm, textAlign: 'center', lineHeight: 20 },
+  title: { fontSize: typography.xl, fontWeight: "700" },
+  body: { fontSize: typography.sm, textAlign: "center", lineHeight: 20 },
 });

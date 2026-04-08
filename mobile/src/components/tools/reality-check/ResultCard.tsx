@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useThemeColors } from '../../../theme/ThemeContext';
-import { spacing, typography, radius, shadows } from '../../../theme/tokens';
-import { RiskBadge } from './RiskBadge';
-import type { RealityCheckResult } from '../../../types/reality-check';
-import { formatCurrency } from '../../../types/reality-check';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { spacing, typography, radius, shadows } from "../../../theme/tokens";
+import { RiskBadge } from "./RiskBadge";
+import type { RealityCheckResult } from "../../../types/reality-check";
+import { formatCurrency } from "../../../types/reality-check";
 
 type Props = {
   result: RealityCheckResult;
@@ -15,10 +15,16 @@ export function ResultCard({ result, goalName }: Props) {
   const c = useThemeColors();
 
   return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.md]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: c.surface, borderColor: c.border },
+        shadows.md,
+      ]}
+    >
       <View style={styles.header}>
         <Text style={[styles.goalName, { color: c.text }]} numberOfLines={1}>
-          {goalName || 'Your Goal'}
+          {goalName || "Your Goal"}
         </Text>
         <RiskBadge feasible={result.feasible} warnings={result.warnings} />
       </View>
@@ -26,12 +32,16 @@ export function ResultCard({ result, goalName }: Props) {
       {/* Progress bar */}
       <View style={styles.progressSection}>
         <View style={styles.progressLabelRow}>
-          <Text style={[styles.progressLabel, { color: c.textMuted }]}>Progress</Text>
+          <Text style={[styles.progressLabel, { color: c.textMuted }]}>
+            Progress
+          </Text>
           <Text style={[styles.progressPct, { color: c.text }]}>
             {result.progressPct.toFixed(1)}%
           </Text>
         </View>
-        <View style={[styles.progressTrack, { backgroundColor: c.surfaceOffset }]}>
+        <View
+          style={[styles.progressTrack, { backgroundColor: c.surfaceOffset }]}
+        >
           <View
             style={[
               styles.progressFill,
@@ -55,29 +65,59 @@ export function ResultCard({ result, goalName }: Props) {
         <StatItem
           label="Surplus (low)"
           value={formatCurrency(result.lowSurplus)}
-          color={result.lowSurplus >= result.requiredMonthly ? c.success : c.error}
+          color={
+            result.lowSurplus >= result.requiredMonthly ? c.success : c.error
+          }
           muted={c.textMuted}
         />
         <StatItem
           label="Surplus (high)"
           value={formatCurrency(result.highSurplus)}
-          color={result.highSurplus >= result.requiredMonthly ? c.success : c.error}
+          color={
+            result.highSurplus >= result.requiredMonthly ? c.success : c.error
+          }
           muted={c.textMuted}
         />
       </View>
 
       {/* Timeline estimate */}
       {result.expectedMonths != null && (
-        <View style={[styles.timelineRow, { backgroundColor: c.surfaceOffset, borderRadius: radius.md }]}>
-          <TimelineItem label="Best case" value={result.bestMonths} color={c.success} muted={c.textMuted} />
-          <TimelineItem label="Expected" value={result.expectedMonths} color={c.text} muted={c.textMuted} />
-          <TimelineItem label="Worst case" value={result.worstMonths} color={c.error} muted={c.textMuted} />
+        <View
+          style={[
+            styles.timelineRow,
+            { backgroundColor: c.surfaceOffset, borderRadius: radius.md },
+          ]}
+        >
+          <TimelineItem
+            label="Best case"
+            value={result.bestMonths}
+            color={c.success}
+            muted={c.textMuted}
+          />
+          <TimelineItem
+            label="Expected"
+            value={result.expectedMonths}
+            color={c.text}
+            muted={c.textMuted}
+          />
+          <TimelineItem
+            label="Worst case"
+            value={result.worstMonths}
+            color={c.error}
+            muted={c.textMuted}
+          />
         </View>
       )}
 
       {/* Warnings */}
       {result.warnings.map((w, i) => (
-        <View key={i} style={[styles.warningBox, { backgroundColor: c.errorBg, borderColor: c.error }]}>
+        <View
+          key={i}
+          style={[
+            styles.warningBox,
+            { backgroundColor: c.errorBg, borderColor: c.error },
+          ]}
+        >
           <Text style={[styles.warningText, { color: c.error }]}>⚠ {w}</Text>
         </View>
       ))}
@@ -85,7 +125,17 @@ export function ResultCard({ result, goalName }: Props) {
   );
 }
 
-function StatItem({ label, value, color, muted }: { label: string; value: string; color: string; muted: string }) {
+function StatItem({
+  label,
+  value,
+  color,
+  muted,
+}: {
+  label: string;
+  value: string;
+  color: string;
+  muted: string;
+}) {
   return (
     <View style={styles.statItem}>
       <Text style={[styles.statLabel, { color: muted }]}>{label}</Text>
@@ -108,7 +158,7 @@ function TimelineItem({
   return (
     <View style={styles.timelineItem}>
       <Text style={[styles.timelineMonths, { color }]}>
-        {value != null ? `${value}mo` : '—'}
+        {value != null ? `${value}mo` : "—"}
       </Text>
       <Text style={[styles.timelineLabel, { color: muted }]}>{label}</Text>
     </View>
@@ -123,48 +173,56 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: spacing.md,
   },
   goalName: {
     fontSize: typography.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     flex: 1,
   },
   progressSection: { gap: spacing.xs },
   progressLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  progressLabel: { fontSize: typography.xs, textTransform: 'uppercase', letterSpacing: 0.3 },
-  progressPct: { fontSize: typography.xs, fontWeight: '700' },
+  progressLabel: {
+    fontSize: typography.xs,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  progressPct: { fontSize: typography.xs, fontWeight: "700" },
   progressTrack: {
     height: 6,
     borderRadius: 3,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     borderTopWidth: 1,
     paddingTop: spacing.lg,
   },
-  statItem: { alignItems: 'center', gap: spacing.xs },
-  statLabel: { fontSize: typography.xs, textTransform: 'uppercase', letterSpacing: 0.3 },
-  statValue: { fontSize: typography.sm, fontWeight: '700' },
+  statItem: { alignItems: "center", gap: spacing.xs },
+  statLabel: {
+    fontSize: typography.xs,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  statValue: { fontSize: typography.sm, fontWeight: "700" },
   timelineRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     padding: spacing.md,
   },
-  timelineItem: { alignItems: 'center', gap: spacing.xs },
-  timelineMonths: { fontSize: typography.md, fontWeight: '700' },
+  timelineItem: { alignItems: "center", gap: spacing.xs },
+  timelineMonths: { fontSize: typography.md, fontWeight: "700" },
   timelineLabel: { fontSize: typography.xs },
   warningBox: {
     borderWidth: 1,
