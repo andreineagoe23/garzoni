@@ -1,7 +1,8 @@
 import { NativeModules, Platform } from "react-native";
 
 type PurchasesModule = typeof import("react-native-purchases").default;
-type PurchasesErrorCodes = typeof import("react-native-purchases").PURCHASES_ERROR_CODE;
+type PurchasesErrorCodes =
+  typeof import("react-native-purchases").PURCHASES_ERROR_CODE;
 
 export type RevenueCatPurchasesApi = {
   Purchases: PurchasesModule;
@@ -29,7 +30,8 @@ export function getRevenueCatPurchases(): RevenueCatPurchasesApi | null {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const mod = require("react-native-purchases") as typeof import("react-native-purchases");
+  const mod =
+    require("react-native-purchases") as typeof import("react-native-purchases");
   cached = {
     Purchases: mod.default,
     PURCHASES_ERROR_CODE: mod.PURCHASES_ERROR_CODE,

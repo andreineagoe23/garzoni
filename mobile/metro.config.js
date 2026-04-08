@@ -13,7 +13,10 @@ const coreSrc = path.join(workspaceRoot, "packages", "core", "src");
 const config = getDefaultConfig(projectRoot);
 
 // Expo/RN can inject watcher.unstable_workerThreads; older Metro validators log warnings (expo-doctor / EAS).
-if (config.watcher && Object.prototype.hasOwnProperty.call(config.watcher, "unstable_workerThreads")) {
+if (
+  config.watcher &&
+  Object.prototype.hasOwnProperty.call(config.watcher, "unstable_workerThreads")
+) {
   delete config.watcher.unstable_workerThreads;
 }
 

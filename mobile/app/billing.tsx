@@ -12,7 +12,10 @@ import { Stack, router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { useTranslation } from "react-i18next";
-import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
@@ -100,14 +103,20 @@ function PackageRow({
       <View style={styles.pkgRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.pkgTitle, { color: c.text }]}>
-            {planKey === "pro" ? "Pro" : "Plus"} — {isYearly ? "Yearly" : "Monthly"}
+            {planKey === "pro" ? "Pro" : "Plus"} —{" "}
+            {isYearly ? "Yearly" : "Monthly"}
           </Text>
           <Text style={[styles.pkgPrice, { color: c.textMuted }]}>
             {pkg.product.priceString}
             {isYearly ? " / year" : " / month"}
           </Text>
         </View>
-        <GlassButton variant="active" size="sm" onPress={() => onPress(pkg)} loading={loading}>
+        <GlassButton
+          variant="active"
+          size="sm"
+          onPress={() => onPress(pkg)}
+          loading={loading}
+        >
           {subscribeLabel}
         </GlassButton>
       </View>
@@ -162,8 +171,12 @@ export default function BillingScreen() {
       try {
         const r = await postSubscriptionSync();
         if (!cancelled && r.data?.ok) {
-          await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-          await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.profile(),
+          });
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.entitlements(),
+          });
         }
       } catch {
         /* best-effort */
@@ -210,9 +223,14 @@ export default function BillingScreen() {
       setPurchasingId(pkg.product.identifier);
       try {
         await rc.Purchases.purchasePackage(pkg);
-        await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.entitlements(),
+        });
         await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-        Alert.alert(t("billing.purchaseSuccessTitle"), t("billing.purchaseSuccessBody"));
+        Alert.alert(
+          t("billing.purchaseSuccessTitle"),
+          t("billing.purchaseSuccessBody"),
+        );
       } catch (e: unknown) {
         const code = (e as { code?: string }).code;
         if (code !== rc.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
@@ -222,7 +240,7 @@ export default function BillingScreen() {
         setPurchasingId(null);
       }
     },
-    [queryClient, t]
+    [queryClient, t],
   );
 
   const onRestore = useCallback(async () => {
@@ -231,9 +249,14 @@ export default function BillingScreen() {
     setErr("");
     try {
       await rc.Purchases.restorePurchases();
-      await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.entitlements(),
+      });
       await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      Alert.alert(t("billing.restoreSuccessTitle"), t("billing.restoreSuccessBody"));
+      Alert.alert(
+        t("billing.restoreSuccessTitle"),
+        t("billing.restoreSuccessBody"),
+      );
     } catch {
       setErr(t("billing.restoreFailed"));
     }
@@ -272,21 +295,36 @@ export default function BillingScreen() {
           headerTintColor: c.primary,
         }}
       />
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+      <ScrollView
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
         <GlassCard padding="lg" style={{ marginBottom: spacing.xl }}>
           <Text style={[styles.sectionTitle, { color: c.text }]}>
             {t("billing.currentPlan")}
           </Text>
           <View style={styles.planRow}>
-            <PlanBadge label={t("billing.starter")} active={plan === "starter"} c={c} />
-            <PlanBadge label={t("billing.plus")} active={plan === "plus"} c={c} />
+            <PlanBadge
+              label={t("billing.starter")}
+              active={plan === "starter"}
+              c={c}
+            />
+            <PlanBadge
+              label={t("billing.plus")}
+              active={plan === "plus"}
+              c={c}
+            />
             <PlanBadge label={t("billing.pro")} active={plan === "pro"} c={c} />
           </View>
           <Text style={[styles.statusText, { color: c.textMuted }]}>
             {label} · {status}
           </Text>
           {stripeSubscriptionId ? (
-            <Text style={[styles.hint, { color: c.textFaint, marginTop: spacing.xs }]}>
+            <Text
+              style={[
+                styles.hint,
+                { color: c.textFaint, marginTop: spacing.xs },
+              ]}
+            >
               {t("billing.stripePortalFallback")}
             </Text>
           ) : null}
@@ -311,21 +349,34 @@ export default function BillingScreen() {
         )}
 
         {loadingOffering ? (
-          <Text style={[styles.hint, { color: c.textMuted }]}>{t("billing.loadingPlans")}</Text>
+          <Text style={[styles.hint, { color: c.textMuted }]}>
+            {t("billing.loadingPlans")}
+          </Text>
         ) : null}
 
         {!loadingOffering && packages.length === 0 && !isSubscribed ? (
           <GlassCard padding="md" style={{ marginBottom: spacing.xl }}>
-            <Text style={[styles.hint, { color: c.textMuted, marginBottom: spacing.md }]}>
+            <Text
+              style={[
+                styles.hint,
+                { color: c.textMuted, marginBottom: spacing.md },
+              ]}
+            >
               {t("billing.noNativePlansHint")}
             </Text>
-            <GlassButton variant="active" size="md" onPress={() => router.push(href("/subscriptions"))}>
+            <GlassButton
+              variant="active"
+              size="md"
+              onPress={() => router.push(href("/subscriptions"))}
+            >
               {t("billing.explorePlansMobile")}
             </GlassButton>
           </GlassCard>
         ) : null}
 
-        {err ? <Text style={[styles.error, { color: c.error }]}>{err}</Text> : null}
+        {err ? (
+          <Text style={[styles.error, { color: c.error }]}>{err}</Text>
+        ) : null}
 
         <View style={styles.actions}>
           {Boolean(stripeSubscriptionId) && portalEligible ? (
@@ -347,19 +398,29 @@ export default function BillingScreen() {
           ) : null}
 
           {Platform.OS === "ios" && revenueCatNative ? (
-            <GlassButton variant="ghost" size="md" onPress={() => void onRestore()}>
+            <GlassButton
+              variant="ghost"
+              size="md"
+              onPress={() => void onRestore()}
+            >
               {t("billing.restorePurchases")}
             </GlassButton>
           ) : null}
 
           {!isSubscribed ? (
-            <GlassButton variant="ghost" size="md" onPress={() => router.push(href("/subscriptions"))}>
+            <GlassButton
+              variant="ghost"
+              size="md"
+              onPress={() => router.push(href("/subscriptions"))}
+            >
               {t("billing.explorePlans")}
             </GlassButton>
           ) : null}
         </View>
 
-        <Text style={[styles.legal, { color: c.textFaint }]}>{t("billing.subscriptionsLegalIos")}</Text>
+        <Text style={[styles.legal, { color: c.textFaint }]}>
+          {t("billing.subscriptionsLegalIos")}
+        </Text>
       </ScrollView>
     </>
   );

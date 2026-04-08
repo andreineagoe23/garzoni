@@ -48,7 +48,7 @@ export type UseMascotMessageOptions = {
  */
 export function useMascotMessage(
   mood: MascotMood,
-  options: UseMascotMessageOptions = {}
+  options: UseMascotMessageOptions = {},
 ): { mascot: MascotType; message: string } {
   const { t } = useTranslation("common");
   const { rotateMessages = false, rotationKey = 0, mascotOverride } = options;
@@ -66,7 +66,7 @@ export function useMascotMessage(
     message = t(pool[index]);
   } else {
     message = t(
-      `exercises.mascot.${mood === "celebrate" ? "correct" : mood === "encourage" ? "encourage" : "neutral"}`
+      `exercises.mascot.${mood === "celebrate" ? "correct" : mood === "encourage" ? "encourage" : "neutral"}`,
     );
   }
 

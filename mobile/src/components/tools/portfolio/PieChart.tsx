@@ -17,7 +17,7 @@ function polarToCartesian(
   cx: number,
   cy: number,
   r: number,
-  angleDeg: number
+  angleDeg: number,
 ): { x: number; y: number } {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -28,7 +28,7 @@ function describeArc(
   cy: number,
   r: number,
   startAngle: number,
-  endAngle: number
+  endAngle: number,
 ): string {
   const start = polarToCartesian(cx, cy, r, endAngle);
   const end = polarToCartesian(cx, cy, r, startAngle);
@@ -68,7 +68,13 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
     let currentAngle = 0;
     return slices.map((slice) => {
       const sweepAngle = (slice.percentage / 100) * 360;
-      const path = describeArc(cx, cy, outerR, currentAngle, currentAngle + sweepAngle);
+      const path = describeArc(
+        cx,
+        cy,
+        outerR,
+        currentAngle,
+        currentAngle + sweepAngle,
+      );
       currentAngle += sweepAngle;
       return { ...slice, path };
     });
@@ -98,9 +104,18 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
       </Svg>
 
       {/* Center overlay: total value */}
-      <View style={[styles.centerOverlay, { width: innerR * 2, height: innerR * 2, borderRadius: innerR }]}>
+      <View
+        style={[
+          styles.centerOverlay,
+          { width: innerR * 2, height: innerR * 2, borderRadius: innerR },
+        ]}
+      >
         <Text style={[styles.centerLabel, { color: c.textMuted }]}>Total</Text>
-        <Text style={[styles.centerValue, { color: c.text }]} numberOfLines={1} adjustsFontSizeToFit>
+        <Text
+          style={[styles.centerValue, { color: c.text }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           {formatCurrency(summary.total_value || 0)}
         </Text>
       </View>
@@ -109,7 +124,9 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
       <View style={styles.legend}>
         {slices.map((slice) => (
           <View key={slice.label} style={styles.legendRow}>
-            <View style={[styles.legendDot, { backgroundColor: slice.color }]} />
+            <View
+              style={[styles.legendDot, { backgroundColor: slice.color }]}
+            />
             <Text style={[styles.legendLabel, { color: c.textMuted }]}>
               {slice.label}{" "}
               <Text style={[styles.legendPct, { color: c.text }]}>

@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Polyline, Line, Text as SvgText, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
-import { useThemeColors } from '../../../theme/ThemeContext';
-import { spacing, typography, radius, shadows } from '../../../theme/tokens';
-import { formatCurrency } from '../../../types/reality-check';
+import React from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import Svg, {
+  Polyline,
+  Line,
+  Text as SvgText,
+  Defs,
+  LinearGradient,
+  Stop,
+  Path,
+} from "react-native-svg";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { spacing, typography, radius, shadows } from "../../../theme/tokens";
+import { formatCurrency } from "../../../types/reality-check";
 
 type DataPoint = { month: number; saved: number };
 
@@ -17,21 +25,24 @@ const PADDING = { top: 16, right: 16, bottom: 24, left: 48 };
 
 export function ProjectionChart({ data, goalAmount }: Props) {
   const c = useThemeColors();
-  const screenWidth = Dimensions.get('window').width;
+  const screenWidth = Dimensions.get("window").width;
   const chartWidth = screenWidth - spacing.xl * 2 - spacing.lg * 2;
   const innerW = chartWidth - PADDING.left - PADDING.right;
   const innerH = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
   if (data.length < 2) return null;
 
-  const maxY = Math.max(...data.map((d) => d.saved), goalAmount > 0 ? goalAmount : 0) * 1.05;
+  const maxY =
+    Math.max(...data.map((d) => d.saved), goalAmount > 0 ? goalAmount : 0) *
+    1.05;
   const minY = 0;
   const maxX = data[data.length - 1].month;
 
   const sx = (m: number) => PADDING.left + (m / maxX) * innerW;
-  const sy = (v: number) => PADDING.top + innerH - ((v - minY) / (maxY - minY)) * innerH;
+  const sy = (v: number) =>
+    PADDING.top + innerH - ((v - minY) / (maxY - minY)) * innerH;
 
-  const points = data.map((d) => `${sx(d.month)},${sy(d.saved)}`).join(' ');
+  const points = data.map((d) => `${sx(d.month)},${sy(d.saved)}`).join(" ");
 
   // Goal line Y
   const goalY = goalAmount > 0 ? sy(goalAmount) : null;
@@ -42,8 +53,8 @@ export function ProjectionChart({ data, goalAmount }: Props) {
     ...data.slice(1).map((d) => `L ${sx(d.month)} ${sy(d.saved)}`),
     `L ${sx(data[data.length - 1].month)} ${sy(0)}`,
     `L ${sx(data[0].month)} ${sy(0)}`,
-    'Z',
-  ].join(' ');
+    "Z",
+  ].join(" ");
 
   // Y-axis labels
   const yTicks = [0, 0.5, 1].map((t) => ({
@@ -52,11 +63,23 @@ export function ProjectionChart({ data, goalAmount }: Props) {
   }));
 
   // X-axis labels: first, middle, last
-  const xTicks = [data[0], data[Math.floor(data.length / 2)], data[data.length - 1]];
+  const xTicks = [
+    data[0],
+    data[Math.floor(data.length / 2)],
+    data[data.length - 1],
+  ];
 
   return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.sm]}>
-      <Text style={[styles.title, { color: c.textMuted }]}>Savings Projection</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: c.surface, borderColor: c.border },
+        shadows.sm,
+      ]}
+    >
+      <Text style={[styles.title, { color: c.textMuted }]}>
+        Savings Projection
+      </Text>
       <Svg width={chartWidth} height={CHART_HEIGHT}>
         <Defs>
           <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -89,7 +112,9 @@ export function ProjectionChart({ data, goalAmount }: Props) {
             fill={c.textFaint}
             textAnchor="end"
           >
-            {t.value >= 1000 ? `$${(t.value / 1000).toFixed(0)}k` : `$${t.value.toFixed(0)}`}
+            {t.value >= 1000
+              ? `$${(t.value / 1000).toFixed(0)}k`
+              : `$${t.value.toFixed(0)}`}
           </SvgText>
         ))}
 
@@ -157,8 +182,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.xs,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

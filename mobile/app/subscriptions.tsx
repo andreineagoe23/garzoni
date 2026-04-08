@@ -12,7 +12,10 @@ import { Stack, router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { useTranslation } from "react-i18next";
-import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 import axios from "axios";
 import {
   fetchEntitlements,
@@ -44,7 +47,9 @@ let revenueCatConfiguredGlobal = false;
 function configureRevenueCat(userId?: string) {
   const rc = getRevenueCatPurchases();
   if (!rc) return;
-  const apiKey = Constants.expoConfig?.extra?.revenueCatApiKeyIos as string | undefined;
+  const apiKey = Constants.expoConfig?.extra?.revenueCatApiKeyIos as
+    | string
+    | undefined;
   if (!apiKey || revenueCatConfiguredGlobal) return;
   revenueCatConfiguredGlobal = true;
   rc.Purchases.configure({ apiKey, appUserID: userId ?? null });
@@ -70,9 +75,10 @@ type Plan = {
 
 function formatFeatureValue(
   feature: PlanFeature | undefined,
-  t: (k: string, o?: Record<string, unknown>) => string
+  t: (k: string, o?: Record<string, unknown>) => string,
 ) {
-  if (!feature || feature.enabled === false) return t("subscriptions.notIncluded");
+  if (!feature || feature.enabled === false)
+    return t("subscriptions.notIncluded");
   if (feature.daily_quota === null || feature.daily_quota === undefined)
     return t("subscriptions.unlimited");
   if (typeof feature.daily_quota === "number")
@@ -100,14 +106,20 @@ function RcPackageRow({
       <View style={styles.pkgRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.pkgTitle, { color: c.text }]}>
-            {planKey === "pro" ? "Pro" : "Plus"} — {isYearly ? "Yearly" : "Monthly"}
+            {planKey === "pro" ? "Pro" : "Plus"} —{" "}
+            {isYearly ? "Yearly" : "Monthly"}
           </Text>
           <Text style={[styles.pkgPrice, { color: c.textMuted }]}>
             {pkg.product.priceString}
             {isYearly ? " / year" : " / month"}
           </Text>
         </View>
-        <GlassButton variant="active" size="sm" onPress={() => onPress(pkg)} loading={loading}>
+        <GlassButton
+          variant="active"
+          size="sm"
+          onPress={() => onPress(pkg)}
+          loading={loading}
+        >
           {subscribeLabel}
         </GlassButton>
       </View>
@@ -122,7 +134,9 @@ export default function SubscriptionsScreen() {
   const queryClient = useQueryClient();
   const revenueCatNative = useMemo(() => getRevenueCatPurchases() !== null, []);
 
-  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">("yearly");
+  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">(
+    "yearly",
+  );
   const [selectionError, setSelectionError] = useState("");
   const [busyPlanId, setBusyPlanId] = useState<string | null>(null);
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
@@ -153,7 +167,8 @@ export default function SubscriptionsScreen() {
 
   const plansQ = useQuery({
     queryKey: queryKeys.subscriptionPlans(),
-    queryFn: () => fetchSubscriptionPlans().then((r) => (r.data?.plans ?? []) as Plan[]),
+    queryFn: () =>
+      fetchSubscriptionPlans().then((r) => (r.data?.plans ?? []) as Plan[]),
     staleTime: 5 * 60_000,
   });
 
@@ -196,13 +211,15 @@ export default function SubscriptionsScreen() {
   const hasPaid = planRank(resolvedPlan) >= 1 || Boolean(ent?.entitled);
 
   const planCards = useMemo(() => {
-    const sorted = [...plans].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const sorted = [...plans].sort(
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    );
     const starter = sorted.find((p) => p.plan_id === "starter");
     const plus = sorted.find(
-      (p) => p.plan_id === "plus" && p.billing_interval === billingInterval
+      (p) => p.plan_id === "plus" && p.billing_interval === billingInterval,
     );
     const pro = sorted.find(
-      (p) => p.plan_id === "pro" && p.billing_interval === billingInterval
+      (p) => p.plan_id === "pro" && p.billing_interval === billingInterval,
     );
     const out: Plan[] = [];
     if (starter) out.push(starter);
@@ -220,7 +237,7 @@ export default function SubscriptionsScreen() {
     }, {});
     const keys = new Set<string>();
     Object.values(byId).forEach((p) =>
-      Object.keys(p?.features || {}).forEach((k) => keys.add(k))
+      Object.keys(p?.features || {}).forEach((k) => keys.add(k)),
     );
     return Array.from(keys).map((key) => {
       const s = byId.starter?.features?.[key];
@@ -244,9 +261,14 @@ export default function SubscriptionsScreen() {
       setPurchasingId(pkg.product.identifier);
       try {
         await rc.Purchases.purchasePackage(pkg);
-        await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.entitlements(),
+        });
         await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-        Alert.alert(t("billing.purchaseSuccessTitle"), t("billing.purchaseSuccessBody"));
+        Alert.alert(
+          t("billing.purchaseSuccessTitle"),
+          t("billing.purchaseSuccessBody"),
+        );
         router.replace(href("/personalized-path"));
       } catch (e: unknown) {
         const code = (e as { code?: string }).code;
@@ -257,7 +279,7 @@ export default function SubscriptionsScreen() {
         setPurchasingId(null);
       }
     },
-    [queryClient, t]
+    [queryClient, t],
   );
 
   const handlePlanSelect = useCallback(
@@ -274,7 +296,9 @@ export default function SubscriptionsScreen() {
       const isStarter =
         plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
       if (isStarter) {
-        await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.entitlements(),
+        });
         router.replace(href("/(tabs)/index"));
         return;
       }
@@ -295,7 +319,8 @@ export default function SubscriptionsScreen() {
           pkgs.find((p) => {
             const id = p.product.identifier;
             const isY = id.includes("yearly");
-            const tier = PRODUCT_TO_PLAN[id] ?? (id.includes("pro") ? "pro" : "plus");
+            const tier =
+              PRODUCT_TO_PLAN[id] ?? (id.includes("pro") ? "pro" : "plus");
             return tier === plan.plan_id && isY === wantYearly;
           }) ?? pkgs[0];
         await onRcPurchase(match);
@@ -317,9 +342,13 @@ export default function SubscriptionsScreen() {
         }
         setSelectionError(t("subscriptions.checkoutFailed"));
       } catch (err: unknown) {
-        const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+        const status = axios.isAxiosError(err)
+          ? err.response?.status
+          : undefined;
         const message = axios.isAxiosError(err)
-          ? String(err.response?.data?.error ?? err.response?.data?.detail ?? "")
+          ? String(
+              err.response?.data?.error ?? err.response?.data?.detail ?? "",
+            )
           : "";
         if (status === 503) {
           setSelectionError(message || t("subscriptions.paymentNotConfigured"));
@@ -338,7 +367,7 @@ export default function SubscriptionsScreen() {
       queryClient,
       revenueCatNative,
       t,
-    ]
+    ],
   );
 
   const formatMoney = (plan: Plan) => {
@@ -367,16 +396,26 @@ export default function SubscriptionsScreen() {
           headerTintColor: c.primary,
         }}
       />
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
-        <Text style={[styles.title, { color: c.text }]}>{t("subscriptions.choosePlan")}</Text>
-        <Text style={[styles.intro, { color: c.textMuted }]}>{t("subscriptions.intro")}</Text>
+      <ScrollView
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
+        <Text style={[styles.title, { color: c.text }]}>
+          {t("subscriptions.choosePlan")}
+        </Text>
+        <Text style={[styles.intro, { color: c.textMuted }]}>
+          {t("subscriptions.intro")}
+        </Text>
 
         {ent?.fallback ? (
-          <Text style={[styles.warn, { color: c.accent }]}>{t("subscriptions.fallbackEntitlements")}</Text>
+          <Text style={[styles.warn, { color: c.accent }]}>
+            {t("subscriptions.fallbackEntitlements")}
+          </Text>
         ) : null}
 
         {selectionError ? (
-          <Text style={[styles.error, { color: c.error }]}>{selectionError}</Text>
+          <Text style={[styles.error, { color: c.error }]}>
+            {selectionError}
+          </Text>
         ) : null}
 
         {hasPaid ? (
@@ -387,7 +426,11 @@ export default function SubscriptionsScreen() {
             <Text style={{ color: c.textMuted, marginBottom: spacing.md }}>
               {t("subscriptions.statusPaid")}
             </Text>
-            <GlassButton variant="active" size="md" onPress={() => router.push(href("/billing"))}>
+            <GlassButton
+              variant="active"
+              size="md"
+              onPress={() => router.push(href("/billing"))}
+            >
               {t("billing.manageSubscription")}
             </GlassButton>
             <GlassButton
@@ -421,7 +464,9 @@ export default function SubscriptionsScreen() {
             </View>
 
             {plansQ.isPending ? (
-              <Text style={{ color: c.textMuted }}>{t("subscriptions.loadingPlans")}</Text>
+              <Text style={{ color: c.textMuted }}>
+                {t("subscriptions.loadingPlans")}
+              </Text>
             ) : null}
 
             {revenueCatNative && packages.length > 0 ? (
@@ -437,7 +482,10 @@ export default function SubscriptionsScreen() {
                     loading={purchasingId === pkg.product.identifier}
                     c={c}
                     subscribeLabel={t("subscriptions.choosePlanCheckout", {
-                      name: PRODUCT_TO_PLAN[pkg.product.identifier] === "pro" ? "Pro" : "Plus",
+                      name:
+                        PRODUCT_TO_PLAN[pkg.product.identifier] === "pro"
+                          ? "Pro"
+                          : "Plus",
                     })}
                   />
                 ))}
@@ -453,19 +501,26 @@ export default function SubscriptionsScreen() {
             ) : (
               <View style={{ marginTop: spacing.md }}>
                 {revenueCatNative && loadingOffering ? (
-                  <Text style={{ color: c.textMuted, marginBottom: spacing.md }}>
+                  <Text
+                    style={{ color: c.textMuted, marginBottom: spacing.md }}
+                  >
                     {t("subscriptions.loadingPlans")}
                   </Text>
                 ) : null}
                 {planCards.length === 0 && !plansQ.isPending ? (
-                  <Text style={{ color: c.textMuted }}>{t("subscriptions.paymentNotConfigured")}</Text>
+                  <Text style={{ color: c.textMuted }}>
+                    {t("subscriptions.paymentNotConfigured")}
+                  </Text>
                 ) : null}
                 {planCards.map((plan) => {
                   const isStarter =
-                    plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
+                    plan.plan_id === "starter" ||
+                    Number(plan.price_amount || 0) === 0;
                   const label = isStarter
                     ? t("subscriptions.startStarter")
-                    : t("subscriptions.choosePlanCheckout", { name: plan.name || plan.plan_id });
+                    : t("subscriptions.choosePlanCheckout", {
+                        name: plan.name || plan.plan_id,
+                      });
                   return (
                     <GlassCard
                       key={`${plan.plan_id}-${plan.billing_interval}`}
@@ -499,36 +554,68 @@ export default function SubscriptionsScreen() {
               </View>
             )}
 
-            {comparisonRows.length > 0 && !revenueCatNative && packages.length === 0 ? (
+            {comparisonRows.length > 0 &&
+            !revenueCatNative &&
+            packages.length === 0 ? (
               <View style={{ marginTop: spacing.xl }}>
                 <Text style={[styles.sectionTitle, { color: c.text }]}>
                   {t("subscriptions.seeWhatChanges")}
                 </Text>
-                <View style={[styles.compHeaderRow, { borderBottomColor: c.border }]}>
+                <View
+                  style={[
+                    styles.compHeaderRow,
+                    { borderBottomColor: c.border },
+                  ]}
+                >
                   <Text style={[styles.compColFeature, { color: c.textMuted }]}>
                     {t("subscriptions.feature")}
                   </Text>
                   <Text style={[styles.compCol, { color: c.textMuted }]}>
                     {t("subscriptions.starter")}
                   </Text>
-                  <Text style={[styles.compCol, { color: c.textMuted }]}>{t("subscriptions.plus")}</Text>
-                  <Text style={[styles.compCol, { color: c.textMuted }]}>{t("subscriptions.pro")}</Text>
+                  <Text style={[styles.compCol, { color: c.textMuted }]}>
+                    {t("subscriptions.plus")}
+                  </Text>
+                  <Text style={[styles.compCol, { color: c.textMuted }]}>
+                    {t("subscriptions.pro")}
+                  </Text>
                 </View>
                 {comparisonRows.slice(0, 12).map((row) => (
                   <View
                     key={row.feature}
-                    style={[styles.compHeaderRow, { borderBottomColor: c.border }]}
+                    style={[
+                      styles.compHeaderRow,
+                      { borderBottomColor: c.border },
+                    ]}
                   >
-                    <Text style={[styles.compColFeature, { color: c.text }]} numberOfLines={3}>
+                    <Text
+                      style={[styles.compColFeature, { color: c.text }]}
+                      numberOfLines={3}
+                    >
                       {row.feature}
                     </Text>
-                    <Text style={[styles.compCol, { color: c.textMuted, fontSize: typography.xs }]}>
+                    <Text
+                      style={[
+                        styles.compCol,
+                        { color: c.textMuted, fontSize: typography.xs },
+                      ]}
+                    >
                       {row.starter}
                     </Text>
-                    <Text style={[styles.compCol, { color: c.textMuted, fontSize: typography.xs }]}>
+                    <Text
+                      style={[
+                        styles.compCol,
+                        { color: c.textMuted, fontSize: typography.xs },
+                      ]}
+                    >
                       {row.plus}
                     </Text>
-                    <Text style={[styles.compCol, { color: c.textMuted, fontSize: typography.xs }]}>
+                    <Text
+                      style={[
+                        styles.compCol,
+                        { color: c.textMuted, fontSize: typography.xs },
+                      ]}
+                    >
                       {row.pro}
                     </Text>
                   </View>
@@ -550,12 +637,24 @@ export default function SubscriptionsScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingBottom: 48 },
-  title: { fontSize: typography.xl, fontWeight: "800", marginBottom: spacing.sm },
+  title: {
+    fontSize: typography.xl,
+    fontWeight: "800",
+    marginBottom: spacing.sm,
+  },
   intro: { fontSize: typography.sm, lineHeight: 20, marginBottom: spacing.lg },
   warn: { fontSize: typography.sm, marginBottom: spacing.md },
   error: { fontSize: typography.sm, marginBottom: spacing.md },
-  sectionTitle: { fontSize: typography.base, fontWeight: "700", marginBottom: spacing.md },
-  intervalRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
+  sectionTitle: {
+    fontSize: typography.base,
+    fontWeight: "700",
+    marginBottom: spacing.md,
+  },
+  intervalRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   pkgRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   pkgTitle: { fontSize: typography.sm, fontWeight: "600", marginBottom: 2 },
   pkgPrice: { fontSize: typography.xs },
@@ -569,5 +668,10 @@ const styles = StyleSheet.create({
   },
   compColFeature: { flex: 2.2, fontSize: typography.xs, fontWeight: "600" },
   compCol: { flex: 1, fontSize: typography.xs, textAlign: "center" },
-  legal: { fontSize: typography.xs, lineHeight: 16, marginTop: spacing.xl, textAlign: "center" },
+  legal: {
+    fontSize: typography.xs,
+    lineHeight: 16,
+    marginTop: spacing.xl,
+    textAlign: "center",
+  },
 });

@@ -55,9 +55,15 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
 
   return (
     <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-      <Text style={[styles.title, { color: c.text }]}>{t("profile.referral.title")}</Text>
-      <Text style={[styles.sub, { color: c.textMuted }]}>{t("profile.referral.subtitle")}</Text>
-      <Text style={[styles.label, { color: c.textMuted }]}>{t("profile.referral.linkLabel")}</Text>
+      <Text style={[styles.title, { color: c.text }]}>
+        {t("profile.referral.title")}
+      </Text>
+      <Text style={[styles.sub, { color: c.textMuted }]}>
+        {t("profile.referral.subtitle")}
+      </Text>
+      <Text style={[styles.label, { color: c.textMuted }]}>
+        {t("profile.referral.linkLabel")}
+      </Text>
       <View
         style={[
           styles.fieldRow,
@@ -89,7 +95,9 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
               { color: copied ? c.accent : c.textOnPrimary },
             ]}
           >
-            {copied ? t("profile.referral.shared") : t("profile.referral.shareLink")}
+            {copied
+              ? t("profile.referral.shared")
+              : t("profile.referral.shareLink")}
           </Text>
         </Pressable>
       </View>

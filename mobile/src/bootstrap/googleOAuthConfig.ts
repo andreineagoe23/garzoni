@@ -11,8 +11,10 @@ function normalizeGoogleIosClientId(raw: string): string {
 
 function readExtraRecord(): Record<string, unknown> {
   return (Constants.expoConfig?.extra ??
-    (Constants as { manifest2?: { extra?: Record<string, unknown> } }).manifest2?.extra ??
-    (Constants as { manifest?: { extra?: Record<string, unknown> } }).manifest?.extra ??
+    (Constants as { manifest2?: { extra?: Record<string, unknown> } }).manifest2
+      ?.extra ??
+    (Constants as { manifest?: { extra?: Record<string, unknown> } }).manifest
+      ?.extra ??
     {}) as Record<string, unknown>;
 }
 
@@ -26,8 +28,11 @@ export function getGoogleWebClientId(): string {
 /** iOS OAuth client ID from Google Cloud Console (iOS application type). */
 export function getGoogleIosClientId(): string {
   const ex = readExtraRecord().googleIosClientId;
-  if (typeof ex === "string" && ex.trim()) return normalizeGoogleIosClientId(ex);
-  return normalizeGoogleIosClientId(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "");
+  if (typeof ex === "string" && ex.trim())
+    return normalizeGoogleIosClientId(ex);
+  return normalizeGoogleIosClientId(
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "",
+  );
 }
 
 export function isGoogleSignInConfigured(): boolean {

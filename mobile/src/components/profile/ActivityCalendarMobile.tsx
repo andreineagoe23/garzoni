@@ -32,7 +32,10 @@ export default function ActivityCalendarMobile({
   const firstDayOfWeek = firstDay.getDay();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  const placeholders = Array.from({ length: firstDayOfWeek }, () => null as number | null);
+  const placeholders = Array.from(
+    { length: firstDayOfWeek },
+    () => null as number | null,
+  );
   const cells: (number | null)[] = [...placeholders, ...days];
   const rows: (number | null)[][] = [];
   for (let i = 0; i < cells.length; i += COLS) {
@@ -58,7 +61,9 @@ export default function ActivityCalendarMobile({
       <View style={styles.weekRow}>
         {weekdayLabels.map((label) => (
           <View key={label} style={styles.cellSlot}>
-            <Text style={[styles.weekday, { color: colors.textMuted }]}>{label}</Text>
+            <Text style={[styles.weekday, { color: colors.textMuted }]}>
+              {label}
+            </Text>
           </View>
         ))}
       </View>
@@ -87,13 +92,19 @@ export default function ActivityCalendarMobile({
                     styles.cell,
                     {
                       borderColor: colors.border,
-                      backgroundColor: hasActivity ? colors.primary + "18" : colors.surfaceOffset,
+                      backgroundColor: hasActivity
+                        ? colors.primary + "18"
+                        : colors.surfaceOffset,
                     },
                   ]}
                 >
-                  <Text style={[styles.dayNum, { color: colors.text }]}>{day}</Text>
+                  <Text style={[styles.dayNum, { color: colors.text }]}>
+                    {day}
+                  </Text>
                   {hasActivity ? (
-                    <Text style={[styles.count, { color: colors.accent }]}>{activityCount}</Text>
+                    <Text style={[styles.count, { color: colors.accent }]}>
+                      {activityCount}
+                    </Text>
                   ) : null}
                 </View>
               </View>

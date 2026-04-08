@@ -26,7 +26,8 @@ export default function SettingsScreen() {
 
   const mutation = useMutation({
     mutationFn: patchUserSettings,
-    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.userSettings() }),
+    onSuccess: () =>
+      void qc.invalidateQueries({ queryKey: queryKeys.userSettings() }),
   });
 
   const soundOn = settingsQ.data?.sound_enabled !== false;
@@ -35,10 +36,23 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Settings", headerShown: true, headerTintColor: c.primary }} />
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+      <Stack.Screen
+        options={{
+          title: "Settings",
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
+      <ScrollView
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+      >
         <Text style={[styles.section, { color: c.accent }]}>Appearance</Text>
-        <View style={[styles.card, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.card,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <Row
             label="Dark mode"
             value={resolved === "dark"}
@@ -48,8 +62,15 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.section, { color: c.accent }]}>Language</Text>
-        <View style={[styles.card, { borderColor: c.border, backgroundColor: c.surface }]}>
-          {SUPPORTED_LANGUAGES.filter((l) => !("comingSoon" in l && l.comingSoon)).map((lng) => {
+        <View
+          style={[
+            styles.card,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
+          {SUPPORTED_LANGUAGES.filter(
+            (l) => !("comingSoon" in l && l.comingSoon),
+          ).map((lng) => {
             const active = normalizeLanguage(i18n.language) === lng.code;
             return (
               <Text
@@ -71,7 +92,12 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.section, { color: c.accent }]}>Preferences</Text>
-        <View style={[styles.card, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.card,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <Row
             label="Sound effects"
             value={soundOn}

@@ -23,7 +23,9 @@ export default function LessonScreen() {
     queryKey: ["lesson", lessonId],
     enabled: Number.isFinite(lessonId),
     queryFn: () =>
-      lessonService.fetchById(lessonId).then((r) => r.data as Record<string, unknown>),
+      lessonService
+        .fetchById(lessonId)
+        .then((r) => r.data as Record<string, unknown>),
     staleTime: staleTimes.content,
   });
 
@@ -36,7 +38,7 @@ export default function LessonScreen() {
   const c = useThemeColors();
   const safeAreaStyle = useMemo(
     () => [styles.safeArea, { backgroundColor: c.bg }],
-    [c.bg]
+    [c.bg],
   );
 
   if (!Number.isFinite(lessonId)) {
@@ -55,7 +57,11 @@ export default function LessonScreen() {
         <View style={styles.loadingContainer}>
           <Skeleton width="60%" height={24} />
           <Skeleton width="100%" height={8} style={{ marginTop: spacing.lg }} />
-          <Skeleton width="100%" height={200} style={{ marginTop: spacing.xxl }} />
+          <Skeleton
+            width="100%"
+            height={200}
+            style={{ marginTop: spacing.xxl }}
+          />
         </View>
       </SafeAreaView>
     );

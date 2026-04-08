@@ -1,9 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import {
-  DEFAULT_LANGUAGE,
-  SUPPORTED_LANGUAGES,
-} from "constants/i18n";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "constants/i18n";
 import en from "../locales/en";
 import ro from "../locales/ro";
 
@@ -16,7 +13,7 @@ const normalizeLanguage = (value?: string | null) => {
 };
 
 const supportedLanguageCodes = SUPPORTED_LANGUAGES.filter(
-  (lang) => !("comingSoon" in lang && lang.comingSoon)
+  (lang) => !("comingSoon" in lang && lang.comingSoon),
 ).map((lang) => lang.code);
 
 export type GarzoniI18nPlatformHooks = {
@@ -33,7 +30,7 @@ export type GarzoniI18nPlatformHooks = {
  * Call once at app entry with platform-specific hooks (storage, document, etc.).
  */
 export function initGarzoniI18n(
-  hooks: GarzoniI18nPlatformHooks = {}
+  hooks: GarzoniI18nPlatformHooks = {},
 ): typeof i18n {
   if (i18n.isInitialized) {
     return i18n;

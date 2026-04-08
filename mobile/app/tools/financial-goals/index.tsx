@@ -14,8 +14,14 @@ import * as Haptics from "expo-haptics";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
-import type { FinancialGoalDto, GoalStatus } from "../../../src/types/financial-goals";
-import { EMPTY_GOAL_FORM, type GoalFormState } from "../../../src/types/financial-goals";
+import type {
+  FinancialGoalDto,
+  GoalStatus,
+} from "../../../src/types/financial-goals";
+import {
+  EMPTY_GOAL_FORM,
+  type GoalFormState,
+} from "../../../src/types/financial-goals";
 import { GoalsSkeleton } from "../../../src/components/tools/financial-goals/GoalsSkeleton";
 import { GoalCard } from "../../../src/components/tools/financial-goals/GoalCard";
 import {
@@ -36,7 +42,9 @@ export default function FinancialGoalsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>("create");
-  const [selectedGoal, setSelectedGoal] = useState<FinancialGoalDto | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<FinancialGoalDto | null>(
+    null,
+  );
 
   const presets = useMemo(
     () => [
@@ -48,7 +56,7 @@ export default function FinancialGoalsScreen() {
           target_amount: "10000",
           current_amount: "1000",
           deadline: new Date(
-            new Date().setFullYear(new Date().getFullYear() + 1)
+            new Date().setFullYear(new Date().getFullYear() + 1),
           )
             .toISOString()
             .split("T")[0],
@@ -67,7 +75,7 @@ export default function FinancialGoalsScreen() {
         } satisfies GoalFormState,
       },
     ],
-    [t]
+    [t],
   );
 
   const fetchGoals = useCallback(async () => {
@@ -118,13 +126,15 @@ export default function FinancialGoalsScreen() {
     async (id: number) => {
       try {
         await (apiClient as any).delete(`/financial-goals/${id}/`);
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         setGoals((prev) => prev.filter((g) => g.id !== id));
       } catch {
         Alert.alert("", t("tools.goalsTracker.deleteFailed"));
       }
     },
-    [t]
+    [t],
   );
 
   const quickAddFromPresets = useCallback(
@@ -136,14 +146,16 @@ export default function FinancialGoalsScreen() {
           current_amount: values.current_amount,
           deadline: values.deadline,
         });
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         setGoals((prev) => [...prev, res.data as FinancialGoalDto]);
         setError(null);
       } catch {
         Alert.alert("", t("tools.goalsTracker.addFailed"));
       }
     },
-    [t]
+    [t],
   );
 
   const statusLabel = useCallback(
@@ -152,7 +164,7 @@ export default function FinancialGoalsScreen() {
       if (s === "in_progress") return t("tools.goalsTracker.statusInProgress");
       return t("tools.goalsTracker.statusNotStarted");
     },
-    [t]
+    [t],
   );
 
   const cardLabels = useMemo(
@@ -170,7 +182,7 @@ export default function FinancialGoalsScreen() {
       deleteConfirmMessage: t("tools.goalsTracker.deleteGoalMessage"),
       cancel: t("tools.goalsTracker.cancel"),
     }),
-    [t]
+    [t],
   );
 
   const sheetLabels = useMemo(
@@ -195,7 +207,7 @@ export default function FinancialGoalsScreen() {
         amount: t("tools.goalsTracker.amountPlaceholder"),
       },
     }),
-    [t]
+    [t],
   );
 
   const listHeader = useMemo(
@@ -268,7 +280,7 @@ export default function FinancialGoalsScreen() {
         ) : null}
       </View>
     ),
-    [c, error, openCreate, presets, quickAddFromPresets, t]
+    [c, error, openCreate, presets, quickAddFromPresets, t],
   );
 
   const emptyFooter =
@@ -315,9 +327,16 @@ export default function FinancialGoalsScreen() {
               labels={cardLabels}
             />
           )}
-          contentContainerStyle={[styles.listContent, { backgroundColor: c.bg }]}
+          contentContainerStyle={[
+            styles.listContent,
+            { backgroundColor: c.bg },
+          ]}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={c.primary}
+            />
           }
         />
       )}
@@ -338,7 +357,11 @@ const styles = StyleSheet.create({
   listContent: { padding: spacing.lg, paddingBottom: 48 },
   headerBlock: { marginBottom: spacing.md },
   heroTitle: { fontSize: typography.xl, fontWeight: "800", marginBottom: 6 },
-  heroSub: { fontSize: typography.sm, lineHeight: 20, marginBottom: spacing.lg },
+  heroSub: {
+    fontSize: typography.sm,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+  },
   presetCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -352,7 +375,12 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: spacing.sm,
   },
-  presetRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm },
+  presetRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
   presetChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: 8,

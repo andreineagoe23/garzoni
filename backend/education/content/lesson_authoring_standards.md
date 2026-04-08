@@ -41,17 +41,17 @@ Not: "I just read a finance article."
 
 ## Section-by-Section Philosophy (9 sections)
 
-| # | Section | Purpose | Guidance |
-|---|---------|---------|----------|
-| 1 | **Overview** | Explain the concept simply. | One clear definition. Keep it clean. No fluff. |
-| 2 | **Core Concept** | Mechanics + why it matters. | How it works and why it affects their money. No fluff. |
-| 3 | **Knowledge Check 1** | Test definition and mechanism. | Validates sections 1 & 2. |
-| 4 | **Applied Insight** | Show a realistic example. | e.g. "If you invest £1,000 at 7% annually…" Scenario-led. |
-| 5 | **Practical Walkthrough** | Explain what people do wrong. | e.g. "The biggest mistake is withdrawing gains early…" Pitfall + how to avoid. |
-| 6 | **Knowledge Check 2** | Test application. | Validates sections 4 & 5. |
-| 7 | **Key Takeaways** | Sharp reinforcement. | 3–5 short, bullet-style paragraphs. Not motivational quotes. No new heavy theory. |
-| 8 | **Next Steps** | What to actually do. | One concrete action. e.g. "Open an investment calculator and test 5, 10, and 20-year growth." |
-| 9 | **Watch & Learn** | Video reinforcement. | Relevant to the lesson; same tone. |
+| #   | Section                   | Purpose                        | Guidance                                                                                      |
+| --- | ------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| 1   | **Overview**              | Explain the concept simply.    | One clear definition. Keep it clean. No fluff.                                                |
+| 2   | **Core Concept**          | Mechanics + why it matters.    | How it works and why it affects their money. No fluff.                                        |
+| 3   | **Knowledge Check 1**     | Test definition and mechanism. | Validates sections 1 & 2.                                                                     |
+| 4   | **Applied Insight**       | Show a realistic example.      | e.g. "If you invest £1,000 at 7% annually…" Scenario-led.                                     |
+| 5   | **Practical Walkthrough** | Explain what people do wrong.  | e.g. "The biggest mistake is withdrawing gains early…" Pitfall + how to avoid.                |
+| 6   | **Knowledge Check 2**     | Test application.              | Validates sections 4 & 5.                                                                     |
+| 7   | **Key Takeaways**         | Sharp reinforcement.           | 3–5 short, bullet-style paragraphs. Not motivational quotes. No new heavy theory.             |
+| 8   | **Next Steps**            | What to actually do.           | One concrete action. e.g. "Open an investment calculator and test 5, 10, and 20-year growth." |
+| 9   | **Watch & Learn**         | Video reinforcement.           | Relevant to the lesson; same tone.                                                            |
 
 ---
 
@@ -120,14 +120,14 @@ Lessons stay **tight and powerful**. Depth comes from the full curriculum, not f
 
 For content generation at scale, each text section has an internal role (not shown to users):
 
-| Section | Title | Cognitive tag |
-|---------|--------|----------------|
-| 1 | Overview | Concept Introduction |
-| 2 | Core Concept | Structural Understanding |
-| 4 | Applied Insight | Risk & Nuance |
-| 5 | Practical Walkthrough | Practical Mechanics |
-| 7 | Key Takeaways | Strategic Framing |
-| 8 | Next Steps | Behavioral Reinforcement |
+| Section | Title                 | Cognitive tag            |
+| ------- | --------------------- | ------------------------ |
+| 1       | Overview              | Concept Introduction     |
+| 2       | Core Concept          | Structural Understanding |
+| 4       | Applied Insight       | Risk & Nuance            |
+| 5       | Practical Walkthrough | Practical Mechanics      |
+| 7       | Key Takeaways         | Strategic Framing        |
+| 8       | Next Steps            | Behavioral Reinforcement |
 
 ---
 

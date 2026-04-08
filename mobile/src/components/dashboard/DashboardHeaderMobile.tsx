@@ -33,7 +33,12 @@ export default function DashboardHeaderMobile({ displayName }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginBottom: spacing.lg },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
   avatar: {
     width: 48,
     height: 48,

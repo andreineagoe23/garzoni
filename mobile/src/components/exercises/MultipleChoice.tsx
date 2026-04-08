@@ -80,7 +80,9 @@ export default function MultipleChoice({
 
   const [selected, setSelected] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
 
   const handleSubmit = async () => {
@@ -150,7 +152,9 @@ export default function MultipleChoice({
         <Text
           style={[
             styles.feedback,
-            feedbackType === "success" ? styles.feedbackSuccess : styles.feedbackError,
+            feedbackType === "success"
+              ? styles.feedbackSuccess
+              : styles.feedbackError,
           ]}
         >
           {feedback}
@@ -162,7 +166,11 @@ export default function MultipleChoice({
       ) : null}
 
       {!isCompleted && selected !== null ? (
-        <Button size="sm" onPress={() => void handleSubmit()} style={{ marginTop: spacing.md }}>
+        <Button
+          size="sm"
+          onPress={() => void handleSubmit()}
+          style={{ marginTop: spacing.md }}
+        >
           Submit
         </Button>
       ) : null}

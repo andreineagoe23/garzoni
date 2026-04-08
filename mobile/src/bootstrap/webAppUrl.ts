@@ -5,7 +5,9 @@ import { getBackendUrl } from "@garzoni/core";
  * Base origin for loading web-only routes (tools, legal) in a WebView.
  */
 export function getWebAppBaseUrl(): string {
-  const extra = Constants.expoConfig?.extra as { webAppUrl?: string } | undefined;
+  const extra = Constants.expoConfig?.extra as
+    | { webAppUrl?: string }
+    | undefined;
   const fromEnv = extra?.webAppUrl?.trim();
   if (fromEnv) return fromEnv.replace(/\/$/, "");
 

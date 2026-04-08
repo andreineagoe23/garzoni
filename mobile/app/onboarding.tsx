@@ -15,7 +15,10 @@ import {
 } from "react-native";
 import { router, Stack } from "expo-router";
 import { ImpactFeedbackStyle, NotificationFeedbackType } from "expo-haptics";
-import { safeImpactAsync, safeNotificationAsync } from "../src/utils/safeHaptics";
+import {
+  safeImpactAsync,
+  safeNotificationAsync,
+} from "../src/utils/safeHaptics";
 import {
   fetchQuestionnaireProgress,
   fetchNextQuestion,
@@ -32,7 +35,13 @@ import QuestionnaireSingleChoice from "../src/components/onboarding/steps/Questi
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
-import { colors, spacing, typography, radius, shadows } from "../src/theme/tokens";
+import {
+  colors,
+  spacing,
+  typography,
+  radius,
+  shadows,
+} from "../src/theme/tokens";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
@@ -40,7 +49,11 @@ function useSlideAnim() {
   const anim = useRef(new Animated.Value(0)).current;
   const slide = useCallback(() => {
     anim.setValue(40);
-    Animated.spring(anim, { toValue: 0, useNativeDriver: true, speed: 20 }).start();
+    Animated.spring(anim, {
+      toValue: 0,
+      useNativeDriver: true,
+      speed: 20,
+    }).start();
   }, [anim]);
   return { translateY: anim, slide };
 }
@@ -53,7 +66,9 @@ export default function OnboardingScreen() {
   >("checking");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [questionData, setQuestionData] = useState<NextQuestionResponse | null>(null);
+  const [questionData, setQuestionData] = useState<NextQuestionResponse | null>(
+    null,
+  );
   const [answer, setAnswer] = useState<AnswerValue>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [completionRewards, setCompletionRewards] = useState<{
@@ -141,7 +156,7 @@ export default function OnboardingScreen() {
             })();
           },
         },
-      ]
+      ],
     );
   }, []);
 
@@ -158,7 +173,9 @@ export default function OnboardingScreen() {
     void safeImpactAsync(ImpactFeedbackStyle.Light);
 
     try {
-      const timeSpent = Math.round((Date.now() - questionStartRef.current) / 1000);
+      const timeSpent = Math.round(
+        (Date.now() - questionStartRef.current) / 1000,
+      );
       await saveQuestionnaireAnswer({
         question_id: q.id,
         answer: answer ?? "",
@@ -222,7 +239,9 @@ export default function OnboardingScreen() {
             <Text style={styles.skipLink}>Skip</Text>
           </Pressable>
         </View>
-        <OnboardingIntroPager onDone={() => void beginQuestionnaireAfterIntro()} />
+        <OnboardingIntroPager
+          onDone={() => void beginQuestionnaireAfterIntro()}
+        />
       </SafeAreaView>
     );
   }
@@ -251,7 +270,11 @@ export default function OnboardingScreen() {
         </Pressable>
       </View>
 
-      <ProgressBar value={progress / 100} height={4} style={styles.progressBar} />
+      <ProgressBar
+        value={progress / 100}
+        height={4}
+        style={styles.progressBar}
+      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -303,10 +326,15 @@ export default function OnboardingScreen() {
                 />
               )}
 
-              {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
+              {errorMsg ? (
+                <Text style={styles.errorText}>{errorMsg}</Text>
+              ) : null}
 
               <View style={styles.actions}>
-                <Button loading={submitting} onPress={() => void handleSubmit()}>
+                <Button
+                  loading={submitting}
+                  onPress={() => void handleSubmit()}
+                >
                   {isLast ? "Finish" : "Continue"}
                 </Button>
                 {!question.required ? (
@@ -350,7 +378,11 @@ function hasAnswer(v: AnswerValue): boolean {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  centered: { alignItems: "center", justifyContent: "center", padding: spacing.xxxl },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xxxl,
+  },
   centeredLoader: { paddingVertical: spacing.xxxxl, alignItems: "center" },
 
   header: {

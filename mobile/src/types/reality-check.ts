@@ -40,24 +40,34 @@ export function calcRealityCheck(form: RealityCheckForm): RealityCheckResult {
 
   const warnings: string[] = [];
   if (goal > 0 && months > 0 && surplusHigh < required) {
-    warnings.push('Your maximum surplus may not cover the required monthly saving.');
+    warnings.push(
+      "Your maximum surplus may not cover the required monthly saving.",
+    );
   } else if (goal > 0 && months > 0 && surplusLow < required) {
-    warnings.push('Your surplus may be tight — consider reducing expenses.');
+    warnings.push("Your surplus may be tight — consider reducing expenses.");
   }
   if (surplusLow < 0) {
-    warnings.push('Expenses may exceed income in a bad month.');
+    warnings.push("Expenses may exceed income in a bad month.");
   }
 
-  const best = remaining > 0 && surplusHigh > 0 ? Math.ceil(remaining / surplusHigh) : null;
-  const expected = remaining > 0 && avgSurplus > 0 ? Math.ceil(remaining / avgSurplus) : null;
-  const worst = remaining > 0 && surplusLow > 0 ? Math.ceil(remaining / surplusLow) : null;
+  const best =
+    remaining > 0 && surplusHigh > 0
+      ? Math.ceil(remaining / surplusHigh)
+      : null;
+  const expected =
+    remaining > 0 && avgSurplus > 0 ? Math.ceil(remaining / avgSurplus) : null;
+  const worst =
+    remaining > 0 && surplusLow > 0 ? Math.ceil(remaining / surplusLow) : null;
 
   // Build projection using avg surplus, capped at months or 60
   const projLen = months > 0 ? months : (expected ?? 24);
   const cappedLen = Math.min(projLen, 60);
   const projection: { month: number; saved: number }[] = [];
   for (let m = 0; m <= cappedLen; m++) {
-    projection.push({ month: m, saved: Math.min(current + avgSurplus * m, goal > 0 ? goal : Infinity) });
+    projection.push({
+      month: m,
+      saved: Math.min(current + avgSurplus * m, goal > 0 ? goal : Infinity),
+    });
   }
 
   return {
@@ -75,5 +85,9 @@ export function calcRealityCheck(form: RealityCheckForm): RealityCheckResult {
 }
 
 export function formatCurrency(n: number): string {
-  return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 }

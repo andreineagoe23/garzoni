@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+} from "react";
 import {
   FlatList,
   Modal,
@@ -66,11 +73,14 @@ function truncateText(s: string, max: number) {
   return `${t.slice(0, Math.max(0, max - 1))}…`;
 }
 
-function labelForExerciseType(type: string | undefined, t: TFunction<"common">) {
+function labelForExerciseType(
+  type: string | undefined,
+  t: TFunction<"common">,
+) {
   const key = type?.trim() ?? "";
   const map: Record<string, string> = {
     "multiple-choice": "exercises.filters.multipleChoice",
-    "numeric": "exercises.filters.numeric",
+    numeric: "exercises.filters.numeric",
     "drag-and-drop": "exercises.filters.dragDrop",
     "budget-allocation": "exercises.filters.budget",
     "fill-in-table": "exercises.filters.fillTable",
@@ -82,7 +92,7 @@ function labelForExerciseType(type: string | undefined, t: TFunction<"common">) 
 
 function labelForDifficulty(
   difficulty: string | undefined,
-  t: TFunction<"common">
+  t: TFunction<"common">,
 ): string | undefined {
   if (!difficulty) return undefined;
   const map: Record<string, string> = {
@@ -116,7 +126,9 @@ function ExercisesInner() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewDone, setReviewDone] = useState<Record<number, true>>({});
   const [feedbackLine, setFeedbackLine] = useState("");
-  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(null);
+  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(
+    null,
+  );
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     completed: 0,
@@ -160,7 +172,7 @@ function ExercisesInner() {
     queryKey: [...queryKeys.exercises(), initialCategory ?? "all"],
     queryFn: () =>
       fetchExercisesList(
-        initialCategory ? { category: initialCategory } : undefined
+        initialCategory ? { category: initialCategory } : undefined,
       ).then((r) => r.data as ExerciseListItem[]),
     staleTime: staleTimes.progressSummary,
   });
@@ -175,14 +187,19 @@ function ExercisesInner() {
   const reviewQuery = useQuery({
     queryKey: queryKeys.reviewQueue(),
     queryFn: () =>
-      fetchReviewQueue().then((r) => r.data as { due?: ReviewDueItem[]; count?: number }),
+      fetchReviewQueue().then(
+        (r) => r.data as { due?: ReviewDueItem[]; count?: number },
+      ),
     staleTime: staleTimes.progressSummary,
     enabled: hydrated && Boolean(accessToken),
   });
 
   const detailQuery = useQuery({
     queryKey: queryKeys.exerciseDetail(pickedId ?? 0),
-    queryFn: () => fetchExerciseById(pickedId!).then((r) => r.data as Record<string, unknown>),
+    queryFn: () =>
+      fetchExerciseById(pickedId!).then(
+        (r) => r.data as Record<string, unknown>,
+      ),
     enabled: pickedId != null,
   });
 
@@ -193,17 +210,20 @@ function ExercisesInner() {
     if (mode === "review") return reviewItems;
     if (!mergedCategory) return list;
     return list.filter(
-      (x) => (x.category || "").toLowerCase() === mergedCategory.toLowerCase()
+      (x) => (x.category || "").toLowerCase() === mergedCategory.toLowerCase(),
     );
   }, [list, mergedCategory, mode, reviewItems]);
 
   const isListPending =
-    (mode === "normal" && listQuery.isPending) || (mode === "review" && reviewLoading);
+    (mode === "normal" && listQuery.isPending) ||
+    (mode === "review" && reviewLoading);
   const isListError = mode === "normal" && listQuery.isError;
-  const isReviewEmpty = mode === "review" && !reviewItems.length && !reviewLoading;
+  const isReviewEmpty =
+    mode === "review" && !reviewItems.length && !reviewLoading;
   const isFilteredEmpty =
     mode === "normal" && list.length > 0 && filteredList.length === 0;
-  const listReady = !isListPending && !isListError && !isReviewEmpty && !isFilteredEmpty;
+  const listReady =
+    !isListPending && !isListError && !isReviewEmpty && !isFilteredEmpty;
 
   const pickRandom = useCallback(() => {
     const pool = filteredList;
@@ -218,18 +238,21 @@ function ExercisesInner() {
       const next = filteredList[idx + 1] ?? filteredList[0];
       if (next && next.id !== currentId) setPickedId(next.id);
     },
-    [filteredList]
+    [filteredList],
   );
 
   const streak = Number(
-    (profileQuery.data as { streak?: number } | undefined)?.streak ?? 0
+    (profileQuery.data as { streak?: number } | undefined)?.streak ?? 0,
   );
 
   const timerSeconds = useMemo(() => {
     const d = detailQuery.data as Record<string, unknown> | undefined;
     if (!d) return 0;
     const raw =
-      d.time_limit_seconds ?? d.time_limit ?? d.duration_seconds ?? d.timer_seconds;
+      d.time_limit_seconds ??
+      d.time_limit ??
+      d.duration_seconds ??
+      d.timer_seconds;
     const n = Number(raw);
     return Number.isFinite(n) && n > 0 ? Math.min(3600, Math.floor(n)) : 0;
   }, [detailQuery.data]);
@@ -240,7 +263,11 @@ function ExercisesInner() {
 
   const resetSessionTracking = useCallback(() => {
     uniqueCompletedRef.current = new Set();
-    setSessionStats({ completed: 0, correctFirstTry: 0, startTime: Date.now() });
+    setSessionStats({
+      completed: 0,
+      correctFirstTry: 0,
+      startTime: Date.now(),
+    });
     setSummaryVisible(false);
     summaryShownRef.current = false;
   }, []);
@@ -265,9 +292,9 @@ function ExercisesInner() {
       const details = await Promise.all(
         due.map((item) =>
           fetchExerciseById(item.exercise_id).then(
-            (r) => r.data as Record<string, unknown>
-          )
-        )
+            (r) => r.data as Record<string, unknown>,
+          ),
+        ),
       );
       const items: ExerciseListItem[] = details.map((d) => ({
         id: Number(d.id),
@@ -355,11 +382,13 @@ function ExercisesInner() {
 
   const accuracyPct =
     sessionStats.completed > 0
-      ? Math.round((sessionStats.correctFirstTry / sessionStats.completed) * 100)
+      ? Math.round(
+          (sessionStats.correctFirstTry / sessionStats.completed) * 100,
+        )
       : 0;
   const elapsedSec = Math.max(
     0,
-    Math.round((Date.now() - sessionStats.startTime) / 1000)
+    Math.round((Date.now() - sessionStats.startTime) / 1000),
   );
 
   const renderExerciseItem = useCallback(
@@ -395,36 +424,51 @@ function ExercisesInner() {
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
             >
-              <MaterialCommunityIcons name={iconName} size={22} color={c.primary} />
+              <MaterialCommunityIcons
+                name={iconName}
+                size={22}
+                color={c.primary}
+              />
             </View>
             <View style={styles.rowMain}>
               <Text
-                style={{ color: c.text, fontWeight: "800", fontSize: typography.md }}
+                style={{
+                  color: c.text,
+                  fontWeight: "800",
+                  fontSize: typography.md,
+                }}
                 numberOfLines={2}
               >
                 {typeLabel}
               </Text>
               <View style={styles.metaRow}>
                 <View style={[styles.tag, { backgroundColor: c.surface }]}>
-                  <Text style={{ color: c.textMuted, fontSize: typography.xs }} numberOfLines={1}>
+                  <Text
+                    style={{ color: c.textMuted, fontSize: typography.xs }}
+                    numberOfLines={1}
+                  >
                     {ex.category ?? "—"}
                   </Text>
                 </View>
                 {diffLabel ? (
                   <View style={[styles.tag, { backgroundColor: c.surface }]}>
-                    <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
+                    <Text
+                      style={{ color: c.textMuted, fontSize: typography.xs }}
+                    >
                       {diffLabel}
                     </Text>
                   </View>
                 ) : null}
-                <Text style={{ color: c.textMuted, fontSize: typography.xs }}>#{ex.id}</Text>
+                <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
+                  #{ex.id}
+                </Text>
               </View>
             </View>
           </Pressable>
         </SwipeableExerciseCard>
       );
     },
-    [c, pickedId, skipToNext, t]
+    [c, pickedId, skipToNext, t],
   );
 
   const listEmptyCopy = useMemo(() => {
@@ -445,7 +489,12 @@ function ExercisesInner() {
                   {t("exercises.practiceHub.title")}
                 </Text>
                 {mode === "review" ? (
-                  <View style={[styles.modeBadge, { backgroundColor: c.accentMuted }]}>
+                  <View
+                    style={[
+                      styles.modeBadge,
+                      { backgroundColor: c.accentMuted },
+                    ]}
+                  >
                     <Text style={[styles.modeBadgeText, { color: c.accent }]}>
                       {t("exercises.practiceHub.reviewMode")}
                     </Text>
@@ -458,15 +507,27 @@ function ExercisesInner() {
               <StreakBanner streakCount={streak} style={{ marginBottom: 0 }} />
             </View>
             <View style={styles.heroMascot}>
-              <MascotWithMessage mood="encourage" rotationKey={2} embedded mascotSize={52} />
+              <MascotWithMessage
+                mood="encourage"
+                rotationKey={2}
+                embedded
+                mascotSize={52}
+              />
             </View>
           </View>
         </GlassCard>
 
         {mergedCategory && mode === "normal" ? (
-          <View style={[styles.practicingPill, { backgroundColor: c.accentMuted }]}>
-            <Text style={[styles.practicingPillText, { color: c.text }]} numberOfLines={1}>
-              {t("exercises.practiceHub.practicing", { category: mergedCategory })}
+          <View
+            style={[styles.practicingPill, { backgroundColor: c.accentMuted }]}
+          >
+            <Text
+              style={[styles.practicingPillText, { color: c.text }]}
+              numberOfLines={1}
+            >
+              {t("exercises.practiceHub.practicing", {
+                category: mergedCategory,
+              })}
             </Text>
           </View>
         ) : null}
@@ -476,7 +537,9 @@ function ExercisesInner() {
             {reviewCount > 0 ? (
               <>
                 <Text style={[styles.reviewLine, { color: c.text }]}>
-                  {t("exercises.practiceHub.reviewsDue", { count: reviewCount })}
+                  {t("exercises.practiceHub.reviewsDue", {
+                    count: reviewCount,
+                  })}
                 </Text>
                 {reviewDue[0] ? (
                   <Text
@@ -506,7 +569,11 @@ function ExercisesInner() {
         ) : null}
 
         {mode === "review" ? (
-          <Button variant="secondary" onPress={exitReviewMode} style={{ marginBottom: spacing.md }}>
+          <Button
+            variant="secondary"
+            onPress={exitReviewMode}
+            style={{ marginBottom: spacing.md }}
+          >
             {t("exercises.practiceHub.backToNormal")}
           </Button>
         ) : null}
@@ -594,16 +661,28 @@ function ExercisesInner() {
 
         {reviewCaughtUp ? (
           <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
-            <Text style={{ color: c.text, fontSize: typography.sm, lineHeight: 20 }}>
+            <Text
+              style={{ color: c.text, fontSize: typography.sm, lineHeight: 20 }}
+            >
               {t("exercises.practiceHub.reviewUpToDate")}
             </Text>
-            <Button onPress={exitReviewMode} style={{ marginTop: spacing.sm }} variant="secondary">
+            <Button
+              onPress={exitReviewMode}
+              style={{ marginTop: spacing.sm }}
+              variant="secondary"
+            >
               {t("exercises.practiceHub.backToNormal")}
             </Button>
           </GlassCard>
         ) : null}
 
-        {isListPending ? <Skeleton width="100%" height={120} style={{ marginBottom: spacing.md }} /> : null}
+        {isListPending ? (
+          <Skeleton
+            width="100%"
+            height={120}
+            style={{ marginBottom: spacing.md }}
+          />
+        ) : null}
         {isListError ? (
           <ErrorState
             message={t("exercises.errors.loadFailed")}
@@ -647,26 +726,40 @@ function ExercisesInner() {
       startReviewMode,
       streak,
       t,
-    ]
+    ],
   );
 
   const listFooter = useMemo(
     () => (
       <>
         {pickedId != null && detailQuery.isPending ? (
-          <Skeleton width="100%" height={200} style={{ marginTop: spacing.lg }} />
+          <Skeleton
+            width="100%"
+            height={200}
+            style={{ marginTop: spacing.lg }}
+          />
         ) : null}
         {pickedId != null && detailQuery.data ? (
           <GlassCard padding="md" style={{ marginTop: spacing.xl }}>
             <View style={styles.activeHeader}>
-              <Text style={{ color: c.textMuted, fontSize: typography.sm, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: c.textMuted,
+                  fontSize: typography.sm,
+                  fontWeight: "600",
+                }}
+              >
                 {t("exercises.practiceHub.progressLabel", {
                   current: pickedIndex >= 0 ? pickedIndex + 1 : 0,
                   total: filteredList.length || 0,
                 })}
               </Text>
               {timerSeconds > 0 ? (
-                <ExerciseTimer key={pickedId ?? 0} totalSeconds={timerSeconds} active />
+                <ExerciseTimer
+                  key={pickedId ?? 0}
+                  totalSeconds={timerSeconds}
+                  active
+                />
               ) : null}
             </View>
             <View style={[styles.progressTrack, { backgroundColor: c.border }]}>
@@ -683,7 +776,8 @@ function ExercisesInner() {
             <ExerciseSection
               exerciseType={String(detailQuery.data.type ?? "")}
               exerciseData={
-                (detailQuery.data.exercise_data as Record<string, unknown>) ?? {}
+                (detailQuery.data.exercise_data as Record<string, unknown>) ??
+                {}
               }
               exerciseId={detailQuery.data.id as number}
               onAttempt={({ correct }) => {
@@ -691,7 +785,9 @@ function ExercisesInner() {
                   hadIncorrectRef.current = true;
                   setFeedbackLine(t("exercises.practiceHub.feedbackTryAgain"));
                   setFeedbackTone("error");
-                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                  void Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Error,
+                  );
                 }
               }}
               onComplete={handleExerciseComplete}
@@ -730,7 +826,7 @@ function ExercisesInner() {
       progressFraction,
       t,
       timerSeconds,
-    ]
+    ],
   );
 
   return (
@@ -743,13 +839,18 @@ function ExercisesInner() {
         ListFooterComponent={listFooter}
         ListEmptyComponent={
           listEmptyCopy ? (
-            <Text style={{ color: c.textMuted, paddingVertical: spacing.md }}>{listEmptyCopy}</Text>
+            <Text style={{ color: c.textMuted, paddingVertical: spacing.md }}>
+              {listEmptyCopy}
+            </Text>
           ) : null
         }
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         contentContainerStyle={[
           styles.container,
-          { backgroundColor: c.bg, paddingBottom: TAB_BAR_CONTENT_PAD + spacing.xl },
+          {
+            backgroundColor: c.bg,
+            paddingBottom: TAB_BAR_CONTENT_PAD + spacing.xl,
+          },
         ]}
         style={{ flex: 1, backgroundColor: c.bg }}
         showsVerticalScrollIndicator
@@ -759,7 +860,9 @@ function ExercisesInner() {
         refreshControl={
           <RefreshControl
             refreshing={
-              listQuery.isFetching || profileQuery.isFetching || reviewQuery.isFetching
+              listQuery.isFetching ||
+              profileQuery.isFetching ||
+              reviewQuery.isFetching
             }
             onRefresh={onRefresh}
             tintColor={c.primary}
@@ -778,14 +881,22 @@ function ExercisesInner() {
             style={[StyleSheet.absoluteFill, { backgroundColor: c.overlay }]}
             onPress={dismissSummary}
             accessibilityRole="button"
-            accessibilityLabel={t("exercises.practiceHub.sessionSummaryDismiss")}
+            accessibilityLabel={t(
+              "exercises.practiceHub.sessionSummaryDismiss",
+            )}
           />
           <View style={styles.modalSheet}>
             <GlassCard padding="lg">
               <Text style={[styles.summaryTitle, { color: c.text }]}>
                 {t("exercises.practiceHub.sessionSummaryTitle")}
               </Text>
-              <Text style={{ color: c.textMuted, marginTop: spacing.xs, lineHeight: 20 }}>
+              <Text
+                style={{
+                  color: c.textMuted,
+                  marginTop: spacing.xs,
+                  lineHeight: 20,
+                }}
+              >
                 {t("exercises.practiceHub.sessionSummaryBody", {
                   completed: sessionStats.completed,
                   accuracy: accuracyPct,
@@ -847,11 +958,29 @@ const styles = StyleSheet.create({
   heroRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md },
   heroLeft: { flex: 1, minWidth: 0 },
   heroMascot: { maxWidth: 140 },
-  heroTitleRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  heroTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
   title: { fontSize: typography.xl, fontWeight: "800" },
-  sub: { fontSize: typography.sm, marginTop: spacing.xs, marginBottom: spacing.sm, lineHeight: 20 },
-  modeBadge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
-  modeBadgeText: { fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
+  sub: {
+    fontSize: typography.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    lineHeight: 20,
+  },
+  modeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+  },
+  modeBadgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
   practicingPill: {
     alignSelf: "flex-start",
     paddingHorizontal: spacing.md,
@@ -862,7 +991,11 @@ const styles = StyleSheet.create({
   practicingPillText: { fontSize: typography.sm, fontWeight: "700" },
   reviewLine: { fontSize: typography.sm, fontWeight: "700" },
   reviewNext: { fontSize: typography.sm, marginTop: spacing.xs },
-  section: { fontSize: typography.sm, fontWeight: "700", marginBottom: spacing.sm },
+  section: {
+    fontSize: typography.sm,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+  },
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -892,7 +1025,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rowMain: { flex: 1, minWidth: 0, gap: spacing.xs },
-  metaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm },
+  metaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   tag: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
@@ -913,7 +1051,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   progressFill: { height: "100%", borderRadius: 2 },
-  feedbackLine: { marginTop: spacing.md, fontSize: typography.sm, fontWeight: "600" },
+  feedbackLine: {
+    marginTop: spacing.md,
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
   summaryTitle: { fontSize: typography.md, fontWeight: "800" },
   summaryActions: {
     marginTop: spacing.md,

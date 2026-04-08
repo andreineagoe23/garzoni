@@ -1,10 +1,5 @@
 import React, { type ReactNode } from "react";
-import {
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../../theme/ThemeContext";
 import { radius, shadows, spacing } from "../../theme/tokens";

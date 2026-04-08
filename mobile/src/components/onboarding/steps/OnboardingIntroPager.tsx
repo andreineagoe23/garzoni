@@ -59,14 +59,20 @@ type Props = {
   slides?: IntroSlide[];
 };
 
-export default function OnboardingIntroPager({ onDone, slides = DEFAULT_SLIDES }: Props) {
+export default function OnboardingIntroPager({
+  onDone,
+  slides = DEFAULT_SLIDES,
+}: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    const sub = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      setReduceMotion,
+    );
     return () => sub.remove();
   }, []);
 
@@ -79,7 +85,7 @@ export default function OnboardingIntroPager({ onDone, slides = DEFAULT_SLIDES }
         setPage(next);
       }
     },
-    [page, slides.length]
+    [page, slides.length],
   );
 
   const goNext = useCallback(() => {

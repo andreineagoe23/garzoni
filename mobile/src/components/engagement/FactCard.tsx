@@ -1,4 +1,10 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { FinanceFact } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -25,7 +31,9 @@ export default function FactCard({
       {fact ? (
         <>
           {fact.category ? (
-            <Text style={[styles.category, { color: c.accent }]}>{fact.category}</Text>
+            <Text style={[styles.category, { color: c.accent }]}>
+              {fact.category}
+            </Text>
           ) : null}
           <Text style={[styles.fact, { color: c.text }]}>{fact.text}</Text>
           <Pressable
@@ -35,13 +43,20 @@ export default function FactCard({
               { opacity: pressed ? 0.85 : 1, backgroundColor: "#10b981" },
             ]}
           >
-            <Text style={styles.markBtnText}>{t("missions.facts.markRead")}</Text>
+            <Text style={styles.markBtnText}>
+              {t("missions.facts.markRead")}
+            </Text>
           </Pressable>
         </>
       ) : loading ? (
         <View style={styles.loadingRow}>
           <ActivityIndicator color={c.primary} />
-          <Text style={[styles.empty, { color: c.textMuted, marginLeft: spacing.sm }]}>
+          <Text
+            style={[
+              styles.empty,
+              { color: c.textMuted, marginLeft: spacing.sm },
+            ]}
+          >
             {t("missions.facts.loading")}
           </Text>
         </View>

@@ -46,9 +46,11 @@ After saving, new users get them automatically; existing users need to be backfi
 ### Loading from fixture and backfilling (Docker)
 
 - **Load mission pool** from `gamification/fixtures/mission_pool.json`:
+
   ```bash
   make load-mission-pool
   ```
+
   Or: `python manage.py load_mission_pool [path/to/file.json]`
 
 - **Backfill** so every existing user has a `MissionCompletion` for every mission (they will then see the full pool, with 4 random daily/weekly shown):

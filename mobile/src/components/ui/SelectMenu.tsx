@@ -23,7 +23,13 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-export default function SelectMenu({ label, value, options, onChange, style }: Props) {
+export default function SelectMenu({
+  label,
+  value,
+  options,
+  onChange,
+  style,
+}: Props) {
   const [open, setOpen] = useState(false);
   const c = useThemeColors();
   const currentLabel = options.find((o) => o.value === value)?.label ?? value;
@@ -47,7 +53,11 @@ export default function SelectMenu({ label, value, options, onChange, style }: P
         <Text style={[styles.triggerText, { color: c.text }]} numberOfLines={1}>
           {currentLabel}
         </Text>
-        <MaterialCommunityIcons name="chevron-down" size={22} color={c.textMuted} />
+        <MaterialCommunityIcons
+          name="chevron-down"
+          size={22}
+          color={c.textMuted}
+        />
       </Pressable>
 
       <Modal
@@ -100,7 +110,11 @@ export default function SelectMenu({ label, value, options, onChange, style }: P
                       {opt.label}
                     </Text>
                     {selected ? (
-                      <MaterialCommunityIcons name="check" size={22} color={c.primary} />
+                      <MaterialCommunityIcons
+                        name="check"
+                        size={22}
+                        color={c.primary}
+                      />
                     ) : (
                       <View style={{ width: 22 }} />
                     )}

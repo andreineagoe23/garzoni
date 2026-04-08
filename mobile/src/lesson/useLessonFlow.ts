@@ -68,7 +68,7 @@ export function useLessonFlow(courseId: number) {
     enabled: flowEnabled,
     queryFn: () =>
       fetchLessonsWithProgress(courseId).then((r) =>
-        unwrapApiList<FlowLesson>(r.data)
+        unwrapApiList<FlowLesson>(r.data),
       ),
     staleTime: staleTimes.content,
   });
@@ -78,7 +78,7 @@ export function useLessonFlow(courseId: number) {
     enabled: flowEnabled,
     queryFn: () =>
       fetchCourseFlowState(courseId).then(
-        (r) => (r.data as { current_index?: number })?.current_index ?? 0
+        (r) => (r.data as { current_index?: number })?.current_index ?? 0,
       ),
     staleTime: staleTimes.content,
   });
@@ -120,8 +120,7 @@ export function useLessonFlow(courseId: number) {
           lessonIndex: li,
           lessonTitle: lesson.title,
           isCompleted:
-            Boolean(lesson.is_completed) ||
-            completedIds.has(`l-${lesson.id}`),
+            Boolean(lesson.is_completed) || completedIds.has(`l-${lesson.id}`),
           detailedContent: lesson.detailed_content,
         });
       }
@@ -155,7 +154,9 @@ export function useLessonFlow(courseId: number) {
         queryKey: queryKeys.progressSummary(),
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.recentActivity(),
+      });
     },
   });
 
@@ -166,7 +167,9 @@ export function useLessonFlow(courseId: number) {
         queryKey: queryKeys.progressSummary(),
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.recentActivity(),
+      });
     },
   });
 
@@ -180,7 +183,7 @@ export function useLessonFlow(courseId: number) {
       } else {
         await completeLessonMutation.mutateAsync(currentItem.lessonId);
         setCompletedIds((prev) =>
-          new Set(prev).add(`l-${currentItem.lessonId}`)
+          new Set(prev).add(`l-${currentItem.lessonId}`),
         );
       }
     } catch {

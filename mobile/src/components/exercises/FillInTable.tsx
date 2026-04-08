@@ -70,16 +70,21 @@ export default function FillInTable({
   const question = data?.question as string | undefined;
   const columns = (data?.columns ?? []) as string[];
   const rows = (data?.rows ?? []) as { id: string; label?: string }[];
-  const correctAnswer = data?.correctAnswer as Record<string, string[]> | undefined;
+  const correctAnswer = data?.correctAnswer as
+    | Record<string, string[]>
+    | undefined;
 
   const emptyAnswers = useMemo(
     () => Object.fromEntries(rows.map((r) => [r.id, columns.map(() => "")])),
-    [rows, columns]
+    [rows, columns],
   );
 
-  const [answers, setAnswers] = useState<Record<string, string[]>>(emptyAnswers);
+  const [answers, setAnswers] =
+    useState<Record<string, string[]>>(emptyAnswers);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
 
   const handleSubmit = async () => {
@@ -94,8 +99,8 @@ export default function FillInTable({
               .toLowerCase() ===
             String(answers[rowId]?.[ci] ?? "")
               .trim()
-              .toLowerCase()
-        )
+              .toLowerCase(),
+        ),
       );
 
     onAttempt?.({ correct: Boolean(isCorrect) });

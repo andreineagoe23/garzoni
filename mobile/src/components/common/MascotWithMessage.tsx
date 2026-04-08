@@ -43,7 +43,10 @@ export default function MascotWithMessage({
   }
 
   return (
-    <GlassCard padding="md" style={{ backgroundColor: c.accentMuted, borderColor: c.accent }}>
+    <GlassCard
+      padding="md"
+      style={{ backgroundColor: c.accentMuted, borderColor: c.accent }}
+    >
       {inner}
     </GlassCard>
   );

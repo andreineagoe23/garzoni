@@ -27,7 +27,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function resolveMode(
   mode: ThemeMode,
-  system: "light" | "dark" | null | undefined
+  system: "light" | "dark" | null | undefined,
 ): "light" | "dark" {
   if (mode === "system") {
     return system === "dark" ? "dark" : "light";
@@ -82,7 +82,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setMode,
       toggleDark,
     }),
-    [mode, resolved, colors, setMode, toggleDark]
+    [mode, resolved, colors, setMode, toggleDark],
   );
 
   if (!hydrated) {
@@ -101,7 +101,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useTheme(): ThemeContextValue {

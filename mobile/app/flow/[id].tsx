@@ -24,7 +24,7 @@ export default function CourseFlowRoute() {
 
   const safeAreaStyle = useMemo(
     () => [styles.safeArea, { backgroundColor: c.bg }],
-    [c.bg]
+    [c.bg],
   );
 
   if (!Number.isFinite(courseId) || courseId <= 0) {
@@ -41,7 +41,11 @@ export default function CourseFlowRoute() {
       <SafeAreaView style={safeAreaStyle}>
         <Stack.Screen options={{ headerShown: false }} />
         <Skeleton width="70%" height={24} style={{ margin: spacing.xl }} />
-        <Skeleton width="100%" height={200} style={{ marginHorizontal: spacing.xl }} />
+        <Skeleton
+          width="100%"
+          height={200}
+          style={{ marginHorizontal: spacing.xl }}
+        />
       </SafeAreaView>
     );
   }
@@ -59,7 +63,8 @@ export default function CourseFlowRoute() {
   }
 
   const title =
-    (courseQuery.data as { title?: string } | undefined)?.title ?? `Course ${id}`;
+    (courseQuery.data as { title?: string } | undefined)?.title ??
+    `Course ${id}`;
 
   return (
     <LessonFlowScreen

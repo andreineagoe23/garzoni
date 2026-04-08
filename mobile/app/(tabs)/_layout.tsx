@@ -11,7 +11,10 @@ import { HeaderChatButton } from "../../src/components/navigation/HeaderChatButt
 
 const TAB_ICON: Record<
   string,
-  { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }
+  {
+    active: keyof typeof Ionicons.glyphMap;
+    inactive: keyof typeof Ionicons.glyphMap;
+  }
 > = {
   index: { active: navIcons.homeFilled, inactive: navIcons.home },
   learn: { active: navIcons.learnFilled, inactive: navIcons.learn },
@@ -57,7 +60,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused, color, size }) => {
             if (route.name === "account-menu") {
               return (
-                <View style={{ alignItems: "center", justifyContent: "center" }}>
+                <View
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                >
                   <Ionicons
                     name={
                       (focused

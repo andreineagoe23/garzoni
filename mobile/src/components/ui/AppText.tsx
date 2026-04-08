@@ -38,10 +38,7 @@ export default function AppText({
   const color = accent ? c.accent : muted ? c.textMuted : c.text;
 
   return (
-    <Text
-      style={[styles.font, base, { color }, style]}
-      {...rest}
-    >
+    <Text style={[styles.font, base, { color }, style]} {...rest}>
       {children}
     </Text>
   );

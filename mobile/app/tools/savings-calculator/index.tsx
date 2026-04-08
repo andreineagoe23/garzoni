@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -6,55 +6,60 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { Stack } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { useThemeColors } from '../../../src/theme/ThemeContext';
-import { spacing, typography, radius, shadows } from '../../../src/theme/tokens';
-import { calcSavings } from '../../../src/types/savings-calculator';
-import type { SavingsForm } from '../../../src/types/savings-calculator';
-import { ResultSummary } from '../../../src/components/tools/savings-calculator/ResultSummary';
-import { GrowthChart } from '../../../src/components/tools/savings-calculator/GrowthChart';
+} from "react-native";
+import { Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { useThemeColors } from "../../../src/theme/ThemeContext";
+import {
+  spacing,
+  typography,
+  radius,
+  shadows,
+} from "../../../src/theme/tokens";
+import { calcSavings } from "../../../src/types/savings-calculator";
+import type { SavingsForm } from "../../../src/types/savings-calculator";
+import { ResultSummary } from "../../../src/components/tools/savings-calculator/ResultSummary";
+import { GrowthChart } from "../../../src/components/tools/savings-calculator/GrowthChart";
 
 const PRESETS: { label: string; values: SavingsForm }[] = [
   {
-    label: 'Starter',
+    label: "Starter",
     values: {
-      savingsGoal: '10000',
-      initialAmount: '1000',
-      monthlyContribution: '300',
-      annualRate: '5',
-      years: '2',
+      savingsGoal: "10000",
+      initialAmount: "1000",
+      monthlyContribution: "300",
+      annualRate: "5",
+      years: "2",
     },
   },
   {
-    label: 'Long-term',
+    label: "Long-term",
     values: {
-      savingsGoal: '50000',
-      initialAmount: '5000',
-      monthlyContribution: '500',
-      annualRate: '6',
-      years: '10',
+      savingsGoal: "50000",
+      initialAmount: "5000",
+      monthlyContribution: "500",
+      annualRate: "6",
+      years: "10",
     },
   },
   {
-    label: 'Retirement',
+    label: "Retirement",
     values: {
-      savingsGoal: '500000',
-      initialAmount: '10000',
-      monthlyContribution: '1000',
-      annualRate: '7',
-      years: '30',
+      savingsGoal: "500000",
+      initialAmount: "10000",
+      monthlyContribution: "1000",
+      annualRate: "7",
+      years: "30",
     },
   },
 ];
 
 const EMPTY: SavingsForm = {
-  savingsGoal: '',
-  initialAmount: '',
-  monthlyContribution: '',
-  annualRate: '',
-  years: '',
+  savingsGoal: "",
+  initialAmount: "",
+  monthlyContribution: "",
+  annualRate: "",
+  years: "",
 };
 
 export default function SavingsCalculatorScreen() {
@@ -78,7 +83,7 @@ export default function SavingsCalculatorScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Savings Calculator' }} />
+      <Stack.Screen options={{ title: "Savings Calculator" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={styles.content}
@@ -86,7 +91,9 @@ export default function SavingsCalculatorScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.headerSection}>
-          <Text style={[styles.heroTitle, { color: c.text }]}>Savings Calculator</Text>
+          <Text style={[styles.heroTitle, { color: c.text }]}>
+            Savings Calculator
+          </Text>
           <Text style={[styles.heroSubtitle, { color: c.textMuted }]}>
             Project your savings growth with compound interest
           </Text>
@@ -102,9 +109,13 @@ export default function SavingsCalculatorScreen() {
                 styles.presetChip,
                 {
                   backgroundColor:
-                    form.savingsGoal === p.values.savingsGoal ? c.primary : c.surfaceOffset,
+                    form.savingsGoal === p.values.savingsGoal
+                      ? c.primary
+                      : c.surfaceOffset,
                   borderColor:
-                    form.savingsGoal === p.values.savingsGoal ? c.primary : c.border,
+                    form.savingsGoal === p.values.savingsGoal
+                      ? c.primary
+                      : c.border,
                   opacity: pressed ? 0.8 : 1,
                 },
               ]}
@@ -113,7 +124,10 @@ export default function SavingsCalculatorScreen() {
                 style={[
                   styles.presetLabel,
                   {
-                    color: form.savingsGoal === p.values.savingsGoal ? c.textOnPrimary : c.textMuted,
+                    color:
+                      form.savingsGoal === p.values.savingsGoal
+                        ? c.textOnPrimary
+                        : c.textMuted,
                   },
                 ]}
               >
@@ -124,28 +138,79 @@ export default function SavingsCalculatorScreen() {
         </View>
 
         {/* Inputs */}
-        <View style={[styles.inputCard, { backgroundColor: c.surface, borderColor: c.border }, shadows.sm]}>
-          <Field label="Savings Goal ($)" value={form.savingsGoal} onChange={(v) => setField('savingsGoal', v)} placeholder="e.g. 10000" colors={c} />
-          <Field label="Initial Amount ($)" value={form.initialAmount} onChange={(v) => setField('initialAmount', v)} placeholder="e.g. 1000" colors={c} />
-          <Field label="Monthly Contribution ($)" value={form.monthlyContribution} onChange={(v) => setField('monthlyContribution', v)} placeholder="e.g. 300" colors={c} />
-          <Field label="Annual Interest Rate (%)" value={form.annualRate} onChange={(v) => setField('annualRate', v)} placeholder="e.g. 5" colors={c} />
-          <Field label="Years to Grow" value={form.years} onChange={(v) => setField('years', v)} placeholder="e.g. 5" colors={c} last />
+        <View
+          style={[
+            styles.inputCard,
+            { backgroundColor: c.surface, borderColor: c.border },
+            shadows.sm,
+          ]}
+        >
+          <Field
+            label="Savings Goal ($)"
+            value={form.savingsGoal}
+            onChange={(v) => setField("savingsGoal", v)}
+            placeholder="e.g. 10000"
+            colors={c}
+          />
+          <Field
+            label="Initial Amount ($)"
+            value={form.initialAmount}
+            onChange={(v) => setField("initialAmount", v)}
+            placeholder="e.g. 1000"
+            colors={c}
+          />
+          <Field
+            label="Monthly Contribution ($)"
+            value={form.monthlyContribution}
+            onChange={(v) => setField("monthlyContribution", v)}
+            placeholder="e.g. 300"
+            colors={c}
+          />
+          <Field
+            label="Annual Interest Rate (%)"
+            value={form.annualRate}
+            onChange={(v) => setField("annualRate", v)}
+            placeholder="e.g. 5"
+            colors={c}
+          />
+          <Field
+            label="Years to Grow"
+            value={form.years}
+            onChange={(v) => setField("years", v)}
+            placeholder="e.g. 5"
+            colors={c}
+            last
+          />
         </View>
 
         {/* Results */}
         {result && (
           <>
-            <ResultSummary result={result} goalAmount={Number(form.savingsGoal || 0)} />
-            <GrowthChart data={result.chartData} goalAmount={Number(form.savingsGoal || 0)} />
+            <ResultSummary
+              result={result}
+              goalAmount={Number(form.savingsGoal || 0)}
+            />
+            <GrowthChart
+              data={result.chartData}
+              goalAmount={Number(form.savingsGoal || 0)}
+            />
           </>
         )}
 
         {!result && (
-          <View style={[styles.emptyCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+          <View
+            style={[
+              styles.emptyCard,
+              { backgroundColor: c.surface, borderColor: c.border },
+            ]}
+          >
             <Text style={styles.emptyIcon}>💰</Text>
-            <Text style={[styles.emptyTitle, { color: c.text }]}>Results appear here</Text>
+            <Text style={[styles.emptyTitle, { color: c.text }]}>
+              Results appear here
+            </Text>
             <Text style={[styles.emptyBody, { color: c.textMuted }]}>
-              Fill in your numbers above or tap a preset to see your projection instantly.
+              Fill in your numbers above or tap a preset to see your projection
+              instantly.
             </Text>
           </View>
         )}
@@ -170,8 +235,15 @@ function Field({
   last?: boolean;
 }) {
   return (
-    <View style={[fieldStyles.wrapper, !last && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
-      <Text style={[fieldStyles.label, { color: colors.textMuted }]}>{label}</Text>
+    <View
+      style={[
+        fieldStyles.wrapper,
+        !last && { borderBottomWidth: 1, borderBottomColor: colors.border },
+      ]}
+    >
+      <Text style={[fieldStyles.label, { color: colors.textMuted }]}>
+        {label}
+      </Text>
       <TextInput
         style={[fieldStyles.input, { color: colors.text }]}
         placeholder={placeholder}
@@ -187,9 +259,9 @@ function Field({
 
 const fieldStyles = StyleSheet.create({
   wrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: spacing.md,
     gap: spacing.md,
   },
@@ -199,26 +271,34 @@ const fieldStyles = StyleSheet.create({
   },
   input: {
     fontSize: typography.base,
-    fontWeight: '600',
-    textAlign: 'right',
+    fontWeight: "600",
+    textAlign: "right",
     minWidth: 100,
   },
 });
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxxl },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+    paddingBottom: spacing.xxxxl,
+  },
   headerSection: { gap: spacing.xs },
-  heroTitle: { fontSize: typography.xxl, fontWeight: '800', letterSpacing: -0.5 },
+  heroTitle: {
+    fontSize: typography.xxl,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
   heroSubtitle: { fontSize: typography.sm, lineHeight: 20 },
-  presetRow: { flexDirection: 'row', gap: spacing.sm },
+  presetRow: { flexDirection: "row", gap: spacing.sm },
   presetChip: {
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
   },
-  presetLabel: { fontSize: typography.xs, fontWeight: '700' },
+  presetLabel: { fontSize: typography.xs, fontWeight: "700" },
   inputCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -228,10 +308,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     padding: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
     gap: spacing.md,
   },
   emptyIcon: { fontSize: 40 },
-  emptyTitle: { fontSize: typography.lg, fontWeight: '700' },
-  emptyBody: { fontSize: typography.sm, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: typography.lg, fontWeight: "700" },
+  emptyBody: { fontSize: typography.sm, textAlign: "center", lineHeight: 20 },
 });

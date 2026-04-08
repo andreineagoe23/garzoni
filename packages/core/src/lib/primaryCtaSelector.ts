@@ -20,7 +20,7 @@ export const selectPrimaryCTA = ({
 
   if (activeMissions.length > 0) {
     const lessonMission = activeMissions.find(
-      (mission) => mission.goal_type === "complete_lesson"
+      (mission) => mission.goal_type === "complete_lesson",
     );
     if (lessonMission) {
       return {

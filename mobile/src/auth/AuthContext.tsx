@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       applyTokens,
       clearSession,
     }),
-    [hydrated, accessToken, applyTokens, clearSession]
+    [hydrated, accessToken, applyTokens, clearSession],
   );
 
   return (

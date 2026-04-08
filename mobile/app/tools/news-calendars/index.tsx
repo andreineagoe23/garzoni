@@ -25,7 +25,7 @@ export default function NewsCalendarsScreen() {
   const uri = useMemo(
     () =>
       `${INVESTING_CALENDAR_BASE}?theme=${resolved === "dark" ? "dark" : "light"}&calendarType=week&size=8&width=100%25&height=600`,
-    [resolved]
+    [resolved],
   );
 
   return (

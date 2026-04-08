@@ -27,7 +27,7 @@ const FormInput = forwardRef<RNTextInput, FormInputProps>(
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     );
-  }
+  },
 );
 
 FormInput.displayName = "FormInput";

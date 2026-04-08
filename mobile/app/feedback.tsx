@@ -97,8 +97,7 @@ export default function FeedbackScreen() {
                 style={[
                   styles.pill,
                   {
-                    borderColor:
-                      feedbackType === ft.key ? c.primary : c.border,
+                    borderColor: feedbackType === ft.key ? c.primary : c.border,
                     backgroundColor:
                       feedbackType === ft.key
                         ? `${c.primary}18`
@@ -132,7 +131,11 @@ export default function FeedbackScreen() {
             maxLength={2000}
             style={[
               styles.textarea,
-              { color: c.text, borderColor: c.border, backgroundColor: c.surface },
+              {
+                color: c.text,
+                borderColor: c.border,
+                backgroundColor: c.surface,
+              },
             ]}
           />
           <Text style={[styles.charCount, { color: c.textFaint }]}>
@@ -156,7 +159,11 @@ export default function FeedbackScreen() {
             autoCorrect={false}
             style={[
               styles.input,
-              { color: c.text, borderColor: c.border, backgroundColor: c.surface },
+              {
+                color: c.text,
+                borderColor: c.border,
+                backgroundColor: c.surface,
+              },
             ]}
           />
 

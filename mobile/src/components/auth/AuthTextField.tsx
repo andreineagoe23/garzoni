@@ -32,16 +32,12 @@ const AuthTextField = forwardRef<TextInput, Props>(
             setFocused(false);
             onBlur?.(e);
           }}
-          style={[
-            styles.input,
-            focused && styles.inputFocused,
-            style,
-          ]}
+          style={[styles.input, focused && styles.inputFocused, style]}
           {...rest}
         />
       </View>
     );
-  }
+  },
 );
 
 AuthTextField.displayName = "AuthTextField";

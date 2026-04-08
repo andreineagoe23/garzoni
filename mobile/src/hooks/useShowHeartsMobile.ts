@@ -12,7 +12,7 @@ export function useShowHeartsMobile() {
       void AsyncStorage.getItem(SHOW_HEARTS_KEY).then((v) => {
         setShow(v !== "0");
       });
-    }, [])
+    }, []),
   );
 
   return show;

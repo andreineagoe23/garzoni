@@ -11,7 +11,17 @@ export default function WeakSkillsCard() {
   const c = useThemeColors();
   const q = useQuery({
     queryKey: queryKeys.masterySummary(),
-    queryFn: () => fetchMasterySummary().then((r) => r.data as { masteries?: Array<{ skill?: string; proficiency?: number; level_label?: string }> }),
+    queryFn: () =>
+      fetchMasterySummary().then(
+        (r) =>
+          r.data as {
+            masteries?: Array<{
+              skill?: string;
+              proficiency?: number;
+              level_label?: string;
+            }>;
+          },
+      ),
     staleTime: staleTimes.progressSummary,
   });
 
@@ -42,7 +52,9 @@ export default function WeakSkillsCard() {
 
   return (
     <GlassCard padding="md">
-      <Text style={[styles.title, { color: c.accent }]}>Practice weak skills</Text>
+      <Text style={[styles.title, { color: c.accent }]}>
+        Practice weak skills
+      </Text>
       <Text style={[styles.sub, { color: c.textMuted }]}>
         Tap a topic to jump into targeted exercises.
       </Text>
@@ -58,8 +70,8 @@ export default function WeakSkillsCard() {
             onPress={() =>
               router.push(
                 href(
-                  `/(tabs)/exercises?category=${encodeURIComponent(m.skill ?? "")}`
-                )
+                  `/(tabs)/exercises?category=${encodeURIComponent(m.skill ?? "")}`,
+                ),
               )
             }
             style={[
@@ -67,7 +79,10 @@ export default function WeakSkillsCard() {
               { borderColor: c.border, backgroundColor: c.surfaceElevated },
             ]}
           >
-            <Text style={[styles.chipTitle, { color: c.text }]} numberOfLines={1}>
+            <Text
+              style={[styles.chipTitle, { color: c.text }]}
+              numberOfLines={1}
+            >
               {m.skill}
             </Text>
             <Text style={[styles.chipMeta, { color: c.textMuted }]}>

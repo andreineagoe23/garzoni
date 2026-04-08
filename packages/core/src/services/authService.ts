@@ -6,7 +6,7 @@ export const requestPasswordReset = (email: string) =>
 export const confirmPasswordReset = (
   uidb64: string,
   token: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) => apiClient.post(`/password-reset-confirm/${uidb64}/${token}/`, payload);
 
 export type LoginSecurePayload = {
@@ -83,14 +83,18 @@ export const refreshAccessToken = (refresh: string) =>
   apiClient.post<{ access: string; refresh?: string }>(
     "/token/refresh/",
     { refresh },
-    { skipAuthRedirect: true }
+    { skipAuthRedirect: true },
   );
 
 export const changePassword = (body: {
   current_password: string;
   new_password: string;
   confirm_password: string;
-}) => apiClient.post<{ message?: string; error?: string }>("/change-password/", body);
+}) =>
+  apiClient.post<{ message?: string; error?: string }>(
+    "/change-password/",
+    body,
+  );
 
 /** Deletes the authenticated user. Caller should clear local session after success. */
 export const deleteAccount = () =>

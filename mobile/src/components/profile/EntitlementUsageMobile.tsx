@@ -57,7 +57,9 @@ export default function EntitlementUsageMobile({
                 },
               ]}
             >
-              <Text style={[styles.name, { color: colors.text }]}>{feature.name}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>
+                {feature.name}
+              </Text>
               {feature.enabled === false ? (
                 <Text style={[styles.detail, { color: colors.error }]}>
                   {t("dashboard.entitlementUsage.lockedUpgrade")}

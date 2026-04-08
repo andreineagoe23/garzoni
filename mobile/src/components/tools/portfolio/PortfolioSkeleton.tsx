@@ -9,9 +9,17 @@ function Shimmer({ style }: { style: object }) {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     anim.start();
     return () => anim.stop();
@@ -27,7 +35,12 @@ export function PortfolioSkeleton() {
   return (
     <View style={styles.container}>
       {/* Summary row */}
-      <View style={[styles.summaryRow, { backgroundColor: c.surface, borderColor: c.border }]}>
+      <View
+        style={[
+          styles.summaryRow,
+          { backgroundColor: c.surface, borderColor: c.border },
+        ]}
+      >
         {[0, 1, 2].map((i) => (
           <View key={i} style={styles.summaryCell}>
             <Shimmer style={[styles.shimmerLabel, { backgroundColor: bg }]} />
@@ -37,18 +50,32 @@ export function PortfolioSkeleton() {
       </View>
 
       {/* Pie circle placeholder */}
-      <View style={[styles.pieCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+      <View
+        style={[
+          styles.pieCard,
+          { backgroundColor: c.surface, borderColor: c.border },
+        ]}
+      >
         <Shimmer style={[styles.pieCircle, { backgroundColor: bg }]} />
         <View style={styles.pieLegend}>
           {[80, 60, 50].map((w, i) => (
-            <Shimmer key={i} style={[styles.legendBar, { backgroundColor: bg, width: w }]} />
+            <Shimmer
+              key={i}
+              style={[styles.legendBar, { backgroundColor: bg, width: w }]}
+            />
           ))}
         </View>
       </View>
 
       {/* 3 holding card placeholders */}
       {[0, 1, 2].map((i) => (
-        <View key={i} style={[styles.holdingCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+        <View
+          key={i}
+          style={[
+            styles.holdingCard,
+            { backgroundColor: c.surface, borderColor: c.border },
+          ]}
+        >
           <View style={styles.holdingLeft}>
             <Shimmer style={[styles.shimmerBadge, { backgroundColor: bg }]} />
             <Shimmer style={[styles.shimmerSymbol, { backgroundColor: bg }]} />

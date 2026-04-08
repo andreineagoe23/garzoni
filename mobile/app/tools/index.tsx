@@ -22,7 +22,9 @@ export default function ToolsHubScreen() {
   const hasPlus = plan === "plus" || plan === "pro";
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+    <ScrollView
+      contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+    >
       <Text style={[styles.sub, { color: c.textMuted }]}>
         Native tools — no web browser required.
       </Text>
@@ -35,7 +37,10 @@ export default function ToolsHubScreen() {
               locked={locked}
               onPress={() => {
                 if (locked) {
-                  Alert.alert("Plus / Pro", "This tool requires a Plus or Pro plan.");
+                  Alert.alert(
+                    "Plus / Pro",
+                    "This tool requires a Plus or Pro plan.",
+                  );
                   return;
                 }
                 router.push(href(`/tools/${tool.route}`));

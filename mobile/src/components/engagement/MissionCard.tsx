@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { FinanceFact, Mission } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -53,9 +47,13 @@ export default function MissionCard({
   purposeStatement,
 }: MissionCardProps) {
   const c = useThemeColors();
-  const progressPercent = Math.min(100, Math.round(Number(mission.progress ?? 0)));
+  const progressPercent = Math.min(
+    100,
+    Math.round(Number(mission.progress ?? 0)),
+  );
   const isCompleted = mission.status === "completed";
-  const title = mission.mission_name || mission.name || t("missions.missionFallback");
+  const title =
+    mission.mission_name || mission.name || t("missions.missionFallback");
   const mid = Number(mission.id);
 
   const progressLabel =
@@ -85,8 +83,8 @@ export default function MissionCard({
           getLessonRequirement(mission),
           Math.round(
             (Math.max(Number(mission.progress ?? 0), 0) / 100) *
-              getLessonRequirement(mission)
-          )
+              getLessonRequirement(mission),
+          ),
         )
       : null;
 
@@ -148,7 +146,10 @@ export default function MissionCard({
         <View
           style={[
             styles.completeBox,
-            { borderColor: "rgba(16,185,129,0.4)", backgroundColor: "rgba(16,185,129,0.1)" },
+            {
+              borderColor: "rgba(16,185,129,0.4)",
+              backgroundColor: "rgba(16,185,129,0.1)",
+            },
           ]}
         >
           <View style={styles.completeRow}>
@@ -193,7 +194,9 @@ export default function MissionCard({
                   { opacity: pressed ? 0.9 : 1, backgroundColor: c.primary },
                 ]}
               >
-                <Text style={[styles.primaryBtnText, { color: c.textOnPrimary }]}>
+                <Text
+                  style={[styles.primaryBtnText, { color: c.textOnPrimary }]}
+                >
                   {showSavingsMenu
                     ? t("missions.savings.hideJar")
                     : t("missions.savings.showJar")}
@@ -234,10 +237,15 @@ export default function MissionCard({
                       onPress={onSavingsSubmit}
                       style={({ pressed }) => [
                         styles.addBtn,
-                        { opacity: pressed ? 0.9 : 1, backgroundColor: "#10b981" },
+                        {
+                          opacity: pressed ? 0.9 : 1,
+                          backgroundColor: "#10b981",
+                        },
                       ]}
                     >
-                      <Text style={styles.addBtnText}>{t("missions.savings.add")}</Text>
+                      <Text style={styles.addBtnText}>
+                        {t("missions.savings.add")}
+                      </Text>
                     </Pressable>
                   </View>
                 </View>

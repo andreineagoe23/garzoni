@@ -15,8 +15,7 @@ import { useTheme, useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
 
 const INVESTING_PIP_CALC_BASE = "https://ssltools.investing.com/pip-calculator";
-const FOREX_OPEN_URL =
-  "https://www.investing.com/tools/forex-pip-calculator";
+const FOREX_OPEN_URL = "https://www.investing.com/tools/forex-pip-calculator";
 
 type Tab = "crypto" | "forex";
 
@@ -73,12 +72,12 @@ export default function CurrencyToolsScreen() {
 
   const cryptoHtml = useMemo(
     () => buildTradingViewHtml(resolved === "dark" ? "dark" : "light", lang),
-    [resolved, lang]
+    [resolved, lang],
   );
 
   const forexUri = useMemo(
     () => `${INVESTING_PIP_CALC_BASE}/index.php?force_lang=51`,
-    []
+    [],
   );
 
   const setTabCrypto = useCallback(() => {
@@ -103,7 +102,9 @@ export default function CurrencyToolsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("tools.entries.crypto-tools.title") }} />
+      <Stack.Screen
+        options={{ title: t("tools.entries.crypto-tools.title") }}
+      />
       <View style={[styles.root, { backgroundColor: c.bg }]}>
         <View style={[styles.segWrap, { backgroundColor: c.surfaceOffset }]}>
           <Pressable

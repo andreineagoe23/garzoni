@@ -26,12 +26,15 @@ Your app will then connect to the database over Railway’s private network.
 Connecting over the public network incurs **egress costs**. Prefer the private network when possible.
 
 - **Connection URL** (from the Postgres service → Connect / Variables):
+
   ```text
   postgresql://postgres:PASSWORD@yamabiko.proxy.rlwy.net:27327/railway  # pragma: allowlist secret
   ```
+
   Replace `PASSWORD` with the actual password (or use the value from Railway).
 
 - **Raw `psql` command:**
+
   ```bash
   PGPASSWORD=YOUR_PASSWORD psql -h yamabiko.proxy.rlwy.net -U postgres -p 27327 -d railway
   ```
@@ -46,9 +49,9 @@ Connecting over the public network incurs **egress costs**. Prefer the private n
 
 ## Summary
 
-| Method           | Use case                          | Egress      |
-|-----------------|------------------------------------|------------|
-| Private network | App services talking to Postgres  | No cost    |
-| Public network  | Local dev, one-off `psql`, CLI    | Egress cost|
+| Method          | Use case                         | Egress      |
+| --------------- | -------------------------------- | ----------- |
+| Private network | App services talking to Postgres | No cost     |
+| Public network  | Local dev, one-off `psql`, CLI   | Egress cost |
 
 For production backends on Railway, set `DATABASE_URL=${{ Postgres.DATABASE_URL }}` in the service that runs your app and connect over the private network.

@@ -25,7 +25,7 @@ let pendingQueue: Array<{
 
 function flushQueue(error: unknown, token: string | null) {
   pendingQueue.forEach(({ resolve, reject }) =>
-    error ? reject(error) : resolve(token!)
+    error ? reject(error) : resolve(token!),
   );
   pendingQueue = [];
 }
@@ -50,12 +50,12 @@ export function initHttpClientMobile() {
         "[Garzoni] EXPO_PUBLIC_BACKEND_URL is not set while EXPO_PUBLIC_APP_ENV=development. " +
           "Copy mobile/.env.example to .env.development.local, set EXPO_PUBLIC_BACKEND_URL " +
           "(e.g. http://127.0.0.1:8000/api for the iOS Simulator, http://<LAN-IP>:8000/api for a device + Docker, " +
-          "http://10.0.2.2:8000/api for the Android emulator), then restart Expo with --clear."
+          "http://10.0.2.2:8000/api for the Android emulator), then restart Expo with --clear.",
       );
     } else {
       console.warn(
         "[Garzoni] EXPO_PUBLIC_BACKEND_URL is not set. API calls fall back to localhost and fail on real devices. " +
-          "Set it in mobile/.env (see mobile/.env.example). For EAS production builds, define it in EAS project secrets."
+          "Set it in mobile/.env (see mobile/.env.example). For EAS production builds, define it in EAS project secrets.",
       );
     }
   }
@@ -82,65 +82,65 @@ export function initHttpClientMobile() {
   // after the core's error handler (Axios response interceptors are FIFO).
   // On a 401 the core handler fires first (no-op onAuthFailure), rejects the
   // promise, then this handler gets the error and attempts a silent refresh.
-  apiClient.interceptors.response.use(
-    undefined,
-    async (error: unknown) => {
-      const axiosError = error as {
-        response?: { status?: number };
-        config?: InternalAxiosRequestConfig & { _retry?: boolean; skipAuthRedirect?: boolean };
+  apiClient.interceptors.response.use(undefined, async (error: unknown) => {
+    const axiosError = error as {
+      response?: { status?: number };
+      config?: InternalAxiosRequestConfig & {
+        _retry?: boolean;
+        skipAuthRedirect?: boolean;
       };
-      const originalRequest = axiosError.config;
+    };
+    const originalRequest = axiosError.config;
 
-      // Only intercept 401s we haven't already retried and that didn't opt out.
-      if (
-        axiosError.response?.status !== 401 ||
-        !originalRequest ||
-        originalRequest._retry ||
-        originalRequest.skipAuthRedirect
-      ) {
-        return Promise.reject(error);
-      }
-
-      // Queue concurrent 401s while a refresh is already in-flight.
-      if (isRefreshing) {
-        return new Promise<string>((resolve, reject) => {
-          pendingQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
-          .catch((err: unknown) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const storedRefresh = await tokenStorage.getRefresh();
-        if (!storedRefresh) throw new Error("no_refresh_token");
-
-        const { data } = await refreshAccessToken(storedRefresh);
-        const { access, refresh: newRefresh } = data;
-
-        await tokenStorage.setAccess(access);
-        attachToken(access);
-        if (newRefresh) await tokenStorage.setRefresh(newRefresh);
-
-        flushQueue(null, access);
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access}`;
-        }
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        flushQueue(refreshError, null);
-        await clearSessionAndRedirect();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+    // Only intercept 401s we haven't already retried and that didn't opt out.
+    if (
+      axiosError.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      originalRequest.skipAuthRedirect
+    ) {
+      return Promise.reject(error);
     }
-  );
+
+    // Queue concurrent 401s while a refresh is already in-flight.
+    if (isRefreshing) {
+      return new Promise<string>((resolve, reject) => {
+        pendingQueue.push({ resolve, reject });
+      })
+        .then((token) => {
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
+          return apiClient(originalRequest);
+        })
+        .catch((err: unknown) => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const storedRefresh = await tokenStorage.getRefresh();
+      if (!storedRefresh) throw new Error("no_refresh_token");
+
+      const { data } = await refreshAccessToken(storedRefresh);
+      const { access, refresh: newRefresh } = data;
+
+      await tokenStorage.setAccess(access);
+      attachToken(access);
+      if (newRefresh) await tokenStorage.setRefresh(newRefresh);
+
+      flushQueue(null, access);
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+      }
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      flushQueue(refreshError, null);
+      await clearSessionAndRedirect();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
+  });
 }

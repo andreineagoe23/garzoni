@@ -23,34 +23,32 @@ export function HoldingCard({ entry, onDelete }: Props) {
 
   const handleLongPress = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      entry.symbol.toUpperCase(),
-      "What would you like to do?",
-      [
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            Alert.alert(
-              "Delete holding",
-              `Remove ${entry.symbol.toUpperCase()} from your portfolio?`,
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete",
-                  style: "destructive",
-                  onPress: () => {
-                    if (entry.id != null) onDelete(entry.id);
-                  },
+    Alert.alert(entry.symbol.toUpperCase(), "What would you like to do?", [
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          void Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Warning,
+          );
+          Alert.alert(
+            "Delete holding",
+            `Remove ${entry.symbol.toUpperCase()} from your portfolio?`,
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                  if (entry.id != null) onDelete(entry.id);
                 },
-              ]
-            );
-          },
+              },
+            ],
+          );
         },
-        { text: "Cancel", style: "cancel" },
-      ]
-    );
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   }, [entry, onDelete]);
 
   return (
@@ -105,7 +103,11 @@ export function HoldingCard({ entry, onDelete }: Props) {
 
       {/* Bottom row */}
       <View style={[styles.bottomRow, { borderTopColor: c.border }]}>
-        <MetaItem label="Qty" value={String(entry.quantity)} color={c.textMuted} />
+        <MetaItem
+          label="Qty"
+          value={String(entry.quantity)}
+          color={c.textMuted}
+        />
         <MetaItem
           label="Buy price"
           value={formatCurrency(entry.purchase_price)}
@@ -119,7 +121,11 @@ export function HoldingCard({ entry, onDelete }: Props) {
           />
         )}
         {entry.purchase_date && (
-          <MetaItem label="Bought" value={entry.purchase_date} color={c.textMuted} />
+          <MetaItem
+            label="Bought"
+            value={entry.purchase_date}
+            color={c.textMuted}
+          />
         )}
       </View>
     </Pressable>

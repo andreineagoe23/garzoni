@@ -28,7 +28,13 @@ import {
   Skeleton,
 } from "../../src/components/ui";
 import MascotImage from "../../src/components/common/MascotImage";
-import { colors, spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import {
+  colors,
+  spacing,
+  typography,
+  radius,
+  shadows,
+} from "../../src/theme/tokens";
 import { NotificationFeedbackType } from "expo-haptics";
 import { safeNotificationAsync } from "../../src/utils/safeHaptics";
 
@@ -41,7 +47,9 @@ type QuizRow = {
 };
 
 export default function QuizScreen() {
-  const { courseId: courseIdParam } = useLocalSearchParams<{ courseId: string }>();
+  const { courseId: courseIdParam } = useLocalSearchParams<{
+    courseId: string;
+  }>();
   const courseId = Number(courseIdParam);
   const queryClient = useQueryClient();
 
@@ -51,7 +59,9 @@ export default function QuizScreen() {
   const [earned, setEarned] = useState(0);
   const [done, setDone] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [correctAnswerSnapshot, setCorrectAnswerSnapshot] = useState<string | null>(null);
+  const [correctAnswerSnapshot, setCorrectAnswerSnapshot] = useState<
+    string | null
+  >(null);
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const { hearts, maxHearts, decrementHeart } = useHearts({
@@ -83,7 +93,9 @@ export default function QuizScreen() {
   useEffect(() => {
     if (done) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.progressSummary(),
+      });
       setTimeout(() => confettiRef.current?.start(), 300);
     }
   }, [done, queryClient]);
@@ -135,7 +147,11 @@ export default function QuizScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.pad}>
           <Skeleton width="70%" height={28} />
-          <Skeleton width="100%" height={120} style={{ marginTop: spacing.xl }} />
+          <Skeleton
+            width="100%"
+            height={120}
+            style={{ marginTop: spacing.xl }}
+          />
         </View>
       </SafeAreaView>
     );
@@ -189,7 +205,10 @@ export default function QuizScreen() {
           <Button variant="secondary" onPress={() => setReviewOpen((v) => !v)}>
             {reviewOpen ? "Hide review" : "Review answer"}
           </Button>
-          <Button variant="ghost" onPress={() => router.replace("/(tabs)/learn")}>
+          <Button
+            variant="ghost"
+            onPress={() => router.replace("/(tabs)/learn")}
+          >
             Learn tab
           </Button>
         </View>
@@ -199,9 +218,7 @@ export default function QuizScreen() {
             <Text style={styles.reviewA}>
               Your answer: {correctAnswerSnapshot ?? selected ?? "—"}
             </Text>
-            <Text style={styles.reviewOk}>
-              Correct: {quiz.correct_answer}
-            </Text>
+            <Text style={styles.reviewOk}>Correct: {quiz.correct_answer}</Text>
           </View>
         ) : null}
       </SafeAreaView>
@@ -210,15 +227,26 @@ export default function QuizScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: quiz.title ?? "Quiz", headerShown: true }} />
+      <Stack.Screen
+        options={{ title: quiz.title ?? "Quiz", headerShown: true }}
+      />
       <View style={styles.header}>
         <View style={styles.headerMid}>
-          <Text style={styles.headerHint}>Answer correctly to earn rewards</Text>
+          <Text style={styles.headerHint}>
+            Answer correctly to earn rewards
+          </Text>
           <ProgressBar value={selected ? 0.5 : 0.15} height={4} />
           <View style={styles.dotsRow}>
             <View style={[styles.dot, styles.dotOn]} />
-            <View style={[styles.dot, selected ? styles.dotOn : styles.dotOff]} />
-            <View style={[styles.dot, correct === false ? styles.dotWarn : styles.dotOff]} />
+            <View
+              style={[styles.dot, selected ? styles.dotOn : styles.dotOff]}
+            />
+            <View
+              style={[
+                styles.dot,
+                correct === false ? styles.dotWarn : styles.dotOff,
+              ]}
+            />
           </View>
         </View>
         <HeartBar hearts={hearts} maxHearts={maxHearts} />
@@ -238,14 +266,19 @@ export default function QuizScreen() {
                   setSelected(c.text);
                 }}
               >
-                <Text style={[styles.choiceText, active && styles.choiceTextOn]}>
+                <Text
+                  style={[styles.choiceText, active && styles.choiceTextOn]}
+                >
                   {c.text}
                 </Text>
               </Pressable>
             );
           })}
 
-          <Button style={{ marginTop: spacing.lg }} onPress={() => void submit()}>
+          <Button
+            style={{ marginTop: spacing.lg }}
+            onPress={() => void submit()}
+          >
             Submit answer
           </Button>
 
@@ -256,7 +289,11 @@ export default function QuizScreen() {
           ) : null}
 
           {correct === false ? (
-            <Button variant="secondary" style={{ marginTop: spacing.md }} onPress={resetAttempt}>
+            <Button
+              variant="secondary"
+              style={{ marginTop: spacing.md }}
+              onPress={resetAttempt}
+            >
               Try again
             </Button>
           ) : null}
@@ -335,9 +372,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceOffset,
     borderRadius: radius.lg,
   },
-  feedbackText: { flex: 1, fontSize: typography.sm, color: colors.text, lineHeight: 20 },
+  feedbackText: {
+    flex: 1,
+    fontSize: typography.sm,
+    color: colors.text,
+    lineHeight: 20,
+  },
   feedbackBad: { color: colors.error },
-  muted: { color: colors.textMuted, marginBottom: spacing.lg, textAlign: "center" },
+  muted: {
+    color: colors.textMuted,
+    marginBottom: spacing.lg,
+    textAlign: "center",
+  },
   resultTitle: {
     fontSize: typography.xxl,
     fontWeight: "700",
@@ -356,7 +402,11 @@ const styles = StyleSheet.create({
     color: colors.accent,
     marginTop: spacing.sm,
   },
-  xp: { fontSize: typography.sm, color: colors.textMuted, marginTop: spacing.xs },
+  xp: {
+    fontSize: typography.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+  },
   actions: { width: "100%", marginTop: spacing.xxl, gap: spacing.md },
   reviewCard: {
     marginTop: spacing.xl,
@@ -368,8 +418,16 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   reviewQ: { fontSize: typography.sm, fontWeight: "600", color: colors.text },
-  reviewA: { fontSize: typography.sm, color: colors.textMuted, marginTop: spacing.sm },
-  reviewOk: { fontSize: typography.sm, color: colors.success, marginTop: spacing.xs },
+  reviewA: {
+    fontSize: typography.sm,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  },
+  reviewOk: {
+    fontSize: typography.sm,
+    color: colors.success,
+    marginTop: spacing.xs,
+  },
   dotsRow: {
     flexDirection: "row",
     gap: 6,

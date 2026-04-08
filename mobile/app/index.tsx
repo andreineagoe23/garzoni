@@ -18,7 +18,7 @@ export default function Index() {
       try {
         const progress = await fetchQuestionnaireProgress();
         setOnboardingStatus(
-          progress.status === "completed" ? "done" : "needs_onboarding"
+          progress.status === "completed" ? "done" : "needs_onboarding",
         );
       } catch {
         // If endpoint missing / error → don't block; go straight to app

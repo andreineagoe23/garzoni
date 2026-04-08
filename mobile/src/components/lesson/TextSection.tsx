@@ -1,5 +1,11 @@
 import React, { useMemo } from "react";
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import RenderHTML from "react-native-render-html";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { getMediaBaseUrl } from "@garzoni/core";
@@ -18,13 +24,13 @@ function fixImagePaths(html: string): string {
   const base = getMediaBaseUrl();
   return html.replace(
     /src="\/media\/([^"]+)"/g,
-    (_: string, filename: string) => `src="${base}/media/${filename}"`
+    (_: string, filename: string) => `src="${base}/media/${filename}"`,
   );
 }
 
 function extractYoutubeId(html: string): string | null {
   const m = html.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
   );
   return m?.[1] ?? null;
 }
@@ -61,7 +67,10 @@ export default function TextSection({
   const c = useThemeColors();
   const { width } = useWindowDimensions();
   const contentWidth = width - spacing.xl * 2;
-  const plainStyles = useMemo(() => createPlainStyles(c, fontScale), [c, fontScale]);
+  const plainStyles = useMemo(
+    () => createPlainStyles(c, fontScale),
+    [c, fontScale],
+  );
 
   const sourceHtml = html ?? fallbackText ?? "";
   const prepared = useMemo(() => fixImagePaths(sourceHtml), [sourceHtml]);
@@ -94,7 +103,7 @@ export default function TextSection({
       },
       a: { color: c.accent },
     }),
-    [c, fontScale]
+    [c, fontScale],
   );
 
   const htmlBase = useMemo(
@@ -102,7 +111,7 @@ export default function TextSection({
       fontSize: typography.base * fontScale,
       color: c.text,
     }),
-    [c, fontScale]
+    [c, fontScale],
   );
 
   if (!prepared.trim()) {
@@ -130,7 +139,11 @@ export default function TextSection({
       />
       {youtubeId ? (
         <View style={plainStyles.videoBox}>
-          <YoutubePlayer height={200} width={contentWidth} videoId={youtubeId} />
+          <YoutubePlayer
+            height={200}
+            width={contentWidth}
+            videoId={youtubeId}
+          />
         </View>
       ) : null}
     </ScrollView>

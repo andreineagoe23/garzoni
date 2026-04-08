@@ -58,9 +58,19 @@ export function calcSavings(form: SavingsForm): SavingsResult | null {
     }
   }
 
-  return { futureValue: fv, totalContributed, interestEarned, monthsToGoal, chartData };
+  return {
+    futureValue: fv,
+    totalContributed,
+    interestEarned,
+    monthsToGoal,
+    chartData,
+  };
 }
 
 export function formatCurrency(n: number): string {
-  return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 }

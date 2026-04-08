@@ -49,7 +49,13 @@ export default function CourseCard({ course, totalLessons, onPress }: Props) {
       {uri ? (
         <Image source={{ uri }} style={styles.thumb} resizeMode="cover" />
       ) : (
-        <View style={[styles.thumb, styles.thumbInner, { backgroundColor: c.surfaceOffset }]}>
+        <View
+          style={[
+            styles.thumb,
+            styles.thumbInner,
+            { backgroundColor: c.surfaceOffset },
+          ]}
+        >
           <ProgressRing value={pct} size={44} strokeWidth={4} />
         </View>
       )}

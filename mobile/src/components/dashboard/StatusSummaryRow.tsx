@@ -54,5 +54,9 @@ const styles = StyleSheet.create({
   chip: { minWidth: 100, marginRight: spacing.sm },
   heartsChip: { minWidth: 140 },
   val: { fontSize: typography.lg, fontWeight: "800" },
-  lbl: { fontSize: typography.xs, textTransform: "uppercase", letterSpacing: 0.5 },
+  lbl: {
+    fontSize: typography.xs,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
 });

@@ -10,7 +10,10 @@ import {
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
-import type { FinancialGoalDto, GoalStatus } from "../../../types/financial-goals";
+import type {
+  FinancialGoalDto,
+  GoalStatus,
+} from "../../../types/financial-goals";
 import {
   formatGoalDate,
   formatGoalMoney,
@@ -62,7 +65,10 @@ export function GoalCard({
     }).start();
   }, [pct, widthAnim]);
 
-  const remaining = Math.max(num(goal.target_amount) - num(goal.current_amount), 0);
+  const remaining = Math.max(
+    num(goal.target_amount) - num(goal.current_amount),
+    0,
+  );
 
   const confirmDelete = useCallback(() => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -83,7 +89,10 @@ export function GoalCard({
 
   return (
     <View
-      style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}
+      style={[
+        styles.card,
+        { backgroundColor: c.surface, borderColor: c.border },
+      ]}
     >
       <View style={styles.topRow}>
         <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
@@ -121,8 +130,8 @@ export function GoalCard({
       </View>
 
       <Text style={[styles.meta, { color: c.textMuted }]}>
-        {labels.target}: {formatGoalMoney(num(goal.target_amount))} · {labels.current}:{" "}
-        {formatGoalMoney(num(goal.current_amount))}
+        {labels.target}: {formatGoalMoney(num(goal.target_amount))} ·{" "}
+        {labels.current}: {formatGoalMoney(num(goal.current_amount))}
       </Text>
       <Text style={[styles.meta, { color: c.textMuted }]}>
         {labels.targetDate}:{" "}
@@ -181,7 +190,9 @@ export function GoalCard({
             { borderColor: c.border, opacity: pressed ? 0.75 : 1 },
           ]}
         >
-          <Text style={[styles.btnSecondaryText, { color: c.text }]}>{labels.edit}</Text>
+          <Text style={[styles.btnSecondaryText, { color: c.text }]}>
+            {labels.edit}
+          </Text>
         </Pressable>
         <Pressable
           onPress={confirmDelete}
@@ -214,7 +225,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: { flex: 1, fontSize: typography.md, fontWeight: "700" },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: 999 },
+  badge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
   badgeText: { fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
   meta: { fontSize: typography.xs, marginBottom: 4 },
   progressHeader: {

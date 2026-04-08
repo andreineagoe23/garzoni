@@ -3,11 +3,11 @@ import type { Entitlements } from "types/api";
 
 /** Strip non-JSON values so Django's JSONField always receives a plain object. */
 function jsonSafeMetadata(
-  meta: Record<string, unknown>
+  meta: Record<string, unknown>,
 ): Record<string, unknown> {
   try {
     const s = JSON.stringify(meta, (_k, v) =>
-      v === undefined ? undefined : v
+      v === undefined ? undefined : v,
     );
     return s ? (JSON.parse(s) as Record<string, unknown>) : {};
   } catch {
@@ -17,7 +17,7 @@ function jsonSafeMetadata(
 
 export const recordFunnelEvent = (
   eventType: string,
-  payload: Record<string, unknown> = {}
+  payload: Record<string, unknown> = {},
 ) => {
   const rawMeta =
     payload.metadata && typeof payload.metadata === "object" && payload.metadata

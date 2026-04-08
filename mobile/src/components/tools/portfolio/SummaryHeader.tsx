@@ -11,7 +11,11 @@ type Props = {
   holdingsCount: number;
 };
 
-export function SummaryHeader({ summary, totalGainLossPercentage, holdingsCount }: Props) {
+export function SummaryHeader({
+  summary,
+  totalGainLossPercentage,
+  holdingsCount,
+}: Props) {
   const c = useThemeColors();
   const isGain = (summary.total_gain_loss ?? 0) >= 0;
   const gainColor = isGain ? c.success : c.error;
@@ -31,18 +35,44 @@ export function SummaryHeader({ summary, totalGainLossPercentage, holdingsCount 
   return (
     <View style={styles.row}>
       {/* Total Value */}
-      <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.md]}>
-        <Text style={[styles.label, { color: c.textMuted }]}>Portfolio Value</Text>
-        <Text style={[styles.bigValue, { color: c.text }]} numberOfLines={1} adjustsFontSizeToFit>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: c.surface, borderColor: c.border },
+          shadows.md,
+        ]}
+      >
+        <Text style={[styles.label, { color: c.textMuted }]}>
+          Portfolio Value
+        </Text>
+        <Text
+          style={[styles.bigValue, { color: c.text }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           {formatCurrency(summary.total_value || 0)}
         </Text>
-        <Text style={[styles.sub, { color: c.textFaint }]}>current market value</Text>
+        <Text style={[styles.sub, { color: c.textFaint }]}>
+          current market value
+        </Text>
       </View>
 
       {/* Gain / Loss */}
-      <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.md]}>
-        <Text style={[styles.label, { color: c.textMuted }]}>Total Gain / Loss</Text>
-        <Text style={[styles.bigValue, { color: gainColor }]} numberOfLines={1} adjustsFontSizeToFit>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: c.surface, borderColor: c.border },
+          shadows.md,
+        ]}
+      >
+        <Text style={[styles.label, { color: c.textMuted }]}>
+          Total Gain / Loss
+        </Text>
+        <Text
+          style={[styles.bigValue, { color: gainColor }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           {isGain ? "+" : "−"}
           {formatCurrency(Math.abs(summary.total_gain_loss || 0))}
         </Text>
@@ -67,9 +97,17 @@ export function SummaryHeader({ summary, totalGainLossPercentage, holdingsCount 
       </View>
 
       {/* Holdings count */}
-      <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.md]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: c.surface, borderColor: c.border },
+          shadows.md,
+        ]}
+      >
         <Text style={[styles.label, { color: c.textMuted }]}>Holdings</Text>
-        <Text style={[styles.bigValue, { color: c.text }]}>{holdingsCount}</Text>
+        <Text style={[styles.bigValue, { color: c.text }]}>
+          {holdingsCount}
+        </Text>
         <Text style={[styles.sub, { color: c.textFaint }]}>
           {holdingsCount === 1 ? "investment" : "investments"}
         </Text>

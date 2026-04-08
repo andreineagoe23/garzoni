@@ -82,14 +82,14 @@ export const fetchNextQuestion = (): Promise<NextQuestionResponse> =>
     .then((r) => r.data);
 
 export const saveAnswer = (
-  data: SaveAnswerRequest
+  data: SaveAnswerRequest,
 ): Promise<QuestionnaireProgress> =>
   apiClient
     .post<QuestionnaireProgress>("/questionnaire/save-answer/", data)
     .then((r) => r.data);
 
 export const completeQuestionnaire = (
-  idempotencyKey?: string
+  idempotencyKey?: string,
 ): Promise<CompletionResponse> =>
   apiClient
     .post<CompletionResponse>("/questionnaire/complete/", {

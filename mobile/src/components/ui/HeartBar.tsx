@@ -9,9 +9,19 @@ type HeartBarProps = {
   countdownLabel?: string | null;
 };
 
-function HeartIcon({ filled, heart, heartEmpty }: { filled: boolean; heart: string; heartEmpty: string }) {
+function HeartIcon({
+  filled,
+  heart,
+  heartEmpty,
+}: {
+  filled: boolean;
+  heart: string;
+  heartEmpty: string;
+}) {
   return (
-    <Text style={[styles.heart, { color: filled ? heart : heartEmpty }]}>♥</Text>
+    <Text style={[styles.heart, { color: filled ? heart : heartEmpty }]}>
+      ♥
+    </Text>
   );
 }
 
@@ -33,7 +43,9 @@ export default function HeartBar({
         />
       ))}
       {countdownLabel ? (
-        <Text style={[styles.countdown, { color: c.textMuted }]}>{countdownLabel}</Text>
+        <Text style={[styles.countdown, { color: c.textMuted }]}>
+          {countdownLabel}
+        </Text>
       ) : null}
     </View>
   );

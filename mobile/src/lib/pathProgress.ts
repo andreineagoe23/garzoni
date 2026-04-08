@@ -37,7 +37,9 @@ function calculatePercent(completed: NumericLike, total: NumericLike) {
   return clampPercent((c / t) * 100);
 }
 
-export function getCourseLessonCount(course: CourseProgressLike | undefined): number {
+export function getCourseLessonCount(
+  course: CourseProgressLike | undefined,
+): number {
   if (!course) return 0;
   const fromTotal =
     course.total_lessons ??
@@ -56,9 +58,12 @@ function courseProgressPercent(course: CourseProgressLike | undefined): number {
 
   const sectionPct = calculatePercent(
     course.completed_sections ?? course.completedSections ?? null,
-    course.total_sections ?? course.totalSections ?? null
+    course.total_sections ?? course.totalSections ?? null,
   );
-  if (sectionPct > 0 || Number(course.total_sections ?? course.totalSections) > 0) {
+  if (
+    sectionPct > 0 ||
+    Number(course.total_sections ?? course.totalSections) > 0
+  ) {
     return sectionPct;
   }
 
@@ -71,12 +76,14 @@ function courseProgressPercent(course: CourseProgressLike | undefined): number {
 
   return calculatePercent(
     course.completed_lessons ?? course.completedLessons ?? null,
-    totalLessons
+    totalLessons,
   );
 }
 
 /** 0–100, rounded — average progress across courses in the path. */
-export function pathProgressPercent(path: PathProgressLike | undefined): number {
+export function pathProgressPercent(
+  path: PathProgressLike | undefined,
+): number {
   const courses = path?.courses;
   if (!Array.isArray(courses) || courses.length === 0) return 0;
   const parts = courses.map((c) => clampPercent(courseProgressPercent(c)));
@@ -87,7 +94,7 @@ export function pathProgressPercent(path: PathProgressLike | undefined): number 
 export function applyPathSortAndFilter<T extends PathProgressLike>(
   paths: readonly T[],
   sortBy: string,
-  pathFilter: string
+  pathFilter: string,
 ): T[] {
   let result = [...paths];
 

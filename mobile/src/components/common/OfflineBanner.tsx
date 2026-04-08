@@ -18,7 +18,9 @@ export default function OfflineBanner() {
 
   return (
     <View style={styles.banner} accessibilityRole="alert">
-      <Text style={styles.text}>You're offline — some actions may not sync.</Text>
+      <Text style={styles.text}>
+        You're offline — some actions may not sync.
+      </Text>
     </View>
   );
 }

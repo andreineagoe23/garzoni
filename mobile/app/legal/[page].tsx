@@ -64,6 +64,11 @@ export default function LegalPageScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: spacing.xl },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xl,
+  },
   msg: { fontSize: typography.sm, textAlign: "center", lineHeight: 22 },
 });

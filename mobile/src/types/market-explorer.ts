@@ -1,4 +1,4 @@
-export type MarketTab = 'stocks' | 'crypto' | 'forex';
+export type MarketTab = "stocks" | "crypto" | "forex";
 
 export type Asset = {
   ticker: string;
@@ -16,20 +16,28 @@ export type QuoteDetail = Asset & {
 };
 
 export const TAB_LABELS: Record<MarketTab, string> = {
-  stocks: 'Stocks',
-  crypto: 'Crypto',
-  forex: 'Forex',
+  stocks: "Stocks",
+  crypto: "Crypto",
+  forex: "Forex",
 };
 
 export function formatPrice(n: number): string {
   if (n >= 1000) {
-    return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    return n.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 2,
+    });
   }
-  return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 4 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 4,
+  });
 }
 
 export function formatChangePct(n: number): string {
-  const sign = n >= 0 ? '+' : '';
+  const sign = n >= 0 ? "+" : "";
   return `${sign}${n.toFixed(2)}%`;
 }
 

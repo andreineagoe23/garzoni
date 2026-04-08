@@ -49,7 +49,11 @@ function createStyles(c: ThemeColors) {
       color: c.text,
       backgroundColor: c.inputBg,
     },
-    feedback: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.md },
+    feedback: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      marginTop: spacing.md,
+    },
     fSuccess: { color: c.success },
     fError: { color: c.error },
   });
@@ -69,20 +73,22 @@ export default function BudgetAllocation({
   const categories = (data?.categories ?? []) as string[];
   const total = Number(data?.total ?? 0);
 
-  const [allocations, setAllocations] = useState<Record<string, string>>(
-    () => Object.fromEntries(categories.map((cat) => [cat, ""]))
+  const [allocations, setAllocations] = useState<Record<string, string>>(() =>
+    Object.fromEntries(categories.map((cat) => [cat, ""])),
   );
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
 
   const currentTotal = useMemo(
     () =>
       Object.values(allocations).reduce(
         (sum, v) => sum + (parseInt(v, 10) || 0),
-        0
+        0,
       ),
-    [allocations]
+    [allocations],
   );
 
   const handleSubmit = async () => {

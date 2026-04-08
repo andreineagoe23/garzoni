@@ -55,7 +55,9 @@ export default function PasswordResetConfirmScreen() {
       });
       setDone(true);
     } catch {
-      setError("The reset link has expired or is invalid. Please request a new one.");
+      setError(
+        "The reset link has expired or is invalid. Please request a new one.",
+      );
     } finally {
       setLoading(false);
     }

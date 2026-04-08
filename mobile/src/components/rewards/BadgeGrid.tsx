@@ -24,7 +24,9 @@ export default function BadgeGrid({ catalog, earned }: Props) {
   if (!catalog.length) {
     return (
       <GlassCard padding="md">
-        <Text style={[styles.empty, { color: c.textMuted }]}>No badges to show yet.</Text>
+        <Text style={[styles.empty, { color: c.textMuted }]}>
+          No badges to show yet.
+        </Text>
       </GlassCard>
     );
   }
@@ -49,7 +51,9 @@ export default function BadgeGrid({ catalog, earned }: Props) {
             {uri ? (
               <Image source={{ uri }} style={styles.img} resizeMode="contain" />
             ) : (
-              <View style={[styles.img, { backgroundColor: c.surfaceOffset }]} />
+              <View
+                style={[styles.img, { backgroundColor: c.surfaceOffset }]}
+              />
             )}
             <Text style={[styles.name, { color: c.text }]} numberOfLines={2}>
               {b.name}

@@ -1,6 +1,6 @@
 # Transaction merchant name on card statements (Stripe)
 
-What customers see on their bank or card statement (e.g. **REVOLUT** or **MONEVO * PLUS**) is controlled by **statement descriptors** in Stripe. Here’s how to set them up so your brand shows clearly (Revolut-style).
+What customers see on their bank or card statement (e.g. **REVOLUT** or **MONEVO \* PLUS**) is controlled by **statement descriptors** in Stripe. Here’s how to set them up so your brand shows clearly (Revolut-style).
 
 ---
 
@@ -53,10 +53,10 @@ Stripe may use the first subscription item’s **product** descriptor for the ch
 
 ## Summary
 
-| Goal                         | Where to set it                                      |
-|-----------------------------|------------------------------------------------------|
-| Single name (e.g. `MONEVO`) | **Settings → Business details → Statement descriptor** |
-| Prefix for card (e.g. `MONEVO`) | **Settings → Business details → Shortened descriptor** |
-| Per-plan text                | **Product** (Plus/Pro) statement descriptor, if supported |
+| Goal                            | Where to set it                                           |
+| ------------------------------- | --------------------------------------------------------- |
+| Single name (e.g. `MONEVO`)     | **Settings → Business details → Statement descriptor**    |
+| Prefix for card (e.g. `MONEVO`) | **Settings → Business details → Shortened descriptor**    |
+| Per-plan text                   | **Product** (Plus/Pro) statement descriptor, if supported |
 
 No code changes are required in Monevo: subscription checkout uses your Stripe account (and product) descriptors automatically. After you save Business details, new charges will use the new merchant name; existing subscriptions may keep the previous descriptor until the next billing cycle, depending on the bank.

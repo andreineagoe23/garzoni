@@ -1,6 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { QuestionnaireQuestion } from "@garzoni/core";
-import { colors, radius, shadows, spacing, typography } from "../../../theme/tokens";
+import {
+  colors,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../../theme/tokens";
 
 type Props = {
   question: QuestionnaireQuestion;
@@ -15,7 +21,9 @@ export default function QuestionnaireMultiChoice({
 }: Props) {
   const toggle = (val: string) => {
     onChange(
-      selected.includes(val) ? selected.filter((s) => s !== val) : [...selected, val]
+      selected.includes(val)
+        ? selected.filter((s) => s !== val)
+        : [...selected, val],
     );
   };
   return (
@@ -31,7 +39,9 @@ export default function QuestionnaireMultiChoice({
             <View style={[styles.checkbox, active && styles.checkboxActive]}>
               {active ? <Text style={styles.checkmark}>✓</Text> : null}
             </View>
-            <Text style={[styles.optionLabel, active && styles.optionLabelActive]}>
+            <Text
+              style={[styles.optionLabel, active && styles.optionLabelActive]}
+            >
               {opt.label}
             </Text>
           </Pressable>
@@ -74,6 +84,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surface,
   },
-  checkboxActive: { borderColor: colors.primary, backgroundColor: colors.primary },
+  checkboxActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
   checkmark: { color: colors.white, fontSize: 13, fontWeight: "700" },
 });

@@ -31,12 +31,14 @@ export default function SwipeableExerciseCard({
           else if (g.dx > 48) onSkipNext();
         },
       }),
-    [onStart, onSkipNext]
+    [onStart, onSkipNext],
   );
 
   return (
     <View {...panResponder.panHandlers}>
-      <View style={{ backgroundColor: c.bg, borderRadius: radius.md }}>{children}</View>
+      <View style={{ backgroundColor: c.bg, borderRadius: radius.md }}>
+        {children}
+      </View>
     </View>
   );
 }

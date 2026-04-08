@@ -1,25 +1,38 @@
-{% extends "emails/_base.html" %}
-
-{% block title %}Your streak ended{% endblock %}
-{% block header %}Your {{ streak_count }}-day streak ended{% endblock %}
-{% block preheader %}Come back today and start a new streak.{% endblock %}
-
-{% block content %}
-  <p style="margin:0 0 14px 0;">Hi {{ display_name }},</p>
-  <p style="margin:0 0 14px 0;">
-    Your {{ streak_count }}-day streak has ended. It happens, and you can build it back stronger.
-  </p>
-  <p style="margin:0 0 14px 0;">
-    Complete one lesson today to start your next streak.
-  </p>
-  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;">
-    <tr>
-      <td>
-        <a href="{{ app_url }}"
-           style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;padding:12px 16px;border-radius:12px;">
-          Start a new streak
-        </a>
-      </td>
-    </tr>
-  </table>
+{% extends "emails/_base.html" %} {% block title %}Your streak ended{% endblock
+%} {% block header %}Your {{ streak_count }}-day streak ended{% endblock %} {%
+block preheader %}Come back today and start a new streak.{% endblock %} {% block
+content %}
+<p style="margin: 0 0 14px 0">Hi {{ display_name }},</p>
+<p style="margin: 0 0 14px 0">
+  Your {{ streak_count }}-day streak has ended. It happens, and you can build it
+  back stronger.
+</p>
+<p style="margin: 0 0 14px 0">
+  Complete one lesson today to start your next streak.
+</p>
+<table
+  role="presentation"
+  cellpadding="0"
+  cellspacing="0"
+  style="margin: 18px 0"
+>
+  <tr>
+    <td>
+      <a
+        href="{{ app_url }}"
+        style="
+          display: inline-block;
+          background: #1d5330;
+          color: #ffffff;
+          text-decoration: none;
+          font-weight: 800;
+          padding: 12px 16px;
+          border-radius: 12px;
+        "
+      >
+        Start a new streak
+      </a>
+    </td>
+  </tr>
+</table>
 {% endblock %}

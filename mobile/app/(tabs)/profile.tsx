@@ -73,7 +73,9 @@ function ProfileInner() {
   const [pushBusy, setPushBusy] = useState(false);
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [showAllBadges, setShowAllBadges] = useState(false);
-  const [badgeFilter, setBadgeFilter] = useState<"all" | "earned" | "locked">("all");
+  const [badgeFilter, setBadgeFilter] = useState<"all" | "earned" | "locked">(
+    "all",
+  );
   const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
 
@@ -166,7 +168,7 @@ function ProfileInner() {
       if (!perm.granted) {
         Alert.alert(
           "Photos",
-          "Allow photo library access in Settings to pick a profile picture."
+          "Allow photo library access in Settings to pick a profile picture.",
         );
         return;
       }
@@ -176,34 +178,42 @@ function ProfileInner() {
         aspect: [1, 1],
         quality: 0.8,
       });
-      if (!res.canceled && res.assets[0]?.uri) setLocalAvatarUri(res.assets[0].uri);
+      if (!res.canceled && res.assets[0]?.uri)
+        setLocalAvatarUri(res.assets[0].uri);
     } catch {
       Alert.alert(
         "Photos",
-        "Image picking needs a dev build that includes expo-image-picker. Run `pnpm exec expo run:ios` (or android) from the mobile app folder."
+        "Image picking needs a dev build that includes expo-image-picker. Run `pnpm exec expo run:ios` (or android) from the mobile app folder.",
       );
     }
   }, []);
 
   const onDeleteAccount = useCallback(() => {
-    Alert.alert(t("profile.deleteConfirmTitle"), t("profile.deleteConfirmBody"), [
-      { text: t("settings.actions.cancel"), style: "cancel" },
-      {
-        text: t("profile.deleteAction"),
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await deleteAccount();
-              await clearSession();
-              router.replace("/login");
-            } catch {
-              Alert.alert(t("settings.errors.deleteAccount"), t("profile.deleteError"));
-            }
-          })();
+    Alert.alert(
+      t("profile.deleteConfirmTitle"),
+      t("profile.deleteConfirmBody"),
+      [
+        { text: t("settings.actions.cancel"), style: "cancel" },
+        {
+          text: t("profile.deleteAction"),
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await deleteAccount();
+                await clearSession();
+                router.replace("/login");
+              } catch {
+                Alert.alert(
+                  t("settings.errors.deleteAccount"),
+                  t("profile.deleteError"),
+                );
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    );
   }, [clearSession, t]);
 
   const onPushToggle = useCallback(
@@ -220,7 +230,7 @@ function ProfileInner() {
       }
       setPushBusy(false);
     },
-    [t]
+    [t],
   );
 
   const merged = useMemo(() => {
@@ -279,14 +289,16 @@ function ProfileInner() {
       t("profile.weekdays.fri"),
       t("profile.weekdays.sat"),
     ],
-    [t]
+    [t],
   );
 
   const goals = useMemo(() => {
     const dailyLessonMission = missionsQuery.data?.daily_missions?.find(
-      (m) => m.goal_type === "complete_lesson"
+      (m) => m.goal_type === "complete_lesson",
     );
-    const dailyCurrent = dailyLessonMission ? Math.round(dailyLessonMission.progress ?? 0) : 0;
+    const dailyCurrent = dailyLessonMission
+      ? Math.round(dailyLessonMission.progress ?? 0)
+      : 0;
     const pts = typeof merged?.points === "number" ? merged.points : 0;
     const weeklyTarget = 500;
     return {
@@ -334,8 +346,15 @@ function ProfileInner() {
 
   if (!enabled) {
     return (
-      <ScreenScroll contentContainerStyle={[styles.container, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.textMuted }}>{t("auth.login.subtitle")}</Text>
+      <ScreenScroll
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: colors.bg },
+        ]}
+      >
+        <Text style={{ color: colors.textMuted }}>
+          {t("auth.login.subtitle")}
+        </Text>
       </ScreenScroll>
     );
   }
@@ -347,7 +366,11 @@ function ProfileInner() {
           <Skeleton width={64} height={64} borderRadius={32} />
           <View style={{ marginLeft: spacing.lg, flex: 1 }}>
             <Skeleton width="60%" height={20} />
-            <Skeleton width="80%" height={14} style={{ marginTop: spacing.sm }} />
+            <Skeleton
+              width="80%"
+              height={14}
+              style={{ marginTop: spacing.sm }}
+            />
           </View>
         </View>
         <Skeleton width="100%" height={80} style={{ marginTop: spacing.xxl }} />
@@ -358,7 +381,10 @@ function ProfileInner() {
   if (profileQuery.isError || !merged) {
     return (
       <View style={[styles.errorWrapper, { backgroundColor: colors.bg }]}>
-        <ErrorState message={t("profile.couldNotLoad")} onRetry={() => void profileQuery.refetch()} />
+        <ErrorState
+          message={t("profile.couldNotLoad")}
+          onRetry={() => void profileQuery.refetch()}
+        />
         <Button variant="ghost" onPress={() => void signOut()}>
           {t("widgets.userProgress.logout")}
         </Button>
@@ -367,9 +393,16 @@ function ProfileInner() {
   }
 
   const username =
-    merged.username ?? (merged.user as { username?: string } | undefined)?.username ?? "—";
-  const email = merged.email ?? (merged.user as { email?: string } | undefined)?.email ?? "—";
-  const displayName = [merged.first_name, merged.last_name].filter(Boolean).join(" ");
+    merged.username ??
+    (merged.user as { username?: string } | undefined)?.username ??
+    "—";
+  const email =
+    merged.email ??
+    (merged.user as { email?: string } | undefined)?.email ??
+    "—";
+  const displayName = [merged.first_name, merged.last_name]
+    .filter(Boolean)
+    .join(" ");
   const streak = merged.streak ?? 0;
   const points = merged.points ?? 0;
   const lessonsDone = progressQuery.data?.completed_lessons ?? 0;
@@ -378,7 +411,8 @@ function ProfileInner() {
   const rawAvatar =
     (merged.profile_avatar_url as string | undefined) ||
     (merged.avatar_url as string | undefined) ||
-    (merged.user as { profile_avatar_url?: string } | undefined)?.profile_avatar_url ||
+    (merged.user as { profile_avatar_url?: string } | undefined)
+      ?.profile_avatar_url ||
     (merged.profile_avatar as string | undefined) ||
     "";
   const avatarUri = rawAvatar
@@ -387,7 +421,8 @@ function ProfileInner() {
       : `${getMediaBaseUrl()}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
     : null;
 
-  const activityCalendar = (merged.activity_calendar as Record<string, unknown>) || {};
+  const activityCalendar =
+    (merged.activity_calendar as Record<string, unknown>) || {};
   const currentMonth = (merged.current_month as {
     first_day?: string | number | Date | null;
     last_day?: string | number | Date | null;
@@ -396,10 +431,14 @@ function ProfileInner() {
   }) || { first_day: null, last_day: null, month_name: "", year: null };
 
   const entitlements = entitlementsQuery.data;
-  const subActive = ["active", "trialing"].includes(String(entitlements?.status ?? ""));
+  const subActive = ["active", "trialing"].includes(
+    String(entitlements?.status ?? ""),
+  );
 
   const recentActivities = recentActivityQuery.data ?? [];
-  const activityVisible = showAllActivity ? recentActivities : recentActivities.slice(0, 3);
+  const activityVisible = showAllActivity
+    ? recentActivities
+    : recentActivities.slice(0, 3);
   const visibleBadgeLimit = 6;
   const badgesToShow = showAllBadges
     ? filteredBadges
@@ -411,18 +450,28 @@ function ProfileInner() {
     <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: colors.bg }]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+        />
       }
     >
       <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
         <Pressable onPress={() => void pickAvatar()} accessibilityRole="button">
-          <Avatar username={displayName || username} uri={localAvatarUri ?? avatarUri} size={64} />
+          <Avatar
+            username={displayName || username}
+            uri={localAvatarUri ?? avatarUri}
+            size={64}
+          />
         </Pressable>
         <View style={styles.nameCol}>
           <Text style={[styles.displayName, { color: colors.text }]}>
             {displayName || username || t("profile.fallbackUser")}
           </Text>
-          <Text style={[styles.email, { color: colors.textMuted }]}>{email}</Text>
+          <Text style={[styles.email, { color: colors.textMuted }]}>
+            {email}
+          </Text>
           <TextInput
             value={tagline}
             onChangeText={setTagline}
@@ -432,7 +481,11 @@ function ProfileInner() {
             maxLength={160}
             style={[
               styles.taglineInput,
-              { color: colors.text, borderColor: colors.border, backgroundColor: colors.surfaceOffset },
+              {
+                color: colors.text,
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceOffset,
+              },
             ]}
           />
         </View>
@@ -446,24 +499,35 @@ function ProfileInner() {
         >
           {t("profile.actions.personalizedPath")}
         </Button>
-        <Button variant="secondary" onPress={() => void shareProfile()} style={styles.actionBtn}>
+        <Button
+          variant="secondary"
+          onPress={() => void shareProfile()}
+          style={styles.actionBtn}
+        >
           Share profile
         </Button>
         <Button
           variant="secondary"
           onPress={() =>
-            router.push(
-              href(subActive ? "/billing" : "/subscriptions")
-            )
+            router.push(href(subActive ? "/billing" : "/subscriptions"))
           }
           style={styles.actionBtn}
         >
-          {subActive ? t("billing.manageSubscription") : t("profile.actions.subscription")}
+          {subActive
+            ? t("billing.manageSubscription")
+            : t("profile.actions.subscription")}
         </Button>
       </View>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("profile.goals.title")}</Text>
-      <Text style={[styles.sectionSub, { color: colors.textMuted, marginBottom: spacing.md }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {t("profile.goals.title")}
+      </Text>
+      <Text
+        style={[
+          styles.sectionSub,
+          { color: colors.textMuted, marginBottom: spacing.md },
+        ]}
+      >
         {t("profile.goals.subtitle")}
       </Text>
       <GoalCard colors={colors} goalKey="daily" goal={goals.daily} t={t} />
@@ -471,8 +535,15 @@ function ProfileInner() {
 
       <EntitlementUsageMobile items={entitlementUsage} colors={colors} />
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("profile.streak.title")}</Text>
-      <Text style={[styles.sectionSub, { color: colors.textMuted, marginBottom: spacing.sm }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {t("profile.streak.title")}
+      </Text>
+      <Text
+        style={[
+          styles.sectionSub,
+          { color: colors.textMuted, marginBottom: spacing.sm },
+        ]}
+      >
         {t("profile.streak.subtitle")}
       </Text>
       <ActivityCalendarMobile
@@ -482,7 +553,9 @@ function ProfileInner() {
         colors={colors}
       />
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("profile.stats.title")}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {t("profile.stats.title")}
+      </Text>
       <View
         style={[
           styles.statsGrid,
@@ -507,7 +580,11 @@ function ProfileInner() {
           />
         </View>
         <View style={styles.statsRowPair}>
-          <StatBox label={t("profile.stats.streak")} value={`${streak} 🔥`} colors={colors} />
+          <StatBox
+            label={t("profile.stats.streak")}
+            value={`${streak} 🔥`}
+            colors={colors}
+          />
           <StatBox
             label={t("profile.stats.lessonsShort")}
             colors={colors}
@@ -535,11 +612,20 @@ function ProfileInner() {
               styles.chip,
               {
                 borderColor: colors.border,
-                backgroundColor: badgeFilter === key ? colors.primary + "22" : colors.surfaceOffset,
+                backgroundColor:
+                  badgeFilter === key
+                    ? colors.primary + "22"
+                    : colors.surfaceOffset,
               },
             ]}
           >
-            <Text style={{ color: colors.text, fontSize: typography.xs, fontWeight: "600" }}>
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: typography.xs,
+                fontWeight: "600",
+              }}
+            >
               {label}
             </Text>
           </Pressable>
@@ -550,7 +636,11 @@ function ProfileInner() {
           {t("profile.couldNotLoad")}
         </Text>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: spacing.md }}
+        >
           {badgesToShow.map((row) => {
             const src = row.badge.image_url
               ? /^https?:\/\//i.test(row.badge.image_url)
@@ -570,11 +660,23 @@ function ProfileInner() {
                 ]}
               >
                 {src ? (
-                  <Image source={{ uri: src }} style={styles.badgeImg} accessibilityIgnoresInvertColors />
+                  <Image
+                    source={{ uri: src }}
+                    style={styles.badgeImg}
+                    accessibilityIgnoresInvertColors
+                  />
                 ) : (
-                  <View style={[styles.badgeImg, { backgroundColor: colors.border }]} />
+                  <View
+                    style={[
+                      styles.badgeImg,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
                 )}
-                <Text numberOfLines={2} style={[styles.badgeName, { color: colors.text }]}>
+                <Text
+                  numberOfLines={2}
+                  style={[styles.badgeName, { color: colors.text }]}
+                >
                   {row.badge.name}
                 </Text>
               </View>
@@ -584,15 +686,29 @@ function ProfileInner() {
       )}
       {filteredBadges.length > visibleBadgeLimit ? (
         <Pressable onPress={() => setShowAllBadges((v) => !v)}>
-          <Text style={{ color: colors.primary, fontWeight: "600", marginBottom: spacing.lg }}>
-            {showAllBadges ? t("profile.achievements.showLess") : t("profile.achievements.showAll")}
+          <Text
+            style={{
+              color: colors.primary,
+              fontWeight: "600",
+              marginBottom: spacing.lg,
+            }}
+          >
+            {showAllBadges
+              ? t("profile.achievements.showLess")
+              : t("profile.achievements.showAll")}
           </Text>
         </Pressable>
       ) : null}
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("profile.activity.title")}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {t("profile.activity.title")}
+      </Text>
       {recentActivityQuery.isPending ? (
-        <Skeleton width="100%" height={48} style={{ marginBottom: spacing.sm }} />
+        <Skeleton
+          width="100%"
+          height={48}
+          style={{ marginBottom: spacing.sm }}
+        />
       ) : recentActivities.length === 0 ? (
         <Text style={{ color: colors.textMuted, marginBottom: spacing.lg }}>
           {t("profile.activity.empty")}
@@ -601,7 +717,9 @@ function ProfileInner() {
         <>
           {activityVisible.map((activity: RecentActivityItem, idx: number) => {
             const title = String(activity.title || activity.name || "");
-            const ts = activity.timestamp ? formatRelativeTime(activity.timestamp, i18n.language) : "";
+            const ts = activity.timestamp
+              ? formatRelativeTime(activity.timestamp, i18n.language)
+              : "";
             return (
               <Card
                 key={`${activity.type}-${activity.timestamp}-${idx}`}
@@ -611,8 +729,16 @@ function ProfileInner() {
                   borderColor: colors.border,
                 }}
               >
-                <Text style={{ color: colors.text, fontWeight: "600" }}>{title}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: typography.xs, marginTop: 4 }}>
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  {title}
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textMuted,
+                    fontSize: typography.xs,
+                    marginTop: 4,
+                  }}
+                >
                   {activity.action} {ts ? `· ${ts}` : ""}
                   {activity.course ? ` · ${activity.course}` : ""}
                 </Text>
@@ -621,8 +747,16 @@ function ProfileInner() {
           })}
           {recentActivities.length > 3 ? (
             <Pressable onPress={() => setShowAllActivity((v) => !v)}>
-              <Text style={{ color: colors.primary, fontWeight: "600", marginBottom: spacing.lg }}>
-                {showAllActivity ? t("profile.achievements.showLess") : t("profile.achievements.showAll")}
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontWeight: "600",
+                  marginBottom: spacing.lg,
+                }}
+              >
+                {showAllActivity
+                  ? t("profile.achievements.showLess")
+                  : t("profile.achievements.showAll")}
               </Text>
             </Pressable>
           ) : null}
@@ -630,21 +764,42 @@ function ProfileInner() {
       )}
 
       {merged.referral_code ? (
-        <Card style={{ marginBottom: spacing.lg, backgroundColor: colors.surfaceOffset }}>
+        <Card
+          style={{
+            marginBottom: spacing.lg,
+            backgroundColor: colors.surfaceOffset,
+          }}
+        >
           <Text style={[styles.subheading, { color: colors.textMuted }]}>
             {t("profile.referral.title")}
           </Text>
-          <Text style={{ fontSize: typography.lg, fontWeight: "800", color: colors.accent }}>
+          <Text
+            style={{
+              fontSize: typography.lg,
+              fontWeight: "800",
+              color: colors.accent,
+            }}
+          >
             {String(merged.referral_code)}
           </Text>
-          <Text style={{ color: colors.textMuted, fontSize: typography.xs, marginTop: spacing.xs }}>
+          <Text
+            style={{
+              color: colors.textMuted,
+              fontSize: typography.xs,
+              marginTop: spacing.xs,
+            }}
+          >
             {t("profile.referral.subtitle")}
           </Text>
         </Card>
       ) : null}
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("profile.menuSection")}</Text>
-      <Card style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {t("profile.menuSection")}
+      </Text>
+      <Card
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      >
         <MenuRow
           icon={navIcons.settings}
           label={t("nav.settings")}
@@ -710,7 +865,9 @@ function ProfileInner() {
       <Text style={[styles.sectionTitle, { color: colors.text }]}>
         {t("profile.quickTogglesSection")}
       </Text>
-      <Card style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
+      <Card
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      >
         <RowSwitch
           label={t("profile.heartsUi")}
           value={showHeartsUi}
@@ -726,14 +883,31 @@ function ProfileInner() {
         />
       </Card>
 
-      <Card style={{ marginTop: spacing.lg, backgroundColor: colors.surface, borderColor: colors.border }}>
-        <InfoRow label={t("auth.register.username")} value={username} colors={colors} />
+      <Card
+        style={{
+          marginTop: spacing.lg,
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        }}
+      >
+        <InfoRow
+          label={t("auth.register.username")}
+          value={username}
+          colors={colors}
+        />
         <View style={[styles.separator, { backgroundColor: colors.border }]} />
-        <InfoRow label={t("auth.register.email")} value={email} colors={colors} />
+        <InfoRow
+          label={t("auth.register.email")}
+          value={email}
+          colors={colors}
+        />
       </Card>
 
       <View style={styles.actions}>
-        <Button variant="secondary" onPress={() => router.push("/change-password")}>
+        <Button
+          variant="secondary"
+          onPress={() => router.push("/change-password")}
+        >
           {t("settings.password.title")}
         </Button>
         <Button variant="danger" onPress={() => void signOut()}>
@@ -767,14 +941,41 @@ function GoalCard({
         borderColor: colors.border,
       }}
     >
-      <Text style={{ color: colors.text, fontWeight: "700", fontSize: typography.sm }}>
-        {goalKey === "daily" ? t("profile.goals.dailyTitle") : t("profile.goals.weeklyTitle")}
+      <Text
+        style={{
+          color: colors.text,
+          fontWeight: "700",
+          fontSize: typography.sm,
+        }}
+      >
+        {goalKey === "daily"
+          ? t("profile.goals.dailyTitle")
+          : t("profile.goals.weeklyTitle")}
       </Text>
-      <Text style={{ color: colors.textMuted, fontSize: typography.xs, marginTop: 4 }}>{goal.label}</Text>
+      <Text
+        style={{
+          color: colors.textMuted,
+          fontSize: typography.xs,
+          marginTop: 4,
+        }}
+      >
+        {goal.label}
+      </Text>
       <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
-        <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: colors.primary }]} />
+        <View
+          style={[
+            styles.progressFill,
+            { width: `${pct}%`, backgroundColor: colors.primary },
+          ]}
+        />
       </View>
-      <Text style={{ color: colors.textMuted, fontSize: typography.xs, marginTop: spacing.sm }}>
+      <Text
+        style={{
+          color: colors.textMuted,
+          fontSize: typography.xs,
+          marginTop: spacing.sm,
+        }}
+      >
         {Math.min(goal.current, goal.target)} / {goal.target}
         {goal.completed ? ` ${t("profile.goals.completed")}` : ""}
       </Text>
@@ -805,11 +1006,17 @@ function StatBox({
           style={[styles.statValue, { color: colors.text }]}
         />
       ) : (
-        <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1}>
+        <Text
+          style={[styles.statValue, { color: colors.text }]}
+          numberOfLines={1}
+        >
           {value ?? ""}
         </Text>
       )}
-      <Text style={[styles.statLabel, { color: colors.textMuted }]} numberOfLines={2}>
+      <Text
+        style={[styles.statLabel, { color: colors.textMuted }]}
+        numberOfLines={2}
+      >
         {label}
       </Text>
     </View>
@@ -827,7 +1034,9 @@ function InfoRow({
 }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={[styles.infoLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+        {label}
+      </Text>
       <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
@@ -881,7 +1090,11 @@ function MenuRow({
         },
       ]}
     >
-      <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={22} color={colors.primary} />
+      <Ionicons
+        name={icon as keyof typeof Ionicons.glyphMap}
+        size={22}
+        color={colors.primary}
+      />
       <Text style={[styles.menuLabel, { color: colors.text }]}>{label}</Text>
       <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
     </Pressable>
@@ -929,7 +1142,12 @@ const styles = StyleSheet.create({
     fontSize: typography.sm,
     textAlignVertical: "top",
   },
-  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
+  actionRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
   actionBtn: { flex: 1, minWidth: 140 },
   statsGrid: {
     borderRadius: radius.lg,
@@ -974,7 +1192,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: { height: "100%", borderRadius: 3 },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,

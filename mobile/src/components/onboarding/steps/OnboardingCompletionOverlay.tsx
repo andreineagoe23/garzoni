@@ -1,6 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "../../ui";
-import { colors, radius, shadows, spacing, typography } from "../../../theme/tokens";
+import {
+  colors,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../../theme/tokens";
 
 type Props = {
   xp: number;
@@ -42,7 +48,11 @@ export default function OnboardingCompletionOverlay({
 }
 
 const styles = StyleSheet.create({
-  completionOverlay: { alignItems: "center", width: "100%", paddingHorizontal: spacing.lg },
+  completionOverlay: {
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: spacing.lg,
+  },
   completionEmoji: { fontSize: 72 },
   completionTitle: {
     fontSize: typography.xxl,

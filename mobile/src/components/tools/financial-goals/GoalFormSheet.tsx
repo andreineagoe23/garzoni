@@ -126,10 +126,15 @@ export function GoalFormSheet({
           setSubmitting(false);
           return;
         }
-        await (apiClient as any).post(`/financial-goals/${goal.id}/add_funds/`, {
-          amount: String(a),
-        });
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await (apiClient as any).post(
+          `/financial-goals/${goal.id}/add_funds/`,
+          {
+            amount: String(a),
+          },
+        );
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         onSaved();
         onClose();
       } else if (mode === "edit" && goal) {
@@ -139,7 +144,9 @@ export function GoalFormSheet({
           current_amount: form.current_amount,
           deadline: form.deadline || null,
         });
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         onSaved();
         onClose();
       } else {
@@ -149,7 +156,9 @@ export function GoalFormSheet({
           current_amount: form.current_amount,
           deadline: form.deadline,
         });
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         onSaved();
         onClose();
       }
@@ -159,7 +168,16 @@ export function GoalFormSheet({
     } finally {
       setSubmitting(false);
     }
-  }, [amount, form, goal, labels.positiveAmount, labels.requestFailed, mode, onClose, onSaved]);
+  }, [
+    amount,
+    form,
+    goal,
+    labels.positiveAmount,
+    labels.requestFailed,
+    mode,
+    onClose,
+    onSaved,
+  ]);
 
   return (
     <Modal
@@ -193,132 +211,138 @@ export function GoalFormSheet({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.sheetBody}
           >
-              {mode === "addFunds" ? (
-                <>
-                  <Text style={[styles.label, { color: c.textMuted }]}>
-                    {labels.amount}
-                  </Text>
-                  <TextInput
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="decimal-pad"
-                    placeholder={labels.placeholders.amount}
-                    placeholderTextColor={c.textFaint}
-                    style={[
-                      styles.input,
-                      {
-                        color: c.text,
-                        borderColor: c.border,
-                        backgroundColor: c.inputBg,
-                      },
-                    ]}
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={[styles.label, { color: c.textMuted }]}>
-                    {labels.goalName}
-                  </Text>
-                  <TextInput
-                    value={form.goal_name}
-                    onChangeText={(v) => setForm((p) => ({ ...p, goal_name: v }))}
-                    placeholder={labels.placeholders.goalName}
-                    placeholderTextColor={c.textFaint}
-                    style={[
-                      styles.input,
-                      {
-                        color: c.text,
-                        borderColor: c.border,
-                        backgroundColor: c.inputBg,
-                      },
-                    ]}
-                  />
-                  <Text style={[styles.label, { color: c.textMuted }]}>
-                    {labels.targetAmount}
-                  </Text>
-                  <TextInput
-                    value={form.target_amount}
-                    onChangeText={(v) => setForm((p) => ({ ...p, target_amount: v }))}
-                    keyboardType="decimal-pad"
-                    placeholder={labels.placeholders.target}
-                    placeholderTextColor={c.textFaint}
-                    style={[
-                      styles.input,
-                      {
-                        color: c.text,
-                        borderColor: c.border,
-                        backgroundColor: c.inputBg,
-                      },
-                    ]}
-                  />
-                  <Text style={[styles.label, { color: c.textMuted }]}>
-                    {labels.currentAmount}
-                  </Text>
-                  <TextInput
-                    value={form.current_amount}
-                    onChangeText={(v) => setForm((p) => ({ ...p, current_amount: v }))}
-                    keyboardType="decimal-pad"
-                    placeholder={labels.placeholders.current}
-                    placeholderTextColor={c.textFaint}
-                    style={[
-                      styles.input,
-                      {
-                        color: c.text,
-                        borderColor: c.border,
-                        backgroundColor: c.inputBg,
-                      },
-                    ]}
-                  />
-                  <Text style={[styles.label, { color: c.textMuted }]}>
-                    {labels.targetDate}
-                  </Text>
-                  <TextInput
-                    value={form.deadline}
-                    onChangeText={(v) => setForm((p) => ({ ...p, deadline: v }))}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor={c.textFaint}
-                    style={[
-                      styles.input,
-                      {
-                        color: c.text,
-                        borderColor: c.border,
-                        backgroundColor: c.inputBg,
-                      },
-                    ]}
-                  />
-                </>
-              )}
-              {error ? (
-                <Text style={[styles.err, { color: c.error }]}>{error}</Text>
-              ) : null}
-              <View style={styles.rowBtns}>
-                <Pressable
-                  onPress={onClose}
-                  style={({ pressed }) => [
-                    styles.btnGhost,
-                    { borderColor: c.border, opacity: pressed ? 0.7 : 1 },
-                  ]}
-                >
-                  <Text style={[styles.btnGhostText, { color: c.text }]}>
-                    {labels.cancel}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => void handleSubmit()}
-                  disabled={submitting}
-                  style={({ pressed }) => [
-                    styles.btnPrimary,
+            {mode === "addFunds" ? (
+              <>
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {labels.amount}
+                </Text>
+                <TextInput
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="decimal-pad"
+                  placeholder={labels.placeholders.amount}
+                  placeholderTextColor={c.textFaint}
+                  style={[
+                    styles.input,
                     {
-                      backgroundColor: c.primary,
-                      opacity: submitting || pressed ? 0.85 : 1,
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
                     },
                   ]}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {labels.goalName}
+                </Text>
+                <TextInput
+                  value={form.goal_name}
+                  onChangeText={(v) => setForm((p) => ({ ...p, goal_name: v }))}
+                  placeholder={labels.placeholders.goalName}
+                  placeholderTextColor={c.textFaint}
+                  style={[
+                    styles.input,
+                    {
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
+                    },
+                  ]}
+                />
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {labels.targetAmount}
+                </Text>
+                <TextInput
+                  value={form.target_amount}
+                  onChangeText={(v) =>
+                    setForm((p) => ({ ...p, target_amount: v }))
+                  }
+                  keyboardType="decimal-pad"
+                  placeholder={labels.placeholders.target}
+                  placeholderTextColor={c.textFaint}
+                  style={[
+                    styles.input,
+                    {
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
+                    },
+                  ]}
+                />
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {labels.currentAmount}
+                </Text>
+                <TextInput
+                  value={form.current_amount}
+                  onChangeText={(v) =>
+                    setForm((p) => ({ ...p, current_amount: v }))
+                  }
+                  keyboardType="decimal-pad"
+                  placeholder={labels.placeholders.current}
+                  placeholderTextColor={c.textFaint}
+                  style={[
+                    styles.input,
+                    {
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
+                    },
+                  ]}
+                />
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {labels.targetDate}
+                </Text>
+                <TextInput
+                  value={form.deadline}
+                  onChangeText={(v) => setForm((p) => ({ ...p, deadline: v }))}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={c.textFaint}
+                  style={[
+                    styles.input,
+                    {
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
+                    },
+                  ]}
+                />
+              </>
+            )}
+            {error ? (
+              <Text style={[styles.err, { color: c.error }]}>{error}</Text>
+            ) : null}
+            <View style={styles.rowBtns}>
+              <Pressable
+                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.btnGhost,
+                  { borderColor: c.border, opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <Text style={[styles.btnGhostText, { color: c.text }]}>
+                  {labels.cancel}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void handleSubmit()}
+                disabled={submitting}
+                style={({ pressed }) => [
+                  styles.btnPrimary,
+                  {
+                    backgroundColor: c.primary,
+                    opacity: submitting || pressed ? 0.85 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.btnPrimaryText, { color: c.textOnPrimary }]}
                 >
-                  <Text style={[styles.btnPrimaryText, { color: c.textOnPrimary }]}>
-                    {mode === "addFunds" ? labels.add : labels.save}
-                  </Text>
-                </Pressable>
-              </View>
+                  {mode === "addFunds" ? labels.add : labels.save}
+                </Text>
+              </Pressable>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </Animated.View>
@@ -358,7 +382,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sheetBody: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
-  label: { fontSize: typography.sm, fontWeight: "600", marginBottom: 6, marginTop: spacing.sm },
+  label: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    marginBottom: 6,
+    marginTop: spacing.sm,
+  },
   input: {
     minHeight: 48,
     borderWidth: 1,

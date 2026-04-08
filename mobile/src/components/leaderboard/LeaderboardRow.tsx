@@ -52,13 +52,19 @@ export default function LeaderboardRow({
           disabled={!onPrimaryPress}
           style={styles.primaryTap}
         >
-          <View style={[styles.rankBadge, { backgroundColor: c.surfaceOffset }]}>
-            <Text style={[styles.rankText, { color: c.text }]}>#{position}</Text>
+          <View
+            style={[styles.rankBadge, { backgroundColor: c.surfaceOffset }]}
+          >
+            <Text style={[styles.rankText, { color: c.text }]}>
+              #{position}
+            </Text>
           </View>
           {uri ? (
             <Image source={{ uri }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, { backgroundColor: c.surfaceOffset }]} />
+            <View
+              style={[styles.avatar, { backgroundColor: c.surfaceOffset }]}
+            />
           )}
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={styles.nameRow}>
@@ -66,7 +72,9 @@ export default function LeaderboardRow({
                 {entry.user?.username ?? "—"}
               </Text>
               {isYou ? (
-                <View style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}>
+                <View
+                  style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}
+                >
                   <Text style={[styles.youPillText, { color: c.primary }]}>
                     {t("leaderboard.youBadge")}
                   </Text>
@@ -109,7 +117,11 @@ export default function LeaderboardRow({
               style={[
                 styles.friendBtnText,
                 {
-                  color: isFriend ? c.accent : pending ? c.textMuted : c.textOnPrimary,
+                  color: isFriend
+                    ? c.accent
+                    : pending
+                      ? c.textMuted
+                      : c.textOnPrimary,
                 },
               ]}
               numberOfLines={1}
@@ -130,7 +142,13 @@ export default function LeaderboardRow({
 const styles = StyleSheet.create({
   card: { marginBottom: spacing.md, borderWidth: StyleSheet.hairlineWidth },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  primaryTap: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0 },
+  primaryTap: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minWidth: 0,
+  },
   rankBadge: {
     width: 40,
     height: 40,
@@ -140,7 +158,12 @@ const styles = StyleSheet.create({
   },
   rankText: { fontSize: typography.sm, fontWeight: "800" },
   avatar: { width: 48, height: 48, borderRadius: 24 },
-  nameRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
+  nameRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 6,
+  },
   name: { fontSize: typography.base, fontWeight: "700", flexShrink: 1 },
   youPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   youPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
@@ -151,5 +174,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     maxWidth: 120,
   },
-  friendBtnText: { fontSize: typography.xs, fontWeight: "700", textAlign: "center" },
+  friendBtnText: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });

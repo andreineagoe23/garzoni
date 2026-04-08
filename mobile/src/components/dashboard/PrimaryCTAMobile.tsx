@@ -51,7 +51,9 @@ export default function PrimaryCTAMobile({ primaryCTA }: Props) {
             <MaterialCommunityIcons name={icon} size={24} color={c.primary} />
           ) : null}
           <View style={styles.textCol}>
-            <Text style={[styles.title, { color: c.text }]}>{primaryCTA.text}</Text>
+            <Text style={[styles.title, { color: c.text }]}>
+              {primaryCTA.text}
+            </Text>
             <Text style={[styles.reason, { color: c.textMuted }]}>
               {primaryCTA.reason || t("dashboard.primaryCta.continueReason")}
             </Text>
@@ -78,7 +80,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  left: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0 },
+  left: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minWidth: 0,
+  },
   textCol: { flex: 1, minWidth: 0 },
   title: { fontSize: typography.sm, fontWeight: "800" },
   reason: { fontSize: typography.xs, marginTop: 4, lineHeight: 18 },

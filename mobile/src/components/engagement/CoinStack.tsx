@@ -35,7 +35,9 @@ export default function CoinStack({
                 styles.coin,
                 {
                   borderColor: unlocked ? "rgba(16,185,129,0.45)" : c.border,
-                  backgroundColor: unlocked ? "rgba(16,185,129,0.12)" : c.surface,
+                  backgroundColor: unlocked
+                    ? "rgba(16,185,129,0.12)"
+                    : c.surface,
                 },
               ]}
             >
@@ -48,7 +50,9 @@ export default function CoinStack({
                 £{amount}
               </Text>
               <Text style={[styles.coinLabel, { color: c.textMuted }]}>
-                {unlocked ? t("missions.savings.unlocked") : t("missions.savings.locked")}
+                {unlocked
+                  ? t("missions.savings.unlocked")
+                  : t("missions.savings.locked")}
               </Text>
             </View>
           );
@@ -93,5 +97,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
   },
-  nextHintText: { fontSize: typography.xs, fontWeight: "600", textAlign: "center" },
+  nextHintText: {
+    fontSize: typography.xs,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });

@@ -15,13 +15,13 @@ jobs:
       DEBUG: "True"
       CELERY_TASK_ALWAYS_EAGER: "True"
       DJANGO_SETTINGS_MODULE: settings.settings
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/garzoni_test  # pragma: allowlist secret
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/garzoni_test # pragma: allowlist secret
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres  # pragma: allowlist secret
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
           POSTGRES_DB: garzoni_test
         ports:
           - 5432:5432

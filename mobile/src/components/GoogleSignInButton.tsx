@@ -20,7 +20,11 @@ import {
 export type SocialAuthSuccessMeta = { next?: string };
 
 type Props = {
-  onSuccess: (access: string, refresh?: string, meta?: SocialAuthSuccessMeta) => void;
+  onSuccess: (
+    access: string,
+    refresh?: string,
+    meta?: SocialAuthSuccessMeta,
+  ) => void;
   onError: (message: string) => void;
 };
 
@@ -32,11 +36,7 @@ function ensureConfigured(): boolean {
   const webClientId = getGoogleWebClientId();
   const iosClientId = getGoogleIosClientId();
   if (!webClientId && !iosClientId) return false;
-  if (
-    configured &&
-    webClientId === lastWeb &&
-    iosClientId === lastIos
-  ) {
+  if (configured && webClientId === lastWeb && iosClientId === lastIos) {
     return true;
   }
   GoogleSignin.configure({
@@ -78,7 +78,9 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
         idToken = tokens.idToken;
       }
       if (!idToken) {
-        onError("Google did not return an ID token. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (Android) / iOS client id.");
+        onError(
+          "Google did not return an ID token. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (Android) / iOS client id.",
+        );
         return;
       }
       const { data } = await googleVerifyCredential({
@@ -101,7 +103,7 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
         (!msg && String(e) === "Network Error")
       ) {
         onError(
-          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL to your Railway URL and restart Expo.`
+          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL to your Railway URL and restart Expo.`,
         );
         return;
       }

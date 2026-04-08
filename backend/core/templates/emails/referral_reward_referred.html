@@ -1,25 +1,37 @@
-{% extends "emails/_base.html" %}
-
-{% block title %}You received a referral bonus{% endblock %}
-{% block header %}Welcome bonus unlocked{% endblock %}
-{% block preheader %}You joined via referral and received bonus coins.{% endblock %}
-
-{% block content %}
-  <p style="margin:0 0 14px 0;">Hi {{ display_name }},</p>
-  <p style="margin:0 0 14px 0;">
-    You joined Garzoni via {{ friend_name }}'s referral.
-  </p>
-  <p style="margin:0 0 14px 0;font-weight:700;">
-    Your account received {{ bonus_coins }} bonus coins.
-  </p>
-  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;">
-    <tr>
-      <td>
-        <a href="{{ app_url }}"
-           style="display:inline-block;background:#1D5330;color:#FFFFFF;text-decoration:none;font-weight:800;padding:12px 16px;border-radius:12px;">
-          Start learning
-        </a>
-      </td>
-    </tr>
-  </table>
+{% extends "emails/_base.html" %} {% block title %}You received a referral
+bonus{% endblock %} {% block header %}Welcome bonus unlocked{% endblock %} {%
+block preheader %}You joined via referral and received bonus coins.{% endblock
+%} {% block content %}
+<p style="margin: 0 0 14px 0">Hi {{ display_name }},</p>
+<p style="margin: 0 0 14px 0">
+  You joined Garzoni via {{ friend_name }}'s referral.
+</p>
+<p style="margin: 0 0 14px 0; font-weight: 700">
+  Your account received {{ bonus_coins }} bonus coins.
+</p>
+<table
+  role="presentation"
+  cellpadding="0"
+  cellspacing="0"
+  style="margin: 18px 0"
+>
+  <tr>
+    <td>
+      <a
+        href="{{ app_url }}"
+        style="
+          display: inline-block;
+          background: #1d5330;
+          color: #ffffff;
+          text-decoration: none;
+          font-weight: 800;
+          padding: 12px 16px;
+          border-radius: 12px;
+        "
+      >
+        Start learning
+      </a>
+    </td>
+  </tr>
+</table>
 {% endblock %}

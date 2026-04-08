@@ -41,14 +41,17 @@ export default function ChatScreen() {
         role,
         content,
       }));
-      const reply = await requestAiTutorResponse(text, { chatHistory: history });
+      const reply = await requestAiTutorResponse(text, {
+        chatHistory: history,
+      });
       setMessages((m) => [...m, { role: "assistant", content: reply || "…" }]);
     } catch {
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
-          content: "Sorry — I couldn't reach the tutor right now. Try again shortly.",
+          content:
+            "Sorry — I couldn't reach the tutor right now. Try again shortly.",
         },
       ]);
     } finally {
@@ -59,7 +62,13 @@ export default function ChatScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "AI Tutor", headerShown: true, headerTintColor: c.primary }} />
+      <Stack.Screen
+        options={{
+          title: "AI Tutor",
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
       <KeyboardAvoidingView
         style={[styles.flex, { backgroundColor: c.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -68,14 +77,23 @@ export default function ChatScreen() {
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scroll}
-          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
         >
           {messages.map((m, i) => (
             <View
               key={`${i}-${m.role}`}
               style={[
                 styles.bubble,
-                m.role === "user" ? { alignSelf: "flex-end", backgroundColor: c.primary } : { alignSelf: "flex-start", backgroundColor: c.surfaceElevated, borderColor: c.border, borderWidth: StyleSheet.hairlineWidth },
+                m.role === "user"
+                  ? { alignSelf: "flex-end", backgroundColor: c.primary }
+                  : {
+                      alignSelf: "flex-start",
+                      backgroundColor: c.surfaceElevated,
+                      borderColor: c.border,
+                      borderWidth: StyleSheet.hairlineWidth,
+                    },
               ]}
             >
               <Text
@@ -90,17 +108,35 @@ export default function ChatScreen() {
             </View>
           ))}
         </ScrollView>
-        <View style={[styles.inputRow, { borderTopColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.inputRow,
+            { borderTopColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <TextInput
             value={input}
             onChangeText={setInput}
             placeholder="Ask a question…"
             placeholderTextColor={c.textFaint}
-            style={[styles.input, { borderColor: c.border, color: c.text, backgroundColor: c.inputBg }]}
+            style={[
+              styles.input,
+              {
+                borderColor: c.border,
+                color: c.text,
+                backgroundColor: c.inputBg,
+              },
+            ]}
             multiline
             editable={!busy}
           />
-          <GlassButton variant="active" size="md" onPress={() => void send()} loading={busy} disabled={!input.trim()}>
+          <GlassButton
+            variant="active"
+            size="md"
+            onPress={() => void send()}
+            loading={busy}
+            disabled={!input.trim()}
+          >
             Send
           </GlassButton>
         </View>

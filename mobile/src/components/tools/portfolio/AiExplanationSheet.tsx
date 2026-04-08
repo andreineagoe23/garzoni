@@ -24,7 +24,13 @@ type Props = {
   text: string;
 };
 
-export function AiExplanationSheet({ visible, onClose, loading, error, text }: Props) {
+export function AiExplanationSheet({
+  visible,
+  onClose,
+  loading,
+  error,
+  text,
+}: Props) {
   const c = useThemeColors();
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
 
@@ -61,7 +67,11 @@ export function AiExplanationSheet({ visible, onClose, loading, error, text }: P
       <Animated.View
         style={[
           styles.sheet,
-          { backgroundColor: c.surface, height: SHEET_HEIGHT, transform: [{ translateY }] },
+          {
+            backgroundColor: c.surface,
+            height: SHEET_HEIGHT,
+            transform: [{ translateY }],
+          },
         ]}
       >
         {/* Handle */}
@@ -79,7 +89,11 @@ export function AiExplanationSheet({ visible, onClose, loading, error, text }: P
             <Text style={[styles.title, { color: c.text }]}>
               AI Portfolio Take
             </Text>
-            <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close">
+            <Pressable
+              onPress={onClose}
+              style={styles.closeBtn}
+              accessibilityLabel="Close"
+            >
               <Text style={[styles.closeX, { color: c.textMuted }]}>✕</Text>
             </Pressable>
           </View>
@@ -100,8 +114,15 @@ export function AiExplanationSheet({ visible, onClose, loading, error, text }: P
           )}
 
           {error && !loading && (
-            <View style={[styles.errorBox, { backgroundColor: c.errorBg, borderColor: c.error }]}>
-              <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
+            <View
+              style={[
+                styles.errorBox,
+                { backgroundColor: c.errorBg, borderColor: c.error },
+              ]}
+            >
+              <Text style={[styles.errorText, { color: c.error }]}>
+                {error}
+              </Text>
             </View>
           )}
 

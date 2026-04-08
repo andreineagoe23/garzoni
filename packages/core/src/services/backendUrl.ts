@@ -67,5 +67,7 @@ export function getMediaBaseUrl(): string {
 
 /** Google OAuth client ID for One Tap / Sign-in button (same as backend GOOGLE_OAUTH_CLIENT_ID). */
 export const GOOGLE_OAUTH_CLIENT_ID =
-  readPublicEnv("VITE_GOOGLE_OAUTH_CLIENT_ID", "REACT_APP_GOOGLE_OAUTH_CLIENT_ID") ||
-  "";
+  readPublicEnv(
+    "VITE_GOOGLE_OAUTH_CLIENT_ID",
+    "REACT_APP_GOOGLE_OAUTH_CLIENT_ID",
+  ) || "";

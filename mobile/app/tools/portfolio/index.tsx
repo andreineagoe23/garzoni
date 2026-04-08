@@ -21,7 +21,12 @@ import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { apiClient, requestAiTutorResponse } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { spacing, typography, radius, shadows } from "../../../src/theme/tokens";
+import {
+  spacing,
+  typography,
+  radius,
+  shadows,
+} from "../../../src/theme/tokens";
 import {
   formatCurrency,
   formatPercent,
@@ -193,14 +198,22 @@ const emptyStyles = StyleSheet.create({
 
 const RISK_CONFIG = {
   low: { label: "Low Risk", bg: "rgba(46,125,50,0.12)", text: "#2e7d32" },
-  moderate: { label: "Moderate Risk", bg: "rgba(245,158,11,0.12)", text: "#b45309" },
+  moderate: {
+    label: "Moderate Risk",
+    bg: "rgba(245,158,11,0.12)",
+    text: "#b45309",
+  },
   high: { label: "High Risk", bg: "rgba(211,47,47,0.12)", text: "#d32f2f" },
 };
 
 const ALIGNMENT_CONFIG = {
   good_fit: { label: "Good Fit", bg: "rgba(46,125,50,0.12)", text: "#2e7d32" },
   risky: { label: "Risky", bg: "rgba(245,158,11,0.12)", text: "#b45309" },
-  misaligned: { label: "Misaligned", bg: "rgba(211,47,47,0.12)", text: "#d32f2f" },
+  misaligned: {
+    label: "Misaligned",
+    bg: "rgba(211,47,47,0.12)",
+    text: "#d32f2f",
+  },
 };
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
@@ -225,78 +238,120 @@ export default function PortfolioScreen() {
   const [aiText, setAiText] = useState("");
 
   // Demo form prefill (passed to add sheet via a callback queue)
-  const demoQueueRef = useRef<{ asset_type: string; symbol: string; quantity: string; purchase_price: string } | null>(null);
+  const demoQueueRef = useRef<{
+    asset_type: string;
+    symbol: string;
+    quantity: string;
+    purchase_price: string;
+  } | null>(null);
 
   // ── API helpers ──────────────────────────────────────────────────────────
 
-  const fetchStockPrice = useCallback(async (symbol: string): Promise<number | null> => {
-    try {
-      const res = await (apiClient as any).get("/stock-price/", { params: { symbol } });
-      return res.data?.price ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const fetchStockPrice = useCallback(
+    async (symbol: string): Promise<number | null> => {
+      try {
+        const res = await (apiClient as any).get("/stock-price/", {
+          params: { symbol },
+        });
+        return res.data?.price ?? null;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
 
-  const fetchCryptoPrice = useCallback(async (symbol: string): Promise<number | null> => {
-    try {
-      const normalized = symbol.trim().toLowerCase();
-      const id = COINGECKO_ID_MAP[normalized] || normalized;
-      const res = await (apiClient as any).get("/crypto-price/", { params: { id } });
-      return res.data?.price ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const fetchCryptoPrice = useCallback(
+    async (symbol: string): Promise<number | null> => {
+      try {
+        const normalized = symbol.trim().toLowerCase();
+        const id = COINGECKO_ID_MAP[normalized] || normalized;
+        const res = await (apiClient as any).get("/crypto-price/", {
+          params: { id },
+        });
+        return res.data?.price ?? null;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
 
-  const fetchPortfolio = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const res = await (apiClient as any).get("/portfolio/");
-      const fetched = (res.data || []) as PortfolioEntry[];
+  const fetchPortfolio = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        const res = await (apiClient as any).get("/portfolio/");
+        const fetched = (res.data || []) as PortfolioEntry[];
 
-      const withPrices = await Promise.all(
-        fetched.map(async (entry) => {
-          let currentPrice: number | null = null;
-          if (entry.asset_type === "stock" || entry.asset_type === "etf") {
-            currentPrice = await fetchStockPrice(entry.symbol);
-          } else if (entry.asset_type === "crypto") {
-            currentPrice = await fetchCryptoPrice(entry.symbol);
-          }
-          if (currentPrice != null) {
-            const currentValue = currentPrice * entry.quantity;
-            const gainLoss = currentValue - entry.purchase_price * entry.quantity;
-            const gainLossPercentage =
-              (gainLoss / (entry.purchase_price * entry.quantity)) * 100;
-            return { ...entry, current_price: currentPrice, current_value: currentValue, gain_loss: gainLoss, gain_loss_percentage: gainLossPercentage };
-          }
-          return entry;
-        })
-      );
+        const withPrices = await Promise.all(
+          fetched.map(async (entry) => {
+            let currentPrice: number | null = null;
+            if (entry.asset_type === "stock" || entry.asset_type === "etf") {
+              currentPrice = await fetchStockPrice(entry.symbol);
+            } else if (entry.asset_type === "crypto") {
+              currentPrice = await fetchCryptoPrice(entry.symbol);
+            }
+            if (currentPrice != null) {
+              const currentValue = currentPrice * entry.quantity;
+              const gainLoss =
+                currentValue - entry.purchase_price * entry.quantity;
+              const gainLossPercentage =
+                (gainLoss / (entry.purchase_price * entry.quantity)) * 100;
+              return {
+                ...entry,
+                current_price: currentPrice,
+                current_value: currentValue,
+                gain_loss: gainLoss,
+                gain_loss_percentage: gainLossPercentage,
+              };
+            }
+            return entry;
+          }),
+        );
 
-      setEntries(withPrices);
+        setEntries(withPrices);
 
-      const totalValue = withPrices.reduce((s, e) => s + (e.current_value || 0), 0);
-      const totalGainLoss = withPrices.reduce((s, e) => s + (e.gain_loss || 0), 0);
-      const allocation = withPrices.reduce<Record<string, number>>((acc, e) => {
-        acc[e.asset_type] = (acc[e.asset_type] || 0) + (e.current_value || 0);
-        return acc;
-      }, {});
+        const totalValue = withPrices.reduce(
+          (s, e) => s + (e.current_value || 0),
+          0,
+        );
+        const totalGainLoss = withPrices.reduce(
+          (s, e) => s + (e.gain_loss || 0),
+          0,
+        );
+        const allocation = withPrices.reduce<Record<string, number>>(
+          (acc, e) => {
+            acc[e.asset_type] =
+              (acc[e.asset_type] || 0) + (e.current_value || 0);
+            return acc;
+          },
+          {},
+        );
 
-      setSummary({ total_value: totalValue, total_gain_loss: totalGainLoss, allocation });
-      setError(null);
-    } catch {
-      setError("Failed to load portfolio. Pull down to retry.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [fetchCryptoPrice, fetchStockPrice]);
+        setSummary({
+          total_value: totalValue,
+          total_gain_loss: totalGainLoss,
+          allocation,
+        });
+        setError(null);
+      } catch {
+        setError("Failed to load portfolio. Pull down to retry.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [fetchCryptoPrice, fetchStockPrice],
+  );
 
   // Initial load + 5-minute auto-refresh
   useEffect(() => {
     void fetchPortfolio();
-    const interval = setInterval(() => void fetchPortfolio(true), 5 * 60 * 1000);
+    const interval = setInterval(
+      () => void fetchPortfolio(true),
+      5 * 60 * 1000,
+    );
     return () => clearInterval(interval);
   }, [fetchPortfolio]);
 
@@ -307,27 +362,40 @@ export default function PortfolioScreen() {
 
   // ── Delete ──────────────────────────────────────────────────────────────
 
-  const handleDelete = useCallback((id: string | number) => {
-    void (async () => {
-      try {
-        await (apiClient as any).delete(`/portfolio/${id}/`);
-        void fetchPortfolio(true);
-      } catch {
-        Alert.alert("Error", "Could not delete holding. Please try again.");
-      }
-    })();
-  }, [fetchPortfolio]);
+  const handleDelete = useCallback(
+    (id: string | number) => {
+      void (async () => {
+        try {
+          await (apiClient as any).delete(`/portfolio/${id}/`);
+          void fetchPortfolio(true);
+        } catch {
+          Alert.alert("Error", "Could not delete holding. Please try again.");
+        }
+      })();
+    },
+    [fetchPortfolio],
+  );
 
   // ── Demo prefill ─────────────────────────────────────────────────────────
 
   const handleDemoStock = useCallback(() => {
-    demoQueueRef.current = { asset_type: "stock", symbol: "AAPL", quantity: "10", purchase_price: "185" };
+    demoQueueRef.current = {
+      asset_type: "stock",
+      symbol: "AAPL",
+      quantity: "10",
+      purchase_price: "185",
+    };
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setAddSheetOpen(true);
   }, []);
 
   const handleDemoCrypto = useCallback(() => {
-    demoQueueRef.current = { asset_type: "crypto", symbol: "bitcoin", quantity: "0.25", purchase_price: "34000" };
+    demoQueueRef.current = {
+      asset_type: "crypto",
+      symbol: "bitcoin",
+      quantity: "0.25",
+      purchase_price: "34000",
+    };
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setAddSheetOpen(true);
   }, []);
@@ -338,7 +406,7 @@ export default function PortfolioScreen() {
     if (!summary || !summary.total_value || summary.total_value === 0) return 0;
     const totalCost = entries.reduce(
       (s, e) => s + (e.purchase_price * e.quantity || 0),
-      0
+      0,
     );
     if (totalCost === 0) return 0;
     return (summary.total_gain_loss / totalCost) * 100;
@@ -347,7 +415,10 @@ export default function PortfolioScreen() {
   const insight = useMemo((): PortfolioInsight | null => {
     if (!summary || entries.length === 0) return null;
     const total = summary.total_value || 0;
-    const totalCost = entries.reduce((s, e) => s + (e.purchase_price * e.quantity || 0), 0);
+    const totalCost = entries.reduce(
+      (s, e) => s + (e.purchase_price * e.quantity || 0),
+      0,
+    );
     const cryptoValue = summary.allocation?.crypto ?? 0;
     const stockValue = summary.allocation?.stock ?? 0;
     const cryptoPct = total > 0 ? (cryptoValue / total) * 100 : 0;
@@ -358,17 +429,23 @@ export default function PortfolioScreen() {
 
     const maxSinglePct = Math.max(
       ...entries.map((e) => ((e.current_value ?? 0) / total) * 100),
-      0
+      0,
     );
 
     if (entries.length === 1) {
-      problems.push("You only have one investment — this concentrates all your risk.");
+      problems.push(
+        "You only have one investment — this concentrates all your risk.",
+      );
       riskLevel = "high";
     } else if (maxSinglePct >= 60) {
-      problems.push(`Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio — highly concentrated.`);
+      problems.push(
+        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio — highly concentrated.`,
+      );
       riskLevel = "high";
     } else if (maxSinglePct >= 40) {
-      problems.push(`Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio.`);
+      problems.push(
+        `Your largest holding is ${Math.round(maxSinglePct)}% of your portfolio.`,
+      );
       riskLevel = "moderate";
     }
 
@@ -378,23 +455,38 @@ export default function PortfolioScreen() {
     }
 
     if (totalCost > 0 && totalGainLossPercentage < -10) {
-      bullets.push("Your portfolio is down on paper — consider reviewing your positions.");
+      bullets.push(
+        "Your portfolio is down on paper — consider reviewing your positions.",
+      );
     }
-    if (entries.length >= 2 && Object.keys(summary.allocation || {}).length >= 2) {
-      bullets.push(`You're spread across ${Object.keys(summary.allocation).length} asset classes.`);
+    if (
+      entries.length >= 2 &&
+      Object.keys(summary.allocation || {}).length >= 2
+    ) {
+      bullets.push(
+        `You're spread across ${Object.keys(summary.allocation).length} asset classes.`,
+      );
     }
     if (total > 0 && stockValue > 0) {
-      bullets.push(`Stocks make up ${Math.round((stockValue / total) * 100)}% of your portfolio.`);
+      bullets.push(
+        `Stocks make up ${Math.round((stockValue / total) * 100)}% of your portfolio.`,
+      );
     }
     if (total > 0 && cryptoValue > 0) {
-      bullets.push(`Crypto makes up ${Math.round((cryptoValue / total) * 100)}% of your portfolio.`);
+      bullets.push(
+        `Crypto makes up ${Math.round((cryptoValue / total) * 100)}% of your portfolio.`,
+      );
     }
     bullets.push(
-      `Total portfolio value: ${formatCurrency(total)} (${totalGainLossPercentage >= 0 ? "gain" : "loss"} of ${formatPercent(Math.abs(totalGainLossPercentage), 1)})`
+      `Total portfolio value: ${formatCurrency(total)} (${totalGainLossPercentage >= 0 ? "gain" : "loss"} of ${formatPercent(Math.abs(totalGainLossPercentage), 1)})`,
     );
 
     let goalAlignment: "good_fit" | "risky" | "misaligned" =
-      riskLevel === "high" ? "misaligned" : riskLevel === "moderate" ? "risky" : "good_fit";
+      riskLevel === "high"
+        ? "misaligned"
+        : riskLevel === "moderate"
+          ? "risky"
+          : "good_fit";
 
     const insightCards: InsightCard[] = [];
 
@@ -404,7 +496,10 @@ export default function PortfolioScreen() {
         title: "High Concentration Risk",
         meaning: `${Math.round(maxSinglePct)}% of your portfolio is in one asset.`,
         why: "A single holding dominating your portfolio means one bad event can wipe out significant value.",
-        nextSteps: ["Consider adding 2–3 more positions", "Target no single holding above 25–30%"],
+        nextSteps: [
+          "Consider adding 2–3 more positions",
+          "Target no single holding above 25–30%",
+        ],
         confidence: "high",
       });
     }
@@ -415,7 +510,10 @@ export default function PortfolioScreen() {
         title: "Limited Diversification",
         meaning: `You have ${entries.length} holding${entries.length === 1 ? "" : "s"} — portfolios typically benefit from more variety.`,
         why: "Diversification reduces the impact of any single asset performing poorly.",
-        nextSteps: ["Explore ETFs for instant diversification", "Consider adding a different asset class"],
+        nextSteps: [
+          "Explore ETFs for instant diversification",
+          "Consider adding a different asset class",
+        ],
         confidence: "medium",
       });
     }
@@ -426,7 +524,10 @@ export default function PortfolioScreen() {
         title: "Crypto Volatility Exposure",
         meaning: `${Math.round(cryptoPct)}% of your portfolio is in crypto assets.`,
         why: "Crypto can drop 50%+ in short periods — your portfolio will see larger swings.",
-        nextSteps: ["Review your risk tolerance", "Consider balancing with more stable assets"],
+        nextSteps: [
+          "Review your risk tolerance",
+          "Consider balancing with more stable assets",
+        ],
         confidence: "high",
       });
     }
@@ -437,7 +538,10 @@ export default function PortfolioScreen() {
         title: "Portfolio in Drawdown",
         meaning: "Your portfolio is currently down more than 10% from cost.",
         why: "Drawdowns are normal, but reviewing fundamentals helps decide whether to hold or cut.",
-        nextSteps: ["Revisit the thesis for your biggest losers", "Avoid emotional selling — stick to your plan"],
+        nextSteps: [
+          "Revisit the thesis for your biggest losers",
+          "Avoid emotional selling — stick to your plan",
+        ],
         confidence: "medium",
       });
     }
@@ -448,7 +552,10 @@ export default function PortfolioScreen() {
         title: "Portfolio Looks Balanced",
         meaning: "No major red flags detected in your current allocation.",
         why: "A diversified, low-concentration portfolio weathers market swings better.",
-        nextSteps: ["Keep adding to your positions regularly", "Review allocation every 3–6 months"],
+        nextSteps: [
+          "Keep adding to your positions regularly",
+          "Review allocation every 3–6 months",
+        ],
         confidence: "medium",
       });
     }
@@ -482,12 +589,18 @@ export default function PortfolioScreen() {
       .slice()
       .sort((a, b) => (b.current_value || 0) - (a.current_value || 0))
       .slice(0, 3)
-      .map((e) => `${e.symbol.toUpperCase()} (${e.asset_type}): ${formatCurrency(e.current_value || 0)}`)
+      .map(
+        (e) =>
+          `${e.symbol.toUpperCase()} (${e.asset_type}): ${formatCurrency(e.current_value || 0)}`,
+      )
       .join(", ");
 
     const allocationSummary = Object.entries(summary.allocation || {})
       .map(([type, val]) => {
-        const pct = summary.total_value > 0 ? (Number(val) / summary.total_value) * 100 : 0;
+        const pct =
+          summary.total_value > 0
+            ? (Number(val) / summary.total_value) * 100
+            : 0;
         return `${type}: ${pct.toFixed(1)}%`;
       })
       .join(", ");
@@ -517,7 +630,9 @@ export default function PortfolioScreen() {
       if (!response) throw new Error("Empty response");
       setAiText(response);
     } catch {
-      setAiError("Could not generate AI explanation right now. Please try again.");
+      setAiError(
+        "Could not generate AI explanation right now. Please try again.",
+      );
     } finally {
       setAiLoading(false);
     }
@@ -530,12 +645,12 @@ export default function PortfolioScreen() {
     const lines = [
       "📊 My Portfolio Summary",
       `Total Value: ${formatCurrency(summary.total_value)}`,
-      `Total Gain/Loss: ${(summary.total_gain_loss >= 0 ? "+" : "")}${formatCurrency(summary.total_gain_loss)} (${formatPercent(totalGainLossPercentage, 1)})`,
+      `Total Gain/Loss: ${summary.total_gain_loss >= 0 ? "+" : ""}${formatCurrency(summary.total_gain_loss)} (${formatPercent(totalGainLossPercentage, 1)})`,
       "",
       "Holdings:",
       ...entries.map(
         (e) =>
-          `• ${e.symbol.toUpperCase()} (${e.asset_type}) — ${e.quantity} × ${formatCurrency(e.purchase_price)}${e.current_value ? ` → ${formatCurrency(e.current_value)}` : ""}`
+          `• ${e.symbol.toUpperCase()} (${e.asset_type}) — ${e.quantity} × ${formatCurrency(e.purchase_price)}${e.current_value ? ` → ${formatCurrency(e.current_value)}` : ""}`,
       ),
     ];
     await Share.share({ message: lines.join("\n"), title: "My Portfolio" });
@@ -545,7 +660,7 @@ export default function PortfolioScreen() {
 
   const allocationEntries = useMemo(
     () => Object.entries(summary?.allocation ?? {}),
-    [summary]
+    [summary],
   );
 
   const riskCfg = insight ? RISK_CONFIG[insight.riskLevel] : null;
@@ -574,7 +689,13 @@ export default function PortfolioScreen() {
               style={{ marginRight: spacing.md, padding: spacing.xs }}
               accessibilityLabel="Add holding"
             >
-              <Text style={{ color: c.primary, fontSize: typography.lg, fontWeight: "700" }}>
+              <Text
+                style={{
+                  color: c.primary,
+                  fontSize: typography.lg,
+                  fontWeight: "700",
+                }}
+              >
                 +
               </Text>
             </Pressable>
@@ -584,7 +705,9 @@ export default function PortfolioScreen() {
 
       <FlatList
         data={entries}
-        keyExtractor={(item) => String(item.id ?? `${item.symbol}-${item.quantity}`)}
+        keyExtractor={(item) =>
+          String(item.id ?? `${item.symbol}-${item.quantity}`)
+        }
         contentContainerStyle={[styles.list, { backgroundColor: c.bg }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -599,8 +722,15 @@ export default function PortfolioScreen() {
           <View style={styles.header}>
             {/* Error banner */}
             {error && (
-              <View style={[styles.errorBanner, { backgroundColor: c.errorBg, borderColor: c.error }]}>
-                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
+              <View
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: c.errorBg, borderColor: c.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: c.error }]}>
+                  {error}
+                </Text>
               </View>
             )}
 
@@ -615,12 +745,21 @@ export default function PortfolioScreen() {
 
             {/* Empty state */}
             {entries.length === 0 && (
-              <EmptyState onTryStock={handleDemoStock} onTryCrypto={handleDemoCrypto} />
+              <EmptyState
+                onTryStock={handleDemoStock}
+                onTryCrypto={handleDemoCrypto}
+              />
             )}
 
             {/* Pie + allocation bars */}
             {summary && entries.length > 0 && allocationEntries.length > 0 && (
-              <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, shadows.sm]}>
+              <View
+                style={[
+                  styles.card,
+                  { backgroundColor: c.surface, borderColor: c.border },
+                  shadows.sm,
+                ]}
+              >
                 <Text style={[styles.sectionTitle, { color: c.text }]}>
                   Asset Allocation
                 </Text>
@@ -630,7 +769,10 @@ export default function PortfolioScreen() {
                   {allocationEntries.map(([type, value], i) => (
                     <AllocationBar
                       key={type}
-                      label={type.charAt(0).toUpperCase() + type.slice(1).replace("_", " ")}
+                      label={
+                        type.charAt(0).toUpperCase() +
+                        type.slice(1).replace("_", " ")
+                      }
                       value={Number(value)}
                       total={summary.total_value}
                       color={PIE_COLORS[i % PIE_COLORS.length]}
@@ -642,7 +784,17 @@ export default function PortfolioScreen() {
 
             {/* Insight panel */}
             {insight && (
-              <View style={[styles.card, { backgroundColor: c.surface, borderWidth: 2, borderColor: c.primary + "33" }, shadows.sm]}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: c.surface,
+                    borderWidth: 2,
+                    borderColor: c.primary + "33",
+                  },
+                  shadows.sm,
+                ]}
+              >
                 <Text style={[styles.sectionTitle, { color: c.text }]}>
                   Portfolio Insight
                 </Text>
@@ -650,20 +802,28 @@ export default function PortfolioScreen() {
                 {/* Badges row */}
                 <View style={styles.badgeRow}>
                   {riskCfg && (
-                    <View style={[styles.badge, { backgroundColor: riskCfg.bg }]}>
+                    <View
+                      style={[styles.badge, { backgroundColor: riskCfg.bg }]}
+                    >
                       <Text style={[styles.badgeText, { color: riskCfg.text }]}>
                         {riskCfg.label}
                       </Text>
                     </View>
                   )}
                   {alignCfg && (
-                    <View style={[styles.badge, { backgroundColor: alignCfg.bg }]}>
-                      <Text style={[styles.badgeText, { color: alignCfg.text }]}>
+                    <View
+                      style={[styles.badge, { backgroundColor: alignCfg.bg }]}
+                    >
+                      <Text
+                        style={[styles.badgeText, { color: alignCfg.text }]}
+                      >
                         {alignCfg.label}
                       </Text>
                     </View>
                   )}
-                  <View style={[styles.badge, { backgroundColor: c.surfaceOffset }]}>
+                  <View
+                    style={[styles.badge, { backgroundColor: c.surfaceOffset }]}
+                  >
                     <Text style={[styles.badgeText, { color: c.textMuted }]}>
                       {insight.confidence} confidence
                     </Text>
@@ -680,8 +840,8 @@ export default function PortfolioScreen() {
                       {insight.riskLevel === "low"
                         ? "Risk looks reasonable"
                         : insight.riskLevel === "moderate"
-                        ? "Some concentration risk"
-                        : "High risk — diversify"}
+                          ? "Some concentration risk"
+                          : "High risk — diversify"}
                     </Text>
                   </View>
                   <View style={styles.insightCell}>
@@ -701,14 +861,26 @@ export default function PortfolioScreen() {
                 <View style={styles.bulletList}>
                   {insight.summaryBullets.map((b, i) => (
                     <View key={i} style={styles.bulletRow}>
-                      <View style={[styles.bulletDot, { backgroundColor: c.primary }]} />
-                      <Text style={[styles.bulletText, { color: c.text }]}>{b}</Text>
+                      <View
+                        style={[
+                          styles.bulletDot,
+                          { backgroundColor: c.primary },
+                        ]}
+                      />
+                      <Text style={[styles.bulletText, { color: c.text }]}>
+                        {b}
+                      </Text>
                     </View>
                   ))}
                 </View>
 
                 {/* Insight cards — horizontal scroll */}
-                <Text style={[styles.insightLabel, { color: c.textMuted, marginTop: spacing.sm }]}>
+                <Text
+                  style={[
+                    styles.insightLabel,
+                    { color: c.textMuted, marginTop: spacing.sm },
+                  ]}
+                >
                   Insights you can act on
                 </Text>
                 <ScrollView
@@ -724,7 +896,9 @@ export default function PortfolioScreen() {
                 {/* Action buttons */}
                 <View style={styles.actionRow}>
                   <Pressable
-                    onPress={() => { void handleAiExplain(); }}
+                    onPress={() => {
+                      void handleAiExplain();
+                    }}
                     style={({ pressed }) => [
                       styles.aiBtn,
                       { borderColor: c.border, opacity: pressed ? 0.7 : 1 },
@@ -738,10 +912,15 @@ export default function PortfolioScreen() {
                   <Pressable
                     style={({ pressed }) => [
                       styles.ctaBtn,
-                      { backgroundColor: c.primary, opacity: pressed ? 0.85 : 1 },
+                      {
+                        backgroundColor: c.primary,
+                        opacity: pressed ? 0.85 : 1,
+                      },
                     ]}
                   >
-                    <Text style={[styles.ctaBtnText, { color: c.textOnPrimary }]}>
+                    <Text
+                      style={[styles.ctaBtnText, { color: c.textOnPrimary }]}
+                    >
                       {insight.nextAction.label}
                     </Text>
                   </Pressable>
@@ -757,11 +936,17 @@ export default function PortfolioScreen() {
                 </Text>
                 <View style={styles.holdingsActions}>
                   <Text style={[styles.holdingsCount, { color: c.textMuted }]}>
-                    {entries.length} {entries.length === 1 ? "entry" : "entries"}
+                    {entries.length}{" "}
+                    {entries.length === 1 ? "entry" : "entries"}
                   </Text>
                   <Pressable
-                    onPress={() => { void handleShare(); }}
-                    style={({ pressed }) => [styles.shareBtn, { opacity: pressed ? 0.6 : 1 }]}
+                    onPress={() => {
+                      void handleShare();
+                    }}
+                    style={({ pressed }) => [
+                      styles.shareBtn,
+                      { opacity: pressed ? 0.6 : 1 },
+                    ]}
                     accessibilityLabel="Share portfolio summary"
                   >
                     <Text style={[styles.shareBtnText, { color: c.primary }]}>
@@ -805,7 +990,9 @@ export default function PortfolioScreen() {
       <AddEntrySheet
         visible={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
-        onAdded={() => { void fetchPortfolio(true); }}
+        onAdded={() => {
+          void fetchPortfolio(true);
+        }}
       />
       <AiExplanationSheet
         visible={aiSheetOpen}
@@ -875,7 +1062,11 @@ const styles = StyleSheet.create({
   },
 
   bulletList: { gap: spacing.xs },
-  bulletRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  bulletRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
   bulletDot: {
     width: 5,
     height: 5,

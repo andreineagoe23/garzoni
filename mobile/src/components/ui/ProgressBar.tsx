@@ -26,7 +26,7 @@ export default function ProgressBar({
 
   const trackStyle = useMemo(
     () => [styles.track, { backgroundColor: trackColor, height }, style],
-    [trackColor, height, style]
+    [trackColor, height, style],
   );
 
   return (

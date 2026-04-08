@@ -20,7 +20,12 @@ type Props = {
   onPress?: (item: RewardItem) => void;
 };
 
-export default function RewardCard({ item, balance = 0, isDonate = false, onPress }: Props) {
+export default function RewardCard({
+  item,
+  balance = 0,
+  isDonate = false,
+  onPress,
+}: Props) {
   const c = useThemeColors();
   const title = item.title || item.name || "Reward";
   const cost = item.cost ?? 0;
@@ -32,7 +37,10 @@ export default function RewardCard({ item, balance = 0, isDonate = false, onPres
     : null;
 
   return (
-    <Pressable onPress={onPress ? () => onPress(item) : undefined} disabled={!onPress}>
+    <Pressable
+      onPress={onPress ? () => onPress(item) : undefined}
+      disabled={!onPress}
+    >
       <GlassCard padding="md">
         {uri ? (
           <Image source={{ uri }} style={styles.img} resizeMode="cover" />
@@ -44,10 +52,7 @@ export default function RewardCard({ item, balance = 0, isDonate = false, onPres
           </Text>
         ) : null}
         <Text
-          style={[
-            styles.cost,
-            { color: canAfford ? c.primary : c.textMuted },
-          ]}
+          style={[styles.cost, { color: canAfford ? c.primary : c.textMuted }]}
         >
           {cost} coins · {isDonate ? "Donate" : "Buy"}
         </Text>
@@ -57,7 +62,12 @@ export default function RewardCard({ item, balance = 0, isDonate = false, onPres
 }
 
 const styles = StyleSheet.create({
-  img: { width: "100%", height: 120, borderRadius: 12, marginBottom: spacing.sm },
+  img: {
+    width: "100%",
+    height: 120,
+    borderRadius: 12,
+    marginBottom: spacing.sm,
+  },
   title: { fontSize: typography.md, fontWeight: "700" },
   desc: { fontSize: typography.sm, marginTop: 4 },
   cost: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.sm },

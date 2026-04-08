@@ -36,10 +36,13 @@ export default function XPProgressCard({ points }: Props) {
     <GlassCard padding="md" style={{ borderColor: `${c.accent}55` }}>
       <Text style={[styles.title, { color: c.text }]}>Your XP</Text>
       <Text style={[styles.points, { color: c.accent }]}>
-        {points.toLocaleString()} <Text style={{ color: c.textMuted, fontWeight: "600" }}>XP</Text>
+        {points.toLocaleString()}{" "}
+        <Text style={{ color: c.textMuted, fontWeight: "600" }}>XP</Text>
       </Text>
       <View style={styles.row}>
-        <Text style={[styles.level, { color: c.textMuted }]}>Level: {meta.label}</Text>
+        <Text style={[styles.level, { color: c.textMuted }]}>
+          Level: {meta.label}
+        </Text>
         {next != null && points < next ? (
           <Text style={[styles.next, { color: c.textMuted }]}>
             {next - points} XP to next tier
@@ -48,7 +51,11 @@ export default function XPProgressCard({ points }: Props) {
           <Text style={[styles.next, { color: c.textMuted }]}>Max tier</Text>
         ) : null}
       </View>
-      <ProgressBar value={pct} height={6} style={{ marginTop: spacing.sm, borderRadius: 999 }} />
+      <ProgressBar
+        value={pct}
+        height={6}
+        style={{ marginTop: spacing.sm, borderRadius: 999 }}
+      />
     </GlassCard>
   );
 }

@@ -19,14 +19,28 @@ function initials(name?: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function Avatar({ username, uri, size = 48, style }: AvatarProps) {
+export default function Avatar({
+  username,
+  uri,
+  size = 48,
+  style,
+}: AvatarProps) {
   const fontSize = size * 0.38;
   const r = size / 2;
 
   if (uri) {
     return (
-      <View style={[{ width: size, height: size, borderRadius: r, overflow: "hidden" }, style]}>
-        <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors />
+      <View
+        style={[
+          { width: size, height: size, borderRadius: r, overflow: "hidden" },
+          style,
+        ]}
+      >
+        <Image
+          source={{ uri }}
+          style={{ width: size, height: size }}
+          accessibilityIgnoresInvertColors
+        />
       </View>
     );
   }

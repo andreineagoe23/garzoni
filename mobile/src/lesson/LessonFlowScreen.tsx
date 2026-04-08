@@ -8,22 +8,15 @@ import {
   View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  useHearts,
-  queryKeys,
-  staleTimes,
-  fetchProfile,
-} from "@garzoni/core";
+import { useHearts, queryKeys, staleTimes, fetchProfile } from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
-import {
-  Button,
-  ErrorState,
-  HeartBar,
-  ProgressBar,
-} from "../components/ui";
+import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
 import MascotWithMessage from "../components/common/MascotWithMessage";
 import TextSection from "../components/lesson/TextSection";
 import VideoSection from "../components/lesson/VideoSection";
@@ -267,8 +260,12 @@ export default function LessonFlowScreen({
   useEffect(() => {
     if (courseComplete) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.progressSummary(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.recentActivity(),
+      });
       setTimeout(() => confettiRef.current?.start(), 400);
     }
   }, [courseComplete, queryClient]);
@@ -290,7 +287,7 @@ export default function LessonFlowScreen({
         decrementHeart();
       }
     },
-    [decrementHeart]
+    [decrementHeart],
   );
 
   const onExerciseComplete = useCallback(async () => {
@@ -323,7 +320,10 @@ export default function LessonFlowScreen({
   }, [currentItem, continueBusy, handleCompleteCurrent, goNext]);
 
   const themeColors = useThemeColors();
-  const styles = useMemo(() => createLessonFlowStyles(themeColors), [themeColors]);
+  const styles = useMemo(
+    () => createLessonFlowStyles(themeColors),
+    [themeColors],
+  );
 
   if (lessonsQuery.isError) {
     return (
@@ -366,7 +366,10 @@ export default function LessonFlowScreen({
           <Button variant="secondary" onPress={() => router.replace("/(tabs)")}>
             {t("flow.backToDashboard")}
           </Button>
-          <Button variant="ghost" onPress={() => router.replace("/(tabs)/learn")}>
+          <Button
+            variant="ghost"
+            onPress={() => router.replace("/(tabs)/learn")}
+          >
             {t("flow.backToCourses")}
           </Button>
         </View>
@@ -375,8 +378,7 @@ export default function LessonFlowScreen({
   }
 
   const progress = totalSteps > 0 ? completedSteps / totalSteps : 0;
-  const stepPosition =
-    totalSteps > 0 ? (currentIndex + 1) / totalSteps : 0;
+  const stepPosition = totalSteps > 0 ? (currentIndex + 1) / totalSteps : 0;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -393,7 +395,9 @@ export default function LessonFlowScreen({
         }}
       >
         <Pressable onPress={() => setReadingSettingsOpen(true)} hitSlop={8}>
-          <Text style={{ color: themeColors.accent, fontWeight: "800" }}>Aa</Text>
+          <Text style={{ color: themeColors.accent, fontWeight: "800" }}>
+            Aa
+          </Text>
         </Pressable>
         <Pressable onPress={() => setImmersive((v) => !v)} hitSlop={8}>
           <Text style={{ color: themeColors.textMuted, fontWeight: "700" }}>
@@ -411,50 +415,70 @@ export default function LessonFlowScreen({
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
       >
-          <View style={[styles.contentHeader, immersive && { opacity: 0, height: 0, overflow: "hidden", marginBottom: 0 }]}>
-            <Text style={styles.courseLabel} numberOfLines={1}>
-              {headerTitle}
+        <View
+          style={[
+            styles.contentHeader,
+            immersive && {
+              opacity: 0,
+              height: 0,
+              overflow: "hidden",
+              marginBottom: 0,
+            },
+          ]}
+        >
+          <Text style={styles.courseLabel} numberOfLines={1}>
+            {headerTitle}
+          </Text>
+          {stepHeading ? (
+            <Text style={styles.stepTitle} numberOfLines={3}>
+              {stepHeading}
             </Text>
-            {stepHeading ? (
-              <Text style={styles.stepTitle} numberOfLines={3}>
-                {stepHeading}
-              </Text>
-            ) : null}
-            <Text style={[styles.stepFoot, { marginBottom: spacing.xs }]}>
-              Reading {Math.round(stepPosition * 100)}%
-            </Text>
-            <ProgressBar value={stepPosition} height={5} style={{ marginTop: spacing.xs }} />
-            <ProgressBar value={progress} height={4} style={{ marginTop: spacing.sm }} />
-            {showHeartsUi ? (
-              <View style={styles.heartsRow}>
-                <HeartBar
-                  hearts={hearts}
-                  maxHearts={maxHearts}
-                  countdownLabel={heartCountdown}
-                />
-              </View>
-            ) : null}
-            <Text style={styles.stepFoot}>
-              {t("shared.progress")}{" "}
-              {Math.min(currentIndex + 1, Math.max(totalSteps, 1))} /{" "}
-              {Math.max(totalSteps, 1)}
-            </Text>
-          </View>
-
-          {currentItem ? (
-            <FlowItemRenderer
-              lessonStyles={styles}
-              item={currentItem}
-              fontScale={fontScale}
-              onAttempt={handleAttempt}
-              onExerciseComplete={onExerciseComplete}
-            />
-          ) : flowItems.length === 0 && !lessonsQuery.isPending ? (
-            <Text style={styles.noContent}>{t("courses.flow.noLessonContent")}</Text>
           ) : null}
-          <View style={{ marginTop: spacing.xl }}>
-            <MascotWithMessage mood="encourage" rotationKey={rotationKey} />
-          </View>
+          <Text style={[styles.stepFoot, { marginBottom: spacing.xs }]}>
+            Reading {Math.round(stepPosition * 100)}%
+          </Text>
+          <ProgressBar
+            value={stepPosition}
+            height={5}
+            style={{ marginTop: spacing.xs }}
+          />
+          <ProgressBar
+            value={progress}
+            height={4}
+            style={{ marginTop: spacing.sm }}
+          />
+          {showHeartsUi ? (
+            <View style={styles.heartsRow}>
+              <HeartBar
+                hearts={hearts}
+                maxHearts={maxHearts}
+                countdownLabel={heartCountdown}
+              />
+            </View>
+          ) : null}
+          <Text style={styles.stepFoot}>
+            {t("shared.progress")}{" "}
+            {Math.min(currentIndex + 1, Math.max(totalSteps, 1))} /{" "}
+            {Math.max(totalSteps, 1)}
+          </Text>
+        </View>
+
+        {currentItem ? (
+          <FlowItemRenderer
+            lessonStyles={styles}
+            item={currentItem}
+            fontScale={fontScale}
+            onAttempt={handleAttempt}
+            onExerciseComplete={onExerciseComplete}
+          />
+        ) : flowItems.length === 0 && !lessonsQuery.isPending ? (
+          <Text style={styles.noContent}>
+            {t("courses.flow.noLessonContent")}
+          </Text>
+        ) : null}
+        <View style={{ marginTop: spacing.xl }}>
+          <MascotWithMessage mood="encourage" rotationKey={rotationKey} />
+        </View>
       </ScrollView>
 
       {immersive ? (
@@ -472,7 +496,9 @@ export default function LessonFlowScreen({
             borderColor: themeColors.border,
           }}
         >
-          <Text style={{ color: themeColors.accent, fontWeight: "700" }}>Show controls</Text>
+          <Text style={{ color: themeColors.accent, fontWeight: "700" }}>
+            Show controls
+          </Text>
         </Pressable>
       ) : null}
 
@@ -542,7 +568,10 @@ export default function LessonFlowScreen({
             <Text style={styles.modalTitle}>Reading</Text>
             <Text style={styles.modalMessage}>Text size</Text>
             <View style={styles.modalActions}>
-              <Button variant="secondary" onPress={() => persistFontScale(0.95)}>
+              <Button
+                variant="secondary"
+                onPress={() => persistFontScale(0.95)}
+              >
                 Small
               </Button>
               <Button variant="secondary" onPress={() => persistFontScale(1)}>
@@ -551,7 +580,9 @@ export default function LessonFlowScreen({
               <Button variant="secondary" onPress={() => persistFontScale(1.2)}>
                 Large
               </Button>
-              <Button onPress={() => setReadingSettingsOpen(false)}>Done</Button>
+              <Button onPress={() => setReadingSettingsOpen(false)}>
+                Done
+              </Button>
             </View>
           </Pressable>
         </Pressable>
@@ -578,7 +609,9 @@ export default function LessonFlowScreen({
               <Button
                 variant="secondary"
                 onPress={() =>
-                  void refillHeartsSafe().then(() => setOutOfHeartsVisible(false))
+                  void refillHeartsSafe().then(() =>
+                    setOutOfHeartsVisible(false),
+                  )
                 }
               >
                 {t("courses.flow.refillHearts")}

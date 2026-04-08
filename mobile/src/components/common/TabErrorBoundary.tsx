@@ -25,7 +25,9 @@ export class TabErrorBoundary extends Component<Props, State> {
           <Text style={styles.msg}>
             This screen hit an unexpected error. You can try again.
           </Text>
-          <Button onPress={() => this.setState({ err: null })}>Try again</Button>
+          <Button onPress={() => this.setState({ err: null })}>
+            Try again
+          </Button>
         </View>
       );
     }
