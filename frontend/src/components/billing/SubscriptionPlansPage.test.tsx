@@ -193,8 +193,9 @@ describe("SubscriptionPlansPage", () => {
       </MemoryRouter>
     );
 
+    // Matches subscriptions.startStarter (en: "Start free")
     const starterButton = await screen.findByRole("button", {
-      name: "Start with Starter (Free)",
+      name: "Start free",
     });
     fireEvent.click(starterButton);
 
