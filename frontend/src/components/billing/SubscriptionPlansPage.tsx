@@ -7,6 +7,7 @@
  *   Otherwise                           → Legacy Django/Stripe backend checkout.
  */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import { Trans, useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -277,6 +278,14 @@ const SubscriptionPlansPage = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Plans &amp; Pricing | Garzoni</title>
+        <meta
+          name="description"
+          content="Compare Garzoni's Starter, Plus, and Pro plans. Get full access to personal finance courses, tools, and quizzes. Start for free."
+        />
+        <link rel="canonical" href="https://www.garzoni.app/subscriptions" />
+      </Helmet>
       <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
         <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
           <div className="flex flex-col items-center gap-3 text-center">
