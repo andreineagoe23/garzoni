@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
-import logo from "assets/logo/garzoni-logo-svg.svg";
+import { getMediaBaseUrl } from "services/backendUrl";
 
 function ForgotPassword() {
   const { t } = useTranslation();
@@ -13,6 +13,8 @@ function ForgotPassword() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const mediaBase = getMediaBaseUrl();
+  const logo = `${mediaBase}/media/logo/garzoni-logo-black-rectangular.png`;
 
   const handleForgotPassword = async (
     event: React.FormEvent<HTMLFormElement>

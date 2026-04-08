@@ -77,6 +77,10 @@ function walkFiles(dir, out = []) {
       walkFiles(full, out);
       continue;
     }
+    const rel = path.relative(ROOT, full).replace(/\\/g, "/");
+    // Frontend logo source files are legacy artifacts and can look stale after rebrand.
+    // Canonical logos come from backend/media/logo/*.
+    if (rel.startsWith("frontend/src/assets/logo/")) continue;
     const ext = path.extname(entry.name).toLowerCase();
     if (SKIP_BASENAMES.has(entry.name)) continue;
     if (ALLOWED_EXT.has(ext)) out.push(full);

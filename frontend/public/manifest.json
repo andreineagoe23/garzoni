@@ -3,12 +3,12 @@
   "name": "Garzoni - Personal Finance Education",
   "icons": [
     {
-      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_192/garzoni/logo/garzoni-logo-square-no-bg",
+      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_192/garzoni/logo/garzoni-logo-png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_512/garzoni/logo/garzoni-logo-square-no-bg",
+      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_512/garzoni/logo/garzoni-logo-png",
       "type": "image/png",
       "sizes": "512x512"
     }

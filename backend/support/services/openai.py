@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import json
 import logging
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 from rest_framework import status
 
+from authentication.entitlements import get_user_plan
 from authentication.models import UserProfile
 from education.models import Path, UserProgress
 
@@ -21,6 +23,38 @@ class OpenAIService:
         self.request_with_backoff = request_with_backoff
         self.check_and_consume_entitlement = check_and_consume_entitlement
         self.path_links = None
+
+    # ------------------------------------------------------------------
+    # Token budget helpers (Redis/cache backed, keyed per user per day)
+    # ------------------------------------------------------------------
+
+    def _token_budget_key(self) -> str:
+        today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+        return f"openai:token_budget:{self.user.id}:{today}"
+
+    def _get_daily_budget(self) -> int:
+        plan = get_user_plan(self.user)
+        if plan in {"plus", "pro"}:
+            return getattr(settings, "OPENAI_DAILY_TOKEN_BUDGET_PREMIUM", 500_000)
+        return getattr(settings, "OPENAI_DAILY_TOKEN_BUDGET_FREE", 50_000)
+
+    def _check_token_budget(self) -> bool:
+        """Return True if the user still has token budget remaining for today."""
+        key = self._token_budget_key()
+        used = cache.get(key, 0)
+        return used < self._get_daily_budget()
+
+    def _consume_tokens(self, tokens_used: int) -> None:
+        """Increment the user's daily token counter. TTL is set to 25 hours so
+        the key always expires even if never explicitly deleted."""
+        key = self._token_budget_key()
+        try:
+            cache.add(key, 0, timeout=90_000)  # 25 h; no-op if already exists
+            cache.incr(key, tokens_used)
+        except Exception:
+            logger.warning("token_budget_incr_failed user=%s tokens=%s", self.user.id, tokens_used)
+
+    # ------------------------------------------------------------------
 
     def is_greeting(self, text):
         greetings = [
@@ -356,6 +390,17 @@ class OpenAIService:
                 logger.error("OPENAI_API_KEY is not configured.")
                 return {"error": "AI service unavailable."}, 503
 
+            if not self._check_token_budget():
+                logger.warning(
+                    "token_budget_exceeded user=%s plan=%s",
+                    self.user.id,
+                    get_user_plan(self.user),
+                )
+                return {
+                    "error": "You've reached your daily AI usage limit. Your allowance resets at midnight UTC.",
+                    "request_id": request_id,
+                }, 429
+
             messages = []
             available_paths = self.format_paths_for_message()
             messages.append(
@@ -466,6 +511,10 @@ class OpenAIService:
                         "response": cleaned_response
                         or "I could not generate a clear answer. Please try again."
                     }
+
+                    tokens_used = (response_data.get("usage") or {}).get("total_tokens", 0)
+                    if tokens_used:
+                        self._consume_tokens(tokens_used)
 
                     if cache_key and cache_ttl > 0:
                         cache.set(cache_key, result, timeout=cache_ttl)
