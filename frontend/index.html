@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" translate="no">
+<html lang="en-GB" translate="no">
   <head>
     <!-- Suppress console noise as early as possible (before extensions and app bundle). -->
     <script>
@@ -74,6 +74,7 @@
     </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="canonical" href="https://www.garzoni.app/" />
     <meta name="theme-color" content="#1a1a1a" />
     <meta name="google" content="notranslate" />
 
@@ -81,11 +82,11 @@
     <meta name="title" content="Garzoni - Personal Finance Education" />
     <meta
       name="description"
-      content="Master financial literacy with interactive courses, quizzes, and tools. Learn budgeting, investing, and wealth management."
+      content="Personal finance education for young adults. Learn budgeting, saving, and investing through interactive lessons and real-world tools."
     />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://garzoni.app/" />
+    <meta property="og:url" content="https://www.garzoni.app/" />
     <meta property="og:title" content="Garzoni - Personal Finance Education" />
     <meta
       property="og:description"
@@ -97,7 +98,7 @@
     />
 
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://garzoni.app/" />
+    <meta property="twitter:url" content="https://www.garzoni.app/" />
     <meta
       property="twitter:title"
       content="Garzoni - Personal Finance Education"
@@ -110,6 +111,15 @@
       property="twitter:image"
       content="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_1200/garzoni/logo/garzoni-logo-rectangle-no-bg"
     />
+
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
+    <meta name="author" content="Garzoni" />
+    <meta name="application-name" content="Garzoni" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="Garzoni" />
 
     <link
       rel="apple-touch-icon"
@@ -149,7 +159,7 @@
       gtag("set", "url_passthrough", true);
     </script>
 
-    <link rel="preconnect" href="https://andreineagoe23.pythonanywhere.com" />
+    <link rel="preconnect" href="https://garzoni-production.up.railway.app" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
     <link
@@ -237,11 +247,18 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
+        "@type": "WebApplication",
         "name": "Garzoni",
-        "url": "https://garzoni.app",
-        "logo": "/logo-512x512.png",
+        "url": "https://www.garzoni.app",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web, iOS",
+        "logo": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_512/garzoni/logo/garzoni-logo-square-no-bg",
         "description": "Interactive personal finance education platform",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "GBP"
+        },
         "sameAs": [
           "https://twitter.com/garzoni",
           "https://linkedin.com/company/garzoni"

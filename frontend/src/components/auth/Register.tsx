@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
@@ -182,6 +183,10 @@ function Register() {
 
   return (
     <>
+      <Helmet>
+        <title>Create Account | Garzoni</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
       <div
