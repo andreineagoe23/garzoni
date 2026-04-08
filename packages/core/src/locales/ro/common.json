@@ -237,6 +237,11 @@
     "cancelConfirmActiveShort": "Păstrezi accesul până la sfârșitul perioadei de facturare. Nu vei mai fi taxat.",
     "cancelSuccess": "Ai anulat. Vei avea acces până pe {{date}}.",
     "cancelSuccessNoDate": "Ai anulat. Vei avea acces până la sfârșitul perioadei de facturare.",
+    "cancellationScheduled": "Anularea este programată. Păstrezi acces complet până pe {{date}} (sfârșitul perioadei de facturare curente).",
+    "accessThrough": "Perioada de facturare curentă se încheie pe {{date}}.",
+    "switchClearsCancellation": "Alegerea unui alt plan plătit aici îți reactivează abonamentul și anulează programarea de anulare.",
+    "planUpdated": "Planul tău a fost actualizat.",
+    "planAlreadyOn": "Ești deja pe acest plan.",
     "keepTrial": "Păstrează trialul",
     "keepSubscription": "Păstrează abonamentul",
     "features": {
