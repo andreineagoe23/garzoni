@@ -61,10 +61,12 @@ ALLOWED_HOSTS = env_csv(
 if os.getenv("DJANGO_ALLOW_ALL_HOSTS", "").strip().lower() in ("1", "true", "yes"):
     ALLOWED_HOSTS = ["*"]
 else:
+    # DJANGO_ALLOW_ALL_HOSTS_IN_DEBUG intentionally has no auto-true default.
+    # Explicit opt-in only — prevents host-header injection if DEBUG=True leaks to production.
     _allow_all_hosts = (
         env_bool("DJANGO_ALLOW_ALL_HOSTS", False)
         or env_bool("DJANGO_ALLOW_LAN_HOSTS", False)
-        or (DEBUG and env_bool("DJANGO_ALLOW_ALL_HOSTS_IN_DEBUG", True))
+        or (DEBUG and env_bool("DJANGO_ALLOW_ALL_HOSTS_IN_DEBUG", False))
     )
     if _allow_all_hosts and "*" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS = [*ALLOWED_HOSTS, "*"]
@@ -165,7 +167,10 @@ if not database_url:
         "or on Railway add a PostgreSQL service (DATABASE_URL is set automatically)."
     )
 
-default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=False)
+# Require SSL for external connections (DATABASE_PUBLIC_URL from outside Railway).
+# Railway's internal private URL (postgres.railway.internal) doesn't need SSL.
+_is_external_db = "railway.internal" not in database_url
+default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=_is_external_db)
 if "OPTIONS" not in default_db:
     default_db["OPTIONS"] = {}
 
@@ -207,7 +212,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "5000/day"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "50/day", "user": "500/day"},
 }
 
 SPECTACULAR_SETTINGS = {
@@ -267,8 +272,7 @@ OPENAI_MAX_MESSAGE_CHARS = int(os.getenv("OPENAI_MAX_MESSAGE_CHARS", "2000"))
 OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "512"))
 OPENAI_ALLOWED_MODELS_CSV = env_csv(
     "OPENAI_ALLOWED_MODELS_CSV",
-    # gpt-5-nano / gpt-5-mini are not valid API IDs; use gpt-5.4-* or gpt-4o-mini (see OpenAI model docs).
-    default=["gpt-4o-mini", "gpt-5.4-nano", "gpt-5.4-mini"],
+    default=["gpt-4o-mini", "gpt-4o"],
 )
 
 # Content translation settings
@@ -328,7 +332,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-requested-with",
     "x-refresh-token",
 ]
-CORS_EXPOSE_HEADERS = ["Content-Disposition", "Set-Cookie", "X-CSRFToken"]
+CORS_EXPOSE_HEADERS = ["Content-Disposition", "Set-Cookie", "X-CSRFToken", "X-Request-ID"]
 
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
@@ -418,6 +422,8 @@ if STRIPE_SECRET_KEY:
 # Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).
 # Never enable in production.
 RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)
+if not DEBUG and RECAPTCHA_DISABLED:
+    raise ImproperlyConfigured("RECAPTCHA_DISABLED must not be True in production.")
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
 RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
 RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
@@ -671,12 +677,30 @@ CKEDITOR_5_CONFIGS = {
         },
         "htmlSupport": {
             "allow": [
-                {
-                    "name": "^.*$",
-                    "styles": True,
-                    "attributes": True,
-                    "classes": True,
-                }
+                {"name": "p"},
+                {"name": "strong"},
+                {"name": "em"},
+                {"name": "u"},
+                {"name": "s"},
+                {"name": "ul"},
+                {"name": "ol"},
+                {"name": "li"},
+                {"name": "blockquote"},
+                {"name": "pre"},
+                {"name": "code"},
+                {"name": "h2"},
+                {"name": "h3"},
+                {"name": "h4"},
+                {"name": "br"},
+                {"name": "hr"},
+                {"name": "a", "attributes": {"href": True, "target": True, "rel": True}},
+                {"name": "img", "attributes": {"src": True, "alt": True, "width": True, "height": True}},
+                {"name": "table"},
+                {"name": "thead"},
+                {"name": "tbody"},
+                {"name": "tr"},
+                {"name": "th"},
+                {"name": "td"},
             ],
         },
         "link": {
