@@ -69,9 +69,10 @@ if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
   fi
   # Always refresh shipped static media assets that should match the app release.
   # This keeps mascots/path images in sync even when volume already has older files.
-  mkdir -p /app/media/mascots /app/media/path_images
+  mkdir -p /app/media/mascots /app/media/path_images /app/media/badges
   cp -f /app/media_seed/mascots/*.png /app/media/mascots/ 2>/dev/null || true
   cp -f /app/media_seed/path_images/*.png /app/media/path_images/ 2>/dev/null || true
+  cp -f /app/media_seed/badges/*.png /app/media/badges/ 2>/dev/null || true
 else
   # Fallback: mascots only if media_seed missing (old image)
   if [ -d /app/media_mascots_template ] && ! ls /app/media/mascots/*.png >/dev/null 2>&1; then

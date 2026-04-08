@@ -42,7 +42,7 @@ const SubscriptionManager = () => {
     string | null
   >(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [cancelPeriodEnd, setCancelPeriodEnd] = useState<string | null>(null);
+  const [planUpdatedMessage, setPlanUpdatedMessage] = useState("");
   const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">(
     "yearly"
   );
@@ -147,6 +147,19 @@ const SubscriptionManager = () => {
     entitlements?.status ?? ""
   );
 
+  const stripeSub = entitlements?.subscription as
+    | {
+        cancel_at_period_end?: boolean;
+        current_period_end?: string | null;
+        current_period_start?: string | null;
+      }
+    | undefined;
+  const cancelScheduled = Boolean(stripeSub?.cancel_at_period_end);
+  const periodEndFromStripe = stripeSub?.current_period_end || null;
+  const accessUntilLabel = periodEndFromStripe
+    ? formatDate(periodEndFromStripe, locale)
+    : null;
+
   // When user is paid/trialing but may lack stripe_subscription_id, try to sync from Stripe (e.g. by email)
   useEffect(() => {
     if (!portalEligible) return;
@@ -166,13 +179,14 @@ const SubscriptionManager = () => {
                 ?.stripe_subscription_id ??
               null
           );
-          reloadEntitlements?.();
         }
       } catch {
         // Ignore; sync is best-effort
+      } finally {
+        await reloadEntitlements?.();
       }
     };
-    syncSubscription();
+    void syncSubscription();
   }, [portalEligible, loadProfile, reloadEntitlements]);
 
   const handleStartCheckout = async (
@@ -203,13 +217,24 @@ const SubscriptionManager = () => {
   const handleChangePlan = async (planId: string, billingInterval: string) => {
     if (!isAuthenticated) return;
     setActionError("");
+    setPlanUpdatedMessage("");
     setIsBusy(true);
     try {
-      await apiClient.post("/subscriptions/change/", {
+      const res = await apiClient.post<{
+        success?: boolean;
+        unchanged?: boolean;
+        current_period_end?: string | null;
+      }>("/subscriptions/change/", {
         plan_id: planId,
         billing_interval: billingInterval,
       });
       await reloadEntitlements?.();
+      await loadProfile?.({ force: true });
+      if (res.data?.unchanged) {
+        setPlanUpdatedMessage(t("billing.planAlreadyOn"));
+      } else {
+        setPlanUpdatedMessage(t("billing.planUpdated"));
+      }
     } catch (error) {
       setActionError(getErrorMessage(error, t("billing.failedChangePlan")));
     } finally {
@@ -227,13 +252,7 @@ const SubscriptionManager = () => {
     setActionError("");
     setIsBusy(true);
     try {
-      const response = await apiClient.post("/subscriptions/cancel/", {});
-      const periodEnd = response.data?.current_period_end;
-      if (periodEnd) {
-        setCancelPeriodEnd(formatDate(periodEnd, locale));
-      } else {
-        setCancelPeriodEnd("");
-      }
+      await apiClient.post("/subscriptions/cancel/", {});
       setShowCancelConfirm(false);
       await reloadEntitlements?.();
     } catch (error) {
@@ -242,6 +261,12 @@ const SubscriptionManager = () => {
       setIsBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (!planUpdatedMessage) return;
+    const timer = setTimeout(() => setPlanUpdatedMessage(""), 8000);
+    return () => clearTimeout(timer);
+  }, [planUpdatedMessage]);
 
   const handleOpenPortal = async () => {
     if (!isAuthenticated) return;
@@ -273,22 +298,37 @@ const SubscriptionManager = () => {
             {t("billing.manageSubtitle")}
           </p>
         </div>
-        <div className="rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-sm text-[color:var(--text-color,#111827)]">
-          <div className="font-semibold">
-            {t("billing.currentPlan")}:{" "}
-            {entitlements?.label ||
-              currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
-          </div>
-          <div>
-            {t("billing.status")}: {entitlements?.status || "inactive"}
+        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+          <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
+            <div className="font-semibold">
+              {t("billing.currentPlan")}:{" "}
+              {entitlements?.label ||
+                currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
+            </div>
+            <div className="text-[color:var(--muted-text,#6b7280)]">
+              {t("billing.status")}:{" "}
+              <span className="font-medium text-[color:var(--text-color,#111827)]">
+                {entitlements?.status || "inactive"}
+              </span>
+            </div>
           </div>
           {entitlements?.status === "trialing" && trialEndLabel && (
-            <div>{t("billing.trialEndsOn", { date: trialEndLabel })}</div>
+            <p className="text-[color:var(--muted-text,#6b7280)]">
+              {t("billing.trialEndsOn", { date: trialEndLabel })}
+            </p>
           )}
-          {cancelPeriodEnd !== null && (
-            <div className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
-              {cancelPeriodEnd
-                ? t("billing.cancelSuccess", { date: cancelPeriodEnd })
+          {portalEligible && accessUntilLabel && !cancelScheduled && (
+            <p className="text-[color:var(--muted-text,#6b7280)]">
+              {t("billing.accessThrough", { date: accessUntilLabel })}
+            </p>
+          )}
+          {cancelScheduled && (
+            <div
+              className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/25 dark:text-amber-100"
+              role="status"
+            >
+              {accessUntilLabel
+                ? t("billing.cancellationScheduled", { date: accessUntilLabel })
                 : t("billing.cancelSuccessNoDate")}
             </div>
           )}
@@ -335,14 +375,19 @@ const SubscriptionManager = () => {
         </div>
       </Modal>
 
-      <GlassCard padding="lg" className="space-y-4">
-        <div>
+      <GlassCard padding="lg" className="space-y-6">
+        <div className="space-y-1 border-b border-[color:var(--border-color,#e5e7eb)] pb-4">
           <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
             {t("billing.availablePlans")}
           </h2>
           <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
             {t("billing.choosePlanSubtitle")}
           </p>
+          {cancelScheduled && (
+            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              {t("billing.switchClearsCancellation")}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col items-center gap-4">
@@ -382,7 +427,7 @@ const SubscriptionManager = () => {
           </p>
         )}
         {!loading && (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 md:items-stretch">
             {planCards.map((plan) => {
               const features = Object.values(plan.features || {})
                 .map((f) => f?.description || f?.name)
@@ -409,7 +454,7 @@ const SubscriptionManager = () => {
               return (
                 <div
                   key={`${plan.plan_id}-${billingLabel}`}
-                  className={`flex flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
+                  className={`flex h-full min-h-[280px] flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
                     isHighlight
                       ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--accent,#ffd700)]/20"
                       : ""
@@ -478,9 +523,14 @@ const SubscriptionManager = () => {
             })}
           </div>
         )}
+        {planUpdatedMessage && (
+          <p className="text-sm text-[color:var(--success,#16a34a)]">
+            {planUpdatedMessage}
+          </p>
+        )}
         {portalEligible && (
-          <div className="flex flex-col gap-3 sm:flex-row">
-            {cancelPeriodEnd === null && (
+          <div className="flex flex-col gap-3 border-t border-[color:var(--border-color,#e5e7eb)] pt-6 sm:flex-row sm:flex-wrap">
+            {!cancelScheduled && (
               <GlassButton
                 variant="ghost"
                 onClick={handleCancelClick}

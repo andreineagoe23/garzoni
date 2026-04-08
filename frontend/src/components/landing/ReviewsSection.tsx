@@ -13,10 +13,11 @@ export default function ReviewsSection() {
   return (
     <section className="relative">
       <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto mb-4 h-px w-12 bg-gradient-to-r from-transparent via-[#E6C87A]/50 to-transparent" />
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
           {t("landing.reviews.title")}
         </h2>
-        <p className="mt-4 text-sm text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
+        <p className="mt-4 text-[15px] text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
           {t("landing.reviews.subtitle")}
         </p>
       </div>
@@ -38,21 +39,29 @@ export default function ReviewsSection() {
               tabIndex={0}
               role="article"
               aria-label={t("landing.reviews.cardAria", { name: review.name })}
-              className="landing-review-card h-full p-6 bg-[color:var(--card-bg,#15191E)]/65 border-white/10"
+              className="landing-review-card h-full p-6 bg-[color:var(--card-bg,#15191E)]/65 border-white/[0.06] hover:border-[#E6C87A]/15 transition-colors duration-300"
             >
-              <div className="flex items-center gap-1 text-[color:var(--gold,#E6C87A)]">
-                {Array.from({ length: 5 }).map((_, starIdx) => (
-                  <StarFill key={starIdx} size={16} />
-                ))}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 text-[color:var(--gold,#E6C87A)]">
+                  {Array.from({ length: 5 }).map((_, starIdx) => (
+                    <StarFill key={starIdx} size={14} />
+                  ))}
+                </div>
+                <span
+                  className="welcome-font-display text-2xl leading-none text-[#E6C87A]/20 select-none"
+                  aria-hidden="true"
+                >
+                  &ldquo;
+                </span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-white/80">
-                "{review.quote}"
+              <p className="mt-4 text-sm leading-relaxed text-white/75">
+                &ldquo;{review.quote}&rdquo;
               </p>
-              <div className="mt-6 border-t border-white/10 pt-4">
+              <div className="mt-6 border-t border-white/[0.06] pt-4">
                 <p className="text-sm font-semibold text-white">
                   {review.name}
                 </p>
-                <p className="text-xs text-white/60">{review.title}</p>
+                <p className="text-xs text-white/50">{review.title}</p>
               </div>
             </GlassCard>
           ))}

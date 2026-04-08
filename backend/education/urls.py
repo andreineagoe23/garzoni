@@ -26,14 +26,9 @@ router.register(r"quizzes", QuizViewSet, basename="quiz")
 router.register(r"userprogress", UserProgressViewSet, basename="userprogress")
 router.register(r"exercises", ExerciseViewSet, basename="exercise")
 
+# Register function-based exercise routes before the router so paths like
+# /api/exercises/progress-batch/ are not swallowed by exercises/<pk>/ (pk regex).
 urlpatterns = [
-    path("", include(router.urls)),
-    path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
-    path(
-        "personalized-path/refresh/",
-        PersonalizedPathRefreshView.as_view(),
-        name="personalized-path-refresh",
-    ),
     path(
         "exercises/progress/<int:exercise_id>/",
         get_exercise_progress,
@@ -45,6 +40,13 @@ urlpatterns = [
         name="exercise-progress-batch",
     ),
     path("exercises/reset/", reset_exercise, name="reset-exercise"),
+    path("", include(router.urls)),
+    path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
+    path(
+        "personalized-path/refresh/",
+        PersonalizedPathRefreshView.as_view(),
+        name="personalized-path-refresh",
+    ),
     path("review-queue/", review_queue, name="review-queue"),
     path("mastery-summary/", mastery_summary, name="mastery-summary"),
     path("next/", next_exercise, name="next-exercise"),
