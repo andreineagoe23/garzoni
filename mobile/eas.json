@@ -8,19 +8,24 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_APP_ENV": "development"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_APP_ENV": "development"
+        "EXPO_PUBLIC_APP_ENV": "development",
+        "EXPO_PUBLIC_WEB_APP_URL": "https://www.garzoni.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "662909168223-ljit13pljjs1q65htdgeuqqbqt27ssf3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_APP_ENV": "production"
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_BACKEND_URL": "https://garzoni-production.up.railway.app/api",
+        "EXPO_PUBLIC_WEB_APP_URL": "https://www.garzoni.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "662909168223-ljit13pljjs1q65htdgeuqqbqt27ssf3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710"
       }
     }
   },

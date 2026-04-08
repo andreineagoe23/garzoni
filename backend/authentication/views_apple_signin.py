@@ -27,7 +27,10 @@ APPLE_ISSUER = "https://appleid.apple.com"
 
 
 def _decode_apple_identity_token(token: str, allowed_audiences: list) -> dict:
-    jwks = PyJWKClient(APPLE_JWKS_URL)
+    # PyJWT ≥2.4: PyJWKClient validates the header `alg` against its own
+    # allowlist before returning the key. Apple uses ES256 which is not in the
+    # default RS-only allowlist, so we must pass it explicitly to the client.
+    jwks = PyJWKClient(APPLE_JWKS_URL, algorithms=["ES256"])
     signing_key = jwks.get_signing_key_from_jwt(token)
     return jwt.decode(
         token,
