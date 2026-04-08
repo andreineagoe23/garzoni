@@ -1,3 +1,4 @@
+import datetime
 import os
 import socket
 import sys
@@ -108,6 +109,7 @@ INSTALLED_APPS = [
     "django_ckeditor_5",
     "django_celery_results",
     "django_celery_beat",
+    "axes",
 ]
 if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
     INSTALLED_APPS += ["django_extensions"]
@@ -121,6 +123,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -182,6 +185,21 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# django-axes: persistent brute-force lockout (stored in DB, survives restarts).
+# Locks by IP+username combo so IP rotation doesn't bypass per-username tracking.
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = int(os.getenv("AXES_FAILURE_LIMIT", "10"))
+AXES_COOLOFF_TIME = datetime.timedelta(hours=int(os.getenv("AXES_COOLOFF_HOURS", "1")))
+AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+AXES_RESET_ON_SUCCESS = True
+AXES_VERBOSE = False
+AXES_HANDLER = "axes.handlers.database.AxesDatabaseHandler"
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = os.getenv("TIME_ZONE", "Europe/London")
@@ -259,6 +277,11 @@ CONTACT_THROTTLE_RATE = os.getenv("CONTACT_THROTTLE_RATE", "5/min")
 AI_TUTOR_THROTTLE_RATE_FREE = os.getenv("AI_TUTOR_THROTTLE_RATE_FREE", "30/min")
 AI_TUTOR_THROTTLE_RATE_PREMIUM = os.getenv("AI_TUTOR_THROTTLE_RATE_PREMIUM", "120/min")
 FINANCE_EXTERNAL_THROTTLE_RATE = os.getenv("FINANCE_EXTERNAL_THROTTLE_RATE", "60/min")
+
+# Daily token budgets for the AI tutor (tracked in Redis/cache).
+# Limits total OpenAI token spend per user per UTC day regardless of request rate.
+OPENAI_DAILY_TOKEN_BUDGET_FREE = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_FREE", "50000"))
+OPENAI_DAILY_TOKEN_BUDGET_PREMIUM = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_PREMIUM", "500000"))
 
 # Optional: cache OpenAI responses (in seconds). Keep disabled by default.
 OPENAI_CACHE_TTL_SECONDS = int(os.getenv("OPENAI_CACHE_TTL_SECONDS", "0"))
