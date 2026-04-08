@@ -53,6 +53,14 @@ export default defineConfig(({ mode }) => {
       replacement: path.join(coreSrc, "i18n/index.ts"),
     },
     {
+      find: "@garzoni/core/locales/en",
+      replacement: path.join(coreSrc, "locales/en/index.ts"),
+    },
+    {
+      find: "@garzoni/core/locales/ro",
+      replacement: path.join(coreSrc, "locales/ro/index.ts"),
+    },
+    {
       find: "@garzoni/core",
       replacement: path.join(coreSrc, "index.ts"),
     },

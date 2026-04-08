@@ -12,6 +12,8 @@
         "../packages/core/src/lib/reactQuery.ts"
       ],
       "@garzoni/core/i18n": ["../packages/core/src/i18n/index.ts"],
+      "@garzoni/core/locales/en": ["../packages/core/src/locales/en/index.ts"],
+      "@garzoni/core/locales/ro": ["../packages/core/src/locales/ro/index.ts"],
       "@garzoni/core": ["../packages/core/src/index.ts"],
       "App": ["src/App.tsx"],
       "routes/*": ["src/routes/*"],
