@@ -451,12 +451,14 @@ const SubscriptionPlansPage = () => {
               components={{
                 terms: (
                   <Link
+                    key="terms"
                     to="/terms-of-service"
                     className="text-[color:var(--primary,#1d5330)] hover:underline"
                   />
                 ),
                 privacy: (
                   <Link
+                    key="privacy"
                     to="/privacy-policy"
                     className="text-[color:var(--primary,#1d5330)] hover:underline"
                   />
