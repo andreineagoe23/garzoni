@@ -41,14 +41,13 @@ COPY ${BUILD_SRC}/ /app/
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
 # Bake static files into the image at build time.
-# Dummy env vars satisfy Django init checks — no real DB or secrets needed for collectstatic.
+# DJANGO_ENV=build activates a dedicated bypass branch in settings.py that
+# skips all production-only guards (RECAPTCHA, CORS, media storage).
+# No dummy override flags needed — the build phase is explicitly whitelisted.
 RUN SECRET_KEY=build-time-collectstatic-only \
     DATABASE_URL=postgresql://x:x@localhost/x \
-    DJANGO_ENV=production \
+    DJANGO_ENV=build \
     DEBUG=False \
-    ALLOW_LOCAL_MEDIA_STORAGE=1 \
-    RECAPTCHA_DISABLED=1 \
-    CORS_ALLOWED_ORIGINS_CSV=https://example.com \
     python manage.py collectstatic --noinput --clear 2>&1 \
     && echo "[build] collectstatic OK: $(find /app/staticfiles -type f | wc -l) files"
 

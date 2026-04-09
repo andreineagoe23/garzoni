@@ -16,6 +16,13 @@ from core.utils import env_bool, env_csv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 DJANGO_ENV = os.getenv("DJANGO_ENV", "production")
+
+# DJANGO_ENV=build is used exclusively during `docker build` to run collectstatic.
+# It tells settings to skip production-only guards that require runtime secrets
+# (RECAPTCHA, CORS origins, media storage backend). The build phase never serves
+# real traffic, so these checks are unnecessary and would block the image build.
+_IS_BUILD_PHASE = DJANGO_ENV == "build"
+
 DEBUG = env_bool("DEBUG", DJANGO_ENV != "production")
 
 # Optional: serve the built React SPA (frontend/build) from Django/WhiteNoise.
@@ -27,7 +34,7 @@ FRONTEND_BUILD_DIR = Path(
 
 SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
-    if DEBUG:
+    if DEBUG or _IS_BUILD_PHASE:
         # Stable key in dev so session/CSRF cookies work across restarts (avoids "Session data corrupted" on admin login).
         # Production must set SECRET_KEY in env.
         SECRET_KEY = "django-insecure-dev-only-do-not-use-in-production"  # pragma: allowlist secret
@@ -39,6 +46,8 @@ if not SECRET_KEY:
         )
 if DEBUG:
     logging.getLogger(__name__).info("[settings] DEBUG mode enabled")
+elif _IS_BUILD_PHASE:
+    logging.getLogger(__name__).info("[settings] Build phase (collectstatic only)")
 else:
     logging.getLogger(__name__).info("[settings] Production mode (DEBUG=False)")
 
@@ -332,7 +341,8 @@ if DEBUG and not cors_allowed_origins:
         ]
     )
 CORS_ALLOWED_ORIGINS = cors_allowed_origins
-if not DEBUG and not CORS_ALLOWED_ORIGINS:
+# Skip CORS check during build phase — no requests are served at build time.
+if not DEBUG and not _IS_BUILD_PHASE and not CORS_ALLOWED_ORIGINS:
     raise ImproperlyConfigured(
         "CORS_ALLOWED_ORIGINS must be set in production (CORS_ALLOWED_ORIGINS_CSV or CORS_ALLOWED_ORIGINS)."
     )
@@ -459,9 +469,9 @@ if STRIPE_SECRET_KEY:
 
 # reCAPTCHA Enterprise (single key from hello@garzoni.app console)
 # Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).
-# Never enable in production.
+# Never enable in production. Build phase is also exempt — no requests are served.
 RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)
-if not DEBUG and RECAPTCHA_DISABLED:
+if not DEBUG and not _IS_BUILD_PHASE and RECAPTCHA_DISABLED:
     raise ImproperlyConfigured("RECAPTCHA_DISABLED must not be True in production.")
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
 RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
@@ -525,12 +535,12 @@ EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
-if not DEBUG and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
+if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
     raise ImproperlyConfigured(
         "Celery eager mode is not allowed in production when CELERY_BROKER_URL/REDIS_URL is set. "
         "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker + beat."
     )
-if not DEBUG and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
+if not DEBUG and not _IS_BUILD_PHASE and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
     print(
         "[settings] Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
         "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
@@ -786,8 +796,10 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+# Skip media storage check during build phase — no file I/O happens at build time.
 if (
     not DEBUG
+    and not _IS_BUILD_PHASE
     and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage"
     and not env_bool("ALLOW_LOCAL_MEDIA_STORAGE", False)
 ):
