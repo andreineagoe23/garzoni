@@ -34,22 +34,6 @@ COPY ${BUILD_SRC}/ /app/
 # Verify essential media seed assets are present (small PNG assets only)
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
-# Collect static files at build time. Uses dummy env so settings.py doesn't
-# raise ImproperlyConfigured for missing production vars.
-RUN DATABASE_URL="postgresql://u:p@localhost/x" \
-    DJANGO_ENV="build" \
-    DEBUG="True" \
-    SECRET_KEY="build-only-collectstatic" \
-    ALLOWED_HOSTS_CSV="*" \
-    STRIPE_SECRET_KEY="" \
-    CLOUDINARY_URL="" \
-    ALLOW_LOCAL_MEDIA_STORAGE="1" \
-    python manage.py collectstatic --noinput --clear \
-    && echo "[build] staticfiles: $(find /app/staticfiles -type f | wc -l) files"
-
-# Backup so entrypoint can restore if a volume shadows /app/staticfiles
-RUN cp -r /app/staticfiles /app/staticfiles_build
-
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \
   && mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
