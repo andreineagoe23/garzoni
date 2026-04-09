@@ -45,8 +45,8 @@ fi
 # This has been the most reliable setup across local + Railway.
 if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
   mkdir -p /app/staticfiles /app/media
-  rm -rf /app/staticfiles/*
-  python manage.py collectstatic --noinput
+  # Clear destination so stale/partial static volumes never mask missing files.
+  python manage.py collectstatic --noinput --clear
 fi
 mkdir -p /app/staticfiles /app/media
 static_count="$(find /app/staticfiles -type f 2>/dev/null | wc -l | tr -d ' ')"
@@ -54,6 +54,10 @@ echo "[entrypoint] staticfiles: ${static_count} files" >&2
 # Fail fast so a bad deployment never serves a broken admin UI.
 if [ "${static_count}" -lt 50 ]; then
   echo "[entrypoint] ERROR: staticfiles unexpectedly low; admin assets missing." >&2
+  exit 1
+fi
+if [ ! -f /app/staticfiles/admin/js/theme.js ] || [ ! -f /app/staticfiles/admin/js/nav_sidebar.js ]; then
+  echo "[entrypoint] ERROR: Django admin static assets missing after collectstatic." >&2
   exit 1
 fi
 
