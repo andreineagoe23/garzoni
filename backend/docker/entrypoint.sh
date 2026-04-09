@@ -41,14 +41,20 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-# Collect static assets at runtime with real environment/configuration.
-# This has been the most reliable setup across local + Railway.
-if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
-  mkdir -p /app/staticfiles /app/media
-  # Clear destination so stale/partial static volumes never mask missing files.
-  python manage.py collectstatic --noinput --clear
-fi
+# Static files: baked into the image at build time via collectstatic in the Dockerfile.
+# Auto-detect: if /app/staticfiles already has enough files (from the build layer), skip
+# the runtime collectstatic entirely — no env var needed.
+# Fallback: run collectstatic if files are missing (old image, local dev without build step).
 mkdir -p /app/staticfiles /app/media
+_baked_count="$(find /app/staticfiles -type f 2>/dev/null | wc -l | tr -d ' ')"
+if [ "${_baked_count}" -ge 50 ]; then
+  echo "[entrypoint] staticfiles: ${_baked_count} files already baked in image — skipping collectstatic" >&2
+else
+  echo "[entrypoint] staticfiles: ${_baked_count} files found — running collectstatic..." >&2
+  python manage.py collectstatic --noinput --clear
+  echo "[entrypoint] collectstatic done" >&2
+fi
+
 static_count="$(find /app/staticfiles -type f 2>/dev/null | wc -l | tr -d ' ')"
 echo "[entrypoint] staticfiles: ${static_count} files" >&2
 # Fail fast so a bad deployment never serves a broken admin UI.
