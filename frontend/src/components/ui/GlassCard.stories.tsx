@@ -12,7 +12,7 @@ export const Default = () => (
   <div className="p-6">
     <GlassCard>
       <h3 className="text-lg font-semibold">Glass Card</h3>
-      <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+      <p className="mt-2 text-sm text-content-muted">
         Reusable card container with blur, shadow and theme-aware borders.
       </p>
     </GlassCard>

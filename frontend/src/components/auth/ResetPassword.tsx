@@ -71,7 +71,7 @@ function ResetPassword() {
           <h1 className="text-3xl font-bold text-[color:var(--accent,#ffffff)]">
             {t("auth.resetPassword.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#cbd5f5)]">
+          <p className="text-sm text-content-muted">
             {t("auth.resetPassword.subtitle")}
           </p>
         </div>
@@ -100,7 +100,7 @@ function ResetPassword() {
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="text-sm font-semibold text-[color:var(--muted-text,#cbd5f5)]"
+              className="text-sm font-semibold text-content-muted"
             >
               {t("auth.resetPassword.newPassword")}
             </label>
@@ -110,7 +110,7 @@ function ResetPassword() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-content-primary shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
             />
           </div>
@@ -118,7 +118,7 @@ function ResetPassword() {
           <div className="space-y-2">
             <label
               htmlFor="confirmPassword"
-              className="text-sm font-semibold text-[color:var(--muted-text,#cbd5f5)]"
+              className="text-sm font-semibold text-content-muted"
             >
               {t("auth.resetPassword.confirmPassword")}
             </label>
@@ -128,7 +128,7 @@ function ResetPassword() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-[color:var(--text-color,#f8fafc)] shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-content-primary shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               placeholder={t("auth.resetPassword.confirmPlaceholder")}
             />
           </div>

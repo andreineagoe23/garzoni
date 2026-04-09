@@ -106,7 +106,7 @@ const SavingsGoalCalculator = () => {
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {t("tools.savingsCalc.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.savingsCalc.subtitle")}
         </p>
       </header>
@@ -119,7 +119,7 @@ const SavingsGoalCalculator = () => {
         }}
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.savingsCalc.demoPresets")}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -134,7 +134,7 @@ const SavingsGoalCalculator = () => {
               </button>
             ))}
           </div>
-          <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+          <ul className="space-y-1 text-xs text-content-muted">
             <li>• {t("tools.savingsCalc.presetTip1")}</li>
             <li>• {t("tools.savingsCalc.presetTip2")}</li>
             <li>• {t("tools.savingsCalc.presetTip3")}</li>
@@ -145,7 +145,7 @@ const SavingsGoalCalculator = () => {
           className="grid gap-4 md:grid-cols-2"
           noValidate
         >
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.savingsCalc.savingsGoal")}
             <input
               type="number"
@@ -156,11 +156,11 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.savingsCalc.initialInvestment")}
             <input
               type="number"
@@ -171,11 +171,11 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.savingsCalc.yearsToGrow")}
             <input
               type="number"
@@ -186,11 +186,11 @@ const SavingsGoalCalculator = () => {
               required
               min="1"
               max="50"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.savingsCalc.annualInterestRate")}
             <input
               type="number"
@@ -202,17 +202,17 @@ const SavingsGoalCalculator = () => {
               min="0"
               max="30"
               step="0.1"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)] md:col-span-2">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted md:col-span-2">
             {t("tools.savingsCalc.compoundFrequency")}
             <select
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               <option value="1">{t("tools.savingsCalc.annually")}</option>
               <option value="4">{t("tools.savingsCalc.quarterly")}</option>

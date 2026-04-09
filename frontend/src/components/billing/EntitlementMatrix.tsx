@@ -77,8 +77,8 @@ const FeatureRow = ({
   const userFeature = entitlements?.features?.[featureKey];
 
   return (
-    <div className="grid grid-cols-4 items-center gap-4 rounded-2xl px-4 py-3 hover:bg-[color:var(--bg-color,#f8fafc)]/60">
-      <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+    <div className="grid grid-cols-4 items-center gap-4 rounded-2xl px-4 py-3 hover:bg-surface-page/60">
+      <div className="flex items-center gap-2 text-sm font-semibold text-content-primary">
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--border-color,#e5e7eb)] ${
             userFeature?.enabled
@@ -93,7 +93,7 @@ const FeatureRow = ({
         </span>
         <div>
           <div>{featureLabel}</div>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs text-content-muted">
             {userFeature?.description || plusValue}
           </p>
         </div>
@@ -102,7 +102,7 @@ const FeatureRow = ({
         className={`text-sm text-center ${
           isActivePlan === "starter"
             ? "font-semibold text-[color:var(--accent,#ffd700)]"
-            : "text-[color:var(--muted-text,#6b7280)]"
+            : "text-content-muted"
         }`}
       >
         {starterValue}
@@ -111,7 +111,7 @@ const FeatureRow = ({
         className={`text-sm text-center ${
           isActivePlan === "plus"
             ? "font-semibold text-[color:var(--accent,#ffd700)]"
-            : "text-[color:var(--muted-text,#6b7280)]"
+            : "text-content-muted"
         }`}
       >
         {plusValue}
@@ -120,7 +120,7 @@ const FeatureRow = ({
         className={`text-sm text-center ${
           isActivePlan === "pro"
             ? "font-semibold text-[color:var(--accent,#ffd700)]"
-            : "text-[color:var(--muted-text,#6b7280)]"
+            : "text-content-muted"
         }`}
       >
         {proValue}
@@ -142,11 +142,11 @@ const EntitlementMatrix = ({
   return (
     <GlassCard padding="xl" className="space-y-4">
       <header className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-xs uppercase tracking-wide text-content-muted">
           {t("billing.featureComparison")}
         </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
+          <h3 className="text-xl font-bold text-content-primary">
             {t("billing.planComparison")}
           </h3>
           <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
@@ -155,7 +155,7 @@ const EntitlementMatrix = ({
         </div>
       </header>
 
-      <div className="grid grid-cols-4 gap-4 rounded-2xl bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+      <div className="grid grid-cols-4 gap-4 rounded-2xl bg-surface-page px-4 py-3 text-xs font-semibold text-content-muted">
         <span>{t("billing.capability")}</span>
         <span className="text-center">{t("billing.starter")}</span>
         <span className="text-center">{t("billing.plus")}</span>

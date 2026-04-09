@@ -108,13 +108,13 @@ const PremiumUpsellPanel = () => {
       <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-[color:var(--primary,#1d5330)]/10 to-transparent px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               {t("billing.upgradeToPremium")}
             </p>
-            <h4 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
+            <h4 className="text-base font-semibold text-content-primary">
               {t("billing.unlockPremiumFeatures")}
             </h4>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("billing.getUnlimitedAccess")}
             </p>
           </div>
@@ -135,24 +135,22 @@ const PremiumUpsellPanel = () => {
             {referralCopied ? t("billing.copied") : t("billing.shareReferral")}
           </GlassButton>
         </div>
-        <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+        <div className="rounded-xl bg-white/50 px-3 py-2 text-xs text-content-muted">
           {t("billing.checkoutUrlLabel")}:{" "}
-          <span className="font-semibold text-[color:var(--text-color,#111827)]">
+          <span className="font-semibold text-content-primary">
             {CHECKOUT_URL.replace(/^https?:\/\//, "")}
           </span>{" "}
           {t("billing.checkoutWithParams")}{" "}
-          <code className="font-mono text-[color:var(--text-color,#111827)]">
-            ?context=...
-          </code>{" "}
+          <code className="font-mono text-content-primary">?context=...</code>{" "}
           {t("billing.checkoutAnd")}{" "}
-          <code className="font-mono text-[color:var(--text-color,#111827)]">
+          <code className="font-mono text-content-primary">
             source=dashboard-upsell
           </code>{" "}
           {t("billing.checkoutAttributionTracking")}
         </div>
-        <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-[color:var(--muted-text,#4b5563)] break-words">
+        <div className="rounded-xl bg-white/40 px-3 py-2 text-xs text-content-muted break-words">
           {t("billing.referralLinkLabel")}:{" "}
-          <span className="font-semibold text-[color:var(--text-color,#111827)]">
+          <span className="font-semibold text-content-primary">
             {referralCode ? referralLink : t("billing.referralUnavailable")}
           </span>
         </div>

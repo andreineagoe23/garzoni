@@ -178,10 +178,10 @@ function Login() {
         <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
-              <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+              <h2 className="text-3xl font-bold text-content-primary">
                 {t("auth.login.title")}
               </h2>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {t("auth.login.subtitle")}
               </p>
             </div>
@@ -202,7 +202,7 @@ function Login() {
               <div className="space-y-2">
                 <label
                   htmlFor="username"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.login.username")}
                 </label>
@@ -214,7 +214,7 @@ function Login() {
                   onChange={handleChange}
                   required
                   autoComplete="username"
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   placeholder={t("auth.login.usernamePlaceholder")}
                 />
               </div>
@@ -222,7 +222,7 @@ function Login() {
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.login.password")}
                 </label>
@@ -235,13 +235,13 @@ function Login() {
                     onChange={handleChange}
                     required
                     autoComplete="current-password"
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                     placeholder={t("auth.login.passwordPlaceholder")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--accent,#ffd700)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -254,7 +254,7 @@ function Login() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <label className="flex items-center gap-2 text-sm text-[color:var(--muted-text,#4b5563)]">
+                <label className="flex items-center gap-2 text-sm text-content-muted">
                   <input
                     type="checkbox"
                     name="remember_me"
@@ -289,14 +289,14 @@ function Login() {
                     <div className="w-full border-t border-[color:var(--border-color)]" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[color:var(--card-bg)] px-2 text-[color:var(--muted-text)]">
+                    <span className="bg-[color:var(--card-bg)] px-2 text-content-muted">
                       {t("auth.orContinueWith")}
                     </span>
                   </div>
                 </div>
                 <a
                   href={`${getBackendUrl()}/auth/google/?state=all-topics`}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-[color:var(--text-color)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-content-primary shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
                 >
                   <svg
                     className="h-5 w-5"
@@ -325,7 +325,7 @@ function Login() {
               </div>
             </form>
 
-            <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+            <div className="mt-8 text-center text-sm text-content-muted">
               <span>{t("auth.login.noAccount")} </span>
               <button
                 type="button"

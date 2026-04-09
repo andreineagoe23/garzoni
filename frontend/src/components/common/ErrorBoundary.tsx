@@ -97,7 +97,7 @@ class ErrorBoundary extends React.Component<
       return (
         <section className="rounded-3xl border border-[color:var(--warning,#f59e0b)]/40 bg-[color:var(--warning,#f59e0b)]/10 px-4 py-4 text-sm text-[color:var(--warning,#b45309)] shadow-inner shadow-[color:var(--warning,#f59e0b)]/20">
           <p className="font-semibold">{i18n.t("errorBoundary.title")}</p>
-          <p className="mt-1 text-[color:var(--muted-text,#6b7280)]">
+          <p className="mt-1 text-content-muted">
             {this.state.isChunkLoadError
               ? i18n.t("errorBoundary.chunkLoadMessage")
               : i18n.t("errorBoundary.genericMessage")}

@@ -249,17 +249,17 @@ function PersonalizedPathContent({
               <>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-color,#d1d5db)]/70 pb-3">
                   <div>
-                    <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                    <p className="text-sm font-semibold text-content-primary">
                       {t("personalizedPath.title")}
                     </p>
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-xs text-content-muted">
                       {(
                         personalizedQuery.data?.meta?.onboarding_goals || []
                       ).join(" • ")}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <span className="text-xs text-content-muted">
                       {t("personalizedPath.overallCompletion", {
                         value:
                           personalizedQuery.data?.meta?.overall_completion ?? 0,
@@ -279,16 +279,16 @@ function PersonalizedPathContent({
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-xs uppercase tracking-wide text-content-muted">
                       {t("personalizedPath.continue")}
                     </p>
-                    <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                    <h3 className="text-lg font-semibold text-content-primary">
                       {heroCourse.title}
                     </h3>
-                    <p className="mt-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <p className="mt-1 text-sm text-content-muted">
                       {heroCourse.reason}
                     </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-content-muted">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5">
                         <GarzoniIcon
                           name={courseIcon(heroCourse.path_title)}
@@ -306,7 +306,7 @@ function PersonalizedPathContent({
                   </div>
                   <div className="flex items-center gap-2">
                     <ProgressRing value={metrics.percent} />
-                    <div className="min-w-[90px] text-right text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <div className="min-w-[90px] text-right text-xs text-content-muted">
                       {metrics.totalSections && metrics.totalSections > 0 ? (
                         <div>
                           {metrics.completedSections ?? 0}/
@@ -345,17 +345,17 @@ function PersonalizedPathContent({
 
       {!heroCourse && (
         <GlassCard padding="md" className="space-y-2">
-          <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+          <p className="text-sm font-semibold text-content-primary">
             {t("personalizedPath.title")}
           </p>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs text-content-muted">
             {(personalizedQuery.data?.meta?.onboarding_goals || []).join(" • ")}
           </p>
         </GlassCard>
       )}
 
       <section className="space-y-3">
-        <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+        <h4 className="text-sm font-semibold text-content-primary">
           {t("personalizedPath.recommendedForYou")}
         </h4>
         <div className="relative">
@@ -395,17 +395,17 @@ function PersonalizedPathContent({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="text-xs text-content-muted">
                         {course.path_title}
                       </p>
                       <p className="font-semibold">{course.title}</p>
-                      <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="mt-1 text-xs text-content-muted">
                         {course.reason}
                       </p>
-                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="mt-2 text-xs text-content-muted">
                         {focusHint}
                       </p>
-                      <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <div className="mt-2 text-xs text-content-muted">
                         {metrics.totalSections && metrics.totalSections > 0 ? (
                           <>
                             {metrics.completedSections ?? 0}/
@@ -426,7 +426,7 @@ function PersonalizedPathContent({
                         </div>
                       )}
                       {!course.next_lesson_title && starterTasks.length > 0 && (
-                        <ul className="mt-1 space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        <ul className="mt-1 space-y-1 text-xs text-content-muted">
                           {starterTasks.map((task, taskIdx) => (
                             <li
                               key={`${course.id}-task-${taskIdx}`}
@@ -442,7 +442,7 @@ function PersonalizedPathContent({
                     <ProgressRing value={percent} />
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-xs text-content-muted">
                       {t("personalizedPath.eta", {
                         minutes: metrics.estimatedMinutes,
                       })}
@@ -468,15 +468,12 @@ function PersonalizedPathContent({
       </section>
 
       <section className="space-y-3">
-        <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+        <h4 className="text-sm font-semibold text-content-primary">
           {t("personalizedPath.skillsToReinforce")}
         </h4>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {reviewQueue.length === 0 ? (
-            <GlassCard
-              padding="sm"
-              className="text-xs text-[color:var(--muted-text,#6b7280)]"
-            >
+            <GlassCard padding="sm" className="text-xs text-content-muted">
               {t("personalizedPath.noSkillsDue")}
             </GlassCard>
           ) : (
@@ -486,9 +483,7 @@ function PersonalizedPathContent({
                 padding="sm"
                 className="min-w-[180px]"
               >
-                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-                  {item.skill}
-                </p>
+                <p className="text-xs text-content-muted">{item.skill}</p>
                 <p className="text-sm font-semibold">
                   {t("personalizedPath.skillScore", {
                     value: item.proficiency ?? 0,
@@ -502,7 +497,7 @@ function PersonalizedPathContent({
 
       {isPreview && personalizedQuery.data?.upgrade_prompt && (
         <GlassCard padding="md" className="text-center">
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {personalizedQuery.data.upgrade_prompt}
           </p>
           <button
@@ -516,7 +511,7 @@ function PersonalizedPathContent({
       )}
 
       <GlassCard padding="md" className="text-center">
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("personalizedPath.basedOnOnboarding")}{" "}
           <button
             type="button"

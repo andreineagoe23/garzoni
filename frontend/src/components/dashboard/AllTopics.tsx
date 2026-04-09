@@ -221,7 +221,7 @@ const AllTopics = ({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-content-muted shadow-inner shadow-black/5">
         <div className="flex items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
           {t("allTopics.loading")}
@@ -248,7 +248,7 @@ const AllTopics = ({
         <div className="flex flex-wrap items-center gap-3 sm:flex-1">
           <label
             htmlFor="sort-select"
-            className="text-sm font-medium text-[color:var(--text-color,#111827)]"
+            className="text-sm font-medium text-content-primary"
           >
             {t("allTopics.sortByLabel")}
           </label>
@@ -260,7 +260,7 @@ const AllTopics = ({
               setSortBy(newSort);
               trackEvent("sort_change", { sort_by: newSort });
             }}
-            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             aria-label={t("allTopics.sortByAria")}
           >
             <option value="default">{t("allTopics.sort.default")}</option>
@@ -283,7 +283,7 @@ const AllTopics = ({
         <div className="flex flex-wrap items-center gap-3 sm:flex-1 sm:justify-end">
           <label
             htmlFor="filter-select"
-            className="text-sm font-medium text-[color:var(--text-color,#111827)]"
+            className="text-sm font-medium text-content-primary"
           >
             {t("allTopics.filterLabel")}
           </label>
@@ -295,7 +295,7 @@ const AllTopics = ({
               setFilterBy(newFilter);
               trackEvent("filter_change", { filter_by: newFilter });
             }}
-            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             aria-label={t("allTopics.filterAria")}
           >
             <option value="all">{t("allTopics.filter.all")}</option>
@@ -338,11 +338,11 @@ const AllTopics = ({
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+                    <h3 className="text-xl font-semibold text-content-primary">
                       {pathDisplayTitle(path.title)}
                     </h3>
                     {path.description && (
-                      <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                      <p className="mt-2 text-sm leading-relaxed text-content-muted">
                         {path.description}
                       </p>
                     )}
@@ -350,10 +350,10 @@ const AllTopics = ({
                     {path.progress !== undefined && (
                       <div className="mt-3 space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
+                          <span className="font-medium text-content-muted">
                             {t("allTopics.pathProgress")}
                           </span>
-                          <span className="font-semibold text-[color:var(--text-color,#111827)]">
+                          <span className="font-semibold text-content-primary">
                             {formatNumber(path.progress ?? 0, locale, {
                               minimumFractionDigits: 0,
                               maximumFractionDigits: 0,

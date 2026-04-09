@@ -77,10 +77,10 @@ const MultipleChoiceExercise = ({
   return (
     <GlassCard padding="lg" className="transition">
       <header className="space-y-2">
-        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-lg font-semibold text-content-primary">
           {question}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("exercises.mc.chooseBest")}
         </p>
       </header>
@@ -99,7 +99,7 @@ const MultipleChoiceExercise = ({
               className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
                 isSelected
                   ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)] shadow-inner"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#ffd700)]/40"
+                  : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary hover:border-[color:var(--accent,#ffd700)]/40"
               } ${
                 feedbackType && isSelected
                   ? feedbackType === "success"
@@ -135,7 +135,7 @@ const MultipleChoiceExercise = ({
             disabled={selectedAnswer === null || disabled}
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
               selectedAnswer === null || disabled
-                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
+                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted"
                 : "bg-[color:var(--primary,#1d5330)] text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
             }`}
           >
@@ -155,9 +155,7 @@ const MultipleChoiceExercise = ({
         >
           {feedback}
           {feedbackType === "error" && explanation && (
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {explanation}
-            </p>
+            <p className="mt-2 text-xs text-content-muted">{explanation}</p>
           )}
           {feedbackType === "error" && learn_more_url && (
             <div className="mt-2">

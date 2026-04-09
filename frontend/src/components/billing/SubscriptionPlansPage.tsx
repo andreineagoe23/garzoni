@@ -286,7 +286,7 @@ const SubscriptionPlansPage = () => {
         />
         <link rel="canonical" href="https://www.garzoni.app/subscriptions" />
       </Helmet>
-      <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4 py-12">
+      <section className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4 py-12">
         <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="space-y-3">
@@ -294,7 +294,7 @@ const SubscriptionPlansPage = () => {
               <h2 className="text-2xl font-bold tracking-tight text-[color:var(--accent,#111827)]">
                 {t("subscriptions.choosePlan")}
               </h2>
-              <p className="max-w-lg text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="max-w-lg text-sm text-content-muted">
                 {t("subscriptions.intro")}
               </p>
               {upgradeComplete && (
@@ -327,7 +327,7 @@ const SubscriptionPlansPage = () => {
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   billingInterval === "yearly"
                     ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
-                    : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+                    : "text-content-muted hover:text-[color:var(--accent,#111827)]"
                 }`}
               >
                 {t("subscriptions.billingYearly")}
@@ -338,7 +338,7 @@ const SubscriptionPlansPage = () => {
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   billingInterval === "monthly"
                     ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
-                    : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#111827)]"
+                    : "text-content-muted hover:text-[color:var(--accent,#111827)]"
                 }`}
               >
                 {t("subscriptions.billingMonthly")}
@@ -348,7 +348,7 @@ const SubscriptionPlansPage = () => {
 
           <div className="grid gap-4 md:grid-cols-3">
             {loadingPlans && (
-              <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div className="text-sm text-content-muted">
                 {t("subscriptions.loadingPlans")}
               </div>
             )}
@@ -398,14 +398,14 @@ const SubscriptionPlansPage = () => {
                           </span>
                         )}
                       </div>
-                      <div className="text-3xl font-extrabold text-[color:var(--text-color,#0f172a)]">
+                      <div className="text-3xl font-extrabold text-content-primary">
                         {formatCurrency(
                           Number(plan.price_amount || 0),
                           plan.currency || "USD",
                           locale,
                           { minimumFractionDigits: 0 }
                         )}
-                        <span className="ml-1 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                        <span className="ml-1 text-xs font-medium text-content-muted">
                           {` / ${
                             plan.billing_interval === "monthly"
                               ? t("subscriptions.perMonth")
@@ -416,7 +416,7 @@ const SubscriptionPlansPage = () => {
                         </span>
                       </div>
                     </div>
-                    <ul className="space-y-2.5 text-sm text-[color:var(--text-color,#111827)]">
+                    <ul className="space-y-2.5 text-sm text-content-primary">
                       {(features.length
                         ? features
                         : [t("subscriptions.premiumLearningAccess")]
@@ -445,7 +445,7 @@ const SubscriptionPlansPage = () => {
               })}
           </div>
 
-          <p className="text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-center text-sm text-content-muted">
             <Trans
               i18nKey="subscriptions.agreeToTerms"
               components={{
@@ -481,10 +481,10 @@ const SubscriptionPlansPage = () => {
             }}
           >
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+              <p className="text-sm font-semibold text-content-primary">
                 {t("subscriptions.subscriptionStatus")}
               </p>
-              <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-xs text-content-muted">
                 {subscriptionInfo.hasPaid
                   ? t("subscriptions.statusPaid")
                   : questionnaireComplete
@@ -529,7 +529,7 @@ const SubscriptionPlansPage = () => {
           {comparisonRows.length > 0 && (
             <GlassCard padding="lg" className="space-y-4">
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("subscriptions.comparePlans")}
                 </p>
                 <h3 className="text-lg font-bold text-[color:var(--accent,#111827)]">
@@ -538,7 +538,7 @@ const SubscriptionPlansPage = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
+                  <thead className="bg-[color:var(--input-bg,#f3f4f6)] text-content-muted">
                     <tr>
                       <th className="px-4 py-3 font-semibold">
                         {t("subscriptions.feature")}
@@ -560,7 +560,7 @@ const SubscriptionPlansPage = () => {
                         key={row.feature}
                         className="border-t border-[color:var(--border-color,#e5e7eb)]"
                       >
-                        <td className="px-4 py-3 text-[color:var(--text-color,#111827)]">
+                        <td className="px-4 py-3 text-content-primary">
                           {row.feature}
                         </td>
                         <td className="px-4 py-3">{row.starter}</td>

@@ -8,7 +8,7 @@ const BasicFinanceTools = () => {
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           Basic Finance Tools
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           Start with simple calculators to keep your savings goals on track.
         </p>
       </header>

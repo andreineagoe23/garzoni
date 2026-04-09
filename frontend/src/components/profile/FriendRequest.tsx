@@ -56,7 +56,7 @@ const FriendRequests = () => {
           <h4 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
             {t("profile.friendRequests.title")}
           </h4>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("profile.friendRequests.subtitle")}
           </p>
         </div>
@@ -73,11 +73,11 @@ const FriendRequests = () => {
 
       <div className="mt-6 space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center py-10 text-[color:var(--muted-text,#6b7280)]">
+          <div className="flex items-center justify-center py-10 text-content-muted">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           </div>
         ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-[color:var(--muted-text,#6b7280)]">
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-content-muted">
             <GarzoniIcon name="inbox" size={40} />
             <p className="text-sm">{t("profile.friendRequests.empty")}</p>
           </div>
@@ -92,10 +92,10 @@ const FriendRequests = () => {
                   <GarzoniIcon name="user" size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                  <p className="text-sm font-semibold text-content-primary">
                     {request.sender.username}
                   </p>
-                  <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs text-content-muted">
                     {t("profile.friendRequests.wantsToConnect")}
                   </p>
                 </div>
@@ -111,7 +111,7 @@ const FriendRequests = () => {
                 <button
                   type="button"
                   onClick={() => respondToRequest(request.id, "reject")}
-                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--error,#dc2626)]/60 hover:text-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--error,#dc2626)]/60 hover:text-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
                 >
                   {t("profile.friendRequests.decline")}
                 </button>

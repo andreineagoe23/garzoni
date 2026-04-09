@@ -60,7 +60,7 @@ function CoursePage() {
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
           {t("courses.coursePage.title")}
         </h1>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("courses.coursePage.subtitle")}
         </p>
       </header>
@@ -76,7 +76,7 @@ function CoursePage() {
       {isLoading ? (
         <GlassCard
           padding="md"
-          className="flex items-center gap-3 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)]"
+          className="flex items-center gap-3 bg-[color:var(--card-bg,#ffffff)]/60 text-content-muted"
         >
           <Skeleton className="h-5 w-5 rounded-full" />
           <Skeleton className="h-4 w-48" />

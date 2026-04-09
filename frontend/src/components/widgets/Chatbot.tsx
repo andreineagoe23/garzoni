@@ -660,19 +660,19 @@ const Chatbot = () => {
           }}
         >
           <header className="flex items-center justify-between border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-5 py-4">
-            <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+            <span className="text-sm font-semibold text-content-primary">
               {t("chatbot.title")}
             </span>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded-full bg-transparent px-3 py-1 text-sm text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="rounded-full bg-transparent px-3 py-1 text-sm text-content-muted transition hover:bg-[color:var(--input-bg,#f3f4f6)]/50 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
             >
               ✕
             </button>
           </header>
 
-          <div className="flex items-center gap-2 border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+          <div className="flex items-center gap-2 border-b border-[color:var(--border-color,rgba(0,0,0,0.1))] px-4 py-3 text-sm text-content-muted">
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
@@ -695,7 +695,7 @@ const Chatbot = () => {
                 <select
                   value={selectedLanguage}
                   onChange={(event) => setSelectedLanguage(event.target.value)}
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-1 text-xs text-[color:var(--muted-text,#6b7280)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-1 text-xs text-content-muted focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
                   {LANGUAGES.map((lang) => (
                     <option key={lang.code} value={lang.code}>
@@ -710,7 +710,7 @@ const Chatbot = () => {
                       voices.find((voice) => voice.name === event.target.value)
                     )
                   }
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-1 text-xs text-[color:var(--muted-text,#6b7280)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 py-1 text-xs text-content-muted focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
                   {voices.length > 0 ? (
                     voices.map((voice) => (
@@ -728,7 +728,7 @@ const Chatbot = () => {
 
           <div
             ref={messagesEndRef}
-            className="flex-1 overflow-y-auto bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm"
+            className="flex-1 overflow-y-auto bg-surface-page px-4 py-4 text-sm"
           >
             {messages.map((msg, index) => (
               <div
@@ -760,7 +760,7 @@ const Chatbot = () => {
                 ) : msg.sender === "system" ? (
                   <GlassCard
                     padding="sm"
-                    className="max-w-[80%] bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]"
+                    className="max-w-[80%] bg-[color:var(--input-bg,#f3f4f6)] text-content-muted"
                   >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
@@ -774,7 +774,7 @@ const Chatbot = () => {
                 ) : (
                   <GlassCard
                     padding="sm"
-                    className="max-w-[80%] text-[color:var(--text-color,#111827)]"
+                    className="max-w-[80%] text-content-primary"
                   >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0">
@@ -803,7 +803,7 @@ const Chatbot = () => {
                         )}
                         {msg.links && msg.links.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-xs uppercase text-[color:var(--muted-text,#6b7280)]">
+                            <p className="text-xs uppercase text-content-muted">
                               {t("chatbot.availablePaths")}
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -827,7 +827,7 @@ const Chatbot = () => {
                         )}
                       </div>
                       {isSpeaking && (
-                        <div className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                        <div className="text-xs text-content-muted">
                           <GarzoniIcon name="volume" size={14} />
                         </div>
                       )}
@@ -838,10 +838,7 @@ const Chatbot = () => {
             ))}
             {isLoading && (
               <div className="mb-3 flex justify-start">
-                <GlassCard
-                  padding="sm"
-                  className="text-sm text-[color:var(--muted-text,#6b7280)]"
-                >
+                <GlassCard padding="sm" className="text-sm text-content-muted">
                   <div className="flex items-center gap-2">
                     <GarzoniIcon name="robot" size={16} />
                     <span>{t("chatbot.typing")}</span>
@@ -853,12 +850,12 @@ const Chatbot = () => {
               <div className="mb-3 flex justify-start">
                 <GlassCard
                   padding="sm"
-                  className="text-sm text-[color:var(--text-color,#111827)]"
+                  className="text-sm text-content-primary"
                 >
                   <div className="flex items-start gap-2">
                     <GarzoniIcon name="robot" size={16} />
                     <div className="space-y-2">
-                      <p className="text-[color:var(--muted-text,#6b7280)]">
+                      <p className="text-content-muted">
                         {t("chatbot.tryAsking")}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -897,7 +894,7 @@ const Chatbot = () => {
                 event.key === "Enter" && handleMessageSend()
               }
               placeholder={t("chatbot.inputPlaceholder")}
-              className="h-10 flex-1 min-w-0 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="h-10 flex-1 min-w-0 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-3 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
               aria-label={t("chatbot.chatInputAria")}
             />
             <button

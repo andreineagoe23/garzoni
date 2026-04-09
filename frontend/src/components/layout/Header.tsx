@@ -87,7 +87,7 @@ function Header() {
             type="button"
             onClick={handleDarkModeToggle}
             aria-label={t("header.toggleDarkMode")}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-[color:var(--muted-text,#6b7280)] shadow-sm transition hover:border-[color:var(--border-color,rgba(0,0,0,0.2))] hover:text-[color:var(--text-color,#111827)] hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:h-10 sm:w-10"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-content-muted shadow-sm transition hover:border-[color:var(--border-color,rgba(0,0,0,0.2))] hover:text-content-primary hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:h-10 sm:w-10"
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
           </button>

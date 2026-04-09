@@ -59,7 +59,7 @@ export default function AuthCallback() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[color:var(--bg-color)] px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-page px-4">
         <p className="text-center text-[color:var(--error)]">{error}</p>
         <Link
           to="/login"
@@ -72,8 +72,8 @@ export default function AuthCallback() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[color:var(--bg-color)]">
-      <p className="text-[color:var(--muted-text)]">Signing you in…</p>
+    <div className="flex min-h-screen items-center justify-center bg-surface-page">
+      <p className="text-content-muted">Signing you in…</p>
     </div>
   );
 }

@@ -71,7 +71,7 @@ const EarlySkillInsights = ({
   return (
     <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+        <p className="text-sm font-semibold text-content-primary">
           {t("dashboard.skillInsights.title")}
         </p>
         {showJustUnlocked && (
@@ -83,13 +83,13 @@ const EarlySkillInsights = ({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.foundation")}
           </p>
-          <p className="mt-1 text-lg font-bold text-[color:var(--text-color,#111827)]">
+          <p className="mt-1 text-lg font-bold text-content-primary">
             {formatPercentage(earlyProgress, locale, 0)}
           </p>
-          <p className="mt-1 text-[11px] text-[color:var(--muted-text,#6b7280)]">
+          <p className="mt-1 text-[11px] text-content-muted">
             {hasStarted
               ? t("dashboard.skillInsights.firstMilestone")
               : t("dashboard.skillInsights.completeFirstSection")}
@@ -97,31 +97,31 @@ const EarlySkillInsights = ({
         </div>
 
         <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.currentFocus")}
           </p>
-          <p className="mt-1 truncate text-sm font-semibold text-[color:var(--text-color,#111827)]">
+          <p className="mt-1 truncate text-sm font-semibold text-content-primary">
             {firstSkill?.skill ||
               t("dashboard.skillInsights.learningFoundations")}
           </p>
-          <p className="mt-1 text-[11px] text-[color:var(--muted-text,#6b7280)]">
+          <p className="mt-1 text-[11px] text-content-muted">
             {firstSkill?.level_label ||
               t("dashboard.skillInsights.beginnerLevel")}
           </p>
         </div>
 
         <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.momentum")}
           </p>
-          <p className="mt-1 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+          <p className="mt-1 text-sm font-semibold text-content-primary">
             {reviewsDue > 0
               ? t("dashboard.skillInsights.reviewsDue", { count: reviewsDue })
               : t("dashboard.skillInsights.missionsActive", {
                   count: activeMissionsCount,
                 })}
           </p>
-          <p className="mt-1 text-[11px] text-[color:var(--muted-text,#6b7280)]">
+          <p className="mt-1 text-[11px] text-content-muted">
             {t("dashboard.skillInsights.sectionsAndLessons", {
               sections: `${completedSections}/${Math.max(1, totalSections)}`,
               lessons: `${completedLessons}/${Math.max(1, totalLessons)}`,
@@ -131,9 +131,7 @@ const EarlySkillInsights = ({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
-          {nextStepHint}
-        </p>
+        <p className="text-xs text-content-muted">{nextStepHint}</p>
         <button
           type="button"
           onClick={onNextStepClick}

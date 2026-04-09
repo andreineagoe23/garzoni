@@ -288,37 +288,37 @@ const SubscriptionManager = () => {
   };
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-var(--top-nav-height,72px))] w-full max-w-5xl flex-col gap-6 bg-[color:var(--bg-color,#f8fafc)] px-4 py-12 text-[color:var(--text-color,#111827)]">
+    <section className="mx-auto flex min-h-[calc(100vh-var(--top-nav-height,72px))] w-full max-w-5xl flex-col gap-6 bg-surface-page px-4 py-12 text-content-primary">
       <GlassCard padding="lg" className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+          <h1 className="text-2xl font-bold text-content-primary">
             {t("billing.subscriptionManagement")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("billing.manageSubtitle")}
           </p>
         </div>
-        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-4 text-sm text-content-primary">
           <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
             <div className="font-semibold">
               {t("billing.currentPlan")}:{" "}
               {entitlements?.label ||
                 currentPlanId.charAt(0).toUpperCase() + currentPlanId.slice(1)}
             </div>
-            <div className="text-[color:var(--muted-text,#6b7280)]">
+            <div className="text-content-muted">
               {t("billing.status")}:{" "}
-              <span className="font-medium text-[color:var(--text-color,#111827)]">
+              <span className="font-medium text-content-primary">
                 {entitlements?.status || "inactive"}
               </span>
             </div>
           </div>
           {entitlements?.status === "trialing" && trialEndLabel && (
-            <p className="text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-content-muted">
               {t("billing.trialEndsOn", { date: trialEndLabel })}
             </p>
           )}
           {portalEligible && accessUntilLabel && !cancelScheduled && (
-            <p className="text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-content-muted">
               {t("billing.accessThrough", { date: accessUntilLabel })}
             </p>
           )}
@@ -377,14 +377,14 @@ const SubscriptionManager = () => {
 
       <GlassCard padding="lg" className="space-y-6">
         <div className="space-y-1 border-b border-[color:var(--border-color,#e5e7eb)] pb-4">
-          <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+          <h2 className="text-xl font-semibold text-content-primary">
             {t("billing.availablePlans")}
           </h2>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("billing.choosePlanSubtitle")}
           </p>
           {cancelScheduled && (
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("billing.switchClearsCancellation")}
             </p>
           )}
@@ -402,7 +402,7 @@ const SubscriptionManager = () => {
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "yearly"
                   ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
-                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--text-color,#111827)]"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               {t("subscriptions.billingYearly")}
@@ -413,7 +413,7 @@ const SubscriptionManager = () => {
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "monthly"
                   ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
-                  : "text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--text-color,#111827)]"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               {t("subscriptions.billingMonthly")}
@@ -422,7 +422,7 @@ const SubscriptionManager = () => {
         </div>
 
         {loading && (
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("billing.loadingPlans")}
           </p>
         )}
@@ -462,7 +462,7 @@ const SubscriptionManager = () => {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                      <div className="text-lg font-semibold text-content-primary">
                         {name}
                       </div>
                       {isCurrent && (
@@ -481,19 +481,19 @@ const SubscriptionManager = () => {
                         </span>
                       )}
                     </div>
-                    <div className="text-3xl font-extrabold text-[color:var(--text-color,#0f172a)]">
+                    <div className="text-3xl font-extrabold text-content-primary">
                       {formatCurrency(
                         Number(plan.price_amount || 0),
                         plan.currency || "USD",
                         locale,
                         { minimumFractionDigits: 0 }
                       )}
-                      <span className="ml-1 text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                      <span className="ml-1 text-xs font-medium text-content-muted">
                         {` / ${billingLabel === "monthly" ? t("subscriptions.perMonth") : billingLabel === "yearly" ? t("subscriptions.perYear") : billingLabel}`}
                       </span>
                     </div>
                   </div>
-                  <ul className="space-y-2 text-sm text-[color:var(--text-color,#111827)]">
+                  <ul className="space-y-2 text-sm text-content-primary">
                     {(features.length
                       ? features
                       : [t("subscriptions.premiumLearningAccess")]

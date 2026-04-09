@@ -104,14 +104,12 @@ const MissionCard = ({
               {isDaily ? t("missions.badge.daily") : t("missions.badge.weekly")}
             </span>
           </div>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-            {mission.description}
-          </p>
+          <p className="text-sm text-content-muted">{mission.description}</p>
           <p className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
             {t("missions.why")} {purposeStatement(mission)}
           </p>
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+            <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
               <span>{t("missions.progress.label")}</span>
               <span className="text-[color:var(--accent,#111827)]">
                 {progressLabel}
@@ -132,7 +130,7 @@ const MissionCard = ({
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs text-content-muted">
               {isCompleted ? (
                 <span className="inline-flex items-center gap-2">
                   <GarzoniIcon
@@ -147,7 +145,7 @@ const MissionCard = ({
               )}
             </p>
             {completedLessons !== null && (
-              <p className="text-[0.7rem] text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-[0.7rem] text-content-muted">
                 {t("missions.progress.levelTarget", {
                   lessons: getLessonRequirement(mission),
                   plural: getLessonRequirement(mission) !== 1 ? "s" : "",
@@ -164,7 +162,7 @@ const MissionCard = ({
               <span>{t("missions.complete.title")}</span>
               <span>+{mission.points_reward} XP</span>
             </div>
-            <p className="text-[color:var(--muted-text,#047857)]">
+            <p className="text-content-muted">
               {t("missions.complete.subtitle")}
             </p>
           </div>
@@ -183,10 +181,7 @@ const MissionCard = ({
               </button>
             )}
             {mission.goal_type === "add_savings" && (
-              <GlassCard
-                padding="md"
-                className="space-y-4 bg-[color:var(--bg-color,#f8fafc)]/60"
-              >
+              <GlassCard padding="md" className="space-y-4 bg-surface-page/60">
                 <button
                   type="button"
                   onClick={() => setShowSavingsMenu((prev) => !prev)}
@@ -203,7 +198,7 @@ const MissionCard = ({
                       coinUnit={isDaily ? 1 : 10}
                       target={isDaily ? 10 : 100}
                     />
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-xs text-content-muted">
                       {t("missions.savings.suggestedNote")}
                     </p>
                     <form
@@ -221,7 +216,7 @@ const MissionCard = ({
                             ? t("missions.savings.placeholderDaily")
                             : t("missions.savings.placeholderWeekly")
                         }
-                        className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                        className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                         disabled={isDaily && isCompleted}
                       />
                       <button

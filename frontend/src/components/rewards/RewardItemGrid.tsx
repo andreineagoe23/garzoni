@@ -96,7 +96,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
     return (
       <GlassCard
         padding="lg"
-        className="bg-[color:var(--card-bg)]/60 text-sm text-[color:var(--muted-text)]"
+        className="bg-[color:var(--card-bg)]/60 text-sm text-content-muted"
       >
         {emptyText}
       </GlassCard>
@@ -106,12 +106,10 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold text-[color:var(--text-color)]">
+        <h2 className="text-xl font-semibold text-content-primary">
           {headerTitle}
         </h2>
-        <p className="text-sm text-[color:var(--muted-text)]">
-          {headerSubtitle}
-        </p>
+        <p className="text-sm text-content-muted">{headerSubtitle}</p>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {cardRows.map((item) => {
@@ -146,7 +144,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       }}
                     />
                   ) : (
-                    <div className="flex h-40 w-full items-center justify-center bg-[color:var(--input-bg)] text-4xl font-bold text-[color:var(--muted-text)]">
+                    <div className="flex h-40 w-full items-center justify-center bg-[color:var(--input-bg)] text-4xl font-bold text-content-muted">
                       {String(item.name || "?")
                         .charAt(0)
                         .toUpperCase()}
@@ -155,17 +153,17 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                 </div>
 
                 <div className="mt-3 space-y-2">
-                  <h3 className="text-lg font-semibold text-[color:var(--text-color)]">
+                  <h3 className="text-lg font-semibold text-content-primary">
                     {item.name}
                   </h3>
-                  <p className="text-sm text-[color:var(--muted-text)]">
+                  <p className="text-sm text-content-muted">
                     {item.description}
                   </p>
                 </div>
 
                 <div className="mt-auto space-y-3">
-                  <div className="flex flex-col gap-1 text-sm text-[color:var(--muted-text)]">
-                    <span className="text-sm font-semibold text-[color:var(--text-color)]">
+                  <div className="flex flex-col gap-1 text-sm text-content-muted">
+                    <span className="text-sm font-semibold text-content-primary">
                       {item.cost} {t("rewards.coins")}
                     </span>
                     {item.donation_organization ? (
