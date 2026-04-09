@@ -65,7 +65,6 @@ ENV/
 *.log
 db.sqlite3
 db.sqlite3-journal
-/static
 
 # Testing
 .pytest_cache/
