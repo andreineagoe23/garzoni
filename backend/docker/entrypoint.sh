@@ -41,18 +41,15 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
-  mkdir -p /app/staticfiles /app/media
-  python manage.py collectstatic --noinput
-  echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
-fi
+# Static files are collected at Docker build time — no need to re-run here.
 mkdir -p /app/staticfiles /app/media
+echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
 
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
 if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
   echo "[entrypoint] Seeding /app/media from image (media volume mount)..." >&2
-  if cp -rn /app/media_seed/. /app/media/; then
+  if cp -r /app/media_seed/. /app/media/ 2>/dev/null; then
     echo "[entrypoint] Seed copy OK" >&2
   else
     echo "[entrypoint] WARN: seed copy had errors (check volume permissions; try RAILWAY_RUN_UID=0)" >&2

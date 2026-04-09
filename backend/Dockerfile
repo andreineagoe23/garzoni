@@ -2,31 +2,37 @@
 # Build context is usually the backend dir (Railway with backend/Dockerfile, or local docker-compose).
 # So BUILD_SRC defaults to ".". From repo root: docker build --build-arg BUILD_SRC=backend -f backend/Dockerfile .
 
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.12-alpine AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=settings.settings \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    DEBIAN_FRONTEND=noninteractive
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# Install only runtime dependencies (no build tools, no debconf prompts)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    libjpeg62-turbo \
-    zlib1g \
-    libfreetype6 \
-    libffi8 \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# Install runtime dependencies + build deps needed for pip install, then remove build deps
+RUN apk add --no-cache \
+    libpq \
+    libjpeg-turbo \
+    zlib \
+    freetype \
+    libffi \
+    && apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    postgresql-dev \
+    libjpeg-turbo-dev \
+    zlib-dev \
+    freetype-dev \
+    libffi-dev
 
 ARG BUILD_SRC=.
 COPY ${BUILD_SRC}/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
-    && rm -rf /root/.cache/pip
+    && rm -rf /root/.cache/pip \
+    && apk del .build-deps
 
 # Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
 COPY ${BUILD_SRC}/ /app/
@@ -34,9 +40,20 @@ COPY ${BUILD_SRC}/ /app/
 # Verify essential media seed assets are present (small PNG assets only)
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
+# Collect static files at build time (admin CSS/JS, DRF, CKEditor).
+# Uses dummy env so settings.py doesn't raise ImproperlyConfigured.
+RUN DATABASE_URL="sqlite:////tmp/build.db" \
+    DJANGO_ENV="build" \
+    DEBUG="True" \
+    SECRET_KEY="build-only" \
+    ALLOWED_HOSTS_CSV="*" \
+    STRIPE_SECRET_KEY="" \
+    CLOUDINARY_URL="" \
+    ALLOW_LOCAL_MEDIA_STORAGE="1" \
+    python manage.py collectstatic --noinput
+
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
-RUN mkdir -p /app/staticfiles \
-  && mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
+RUN mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
 
 # Backup for entrypoint (mascots only)
 RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true
