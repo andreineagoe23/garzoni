@@ -99,9 +99,12 @@ if getattr(settings, "SERVE_FRONTEND", False):
                 name=f"{route}-page-slash",
             ),
         ]
+    # request.path always starts with "/". Exclusions must use "/static/", not "static/",
+    # or WhiteNoise never sees /static/* and this route serves index.html as text/html
+    # (broken admin CSS/JS MIME errors).
     urlpatterns += [
         re_path(
-            r"^(?!api/|admin/|token/|ckeditor5/|static/|media/).*",
+            r"^/(?!api/|admin/|token/|ckeditor5/|static/|media/).*",
             TemplateView.as_view(template_name="index.html"),
             name="spa-fallback",
         ),
