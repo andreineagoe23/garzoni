@@ -50,10 +50,28 @@ RUN DATABASE_URL="sqlite:////tmp/build.db" \
     STRIPE_SECRET_KEY="" \
     CLOUDINARY_URL="" \
     ALLOW_LOCAL_MEDIA_STORAGE="1" \
-    python -c "from django.conf import settings; print('[build] STATIC_ROOT =', settings.STATIC_ROOT)" \
-    && python manage.py collectstatic --noinput --verbosity 2 2>&1 | tail -20 \
-    && echo "[build] staticfiles at /app/staticfiles: $(find /app/staticfiles -type f | wc -l) files" \
-    && echo "[build] all staticfiles: $(find /app -path '*/staticfiles/*' -type f | head -5)"
+    python -c "\
+import django, os; \
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.settings'); \
+django.setup(); \
+from django.conf import settings as s; \
+print('STATIC_ROOT:', s.STATIC_ROOT); \
+print('STATIC_ROOT exists:', os.path.exists(str(s.STATIC_ROOT))); \
+print('INSTALLED_APPS:', [a for a in s.INSTALLED_APPS if 'static' in a or 'admin' in a]); \
+print('STORAGES:', s.STORAGES.get('staticfiles')); \
+from django.contrib.staticfiles.finders import get_finders; \
+for finder in get_finders(): \
+    for path, storage in finder.list(None): \
+        if 'admin' in path: \
+            print('FOUND:', path); \
+            break; \
+    else: continue; \
+    break; \
+" \
+    && python manage.py collectstatic --noinput --verbosity 2 2>&1 | head -30 \
+    && echo "[build] files in STATIC_ROOT:" \
+    && find /app -name "staticfiles" -type d 2>/dev/null \
+    && find /app/staticfiles -type f 2>/dev/null | wc -l || echo "0"
 
 # Backup static files so entrypoint can restore if a volume mount shadows /app/staticfiles
 RUN cp -r /app/staticfiles /app/staticfiles_build || true
