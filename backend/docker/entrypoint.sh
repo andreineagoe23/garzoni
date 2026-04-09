@@ -41,7 +41,8 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
+# collectstatic runs at Docker build time. Only re-run if explicitly requested.
+if [ "${RUN_COLLECTSTATIC:-0}" = "1" ]; then
   mkdir -p /app/staticfiles /app/media
   rm -rf /app/staticfiles/*
   python manage.py collectstatic --noinput
