@@ -40,9 +40,20 @@ COPY ${BUILD_SRC}/ /app/
 # Verify essential media seed assets are present (small PNG assets only)
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
+# Bake static files into the image at build time.
+# Dummy env vars satisfy Django init checks — no real DB or secrets needed for collectstatic.
+RUN SECRET_KEY=build-time-collectstatic-only \
+    DATABASE_URL=postgresql://x:x@localhost/x \
+    DJANGO_ENV=production \
+    DEBUG=False \
+    ALLOW_LOCAL_MEDIA_STORAGE=1 \
+    RECAPTCHA_DISABLED=1 \
+    CORS_ALLOWED_ORIGINS_CSV=https://example.com \
+    python manage.py collectstatic --noinput --clear 2>&1 \
+    && echo "[build] collectstatic OK: $(find /app/staticfiles -type f | wc -l) files"
+
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
-RUN mkdir -p /app/staticfiles \
-  && mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
+RUN mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
 
 # Backup for entrypoint (mascots only)
 RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true

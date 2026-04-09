@@ -466,7 +466,7 @@ if not DEBUG and RECAPTCHA_DISABLED:
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
 RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
 RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
-# Score threshold (0.0–1.0). Lower = more permissive. 0.3 is often used in production.
+# Score threshold (0.0-1.0). Lower = more permissive. 0.3 is often used in production.
 RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.3"))
 
 # Legacy v3 (only used if Enterprise not configured)
@@ -779,8 +779,11 @@ customColorPalette = [
 CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
+    # WhiteNoise storage: compresses + fingerprints static files for optimal serving.
+    # CompressedManifestStaticFilesStorage writes a staticfiles.json manifest so
+    # versioned filenames (e.g. main.abc123.css) survive across deployments.
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 if (
