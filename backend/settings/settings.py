@@ -789,20 +789,12 @@ customColorPalette = [
 CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
-    # WhiteNoise CompressedStaticFilesStorage gzips and brotli-compresses every
-    # static file for optimal WhiteNoise serving without the manifest cross-reference
-    # validation that CompressedManifestStaticFilesStorage performs.
-    #
-    # WHY NOT CompressedManifestStaticFilesStorage:
-    # Django 4.2's admin/css/forms.css contains a relative @import for widgets.css.
-    # CompressedManifestStaticFilesStorage resolves all CSS url()/import references
-    # during collectstatic and raises MissingFileError when it cannot find widgets.css
-    # via the manifest lookup. This is a known Django 4.2 + WhiteNoise incompatibility.
-    # CompressedStaticFilesStorage avoids this entirely — files are still compressed
-    # and served efficiently; cache-busting is handled by WhiteNoise's ETag/Last-Modified
-    # headers rather than filename fingerprinting.
+    # Plain StaticFilesStorage: no post-processing, no compression during collectstatic.
+    # WhiteNoise middleware handles gzip/brotli on-the-fly at request time.
+    # Both CompressedManifestStaticFilesStorage and CompressedStaticFilesStorage crash
+    # with Django 4.2 admin assets (FileNotFoundError in threaded compressor).
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 # Skip media storage check during build phase — no file I/O happens at build time.
