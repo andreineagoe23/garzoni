@@ -38,11 +38,9 @@ export const ErrorState = ({
           <h3 className="text-base font-semibold text-[color:var(--error,#dc2626)] mb-1">
             {displayTitle}
           </h3>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)] mb-3">
-            {displayMessage}
-          </p>
+          <p className="text-sm text-content-muted mb-3">{displayMessage}</p>
           {Boolean(cachedData) && (
-            <p className="text-xs text-[color:var(--muted-text,#6b7280)] mb-3 italic">
+            <p className="text-xs text-content-muted mb-3 italic">
               {t("dashboard.errorState.showingCached")}
             </p>
           )}

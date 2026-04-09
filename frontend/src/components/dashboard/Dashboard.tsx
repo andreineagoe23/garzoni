@@ -490,7 +490,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] pb-10">
+      <div className="min-h-screen bg-surface-page pb-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
           <GlassCard className="relative overflow-hidden" padding="lg">
             <Skeleton className="h-8 w-48" />
@@ -550,7 +550,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--bg-color,#f1f5f9)] pb-10">
+    <div className="min-h-screen bg-gradient-to-br from-surface-page via-surface-page to-surface-page pb-10">
       {/* Skip to content link */}
       <a
         href="#main-content"
@@ -598,10 +598,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           <GarzoniIcon name="bookOpen" size={24} />
                         </span>
                         <div className="min-w-0 w-full sm:flex-1">
-                          <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
+                          <p className="break-words text-sm font-semibold text-content-primary sm:text-base">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
+                          <p className="break-words text-[11px] text-content-muted sm:text-xs">
                             {t("dashboard.resume.continueWith", {
                               course: resume.course_title,
                             })}
@@ -634,10 +634,10 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           <GarzoniIcon name="bookOpen" size={24} />
                         </span>
                         <div className="min-w-0 w-full sm:flex-1">
-                          <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
+                          <p className="break-words text-sm font-semibold text-content-primary sm:text-base">
                             {t("dashboard.resume.title")}
                           </p>
-                          <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
+                          <p className="break-words text-[11px] text-content-muted sm:text-xs">
                             {t("dashboard.resume.startFirstLesson")}
                           </p>
                         </div>

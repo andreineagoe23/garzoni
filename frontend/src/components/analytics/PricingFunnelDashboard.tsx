@@ -25,15 +25,9 @@ type DailyBreakdownRow = {
 
 const MetricCard = ({ label, value, footer }: MetricCardProps) => (
   <GlassCard padding="lg" className="flex flex-col gap-2">
-    <p className="text-sm font-semibold text-[color:var(--muted-text,#6b7280)]">
-      {label}
-    </p>
-    <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
-      {value}
-    </p>
-    {footer && (
-      <p className="text-xs text-[color:var(--muted-text,#6b7280)]">{footer}</p>
-    )}
+    <p className="text-sm font-semibold text-content-muted">{label}</p>
+    <p className="text-3xl font-bold text-content-primary">{value}</p>
+    {footer && <p className="text-xs text-content-muted">{footer}</p>}
   </GlassCard>
 );
 
@@ -57,13 +51,13 @@ const PricingFunnelDashboard = () => {
 
   if (!canAdminister) {
     return (
-      <section className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
+      <section className="min-h-screen bg-surface-page px-4 py-10">
         <div className="mx-auto max-w-4xl text-center">
           <GlassCard padding="xl" className="space-y-3">
-            <h2 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
+            <h2 className="text-xl font-bold text-content-primary">
               {t("analytics.adminRequired")}
             </h2>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("analytics.adminRequiredDesc")}
             </p>
           </GlassCard>
@@ -73,14 +67,14 @@ const PricingFunnelDashboard = () => {
   }
 
   return (
-    <section className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
+    <section className="min-h-screen bg-surface-page px-4 py-10">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+            <h1 className="text-2xl font-bold text-content-primary">
               {t("analytics.title")}
             </h1>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("analytics.subtitle")}
             </p>
           </div>
@@ -139,10 +133,10 @@ const PricingFunnelDashboard = () => {
         <GlassCard padding="lg" className="overflow-hidden">
           <div className="flex items-center justify-between pb-4">
             <div>
-              <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+              <h3 className="text-lg font-semibold text-content-primary">
                 {t("analytics.dailyFunnelEvents")}
               </h3>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {t("analytics.dailyFunnelSubtitle")}
               </p>
             </div>
@@ -150,14 +144,14 @@ const PricingFunnelDashboard = () => {
           {isLoading ? (
             <Skeleton className="h-32 w-full rounded-xl" />
           ) : dailyBreakdown.length === 0 ? (
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("analytics.noActivity")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <tr className="text-xs uppercase tracking-wide text-content-muted">
                     <th className="px-3 py-2">{t("analytics.date")}</th>
                     <th className="px-3 py-2">{t("analytics.eventType")}</th>
                     <th className="px-3 py-2 text-right">
@@ -171,15 +165,15 @@ const PricingFunnelDashboard = () => {
                       key={`${row.event_type ?? "event"}-${row.day ?? "day"}`}
                       className="border-t border-[color:var(--border-color,rgba(0,0,0,0.06))]"
                     >
-                      <td className="px-3 py-2 text-sm text-[color:var(--text-color,#111827)]">
+                      <td className="px-3 py-2 text-sm text-content-primary">
                         {row.day ?? "-"}
                       </td>
-                      <td className="px-3 py-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+                      <td className="px-3 py-2 text-sm text-content-muted">
                         {row.event_type
                           ? row.event_type.replace(/_/g, " ")
                           : "-"}
                       </td>
-                      <td className="px-3 py-2 text-right text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                      <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
                         {row.total ?? 0}
                       </td>
                     </tr>

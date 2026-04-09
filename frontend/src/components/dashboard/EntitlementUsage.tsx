@@ -20,10 +20,10 @@ const EntitlementUsage = ({
   return (
     <div className="mt-6 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-4 backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-sm font-semibold text-content-primary">
           {t("dashboard.entitlementUsage.dailyUsage")}
         </h3>
-        <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+        <span className="text-xs text-content-muted">
           {t("dashboard.entitlementUsage.resetsDaily")}
         </span>
       </div>
@@ -39,7 +39,7 @@ const EntitlementUsage = ({
               key={feature.key}
               className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.08))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 py-3 text-sm"
             >
-              <div className="font-semibold text-[color:var(--text-color,#111827)]">
+              <div className="font-semibold text-content-primary">
                 {feature.name}
               </div>
               {feature.enabled === false ? (
@@ -47,7 +47,7 @@ const EntitlementUsage = ({
                   {t("dashboard.entitlementUsage.lockedUpgrade")}
                 </div>
               ) : (
-                <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <div className="mt-1 text-xs text-content-muted">
                   {remaining === "∞"
                     ? `${used} used, ${t("dashboard.entitlementUsage.unlimited")}`
                     : t("dashboard.entitlementUsage.usedRemaining", {

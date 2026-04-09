@@ -40,43 +40,43 @@ const FinancialSandbox = () => {
   return (
     <GlassCard padding="lg" className="space-y-4">
       <div className="flex flex-col gap-2">
-        <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-xl font-semibold text-content-primary">
           {t("tools.sandbox.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.sandbox.subtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <label className="flex flex-col gap-1 text-sm text-content-muted">
           {t("tools.sandbox.monthlyContribution")}
           <input
             type="number"
             min="0"
             value={monthlyContribution}
             onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
+            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <label className="flex flex-col gap-1 text-sm text-content-muted">
           {t("tools.sandbox.years")}
           <input
             type="number"
             min="1"
             value={years}
             onChange={(e) => setYears(Number(e.target.value))}
-            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
+            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <label className="flex flex-col gap-1 text-sm text-content-muted">
           {t("tools.sandbox.averageReturn")}
           <input
             type="number"
             min="0"
             value={averageReturn}
             onChange={(e) => setAverageReturn(Number(e.target.value))}
-            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
+            className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-white/70 px-3 py-2 text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)] focus:outline-none"
           />
         </label>
       </div>
@@ -90,7 +90,7 @@ const FinancialSandbox = () => {
         {t("tools.sandbox.startProjection")}
       </GlassButton>
 
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-xs text-content-muted">
         <p className="font-semibold uppercase tracking-wide">
           {t("tools.sandbox.tryThis")}
         </p>
@@ -101,14 +101,14 @@ const FinancialSandbox = () => {
         </ul>
       </div>
 
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]/70 px-4 py-3 shadow-inner">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page/70 px-4 py-3 shadow-inner">
+        <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
           {t("tools.sandbox.projectedValue", { count: years, years })}
         </p>
         {running ? (
           <Skeleton className="mt-2 h-8 w-40 rounded-lg" />
         ) : (
-          <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
+          <p className="mt-2 text-2xl font-bold text-content-primary">
             {formatCurrency(projection, "USD", locale, {
               minimumFractionDigits: 0,
               maximumFractionDigits: 0,

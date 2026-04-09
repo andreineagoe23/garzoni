@@ -16,9 +16,7 @@ function FactCard({ fact, onMarkRead }: FactCardProps) {
           <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
             {fact.category}
           </p>
-          <p className="text-sm text-[color:var(--text-color,#111827)]">
-            {fact.text}
-          </p>
+          <p className="text-sm text-content-primary">{fact.text}</p>
           <button
             type="button"
             onClick={onMarkRead}
@@ -28,7 +26,7 @@ function FactCard({ fact, onMarkRead }: FactCardProps) {
           </button>
         </div>
       ) : (
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("missions.facts.empty")}
         </p>
       )}

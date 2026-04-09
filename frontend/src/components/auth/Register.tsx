@@ -202,10 +202,10 @@ function Register() {
         <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
           <GlassCard padding="lg" className="w-full max-w-md">
             <div className="space-y-3 text-center">
-              <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+              <h2 className="text-3xl font-bold text-content-primary">
                 {t("auth.register.title")}
               </h2>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {t("auth.register.subtitle")}
               </p>
             </div>
@@ -236,7 +236,7 @@ function Register() {
                 <div className="space-y-2">
                   <label
                     htmlFor="first_name"
-                    className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                    className="text-sm font-medium text-content-muted"
                   >
                     {t("auth.register.firstName")}
                   </label>
@@ -249,14 +249,14 @@ function Register() {
                     required
                     autoComplete="given-name"
                     placeholder={t("auth.register.firstNamePlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label
                     htmlFor="last_name"
-                    className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                    className="text-sm font-medium text-content-muted"
                   >
                     {t("auth.register.lastName")}
                   </label>
@@ -269,7 +269,7 @@ function Register() {
                     required
                     autoComplete="family-name"
                     placeholder={t("auth.register.lastNamePlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                 </div>
               </div>
@@ -277,7 +277,7 @@ function Register() {
               <div className="space-y-2">
                 <label
                   htmlFor="username"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.register.username")}
                 </label>
@@ -290,14 +290,14 @@ function Register() {
                   required
                   autoComplete="username"
                   placeholder={t("auth.register.usernamePlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
 
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.register.email")}
                 </label>
@@ -310,14 +310,14 @@ function Register() {
                   required
                   autoComplete="email"
                   placeholder={t("auth.register.emailPlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
               </div>
 
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.register.password")}
                 </label>
@@ -331,12 +331,12 @@ function Register() {
                     required
                     autoComplete="new-password"
                     placeholder={t("auth.register.passwordPlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--primary,#1d5330)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--primary,#1d5330)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -351,7 +351,7 @@ function Register() {
               <div className="space-y-2">
                 <label
                   htmlFor="referral_code"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.register.referralCode")}{" "}
                   <span className="text-gray-400">
@@ -368,7 +368,7 @@ function Register() {
                     void validateReferralCode(formData.referral_code);
                   }}
                   placeholder={t("auth.register.referralPlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
                 {referralValidationState !== "idle" && (
                   <p
@@ -376,7 +376,7 @@ function Register() {
                       referralValidationState === "valid"
                         ? "text-emerald-700"
                         : referralValidationState === "checking"
-                          ? "text-[color:var(--muted-text,#6b7280)]"
+                          ? "text-content-muted"
                           : "text-[color:var(--error,#dc2626)]"
                     }`}
                   >
@@ -403,14 +403,14 @@ function Register() {
                     <div className="w-full border-t border-[color:var(--border-color)]" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[color:var(--card-bg)] px-2 text-[color:var(--muted-text)]">
+                    <span className="bg-[color:var(--card-bg)] px-2 text-content-muted">
                       {t("auth.orContinueWith")}
                     </span>
                   </div>
                 </div>
                 <a
                   href={`${getBackendUrl()}/auth/google/?state=onboarding`}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-[color:var(--text-color)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-content-primary shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
                 >
                   <svg
                     className="h-5 w-5"
@@ -439,7 +439,7 @@ function Register() {
               </div>
             </form>
 
-            <div className="mt-8 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+            <div className="mt-8 text-center text-sm text-content-muted">
               <span>{t("auth.register.hasAccount")} </span>
               <button
                 type="button"

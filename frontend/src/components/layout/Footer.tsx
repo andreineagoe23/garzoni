@@ -87,10 +87,10 @@ function Footer() {
                 <span className="footer-brand text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#ffd700)]">
                   Garzoni
                 </span>
-                <p className="footer-muted max-w-xs text-sm leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                <p className="footer-muted max-w-xs text-sm leading-relaxed text-content-muted">
                   {t("footer.tagline")}
                 </p>
-                <p className="footer-muted max-w-sm text-xs leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+                <p className="footer-muted max-w-sm text-xs leading-relaxed text-content-muted">
                   {t("footer.disclaimer")}
                 </p>
               </div>
@@ -116,14 +116,14 @@ function Footer() {
                           <button
                             type="button"
                             onClick={openCookieSettings}
-                            className="footer-link text-left text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--text-color,#111827)]"
+                            className="footer-link text-left text-content-muted transition hover:text-content-primary"
                           >
                             {link.label}
                           </button>
                         ) : (
                           <Link
                             to={"to" in link ? link.to : "/"}
-                            className="footer-link text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--text-color,#111827)]"
+                            className="footer-link text-content-muted transition hover:text-content-primary"
                           >
                             {link.label}
                           </Link>
@@ -144,7 +144,7 @@ function Footer() {
                   href="https://www.tiktok.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "TikTok" })}
                 >
                   <FaTiktokIcon size={18} />
@@ -153,7 +153,7 @@ function Footer() {
                   href="https://x.com/garzoni_"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "X" })}
                 >
                   <FaXTwitterIcon size={18} />
@@ -162,7 +162,7 @@ function Footer() {
                   href="https://www.instagram.com/garzoni.educational/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "Instagram" })}
                 >
                   <FaInstagramIcon size={18} />
@@ -171,7 +171,7 @@ function Footer() {
                   href="https://www.facebook.com/profile.php?id=61587379603993"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "Facebook" })}
                 >
                   <FaFacebookFIcon size={18} />
@@ -180,7 +180,7 @@ function Footer() {
                   href="https://www.youtube.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "YouTube" })}
                 >
                   <FaYoutubeIcon size={18} />
@@ -189,7 +189,7 @@ function Footer() {
                   href="https://www.linkedin.com/company/garzoni"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-[color:var(--muted-text,#6b7280)] transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 text-content-muted transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/35"
                   aria-label={t("footer.garzoniOn", { platform: "LinkedIn" })}
                 >
                   <FaLinkedinInIcon size={18} />
@@ -214,10 +214,10 @@ function Footer() {
 
             <div className="border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] pt-3">
               <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                <p className="footer-muted text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-left">
+                <p className="footer-muted text-xs text-content-muted text-center sm:text-left">
                   {t("footer.copyright", { year })}
                 </p>
-                <p className="footer-muted text-xs text-[color:var(--muted-text,#6b7280)] text-center sm:text-right">
+                <p className="footer-muted text-xs text-content-muted text-center sm:text-right">
                   {t("footer.infoDisclaimer")}
                 </p>
               </div>

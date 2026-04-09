@@ -28,7 +28,7 @@ const ReferralLink = ({ referralCode }) => {
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {t("profile.referral.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("profile.referral.subtitle")}
         </p>
       </div>
@@ -36,7 +36,7 @@ const ReferralLink = ({ referralCode }) => {
       <div className="mt-5 space-y-3">
         <label
           htmlFor="referralLink"
-          className="block text-xs font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]"
+          className="block text-xs font-medium uppercase tracking-wide text-content-muted"
         >
           {t("profile.referral.linkLabel")}
         </label>
@@ -46,7 +46,7 @@ const ReferralLink = ({ referralCode }) => {
             type="text"
             value={referralLink}
             readOnly
-            className="w-full flex-1 truncate bg-transparent text-sm font-medium text-[color:var(--text-color,#111827)] focus:outline-none"
+            className="w-full flex-1 truncate bg-transparent text-sm font-medium text-content-primary focus:outline-none"
             aria-label={t("profile.referral.linkAria")}
           />
           <button

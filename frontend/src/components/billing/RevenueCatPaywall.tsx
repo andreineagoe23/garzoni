@@ -208,10 +208,10 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     return (
       <GlassCard padding="lg" className="space-y-4 text-center">
         <p className="text-3xl">✅</p>
-        <h2 className="text-xl font-bold text-[color:var(--text-color,#111827)]">
+        <h2 className="text-xl font-bold text-content-primary">
           {RC_ENTITLEMENT} active
         </h2>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           Your subscription has been restored successfully.
         </p>
         {onClose && (
@@ -227,10 +227,10 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     <GlassCard padding="lg" className="w-full max-w-3xl space-y-6">
       {/* Header */}
       <div className="space-y-1 text-center">
-        <h2 className="text-2xl font-bold text-[color:var(--text-color,#111827)]">
+        <h2 className="text-2xl font-bold text-content-primary">
           Unlock {RC_ENTITLEMENT}
         </h2>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           Get unlimited access to all courses, exercises, and premium features.
         </p>
       </div>
@@ -270,27 +270,27 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                 )}
 
                 <div className="space-y-1 pt-2">
-                  <p className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                  <p className="text-lg font-semibold text-content-primary">
                     {plan.label}
                   </p>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold text-[color:var(--text-color,#0f172a)]">
+                    <span className="text-3xl font-extrabold text-content-primary">
                       {plan.price || "—"}
                     </span>
                     {plan.period && (
-                      <span className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                      <span className="text-xs font-medium text-content-muted">
                         {plan.period}
                       </span>
                     )}
                   </div>
                   {plan.isLifetime && (
-                    <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-xs text-content-muted">
                       Pay once, own forever
                     </p>
                   )}
                 </div>
 
-                <ul className="space-y-1.5 text-sm text-[color:var(--text-color,#111827)]">
+                <ul className="space-y-1.5 text-sm text-content-primary">
                   <li>✓ All premium courses</li>
                   <li>✓ Unlimited AI tutor</li>
                   <li>✓ Advanced exercises</li>
@@ -346,7 +346,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
       </div>
 
       {/* Legal */}
-      <p className="text-center text-xs text-[color:var(--muted-text,#9ca3af)]">
+      <p className="text-center text-xs text-content-muted">
         Subscriptions auto-renew unless cancelled at least 24 hours before the
         end of the current period. Manage or cancel anytime in your account
         settings.

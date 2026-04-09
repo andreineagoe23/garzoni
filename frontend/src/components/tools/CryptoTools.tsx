@@ -89,10 +89,10 @@ const CryptoTools = () => {
   return (
     <section className="space-y-4 min-w-0 w-full">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)] sm:text-xl">
+        <h3 className="text-lg font-semibold text-content-primary sm:text-xl">
           {t("tools.crypto.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.crypto.subtitle")}
         </p>
       </header>
@@ -109,7 +109,7 @@ const CryptoTools = () => {
             <p className="font-semibold">
               {t("tools.crypto.errors.loadFailed")}
             </p>
-            <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
+            <p className="mt-2 text-content-muted">
               {t("tools.crypto.errors.loadFailedHelp")}
             </p>
             <a

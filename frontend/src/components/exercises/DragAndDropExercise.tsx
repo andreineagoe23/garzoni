@@ -217,14 +217,14 @@ const DragAndDropExercise = ({
           <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
             {t("exercises.drag.title")}
           </h3>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("exercises.drag.instruction")}
           </p>
         </header>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-content-muted">
               {t("exercises.drag.items")}
             </h4>
             <div className="mt-3 flex flex-wrap gap-3">
@@ -241,7 +241,7 @@ const DragAndDropExercise = ({
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-content-muted">
               {t("exercises.drag.targets")}
             </h4>
             <div className="mt-3 grid gap-3">
@@ -298,9 +298,7 @@ const DragAndDropExercise = ({
           >
             {feedback}
             {feedbackType === "error" && explanation && (
-              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                {explanation}
-              </p>
+              <p className="mt-2 text-xs text-content-muted">{explanation}</p>
             )}
             {feedbackType === "error" && learn_more_url && (
               <div className="mt-2">
@@ -358,7 +356,7 @@ const DraggableItem = ({ item, isDisabled, isSelected, onKeyboardSelect }) => {
       } ${
         isSelected
           ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
-          : "border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)]"
+          : "border-[color:var(--border-color,#d1d5db)] text-content-primary"
       }`}
       style={{
         backgroundColor: item.color || "var(--card-bg,#ffffff)",
@@ -424,7 +422,7 @@ const DroppableTarget = ({
         {target.text}
       </p>
       {userAnswer && (
-        <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-[color:var(--muted-text,#6b7280)] shadow-inner">
+        <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-content-muted shadow-inner">
           {t("exercises.drag.answerLabel")}{" "}
           {itemsById[userAnswer]?.text || userAnswer}
         </div>

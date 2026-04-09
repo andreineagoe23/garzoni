@@ -17,7 +17,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }: CoinStackProps) {
   const unlockedCoins = Math.floor(balance / coinUnit);
 
   return (
-    <GlassCard padding="md" className="bg-[color:var(--bg-color,#f8fafc)]/60">
+    <GlassCard padding="md" className="bg-surface-page/60">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         {coins.map((amount, index) => {
           const unlocked = index < unlockedCoins;
@@ -27,7 +27,7 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }: CoinStackProps) {
               className={`coin flex h-20 flex-col items-center justify-center rounded-full border text-sm font-semibold shadow-md transition ${
                 unlocked
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--muted-text,#6b7280)]"
+                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-muted"
               }`}
             >
               {"\u00A3"}

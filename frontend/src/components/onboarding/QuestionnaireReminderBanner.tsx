@@ -43,7 +43,7 @@ const QuestionnaireReminderBanner: React.FC<
         padding="md"
         className="mb-6 border-[color:var(--primary,#1d5330)]/30 bg-gradient-to-r from-[color:var(--accent,#ffd700)]/10 to-[color:var(--primary,#1d5330)]/5"
       >
-        <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <div className="flex items-center gap-3 text-sm text-content-muted">
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
           {t("onboarding.reminderBanner.loading")}
         </div>
@@ -58,7 +58,7 @@ const QuestionnaireReminderBanner: React.FC<
         className="mb-6 border-[color:var(--primary,#1d5330)]/30 bg-gradient-to-r from-[color:var(--accent,#ffd700)]/10 to-[color:var(--primary,#1d5330)]/5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("onboarding.reminderBanner.error")}
           </p>
           <GlassButton
@@ -102,10 +102,10 @@ const QuestionnaireReminderBanner: React.FC<
     >
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h3 className="mb-1 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+          <h3 className="mb-1 text-sm font-semibold text-content-primary">
             {t("onboarding.reminderBanner.status")}
           </h3>
-          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs text-content-muted">
             {isCompleted
               ? t("onboarding.reminderBanner.allSet")
               : totalQuestions > 0

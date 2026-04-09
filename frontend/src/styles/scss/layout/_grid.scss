@@ -155,7 +155,7 @@
 }
 
 // Custom breakpoint for laptops specifically
-@media (min-width: 993px) and (max-width: 1366px) {
+@include media-laptop {
   @for $i from 1 through 12 {
     .col-laptop-#{$i} {
       flex: 0 0 auto;
@@ -201,7 +201,7 @@
   &.grid-2 {
     grid-template-columns: 1fr;
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       grid-template-columns: repeat(2, 1fr);
       gap: map.get($spacers, 3);
     }
@@ -214,7 +214,7 @@
   &.grid-3 {
     grid-template-columns: 1fr;
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       grid-template-columns: repeat(2, 1fr);
       gap: map.get($spacers, 3);
     }
@@ -231,7 +231,7 @@
   &.grid-4 {
     grid-template-columns: 1fr;
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       grid-template-columns: repeat(3, 1fr);
       gap: map.get($spacers, 3);
     }
@@ -255,7 +255,7 @@
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 
   // Laptop size adjustments
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     gap: map.get($spacers, 3);
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
@@ -282,7 +282,7 @@
     grid-template-columns: 3fr 1fr;
   }
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     grid-template-columns: 2fr 1fr;
     gap: map.get($spacers, 3);
   }
@@ -297,7 +297,7 @@
   display: grid;
   gap: map.get($spacers, 4);
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     gap: map.get($spacers, 3);
   }
 

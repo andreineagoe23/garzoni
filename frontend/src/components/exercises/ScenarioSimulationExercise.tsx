@@ -106,17 +106,15 @@ const ScenarioSimulationExercise = ({
   return (
     <GlassCard padding="lg" className="transition">
       <header className="space-y-2">
-        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-lg font-semibold text-content-primary">
           {question}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {scenario}
-        </p>
+        <p className="text-sm text-content-muted">{scenario}</p>
       </header>
 
       <div className="mt-6 space-y-4">
         <div
-          className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]"
+          className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-muted"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             const choiceId = event.dataTransfer.getData("text/plain");
@@ -140,7 +138,7 @@ const ScenarioSimulationExercise = ({
             }
           }}
         >
-          <span className="font-semibold text-[color:var(--text-color,#111827)]">
+          <span className="font-semibold text-content-primary">
             {t("exercises.scenario.actionSlot")}
           </span>{" "}
           {selectedChoice
@@ -156,7 +154,7 @@ const ScenarioSimulationExercise = ({
                 ? feedbackType === "success"
                   ? "border-[color:var(--accent,#ffd700)]/45 bg-[color:var(--accent,#ffd700)]/12 text-[color:var(--accent,#ffd700)]"
                   : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
             return (
               <button
                 key={choice.id}
@@ -211,7 +209,7 @@ const ScenarioSimulationExercise = ({
             }
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
               selectedId === null || selectedId === undefined || disabled
-                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]"
+                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted"
                 : "bg-[color:var(--primary,#1d5330)] text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
             }`}
           >
@@ -230,14 +228,12 @@ const ScenarioSimulationExercise = ({
         >
           {feedback}
           {selectedChoice?.outcome && (
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="mt-2 text-xs text-content-muted">
               {selectedChoice.outcome}
             </p>
           )}
           {feedbackType === "error" && explanation && (
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {explanation}
-            </p>
+            <p className="mt-2 text-xs text-content-muted">{explanation}</p>
           )}
           {feedbackType === "error" && learn_more_url && (
             <div className="mt-2">

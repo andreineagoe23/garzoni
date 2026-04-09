@@ -60,7 +60,7 @@ const EconomicMap = () => {
           style={{ width: "100%", height: "100%", minHeight: 0 }}
         />
       </div>
-      <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
+      <p className="text-center text-xs text-content-muted">
         Educational only - use as context, not a trading signal.
       </p>
     </section>

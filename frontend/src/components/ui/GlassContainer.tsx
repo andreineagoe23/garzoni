@@ -11,21 +11,15 @@ const GlassContainer = ({
   style,
   ...props
 }: GlassContainerProps) => {
-  // Theme-aware border: darker in light mode, lighter in dark mode
-  const borderStyle =
-    "border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))]";
-  const baseStyles = `rounded-3xl ${borderStyle} backdrop-blur-lg`;
+  const baseStyles = "rounded-3xl border border-border backdrop-blur-lg";
 
   const variantStyles: Record<
     NonNullable<GlassContainerProps["variant"]>,
     string
   > = {
-    default:
-      "bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]",
-    subtle:
-      "bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/70 shadow-sm shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]",
-    strong:
-      "bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/98 shadow-2xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.15))]",
+    default: "bg-surface-card/95 shadow-xl shadow-black/10",
+    subtle: "bg-surface-card/70 shadow-sm shadow-black/5",
+    strong: "bg-surface-elevated/98 shadow-2xl shadow-black/15",
   };
 
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${className}`;

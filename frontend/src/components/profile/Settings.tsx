@@ -229,17 +229,17 @@ function Settings() {
           <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-12">
             <section className="space-y-6">
               <header>
-                <h4 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                <h4 className="text-lg font-semibold text-content-primary">
                   {t("settings.profile.title")}
                 </h4>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {t("settings.profile.subtitle")}
                 </p>
               </header>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.profile.firstName")}
                   </label>
                   <input
@@ -247,11 +247,11 @@ function Settings() {
                     name="first_name"
                     value={profileData.first_name}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.profile.lastName")}
                   </label>
                   <input
@@ -259,14 +259,14 @@ function Settings() {
                     name="last_name"
                     value={profileData.last_name}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.profile.username")}
                   </label>
                   <input
@@ -274,11 +274,11 @@ function Settings() {
                     name="username"
                     value={profileData.username}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.profile.email")}
                   </label>
                   <input
@@ -286,7 +286,7 @@ function Settings() {
                     name="email"
                     value={profileData.email}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
@@ -294,17 +294,17 @@ function Settings() {
 
             <section className="space-y-6">
               <header>
-                <h4 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                <h4 className="text-lg font-semibold text-content-primary">
                   {t("settings.preferences.title")}
                 </h4>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {t("settings.preferences.subtitle")}
                 </p>
               </header>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.preferences.emailReminders")}
                   </label>
                   <select
@@ -312,7 +312,7 @@ function Settings() {
                     onChange={(event) =>
                       setEmailReminderPreference(event.target.value)
                     }
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   >
                     <option value="none">
                       {t("settings.preferences.reminders.none")}
@@ -326,7 +326,7 @@ function Settings() {
                   </select>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <label className="flex items-center gap-3 text-sm text-content-muted">
                     <input
                       type="checkbox"
                       checked={emailPreferences.reminders}
@@ -340,7 +340,7 @@ function Settings() {
                     />
                     {t("settings.preferences.emailTypes.reminders")}
                   </label>
-                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <label className="flex items-center gap-3 text-sm text-content-muted">
                     <input
                       type="checkbox"
                       checked={emailPreferences.weekly_digest}
@@ -354,7 +354,7 @@ function Settings() {
                     />
                     {t("settings.preferences.emailTypes.weeklyDigest")}
                   </label>
-                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <label className="flex items-center gap-3 text-sm text-content-muted">
                     <input
                       type="checkbox"
                       checked={emailPreferences.streak_alerts}
@@ -368,7 +368,7 @@ function Settings() {
                     />
                     {t("settings.preferences.emailTypes.streakAlerts")}
                   </label>
-                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <label className="flex items-center gap-3 text-sm text-content-muted">
                     <input
                       type="checkbox"
                       checked={emailPreferences.billing_alerts}
@@ -382,7 +382,7 @@ function Settings() {
                     />
                     {t("settings.preferences.emailTypes.billingAlerts")}
                   </label>
-                  <label className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] md:col-span-2">
+                  <label className="flex items-center gap-3 text-sm text-content-muted md:col-span-2">
                     <input
                       type="checkbox"
                       checked={emailPreferences.marketing}
@@ -398,7 +398,7 @@ function Settings() {
                   </label>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.preferences.lessonSounds")}
                   </label>
                   <div className="flex items-center gap-3">
@@ -410,13 +410,13 @@ function Settings() {
                       }
                       className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
-                    <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <span className="text-sm text-content-muted">
                       {t("settings.preferences.soundsHint")}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.preferences.animations")}
                   </label>
                   <div className="flex items-center gap-3">
@@ -428,7 +428,7 @@ function Settings() {
                       }
                       className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
-                    <span className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <span className="text-sm text-content-muted">
                       {t("settings.preferences.animationsHint")}
                     </span>
                   </div>
@@ -438,46 +438,46 @@ function Settings() {
 
             <section className="space-y-6">
               <header>
-                <h4 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                <h4 className="text-lg font-semibold text-content-primary">
                   {t("settings.password.title")}
                 </h4>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {t("settings.password.subtitle")}
                 </p>
               </header>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.password.current")}
                   </label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.password.new")}
                   </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="text-sm font-medium text-content-muted">
                     {t("settings.password.confirm")}
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
@@ -485,12 +485,12 @@ function Settings() {
               <button
                 type="button"
                 onClick={handleChangePassword}
-                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-content-muted shadow-sm transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 {t("settings.password.update")}
               </button>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-content-muted">
                 <button
                   type="button"
                   className="font-semibold text-[color:var(--accent,#ffd700)] transition hover:text-[color:var(--accent,#ffd700)]/80"
@@ -527,7 +527,7 @@ function Settings() {
                 <h4 className="text-lg font-semibold text-[color:var(--error,#dc2626)]">
                   {t("settings.danger.title")}
                 </h4>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {t("settings.danger.subtitle")}
                 </p>
               </header>
@@ -550,7 +550,7 @@ function Settings() {
                     value={deletePassword}
                     onChange={(event) => setDeletePassword(event.target.value)}
                     placeholder={t("settings.danger.passwordPlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-content-primary shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
                   />
                   <div className="flex flex-wrap gap-3">
                     <button
@@ -567,7 +567,7 @@ function Settings() {
                         setDeletePassword("");
                         setErrorMessage("");
                       }}
-                      className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {t("settings.actions.cancel")}
                     </button>

@@ -24,10 +24,10 @@ const ForexTools = () => {
   return (
     <section className="space-y-4">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-lg font-semibold text-content-primary">
           {t("tools.forex.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.forex.subtitle")}
         </p>
       </header>
@@ -36,11 +36,11 @@ const ForexTools = () => {
         <iframe
           title={t("tools.forex.iframeTitle")}
           src={iframeSrc}
-          className="h-[520px] w-full overflow-hidden rounded-2xl border-0 bg-[color:var(--bg-color,#f8fafc)]"
+          className="h-[520px] w-full overflow-hidden rounded-2xl border-0 bg-surface-page"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           referrerPolicy="no-referrer"
         />
-        <p className="mt-2 text-center text-xs text-[color:var(--muted-text,#6b7280)]">
+        <p className="mt-2 text-center text-xs text-content-muted">
           <Trans
             i18nKey="tools.forex.fallback"
             components={{

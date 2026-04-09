@@ -70,7 +70,7 @@ const PaymentSuccessPage = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[1300] flex flex-col items-center justify-center gap-8 bg-[color:var(--bg-color,#f8fafc)] px-4"
+      className="fixed inset-0 z-[1300] flex flex-col items-center justify-center gap-8 bg-surface-page px-4"
       aria-live="polite"
       aria-label={t("subscriptions.paymentSuccess.ariaLabel")}
     >
@@ -78,12 +78,10 @@ const PaymentSuccessPage = () => {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 text-4xl">
           <GarzoniIcon name="check" size={28} />
         </div>
-        <h1 className="text-xl font-bold text-[color:var(--text-color,#111827)] sm:text-2xl">
+        <h1 className="text-xl font-bold text-content-primary sm:text-2xl">
           {t("subscriptions.paymentSuccess.title")}
         </h1>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {message}
-        </p>
+        <p className="text-sm text-content-muted">{message}</p>
         <div className="space-y-2">
           <div
             className="h-3 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]"
@@ -98,9 +96,7 @@ const PaymentSuccessPage = () => {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
-            {progress}%
-          </p>
+          <p className="text-xs font-medium text-content-muted">{progress}%</p>
         </div>
       </div>
     </div>

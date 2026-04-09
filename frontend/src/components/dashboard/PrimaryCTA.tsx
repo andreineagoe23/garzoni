@@ -34,10 +34,10 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
             />
           )}
           <div>
-            <p className="font-semibold text-[color:var(--text-color,#111827)]">
+            <p className="font-semibold text-content-primary">
               {primaryCTA.text}
             </p>
-            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs text-content-muted">
               {primaryCTA.reason || t("dashboard.primaryCta.continueReason")}
             </p>
           </div>

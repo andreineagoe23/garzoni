@@ -61,7 +61,7 @@ export default function FeatureSection({ featureRef }: FeatureSectionProps) {
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
           {t("landing.features.title")}
         </h2>
-        <p className="mt-4 text-[15px] text-[color:var(--muted-text,rgba(229,231,235,0.72))] sm:text-base">
+        <p className="mt-4 text-[15px] text-content-muted sm:text-base">
           {t("landing.features.subtitle")}
         </p>
       </div>

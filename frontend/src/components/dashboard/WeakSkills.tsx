@@ -149,14 +149,14 @@ const WeakSkills = ({
     <div className="mt-6">
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-[color:var(--text-color,#111827)] sm:text-lg">
+          <h2 className="text-base font-semibold text-content-primary sm:text-lg">
             {t("dashboard.weakSkills.areasToImprove")}
           </h2>
         </div>
-        <p className="mb-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="mb-2 text-sm text-content-muted">
           {t("dashboard.weakSkills.focusOnSkills")}
         </p>
-        <p className="mb-4 text-[11px] text-[color:var(--muted-text,#6b7280)]">
+        <p className="mb-4 text-[11px] text-content-muted">
           {t("dashboard.skillInsights.sectionsAndLessons", {
             sections: `${safeCompletedSections}/${Math.max(1, safeTotalSections)}`,
             lessons: `${safeCompletedLessons}/${Math.max(1, safeTotalLessons)}`,
@@ -177,7 +177,7 @@ const WeakSkills = ({
                 })}
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                  <span className="text-sm font-semibold text-content-primary">
                     {skill.skill}
                   </span>
                   <div className="flex items-center gap-2">
@@ -186,7 +186,7 @@ const WeakSkills = ({
                         {t("dashboard.skillInsights.justUnlocked")}
                       </span>
                     )}
-                    <span className="text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                    <span className="text-xs font-medium text-content-muted">
                       {formatPercentage(skill.proficiency, locale, 0)}
                     </span>
                   </div>
@@ -203,13 +203,13 @@ const WeakSkills = ({
                     aria-valuemax={100}
                   />
                 </div>
-                <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)] transition group-hover:text-[color:var(--color-brand-primary,var(--primary,#1d5330))]">
+                <p className="mt-2 text-xs text-content-muted transition group-hover:text-[color:var(--color-brand-primary,var(--primary,#1d5330))]">
                   {t("dashboard.weakSkills.lowMasteryIn", {
                     skill: skill.skill,
                   })}
                 </p>
                 {skill.level_label && (
-                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-content-muted">
                     {skill.level_label}
                   </p>
                 )}
@@ -221,7 +221,7 @@ const WeakSkills = ({
                     event.stopPropagation();
                     onPracticeClick?.(skill);
                   }}
-                  className="rounded bg-transparent p-0 text-[10px] text-[color:var(--muted-text,#6b7280)] underline hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                  className="rounded bg-transparent p-0 text-[10px] text-content-muted underline hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                   aria-label={t(
                     "dashboard.weakSkills.practiceRecommendationAria",
                     { skill: skill.skill }

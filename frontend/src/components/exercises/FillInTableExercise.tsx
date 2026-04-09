@@ -171,7 +171,7 @@ const FillInTableExercise = ({
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {question}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("exercises.table.instruction")}
         </p>
       </header>
@@ -180,13 +180,13 @@ const FillInTableExercise = ({
         <table className="min-w-full border-separate border-spacing-2 text-sm">
           <thead>
             <tr>
-              <th className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+              <th className="text-left text-xs font-semibold uppercase tracking-wide text-content-muted">
                 {t("exercises.table.row")}
               </th>
               {columns.map((column) => (
                 <th
                   key={column}
-                  className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]"
+                  className="text-left text-xs font-semibold uppercase tracking-wide text-content-muted"
                 >
                   {column}
                 </th>
@@ -196,7 +196,7 @@ const FillInTableExercise = ({
           <tbody>
             {rows.map((row) => (
               <tr key={row.id}>
-                <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
+                <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
                   {row.label || t("exercises.table.rowWithId", { id: row.id })}
                 </td>
                 {columns.map((column, colIndex) => {
@@ -219,7 +219,7 @@ const FillInTableExercise = ({
                         }
                         disabled={isCompleted || disabled}
                         aria-label={`${row.label || t("exercises.table.row")} ${column}`}
-                        className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${borderClass}`}
+                        className={`w-full rounded-xl border px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${borderClass}`}
                       />
                     </td>
                   );
@@ -261,9 +261,7 @@ const FillInTableExercise = ({
         >
           {feedback}
           {feedbackType === "error" && explanation && (
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {explanation}
-            </p>
+            <p className="mt-2 text-xs text-content-muted">{explanation}</p>
           )}
           {feedbackType === "error" && learn_more_url && (
             <div className="mt-2">

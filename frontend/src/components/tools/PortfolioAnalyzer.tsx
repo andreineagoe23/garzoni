@@ -756,7 +756,7 @@ function PortfolioAnalyzer() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-content-muted shadow-inner shadow-black/5">
         {t("tools.portfolio.loading")}
       </div>
     );
@@ -767,10 +767,10 @@ function PortfolioAnalyzer() {
   return (
     <section className="space-y-6 min-w-0 w-full">
       <header className="space-y-2 text-center">
-        <h3 className="text-xl font-bold text-[color:var(--text-color,#111827)] sm:text-2xl">
+        <h3 className="text-xl font-bold text-content-primary sm:text-2xl">
           {t("tools.portfolio.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.portfolio.subtitle")}
         </p>
       </header>
@@ -785,10 +785,10 @@ function PortfolioAnalyzer() {
         <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
-            <h4 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+            <h4 className="text-xl font-semibold text-content-primary">
               {t("tools.portfolio.noEntries")}
             </h4>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("tools.portfolio.noEntriesSubtitle")}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -822,10 +822,10 @@ function PortfolioAnalyzer() {
               </button>
             </div>
             <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-2">
                 {t("tools.portfolio.tryThis")}
               </p>
-              <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+              <ul className="space-y-1 text-xs text-content-muted">
                 <li>• {t("tools.portfolio.tryThisBullet1")}</li>
                 <li>• {t("tools.portfolio.tryThisBullet2")}</li>
                 <li>• {t("tools.portfolio.tryThisBullet3")}</li>
@@ -845,17 +845,17 @@ function PortfolioAnalyzer() {
                 WebkitBackdropFilter: "blur(12px)",
               }}
             >
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-content-muted mb-4">
                 {t("tools.portfolio.totalValue")}
               </h4>
               <div className="space-y-1">
-                <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+                <p className="text-3xl font-bold text-content-primary">
                   {formatCurrency(summary.total_value || 0, "USD", locale, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </p>
-                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs text-content-muted">
                   {t("tools.portfolio.currentValue")}
                 </p>
               </div>
@@ -868,7 +868,7 @@ function PortfolioAnalyzer() {
                 WebkitBackdropFilter: "blur(12px)",
               }}
             >
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-content-muted mb-4">
                 {t("tools.portfolio.totalGainLoss")}
               </h4>
               <div className="space-y-1">
@@ -911,14 +911,14 @@ function PortfolioAnalyzer() {
                 WebkitBackdropFilter: "blur(12px)",
               }}
             >
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-4">
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-content-muted mb-4">
                 {t("tools.portfolio.totalHoldings")}
               </h4>
               <div className="space-y-1">
-                <p className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+                <p className="text-3xl font-bold text-content-primary">
                   {entries.length}
                 </p>
-                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs text-content-muted">
                   {entries.length}{" "}
                   {entries.length === 1
                     ? t("tools.portfolio.investment_one")
@@ -955,7 +955,7 @@ function PortfolioAnalyzer() {
                       ? t("tools.portfolio.risky")
                       : t("tools.portfolio.misaligned")}
                 </span>
-                <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-content-muted">
                   {t("tools.portfolio.confidence", {
                     level: insight.confidence,
                   })}
@@ -963,10 +963,10 @@ function PortfolioAnalyzer() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                     {t("tools.portfolio.isPortfolioRisky")}
                   </p>
-                  <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
+                  <p className="mt-1 text-sm text-content-primary">
                     {insight.riskLevel === "low"
                       ? t("tools.portfolio.riskReasonable")
                       : insight.riskLevel === "moderate"
@@ -975,54 +975,54 @@ function PortfolioAnalyzer() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                     {t("tools.portfolio.biggestProblem")}
                   </p>
-                  <p className="mt-1 text-sm text-[color:var(--text-color,#111827)]">
+                  <p className="mt-1 text-sm text-content-primary">
                     {insight.biggestProblem ??
                       t("tools.portfolio.nothingMajor")}
                   </p>
                 </div>
               </div>
               <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("tools.portfolio.inPlainEnglish")}
                 </p>
-                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[color:var(--text-color,#111827)]">
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-content-primary">
                   {insight.summaryBullets.map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
                 </ul>
               </div>
               <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   Insights you can act on
                 </p>
                 <div className="mt-2 grid gap-3 grid-cols-1 md:grid-cols-2 min-w-0">
                   {insight.insightCards.map((card) => (
                     <div
                       key={card.id}
-                      className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 text-sm text-[color:var(--text-color,#111827)] min-w-0"
+                      className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 text-sm text-content-primary min-w-0"
                     >
                       <div className="flex items-center justify-between">
                         <h5 className="text-sm font-semibold">{card.title}</h5>
-                        <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                        <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-content-muted">
                           {card.confidence} confidence
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="mt-2 text-xs text-content-muted">
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
                           What it means:
                         </span>{" "}
                         {card.meaning}
                       </p>
-                      <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <p className="mt-2 text-xs text-content-muted">
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
                           Why it matters:
                         </span>{" "}
                         {card.why}
                       </p>
-                      <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-content-muted">
                         {card.nextSteps.map((step) => (
                           <li key={step}>{step}</li>
                         ))}
@@ -1059,7 +1059,7 @@ function PortfolioAnalyzer() {
                         {card.actionLink && (
                           <Link
                             to={card.actionLink}
-                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--primary,#1d5330)]"
+                            className="text-xs font-semibold uppercase tracking-wide text-content-muted hover:text-[color:var(--primary,#1d5330)]"
                           >
                             Tool action →
                           </Link>
@@ -1070,14 +1070,14 @@ function PortfolioAnalyzer() {
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <span className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   Next step:
                 </span>
                 <button
                   type="button"
                   onClick={explainPortfolioInPlainLanguage}
                   disabled={isAiMeaningLoading}
-                  className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
+                  className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold text-content-primary transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
                 >
                   {isAiMeaningLoading
                     ? "Thinking..."
@@ -1097,10 +1097,10 @@ function PortfolioAnalyzer() {
               )}
               {aiMeaning && (
                 <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-3 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                     AI take
                   </p>
-                  <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--text-color,#111827)]">
+                  <p className="mt-1 whitespace-pre-line text-sm text-content-primary">
                     {aiMeaning}
                   </p>
                 </div>
@@ -1121,7 +1121,7 @@ function PortfolioAnalyzer() {
               </h4>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-3">
                     Allocation
                   </p>
                   <div className="h-56 sm:h-64 w-full min-h-0">
@@ -1161,7 +1161,7 @@ function PortfolioAnalyzer() {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-3">
                     Breakdown
                   </p>
                   <div className="space-y-3">
@@ -1176,10 +1176,10 @@ function PortfolioAnalyzer() {
                       return (
                         <div key={type} className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-[color:var(--text-color,#111827)]">
+                            <span className="font-medium text-content-primary">
                               {t(`tools.portfolio.assetType.${type}`)}
                             </span>
-                            <span className="text-[color:var(--muted-text,#6b7280)]">
+                            <span className="text-content-muted">
                               {percentageLabel}%
                             </span>
                           </div>
@@ -1189,7 +1189,7 @@ function PortfolioAnalyzer() {
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
-                          <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                          <p className="text-xs text-content-muted">
                             {formatCurrency(Number(value || 0), "USD", locale, {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
@@ -1225,13 +1225,13 @@ function PortfolioAnalyzer() {
             Add New Entry
           </h4>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4" noValidate>
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Asset Type
               <select
                 name="asset_type"
                 value={newEntry.asset_type}
                 onChange={handleInputChange}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 <option value="stock">{t("tools.portfolio.stock")}</option>
                 <option value="crypto">{t("tools.portfolio.crypto")}</option>
@@ -1248,7 +1248,7 @@ function PortfolioAnalyzer() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Symbol
               <div className="flex gap-2">
                 <input
@@ -1258,7 +1258,7 @@ function PortfolioAnalyzer() {
                   onChange={handleInputChange}
                   placeholder={t("tools.portfolio.symbolPlaceholder")}
                   required
-                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 />
                 <button
                   type="button"
@@ -1277,7 +1277,7 @@ function PortfolioAnalyzer() {
                 </p>
               )}
               {lookupPrice != null && !lookupError && (
-                <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <p className="mt-1 text-xs text-content-muted">
                   {t("tools.portfolio.currentPrice")}:{" "}
                   {formatCurrency(lookupPrice, "USD", locale, {
                     minimumFractionDigits: 2,
@@ -1287,7 +1287,7 @@ function PortfolioAnalyzer() {
               )}
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Quantity
               <input
                 type="number"
@@ -1297,11 +1297,11 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Purchase Price
               <input
                 type="number"
@@ -1311,11 +1311,11 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Purchase Date
               <input
                 type="date"
@@ -1323,7 +1323,7 @@ function PortfolioAnalyzer() {
                 value={newEntry.purchase_date}
                 onChange={handleInputChange}
                 required
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
             <button
@@ -1347,7 +1347,7 @@ function PortfolioAnalyzer() {
               Portfolio Entries
             </h4>
             {hasEntries && (
-              <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+              <span className="text-xs text-content-muted">
                 {entries.length} {entries.length === 1 ? "entry" : "entries"}
               </span>
             )}
@@ -1360,7 +1360,7 @@ function PortfolioAnalyzer() {
                   className="min-w-full border-collapse text-sm"
                   style={{ minWidth: "640px" }}
                 >
-                  <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]">
+                  <thead className="sticky top-0 z-10 bg-[color:var(--input-bg,#f3f4f6)] text-content-muted">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
                         Type
@@ -1389,10 +1389,10 @@ function PortfolioAnalyzer() {
                     {entries.map((entry) => (
                       <tr
                         key={entry.id}
-                        className="text-[color:var(--text-color,#111827)] hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors"
+                        className="text-content-primary hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors"
                       >
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--text-color,#111827)]">
+                          <span className="inline-flex items-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] px-2.5 py-0.5 text-xs font-medium text-content-primary">
                             {t(`tools.portfolio.assetType.${entry.asset_type}`)}
                           </span>
                         </td>
@@ -1487,7 +1487,7 @@ function PortfolioAnalyzer() {
             </div>
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-8 text-center">
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 No portfolio entries yet. Add your first entry above.
               </p>
             </div>

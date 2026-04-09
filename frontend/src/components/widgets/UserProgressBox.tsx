@@ -53,7 +53,7 @@ function UserProgressBox({ progressData }) {
 
   if (!progressData) {
     return (
-      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+      <div className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-content-muted shadow-inner shadow-black/5">
         {t("widgets.userProgress.loading")}
       </div>
     );
@@ -70,7 +70,7 @@ function UserProgressBox({ progressData }) {
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-transparent to-transparent pointer-events-none" />
       <div className="relative shrink-0 space-y-4 px-5 py-4">
         <div className="flex items-center justify-between">
-          <h5 className="flex items-center gap-2 text-lg font-semibold text-[color:var(--text-color,#111827)]">
+          <h5 className="flex items-center gap-2 text-lg font-semibold text-content-primary">
             <span>{t("widgets.userProgress.userProfile")}</span>
           </h5>
           <GlassButton variant="danger" size="sm" onClick={handleLogout}>
@@ -79,7 +79,7 @@ function UserProgressBox({ progressData }) {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("widgets.userProgress.loadingUserInfo")}
           </p>
         ) : (
@@ -87,10 +87,10 @@ function UserProgressBox({ progressData }) {
             <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--accent,#ffd700)]/40 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/20">
               <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
-                <span className="block text-2xl font-bold text-[color:var(--text-color,#111827)]">
+                <span className="block text-2xl font-bold text-content-primary">
                   {userProfile?.points}
                 </span>
-                <span className="mt-1 block text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <span className="mt-1 block text-xs uppercase tracking-wide text-content-muted">
                   {t("widgets.userProgress.points")}
                 </span>
               </div>
@@ -99,10 +99,10 @@ function UserProgressBox({ progressData }) {
             <div className="group relative overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-gradient-to-br from-[color:var(--input-bg,#f3f4f6)] to-[color:var(--input-bg,#f3f4f6)]/80 px-3 py-4 backdrop-blur-sm transition-all hover:border-[color:var(--accent,#ffd700)]/40 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/20">
               <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
-                <span className="block text-2xl font-bold text-[color:var(--text-color,#111827)]">
+                <span className="block text-2xl font-bold text-content-primary">
                   {userProfile?.streak}
                 </span>
-                <span className="mt-1 block text-xs uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <span className="mt-1 block text-xs uppercase tracking-wide text-content-muted">
                   {t("widgets.userProgress.streak", {
                     count: userProfile?.streak || 0,
                   })}
@@ -120,7 +120,7 @@ function UserProgressBox({ progressData }) {
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
-        <h3 className="flex items-center gap-2 text-base font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-content-primary">
           <span>{t("widgets.userProgress.learningProgress")}</span>
         </h3>
       </div>
@@ -136,10 +136,10 @@ function UserProgressBox({ progressData }) {
         <div className="space-y-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 font-medium text-[color:var(--muted-text,#6b7280)]">
+              <span className="flex items-center gap-2 font-medium text-content-muted">
                 <span>{t("widgets.userProgress.overallCompletion")}</span>
               </span>
-              <span className="font-bold text-[color:var(--text-color,#111827)]">
+              <span className="font-bold text-content-primary">
                 {formatNumber(overallProgress, locale, {
                   minimumFractionDigits: 1,
                   maximumFractionDigits: 1,
@@ -157,7 +157,7 @@ function UserProgressBox({ progressData }) {
 
           {paths.length > 0 && (
             <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+              <h4 className="flex items-center gap-2 text-sm font-semibold text-content-primary">
                 <span>{t("widgets.userProgress.pathProgress")}</span>
               </h4>
               <div className="space-y-4">
@@ -171,10 +171,10 @@ function UserProgressBox({ progressData }) {
                     }}
                   >
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="font-medium text-[color:var(--muted-text,#6b7280)]">
+                      <span className="font-medium text-content-muted">
                         {path.path}
                       </span>
-                      <span className="font-bold text-[color:var(--text-color,#111827)]">
+                      <span className="font-bold text-content-primary">
                         {formatNumber(path.percent_complete, locale, {
                           minimumFractionDigits: 1,
                           maximumFractionDigits: 1,
@@ -188,7 +188,7 @@ function UserProgressBox({ progressData }) {
                         style={{ width: `${path.percent_complete}%` }}
                       />
                     </div>
-                    <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                    <p className="mt-2 text-xs text-content-muted">
                       {path.course}
                     </p>
                   </div>

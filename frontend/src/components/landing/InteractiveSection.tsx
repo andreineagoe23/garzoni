@@ -41,7 +41,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
       {section.content_type === "text" && (
         <article
           id={`section-${section.id}-title`}
-          className="prose max-w-none text-[color:var(--text-color,#111827)] prose-headings:text-[color:var(--text-color,#111827)] prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
+          className="prose max-w-none text-content-primary prose-headings:text-content-primary prose-p:leading-relaxed prose-strong:text-[color:var(--primary,#1d5330)] dark:prose-invert"
           dangerouslySetInnerHTML={{
             __html: sanitizedContent,
           }}
@@ -72,7 +72,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
           <div className="flex items-center justify-between gap-4">
             <h4
               id={`section-${section.id}-title`}
-              className="text-lg font-semibold text-[color:var(--text-color,#111827)]"
+              className="text-lg font-semibold text-content-primary"
             >
               {section.title}
             </h4>

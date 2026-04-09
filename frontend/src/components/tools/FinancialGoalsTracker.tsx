@@ -9,8 +9,7 @@ import {
 } from "utils/format";
 
 const STATUS_COLORS = {
-  not_started:
-    "bg-[color:var(--input-bg,#f3f4f6)] text-[color:var(--muted-text,#6b7280)]",
+  not_started: "bg-[color:var(--input-bg,#f3f4f6)] text-content-muted",
   in_progress:
     "bg-[color:var(--primary,#1d5330)]/10 text-[color:var(--primary,#1d5330)]",
   completed: "bg-emerald-500/10 text-[color:var(--accent,#ffd700)]",
@@ -126,7 +125,7 @@ const FinancialGoalsTracker = () => {
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {t("tools.goalsTracker.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.goalsTracker.subtitle")}
         </p>
       </header>
@@ -139,7 +138,7 @@ const FinancialGoalsTracker = () => {
         }}
       >
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.goalsTracker.demoPresets")}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -154,7 +153,7 @@ const FinancialGoalsTracker = () => {
               </button>
             ))}
           </div>
-          <ul className="space-y-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+          <ul className="space-y-1 text-xs text-content-muted">
             <li>• {t("tools.goalsTracker.presetTip1")}</li>
             <li>• {t("tools.goalsTracker.presetTip2")}</li>
             <li>• {t("tools.goalsTracker.presetTip3")}</li>
@@ -165,7 +164,7 @@ const FinancialGoalsTracker = () => {
           className="grid gap-4 md:grid-cols-2"
           noValidate
         >
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.goalsTracker.goalName")}
             <input
               type="text"
@@ -174,11 +173,11 @@ const FinancialGoalsTracker = () => {
               onChange={handleInputChange}
               placeholder={t("tools.goalsTracker.goalNamePlaceholder")}
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.goalsTracker.targetAmount")}
             <input
               type="number"
@@ -188,11 +187,11 @@ const FinancialGoalsTracker = () => {
               placeholder={t("tools.goalsTracker.targetAmountPlaceholder")}
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.goalsTracker.currentAmount")}
             <input
               type="number"
@@ -202,11 +201,11 @@ const FinancialGoalsTracker = () => {
               placeholder={t("tools.goalsTracker.currentAmountPlaceholder")}
               required
               min="0"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <label className="flex flex-col gap-1 text-sm font-medium text-content-muted">
             {t("tools.goalsTracker.targetDate")}
             <input
               type="date"
@@ -214,7 +213,7 @@ const FinancialGoalsTracker = () => {
               value={newGoal.target_date}
               onChange={handleInputChange}
               required
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </label>
 
@@ -231,7 +230,7 @@ const FinancialGoalsTracker = () => {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-content-muted shadow-inner shadow-black/5">
             {t("tools.goalsTracker.loading")}
           </div>
         ) : error ? (
@@ -239,7 +238,7 @@ const FinancialGoalsTracker = () => {
             {error}
           </div>
         ) : goals.length === 0 ? (
-          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-6 text-sm text-content-muted shadow-inner shadow-black/5">
             <p className="font-semibold text-[color:var(--accent,#111827)]">
               {t("tools.goalsTracker.emptyTitle")}
             </p>
@@ -291,7 +290,7 @@ const FinancialGoalsTracker = () => {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <p className="mt-2 text-xs text-content-muted">
                     {t("tools.goalsTracker.target")}:{" "}
                     {formatCurrency(
                       Number(goal.target_amount || 0),
@@ -307,7 +306,7 @@ const FinancialGoalsTracker = () => {
                       { minimumFractionDigits: 0, maximumFractionDigits: 0 }
                     )}
                   </p>
-                  <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs text-content-muted">
                     {t("tools.goalsTracker.targetDateLabel")}:{" "}
                     {deadline
                       ? formatDate(deadline, locale)
@@ -315,7 +314,7 @@ const FinancialGoalsTracker = () => {
                   </p>
 
                   <div className="mt-4">
-                    <div className="flex items-center justify-between text-xs font-medium text-[color:var(--muted-text,#6b7280)]">
+                    <div className="flex items-center justify-between text-xs font-medium text-content-muted">
                       <span>{t("tools.goalsTracker.progress")}</span>
                       <span className="text-[color:var(--accent,#111827)]">
                         {formatNumber(progress, locale, {
@@ -333,7 +332,7 @@ const FinancialGoalsTracker = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-content-muted">
                     <span>
                       {t("tools.goalsTracker.remaining")}:{" "}
                       {formatCurrency(

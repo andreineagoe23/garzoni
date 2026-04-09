@@ -13,10 +13,8 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     { children, className = "", hover = true, padding = "md", ...props },
     ref
   ) => {
-    // Theme-aware border: darker in light mode, lighter in dark mode
-    const borderStyle =
-      "border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))]";
-    const baseStyles = `relative overflow-hidden rounded-3xl ${borderStyle} bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all`;
+    const baseStyles =
+      "relative overflow-hidden rounded-3xl border border-border bg-surface-card/95 shadow-xl shadow-black/10 backdrop-blur-lg transition-all";
 
     const paddingStyles = {
       none: "",
@@ -26,9 +24,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       xl: "px-8 py-10",
     };
 
-    const hoverStyles = hover
-      ? "hover:shadow-xl hover:shadow-[color:var(--shadow-color,rgba(0,0,0,0.12))]"
-      : "";
+    const hoverStyles = hover ? "hover:shadow-xl hover:shadow-black/12" : "";
 
     const combinedClassName = `${baseStyles} ${paddingStyles[padding]} ${hoverStyles} ${className}`;
 

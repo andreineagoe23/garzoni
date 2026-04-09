@@ -71,7 +71,7 @@ const StatusSummary = ({
         >
           <div className="flex items-center justify-between gap-2">
             <div
-              className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--muted-text,#6b7280)]"}`}
+              className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-content-muted"}`}
             >
               <GarzoniIcon
                 name="sync"
@@ -79,7 +79,7 @@ const StatusSummary = ({
                 className={
                   reviewsDue > 0
                     ? "text-[color:var(--error,#dc2626)]"
-                    : "text-[color:var(--muted-text,#6b7280)]"
+                    : "text-content-muted"
                 }
               />
               <span>{t("dashboard.statusSummary.reviewsDue")}</span>
@@ -91,12 +91,12 @@ const StatusSummary = ({
             ) : null}
           </div>
           <p
-            className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-[color:var(--text-color,#111827)]"}`}
+            className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-content-primary"}`}
           >
             {formatNumber(reviewsDue, locale)}
           </p>
           {reviewTopSkill ? (
-            <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="mt-1 text-xs text-content-muted">
               {t("dashboard.statusSummary.nextReviewSkill", {
                 skill: reviewTopSkill,
               })}
@@ -122,30 +122,26 @@ const StatusSummary = ({
         />
       ) : (
         <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+          <div className="flex items-center gap-2 text-sm font-medium text-content-muted">
             <GarzoniIcon
               name="rocket"
               size={16}
-              className="text-[color:var(--muted-text,#6b7280)]"
+              className="text-content-muted"
             />
             <span>{t("dashboard.statusSummary.activeMissions")}</span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
+          <p className="mt-2 text-2xl font-bold text-content-primary">
             {formatNumber(activeMissionsCount, locale)}
           </p>
         </div>
       )}
 
       <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
-          <GarzoniIcon
-            name="fire"
-            size={16}
-            className="text-[color:var(--muted-text,#6b7280)]"
-          />
+        <div className="flex items-center gap-2 text-sm font-medium text-content-muted">
+          <GarzoniIcon name="fire" size={16} className="text-content-muted" />
           <span>{t("dashboard.statusSummary.streak")}</span>
         </div>
-        <p className="mt-2 text-2xl font-bold text-[color:var(--text-color,#111827)]">
+        <p className="mt-2 text-2xl font-bold text-content-primary">
           {formatNumber(streakCount, locale)}
         </p>
       </div>

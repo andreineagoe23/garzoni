@@ -379,13 +379,13 @@ function Missions() {
   // on every parent state change.
 
   return (
-    <section className="min-h-screen bg-[color:var(--bg-color)] px-4 py-10">
+    <section className="min-h-screen bg-surface-page px-4 py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
           <h1 className="text-3xl font-bold text-[color:var(--accent)]">
             {t("missions.header.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text)]">
+          <p className="text-sm text-content-muted">
             {t("missions.header.subtitle")}
           </p>
         </header>
@@ -394,7 +394,7 @@ function Missions() {
           <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
             {/* Left: compact "at a glance" mini-card */}
             <div className="flex-1 rounded-xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text)]">
+              <p className="text-xs uppercase tracking-wide text-content-muted">
                 {t("missions.summary.title")}
               </p>
 
@@ -404,7 +404,7 @@ function Missions() {
                     count: missionsRemaining,
                   })}
                 </p>
-                <p className="text-sm text-[color:var(--muted-text)]">
+                <p className="text-sm text-content-muted">
                   {t("missions.summary.xp", {
                     earned: dailyXpEarned,
                     remaining: dailyXpRemaining,
@@ -543,12 +543,12 @@ function Missions() {
                         mascot="bear"
                         className="h-20 w-20 object-contain"
                       />
-                      <p className="text-xs font-medium text-[color:var(--muted-text)]">
+                      <p className="text-xs font-medium text-content-muted">
                         {t("missions.wrapup.mascotMessage")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-[color:var(--muted-text)]">
+                      <p className="text-xs uppercase tracking-wide text-content-muted">
                         {t("missions.wrapup.title")}
                       </p>
                       <p className="text-xl font-semibold text-[color:var(--accent)]">
@@ -556,7 +556,7 @@ function Missions() {
                           xp: dailyXpEarned,
                         })}
                       </p>
-                      <p className="text-sm text-[color:var(--muted-text)]">
+                      <p className="text-sm text-content-muted">
                         {t("missions.wrapup.streakReview", {
                           count: streakCount,
                           days: streakCount,

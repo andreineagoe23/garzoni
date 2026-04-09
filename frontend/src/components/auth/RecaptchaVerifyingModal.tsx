@@ -26,10 +26,10 @@ export default function RecaptchaVerifyingModal({ open }: Props) {
           className="h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--border-color)] border-t-[color:var(--primary)]"
           aria-hidden="true"
         />
-        <p className="text-center text-sm font-medium text-[color:var(--text-color)]">
+        <p className="text-center text-sm font-medium text-content-primary">
           {t("auth.recaptcha.verifying")}
         </p>
-        <p className="text-center text-xs text-[color:var(--muted-text)]">
+        <p className="text-center text-xs text-content-muted">
           {t("auth.recaptcha.protectedBy")}
         </p>
       </div>

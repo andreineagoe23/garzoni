@@ -29,11 +29,11 @@ const DailyGoalCard = ({
             size={20}
             className="text-[color:var(--primary,#1d5330)]"
           />
-          <span className="text-sm font-medium text-[color:var(--text-color,#111827)]">
+          <span className="text-sm font-medium text-content-primary">
             {t("dashboard.dailyGoal.label")}
           </span>
         </div>
-        <span className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+        <span className="text-sm font-semibold text-content-primary">
           {formatPercentage(dailyGoalProgress, locale, 0)}
         </span>
       </div>

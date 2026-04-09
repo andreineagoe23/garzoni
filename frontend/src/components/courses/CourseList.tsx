@@ -19,7 +19,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
     return (
       <GlassCard
         padding="md"
-        className="bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)]"
+        className="bg-[color:var(--card-bg,#ffffff)]/60 text-content-muted"
       >
         {t("courses.list.noCoursesAvailable")}
       </GlassCard>
@@ -32,7 +32,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
         <GlassCard
           key={course.id}
           padding="md"
-          className="group cursor-pointer text-[color:var(--text-color,#111827)] transition hover:-translate-y-1 hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/20 focus-within:ring-2 focus-within:ring-[color:var(--accent,#2563eb)]/40"
+          className="group cursor-pointer text-content-primary transition hover:-translate-y-1 hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/20 focus-within:ring-2 focus-within:ring-[color:var(--accent,#2563eb)]/40"
           onClick={() =>
             navigate(
               pathIdSegment
@@ -57,12 +57,12 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
               <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
                 {course.title}
               </h3>
-              <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)] group-hover:text-[color:var(--accent,#2563eb)]">
+              <span className="text-xs font-semibold uppercase tracking-wide text-content-muted group-hover:text-[color:var(--accent,#2563eb)]">
                 {t("courses.list.viewLesson")}
               </span>
             </div>
             {course.description && (
-              <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="mt-2 text-sm text-content-muted">
                 {course.description}
               </p>
             )}

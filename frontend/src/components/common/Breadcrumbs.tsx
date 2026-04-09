@@ -22,7 +22,7 @@ const Breadcrumbs = ({
     <nav
       aria-label={t("shared.breadcrumb")}
       className={classNames(
-        "flex flex-wrap items-center gap-2 text-sm text-[color:var(--muted-text,#6b7280)]",
+        "flex flex-wrap items-center gap-2 text-sm text-content-muted",
         className
       )}
     >
@@ -36,7 +36,7 @@ const Breadcrumbs = ({
               </span>
             )}
             {isLast || !item.to ? (
-              <span className="font-medium text-[color:var(--text-color,#111827)]">
+              <span className="font-medium text-content-primary">
                 {item.label}
               </span>
             ) : (

@@ -62,7 +62,7 @@ function friendActionButtonClass(isFriend: boolean, pending: boolean) {
       "cursor-not-allowed bg-emerald-500/10 text-[color:var(--accent,#ffd700)]",
     pending &&
       !isFriend &&
-      "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-[color:var(--muted-text,#6b7280)]",
+      "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted",
     !isFriend &&
       !pending &&
       "bg-[color:var(--primary,#1d5330)] text-white shadow hover:shadow-lg"
@@ -367,7 +367,7 @@ const Leaderboards = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-[10px] text-[color:var(--muted-text,#6b7280)] md:text-sm">
+                  <p className="text-[10px] text-content-muted md:text-sm">
                     {t("leaderboard.points", {
                       points: formatNumber(entry.points || 0, locale),
                     })}
@@ -435,7 +435,7 @@ const Leaderboards = () => {
                     </span>
                   )}
                 </p>
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {t("leaderboard.points", {
                     points: formatNumber(entry.points || 0, locale),
                   })}
@@ -491,7 +491,7 @@ const Leaderboards = () => {
               ? t("leaderboard.title.global")
               : t("leaderboard.title.friends")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("leaderboard.subtitle")}
           </p>
         </div>
@@ -506,7 +506,7 @@ const Leaderboards = () => {
                   "relative z-10 inline-flex flex-1 touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40",
                   activeTab === tab
                     ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
-                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-[color:var(--accent,#ffd700)]"
+                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-content-muted hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-[color:var(--accent,#ffd700)]"
                 )}
               >
                 {tab === "global"
@@ -521,7 +521,7 @@ const Leaderboards = () => {
                 value={timeFilter}
                 onChange={(event) => setTimeFilter(event.target.value)}
                 disabled={globalBusy}
-                className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-[color:var(--muted-text,#6b7280)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:opacity-60"
+                className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:opacity-60"
               >
                 {timeFilterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -541,12 +541,12 @@ const Leaderboards = () => {
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={t("leaderboard.searchPlaceholder")}
             aria-label={t("leaderboard.searchAriaLabel")}
-            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 pr-11 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 pr-11 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
             type="search"
             autoComplete="off"
           />
           <Search
-            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--muted-text,#6b7280)]"
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-content-muted"
             aria-hidden
           />
         </div>
@@ -558,7 +558,7 @@ const Leaderboards = () => {
       </div>
 
       {globalBusy && (
-        <p className="text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-center text-sm text-content-muted">
           {t("leaderboard.loading")}
         </p>
       )}
@@ -605,7 +605,7 @@ const Leaderboards = () => {
       <div className="space-y-4">
         {filteredLeaderboard.length === 0 ? (
           <GlassCard padding="lg" className="text-center">
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("leaderboard.empty")}
             </p>
           </GlassCard>

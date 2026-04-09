@@ -40,7 +40,7 @@ function PageContainer({
   return (
     <section
       className={classNames(
-        "min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10",
+        "min-h-screen bg-surface-page px-4 py-10",
         className
       )}
       {...props}

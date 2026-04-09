@@ -67,7 +67,7 @@ function ForgotPassword() {
             <h2 className="text-2xl font-bold text-[color:var(--accent,#2563eb)]">
               {t("auth.forgotPassword.title")}
             </h2>
-            <p className="mt-2 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="mt-2 text-center text-sm text-content-muted">
               {t("auth.forgotPassword.subtitle")}
             </p>
 
@@ -98,7 +98,7 @@ function ForgotPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-[color:var(--muted-text,#374151)]"
+                  className="text-sm font-medium text-content-muted"
                 >
                   {t("auth.forgotPassword.email")}
                 </label>
@@ -109,7 +109,7 @@ function ForgotPassword() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder={t("auth.forgotPassword.emailPlaceholder")}
                   required
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
                 />
               </div>
 

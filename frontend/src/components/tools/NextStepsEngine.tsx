@@ -187,10 +187,10 @@ const NextStepsEngine = () => {
       <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               Learning guide
             </p>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               1-3 focused learning next steps based on your recent activity.
             </p>
           </div>
@@ -198,7 +198,7 @@ const NextStepsEngine = () => {
             <button
               type="button"
               onClick={() => setUseDemo((prev) => !prev)}
-              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
             >
               {useDemo ? "Use live activity" : "Use demo suggestions"}
             </button>
@@ -237,14 +237,12 @@ const NextStepsEngine = () => {
             }}
             className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md min-w-0 block"
           >
-            <p className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+            <p className="text-sm font-semibold text-content-primary">
               {item.label}
             </p>
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {item.detail}
-            </p>
+            <p className="mt-2 text-xs text-content-muted">{item.detail}</p>
             {item.because && (
-              <p className="mt-1.5 text-xs italic text-[color:var(--muted-text,#6b7280)]">
+              <p className="mt-1.5 text-xs italic text-content-muted">
                 {item.because.toLowerCase().startsWith("because ")
                   ? item.because
                   : `Because ${item.because.charAt(0).toLowerCase() + item.because.slice(1)}`}

@@ -131,13 +131,13 @@ function SupportPage() {
       innerClassName="flex flex-col gap-8"
     >
       <header className="space-y-3 text-center lg:text-left">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
           {t("support.header.kicker")}
         </p>
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
           {t("support.header.title")}
         </h1>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("support.header.subtitle")}
         </p>
       </header>
@@ -152,13 +152,13 @@ function SupportPage() {
             placeholder={t("support.search.placeholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+            className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#ffd700)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-content-muted hover:text-[color:var(--accent,#ffd700)]"
             >
               {t("support.search.clear")}
             </button>
@@ -167,7 +167,7 @@ function SupportPage() {
         <div className="flex flex-wrap items-center gap-3">
           <label
             htmlFor="support-filter-select"
-            className="text-sm font-medium text-[color:var(--text-color,#111827)]"
+            className="text-sm font-medium text-content-primary"
           >
             {t("support.filter.label")}
           </label>
@@ -175,7 +175,7 @@ function SupportPage() {
             id="support-filter-select"
             value={activeCategory}
             onChange={(event) => setActiveCategory(event.target.value)}
-            className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 md:w-auto"
+            className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 md:w-auto"
             aria-label={t("support.filter.aria")}
           >
             <option value="all">{t("support.filter.all")}</option>
@@ -191,11 +191,11 @@ function SupportPage() {
       <div className="space-y-6">
         <GlassCard padding="lg">
           {loading ? (
-            <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+            <div className="py-6 text-center text-sm text-content-muted">
               {t("support.loading")}
             </div>
           ) : filteredEntries.length === 0 ? (
-            <div className="py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+            <div className="py-6 text-center text-sm text-content-muted">
               {t("support.empty")}
             </div>
           ) : (
@@ -205,7 +205,7 @@ function SupportPage() {
                 return (
                   <article
                     key={entry.id}
-                    className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]"
+                    className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page"
                   >
                     <button
                       type="button"
@@ -220,14 +220,14 @@ function SupportPage() {
                           {highlightText(entry.question, search)}
                         </p>
                       </div>
-                      <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                      <span className="text-xs text-content-muted">
                         {isActive ? "▲" : "▼"}
                       </span>
                     </button>
                     {isActive && (
-                      <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-[color:var(--text-color,#111827)]">
+                      <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-content-primary">
                         <div>{highlightText(entry.answer, search)}</div>
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-[color:var(--muted-text,#6b7280)]">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-content-muted">
                           <span>{t("support.vote.prompt")}</span>
                           {entry.user_vote === "helpful" ? (
                             <span className="font-semibold text-[color:var(--accent,#ffd700)]">
@@ -275,7 +275,7 @@ function SupportPage() {
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
               {t("support.feedbackSection.title")}
             </h2>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("support.feedbackSection.description")}
             </p>
           </div>
@@ -292,7 +292,7 @@ function SupportPage() {
             <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
               {t("support.contact.title")}
             </h2>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("support.contact.subtitle")}
             </p>
           </header>
@@ -322,7 +322,7 @@ function SupportPage() {
                     email: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 
@@ -337,7 +337,7 @@ function SupportPage() {
                     topic: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 <option value="">{t("support.contact.selectTopic")}</option>
                 <option value="Billing">
@@ -373,7 +373,7 @@ function SupportPage() {
                     message: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
 

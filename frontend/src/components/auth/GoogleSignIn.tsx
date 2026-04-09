@@ -211,7 +211,7 @@ export default function GoogleSignIn({
         />
       ) : (
         <div
-          className="flex h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] text-sm text-[color:var(--muted-text)]"
+          className="flex h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] text-sm text-content-muted"
           aria-hidden="true"
         >
           …

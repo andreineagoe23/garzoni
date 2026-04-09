@@ -40,18 +40,18 @@ export default function WeakSkillsQuickCard({
             <GarzoniIcon name="lightbulb" size={24} />
           </span>
           <div className="min-w-0 w-full sm:flex-1">
-            <p className="break-words text-sm font-semibold text-[color:var(--text-color,#111827)] sm:text-base">
+            <p className="break-words text-sm font-semibold text-content-primary sm:text-base">
               {t("dashboard.weakSkills.quickPracticeTitle")}
             </p>
             {hasSkill ? (
-              <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
+              <p className="break-words text-[11px] text-content-muted sm:text-xs">
                 {t("dashboard.weakSkills.lowMasteryIn", {
                   skill: topSkill!.skill,
                 })}{" "}
                 · {formatPercentage(topSkill!.proficiency, locale, 0)}
               </p>
             ) : (
-              <p className="break-words text-[11px] text-[color:var(--muted-text,#6b7280)] sm:text-xs">
+              <p className="break-words text-[11px] text-content-muted sm:text-xs">
                 {t("dashboard.weakSkills.quickPracticeSubtitle")}
               </p>
             )}

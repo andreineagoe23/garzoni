@@ -75,9 +75,7 @@ function FeedbackHubPage() {
         <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
           {t("feedback.title")}
         </h1>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
-          {t("feedback.subtitle")}
-        </p>
+        <p className="text-sm text-content-muted">{t("feedback.subtitle")}</p>
       </header>
 
       <GlassCard padding="lg">
@@ -102,7 +100,7 @@ function FeedbackHubPage() {
               required
               value={feedbackType}
               onChange={(e) => setFeedbackType(e.target.value as FeedbackType)}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               <option value="bug">{t("feedback.typeBug")}</option>
               <option value="suggestion">{t("feedback.typeSuggestion")}</option>
@@ -120,7 +118,7 @@ function FeedbackHubPage() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t("feedback.messagePlaceholder")}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] placeholder:text-[color:var(--muted-text,#9ca3af)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary placeholder:text-content-muted focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </div>
 
@@ -133,14 +131,14 @@ function FeedbackHubPage() {
               value={where}
               onChange={(e) => setWhere(e.target.value)}
               placeholder={t("feedback.wherePlaceholder")}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] placeholder:text-[color:var(--muted-text,#9ca3af)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary placeholder:text-content-muted focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             />
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               to="/support"
-              className="text-sm font-medium text-[color:var(--muted-text,#6b7280)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 rounded"
+              className="text-sm font-medium text-content-muted hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 rounded"
             >
               {t("feedback.backToSupport")}
             </Link>

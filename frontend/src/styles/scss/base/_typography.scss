@@ -1,13 +1,10 @@
 @use "sass:map";
 @use "../abstracts/variables" as *;
 
-// Green underline under headings – same in light and dark (color comes from theme)
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+// Use .section-heading on specific headings that intentionally need the brand underline treatment.
+// Avoid applying border-bottom globally to all h1–h6 — it bleeds into cards, modals, and tool UIs.
+.section-heading {
   border-bottom: 1px solid var(--primary);
   padding-bottom: map.get($spacers, 2);
+  color: var(--color-text-primary);
 }

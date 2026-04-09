@@ -22,7 +22,7 @@ const ToolsAnalyticsPanel = () => {
   const nextStepsRate = toolOpen > 0 ? recommendationClick / toolOpen : 0;
 
   return (
-    <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+    <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-sm text-content-muted">
       <p className="text-xs font-semibold uppercase tracking-wide">
         Tools analytics (debug) — see docs/monitoring-red-flags.md
       </p>
@@ -31,9 +31,9 @@ const ToolsAnalyticsPanel = () => {
           <p className="text-xs font-semibold uppercase tracking-wide">
             Completion rate (tool_open → tool_complete)
           </p>
-          <p className="text-sm text-[color:var(--text-color,#111827)]">
+          <p className="text-sm text-content-primary">
             {(completionRate * 100).toFixed(1)}%{" "}
-            <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <span className="text-xs text-content-muted">
               (target {thresholds.tool_completion_rate * 100}%)
             </span>
           </p>
@@ -42,9 +42,9 @@ const ToolsAnalyticsPanel = () => {
           <p className="text-xs font-semibold uppercase tracking-wide">
             Return rate
           </p>
-          <p className="text-sm text-[color:var(--text-color,#111827)]">
+          <p className="text-sm text-content-primary">
             {(returnRate * 100).toFixed(1)}%{" "}
-            <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <span className="text-xs text-content-muted">
               (target {thresholds.portfolio_return_rate * 100}%)
             </span>
           </p>
@@ -53,9 +53,9 @@ const ToolsAnalyticsPanel = () => {
           <p className="text-xs font-semibold uppercase tracking-wide">
             Next steps CTR
           </p>
-          <p className="text-sm text-[color:var(--text-color,#111827)]">
+          <p className="text-sm text-content-primary">
             {(nextStepsRate * 100).toFixed(1)}%{" "}
-            <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <span className="text-xs text-content-muted">
               (target {thresholds.next_steps_clickthrough * 100}%)
             </span>
           </p>
@@ -65,7 +65,7 @@ const ToolsAnalyticsPanel = () => {
         <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide">
           Raw JSON
         </summary>
-        <pre className="mt-2 max-h-64 overflow-auto rounded-xl bg-white/60 p-3 text-xs text-[color:var(--text-color,#111827)]">
+        <pre className="mt-2 max-h-64 overflow-auto rounded-xl bg-white/60 p-3 text-xs text-content-primary">
           {JSON.stringify(analytics, null, 2)}
         </pre>
       </details>

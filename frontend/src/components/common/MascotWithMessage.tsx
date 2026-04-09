@@ -53,7 +53,7 @@ const MascotWithMessage = ({
         {showMessage &&
           message &&
           (messageStyle === "plain" ? (
-            <p className="tooltip--inline-wrapper text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="tooltip--inline-wrapper text-xs text-content-muted">
               {message}
             </p>
           ) : (
@@ -67,7 +67,7 @@ const MascotWithMessage = ({
       <div className="relative hidden h-40 w-full max-w-[14rem] lg:block">
         {showMessage &&
           (messageStyle === "plain" ? (
-            <p className="absolute right-0 top-0 mb-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="absolute right-0 top-0 mb-2 text-xs text-content-muted">
               {message}
             </p>
           ) : (

@@ -34,11 +34,11 @@ const ActivityCalendar = React.memo(
         className="space-y-4 bg-[color:var(--card-bg,#ffffff)]/60"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-[color:var(--text-color,#111827)]">
+          <h3 className="text-base font-semibold text-content-primary">
             {currentMonth.month_name} {currentMonth.year}
           </h3>
         </div>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+        <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-wide text-content-muted">
           {weekdayLabels.map((label) => (
             <div key={label}>{label}</div>
           ))}
@@ -61,7 +61,7 @@ const ActivityCalendar = React.memo(
             return (
               <div
                 key={day}
-                className="relative flex h-16 flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,#d1d5db)] text-[color:var(--text-color,#111827)] transition"
+                className="relative flex h-16 flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,#d1d5db)] text-content-primary transition"
                 style={{
                   backgroundColor: hasActivity
                     ? "rgba(var(--accent-rgb,59,130,246),0.12)"
