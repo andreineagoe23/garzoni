@@ -780,7 +780,7 @@ CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
     },
 }
 if (
