@@ -11,7 +11,7 @@ fi
 
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
   i=0
-  until python manage.py migrate --noinput --fake-initial 2>/dev/null || python manage.py migrate --noinput; do
+  until python manage.py migrate --noinput 2>/dev/null || python manage.py migrate --noinput --fake-initial; do
     i=$((i+1))
     if [ "$i" -ge "$MIGRATE_MAX_TRIES" ]; then
       echo "[entrypoint] migrate still failing after ${MIGRATE_MAX_TRIES} tries; trying --fake-initial..." >&2
