@@ -90,7 +90,7 @@ const QuestionnaireCompletionModal: React.FC<
         {/* Mascot */}
         <div className="mx-auto mb-4 flex flex-col items-center gap-2">
           <MascotMedia mascot="owl" className="h-20 w-20 object-contain" />
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("onboarding.completionModal.mascotMessage")}
           </p>
         </div>
@@ -103,7 +103,7 @@ const QuestionnaireCompletionModal: React.FC<
           {t("onboarding.completionModal.title")}
         </h2>
 
-        <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="mb-6 text-sm text-content-muted">
           {t("onboarding.completionModal.subtitle")}
         </p>
 
@@ -113,7 +113,7 @@ const QuestionnaireCompletionModal: React.FC<
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
               +{rewards.xp}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+            <div className="text-xs font-semibold text-content-muted">
               {t("onboarding.completionModal.xpPoints")}
             </div>
           </div>
@@ -121,7 +121,7 @@ const QuestionnaireCompletionModal: React.FC<
             <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
               +{rewards.coins}
             </div>
-            <div className="text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+            <div className="text-xs font-semibold text-content-muted">
               {t("onboarding.completionModal.coins")}
             </div>
           </div>

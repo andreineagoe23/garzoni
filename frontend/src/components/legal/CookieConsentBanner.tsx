@@ -52,10 +52,10 @@ export default function CookieConsentBanner() {
             >
               {t("cookieConsent.settingsTitle")}
             </h2>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("cookieConsent.settingsIntro")}
             </p>
-            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs text-content-muted">
               {t("cookieConsent.necessaryNote")}
             </p>
             <div className="space-y-4">
@@ -66,7 +66,7 @@ export default function CookieConsentBanner() {
                   onChange={(e) => setAnalytics(e.target.checked)}
                   className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
                 />
-                <span className="min-w-0 text-sm text-[color:var(--text-color,#111827)]">
+                <span className="min-w-0 text-sm text-content-primary">
                   {t("cookieConsent.analyticsLabel")}
                 </span>
               </label>
@@ -77,7 +77,7 @@ export default function CookieConsentBanner() {
                   onChange={(e) => setMarketing(e.target.checked)}
                   className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
                 />
-                <span className="min-w-0 text-sm text-[color:var(--text-color,#111827)]">
+                <span className="min-w-0 text-sm text-content-primary">
                   {t("cookieConsent.marketingLabel")}
                 </span>
               </label>
@@ -112,7 +112,7 @@ export default function CookieConsentBanner() {
       aria-label={t("cookieConsent.bannerAria")}
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
-        <p className="min-w-0 flex-1 text-sm leading-snug text-[color:var(--text-color,#111827)]">
+        <p className="min-w-0 flex-1 text-sm leading-snug text-content-primary">
           {t("cookieConsent.message")}
         </p>
         <div className="flex min-h-[44px] flex-row flex-wrap items-center gap-2 sm:gap-3">

@@ -66,3 +66,10 @@
   font-size: $size;
   line-height: $line-height;
 }
+
+// Laptop-specific breakpoint (993px–1366px) — avoids repeating the media query everywhere
+@mixin media-laptop {
+  @media (min-width: 993px) and (max-width: 1366px) {
+    @content;
+  }
+}

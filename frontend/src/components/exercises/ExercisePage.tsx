@@ -1330,7 +1330,7 @@ const ExercisePage = () => {
           </span>
         ) : null}
         {exercise.category ? (
-          <span className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+          <span className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-2.5 py-0.5 text-xs font-semibold text-content-muted">
             {exercise.category}
           </span>
         ) : null}
@@ -1370,14 +1370,14 @@ const ExercisePage = () => {
                       : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
                   } else {
                     frameClass +=
-                      "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                      "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
                   }
                 } else if (userAnswer === index) {
                   frameClass +=
                     "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
                 } else {
                   frameClass +=
-                    "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                    "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
                 }
                 return (
                   <label key={id} htmlFor={id} className={frameClass}>
@@ -1427,7 +1427,7 @@ const ExercisePage = () => {
                     key={`${item}-${index}`}
                     className="flex flex-col items-center gap-1"
                   >
-                    <span className="text-xs font-semibold tabular-nums text-[color:var(--muted-text,#6b7280)]">
+                    <span className="text-xs font-semibold tabular-nums text-content-muted">
                       {t("exercises.drag.slot", { n: index + 1 })}
                     </span>
                     <div
@@ -1479,7 +1479,7 @@ const ExercisePage = () => {
                       tabIndex={0}
                       role="button"
                       aria-label={`${t("exercises.drag.slot", { n: index + 1 })}: ${item}`}
-                      className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-[color:var(--text-color,#111827)] shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
+                      className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-content-primary shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
                         hasResult && isCorrectSlot !== null
                           ? isCorrectSlot
                             ? "border-emerald-500/60 bg-emerald-500/10"
@@ -1512,7 +1512,7 @@ const ExercisePage = () => {
               {exercise.question}
             </h3>
             {exercise.exercise_data?.prompt && (
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {exercise.exercise_data.prompt}
               </p>
             )}
@@ -1525,7 +1525,7 @@ const ExercisePage = () => {
                   exercise.exercise_data?.placeholder ||
                   t("exercises.inputs.numberPlaceholder")
                 }
-                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
+                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
                   hasResult
                     ? isAnswerCorrect
                       ? "border-emerald-500/60 bg-emerald-500/10"
@@ -1534,13 +1534,13 @@ const ExercisePage = () => {
                 }`}
               />
               {exercise.exercise_data?.unit && (
-                <span className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)]">
+                <span className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm font-semibold text-content-muted">
                   {exercise.exercise_data.unit}
                 </span>
               )}
             </div>
             {showNumericReveal && (
-              <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm font-medium text-content-muted">
                 {toleranceRaw !== undefined && toleranceRaw !== null
                   ? t("exercises.numeric.expectedWithTolerance", {
                       value: formatNumber(Number(expectedRaw), locale, {
@@ -1558,7 +1558,7 @@ const ExercisePage = () => {
               </p>
             )}
             {exercise.exercise_data?.validation && (
-              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-3 text-sm text-content-muted">
                 {exercise.exercise_data.validation}
               </div>
             )}
@@ -1582,7 +1582,7 @@ const ExercisePage = () => {
                       ? isAnswerCorrect
                         ? "border-emerald-500/60 bg-emerald-500/10"
                         : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)]"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-surface-page"
                   }`}
                 >
                   <span className="text-sm font-semibold text-[color:var(--accent,#111827)]">
@@ -1601,7 +1601,7 @@ const ExercisePage = () => {
                             : Math.max(0, parseFloat(value) || 0),
                       }));
                     }}
-                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </label>
               ))}
@@ -1623,13 +1623,13 @@ const ExercisePage = () => {
               <table className="min-w-full border-separate border-spacing-2 text-sm">
                 <thead>
                   <tr>
-                    <th className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    <th className="text-left text-xs font-semibold uppercase tracking-wide text-content-muted">
                       {t("exercises.table.row")}
                     </th>
                     {columns.map((column) => (
                       <th
                         key={column}
-                        className="text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]"
+                        className="text-left text-xs font-semibold uppercase tracking-wide text-content-muted"
                       >
                         {column}
                       </th>
@@ -1639,7 +1639,7 @@ const ExercisePage = () => {
                 <tbody>
                   {rows.map((row) => (
                     <tr key={row.id}>
-                      <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
+                      <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
                         {row.label ||
                           t("exercises.table.rowWithId", {
                             id: row.id,
@@ -1672,7 +1672,7 @@ const ExercisePage = () => {
                                 });
                               }}
                               aria-label={`${row.label || t("exercises.table.row")} ${column}`}
-                              className={`w-full rounded-xl border px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
+                              className={`w-full rounded-xl border px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
                                 hasResult
                                   ? isCellCorrect
                                     ? "border-emerald-500/60 bg-emerald-500/10"
@@ -1705,12 +1705,12 @@ const ExercisePage = () => {
               {exercise.question}
             </h3>
             {exercise.exercise_data?.scenario && (
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {exercise.exercise_data.scenario}
               </p>
             )}
             <div
-              className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]"
+              className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-muted"
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 const choiceId = event.dataTransfer.getData("text/plain");
@@ -1743,14 +1743,14 @@ const ExercisePage = () => {
                       "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
                   } else {
                     choiceFrame +=
-                      "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                      "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
                   }
                 } else if (isSelected) {
                   choiceFrame +=
                     "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
                 } else {
                   choiceFrame +=
-                    "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--text-color,#111827)]";
+                    "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
                 }
                 return (
                   <button
@@ -1800,8 +1800,8 @@ const ExercisePage = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
-        <div className="flex items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
+        <div className="flex items-center gap-3 text-sm text-content-muted">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           {applyingSkillFocus
             ? t("exercises.skillIntent.applyingFocus")
@@ -1813,7 +1813,7 @@ const ExercisePage = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <GlassCard
           padding="lg"
           className="w-full max-w-lg border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-center text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/20"
@@ -1840,16 +1840,16 @@ const ExercisePage = () => {
     "";
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg-color,#f8fafc)] px-4 py-10">
+    <div className="min-h-screen bg-surface-page px-4 py-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
           <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
             {t("exercises.header.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-sm text-content-muted">
             {t("exercises.header.subtitle")}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)] lg:justify-start">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-content-muted lg:justify-start">
             <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#ffd700)]">
               {t("exercises.reviewQueue.title")}
               <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#ffd700)]">
@@ -1859,7 +1859,7 @@ const ExercisePage = () => {
               </span>
             </span>
             {reviewQueue.due?.length > 0 && (
-              <span className="text-xs text-[color:var(--muted-text,#6b7280)]">
+              <span className="text-xs text-content-muted">
                 {t("exercises.reviewQueue.nextUp", {
                   skill: reviewQueue.due[0].skill,
                   question: reviewQueue.due[0].question,
@@ -1873,7 +1873,7 @@ const ExercisePage = () => {
               className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
                 reviewQueue?.count
                   ? "border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#ffd700)] hover:border-[color:var(--accent,#ffd700)]/60"
-                  : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
+                  : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-muted"
               }`}
             >
               {t("exercises.reviewQueue.start")}
@@ -1890,14 +1890,14 @@ const ExercisePage = () => {
               <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
                 {t("exercises.reviewQueue.emptyTitle")}
               </p>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {t("exercises.reviewQueue.emptySubtitle")}
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   type="button"
                   onClick={exitReviewMode}
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--accent,#ffd700)]/50"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--accent,#ffd700)]/50"
                 >
                   {t("exercises.reviewQueue.backToLesson")}
                 </button>
@@ -1921,7 +1921,7 @@ const ExercisePage = () => {
                 aria-busy="true"
                 aria-live="polite"
               >
-                <div className="flex flex-col items-center gap-2 px-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="flex flex-col items-center gap-2 px-4 text-sm text-content-muted">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
                   {t("exercises.refreshing")}
                 </div>
@@ -1948,7 +1948,7 @@ const ExercisePage = () => {
                 className="mb-4 flex flex-col gap-2 rounded-xl border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 role="status"
               >
-                <p className="text-sm text-[color:var(--text-color,#111827)]">
+                <p className="text-sm text-content-primary">
                   {collapsedIntentModel.kind === "applied"
                     ? t("exercises.skillIntent.reminderShortApplied", {
                         skill: collapsedIntentModel.skill,
@@ -1970,14 +1970,14 @@ const ExercisePage = () => {
             <button
               type="button"
               onClick={() => setFiltersExpanded((open) => !open)}
-              className="mb-3 flex w-full items-center justify-between rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-left text-sm font-semibold text-[color:var(--text-color,#111827)] lg:hidden"
+              className="mb-3 flex w-full items-center justify-between rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-left text-sm font-semibold text-content-primary lg:hidden"
               aria-expanded={filtersExpanded}
             >
               {filtersExpanded
                 ? t("exercises.filters.toggleHide")
                 : t("exercises.filters.toggleShow")}
               <span
-                className={`text-[color:var(--muted-text,#6b7280)] transition-transform ${filtersExpanded ? "rotate-180" : ""}`}
+                className={`text-content-muted transition-transform ${filtersExpanded ? "rotate-180" : ""}`}
                 aria-hidden
               >
                 ▼
@@ -1987,7 +1987,7 @@ const ExercisePage = () => {
               className={`grid gap-4 border-b border-white/20 pb-6 lg:grid-cols-3 ${filtersExpanded ? "" : "max-lg:hidden"}`}
             >
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("exercises.filters.type")}
                 </label>
                 <select
@@ -1998,7 +1998,7 @@ const ExercisePage = () => {
                       type: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">{t("exercises.filters.allTypes")}</option>
                   <option value="multiple-choice">
@@ -2023,7 +2023,7 @@ const ExercisePage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("exercises.filters.category")}
                 </label>
                 <select
@@ -2031,7 +2031,7 @@ const ExercisePage = () => {
                   onChange={(event) =>
                     handleCategoryFilterChange(event.target.value)
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">
                     {t("exercises.filters.allCategories")}
@@ -2045,7 +2045,7 @@ const ExercisePage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("exercises.filters.difficulty")}
                 </label>
                 <select
@@ -2056,7 +2056,7 @@ const ExercisePage = () => {
                       difficulty: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   <option value="">
                     {t("exercises.filters.allDifficulties")}
@@ -2100,7 +2100,7 @@ const ExercisePage = () => {
               <>
                 <div className="flex flex-col gap-4 border-b border-white/20 py-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-sm font-medium text-content-muted">
                       {t("exercises.progress.label", {
                         current: currentExerciseIndex + 1,
                         total: Math.max(exercises.length, 1),
@@ -2114,7 +2114,7 @@ const ExercisePage = () => {
                     </div>
                   </div>
 
-                  <label className="flex shrink-0 items-center gap-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <label className="flex shrink-0 items-center gap-3 text-sm text-content-muted">
                     <span>{t("exercises.timedMode")}</span>
                     <div className="relative inline-flex h-6 w-11 items-center">
                       <input
@@ -2172,7 +2172,7 @@ const ExercisePage = () => {
             )}
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.hints.title")}
@@ -2183,7 +2183,7 @@ const ExercisePage = () => {
                     disabled={!hintEnabled || hintDepleted}
                     className={`text-xs font-semibold underline ${
                       !hintEnabled || hintDepleted
-                        ? "cursor-not-allowed text-[color:var(--muted-text,#6b7280)]"
+                        ? "cursor-not-allowed text-content-muted"
                         : "text-[color:var(--accent,#ffd700)]"
                     }`}
                   >
@@ -2192,11 +2192,11 @@ const ExercisePage = () => {
                     })}
                   </button>
                 </div>
-                <div className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <div className="mt-2 text-xs text-content-muted">
                   {t("exercises.hints.credits")}{" "}
                   {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
                 </div>
-                <div className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <div className="mt-1 text-xs text-content-muted">
                   {t("exercises.hints.earnMore")}
                 </div>
                 {hintError && (
@@ -2213,7 +2213,7 @@ const ExercisePage = () => {
                     )}
                   </div>
                 )}
-                <div className="mt-3 space-y-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="mt-3 space-y-2 text-sm text-content-muted">
                   {(exercises[currentExerciseIndex]?.exercise_data?.hints || [])
                     .slice(0, hintIndex)
                     .map((hint, index) => (
@@ -2230,30 +2230,30 @@ const ExercisePage = () => {
                 </div>
               </div>
 
-              <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
+              <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
                 <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
                   {t("exercises.assist.title")}
                 </h4>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                     {t("exercises.assist.scratchpad")}
                   </label>
                   <textarea
                     value={scratchpad}
                     onChange={(event) => setScratchpad(event.target.value)}
-                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                     placeholder={t("exercises.assist.scratchpadPlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                       {t("exercises.assist.calculator")}
                     </label>
                     <button
                       type="button"
                       onClick={() => setCalculatorOpen((prev) => !prev)}
-                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-[11px] font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-[11px] font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
                     >
                       {calculatorOpen
                         ? t("exercises.assist.hideCalculator")
@@ -2269,7 +2269,7 @@ const ExercisePage = () => {
                           onChange={(event) =>
                             setCalculatorValue(event.target.value)
                           }
-                          className="min-w-0 flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-[color:var(--text-color,#111827)] focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                          className="min-w-0 flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                           placeholder={t(
                             "exercises.assist.calculatorPlaceholder"
                           )}
@@ -2294,7 +2294,7 @@ const ExercisePage = () => {
                               key={`${ri}-${key}`}
                               type="button"
                               onClick={() => appendCalculator(key)}
-                              className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                              className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
                             >
                               {key === "*" ? "×" : key}
                             </button>
@@ -2303,14 +2303,14 @@ const ExercisePage = () => {
                         <button
                           type="button"
                           onClick={() => appendCalculator("+")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
                         >
                           +
                         </button>
                         <button
                           type="button"
                           onClick={() => appendCalculator("%")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
                         >
                           %
                         </button>
@@ -2319,14 +2319,14 @@ const ExercisePage = () => {
                           onClick={() =>
                             setCalculatorValue((prev) => prev.slice(0, -1))
                           }
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40"
                         >
                           {t("exercises.calculator.backspace")}
                         </button>
                         <button
                           type="button"
                           onClick={() => setCalculatorValue("")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] py-2 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40"
                         >
                           {t("exercises.calculator.clear")}
                         </button>
@@ -2338,7 +2338,7 @@ const ExercisePage = () => {
             </div>
 
             {(submissionFeedback || showCorrection) && (
-              <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+              <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-primary">
                 {submissionFeedback && (
                   <div className="rounded-xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-3 py-2 text-[color:var(--accent,#ffd700)]">
                     {submissionFeedback}
@@ -2378,7 +2378,7 @@ const ExercisePage = () => {
 
             {showCorrection ? (
               <div className="mt-6">
-                <div className="space-y-4 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4">
+                <div className="space-y-4 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
                   <div
                     className={`rounded-xl px-4 py-3 text-sm font-semibold ${
                       progress[currentExerciseIndex]?.correct
@@ -2406,7 +2406,7 @@ const ExercisePage = () => {
                         type="button"
                         onClick={handleRetry}
                         disabled={isRetrying}
-                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isRetrying
                           ? t("exercises.actions.retrying")
@@ -2429,7 +2429,7 @@ const ExercisePage = () => {
                         fetchExercises();
                         setCurrentExerciseIndex(0);
                       }}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {t("exercises.actions.tryVariant")}
                     </button>
@@ -2447,7 +2447,7 @@ const ExercisePage = () => {
                   mascotClassName="h-24 w-24 object-contain"
                 />
                 {recentSkillInsight && (
-                  <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-[color:var(--text-color,#111827)] shadow-sm backdrop-blur-sm animate-pulse">
+                  <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-content-primary shadow-sm backdrop-blur-sm animate-pulse">
                     {recentSkillInsight}
                   </div>
                 )}
@@ -2458,7 +2458,7 @@ const ExercisePage = () => {
                 {t("exercises.progress.title")}
               </h3>
               {exercises.length > MAX_VISIBLE_PROGRESS_ITEMS && (
-                <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
+                <p className="mt-2 text-xs text-content-muted">
                   {t("exercises.progress.showingRange", {
                     start:
                       Math.max(
@@ -2524,7 +2524,7 @@ const ExercisePage = () => {
                             ? prog?.correct
                               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
                               : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                            : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] text-[color:var(--muted-text,#6b7280)]"
+                            : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-muted"
                         } ${isCurrent ? "ring-1 ring-[color:var(--accent,#ffd700)]/50" : ""}`}
                       >
                         <span className="flex items-center gap-2 font-medium">
@@ -2602,7 +2602,7 @@ const ExercisePage = () => {
               <button
                 type="button"
                 onClick={() => setShowStats(false)}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
               >
                 {t("exercises.summary.close")}
               </button>
@@ -2627,7 +2627,7 @@ const ExercisePage = () => {
                     })}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.averageAccuracy")}
                   </h4>
@@ -2639,7 +2639,7 @@ const ExercisePage = () => {
                     %
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.firstTryAccuracy")}
                   </h4>
@@ -2651,7 +2651,7 @@ const ExercisePage = () => {
                     %
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.xpEarned")}
                   </h4>
@@ -2668,7 +2668,7 @@ const ExercisePage = () => {
                       : t("exercises.summary.none")}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.coinsEarned")}
                   </h4>
@@ -2677,7 +2677,7 @@ const ExercisePage = () => {
                   </p>
                   <p className="text-xs">{t("exercises.summary.coinsHint")}</p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.averageAttempts")}
                   </h4>
@@ -2689,7 +2689,7 @@ const ExercisePage = () => {
                     {t("exercises.summary.perQuestion")}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.reviewDue")}
                   </h4>
@@ -2707,7 +2707,7 @@ const ExercisePage = () => {
                     </p>
                   )}
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
                   <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.totalTimeSpent")}
                   </h4>
@@ -2717,7 +2717,7 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 {isTimedMode && (
-                  <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-[color:var(--muted-text,#6b7280)] md:col-span-2">
+                  <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted md:col-span-2">
                     <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
                       {t("exercises.summary.timeRemaining")}
                     </h4>
@@ -2725,7 +2725,7 @@ const ExercisePage = () => {
                   </div>
                 )}
               </div>
-              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-muted">
                 <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
                   {t("exercises.summary.missionProgress")}
                 </h4>
@@ -2743,11 +2743,11 @@ const ExercisePage = () => {
                 </p>
               </div>
               {Object.keys(skillGains).length > 0 && (
-                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--text-color,#111827)]">
+                <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-content-primary">
                   <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
                     {t("exercises.summary.skillHighlights")}
                   </h4>
-                  <ul className="space-y-1 text-[color:var(--muted-text,#6b7280)]">
+                  <ul className="space-y-1 text-content-muted">
                     {Object.entries(skillGains).map(([skill, gain]) => (
                       <li key={skill}>
                         <span className="font-semibold text-[color:var(--accent,#111827)]">
@@ -2758,7 +2758,7 @@ const ExercisePage = () => {
                   </ul>
                 </div>
               )}
-              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-content-muted">
                 {reviewQueue.count ? (
                   <p>
                     {t("exercises.summary.reviewCtaWithCount", {
@@ -2773,7 +2773,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={() => setShowStats(false)}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   {t("exercises.summary.close")}
                 </button>
@@ -2795,7 +2795,7 @@ const ExercisePage = () => {
                     setShowStats(false);
                     goToRecommended();
                   }}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                 >
                   {t("exercises.summary.nextRecommended")}
                 </button>

@@ -26,10 +26,10 @@ const NewsCalendars = () => {
   return (
     <section className="space-y-4">
       <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+        <h3 className="text-lg font-semibold text-content-primary">
           {t("tools.calendarEmbed.title")}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("tools.calendarEmbed.subtitle")}
         </p>
       </header>
@@ -45,13 +45,13 @@ const NewsCalendars = () => {
           <iframe
             title={t("tools.calendarEmbed.iframeTitle")}
             src={iframeSrc}
-            className="h-[600px] w-full overflow-hidden rounded-2xl border-0 bg-[color:var(--bg-color,#f8fafc)]"
+            className="h-[600px] w-full overflow-hidden rounded-2xl border-0 bg-surface-page"
             sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
             referrerPolicy="no-referrer"
           />
           {/* Fallback CTA: if calendar is blocked (e.g. ad blocker), user can open in new tab */}
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-center">
-            <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs text-content-muted">
               <Trans
                 i18nKey="tools.calendarEmbed.fallback"
                 components={{

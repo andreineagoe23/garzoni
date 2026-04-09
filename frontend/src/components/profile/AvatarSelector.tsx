@@ -133,7 +133,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-2 text-[color:var(--muted-text,#4b5563)] shadow-sm transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+        className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-2 text-content-muted shadow-sm transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
         aria-label={t("profile.avatarSelector.changeAvatar")}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
@@ -148,17 +148,17 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
         >
           <div className="flex items-start justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
             <div>
-              <h3 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+              <h3 className="text-lg font-semibold text-content-primary">
                 {t("profile.avatarSelector.title")}
               </h3>
-              <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-sm text-content-muted">
                 {t("profile.avatarSelector.subtitle")}
               </p>
             </div>
             <button
               type="button"
               onClick={closeModal}
-              className="ml-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--muted-text,#6b7280)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="ml-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-content-muted transition hover:bg-[color:var(--input-bg,#f3f4f6)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               aria-label={t("profile.avatarSelector.close")}
             >
               <X className="text-lg" />
@@ -176,24 +176,22 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                       className="h-36 w-36 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-4xl text-[color:var(--muted-text,#6b7280)]">
-                      🙂
-                    </span>
+                    <span className="text-4xl text-content-muted">🙂</span>
                   )}
                 </div>
-                <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-xs text-content-muted">
                   {t("profile.avatarSelector.seedHint")}
                 </p>
               </div>
 
               <div className="w-full space-y-5">
-                <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                <label className="block text-sm font-medium text-content-muted">
                   {t("profile.avatarSelector.style")}
                 </label>
                 <select
                   value={selectedStyle}
                   onChange={(event) => setSelectedStyle(event.target.value)}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   {AVATAR_STYLES.map((style) => (
                     <option key={style.id} value={style.id}>
@@ -203,7 +201,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                 </select>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[color:var(--muted-text,#374151)]">
+                  <label className="block text-sm font-medium text-content-muted">
                     {t("profile.avatarSelector.customizationSeed")}
                   </label>
                   <input
@@ -213,9 +211,9 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                     placeholder={t(
                       "profile.avatarSelector.customizePlaceholder"
                     )}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
-                  <p className="text-xs text-[color:var(--muted-text,#6b7280)]">
+                  <p className="text-xs text-content-muted">
                     {t("profile.avatarSelector.customizeHint")}
                   </p>
                 </div>
@@ -224,7 +222,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
 
             <div>
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                <h4 className="text-sm font-semibold text-content-primary">
                   {t("profile.avatarSelector.quickOptions")}
                 </h4>
                 <button
@@ -237,7 +235,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                   {t("profile.avatarSelector.randomize")}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[color:var(--muted-text,#6b7280)]">
+              <p className="mt-1 text-xs text-content-muted">
                 {t("profile.avatarSelector.quickOptionsHint")}
               </p>
 
@@ -268,7 +266,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
             <button
               type="button"
               onClick={closeModal}
-              className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#374151)] transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-content-muted transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               {t("shared.cancel")}
             </button>

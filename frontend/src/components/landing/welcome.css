@@ -1,5 +1,6 @@
 /* Scoped styles for the Welcome hero (Three.js + HUD)
    Keep everything under .welcome-hero to avoid global bleed.
+   All colors reference CSS variables defined in .landing-theme (always present on landing page).
 */
 
 /* Fonts are self-hosted via @fontsource imports in Welcome.jsx.
@@ -11,7 +12,7 @@
 }
 
 .welcome-hero ::selection {
-  background: rgba(29, 83, 48, 0.85);
+  background: rgba(var(--primary-rgb, 29, 83, 48), 0.85);
   color: #fff;
 }
 
@@ -27,8 +28,8 @@
   transform: translate(-50%, -50%);
   background: radial-gradient(
     circle,
-    rgba(29, 83, 48, 0.18) 0%,
-    rgba(11, 15, 20, 0) 70%
+    rgba(var(--primary-rgb, 29, 83, 48), 0.18) 0%,
+    rgba(var(--landing-bg-rgb, 11, 15, 20), 0) 70%
   );
   mix-blend-mode: screen;
   z-index: 1;
@@ -45,7 +46,7 @@
 
 /* Glass panel style (dark) */
 .welcome-glass-panel {
-  background: rgba(11, 15, 20, 0.68);
+  background: rgba(var(--landing-bg-rgb, 11, 15, 20), 0.68);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -68,9 +69,9 @@
   height: 12px;
   width: 12px;
   border-radius: 9999px;
-  background: #e6c87a;
-  border: 2px solid #0b0f14;
-  box-shadow: 0 0 0 1px #e6c87a;
+  background: var(--gold, #e6c87a);
+  border: 2px solid var(--bg-color, #0b0f14);
+  box-shadow: 0 0 0 1px var(--gold, #e6c87a);
   cursor: pointer;
   margin-top: -5px;
   transition: transform 0.2s ease;
@@ -92,9 +93,9 @@
   height: 12px;
   width: 12px;
   border-radius: 9999px;
-  background: #e6c87a;
-  border: 2px solid #0b0f14;
-  box-shadow: 0 0 0 1px #e6c87a;
+  background: var(--gold, #e6c87a);
+  border: 2px solid var(--bg-color, #0b0f14);
+  box-shadow: 0 0 0 1px var(--gold, #e6c87a);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -130,10 +131,10 @@
   position: absolute;
   width: 4px;
   height: 4px;
-  background: #e6c87a;
+  background: var(--gold, #e6c87a);
   border-radius: 9999px;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px rgba(230, 200, 122, 0.5);
+  box-shadow: 0 0 10px rgba(var(--gold-rgb, 230, 200, 122), 0.5);
 }
 
 .welcome-point-label {
@@ -144,11 +145,11 @@
     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
   font-size: 10px;
-  color: #e6c87a;
-  background: rgba(11, 15, 20, 0.82);
+  color: var(--gold, #e6c87a);
+  background: rgba(var(--landing-bg-rgb, 11, 15, 20), 0.82);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(230, 200, 122, 0.2);
+  border: 1px solid rgba(var(--gold-rgb, 230, 200, 122), 0.2);
   white-space: nowrap;
   letter-spacing: 0.06em;
 }
@@ -191,7 +192,7 @@
 }
 
 .welcome-svg-line.active {
-  stroke: rgba(230, 200, 122, 0.32);
+  stroke: rgba(var(--gold-rgb, 230, 200, 122), 0.32);
   stroke-dasharray: 6 4;
   animation: welcomeDash 30s linear infinite;
 }

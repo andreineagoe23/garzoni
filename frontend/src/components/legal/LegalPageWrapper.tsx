@@ -50,13 +50,13 @@ export default function LegalPageWrapper({
               ← {t("footer.backToWelcome")}
             </Link>
             <nav
-              className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[color:var(--muted-text,#6b7280)]"
+              className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-muted"
               aria-label="Legal and policy links"
             >
               {LEGAL_PATHS.map(({ path, labelKey }) => (
                 <span key={path}>
                   {location.pathname === path ? (
-                    <span className="font-medium text-[color:var(--text-color,#111827)]">
+                    <span className="font-medium text-content-primary">
                       {t(labelKey)}
                     </span>
                   ) : (

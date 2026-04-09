@@ -105,7 +105,7 @@ function QuizPage() {
   if (loading) {
     return (
       <PageContainer maxWidth="4xl" layout="centered">
-        <div className="flex items-center gap-3 text-[color:var(--muted-text,#6b7280)]">
+        <div className="flex items-center gap-3 text-content-muted">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           {t("courses.quiz.loading")}
         </div>
@@ -129,7 +129,7 @@ function QuizPage() {
   if (!quiz) {
     return (
       <PageContainer maxWidth="4xl">
-        <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-4 text-sm text-[color:var(--muted-text,#6b7280)] shadow-inner shadow-black/5">
+        <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-4 text-sm text-content-muted shadow-inner shadow-black/5">
           {t("courses.quiz.noQuizData")}
         </div>
       </PageContainer>
@@ -139,16 +139,16 @@ function QuizPage() {
   return (
     <PageContainer maxWidth="4xl">
       <header className="space-y-3 text-center">
-        <h2 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+        <h2 className="text-3xl font-bold text-content-primary">
           Quiz: {quiz.title}
         </h2>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("courses.quiz.answerToEarn")}
         </p>
       </header>
 
       <GlassCard padding="lg" className="space-y-6">
-        <p className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+        <p className="text-lg font-semibold text-content-primary">
           {quiz.question}
         </p>
 
@@ -160,7 +160,7 @@ function QuizPage() {
               className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-[color:var(--accent,#ffd700)]/40 ${
                 selectedAnswer === choice.text
                   ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] text-[color:var(--text-color,#111827)]"
+                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] text-content-primary"
               }`}
             >
               <input

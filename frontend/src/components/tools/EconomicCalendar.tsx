@@ -139,17 +139,17 @@ const EconomicCalendar = () => {
       <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-3 py-4 sm:px-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               {t("tools.calendar.impactFilter.title")}
             </p>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("tools.calendar.impactFilter.subtitle")}
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowAllEvents((prev) => !prev)}
-            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--text-color,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
           >
             {showAllEvents
               ? t("tools.calendar.impactFilter.hideLow")
@@ -162,7 +162,7 @@ const EconomicCalendar = () => {
             <p className="font-semibold">
               {t("tools.calendar.errors.loadFailed")}
             </p>
-            <p className="mt-2 text-[color:var(--muted-text,#6b7280)]">
+            <p className="mt-2 text-content-muted">
               {t("tools.calendar.errors.loadFailedHelp")}
             </p>
             <a
@@ -176,7 +176,7 @@ const EconomicCalendar = () => {
           </div>
         )}
         {!loaded && !loadError && (
-          <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-[color:var(--muted-text,#6b7280)]">
+          <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-content-muted">
             {t("tools.calendar.loading")}
           </div>
         )}
@@ -192,7 +192,7 @@ const EconomicCalendar = () => {
               : undefined
           }
         />
-        <p className="mt-2 text-center text-xs text-[color:var(--muted-text,#6b7280)]">
+        <p className="mt-2 text-center text-xs text-content-muted">
           <Trans
             i18nKey="tools.calendar.fallback"
             components={{
@@ -237,7 +237,7 @@ const EconomicCalendar = () => {
               className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[color:var(--text-color,#111827)]">
+                <h4 className="text-sm font-semibold text-content-primary">
                   {eventCopy.label}
                 </h4>
                 <div className="flex items-center gap-2">
@@ -246,25 +246,25 @@ const EconomicCalendar = () => {
                       {t("tools.calendar.relevant")}
                     </span>
                   )}
-                  <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                  <span className="rounded-full border border-white/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-content-muted">
                     {eventCopy.difficulty}
                   </span>
                 </div>
               </div>
-              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--text-color,#111827)]">
+              <p className="mt-2 text-xs text-content-muted">
+                <span className="font-semibold text-content-primary">
                   {t("tools.calendar.why")}
                 </span>{" "}
                 {eventCopy.why}
               </p>
-              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--text-color,#111827)]">
+              <p className="mt-2 text-xs text-content-muted">
+                <span className="font-semibold text-content-primary">
                   {t("tools.calendar.who")}
                 </span>{" "}
                 {eventCopy.who}
               </p>
-              <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-                <span className="font-semibold text-[color:var(--text-color,#111827)]">
+              <p className="mt-2 text-xs text-content-muted">
+                <span className="font-semibold text-content-primary">
                   {t("tools.calendar.affects")}
                 </span>{" "}
                 {eventCopy.affects}

@@ -22,21 +22,21 @@ export default function LegalPageLayout({
   children,
 }: LegalPageLayoutProps) {
   return (
-    <section className="legal-page-section min-h-[60vh] bg-[color:var(--bg-color,#f8fafc)] px-4 py-8 sm:px-6 sm:py-10">
+    <section className="legal-page-section min-h-[60vh] bg-surface-page px-4 py-8 sm:px-6 sm:py-10">
       <GlassCard
         padding="xl"
         className="mx-auto w-full max-w-4xl border-[color:var(--border-color,rgba(0,0,0,0.1))]"
         hover={false}
       >
         <header className="space-y-4 border-b border-[color:var(--border-color,rgba(0,0,0,0.08))] pb-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted-text,#6b7280)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-content-muted">
             {lastUpdated}
           </p>
           <h1 className="legal-page-title text-3xl font-bold tracking-tight text-[color:var(--accent)] sm:text-4xl">
             {title}
           </h1>
           {intro && (
-            <p className="max-w-3xl text-base leading-relaxed text-[color:var(--muted-text,#6b7280)]">
+            <p className="max-w-3xl text-base leading-relaxed text-content-muted">
               {intro}
             </p>
           )}
@@ -45,7 +45,7 @@ export default function LegalPageLayout({
         <div
           className={[
             "legal-page-prose prose prose-slate max-w-none pt-8",
-            "text-[color:var(--text-color,#111827)]",
+            "text-content-primary",
             "prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-xl prose-h2:first:mt-0",
             "prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-lg",
             "prose-p:mb-4 prose-p:leading-relaxed",

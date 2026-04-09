@@ -71,15 +71,13 @@ function RewardsPage() {
         className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
       >
         <div className="space-y-3">
-          <h1 className="text-3xl font-bold text-[color:var(--text-color)]">
+          <h1 className="text-3xl font-bold text-content-primary">
             {t("rewards.title")}
           </h1>
-          <p className="text-sm text-[color:var(--muted-text)]">
-            {t("rewards.subtitle")}
-          </p>
+          <p className="text-sm text-content-muted">{t("rewards.subtitle")}</p>
         </div>
         <div
-          className={`rounded-3xl border border-[color:var(--border-color)] bg-[color:var(--bg-color)]/60 backdrop-blur-sm px-5 py-4 text-sm text-[color:var(--muted-text)] shadow-inner shadow-[color:var(--shadow-color)] transition-transform ${
+          className={`rounded-3xl border border-[color:var(--border-color)] bg-surface-page/60 backdrop-blur-sm px-5 py-4 text-sm text-content-muted shadow-inner shadow-[color:var(--shadow-color)] transition-transform ${
             balanceFlash ? "scale-[1.02]" : ""
           }`}
           style={{
@@ -87,10 +85,10 @@ function RewardsPage() {
             WebkitBackdropFilter: "blur(8px)",
           }}
         >
-          <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text)]">
+          <span className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("rewards.balanceLabel")}
           </span>
-          <p className="text-2xl font-bold text-[color:var(--text-color)]">
+          <p className="text-2xl font-bold text-content-primary">
             {formatNumber(balance, locale, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -124,7 +122,7 @@ function RewardsPage() {
           }}
         />
       </div>
-      <p className="text-xs text-[color:var(--muted-text)] -mt-4">
+      <p className="text-xs text-content-muted -mt-4">
         {t("rewards.refreshNote")}
       </p>
 

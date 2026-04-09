@@ -347,7 +347,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                   className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
                       ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#ffd700)]/40"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-primary hover:border-[color:var(--accent,#ffd700)]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}
@@ -381,7 +381,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                   className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
                       ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-[color:var(--text-color,#111827)] hover:border-[color:var(--accent,#ffd700)]/40"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-primary hover:border-[color:var(--accent,#ffd700)]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}
@@ -396,7 +396,7 @@ const OnboardingQuestionnaire: React.FC = () => {
 
       default:
         return (
-          <div className="text-sm text-[color:var(--muted-text,#6b7280)]">
+          <div className="text-sm text-content-muted">
             {t("onboarding.unsupportedQuestionType", { type: question.type })}
           </div>
         );
@@ -405,7 +405,7 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   if (isLoadingProgress) {
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <Loader message={t("onboarding.loading")} />
       </div>
     );
@@ -418,14 +418,12 @@ const OnboardingQuestionnaire: React.FC = () => {
         ? t("onboarding.errorSetup")
         : t("onboarding.errorLoad");
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-content-primary">
             {t("onboarding.somethingWentWrong")}
           </h2>
-          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-            {message}
-          </p>
+          <p className="mb-6 text-sm text-content-muted">{message}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <GlassButton onClick={() => refetchProgress()} variant="primary">
               {t("onboarding.tryAgain")}
@@ -444,12 +442,12 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   if (progress?.status === "completed") {
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-content-primary">
             {t("onboarding.completeTitle")}
           </h2>
-          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
+          <p className="mb-6 text-sm text-content-muted">
             {t("onboarding.completeSubtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -478,14 +476,12 @@ const OnboardingQuestionnaire: React.FC = () => {
         ? t("onboarding.errorNextQuestionSetup")
         : t("onboarding.errorNextQuestion");
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <GlassCard padding="lg" className="max-w-md text-center">
-          <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
+          <h2 className="mb-4 text-xl font-semibold text-content-primary">
             {t("onboarding.somethingWentWrong")}
           </h2>
-          <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
-            {message}
-          </p>
+          <p className="mb-6 text-sm text-content-muted">{message}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <GlassButton
               onClick={() => refetchNextQuestion()}
@@ -508,12 +504,12 @@ const OnboardingQuestionnaire: React.FC = () => {
   if (isProgressActive && !currentQuestion) {
     if (!isLoadingQuestion) {
       return (
-        <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+        <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
           <GlassCard padding="lg" className="max-w-md text-center">
-            <h2 className="mb-4 text-xl font-semibold text-[color:var(--text-color,#111827)]">
+            <h2 className="mb-4 text-xl font-semibold text-content-primary">
               {t("onboarding.noQuestionLoaded")}
             </h2>
-            <p className="mb-6 text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="mb-6 text-sm text-content-muted">
               {t("onboarding.errorNextQuestion")}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -535,7 +531,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       );
     }
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <Loader message={t("onboarding.loadingQuestion")} />
       </div>
     );
@@ -543,7 +539,7 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   if (!currentQuestion) {
     return (
-      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-[color:var(--bg-color,#f8fafc)] px-4">
+      <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <Loader message={t("onboarding.loading")} />
       </div>
     );
@@ -552,14 +548,14 @@ const OnboardingQuestionnaire: React.FC = () => {
   return (
     <>
       <section
-        className="min-h-screen bg-gradient-to-br from-[color:var(--bg-color,#f8fafc)] via-[color:var(--bg-color,#f8fafc)] to-[color:var(--primary,#1d5330)]/5 px-4 py-10"
+        className="min-h-screen bg-gradient-to-br from-surface-page via-surface-page to-brand-primary/5 px-4 py-10"
         aria-label={t("onboarding.aria")}
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-8">
           {/* Header */}
           <header className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+              <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                 {t("onboarding.questionOf", {
                   current: currentQuestionNumberDisplay,
                   total: totalQuestionsDisplay,
@@ -584,17 +580,17 @@ const OnboardingQuestionnaire: React.FC = () => {
                 </GlassButton>
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-[color:var(--text-color,#111827)]">
+            <h1 className="text-3xl font-bold text-content-primary">
               {t("onboarding.tellUsAboutYourself")}
             </h1>
-            <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+            <p className="text-sm text-content-muted">
               {t("onboarding.answerFewQuestions")}
             </p>
           </header>
 
           {/* Progress Stepper */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-text,#6b7280)]">
+            <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
               <span>{t("onboarding.progress")}</span>
               <span>{computedProgressPercentage}%</span>
             </div>
@@ -616,15 +612,12 @@ const OnboardingQuestionnaire: React.FC = () => {
               padding="md"
               className="border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5"
             >
-              <h3 className="mb-3 text-sm font-semibold text-[color:var(--text-color,#111827)]">
+              <h3 className="mb-3 text-sm font-semibold text-content-primary">
                 {sectionSummary.section_title} {t("onboarding.summary")}
               </h3>
               <div className="space-y-2">
                 {sectionSummary.answers.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="text-xs text-[color:var(--muted-text,#6b7280)]"
-                  >
+                  <div key={idx} className="text-xs text-content-muted">
                     <span className="font-medium">{item.question}:</span>{" "}
                     {item.answer}
                   </div>
@@ -636,11 +629,11 @@ const OnboardingQuestionnaire: React.FC = () => {
           {/* Question Card */}
           <GlassCard padding="lg" className="relative z-10 space-y-6 md:px-10">
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+              <h2 className="text-xl font-semibold text-content-primary">
                 {currentQuestion?.text ?? t("onboarding.noQuestionLoaded")}
               </h2>
               {currentQuestion?.description && (
-                <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                <p className="text-sm text-content-muted">
                   {currentQuestion.description}
                 </p>
               )}

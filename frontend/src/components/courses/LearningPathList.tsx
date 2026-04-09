@@ -51,7 +51,7 @@ function LearningPathList({
     return (
       <GlassCard
         padding="lg"
-        className="bg-[color:var(--card-bg,#ffffff)]/60 text-center text-sm text-[color:var(--muted-text,#6b7280)]"
+        className="bg-[color:var(--card-bg,#ffffff)]/60 text-center text-sm text-content-muted"
       >
         {t("courses.learningPath.noPathsAvailable")}
       </GlassCard>
@@ -69,12 +69,12 @@ function LearningPathList({
             <div className="relative">
               {!hidePathHeader && (
                 <header className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-xl font-semibold text-[color:var(--text-color,#111827)]">
+                  <h3 className="text-xl font-semibold text-content-primary">
                     {pathDisplayTitle(path.title) ||
                       t("courses.learningPath.customPath")}
                   </h3>
                   {path.description && (
-                    <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+                    <p className="text-sm text-content-muted">
                       {path.description}
                     </p>
                   )}
@@ -82,7 +82,7 @@ function LearningPathList({
               )}
               <div className={hidePathHeader ? "space-y-4" : "mt-4 space-y-4"}>
                 {courses.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-[color:var(--muted-text,#6b7280)]">
+                  <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-content-muted">
                     {t("courses.learningPath.noCoursesInPath")}
                   </div>
                 )}
@@ -123,15 +123,15 @@ function LearningPathList({
                       )}
 
                       <div className="flex flex-1 flex-col gap-3 px-4 py-5">
-                        <h4 className="text-lg font-semibold text-[color:var(--text-color,#111827)]">
+                        <h4 className="text-lg font-semibold text-content-primary">
                           {course.title}
                         </h4>
                         {course.description && (
-                          <p className="flex-1 text-sm text-[color:var(--muted-text,#6b7280)]">
+                          <p className="flex-1 text-sm text-content-muted">
                             {course.description}
                           </p>
                         )}
-                        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[color:var(--muted-text,#6b7280)]">
+                        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-content-muted">
                           <span>
                             {t("courses.learningPath.lesson", {
                               count: lessonCount,

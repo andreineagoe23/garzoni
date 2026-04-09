@@ -37,7 +37,7 @@
   justify-content: flex-start;
 
   // Laptop screens
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     max-width: 95%;
     padding: map.get($spacers, 3);
   }
@@ -56,7 +56,7 @@
   margin-bottom: map.get($spacers, 5);
 
   // Laptop screens
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     margin-bottom: map.get($spacers, 4);
   }
 
@@ -73,7 +73,7 @@
     font-weight: $font-weight-bold;
     color: var(--text-color);
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       margin-bottom: map.get($spacers, 3);
       font-size: 1.5rem;
     }
@@ -87,7 +87,7 @@
   &-content {
     margin-bottom: map.get($spacers, 4);
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       margin-bottom: map.get($spacers, 3);
     }
 
@@ -102,7 +102,7 @@
   display: grid;
   gap: map.get($spacers, 4);
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     grid-template-columns: repeat(2, 1fr);
     gap: map.get($spacers, 3);
   }
@@ -124,7 +124,7 @@
 .page-header {
   margin-bottom: map.get($spacers, 4);
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     margin-bottom: map.get($spacers, 3);
   }
 
@@ -137,7 +137,7 @@
     font-weight: $font-weight-bold;
     margin-bottom: map.get($spacers, 2);
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       font-size: 1.75rem;
     }
 
@@ -166,7 +166,7 @@
   flex-direction: column;
   gap: map.get($spacers, 4);
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     flex-direction: row;
     gap: map.get($spacers, 3);
 
@@ -197,7 +197,7 @@
   max-width: 800px;
   margin: 0 auto;
 
-  @media (min-width: 993px) and (max-width: 1366px) {
+  @include media-laptop {
     max-width: 700px;
   }
 
@@ -209,7 +209,7 @@
     margin: 0 auto;
     max-width: 600px;
 
-    @media (min-width: 993px) and (max-width: 1366px) {
+    @include media-laptop {
       max-width: 500px;
     }
 

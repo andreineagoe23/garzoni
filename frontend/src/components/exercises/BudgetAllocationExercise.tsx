@@ -123,7 +123,7 @@ const BudgetAllocationExercise = ({
         <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
           {question}
         </h3>
-        <p className="text-sm text-[color:var(--muted-text,#6b7280)]">
+        <p className="text-sm text-content-muted">
           {t("exercises.budget.instruction", { total })}
         </p>
       </header>
@@ -132,7 +132,7 @@ const BudgetAllocationExercise = ({
         {categories?.map((category) => (
           <label
             key={category}
-            className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--bg-color,#f8fafc)] px-4 py-4 transition hover:border-[color:var(--accent,#2563eb)]/40"
+            className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 transition hover:border-[color:var(--accent,#2563eb)]/40"
           >
             <span className="text-sm font-semibold text-[color:var(--accent,#111827)]">
               {category}
@@ -144,7 +144,7 @@ const BudgetAllocationExercise = ({
               value={allocations[category] ?? ""}
               onChange={(event) => handleChange(category, event.target.value)}
               disabled={isCompleted || disabled}
-              className={`w-full rounded-xl border backdrop-blur-sm px-3 py-2 text-sm text-[color:var(--text-color,#111827)] shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`w-full rounded-xl border backdrop-blur-sm px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${
                 feedbackType === "success"
                   ? "border-emerald-500/60 bg-emerald-500/10"
                   : feedbackType === "error"
@@ -159,7 +159,7 @@ const BudgetAllocationExercise = ({
         ))}
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm font-medium text-[color:var(--muted-text,#6b7280)]">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm font-medium text-content-muted">
         <span>
           {t("exercises.budget.currentTotal")}{" "}
           <span className="font-semibold text-[color:var(--accent,#111827)]">
@@ -206,9 +206,7 @@ const BudgetAllocationExercise = ({
         >
           {feedback}
           {feedbackType === "error" && explanation && (
-            <p className="mt-2 text-xs text-[color:var(--muted-text,#6b7280)]">
-              {explanation}
-            </p>
+            <p className="mt-2 text-xs text-content-muted">{explanation}</p>
           )}
           {feedbackType === "error" && learn_more_url && (
             <div className="mt-2">

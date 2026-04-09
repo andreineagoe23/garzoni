@@ -40,7 +40,7 @@ function Welcome() {
       </Helmet>
       <div
         ref={landingShellRef}
-        className="landing-shell landing-theme app-container min-h-screen flex flex-col bg-[color:var(--bg-color,#0B0F14)] text-[color:var(--text-color,#e5e7eb)]"
+        className="landing-shell landing-theme app-container min-h-screen flex flex-col bg-[color:var(--bg-color,#0B0F14)] text-content-primary"
         style={
           {
             // Make the sections below the hero match the hero's neutral dark palette
@@ -72,11 +72,11 @@ function Welcome() {
 
         {showReferralModal && referralCode && (
           <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 px-4">
-            <div className="max-w-md rounded-2xl bg-[color:var(--card-bg,#ffffff)] px-6 py-5 text-[color:var(--text-color,#111827)] shadow-2xl">
+            <div className="max-w-md rounded-2xl bg-[color:var(--card-bg,#ffffff)] px-6 py-5 text-content-primary shadow-2xl">
               <h2 className="text-lg font-semibold">
                 {t("welcome.referral.title", "You were invited to Garzoni")}
               </h2>
-              <p className="mt-2 text-sm text-[color:var(--muted-text,#6b7280)]">
+              <p className="mt-2 text-sm text-content-muted">
                 {t(
                   "welcome.referral.body",
                   "After you complete your first learning path, you and your friend will both receive 40% off the Plus plan by email."
@@ -96,7 +96,7 @@ function Welcome() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] px-4 py-2 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] px-4 py-2 text-sm font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
                   onClick={() => setShowReferralModal(false)}
                 >
                   {t("welcome.referral.dismiss", "Maybe later")}

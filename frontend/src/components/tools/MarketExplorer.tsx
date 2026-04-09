@@ -101,13 +101,10 @@ function TradingViewMarketExplorer() {
           >
             AAPL stock chart
           </a>
-          <span className="text-[color:var(--muted-text,#6b7280)]">
-            {" "}
-            by TradingView
-          </span>
+          <span className="text-content-muted"> by TradingView</span>
         </div>
       </div>
-      <p className="text-center text-xs text-[color:var(--muted-text,#6b7280)]">
+      <p className="text-center text-xs text-content-muted">
         Educational only - use as context, not a trading signal.
       </p>
     </section>

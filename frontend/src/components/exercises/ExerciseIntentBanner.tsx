@@ -60,19 +60,19 @@ export default function ExerciseIntentBanner({
     <div
       role="region"
       aria-label={t("exercises.skillIntent.regionLabel")}
-      className="mb-4 rounded-2xl border border-[color:var(--primary,#1d5330)]/45 bg-[color:var(--primary,#1d5330)]/12 px-4 py-3 text-sm text-[color:var(--text-color,#111827)] shadow-sm shadow-[color:var(--primary,#1d5330)]/10"
+      className="mb-4 rounded-2xl border border-[color:var(--primary,#1d5330)]/45 bg-[color:var(--primary,#1d5330)]/12 px-4 py-3 text-sm text-content-primary shadow-sm shadow-[color:var(--primary,#1d5330)]/10"
     >
       <div className="flex flex-col gap-2 sm:gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="font-semibold leading-snug text-[color:var(--text-color,#111827)]">
+          <p className="font-semibold leading-snug text-content-primary">
             {title}
           </p>
           {contextSubtitle ? (
-            <p className="text-xs leading-relaxed text-[color:var(--muted-text,#4b5563)]">
+            <p className="text-xs leading-relaxed text-content-muted">
               {contextSubtitle}
             </p>
           ) : null}
-          <p className="text-xs leading-relaxed text-[color:var(--muted-text,#4b5563)] sm:text-sm">
+          <p className="text-xs leading-relaxed text-content-muted sm:text-sm">
             {body}
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function ExerciseIntentBanner({
           <button
             type="button"
             onClick={onDismissRecommendation}
-            className="order-2 w-full rounded-full border border-[color:var(--border-color,#6b7280)]/50 bg-[color:var(--card-bg,#ffffff)]/90 px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--muted-text,#4b5563)] transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-[color:var(--text-color,#111827)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/25 sm:order-3 sm:w-auto"
+            className="order-2 w-full rounded-full border border-[color:var(--border-color,#6b7280)]/50 bg-[color:var(--card-bg,#ffffff)]/90 px-3 py-1.5 text-center text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/25 sm:order-3 sm:w-auto"
           >
             {t("exercises.skillIntent.dismissRecommendation")}
           </button>
