@@ -41,14 +41,13 @@ COPY ${BUILD_SRC}/ /app/
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
 # Bake static files into the image at build time.
-# DJANGO_ENV=build activates a dedicated bypass branch in settings.py that
-# skips all production-only guards (RECAPTCHA, CORS, media storage).
-# No dummy override flags needed — the build phase is explicitly whitelisted.
+# DJANGO_ENV=build activates the _IS_BUILD_PHASE bypass in settings.py.
+# stderr is NOT redirected here so Railway shows the full traceback on failure.
 RUN SECRET_KEY=build-time-collectstatic-only \
     DATABASE_URL=postgresql://x:x@localhost/x \
     DJANGO_ENV=build \
     DEBUG=False \
-    python manage.py collectstatic --noinput --clear 2>&1 \
+    python manage.py collectstatic --noinput --clear \
     && echo "[build] collectstatic OK: $(find /app/staticfiles -type f | wc -l) files"
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
