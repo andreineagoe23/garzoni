@@ -34,6 +34,9 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf /root/.cache/pip \
     && apk del .build-deps
 
+# Bust Docker cache on every deploy so COPY and collectstatic always run fresh
+ARG CACHEBUST=1
+
 # Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
 COPY ${BUILD_SRC}/ /app/
 
