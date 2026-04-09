@@ -34,6 +34,15 @@ COPY ${BUILD_SRC}/ /app/
 # Verify essential media seed assets are present (small PNG assets only)
 RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
+# Collect static files at build time (stable filesystem, no volume mounts).
+# This avoids race conditions and missing-file errors at runtime.
+RUN DATABASE_URL="postgresql://build:build@localhost/build" \
+    DJANGO_ENV="build" \
+    DEBUG="True" \
+    SECRET_KEY="build-only-key" \
+    ALLOWED_HOSTS_CSV="*" \
+    python manage.py collectstatic --noinput 2>&1 || true
+
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/staticfiles \
   && mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
