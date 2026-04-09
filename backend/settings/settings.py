@@ -146,9 +146,9 @@ TEMPLATES = [
     },
 ]
 
-# If a frontend build exists, make index.html discoverable via TemplateView and
-# let WhiteNoise serve the build output (including /static/*) directly.
-SERVE_FRONTEND = FRONTEND_BUILD_DIR.exists()
+# If a frontend build exists (index.html present), make it discoverable via
+# TemplateView and let WhiteNoise serve the build output.
+SERVE_FRONTEND = (FRONTEND_BUILD_DIR / "index.html").exists()
 if SERVE_FRONTEND:
     TEMPLATES[0]["DIRS"].append(FRONTEND_BUILD_DIR)
     WHITENOISE_ROOT = str(FRONTEND_BUILD_DIR)
@@ -765,7 +765,9 @@ customColorPalette = [
 CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
-    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
 }
 if (
     not DEBUG
