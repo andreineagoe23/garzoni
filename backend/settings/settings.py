@@ -780,11 +780,9 @@ CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
     },
 }
-# Django 4.2 admin CSS references widgets.css which doesn't exist; strict mode crashes collectstatic.
-WHITENOISE_MANIFEST_STRICT = False
 if (
     not DEBUG
     and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage"
