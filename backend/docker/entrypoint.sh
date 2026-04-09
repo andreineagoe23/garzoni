@@ -41,14 +41,21 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-# Static files are collected at Docker build time.
-mkdir -p /app/staticfiles /app/media
-# If staticfiles is empty (volume mount wiped it), restore from build backup
-if [ -d /app/staticfiles_build ] && [ -z "$(ls -A /app/staticfiles 2>/dev/null)" ]; then
-  echo "[entrypoint] staticfiles empty, restoring from build backup..." >&2
-  cp -r /app/staticfiles_build/. /app/staticfiles/
+# Collect static assets at runtime with real environment/configuration.
+# This has been the most reliable setup across local + Railway.
+if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
+  mkdir -p /app/staticfiles /app/media
+  rm -rf /app/staticfiles/*
+  python manage.py collectstatic --noinput
 fi
-echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
+mkdir -p /app/staticfiles /app/media
+static_count="$(find /app/staticfiles -type f 2>/dev/null | wc -l | tr -d ' ')"
+echo "[entrypoint] staticfiles: ${static_count} files" >&2
+# Fail fast so a bad deployment never serves a broken admin UI.
+if [ "${static_count}" -lt 50 ]; then
+  echo "[entrypoint] ERROR: staticfiles unexpectedly low; admin assets missing." >&2
+  exit 1
+fi
 
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
