@@ -41,21 +41,12 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-# collectstatic runs at Docker build time. Only re-run if explicitly requested.
-if [ "${RUN_COLLECTSTATIC:-0}" = "1" ]; then
+if [ "${SKIP_COLLECTSTATIC:-0}" != "1" ]; then
   mkdir -p /app/staticfiles /app/media
-  rm -rf /app/staticfiles/*
   python manage.py collectstatic --noinput
+  echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
 fi
-# Ensure dirs exist even when collectstatic was skipped (e.g. Railway pre-deploy only runs migrate)
 mkdir -p /app/staticfiles /app/media
-
-# Restore static files from build backup if directory is empty (e.g. volume mount shadows it)
-if [ -d /app/staticfiles_build ] && [ -z "$(ls -A /app/staticfiles 2>/dev/null)" ]; then
-  echo "[entrypoint] /app/staticfiles is empty, restoring from build backup..." >&2
-  cp -r /app/staticfiles_build/. /app/staticfiles/
-fi
-echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
 
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
