@@ -219,6 +219,9 @@ MEDIA_STORAGE_BACKEND = os.getenv(
 )
 # Cloudinary (used when DJANGO_MEDIA_STORAGE_BACKEND=cloudinary_storage...)
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "")
+# Auto-enable Cloudinary when URL is set and no explicit backend override
+if CLOUDINARY_URL and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage":
+    MEDIA_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -344,6 +347,17 @@ if DEBUG:
             "http://127.0.0.1:3000",
         ]
     )
+# Auto-trust the Railway public domain for admin login (CSRF validation)
+if _railway_public_domain:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_railway_public_domain}")
+# Auto-trust BACKEND_URL origin so admin works without manual CSRF config
+_backend_url_env = (os.getenv("BACKEND_URL") or "").strip().rstrip("/")
+if _backend_url_env:
+    from urllib.parse import urlparse as _urlparse
+    _parsed = _urlparse(_backend_url_env)
+    _origin = f"{_parsed.scheme}://{_parsed.netloc}"
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 CORS_ALLOW_CREDENTIALS = env_bool("CORS_ALLOW_CREDENTIALS", True)
@@ -373,7 +387,7 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
+X_FRAME_OPTIONS = "SAMEORIGIN"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Use X-Forwarded-Host so build_absolute_uri() (e.g. course image URLs) is correct on Railway/proxy
 USE_X_FORWARDED_HOST = True
@@ -769,6 +783,8 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
     },
 }
+# Django 4.2 admin CSS references widgets.css which doesn't exist; strict mode crashes collectstatic.
+WHITENOISE_MANIFEST_STRICT = False
 if (
     not DEBUG
     and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage"
