@@ -28,7 +28,6 @@ media/**
 !media/rewards/*.png
 !media/badges/
 !media/badges/*.png
-staticfiles/
 node_modules/
 .git/
 .github/
@@ -66,7 +65,6 @@ ENV/
 *.log
 db.sqlite3
 db.sqlite3-journal
-/staticfiles
 /static
 
 # Testing

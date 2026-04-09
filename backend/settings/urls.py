@@ -74,16 +74,6 @@ urlpatterns += [
     re_path(r"^media/(?P<path>.*)$", static_serve, {"document_root": settings.MEDIA_ROOT}),
 ]
 
-# Serve static files via Django as fallback (WhiteNoise middleware handles this
-# normally, but this ensures /static/* always resolves even if WhiteNoise misses).
-urlpatterns += [
-    re_path(
-        r"^static/(?P<path>.*)$",
-        static_serve,
-        {"document_root": settings.STATIC_ROOT},
-    ),
-]
-
 LEGAL_PAGE_ROUTES = [
     "privacy-policy",
     "cookie-policy",
