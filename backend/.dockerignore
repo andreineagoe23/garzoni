@@ -28,6 +28,7 @@ media/**
 !media/rewards/*.png
 !media/badges/
 !media/badges/*.png
+staticfiles/
 node_modules/
 .git/
 .github/
