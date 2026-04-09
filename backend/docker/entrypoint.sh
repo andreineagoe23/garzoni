@@ -41,8 +41,13 @@ if [ "${SEED_AFTER_MIGRATE:-0}" = "1" ]; then
   python manage.py verify_restore 2>/dev/null || true
 fi
 
-# Static files are collected at Docker build time — no need to re-run here.
+# Static files are collected at Docker build time.
 mkdir -p /app/staticfiles /app/media
+# If staticfiles is empty (volume mount wiped it), restore from build backup
+if [ -d /app/staticfiles_build ] && [ -z "$(ls -A /app/staticfiles 2>/dev/null)" ]; then
+  echo "[entrypoint] staticfiles empty, restoring from build backup..." >&2
+  cp -r /app/staticfiles_build/. /app/staticfiles/
+fi
 echo "[entrypoint] staticfiles: $(find /app/staticfiles -type f 2>/dev/null | wc -l) files" >&2
 
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.

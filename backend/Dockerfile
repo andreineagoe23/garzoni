@@ -50,7 +50,15 @@ RUN DATABASE_URL="sqlite:////tmp/build.db" \
     STRIPE_SECRET_KEY="" \
     CLOUDINARY_URL="" \
     ALLOW_LOCAL_MEDIA_STORAGE="1" \
-    python manage.py collectstatic --noinput
+    python manage.py collectstatic --noinput \
+    && echo "[build] staticfiles: $(find /app/staticfiles -type f | wc -l) files" \
+    && ls /app/staticfiles/admin/css/ || echo "[build] WARN: admin static files missing!"
+
+# Verify static files survived collectstatic
+RUN test -f /app/staticfiles/admin/css/base.css || (echo "ERROR: collectstatic did not produce admin files" && exit 1)
+
+# Backup static files so entrypoint can restore if a volume mount shadows /app/staticfiles
+RUN cp -r /app/staticfiles /app/staticfiles_build
 
 # Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
 RUN mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
