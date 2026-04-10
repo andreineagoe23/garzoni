@@ -351,7 +351,11 @@
       "openTool": "Open tool →",
       "open": "Open →",
       "browseAll": "All tools",
-      "browseAllSubtitle": "Pick a tool below to get started."
+      "browseAllSubtitle": "Pick a tool below to get started.",
+      "continueTitle": "Jump Back In",
+      "signalStrip": {
+        "nextSteps": "What should I learn next?"
+      }
     },
     "disclaimer": {
       "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
@@ -367,6 +371,7 @@
       "feedback": "Feedback",
       "resetTool": "Reset tool",
       "export": "Export",
+      "aboutTool": "About this tool",
       "feedbackSubject": "Tool feedback - {{tool}}",
       "feedbackBody": "What happened?\n\nWhere did it happen?\n{{url}}"
     },

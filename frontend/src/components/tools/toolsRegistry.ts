@@ -7,13 +7,6 @@ const NewsMarketContext = React.lazy(() => import("./NewsMarketContext"));
 const GoalsRealityCheck = React.lazy(() => import("./GoalsRealityCheck"));
 const MarketExplorer = React.lazy(() => import("./MarketExplorer"));
 const NextStepsEngine = React.lazy(() => import("./NextStepsEngine"));
-const FinancialGoalsTracker = React.lazy(
-  () => import("./FinancialGoalsTracker")
-);
-const CryptoTools = React.lazy(() => import("./CryptoTools"));
-const ForexTools = React.lazy(() => import("./ForexTools"));
-const FinancialSandbox = React.lazy(() => import("./FinancialSandbox"));
-const NewsCalendars = React.lazy(() => import("./NewsCalendars"));
 
 export type ToolGroupId =
   | "understand-world"
@@ -64,25 +57,6 @@ export const toolsRegistry: ToolDefinition[] = [
     activityStorageKey: "garzoni:tools:activity:reality-check",
   },
   {
-    id: "financial-goals",
-    group: "understand-myself",
-    route: "financial-goals",
-    component: FinancialGoalsTracker,
-    learnPath: "/all-topics?topic=saving",
-    cardImage: "tools/savings_goals.png",
-    keywords: ["goals", "savings", "emergency fund", "tracking"],
-    activityStorageKey: "garzoni:tools:activity:goals",
-  },
-  {
-    id: "financial-sandbox",
-    group: "understand-myself",
-    route: "financial-sandbox",
-    component: FinancialSandbox,
-    learnPath: "/all-topics?topic=saving",
-    keywords: ["projection", "simulation", "compound", "what-if"],
-    activityStorageKey: "garzoni:tools:activity:sandbox",
-  },
-  {
     id: "calendar",
     group: "understand-world",
     route: "calendar",
@@ -115,16 +89,6 @@ export const toolsRegistry: ToolDefinition[] = [
     activityStorageKey: "garzoni:tools:activity:news-context",
   },
   {
-    id: "news-calendars",
-    group: "understand-world",
-    route: "news-calendars",
-    component: NewsCalendars,
-    learnPath: "/all-topics?topic=macro",
-    cardImage: "tools/economic_calendar.png",
-    keywords: ["calendar", "economic", "investing.com", "events"],
-    activityStorageKey: "garzoni:tools:activity:news-calendars",
-  },
-  {
     id: "market-explorer",
     group: "decide-next",
     route: "market-explorer",
@@ -134,24 +98,6 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],
     activityStorageKey: "garzoni:tools:activity:market-explorer",
-  },
-  {
-    id: "crypto-tools",
-    group: "decide-next",
-    route: "crypto-tools",
-    component: CryptoTools,
-    learnPath: "/all-topics?topic=investing",
-    keywords: ["crypto", "bitcoin", "tradingview", "prices"],
-    activityStorageKey: "garzoni:tools:activity:crypto",
-  },
-  {
-    id: "forex-tools",
-    group: "decide-next",
-    route: "forex-tools",
-    component: ForexTools,
-    learnPath: "/all-topics?topic=macro",
-    keywords: ["forex", "pip", "currency", "fx"],
-    activityStorageKey: "garzoni:tools:activity:forex",
   },
   {
     id: "next-steps",
