@@ -351,7 +351,11 @@
       "openTool": "Deschide instrumentul →",
       "open": "Deschide →",
       "browseAll": "Toate instrumentele",
-      "browseAllSubtitle": "Alege un instrument mai jos pentru a începe."
+      "browseAllSubtitle": "Alege un instrument mai jos pentru a începe.",
+      "continueTitle": "Continuă de unde ai rămas",
+      "signalStrip": {
+        "nextSteps": "Ce ar trebui să învăț în continuare?"
+      }
     },
     "disclaimer": {
       "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
@@ -367,6 +371,7 @@
       "feedback": "Feedback",
       "resetTool": "Resetează instrumentul",
       "export": "Exportă",
+      "aboutTool": "Despre acest instrument",
       "feedbackSubject": "Feedback instrument - {{tool}}",
       "feedbackBody": "Ce s-a întâmplat?\n\nUnde s-a întâmplat?\n{{url}}"
     },
