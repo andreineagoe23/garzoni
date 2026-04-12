@@ -849,6 +849,12 @@ function ProfileInner() {
           colors={colors}
         />
         <MenuRow
+          icon="gift-outline"
+          label="Refer a Friend"
+          onPress={() => router.push(href("/referral"))}
+          colors={colors}
+        />
+        <MenuRow
           icon={navIcons.chat}
           label={t("chatbot.title")}
           onPress={() => router.push(href("/chat"))}

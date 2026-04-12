@@ -7,7 +7,8 @@ import { useTheme } from "../../src/theme/ThemeContext";
 import { navIcons } from "../../src/theme/navIcons";
 import { typography } from "../../src/theme/tokens";
 import AccountTabMenuModal from "../../src/components/navigation/AccountTabMenuModal";
-import { HeaderChatButton } from "../../src/components/navigation/HeaderChatButton";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 const TAB_ICON: Record<
   string,
@@ -95,7 +96,8 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: t("nav.dashboard", { defaultValue: "Home" }),
-            headerRight: () => <HeaderChatButton />,
+            headerLeft: () => <HeaderAvatarButton />,
+            headerRight: () => <HeaderRightButtons />,
           }}
         />
         <Tabs.Screen

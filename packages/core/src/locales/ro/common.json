@@ -340,19 +340,25 @@
   },
   "tools": {
     "errors": {
-      "toolNotFound": "Instrumentul nu a fost găsit. Revenim la hub-ul de instrumente."
+      "toolNotFound": "Acest instrument nu există. Am deschis instrumentul implicit."
     },
     "hub": {
       "continueTitle": "Continuă de unde ai rămas",
       "continueSubtitle": "Revino rapid fără să cauți instrumentul.",
-      "resumeTool": "Reia instrumentul →",
+      "resumeTool": "Reia →",
       "suggestedTitle": "Instrumente de învățare sugerate",
       "suggestedSubtitle": "Pe baza activității tale de învățare. Acestea sunt sugestii educaționale, nu recomandări de investiții.",
       "openTool": "Deschide instrumentul →",
       "open": "Deschide →",
       "browseAll": "Toate instrumentele",
       "browseAllSubtitle": "Alege un instrument mai jos pentru a începe.",
-      "continueTitle": "Continuă de unde ai rămas",
+      "searchPlaceholder": "Caută instrumente…",
+      "filterAll": "Toate",
+      "recommendedTitle": "Recomandat pentru tine",
+      "recommendedSubtitle": "Pe baza profilului tău și a vizitelor recente la instrumente.",
+      "noMatches": "Niciun instrument nu se potrivește căutării. Încearcă alt cuvânt sau resetează filtrele.",
+      "badgePlus": "Plus",
+      "plusOnlyHint": "Doar Plus",
       "signalStrip": {
         "nextSteps": "Ce ar trebui să învăț în continuare?"
       }
@@ -367,7 +373,7 @@
       "questionAnswered": "Întrebarea la care răspunde:",
       "example": "Exemplu:",
       "learnConcept": "Învață conceptul →",
-      "backToHub": "Înapoi la hub-ul de instrumente →",
+      "backToHub": "Înapoi la instrumente →",
       "feedback": "Feedback",
       "resetTool": "Resetează instrumentul",
       "export": "Exportă",
@@ -387,23 +393,39 @@
       "title": "Instrumente financiare",
       "subtitle": "Fiecare instrument răspunde la o întrebare clară și te trimite la următorul pas."
     },
+    "workspace": {
+      "switcherLabel": "Schimbă instrumentul",
+      "actionTooltipFeedback": "Feedback prin email — deschide aplicația de mail cu un mesaj precompletat către Garzoni.",
+      "actionTooltipReset": "Resetează instrumentul — șterge datele introduse și revine la starea inițială.",
+      "actionTooltipExport": "Export — descarcă sau salvează rezultatul când este disponibil.",
+      "actionAriaFeedback": "Feedback prin email",
+      "actionAriaReset": "Resetează instrumentul",
+      "actionAriaExport": "Exportă"
+    },
     "nav": {
       "ariaLabel": "Navigare instrumente",
       "browse": "Răsfoiește instrumentele",
       "hub": "Hub",
-      "hubLink": "Hub instrumente"
+      "hubLink": "Instrumente",
+      "selectTool": "Alege un instrument"
     },
     "groups": {
       "understand-world": {
         "title": "Înțelege lumea",
+        "label": "Lume",
+        "description": "Context macro, știri și ce mișcă piețele.",
         "imageAlt": "Economie și piețe globale"
       },
       "understand-myself": {
         "title": "Înțelege-te pe tine",
+        "label": "Tu",
+        "description": "Portofoliul tău, obiectivele și cum se aliniază.",
         "imageAlt": "Finanțe personale și obiective"
       },
       "decide-next": {
         "title": "Planifică ce să înveți",
+        "label": "Următorul pas",
+        "description": "Explorează piețele și alege următorul pas de învățare.",
         "imageAlt": "Plan de învățare și pași următori"
       }
     },

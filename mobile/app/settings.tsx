@@ -1,5 +1,14 @@
-import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import { Stack } from "expo-router";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { href } from "../src/navigation/href";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchUserSettings,
@@ -16,6 +25,7 @@ import { spacing, typography, radius } from "../src/theme/tokens";
 export default function SettingsScreen() {
   const c = useThemeColors();
   const { resolved, setMode } = useTheme();
+  const router = useRouter();
   const qc = useQueryClient();
 
   const settingsQ = useQuery({
@@ -122,6 +132,43 @@ export default function SettingsScreen() {
           />
         </View>
 
+        <Text style={[styles.section, { color: c.accent }]}>
+          Help & Feedback
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
+          <Pressable
+            style={styles.linkRow}
+            onPress={() => router.push(href("/support"))}
+            accessibilityRole="button"
+          >
+            <Ionicons name="help-circle-outline" size={20} color={c.primary} />
+            <Text style={[styles.linkLabel, { color: c.text }]}>Support</Text>
+            <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
+          </Pressable>
+          <Pressable
+            style={[
+              styles.linkRow,
+              {
+                borderTopWidth: StyleSheet.hairlineWidth,
+                borderTopColor: c.border,
+              },
+            ]}
+            onPress={() => router.push(href("/feedback"))}
+            accessibilityRole="button"
+          >
+            <Ionicons name="chatbubble-outline" size={20} color={c.primary} />
+            <Text style={[styles.linkLabel, { color: c.text }]}>
+              Send Feedback
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
+          </Pressable>
+        </View>
+
         <Text style={[styles.muted, { color: c.textFaint }]}>
           Push notifications and hearts UI visibility stay on the Profile tab.
         </Text>
@@ -185,4 +232,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   muted: { fontSize: typography.xs, marginTop: spacing.xl, lineHeight: 18 },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  linkLabel: { flex: 1, fontSize: typography.base, fontWeight: "600" },
 });

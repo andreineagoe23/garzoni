@@ -51,7 +51,8 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
     : t("rewards.shop.empty");
 
   const cardRows = useMemo(() => items, [items]);
-  const fallbackRewardImage = "/media/logo/garzoni-logo-square-no-bg.png";
+  const fallbackRewardImage =
+    "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_64/garzoni/logo/garzoni-logo-square-no-bg.png";
 
   const handleAction = async (rewardId: number) => {
     try {
