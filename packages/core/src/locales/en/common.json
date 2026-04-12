@@ -340,19 +340,25 @@
   },
   "tools": {
     "errors": {
-      "toolNotFound": "Tool not found. Returning to the tools hub."
+      "toolNotFound": "That tool does not exist. We opened your default tool instead."
     },
     "hub": {
       "continueTitle": "Continue where you left off",
       "continueSubtitle": "Jump back in without hunting for the tool.",
-      "resumeTool": "Resume tool →",
+      "resumeTool": "Resume →",
       "suggestedTitle": "Suggested learning tools",
       "suggestedSubtitle": "Based on your learning activity. These are educational prompts, not investment recommendations.",
       "openTool": "Open tool →",
       "open": "Open →",
       "browseAll": "All tools",
       "browseAllSubtitle": "Pick a tool below to get started.",
-      "continueTitle": "Jump Back In",
+      "searchPlaceholder": "Search tools…",
+      "filterAll": "All",
+      "recommendedTitle": "Recommended for you",
+      "recommendedSubtitle": "Based on your profile and recent tool visits.",
+      "noMatches": "No tools match your search. Try another keyword or reset filters.",
+      "badgePlus": "Plus",
+      "plusOnlyHint": "Plus only",
       "signalStrip": {
         "nextSteps": "What should I learn next?"
       }
@@ -367,7 +373,7 @@
       "questionAnswered": "Question answered:",
       "example": "Example:",
       "learnConcept": "Learn the concept →",
-      "backToHub": "Back to tools hub →",
+      "backToHub": "Back to tools →",
       "feedback": "Feedback",
       "resetTool": "Reset tool",
       "export": "Export",
@@ -387,23 +393,39 @@
       "title": "Financial Tools",
       "subtitle": "Each tool answers one clear question and links to the next step."
     },
+    "workspace": {
+      "switcherLabel": "Switch tool",
+      "actionTooltipFeedback": "Email feedback — opens your mail app with a pre-filled message to Garzoni.",
+      "actionTooltipReset": "Reset this tool — clears inputs and returns it to a clean starting state.",
+      "actionTooltipExport": "Export — download or save output from this tool when available.",
+      "actionAriaFeedback": "Email feedback",
+      "actionAriaReset": "Reset tool",
+      "actionAriaExport": "Export"
+    },
     "nav": {
       "ariaLabel": "Tools navigation",
       "browse": "Browse tools",
       "hub": "Hub",
-      "hubLink": "Tools hub"
+      "hubLink": "Tools",
+      "selectTool": "Select a tool"
     },
     "groups": {
       "understand-world": {
         "title": "Understand the World",
+        "label": "World",
+        "description": "Macro context, news, and what is moving markets.",
         "imageAlt": "Global economy and markets"
       },
       "understand-myself": {
         "title": "Understand Myself",
+        "label": "You",
+        "description": "Your portfolio, goals, and how they line up.",
         "imageAlt": "Personal finance and goals"
       },
       "decide-next": {
         "title": "Plan What to Learn",
+        "label": "Next",
+        "description": "Explore markets and pick your next learning step.",
         "imageAlt": "Learning plan and next steps"
       }
     },
