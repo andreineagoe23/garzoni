@@ -10,7 +10,6 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { i18n, normalizeLanguage, SUPPORTED_LANGUAGES } from "@garzoni/core";
 import { useAuthSession } from "../../auth/AuthContext";
 import { href } from "../../navigation/href";
 import { useTheme, useThemeColors } from "../../theme/ThemeContext";
@@ -68,28 +67,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
               keyboardShouldPersistTaps="handled"
               bounces={false}
             >
-              <Pressable
-                style={menuRowStyle}
-                onPress={() => go("/(tabs)/profile")}
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name={navIcons.profile as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={c.primary}
-                />
-                <Text style={[styles.menuLabel, { color: c.text }]}>
-                  {t("nav.profile", { defaultValue: "Profile" })}
-                </Text>
-                <Ionicons
-                  name={
-                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
-                  }
-                  size={18}
-                  color={c.textFaint}
-                />
-              </Pressable>
-
+              {/* Account */}
               <Pressable
                 style={menuRowStyle}
                 onPress={() => go("/settings")}
@@ -112,8 +90,29 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                 />
               </Pressable>
 
+              <Pressable
+                style={menuRowStyle}
+                onPress={() => go("/billing")}
+                accessibilityRole="button"
+              >
+                <Ionicons name="card-outline" size={22} color={c.primary} />
+                <Text style={[styles.menuLabel, { color: c.text }]}>
+                  {t("billing.subscriptionManagement", {
+                    defaultValue: "Subscription",
+                  })}
+                </Text>
+                <Ionicons
+                  name={
+                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
+                  }
+                  size={18}
+                  color={c.textFaint}
+                />
+              </Pressable>
+
               <View style={[styles.divider, { backgroundColor: c.border }]} />
 
+              {/* Navigate */}
               <Text style={[styles.sectionLabel, { color: c.accent }]}>
                 {t("nav.navigateSection", { defaultValue: "Navigate" })}
               </Text>
@@ -184,92 +183,12 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                 />
               </Pressable>
 
-              <Pressable
-                style={menuRowStyle}
-                onPress={() => go("/support")}
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name={navIcons.support as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={c.primary}
-                />
-                <Text style={[styles.menuLabel, { color: c.text }]}>
-                  {t("nav.support", { defaultValue: "Support" })}
-                </Text>
-                <Ionicons
-                  name={
-                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
-                  }
-                  size={18}
-                  color={c.textFaint}
-                />
-              </Pressable>
-
-              <Pressable
-                style={menuRowStyle}
-                onPress={() => go("/feedback")}
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name={navIcons.chat as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={c.primary}
-                />
-                <Text style={[styles.menuLabel, { color: c.text }]}>
-                  {t("nav.sendFeedback", { defaultValue: "Send Feedback" })}
-                </Text>
-                <Ionicons
-                  name={
-                    navIcons.chevronForward as keyof typeof Ionicons.glyphMap
-                  }
-                  size={18}
-                  color={c.textFaint}
-                />
-              </Pressable>
-
               <View style={[styles.divider, { backgroundColor: c.border }]} />
 
-              <Text style={[styles.sectionLabel, { color: c.accent }]}>
-                {t("language.label", { defaultValue: "Language" })}
-              </Text>
-              {SUPPORTED_LANGUAGES.filter(
-                (l) => !("comingSoon" in l && l.comingSoon),
-              ).map((lng) => {
-                const active = normalizeLanguage(i18n.language) === lng.code;
-                return (
-                  <Pressable
-                    key={lng.code}
-                    style={[
-                      styles.langRow,
-                      {
-                        borderColor: active ? c.primary : c.border,
-                        backgroundColor: active ? c.accentMuted : "transparent",
-                      },
-                    ]}
-                    onPress={() => void i18n.changeLanguage(lng.code)}
-                  >
-                    <Text style={[styles.menuLabel, { color: c.text }]}>
-                      {lng.label}
-                    </Text>
-                    {active ? (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color={c.primary}
-                      />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-
-              <View style={[styles.divider, { backgroundColor: c.border }]} />
-
+              {/* Preferences */}
               <Pressable
                 style={menuRowStyle}
-                onPress={() => {
-                  toggleDark();
-                }}
+                onPress={() => toggleDark()}
                 accessibilityRole="button"
               >
                 <Ionicons
@@ -330,7 +249,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  scroll: { maxHeight: 560 },
+  scroll: { maxHeight: 480 },
   menuRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -351,16 +270,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
-  },
-  langRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

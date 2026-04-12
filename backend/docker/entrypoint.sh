@@ -67,6 +67,16 @@ if [ ! -f /app/staticfiles/admin/js/theme.js ] || [ ! -f /app/staticfiles/admin/
   exit 1
 fi
 
+# Cloudinary image migration: update DB ImageField paths to Cloudinary public IDs.
+# Runs only when CLOUDINARY_URL is set and the upload results JSON is present in the image.
+# Safe to run on every deploy: already-migrated rows are skipped automatically.
+if [ -n "${CLOUDINARY_URL:-}" ] && [ -f /app/cloudinary-upload-results.json ]; then
+  echo "[entrypoint] Running Cloudinary image migration..." >&2
+  python manage.py migrate_cloudinary_images \
+    --json-path /app/cloudinary-upload-results.json 2>&1 || \
+    echo "[entrypoint] WARN: migrate_cloudinary_images had errors (non-fatal)" >&2
+fi
+
 # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
 # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
 if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then

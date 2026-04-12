@@ -2,7 +2,12 @@
 # Build context is usually the backend dir (Railway with backend/Dockerfile, or local docker-compose).
 # So BUILD_SRC defaults to ".". From repo root: docker build --build-arg BUILD_SRC=backend -f backend/Dockerfile .
 
-FROM python:3.12-alpine AS runtime
+FROM python:3.12-alpine3.23 AS runtime
+
+# Patch all OS-level packages (including openssl) at build time.
+# This resolves CVE-2026-31790, CVE-2026-28390, CVE-2026-28389, and related HIGH vulns
+# in openssl 3.5.5-r0 → fixed in 3.5.6-r0 (Alpine 3.23 advisory 2026-04-xx).
+RUN apk upgrade --no-cache
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

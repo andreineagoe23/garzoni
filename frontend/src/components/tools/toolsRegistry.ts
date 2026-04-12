@@ -26,6 +26,8 @@ export type ToolDefinition = {
   cardImage?: string;
   /** Optional plan requirement (e.g. plus_or_pro for paid-only tools). */
   requiredPlan?: "plus_or_pro";
+  /** Rough time to complete a typical pass (minutes), for hub badges. */
+  estimatedMinutes?: number;
 };
 
 export const TOOL_STORAGE_KEYS = {
@@ -45,6 +47,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/portfolio_analyzer.png",
     keywords: ["stocks", "allocation", "diversification", "returns"],
     activityStorageKey: "garzoni:tools:activity:portfolio",
+    estimatedMinutes: 12,
   },
   {
     id: "reality-check",
@@ -55,6 +58,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/savings_goals.png",
     keywords: ["savings", "goals", "budget", "reality check"],
     activityStorageKey: "garzoni:tools:activity:reality-check",
+    estimatedMinutes: 8,
   },
   {
     id: "calendar",
@@ -65,6 +69,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/economic_calendar.png",
     keywords: ["calendar", "macro", "events", "inflation", "rates"],
     activityStorageKey: "garzoni:tools:activity:calendar",
+    estimatedMinutes: 6,
   },
   {
     id: "economic-map",
@@ -76,6 +81,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/economic_map.png",
     keywords: ["macro", "economy", "map", "global"],
     activityStorageKey: "garzoni:tools:activity:economic-map",
+    estimatedMinutes: 15,
   },
   {
     id: "news-context",
@@ -87,6 +93,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/news_market.png",
     keywords: ["news", "markets", "macro", "context"],
     activityStorageKey: "garzoni:tools:activity:news-context",
+    estimatedMinutes: 10,
   },
   {
     id: "market-explorer",
@@ -98,6 +105,7 @@ export const toolsRegistry: ToolDefinition[] = [
     cardImage: "tools/market_explorer.png",
     keywords: ["markets", "stocks", "etf", "crypto", "indices"],
     activityStorageKey: "garzoni:tools:activity:market-explorer",
+    estimatedMinutes: 10,
   },
   {
     id: "next-steps",
@@ -107,6 +115,7 @@ export const toolsRegistry: ToolDefinition[] = [
     learnPath: "/all-topics?topic=planning",
     keywords: ["recommendations", "next steps", "plan"],
     activityStorageKey: "garzoni:tools:activity:next-steps",
+    estimatedMinutes: 5,
   },
 ];
 
