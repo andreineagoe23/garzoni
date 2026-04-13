@@ -54,7 +54,9 @@ export {
   Images,
   cloudinaryImageUrl,
   configureCloudinaryCloudName,
+  mascotImageUrl,
 } from "./images";
+export type { MascotImageId } from "./images";
 
 export {
   queryClient,

@@ -1,4 +1,14 @@
 import { readPublicEnv } from "./runtime/publicEnv";
+import { getMediaBaseUrl } from "./services/backendUrl";
+
+/** Mascot stills (owl / bull / bear); same keys as web `MascotMedia` / mobile `MascotImage`. */
+export type MascotImageId = "owl" | "bull" | "bear";
+
+const MASCOT_MEDIA_FILES: Record<MascotImageId, string> = {
+  owl: "garzoni-owl.png",
+  bull: "garzoni-bull.png",
+  bear: "garzoni-bear.png",
+};
 
 let cloudNameOverride: string | null = null;
 
@@ -27,6 +37,32 @@ export function cloudinaryImageUrl(
   if (!cloud) return "";
   const id = publicId.replace(/^\/+/, "");
   return `https://res.cloudinary.com/${cloud}/image/upload/${transforms}/${id}`;
+}
+
+/**
+ * Delivery URL for mascot PNGs (owl, bull, bear).
+ *
+ * When Cloudinary is configured (`VITE_CLOUDINARY_CLOUD_NAME` / `REACT_APP_*` /
+ * `EXPO_PUBLIC_*` via {@link readPublicEnv}, or {@link configureCloudinaryCloudName} on native),
+ * uses public IDs `garzoni/mascots/<basename-without-ext>` — the shape produced by
+ * `node scripts/upload-cloudinary-images.js` for files under `backend/media/mascots/`.
+ *
+ * Otherwise falls back to Django `{@link getMediaBaseUrl}/media/mascots/...` (typical local dev).
+ */
+export function mascotImageUrl(
+  mascot: MascotImageId,
+  opts?: { width?: number },
+): string {
+  const file = MASCOT_MEDIA_FILES[mascot];
+  const publicId = `garzoni/mascots/${file.replace(/\.[^.]+$/, "")}`;
+  const w = opts?.width;
+  const transforms =
+    w != null && Number.isFinite(w) && w > 0
+      ? `f_auto,q_auto,w_${Math.min(2048, Math.round(w))}`
+      : "f_auto,q_auto";
+  const cdn = cloudinaryImageUrl(publicId, transforms);
+  if (cdn) return cdn;
+  return `${getMediaBaseUrl()}/media/mascots/${file}`;
 }
 
 /**
