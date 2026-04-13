@@ -51,6 +51,21 @@ from authentication.models import UserProfile
 from authentication.entitlements import allowed_plan_tiers, get_user_plan, plan_allows
 from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
+from gamification.services.rewards import (
+    COINS_COURSE_COMPLETE,
+    COINS_LESSON_FIRST_COMPLETION,
+    COINS_PATH_COMPLETE,
+    COINS_QUIZ_PASS,
+    COINS_SECTION_FIRST_COMPLETION,
+    XP_COURSE_COMPLETE,
+    XP_EXERCISE_ATTEMPT_CAP,
+    XP_LESSON_FIRST_COMPLETION,
+    XP_PATH_COMPLETE,
+    XP_QUIZ_FIRST_COMPLETION_BONUS,
+    XP_QUIZ_PASS,
+    XP_SECTION_FIRST_COMPLETION,
+    grant_reward,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -437,20 +452,69 @@ class LessonViewSet(viewsets.ModelViewSet):
                 user=user, course=lesson.course
             )
 
-            # Mark lesson complete
-            LessonCompletion.objects.get_or_create(user_progress=user_progress, lesson=lesson)
-
-            # Update global streak inside UserProfile
-            user_profile = user.profile
-            user_profile.update_streak()
-
-            user_profile.add_money(Decimal("5.00"))
-            user_profile.add_points(10)
+            lc, created_lesson = LessonCompletion.objects.get_or_create(
+                user_progress=user_progress, lesson=lesson
+            )
+            if created_lesson:
+                grant_reward(
+                    user,
+                    f"lesson_first_completion:{user.id}:{lesson.id}",
+                    points=XP_LESSON_FIRST_COMPLETION,
+                    coins=COINS_LESSON_FIRST_COMPLETION,
+                    bump_streak="user_progress",
+                    user_progress=user_progress,
+                )
+                lesson_sections = list(lesson.sections.all())
+                if lesson_sections:
+                    user_progress.completed_sections.add(*lesson_sections)
+                    for section in lesson_sections[:3]:
+                        _grant_initial_mastery(user, _extract_section_skill(section))
+                lesson_missions = MissionCompletion.objects.filter(
+                    user=user,
+                    mission__goal_type="complete_lesson",
+                    status__in=["not_started", "in_progress"],
+                )
+                for mission_completion in lesson_missions:
+                    mission_completion.update_progress()
 
             total_lessons = lesson.course.lessons.count()
             completed_lessons = user_progress.completed_lessons.count()
-            if completed_lessons == total_lessons:
-                user_progress.mark_course_complete()
+            if completed_lessons == total_lessons and not user_progress.is_course_complete:
+                grant_reward(
+                    user,
+                    f"course_first_complete:{user.id}:{lesson.course_id}",
+                    points=XP_COURSE_COMPLETE,
+                    coins=COINS_COURSE_COMPLETE,
+                    bump_streak="none",
+                )
+                user_progress.is_course_complete = True
+                user_progress.course_completed_at = timezone.now()
+                user_progress.save(update_fields=["is_course_complete", "course_completed_at"])
+                path_missions = MissionCompletion.objects.filter(
+                    user=user,
+                    mission__goal_type="complete_path",
+                    status__in=["not_started", "in_progress"],
+                )
+                for mission_completion in path_missions:
+                    mission_completion.update_progress()
+                path = lesson.course.path
+                if path:
+                    courses_in_path = Course.objects.filter(path=path)
+                    n_courses = courses_in_path.count()
+                    if n_courses > 0:
+                        completed_path_courses = UserProgress.objects.filter(
+                            user=user,
+                            course__in=courses_in_path,
+                            is_course_complete=True,
+                        ).count()
+                        if completed_path_courses == n_courses:
+                            grant_reward(
+                                user,
+                                f"path_first_complete:{user.id}:{path.id}",
+                                points=XP_PATH_COMPLETE,
+                                coins=COINS_PATH_COMPLETE,
+                                bump_streak="none",
+                            )
 
             invalidate_profile_cache(user)
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
@@ -464,6 +528,20 @@ class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.prefetch_related("translations")
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        course_id = self.request.query_params.get("course")
+        user = getattr(self.request, "user", None)
+        if course_id and user and user.is_authenticated:
+            ctx["quiz_completed_ids"] = frozenset(
+                QuizCompletion.objects.filter(
+                    user=user, quiz__course_id=course_id
+                ).values_list("quiz_id", flat=True)
+            )
+        else:
+            ctx["quiz_completed_ids"] = frozenset()
+        return ctx
 
     def get_queryset(self):
         """Retrieve quizzes for a specific course."""
@@ -497,18 +575,46 @@ class QuizViewSet(viewsets.ModelViewSet):
                 if not _user_can_access_path(request.user, quiz.course.path):
                     return _path_access_denied_response(quiz.course.path)
             if quiz.correct_answer == selected_answer:
-                QuizCompletion.objects.get_or_create(user=request.user, quiz=quiz)
+                _qc, created_quiz = QuizCompletion.objects.get_or_create(
+                    user=request.user, quiz=quiz
+                )
+                if not created_quiz:
+                    return Response(
+                        {
+                            "message": "Quiz already completed.",
+                            "correct": True,
+                            "already_completed": True,
+                            "earned_money": 0,
+                            "earned_points": 0,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                total_xp = XP_QUIZ_PASS + XP_QUIZ_FIRST_COMPLETION_BONUS
+                grant_reward(
+                    request.user,
+                    f"quiz_first_pass:{request.user.id}:{quiz.id}",
+                    points=total_xp,
+                    coins=COINS_QUIZ_PASS,
+                    bump_streak="profile",
+                )
 
-                user_profile = request.user.profile
-                user_profile.add_money(Decimal("10.00"))
-                user_profile.add_points(20)
-                user_profile.save()
+                logger.info(
+                    "quiz_completed",
+                    extra={
+                        "user_id": request.user.id,
+                        "quiz_id": quiz.id,
+                        "course_id": quiz.course_id,
+                        "xp": total_xp,
+                    },
+                )
 
                 return Response(
                     {
                         "message": "Quiz completed!",
                         "correct": True,
-                        "earned_money": 10.00,
+                        "already_completed": False,
+                        "earned_money": float(COINS_QUIZ_PASS),
+                        "earned_points": total_xp,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -548,70 +654,97 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             if course and course.path:
                 if not _user_can_access_path(request.user, course.path):
                     return _path_access_denied_response(course.path)
-            user_profile = request.user.profile
-            user_progress, created = UserProgress.objects.get_or_create(
-                user=request.user, course=course
-            )
 
-            user_progress.completed_lessons.add(lesson)
-            lesson_sections = list(lesson.sections.all())
-            if lesson_sections:
-                user_progress.completed_sections.add(*lesson_sections)
-                for section in lesson_sections[:3]:
-                    _grant_initial_mastery(request.user, _extract_section_skill(section))
-            user_profile.add_money(Decimal("5.00"))
-            user_profile.save()
-
-            total_lessons = course.lessons.count()
-            completed_lessons = user_progress.completed_lessons.count()
-            if completed_lessons == total_lessons:
-                user_profile.add_money(Decimal("50.00"))
-                user_profile.add_points(50)
-                user_profile.save()
-
-                user_progress.is_course_complete = True
-                user_progress.course_completed_at = timezone.now()
-                user_progress.save()
-
-                # Check for complete_path mission updates
-                path_missions = MissionCompletion.objects.filter(
-                    user=request.user,
-                    mission__goal_type="complete_path",
-                    status__in=["not_started", "in_progress"],
+            with transaction.atomic():
+                user_progress, _ = UserProgress.objects.select_for_update().get_or_create(
+                    user=request.user, course=course
                 )
-                for mission_completion in path_missions:
-                    mission_completion.update_progress()
+                was_already_course_complete = user_progress.is_course_complete
+                was_lesson_new = not user_progress.completed_lessons.filter(pk=lesson.pk).exists()
 
-                # Also reward full path if completed
-                path = course.path
-                if path:
-                    courses_in_path = Course.objects.filter(path=path)
-                    completed_courses = UserProgress.objects.filter(
+                if was_lesson_new:
+                    user_progress.completed_lessons.add(lesson)
+                    lesson_sections = list(lesson.sections.all())
+                    if lesson_sections:
+                        user_progress.completed_sections.add(*lesson_sections)
+                        for section in lesson_sections[:3]:
+                            _grant_initial_mastery(
+                                request.user, _extract_section_skill(section)
+                            )
+
+                    grant_reward(
+                        request.user,
+                        f"lesson_first_completion:{request.user.id}:{lesson.id}",
+                        points=XP_LESSON_FIRST_COMPLETION,
+                        coins=COINS_LESSON_FIRST_COMPLETION,
+                        bump_streak="user_progress",
+                        user_progress=user_progress,
+                    )
+
+                    lesson_missions = MissionCompletion.objects.filter(
                         user=request.user,
-                        course__in=courses_in_path,
-                        is_course_complete=True,
-                    ).count()
+                        mission__goal_type="complete_lesson",
+                        status__in=["not_started", "in_progress"],
+                    )
+                    for mission_completion in lesson_missions:
+                        mission_completion.update_progress()
 
-                    if completed_courses == courses_in_path.count():
-                        user_profile.add_money(Decimal("100.00"))
-                        user_profile.add_points(100)
-                        user_profile.save()
+                total_lessons = course.lessons.count()
+                completed_lessons = user_progress.completed_lessons.count()
+                just_finished_course = (
+                    was_lesson_new
+                    and not was_already_course_complete
+                    and total_lessons > 0
+                    and completed_lessons == total_lessons
+                )
 
-            user_progress.update_streak()
+                if just_finished_course:
+                    grant_reward(
+                        request.user,
+                        f"course_first_complete:{request.user.id}:{course.id}",
+                        points=XP_COURSE_COMPLETE,
+                        coins=COINS_COURSE_COMPLETE,
+                        bump_streak="none",
+                    )
+                    user_progress.is_course_complete = True
+                    user_progress.course_completed_at = timezone.now()
+                    user_progress.save(
+                        update_fields=["is_course_complete", "course_completed_at"]
+                    )
 
-            # Update lesson-related missions
-            lesson_missions = MissionCompletion.objects.filter(
-                user=request.user,
-                mission__goal_type="complete_lesson",
-                status__in=["not_started", "in_progress"],
-            )
-            for mission_completion in lesson_missions:
-                mission_completion.update_progress()
+                    path_missions = MissionCompletion.objects.filter(
+                        user=request.user,
+                        mission__goal_type="complete_path",
+                        status__in=["not_started", "in_progress"],
+                    )
+                    for mission_completion in path_missions:
+                        mission_completion.update_progress()
 
+                    path = course.path
+                    if path:
+                        courses_in_path = Course.objects.filter(path=path)
+                        n_courses = courses_in_path.count()
+                        if n_courses > 0:
+                            completed_path_courses = UserProgress.objects.filter(
+                                user=request.user,
+                                course__in=courses_in_path,
+                                is_course_complete=True,
+                            ).count()
+                            if completed_path_courses == n_courses:
+                                grant_reward(
+                                    request.user,
+                                    f"path_first_complete:{request.user.id}:{path.id}",
+                                    points=XP_PATH_COMPLETE,
+                                    coins=COINS_PATH_COMPLETE,
+                                    bump_streak="none",
+                                )
+
+            user_progress.refresh_from_db()
+            invalidate_profile_cache(request.user)
             return Response(
                 {
                     "status": "Lesson completed",
-                    "streak": user_progress.user.profile.streak,
+                    "streak": request.user.profile.streak,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -768,9 +901,19 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             progress, _ = UserProgress.objects.get_or_create(
                 user=user, course=section.lesson.course
             )
-            progress.completed_sections.add(section)
-            _grant_initial_mastery(user, _extract_section_skill(section))
-            progress.save()
+            was_new_section = not progress.completed_sections.filter(pk=section.pk).exists()
+            if was_new_section:
+                progress.completed_sections.add(section)
+                _grant_initial_mastery(user, _extract_section_skill(section))
+                progress.save()
+                grant_reward(
+                    user,
+                    f"section_first_completion:{user.id}:{section.id}",
+                    points=XP_SECTION_FIRST_COMPLETION,
+                    coins=COINS_SECTION_FIRST_COMPLETION,
+                    bump_streak="user_progress",
+                    user_progress=progress,
+                )
             invalidate_profile_cache(user)
             return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
@@ -1155,6 +1298,17 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             if already_completed and is_correct
             else _compute_xp_delta(is_correct, progress.attempts, hints_used, confidence)
         )
+
+        if xp_delta > 0:
+            capped = min(int(xp_delta), XP_EXERCISE_ATTEMPT_CAP)
+            grant_reward(
+                request.user,
+                f"exercise_xp:{request.user.id}:{exercise.id}:a{progress.attempts}",
+                points=capped,
+                coins=Decimal("0"),
+                bump_streak="none",
+            )
+            xp_delta = capped
 
         logger.info(
             "attempt_submitted",

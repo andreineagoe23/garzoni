@@ -68,8 +68,21 @@
     "submitAnswer": "Submit Answer",
     "noQuizData": "No quiz data available.",
     "youEarned": "You earned {{amount}}!",
+    "youEarnedXp": "+{{points}} XP",
     "mascotCorrect": "Great job! You got it right.",
-    "mascotIncorrect": "Keep the optimism. Try again."
+    "mascotIncorrect": "Keep the optimism. Try again.",
+    "introTitle": "Course quiz",
+    "introSubtitle": "{{count}} question(s) — complete them in order. You can retry wrong answers.",
+    "introStart": "Start quiz",
+    "progress": "Quiz {{current}} of {{total}}",
+    "alreadyCompletedShort": "You already completed this quiz.",
+    "nextQuiz": "Next question",
+    "reviewFinish": "See recap",
+    "recapTitle": "Quiz recap",
+    "recapSubtitle": "You finished every quiz in this course.",
+    "recapXpLine": "Total XP from this session: {{points}}",
+    "recapCoinsLine": "Coins earned this session: {{amount}}",
+    "backToCourses": "Back to learning"
   },
   "coursePage": {
     "title": "Courses",

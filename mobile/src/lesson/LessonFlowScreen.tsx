@@ -412,24 +412,26 @@ export default function LessonFlowScreen({
           autoStart={false}
         />
         <Text style={styles.completeEmoji}>🎉</Text>
-        <Text style={styles.completeTitle}>{t("flow.courseComplete")}</Text>
+        <Text style={styles.completeTitle}>
+          {t("courses.flow.courseComplete")}
+        </Text>
         <Text style={styles.completeSubtitle}>
           {typeof pts === "number"
             ? `You have ${pts} total XP.`
-            : t("flow.courseCompleteSubtitle")}
+            : t("courses.flow.courseCompleteSubtitle")}
         </Text>
         <View style={styles.completeActions}>
           <Button onPress={() => router.push(`/quiz/${courseId}`)}>
-            {t("flow.takeQuiz")}
+            {t("courses.flow.takeQuiz")}
           </Button>
           <Button variant="secondary" onPress={() => router.replace("/(tabs)")}>
-            {t("flow.backToDashboard")}
+            {t("courses.flow.backToDashboard")}
           </Button>
           <Button
             variant="ghost"
             onPress={() => router.replace("/(tabs)/learn")}
           >
-            {t("flow.backToCourses")}
+            {t("courses.flow.backToCourses")}
           </Button>
         </View>
       </SafeAreaView>

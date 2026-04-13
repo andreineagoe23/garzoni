@@ -280,6 +280,24 @@ class MissionCompletion(models.Model):
             self.status = "completed"
             self.completed_at = timezone.now()
 
+            if self.xp_awarded == 0:
+                from decimal import Decimal
+
+                from gamification.services.rewards import grant_reward
+
+                base_xp = int(self.mission.points_reward or 0)
+                if base_xp > 0:
+                    result = grant_reward(
+                        self.user,
+                        f"mission_auto_complete:{self.user_id}:{self.mission_id}",
+                        points=base_xp,
+                        coins=Decimal("0"),
+                        bump_streak="none",
+                        evaluate_badges=True,
+                    )
+                    if result.granted:
+                        self.xp_awarded = base_xp
+
             # Optional: reward badge
             if not UserBadge.objects.filter(user=self.user, badge__name="Mission Master").exists():
                 try:
@@ -311,6 +329,33 @@ def reset_weekly_missions():
     today = now().date()
     completions = MissionCompletion.objects.filter(mission__mission_type="weekly")
     completions.update(progress=0, status="not_started", completed_at=None)
+
+
+class RewardLedgerEntry(models.Model):
+    """
+    Idempotent record of a reward grant (points/coins) so retries and split code paths
+    cannot double-award the same logical event.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="reward_ledger_entries"
+    )
+    event_key = models.CharField(max_length=220, db_index=True)
+    points = models.IntegerField(default=0)
+    coins = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "core_rewardledgerentry"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "event_key"],
+                name="reward_ledger_user_event_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.event_key}"
 
 
 class StreakItem(models.Model):

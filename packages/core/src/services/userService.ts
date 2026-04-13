@@ -346,6 +346,7 @@ export type CourseQuiz = {
   question?: string;
   choices?: { text: string }[];
   correct_answer?: string;
+  is_completed?: boolean;
 };
 
 export const fetchQuizzesForCourse = (courseId: string | number) =>
@@ -359,6 +360,8 @@ export const completeCourseQuiz = (body: {
     message?: string;
     correct?: boolean;
     earned_money?: number;
+    earned_points?: number;
+    already_completed?: boolean;
   }>("/quizzes/complete/", body);
 
 export type UserSettingsPayload = {

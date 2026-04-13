@@ -21,6 +21,7 @@ import {
   staleTimes,
   useHearts,
 } from "@garzoni/core";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   ErrorState,
@@ -45,26 +46,30 @@ type QuizRow = {
   question?: string;
   choices?: { text: string }[];
   correct_answer?: string;
+  is_completed?: boolean;
 };
 
+type Phase = "intro" | "attempt" | "recap";
+
 export default function QuizScreen() {
+  const { t } = useTranslation("common");
   const { courseId: courseIdParam } = useLocalSearchParams<{
     courseId: string;
   }>();
   const courseId = Number(courseIdParam);
   const queryClient = useQueryClient();
+  const confettiRef = useRef<ConfettiCannon>(null);
 
+  const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
+  const [phase, setPhase] = useState<Phase>("intro");
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [correct, setCorrect] = useState<boolean | null>(null); // null = no feedback yet
-  const [earned, setEarned] = useState(0);
-  const [done, setDone] = useState(false);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [correctAnswerSnapshot, setCorrectAnswerSnapshot] = useState<
-    string | null
-  >(null);
+  const [correct, setCorrect] = useState<boolean | null>(null);
+  const [lastEarnedMoney, setLastEarnedMoney] = useState(0);
+  const [lastEarnedPoints, setLastEarnedPoints] = useState(0);
+  const [sessionXp, setSessionXp] = useState(0);
+  const [sessionCoins, setSessionCoins] = useState(0);
   const [mascotRotationKey, setMascotRotationKey] = useState(0);
-  const confettiRef = useRef<ConfettiCannon>(null);
 
   const quizFeedbackSituation = useMemo((): MascotSituation | undefined => {
     if (correct === true) return "quiz_correct";
@@ -83,30 +88,61 @@ export default function QuizScreen() {
     queryFn: async () => {
       const res = await fetchQuizzesForCourse(courseId);
       const raw = res.data;
-      const list = Array.isArray(raw) ? raw : [];
-      return (list[0] as QuizRow | undefined) ?? null;
+      const list = (Array.isArray(raw) ? raw : []) as QuizRow[];
+      list.sort((a, b) => a.id - b.id);
+      return list;
     },
     staleTime: staleTimes.content,
   });
 
+  useEffect(() => {
+    if (quizQuery.data) {
+      setQuizzes(quizQuery.data);
+      if (quizQuery.data.length === 0) return;
+      if (quizQuery.data.every((q) => q.is_completed)) {
+        setPhase("recap");
+      } else {
+        setPhase("intro");
+      }
+    }
+  }, [quizQuery.data]);
+
+  const ordered = useMemo(
+    () => [...quizzes].sort((a, b) => a.id - b.id),
+    [quizzes],
+  );
+  const activeQuiz = useMemo(
+    () => ordered.find((q) => !q.is_completed) ?? null,
+    [ordered],
+  );
+  const total = ordered.length;
+  const completedCount = useMemo(
+    () => ordered.filter((q) => q.is_completed).length,
+    [ordered],
+  );
+
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
     queryFn: () => fetchProfile().then((r) => r.data),
-    enabled: done,
+    enabled: phase === "recap",
     staleTime: staleTimes.profile,
   });
 
-  const quiz = quizQuery.data;
-
   useEffect(() => {
-    if (done) {
+    if (phase === "recap") {
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.progressSummary(),
       });
       setTimeout(() => confettiRef.current?.start(), 300);
     }
-  }, [done, queryClient]);
+  }, [phase, queryClient]);
+
+  useEffect(() => {
+    setSelected(null);
+    setLastEarnedMoney(0);
+    setLastEarnedPoints(0);
+  }, [activeQuiz?.id]);
 
   const resetAttempt = useCallback(() => {
     setSelected(null);
@@ -116,14 +152,14 @@ export default function QuizScreen() {
   }, []);
 
   const submit = useCallback(async () => {
-    if (!quiz || selected == null) {
+    if (!activeQuiz || selected == null) {
       setCorrect(null);
-      setFeedback("Select an answer first.");
+      setFeedback(t("shared.pleaseSelectAnswer"));
       return;
     }
     try {
       const res = await completeCourseQuiz({
-        quiz_id: quiz.id,
+        quiz_id: activeQuiz.id,
         selected_answer: selected,
       });
       const isOk = res.data.correct === true;
@@ -132,19 +168,32 @@ export default function QuizScreen() {
       setMascotRotationKey((n) => n + 1);
       if (isOk) {
         void safeNotificationAsync(NotificationFeedbackType.Success);
-        setEarned(Number(res.data.earned_money ?? 0));
-        setCorrectAnswerSnapshot(selected);
-        setDone(true);
+        const money = Number(res.data.earned_money ?? 0);
+        const pts = Number(res.data.earned_points ?? 0);
+        setLastEarnedMoney(money);
+        setLastEarnedPoints(pts);
+        if (!res.data.already_completed) {
+          setSessionXp((x) => x + pts);
+          setSessionCoins((c) => c + money);
+        }
+        setQuizzes((prev) =>
+          prev.map((q) =>
+            q.id === activeQuiz.id ? { ...q, is_completed: true } : q,
+          ),
+        );
+        if (!res.data.already_completed) {
+          setSelected(null);
+        }
       } else {
         void safeNotificationAsync(NotificationFeedbackType.Error);
         decrementHeart();
       }
     } catch {
-      setFeedback("Something went wrong.");
+      setFeedback(t("shared.somethingWentWrong"));
       setCorrect(null);
       setMascotRotationKey((n) => n + 1);
     }
-  }, [quiz, selected, decrementHeart]);
+  }, [activeQuiz, selected, decrementHeart, t]);
 
   if (!Number.isFinite(courseId)) {
     return (
@@ -173,29 +222,56 @@ export default function QuizScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ErrorState
-          message="Could not load quiz."
+          message={t("courses.quiz.loadFailed")}
           onRetry={() => void quizQuery.refetch()}
         />
       </SafeAreaView>
     );
   }
 
-  if (!quiz) {
+  if (total === 0) {
     return (
       <SafeAreaView style={[styles.safeArea, styles.centered]}>
-        <Text style={styles.muted}>No quiz for this course yet.</Text>
+        <Text style={styles.muted}>{t("courses.quiz.noQuizData")}</Text>
         <Button variant="secondary" onPress={() => router.back()}>
-          Go back
+          {t("courses.quiz.backToCourses")}
         </Button>
       </SafeAreaView>
     );
   }
 
-  if (done) {
+  if (phase === "intro") {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <Stack.Screen
+          options={{ title: t("courses.quiz.introTitle"), headerShown: true }}
+        />
+        <Text style={styles.resultTitle}>{t("courses.quiz.introTitle")}</Text>
+        <Text style={styles.resultSub}>
+          {t("courses.quiz.introSubtitle", { count: total })}
+        </Text>
+        <Text style={[styles.resultSub, { marginTop: spacing.sm }]}>
+          {t("courses.quiz.answerToEarn")}
+        </Text>
+        <View style={styles.actions}>
+          <Button onPress={() => setPhase("attempt")}>
+            {t("courses.quiz.introStart")}
+          </Button>
+          <Button variant="ghost" onPress={() => router.back()}>
+            {t("courses.quiz.backToCourses")}
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (phase === "recap" || !activeQuiz) {
     const pts = profileQuery.data?.points;
     return (
       <SafeAreaView style={[styles.safeArea, styles.centered]}>
-        <Stack.Screen options={{ title: "Quiz", headerShown: true }} />
+        <Stack.Screen
+          options={{ title: t("courses.quiz.recapTitle"), headerShown: true }}
+        />
         <ConfettiCannon
           ref={confettiRef}
           count={90}
@@ -203,80 +279,65 @@ export default function QuizScreen() {
           fadeOut
           autoStart={false}
         />
-        <MascotWithMessage
-          situation="quiz_complete"
-          customMessage={feedback.trim() ? feedback : undefined}
-          rotationKey={courseId}
-          embedded
-          mascotSize={88}
-        />
-        <Text style={styles.resultTitle}>Quiz complete!</Text>
-        {earned > 0 ? (
-          <Text style={styles.earn}>+{earned.toFixed(2)} earned</Text>
-        ) : null}
+        <Text style={styles.resultTitle}>{t("courses.quiz.recapTitle")}</Text>
+        <Text style={styles.resultSub}>{t("courses.quiz.recapSubtitle")}</Text>
+        <Text style={styles.earn}>
+          {t("courses.quiz.recapXpLine", { points: sessionXp })}
+        </Text>
+        <Text style={styles.xp}>
+          {t("courses.quiz.recapCoinsLine", {
+            amount: sessionCoins.toFixed(2),
+          })}
+        </Text>
         {typeof pts === "number" ? (
-          <Text style={styles.xp}>Total XP: {pts}</Text>
+          <Text style={[styles.xp, { marginTop: spacing.xs }]}>
+            Total XP: {pts}
+          </Text>
         ) : null}
         <View style={styles.actions}>
           <Button onPress={() => router.replace("/(tabs)")}>Dashboard</Button>
-          <Button variant="secondary" onPress={() => setReviewOpen((v) => !v)}>
-            {reviewOpen ? "Hide review" : "Review answer"}
-          </Button>
           <Button
             variant="ghost"
             onPress={() => router.replace("/(tabs)/learn")}
           >
-            Learn tab
+            {t("courses.quiz.backToCourses")}
           </Button>
         </View>
-        {reviewOpen ? (
-          <View style={styles.reviewCard}>
-            <Text style={styles.reviewQ}>{quiz.question}</Text>
-            <Text style={styles.reviewA}>
-              Your answer: {correctAnswerSnapshot ?? selected ?? "—"}
-            </Text>
-            <Text style={styles.reviewOk}>Correct: {quiz.correct_answer}</Text>
-          </View>
-        ) : null}
       </SafeAreaView>
     );
   }
 
+  const flowProgress =
+    total > 0
+      ? Math.min(1, (completedCount + (correct === true ? 0.15 : 0)) / total)
+      : 0;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
-        options={{ title: quiz.title ?? "Quiz", headerShown: true }}
+        options={{ title: activeQuiz.title ?? "Quiz", headerShown: true }}
       />
       <View style={styles.header}>
         <View style={styles.headerMid}>
           <Text style={styles.headerHint}>
-            Answer correctly to earn rewards
+            {t("courses.quiz.progress", {
+              current: Math.min(completedCount + 1, total),
+              total,
+            })}
           </Text>
-          <ProgressBar value={selected ? 0.5 : 0.15} height={4} />
-          <View style={styles.dotsRow}>
-            <View style={[styles.dot, styles.dotOn]} />
-            <View
-              style={[styles.dot, selected ? styles.dotOn : styles.dotOff]}
-            />
-            <View
-              style={[
-                styles.dot,
-                correct === false ? styles.dotWarn : styles.dotOff,
-              ]}
-            />
-          </View>
+          <ProgressBar value={flowProgress} height={4} />
         </View>
         <HeartBar hearts={hearts} maxHearts={maxHearts} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <Animated.View entering={FadeIn.duration(280)}>
-          <Text style={styles.question}>{quiz.question}</Text>
-          {(quiz.choices ?? []).map((c, i) => {
+          <Text style={styles.question}>{activeQuiz.question}</Text>
+          {(activeQuiz.choices ?? []).map((c, i) => {
             const active = selected === c.text;
             return (
               <Pressable
-                key={`${i}-${c.text}`}
+                key={`${activeQuiz.id}-${i}-${c.text}`}
                 style={[styles.choice, active && styles.choiceOn]}
                 onPress={() => {
                   void Haptics.selectionAsync();
@@ -296,12 +357,33 @@ export default function QuizScreen() {
             style={{ marginTop: spacing.lg }}
             onPress={() => void submit()}
           >
-            Submit answer
+            {t("courses.quiz.submitAnswer")}
           </Button>
 
-          {correct === false && quiz.correct_answer ? (
+          {correct === true && ordered.some((q) => !q.is_completed) ? (
+            <Button
+              variant="secondary"
+              style={{ marginTop: spacing.md }}
+              onPress={() => {
+                resetAttempt();
+              }}
+            >
+              {t("courses.quiz.nextQuiz")}
+            </Button>
+          ) : null}
+
+          {correct === true && !ordered.some((q) => !q.is_completed) ? (
+            <Button
+              style={{ marginTop: spacing.md }}
+              onPress={() => setPhase("recap")}
+            >
+              {t("courses.quiz.reviewFinish")}
+            </Button>
+          ) : null}
+
+          {correct === false && activeQuiz.correct_answer ? (
             <Text style={[styles.inlineCorrect, { marginTop: spacing.md }]}>
-              Correct answer: {quiz.correct_answer}
+              Correct answer: {activeQuiz.correct_answer}
             </Text>
           ) : null}
 
@@ -337,6 +419,24 @@ export default function QuizScreen() {
                 mascotSize={56}
               />
             </View>
+          ) : null}
+
+          {correct === true && lastEarnedMoney > 0 ? (
+            <Text style={[styles.earn, { marginTop: spacing.md }]}>
+              {t("courses.quiz.youEarned", {
+                amount: lastEarnedMoney.toFixed(2),
+              })}
+            </Text>
+          ) : null}
+          {correct === true && lastEarnedPoints > 0 ? (
+            <Text style={styles.xp}>
+              {t("courses.quiz.youEarnedXp", { points: lastEarnedPoints })}
+            </Text>
+          ) : null}
+          {correct === true && lastEarnedPoints === 0 ? (
+            <Text style={[styles.xp, { marginTop: spacing.sm }]}>
+              {t("courses.quiz.alreadyCompletedShort")}
+            </Text>
           ) : null}
         </Animated.View>
       </ScrollView>
@@ -400,13 +500,6 @@ const styles = StyleSheet.create({
     borderColor: colors.error,
     backgroundColor: colors.errorBg,
   },
-  feedbackText: {
-    flex: 1,
-    fontSize: typography.sm,
-    color: colors.text,
-    lineHeight: 20,
-  },
-  feedbackBad: { color: colors.error },
   muted: {
     color: colors.textMuted,
     marginBottom: spacing.lg,
@@ -417,6 +510,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
     marginTop: spacing.lg,
+    textAlign: "center",
   },
   resultSub: {
     fontSize: typography.base,
@@ -436,36 +530,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   actions: { width: "100%", marginTop: spacing.xxl, gap: spacing.md },
-  reviewCard: {
-    marginTop: spacing.xl,
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    width: "100%",
-  },
-  reviewQ: { fontSize: typography.sm, fontWeight: "600", color: colors.text },
-  reviewA: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-  },
-  reviewOk: {
-    fontSize: typography.sm,
-    color: colors.success,
-    marginTop: spacing.xs,
-  },
-  dotsRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: spacing.sm,
-    alignItems: "center",
-  },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  dotOn: { backgroundColor: colors.primary },
-  dotOff: { backgroundColor: colors.border },
-  dotWarn: { backgroundColor: colors.error },
   inlineCorrect: {
     fontSize: typography.sm,
     fontWeight: "700",
