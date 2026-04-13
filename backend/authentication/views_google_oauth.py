@@ -5,12 +5,17 @@ Google OAuth 2.0 flow for login and register.
   redirect_uri = {FRONTEND_URL or GOOGLE_OAUTH_REDIRECT_BASE}/api/auth/google/callback.
   In DEBUG, defaults to the request Host (see GOOGLE_OAUTH_REDIRECT_FROM_REQUEST) so LAN/dev
   matches Google Console (e.g. http://192.168.x.x:8000/api/auth/google/callback).
+  After Google, the user is sent to the SPA origin embedded in OAuth `state` (v1.* JSON) when that
+  origin is allowlisted (FRONTEND_URL, CORS_ALLOWED_ORIGINS*, loopback); otherwise FRONTEND_URL.
 - POST /api/auth/google/verify-credential/ accepts Google One Tap / Sign-in button ID token,
   verifies it, creates or gets user, issues JWT, returns JSON (for in-page sign-in without redirect).
 """
 
+import base64
+import json
 import logging
 import os
+import re
 import urllib.parse
 
 import requests
@@ -25,9 +30,122 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentication.user_display import user_display_dict
-from core.utils import env_bool
+from core.utils import env_bool, env_csv
 
 logger = logging.getLogger(__name__)
+
+# OAuth state version: embeds post-login SPA origin so callback redirects match where the user started
+# (settings.FRONTEND_URL alone often points at production when .env is shared).
+_GOOGLE_OAUTH_STATE_PREFIX = "v1."
+_NEXT_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9\-_/]*$")
+
+
+def _normalize_browser_origin(value: str) -> str | None:
+    """Return scheme://host[:port] or None if not a plain origin URL."""
+    raw = (value or "").strip().rstrip("/")
+    if not raw:
+        return None
+    parsed = urllib.parse.urlparse(raw)
+    if parsed.scheme not in ("http", "https"):
+        return None
+    if not parsed.netloc or parsed.username is not None or parsed.password is not None:
+        return None
+    if parsed.path not in ("", "/"):
+        return None
+    if parsed.params or parsed.query or parsed.fragment:
+        return None
+    host = parsed.hostname
+    if not host:
+        return None
+    return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+
+
+def _is_loopback_origin(norm: str) -> bool:
+    parsed = urllib.parse.urlparse(norm + "/")
+    host = (parsed.hostname or "").lower()
+    return host in ("localhost", "127.0.0.1", "::1")
+
+
+def _candidate_allowed_return_origins() -> set[str]:
+    out: set[str] = set()
+    front = _normalize_browser_origin(getattr(settings, "FRONTEND_URL", "") or "")
+    if front:
+        out.add(front)
+    for item in env_csv("GOOGLE_OAUTH_ALLOWED_RETURN_ORIGINS_CSV"):
+        n = _normalize_browser_origin(item)
+        if n:
+            out.add(n)
+    cors = getattr(settings, "CORS_ALLOWED_ORIGINS", None) or []
+    if isinstance(cors, (list, tuple)):
+        for item in cors:
+            if isinstance(item, str):
+                n = _normalize_browser_origin(item)
+                if n:
+                    out.add(n)
+    return out
+
+
+def _safe_return_origin(origin: str | None) -> str | None:
+    """If origin is in the allowlist, return normalized origin; else None.
+
+    Loopback (localhost / 127.0.0.1 / ::1) is always allowed so a local SPA can use
+    VITE_BACKEND_URL against a hosted API (Railway) without FRONTEND_URL matching localhost.
+    """
+    norm = _normalize_browser_origin(origin or "")
+    if not norm:
+        return None
+    if norm in _candidate_allowed_return_origins():
+        return norm
+    if _is_loopback_origin(norm):
+        return norm
+    return None
+
+
+def _sanitize_next_path(value: str, default: str = "all-topics") -> str:
+    v = (value or "").strip().lstrip("/")
+    if not v or ".." in v or "//" in v or ":" in v:
+        return default
+    if not _NEXT_PATH_PATTERN.fullmatch(v):
+        return default
+    return v
+
+
+def _decode_v1_oauth_state(raw: str) -> dict | None:
+    if not raw.startswith(_GOOGLE_OAUTH_STATE_PREFIX):
+        return None
+    b64 = raw[len(_GOOGLE_OAUTH_STATE_PREFIX) :]
+    pad = "=" * ((4 - len(b64) % 4) % 4)
+    try:
+        data = json.loads(base64.urlsafe_b64decode((b64 + pad).encode("ascii")))
+    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return data
+
+
+def _parse_google_oauth_state(raw_state: str) -> tuple[str, str | None]:
+    """
+    Returns (next_path, return_origin_or_none).
+    Legacy state is a single path segment (e.g. all-topics, onboarding).
+    v1.* states are base64url JSON: {"next":"...","origin":"https://host:port"}.
+    """
+    raw = (raw_state or "").strip()
+    if not raw:
+        return "all-topics", None
+    data = _decode_v1_oauth_state(raw)
+    if data is not None:
+        next_path = str(data.get("next") or data.get("n") or "all-topics").strip()
+        origin = str(data.get("origin") or data.get("o") or "").strip() or None
+        return _sanitize_next_path(next_path), origin
+    return _sanitize_next_path(raw), None
+
+
+def _resolve_post_google_frontend_url(return_origin: str | None) -> str:
+    """Where to send the browser after Google OAuth (must stay on an allowlisted SPA origin)."""
+    configured = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    picked = _safe_return_origin(return_origin)
+    return picked or configured
 
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
@@ -138,10 +256,12 @@ class GoogleOAuthCallbackView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        raw_state = request.GET.get("state", "")
+        state_next, return_origin = _parse_google_oauth_state(raw_state)
+        frontend_url = _resolve_post_google_frontend_url(return_origin)
+
         code = request.GET.get("code")
-        state = request.GET.get("state", "")
         error = request.GET.get("error")
-        frontend_url = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
 
         if error:
             logger.warning("Google OAuth error from callback: %s", error)
@@ -215,7 +335,7 @@ class GoogleOAuthCallbackView(APIView):
         if is_new_user:
             next_path = "onboarding"
         else:
-            next_path = (state.strip() or "all-topics").strip() or "all-topics"
+            next_path = (state_next.strip() or "all-topics").strip() or "all-topics"
         next_path = next_path.lstrip("/")
         refresh_jwt = str(refresh)
         fragment = (

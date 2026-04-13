@@ -14,7 +14,14 @@ import {
 } from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useHearts, queryKeys, staleTimes, fetchProfile } from "@garzoni/core";
+import {
+  useHearts,
+  queryKeys,
+  staleTimes,
+  fetchProfile,
+  type MascotSituation,
+  type MascotType,
+} from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
 import MascotWithMessage from "../components/common/MascotWithMessage";
@@ -238,6 +245,47 @@ export default function LessonFlowScreen({
   const [fontScale, setFontScale] = useState(1);
   const [readingSettingsOpen, setReadingSettingsOpen] = useState(false);
   const [immersive, setImmersive] = useState(false);
+  const [transientLessonSituation, setTransientLessonSituation] =
+    useState<MascotSituation | null>(null);
+  const transientLessonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearTransientLessonMascot = useCallback(() => {
+    if (transientLessonTimerRef.current) {
+      clearTimeout(transientLessonTimerRef.current);
+      transientLessonTimerRef.current = null;
+    }
+    setTransientLessonSituation(null);
+  }, []);
+
+  const stableLessonMascot = useMemo<MascotType>(() => {
+    const lid = currentItem?.lessonId;
+    if (!lid) return "bear";
+    const n = Math.abs(Math.floor(Number(lid)));
+    const idx = n % 3;
+    return idx === 0 ? "owl" : idx === 1 ? "bull" : "bear";
+  }, [currentItem?.lessonId]);
+
+  const baseLessonMascotSituation = useMemo((): MascotSituation => {
+    if (courseComplete) return "lesson_course_completed";
+    if (!currentItem) return "lesson_reading";
+    if (isExerciseItem(currentItem)) return "lesson_exercise_neutral";
+    return "lesson_reading";
+  }, [courseComplete, currentItem]);
+
+  const displayLessonSituation =
+    transientLessonSituation ?? baseLessonMascotSituation;
+
+  useEffect(() => {
+    clearTransientLessonMascot();
+  }, [currentIndex, clearTransientLessonMascot]);
+
+  useEffect(() => {
+    return () => {
+      clearTransientLessonMascot();
+    };
+  }, [clearTransientLessonMascot]);
 
   useEffect(() => {
     void AsyncStorage.getItem(LESSON_FONT_SCALE_KEY).then((raw) => {
@@ -283,6 +331,17 @@ export default function LessonFlowScreen({
 
   const handleAttempt = useCallback(
     ({ correct }: { correct: boolean }) => {
+      if (transientLessonTimerRef.current) {
+        clearTimeout(transientLessonTimerRef.current);
+        transientLessonTimerRef.current = null;
+      }
+      setTransientLessonSituation(
+        correct ? "lesson_exercise_correct" : "lesson_exercise_incorrect",
+      );
+      transientLessonTimerRef.current = setTimeout(() => {
+        setTransientLessonSituation(null);
+        transientLessonTimerRef.current = null;
+      }, 3500);
       if (!correct) {
         decrementHeart();
       }
@@ -477,7 +536,13 @@ export default function LessonFlowScreen({
           </Text>
         ) : null}
         <View style={{ marginTop: spacing.xl }}>
-          <MascotWithMessage mood="encourage" rotationKey={rotationKey} />
+          <MascotWithMessage
+            mood="neutral"
+            situation={displayLessonSituation}
+            fixedMascot={stableLessonMascot}
+            rotationKey={rotationKey + currentIndex}
+            embedded
+          />
         </View>
       </ScrollView>
 

@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -14,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +16,9 @@ import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import type { MascotSituation } from "@garzoni/core";
 import {
+  buildStandaloneExerciseViewModel,
   fetchExerciseById,
   fetchExerciseCategories,
   fetchExercisesList,
@@ -36,8 +33,10 @@ import {
   Button,
   ErrorState,
   GlassCard,
+  ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
+import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
@@ -118,6 +117,7 @@ function difficultyColor(
 
 function ExercisesInner() {
   const c = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const confettiRef = useRef<ConfettiCannon>(null);
@@ -131,14 +131,19 @@ function ExercisesInner() {
   }>();
 
   const [category, setCategory] = useState<string | undefined>(undefined);
-  const [exerciseType, setExerciseType] = useState<string | undefined>(undefined);
+  const [exerciseType, setExerciseType] = useState<string | undefined>(
+    undefined,
+  );
   const [pickedId, setPickedId] = useState<number | null>(null);
   const [mode, setMode] = useState<PracticeMode>("normal");
   const [reviewItems, setReviewItems] = useState<ExerciseListItem[]>([]);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewDone, setReviewDone] = useState<Record<number, true>>({});
   const [feedbackLine, setFeedbackLine] = useState("");
-  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(null);
+  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(
+    null,
+  );
+  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     completed: 0,
@@ -157,6 +162,7 @@ function ExercisesInner() {
     hadIncorrectRef.current = false;
     setFeedbackLine("");
     setFeedbackTone(null);
+    setMascotRotationKey(0);
     setHintIndex(0);
   }, [pickedId]);
 
@@ -169,7 +175,10 @@ function ExercisesInner() {
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.exerciseCategories(),
-    queryFn: () => fetchExerciseCategories().then((r) => r.data as string[]),
+    queryFn: () =>
+      fetchExerciseCategories({ asLearner: true }).then(
+        (r) => r.data as string[],
+      ),
     staleTime: staleTimes.content,
   });
 
@@ -184,11 +193,12 @@ function ExercisesInner() {
   const mergedCategory = categoryParam || category;
 
   const listQuery = useQuery({
-    queryKey: [...queryKeys.exercises(), mergedCategory ?? "all"],
+    queryKey: [...queryKeys.exercises(), mergedCategory ?? "all", "learner"],
     queryFn: () =>
-      fetchExercisesList(
-        mergedCategory ? { category: mergedCategory } : undefined,
-      ).then((r) => r.data as ExerciseListItem[]),
+      fetchExercisesList({
+        ...(mergedCategory ? { category: mergedCategory } : {}),
+        asLearner: true,
+      }).then((r) => r.data as ExerciseListItem[]),
     staleTime: staleTimes.progressSummary,
   });
 
@@ -218,6 +228,12 @@ function ExercisesInner() {
     enabled: pickedId != null,
   });
 
+  const exerciseView = useMemo(() => {
+    const d = detailQuery.data;
+    if (!d) return null;
+    return buildStandaloneExerciseViewModel(d);
+  }, [detailQuery.data]);
+
   const list = listQuery.data ?? [];
 
   const filteredList = useMemo(() => {
@@ -229,13 +245,14 @@ function ExercisesInner() {
 
   // Auto-pick first exercise when filtered list changes
   useEffect(() => {
-    if (filteredList.length > 0 && pickedId == null) {
+    if (filteredList.length === 0) return;
+    if (pickedId == null) {
       setPickedId(filteredList[0].id);
-    } else if (filteredList.length > 0 && pickedId != null) {
-      const stillInList = filteredList.some((x) => x.id === pickedId);
-      if (!stillInList) setPickedId(filteredList[0].id);
+      return;
     }
-  }, [filteredList]);
+    const stillInList = filteredList.some((x) => x.id === pickedId);
+    if (!stillInList) setPickedId(filteredList[0].id);
+  }, [filteredList, pickedId]);
 
   const pickedItem = useMemo(
     () => filteredList.find((x) => x.id === pickedId) ?? null,
@@ -252,10 +269,17 @@ function ExercisesInner() {
       ? (pickedIndex + 1) / filteredList.length
       : 0;
 
+  const sessionBatchFraction =
+    SESSION_BATCH > 0 ? Math.min(1, sessionStats.completed / SESSION_BATCH) : 0;
+
   const timerSeconds = useMemo(() => {
     const d = detailQuery.data as Record<string, unknown> | undefined;
     if (!d) return 0;
-    const raw = d.time_limit_seconds ?? d.time_limit ?? d.duration_seconds ?? d.timer_seconds;
+    const raw =
+      d.time_limit_seconds ??
+      d.time_limit ??
+      d.duration_seconds ??
+      d.timer_seconds;
     const n = Number(raw);
     return Number.isFinite(n) && n > 0 ? Math.min(3600, Math.floor(n)) : 0;
   }, [detailQuery.data]);
@@ -274,7 +298,11 @@ function ExercisesInner() {
 
   const resetSessionTracking = useCallback(() => {
     uniqueCompletedRef.current = new Set();
-    setSessionStats({ completed: 0, correctFirstTry: 0, startTime: Date.now() });
+    setSessionStats({
+      completed: 0,
+      correctFirstTry: 0,
+      startTime: Date.now(),
+    });
     setSummaryVisible(false);
     summaryShownRef.current = false;
   }, []);
@@ -286,6 +314,13 @@ function ExercisesInner() {
     const idx = filteredList.findIndex((x) => x.id === pickedId);
     const next = filteredList[idx + 1] ?? filteredList[0];
     if (next && next.id !== pickedId) setPickedId(next.id);
+  }, [filteredList, pickedId]);
+
+  const skipToPrev = useCallback(() => {
+    if (pickedId == null) return;
+    const idx = filteredList.findIndex((x) => x.id === pickedId);
+    const prev = filteredList[idx - 1] ?? filteredList[filteredList.length - 1];
+    if (prev) setPickedId(prev.id);
   }, [filteredList, pickedId]);
 
   const exitReviewMode = useCallback(() => {
@@ -322,6 +357,7 @@ function ExercisesInner() {
     } catch {
       setFeedbackLine(t("exercises.practiceHub.loadReviewsError"));
       setFeedbackTone("error");
+      setMascotRotationKey((n) => n + 1);
     } finally {
       setReviewLoading(false);
     }
@@ -337,8 +373,6 @@ function ExercisesInner() {
 
   const handleExerciseComplete = useCallback(() => {
     fireConfetti();
-    setFeedbackLine(t("exercises.practiceHub.feedbackCorrect"));
-    setFeedbackTone("success");
 
     if (mode === "review" && pickedId != null) {
       setReviewDone((d) => ({ ...d, [pickedId]: true }));
@@ -346,7 +380,8 @@ function ExercisesInner() {
 
     setSessionStats((s) => {
       const completed = s.completed + 1;
-      const correctFirstTry = s.correctFirstTry + (hadIncorrectRef.current ? 0 : 1);
+      const correctFirstTry =
+        s.correctFirstTry + (hadIncorrectRef.current ? 0 : 1);
       const next = { ...s, completed, correctFirstTry };
       if (pickedId != null) uniqueCompletedRef.current.add(pickedId);
       const uniq = uniqueCompletedRef.current.size;
@@ -376,7 +411,6 @@ function ExercisesInner() {
     profileQuery,
     reviewQuery,
     skipToNext,
-    t,
   ]);
 
   const onRefresh = useCallback(() => {
@@ -387,7 +421,9 @@ function ExercisesInner() {
 
   const accuracyPct =
     sessionStats.completed > 0
-      ? Math.round((sessionStats.correctFirstTry / sessionStats.completed) * 100)
+      ? Math.round(
+          (sessionStats.correctFirstTry / sessionStats.completed) * 100,
+        )
       : 0;
   const elapsedSec = Math.max(
     0,
@@ -397,249 +433,434 @@ function ExercisesInner() {
   const isListPending = mode === "normal" ? listQuery.isPending : reviewLoading;
   const isListError = mode === "normal" && listQuery.isError;
   const isFilteredEmpty =
-    !isListPending && mode === "normal" && list.length > 0 && filteredList.length === 0;
+    !isListPending &&
+    mode === "normal" &&
+    list.length > 0 &&
+    filteredList.length === 0;
 
   // Category label for dropdown button
-  const categoryLabel = mergedCategory ?? "All Categories";
-  const typeLabel =
-    EXERCISE_TYPES.find((x) => x.value === exerciseType)?.label ?? "All Types";
+  const categoryLabel =
+    mergedCategory ?? t("exercises.practiceHub.allCategories");
+  const typeLabel = exerciseType
+    ? labelForExerciseType(exerciseType, t)
+    : t("exercises.filters.allTypes");
+
+  const mascotMood =
+    feedbackTone === "success"
+      ? "celebrate"
+      : feedbackTone === "error"
+        ? "encourage"
+        : "neutral";
+
+  const practiceMascotSituation = useMemo((): MascotSituation => {
+    if (feedbackTone === "success") return "practice_correct";
+    if (feedbackTone === "error") return "practice_incorrect";
+    return "practice_neutral";
+  }, [feedbackTone]);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TabScreenHeader
-        title="Exercises"
+        title={t("exercises.practiceHub.title")}
         left={<HeaderAvatarButton />}
         right={<HeaderRightButtons />}
       />
 
-      <ScrollView
-        style={{ flex: 1, backgroundColor: c.bg }}
-        contentContainerStyle={[styles.container, { paddingBottom: 40 }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        refreshControl={
-          <RefreshControl
-            refreshing={listQuery.isFetching || profileQuery.isFetching || reviewQuery.isFetching}
-            onRefresh={onRefresh}
-            tintColor={c.primary}
-          />
-        }
-      >
-        {/* ── Filters ── */}
-        <View style={styles.filtersRow}>
-          <Pressable
-            onPress={() => setCategoryPickerOpen(true)}
-            style={[styles.filterBtn, { backgroundColor: c.surface, borderColor: c.border }]}
-          >
-            <Text style={[styles.filterBtnText, { color: c.text }]} numberOfLines={1}>
-              {categoryLabel}
-            </Text>
-            <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setTypePickerOpen(true)}
-            style={[styles.filterBtn, { backgroundColor: c.surface, borderColor: c.border }]}
-          >
-            <Text style={[styles.filterBtnText, { color: c.text }]} numberOfLines={1}>
-              {typeLabel}
-            </Text>
-            <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
-          </Pressable>
-        </View>
-
-        {/* ── Review mode banner ── */}
-        {mode === "review" ? (
-          <View style={[styles.reviewBanner, { backgroundColor: c.accentMuted }]}>
-            <Text style={[styles.reviewBannerText, { color: c.text }]}>
-              Review Mode — {reviewItems.length} due
-            </Text>
-            <Pressable onPress={exitReviewMode}>
-              <Text style={{ color: c.primary, fontWeight: "700", fontSize: typography.sm }}>
-                Exit
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1, backgroundColor: c.bg }}
+          contentContainerStyle={[
+            styles.container,
+            { paddingBottom: 88 + Math.max(insets.bottom, spacing.md) },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          refreshControl={
+            <RefreshControl
+              refreshing={
+                listQuery.isFetching ||
+                profileQuery.isFetching ||
+                reviewQuery.isFetching
+              }
+              onRefresh={onRefresh}
+              tintColor={c.primary}
+            />
+          }
+        >
+          {/* ── Filters ── */}
+          <View style={styles.filtersRow}>
+            <Pressable
+              onPress={() => setCategoryPickerOpen(true)}
+              style={[
+                styles.filterBtn,
+                { backgroundColor: c.surface, borderColor: c.border },
+              ]}
+            >
+              <Text
+                style={[styles.filterBtnText, { color: c.text }]}
+                numberOfLines={1}
+              >
+                {categoryLabel}
               </Text>
+              <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setTypePickerOpen(true)}
+              style={[
+                styles.filterBtn,
+                { backgroundColor: c.surface, borderColor: c.border },
+              ]}
+            >
+              <Text
+                style={[styles.filterBtnText, { color: c.text }]}
+                numberOfLines={1}
+              >
+                {typeLabel}
+              </Text>
+              <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
             </Pressable>
           </View>
-        ) : null}
 
-        {/* ── Start review button ── */}
-        {mode === "normal" && reviewCount > 0 && accessToken ? (
-          <Pressable
-            onPress={() => void startReviewMode()}
-            style={[styles.reviewPrompt, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}
-          >
-            <MaterialCommunityIcons name="sync" size={16} color={c.error} />
-            <Text style={{ color: c.error, fontWeight: "700", fontSize: typography.sm }}>
-              {reviewCount} review{reviewCount !== 1 ? "s" : ""} due — tap to start
-            </Text>
-          </Pressable>
-        ) : null}
+          {/* ── Review mode banner ── */}
+          {mode === "review" ? (
+            <View
+              style={[styles.reviewBanner, { backgroundColor: c.accentMuted }]}
+            >
+              <Text style={[styles.reviewBannerText, { color: c.text }]}>
+                {t("exercises.practiceHub.reviewModeBanner", {
+                  count: reviewItems.length,
+                })}
+              </Text>
+              <Pressable onPress={exitReviewMode}>
+                <Text
+                  style={{
+                    color: c.primary,
+                    fontWeight: "700",
+                    fontSize: typography.sm,
+                  }}
+                >
+                  {t("exercises.practiceHub.exitReview")}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
 
-        {/* ── Loading / Error / Empty ── */}
-        {isListPending ? (
-          <Skeleton width="100%" height={200} style={{ marginBottom: spacing.md }} />
-        ) : null}
-        {isListError ? (
-          <ErrorState
-            message={t("exercises.errors.loadFailed")}
-            onRetry={() => void listQuery.refetch()}
-          />
-        ) : null}
-        {isFilteredEmpty ? (
-          <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
-            <Text style={{ color: c.text, fontWeight: "700" }}>
-              {t("exercises.emptyFiltered.title")}
-            </Text>
-            <Text style={{ color: c.textMuted, marginTop: spacing.xs }}>
-              {t("exercises.emptyFiltered.subtitle")}
-            </Text>
-          </GlassCard>
-        ) : null}
+          {/* ── Start review button ── */}
+          {mode === "normal" && reviewCount > 0 && accessToken ? (
+            <Pressable
+              onPress={() => void startReviewMode()}
+              style={[
+                styles.reviewPrompt,
+                { backgroundColor: c.surfaceOffset, borderColor: c.border },
+              ]}
+            >
+              <MaterialCommunityIcons name="sync" size={16} color={c.error} />
+              <Text
+                style={{
+                  color: c.error,
+                  fontWeight: "700",
+                  fontSize: typography.sm,
+                }}
+              >
+                {t("exercises.practiceHub.reviewsDueTap", {
+                  count: reviewCount,
+                })}
+              </Text>
+            </Pressable>
+          ) : null}
 
-        {/* ── Active exercise ── */}
-        {!isListPending && !isListError && filteredList.length > 0 ? (
-          <>
-            {/* Meta row */}
-            {pickedItem ? (
-              <View style={styles.metaRow}>
-                <View style={[styles.tag, { backgroundColor: c.surfaceOffset }]}>
-                  <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
-                    {pickedItem.category ?? "—"}
-                  </Text>
-                </View>
-                {pickedItem.difficulty ? (
+          {/* ── Loading / Error / Empty ── */}
+          {isListPending ? (
+            <Skeleton
+              width="100%"
+              height={200}
+              style={{ marginBottom: spacing.md }}
+            />
+          ) : null}
+          {isListError ? (
+            <ErrorState
+              message={t("exercises.errors.loadFailed")}
+              onRetry={() => void listQuery.refetch()}
+            />
+          ) : null}
+          {isFilteredEmpty ? (
+            <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
+              <Text style={{ color: c.text, fontWeight: "700" }}>
+                {t("exercises.emptyFiltered.title")}
+              </Text>
+              <Text style={{ color: c.textMuted, marginTop: spacing.xs }}>
+                {t("exercises.emptyFiltered.subtitle")}
+              </Text>
+            </GlassCard>
+          ) : null}
+
+          {/* ── Active exercise ── */}
+          {!isListPending && !isListError && filteredList.length > 0 ? (
+            <>
+              <View style={{ marginBottom: spacing.md }}>
+                <Text
+                  style={{
+                    color: c.textMuted,
+                    fontSize: typography.xs,
+                    fontWeight: "800",
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {t("exercises.practiceHub.practiceSession")}
+                </Text>
+                {pickedItem ? (
                   <View
                     style={[
-                      styles.tag,
+                      styles.metaRow,
+                      { marginTop: spacing.sm, marginBottom: spacing.xs },
+                    ]}
+                  >
+                    <View
+                      style={[styles.tag, { backgroundColor: c.surfaceOffset }]}
+                    >
+                      <Text
+                        style={{ color: c.textMuted, fontSize: typography.xs }}
+                      >
+                        {pickedItem.category ?? "—"}
+                      </Text>
+                    </View>
+                    {pickedItem.difficulty ? (
+                      <View
+                        style={[
+                          styles.tag,
+                          {
+                            backgroundColor: `${difficultyColor(pickedItem.difficulty, c)}22`,
+                            borderColor: `${difficultyColor(pickedItem.difficulty, c)}55`,
+                            borderWidth: 0.5,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: difficultyColor(pickedItem.difficulty, c),
+                            fontSize: typography.xs,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {labelForDifficulty(pickedItem.difficulty, t)}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
+                <Text
+                  style={{
+                    color: c.textMuted,
+                    fontSize: typography.xs,
+                    marginTop: spacing.sm,
+                  }}
+                >
+                  {t("exercises.practiceHub.listProgress", {
+                    current: Math.min(pickedIndex + 1, filteredList.length),
+                    total: filteredList.length,
+                  })}
+                </Text>
+                <ProgressBar
+                  value={progressFraction}
+                  height={5}
+                  style={{ marginTop: spacing.sm }}
+                />
+                <ProgressBar
+                  value={sessionBatchFraction}
+                  height={4}
+                  color={c.accent}
+                  style={{ marginTop: spacing.sm }}
+                />
+              </View>
+
+              <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
+                {pickedId != null && timerSeconds > 0 ? (
+                  <ExerciseTimer
+                    key={pickedId}
+                    totalSeconds={timerSeconds}
+                    active
+                  />
+                ) : null}
+
+                {pickedId != null && detailQuery.isPending ? (
+                  <Skeleton width="100%" height={180} />
+                ) : null}
+
+                {pickedId != null && detailQuery.data && exerciseView ? (
+                  <ExerciseSection
+                    exerciseType={exerciseView.exerciseType}
+                    exerciseData={exerciseView.mergedData}
+                    exerciseId={detailQuery.data.id as number}
+                    gradingMode="standalone"
+                    hintsUsed={hintIndex}
+                    onStandaloneSubmitResult={({
+                      correct,
+                      feedback,
+                      xpDelta,
+                    }) => {
+                      let line = feedback;
+                      if (
+                        correct &&
+                        typeof xpDelta === "number" &&
+                        xpDelta !== 0
+                      ) {
+                        line = `${line} (+${xpDelta} XP)`;
+                      }
+                      setFeedbackLine(line);
+                      setFeedbackTone(correct ? "success" : "error");
+                      setMascotRotationKey((n) => n + 1);
+                    }}
+                    onAttempt={({ correct }) => {
+                      if (!correct) {
+                        hadIncorrectRef.current = true;
+                        void Haptics.notificationAsync(
+                          Haptics.NotificationFeedbackType.Error,
+                        );
+                      }
+                    }}
+                    onComplete={handleExerciseComplete}
+                  />
+                ) : null}
+
+                {feedbackLine ? (
+                  <Text
+                    style={[
+                      styles.feedbackLine,
                       {
-                        backgroundColor: `${difficultyColor(pickedItem.difficulty, c)}22`,
-                        borderColor: `${difficultyColor(pickedItem.difficulty, c)}55`,
-                        borderWidth: 0.5,
+                        color:
+                          feedbackTone === "success"
+                            ? c.success
+                            : feedbackTone === "error"
+                              ? c.error
+                              : c.textMuted,
                       },
                     ]}
                   >
+                    {feedbackLine}
+                  </Text>
+                ) : null}
+              </GlassCard>
+
+              <View style={{ marginBottom: spacing.md }}>
+                <MascotWithMessage
+                  mood={mascotMood}
+                  situation={practiceMascotSituation}
+                  rotationKey={mascotRotationKey}
+                  embedded
+                  mascotSize={56}
+                />
+              </View>
+
+              {hints.length > 0 ? (
+                <View style={{ marginBottom: spacing.md }}>
+                  <Pressable
+                    onPress={() =>
+                      setHintIndex((i) => Math.min(i + 1, hints.length))
+                    }
+                    style={[
+                      styles.hintBtn,
+                      { borderColor: c.border, backgroundColor: c.surface },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name="lightbulb-outline"
+                      size={16}
+                      color={c.accent}
+                    />
                     <Text
                       style={{
-                        color: difficultyColor(pickedItem.difficulty, c),
-                        fontSize: typography.xs,
-                        fontWeight: "700",
+                        color: c.text,
+                        fontWeight: "600",
+                        fontSize: typography.sm,
                       }}
                     >
-                      {labelForDifficulty(pickedItem.difficulty, t)}
+                      {hintIndex < hints.length
+                        ? t("exercises.practiceHub.showHint")
+                        : t("exercises.practiceHub.allHintsShown")}
                     </Text>
-                  </View>
-                ) : null}
-                <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
-                  {pickedIndex + 1} / {filteredList.length}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Progress bar */}
-            <View style={[styles.progressTrack, { backgroundColor: c.border }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${Math.min(100, Math.round(progressFraction * 100))}%`,
-                    backgroundColor: c.primary,
-                  },
-                ]}
-              />
-            </View>
-
-            {/* Exercise card */}
-            <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
-              {pickedId != null && timerSeconds > 0 ? (
-                <ExerciseTimer key={pickedId} totalSeconds={timerSeconds} active />
+                  </Pressable>
+                  {hints.slice(0, hintIndex).map((h, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.hintCard,
+                        {
+                          backgroundColor: c.surfaceOffset,
+                          borderColor: c.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color: c.textMuted,
+                          fontSize: typography.sm,
+                          lineHeight: 20,
+                        }}
+                      >
+                        {h}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               ) : null}
+            </>
+          ) : null}
 
-              {pickedId != null && detailQuery.isPending ? (
-                <Skeleton width="100%" height={180} />
-              ) : null}
-
-              {pickedId != null && detailQuery.data ? (
-                <ExerciseSection
-                  exerciseType={String(detailQuery.data.type ?? "")}
-                  exerciseData={
-                    (detailQuery.data.exercise_data as Record<string, unknown>) ?? {}
-                  }
-                  exerciseId={detailQuery.data.id as number}
-                  onAttempt={({ correct }) => {
-                    if (!correct) {
-                      hadIncorrectRef.current = true;
-                      setFeedbackLine(t("exercises.practiceHub.feedbackTryAgain"));
-                      setFeedbackTone("error");
-                      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                    }
-                  }}
-                  onComplete={handleExerciseComplete}
-                />
-              ) : null}
-
-              {feedbackLine ? (
-                <Text
-                  style={[
-                    styles.feedbackLine,
-                    {
-                      color:
-                        feedbackTone === "success"
-                          ? c.success
-                          : feedbackTone === "error"
-                            ? c.error
-                            : c.textMuted,
-                    },
-                  ]}
-                >
-                  {feedbackLine}
-                </Text>
-              ) : null}
+          {/* Review caught up */}
+          {reviewCaughtUp ? (
+            <GlassCard padding="md" style={{ marginTop: spacing.md }}>
+              <Text
+                style={{
+                  color: c.text,
+                  fontSize: typography.sm,
+                  lineHeight: 20,
+                }}
+              >
+                {t("exercises.practiceHub.reviewUpToDate")}
+              </Text>
+              <Button
+                onPress={exitReviewMode}
+                style={{ marginTop: spacing.sm }}
+                variant="secondary"
+              >
+                {t("exercises.practiceHub.backToNormal")}
+              </Button>
             </GlassCard>
+          ) : null}
+        </ScrollView>
 
-            {/* Hints */}
-            {hints.length > 0 ? (
-              <View style={{ marginBottom: spacing.md }}>
-                <Pressable
-                  onPress={() => setHintIndex((i) => Math.min(i + 1, hints.length))}
-                  style={[styles.hintBtn, { borderColor: c.border, backgroundColor: c.surface }]}
-                >
-                  <MaterialCommunityIcons name="lightbulb-outline" size={16} color={c.accent} />
-                  <Text style={{ color: c.text, fontWeight: "600", fontSize: typography.sm }}>
-                    {hintIndex < hints.length ? "Show hint" : "All hints shown"}
-                  </Text>
-                </Pressable>
-                {hints.slice(0, hintIndex).map((h, i) => (
-                  <View
-                    key={i}
-                    style={[styles.hintCard, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}
-                  >
-                    <Text style={{ color: c.textMuted, fontSize: typography.sm, lineHeight: 20 }}>
-                      {h}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            {/* Skip button */}
-            <Button variant="secondary" onPress={skipToNext}>
-              Skip →
+        {!isListPending && !isListError && filteredList.length > 0 ? (
+          <View
+            style={[
+              styles.lessonBottomBar,
+              {
+                borderTopColor: c.border,
+                backgroundColor: c.surface,
+                paddingBottom: Math.max(insets.bottom, spacing.md),
+              },
+            ]}
+          >
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={skipToPrev}
+              style={styles.bottomBarBtn}
+            >
+              {t("exercises.practiceHub.prevExercise")}
             </Button>
-          </>
-        ) : null}
-
-        {/* Review caught up */}
-        {reviewCaughtUp ? (
-          <GlassCard padding="md" style={{ marginTop: spacing.md }}>
-            <Text style={{ color: c.text, fontSize: typography.sm, lineHeight: 20 }}>
-              {t("exercises.practiceHub.reviewUpToDate")}
-            </Text>
-            <Button onPress={exitReviewMode} style={{ marginTop: spacing.sm }} variant="secondary">
-              {t("exercises.practiceHub.backToNormal")}
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={skipToNext}
+              style={styles.bottomBarBtn}
+            >
+              {t("exercises.practiceHub.skipExercise")}
             </Button>
-          </GlassCard>
+          </View>
         ) : null}
-      </ScrollView>
+      </View>
 
       {/* Category picker modal */}
       <Modal
@@ -650,31 +871,54 @@ function ExercisesInner() {
       >
         <View style={styles.modalRoot}>
           <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.45)" },
+            ]}
             onPress={() => setCategoryPickerOpen(false)}
           />
           <View style={[styles.pickerSheet, { backgroundColor: c.surface }]}>
             <View style={[styles.dragHandle, { backgroundColor: c.border }]} />
-            <Text style={[styles.pickerTitle, { color: c.text }]}>Category</Text>
+            <Text style={[styles.pickerTitle, { color: c.text }]}>
+              {t("exercises.practiceHub.categoryPickerTitle")}
+            </Text>
             <ScrollView>
               <Pressable
-                onPress={() => { setCategory(undefined); setCategoryPickerOpen(false); }}
+                onPress={() => {
+                  setCategory(undefined);
+                  setCategoryPickerOpen(false);
+                }}
                 style={styles.pickerOption}
               >
-                <Text style={{ color: c.text, fontSize: typography.base }}>All Categories</Text>
+                <Text style={{ color: c.text, fontSize: typography.base }}>
+                  {t("exercises.practiceHub.allCategories")}
+                </Text>
                 {!mergedCategory ? (
-                  <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                  <MaterialCommunityIcons
+                    name="check"
+                    size={18}
+                    color={c.primary}
+                  />
                 ) : null}
               </Pressable>
               {(categoriesQuery.data ?? []).map((cat) => (
                 <Pressable
                   key={cat}
-                  onPress={() => { setCategory(cat); setCategoryPickerOpen(false); }}
+                  onPress={() => {
+                    setCategory(cat);
+                    setCategoryPickerOpen(false);
+                  }}
                   style={styles.pickerOption}
                 >
-                  <Text style={{ color: c.text, fontSize: typography.base }}>{cat}</Text>
+                  <Text style={{ color: c.text, fontSize: typography.base }}>
+                    {cat}
+                  </Text>
                   {mergedCategory === cat ? (
-                    <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={18}
+                      color={c.primary}
+                    />
                   ) : null}
                 </Pressable>
               ))}
@@ -692,22 +936,38 @@ function ExercisesInner() {
       >
         <View style={styles.modalRoot}>
           <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.45)" },
+            ]}
             onPress={() => setTypePickerOpen(false)}
           />
           <View style={[styles.pickerSheet, { backgroundColor: c.surface }]}>
             <View style={[styles.dragHandle, { backgroundColor: c.border }]} />
-            <Text style={[styles.pickerTitle, { color: c.text }]}>Exercise Type</Text>
+            <Text style={[styles.pickerTitle, { color: c.text }]}>
+              {t("exercises.practiceHub.typePickerTitle")}
+            </Text>
             <ScrollView>
               {EXERCISE_TYPES.map((opt) => (
                 <Pressable
                   key={String(opt.value)}
-                  onPress={() => { setExerciseType(opt.value); setTypePickerOpen(false); }}
+                  onPress={() => {
+                    setExerciseType(opt.value);
+                    setTypePickerOpen(false);
+                  }}
                   style={styles.pickerOption}
                 >
-                  <Text style={{ color: c.text, fontSize: typography.base }}>{opt.label}</Text>
+                  <Text style={{ color: c.text, fontSize: typography.base }}>
+                    {opt.value
+                      ? labelForExerciseType(opt.value, t)
+                      : t("exercises.filters.allTypes")}
+                  </Text>
                   {exerciseType === opt.value ? (
-                    <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={18}
+                      color={c.primary}
+                    />
                   ) : null}
                 </Pressable>
               ))}
@@ -725,7 +985,10 @@ function ExercisesInner() {
       >
         <View style={styles.modalRoot}>
           <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.45)" },
+            ]}
             onPress={dismissSummary}
           />
           <View style={styles.modalSheet}>
@@ -733,7 +996,13 @@ function ExercisesInner() {
               <Text style={[styles.summaryTitle, { color: c.text }]}>
                 {t("exercises.practiceHub.sessionSummaryTitle")}
               </Text>
-              <Text style={{ color: c.textMuted, marginTop: spacing.xs, lineHeight: 20 }}>
+              <Text
+                style={{
+                  color: c.textMuted,
+                  marginTop: spacing.xs,
+                  lineHeight: 20,
+                }}
+              >
                 {t("exercises.practiceHub.sessionSummaryBody", {
                   completed: sessionStats.completed,
                   accuracy: accuracyPct,
@@ -743,12 +1012,20 @@ function ExercisesInner() {
               <View style={styles.summaryActions}>
                 <Button
                   variant="secondary"
-                  onPress={() => { resetSessionTracking(); void startReviewMode(); }}
+                  onPress={() => {
+                    resetSessionTracking();
+                    void startReviewMode();
+                  }}
                   disabled={!reviewCount}
                 >
                   {t("exercises.practiceHub.doReviews")}
                 </Button>
-                <Button onPress={() => { resetSessionTracking(); skipToNext(); }}>
+                <Button
+                  onPress={() => {
+                    resetSessionTracking();
+                    skipToNext();
+                  }}
+                >
                   {t("exercises.practiceHub.moreExercises")}
                 </Button>
                 <Button variant="ghost" onPress={dismissSummary}>
@@ -898,5 +1175,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     gap: spacing.sm,
     flexDirection: "column",
+  },
+  lessonBottomBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
+  },
+  bottomBarBtn: {
+    flex: 1,
+    minHeight: 48,
   },
 });

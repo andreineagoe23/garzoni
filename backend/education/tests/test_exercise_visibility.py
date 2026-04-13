@@ -52,6 +52,14 @@ class ExerciseLearnerVisibilityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
+    def test_staff_list_as_learner_matches_learner_catalog(self):
+        self._make_exercise(question="", category="General")
+        self._make_exercise()
+        self.client.force_authenticate(self.staff)
+        response = self.client.get("/api/exercises/", {"as_learner": "1"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
     def test_categories_endpoint_hides_general_for_learners(self):
         self._make_exercise(category="Personal Finance")
         self._make_exercise(category="General", question="Visible general?")

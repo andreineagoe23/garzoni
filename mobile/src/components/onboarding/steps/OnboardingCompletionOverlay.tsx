@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import MascotWithMessage from "../../common/MascotWithMessage";
 import { Button } from "../../ui";
 import {
   colors,
@@ -21,7 +22,14 @@ export default function OnboardingCompletionOverlay({
 }: Props) {
   return (
     <View style={styles.completionOverlay}>
-      <Text style={styles.completionEmoji}>🎉</Text>
+      <View style={styles.mascotBlock}>
+        <MascotWithMessage
+          situation="onboarding_complete"
+          embedded
+          mascotSize={72}
+          rotationKey={xp + coins}
+        />
+      </View>
       <Text style={styles.completionTitle}>You're all set!</Text>
       <Text style={styles.completionSub}>
         We've personalised your learning path based on your goals.
@@ -53,7 +61,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: spacing.lg,
   },
-  completionEmoji: { fontSize: 72 },
+  mascotBlock: { marginBottom: spacing.sm },
   completionTitle: {
     fontSize: typography.xxl,
     fontWeight: "700",

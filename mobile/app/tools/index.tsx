@@ -1,17 +1,53 @@
-import { ScrollView, StyleSheet, Text, View, Alert } from "react-native";
+import { useMemo, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { href } from "../../src/navigation/href";
 import { useQuery } from "@tanstack/react-query";
 import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
 import ToolCard from "../../src/components/tools/ToolCard";
-import { MOBILE_TOOLS } from "../../src/components/tools/mobileToolsRegistry";
+import PlusBottomSheet from "../../src/components/tools/PlusBottomSheet";
+import {
+  GROUP_LABELS,
+  MOBILE_TOOLS,
+  type MobileToolDef,
+  type ToolGroup,
+} from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography } from "../../src/theme/tokens";
+import { radius, spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+
+const ALL_GROUPS: ToolGroup[] = [
+  "understand-world",
+  "understand-myself",
+  "decide-next",
+];
+
+type FilterOption = ToolGroup | "all";
+
+const FILTER_LABELS: Record<FilterOption, string> = {
+  all: "All",
+  "understand-world": "World",
+  "understand-myself": "Myself",
+  "decide-next": "Decide",
+};
+
+type Section = {
+  group: ToolGroup;
+  data: MobileToolDef[];
+};
 
 export default function ToolsHubScreen() {
   const c = useThemeColors();
   const router = useRouter();
+  const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
+  const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
   const entQuery = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -22,42 +58,125 @@ export default function ToolsHubScreen() {
   const plan = entQuery.data?.plan ?? "starter";
   const hasPlus = plan === "plus" || plan === "pro";
 
+  const sections = useMemo<Section[]>(() => {
+    return ALL_GROUPS.filter(
+      (g) => activeFilter === "all" || g === activeFilter,
+    )
+      .map((g) => ({
+        group: g,
+        data: MOBILE_TOOLS.filter((t) => t.group === g),
+      }))
+      .filter((s) => s.data.length > 0);
+  }, [activeFilter]);
+
+  const filters: FilterOption[] = ["all", ...ALL_GROUPS];
+
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TabScreenHeader title="Tools" />
+
+      {/* Group pill filter */}
       <ScrollView
-        contentContainerStyle={styles.container}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
       >
-      <Text style={[styles.sub, { color: c.textMuted }]}>
-        Native tools — no web browser required.
-      </Text>
-      {MOBILE_TOOLS.map((tool) => {
-        const locked = tool.plusOnly && !hasPlus;
-        return (
-          <View key={tool.id} style={{ marginBottom: spacing.md }}>
-            <ToolCard
-              tool={tool}
-              locked={locked}
-              onPress={() => {
-                if (locked) {
-                  Alert.alert(
-                    "Plus / Pro",
-                    "This tool requires a Plus or Pro plan.",
-                  );
-                  return;
-                }
-                router.push(href(`/tools/${tool.route}`));
-              }}
-            />
-          </View>
-        );
-      })}
+        {filters.map((f) => {
+          const active = f === activeFilter;
+          return (
+            <Pressable
+              key={f}
+              onPress={() => setActiveFilter(f)}
+              style={[
+                styles.pill,
+                {
+                  backgroundColor: active ? c.primary : c.surface,
+                  borderColor: active ? c.primary : c.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.pillText,
+                  { color: active ? "#fff" : c.textMuted },
+                ]}
+              >
+                {FILTER_LABELS[f]}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
+
+      {/* Grouped tool list */}
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) => (
+          <Text style={[styles.sectionHeader, { color: c.textFaint }]}>
+            {GROUP_LABELS[section.group].toUpperCase()}
+          </Text>
+        )}
+        renderItem={({ item }) => {
+          const locked = !!item.plusOnly && !hasPlus;
+          return (
+            <View style={styles.cardWrap}>
+              <ToolCard
+                tool={item}
+                onPress={() => {
+                  if (locked) {
+                    setPlusSheetVisible(true);
+                    return;
+                  }
+                  router.push(href(`/(tabs)/tools/${item.route}`));
+                }}
+              />
+            </View>
+          );
+        }}
+        SectionSeparatorComponent={() => (
+          <View style={{ height: spacing.xs }} />
+        )}
+      />
+
+      <PlusBottomSheet
+        visible={plusSheetVisible}
+        onClose={() => setPlusSheetVisible(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.xl, paddingBottom: 48 },
-  sub: { fontSize: typography.sm, marginBottom: spacing.lg, lineHeight: 20 },
+  filterRow: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  pill: {
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  pillText: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
+  list: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xxxxl,
+  },
+  sectionHeader: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  cardWrap: {
+    marginBottom: spacing.md,
+  },
 });

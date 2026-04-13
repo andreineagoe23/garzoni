@@ -75,8 +75,15 @@ export { useMascotMessage } from "./hooks/useMascotMessage";
 export type {
   MascotMood,
   MascotType,
+  MascotSituation,
   UseMascotMessageOptions,
 } from "./hooks/useMascotMessage";
+export {
+  resolveMascotPresentation,
+  MASCOT_SITUATIONS,
+} from "./engagement/mascotPresentation";
+export type { ResolvedMascotPresentation } from "./engagement/mascotPresentation";
+export { MOOD_TO_MASCOT } from "./engagement/mascotTypes";
 export { useOnlineSync } from "./hooks/useOnlineSync";
 
 export type {
@@ -97,6 +104,9 @@ export {
 
 export { getUserLevel } from "./utils/userLevel";
 export type { UserLevel } from "./utils/userLevel";
+
+export { buildStandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";
+export type { StandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";
 
 export const pathService = { fetchPaths: fetchLearningPaths };
 export const courseService = {

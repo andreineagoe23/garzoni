@@ -1649,6 +1649,25 @@
     "reloadPage": "Reload page"
   },
   "exercises": {
+    "widgets": {
+      "submit": "Submit",
+      "checkAnswer": "Check answer",
+      "checkOrder": "Check order",
+      "saving": "Saving…",
+      "chooseBest": "Choose the best answer.",
+      "correctShort": "Correct!",
+      "greatOrder": "Great order!",
+      "greatAllocation": "Great allocation!",
+      "greatChoice": "Great choice!",
+      "tryAgainAdjust": "Not quite. Try again.",
+      "couldNotSave": "Could not save progress.",
+      "undo": "Undo",
+      "dragPrompt": "Tap items in the correct order",
+      "wrongOrder": "That’s not the right order. Try again.",
+      "cellsWrong": "Some cells are incorrect. Try again.",
+      "budgetTotalHint": "Total must equal {{total}}. Current: {{current}}",
+      "notQuiteTryAgain": "Not quite. Try again."
+    },
     "errors": {
       "loadFailed": "Failed to load exercises. Please try again later.",
       "submissionFailed": "Submission failed. Please try again.",
@@ -1687,7 +1706,20 @@
       "genericDrill": "Quick drill",
       "loadReviewsError": "Could not load review exercises.",
       "sessionSummaryDismiss": "Close",
-      "emptyDrills": "No drills are available right now. Pull to refresh or try again later."
+      "emptyDrills": "No drills are available right now. Pull to refresh or try again later.",
+      "practiceSession": "Practice session",
+      "listProgress": "{{current}} of {{total}} in this list",
+      "prevExercise": "Previous",
+      "skipExercise": "Skip",
+      "reviewModeBanner": "Review mode — {{count}} due",
+      "exitReview": "Exit",
+      "reviewsDueTap_one": "{{count}} review due — tap to start",
+      "reviewsDueTap_other": "{{count}} reviews due — tap to start",
+      "showHint": "Show hint",
+      "allHintsShown": "All hints shown",
+      "categoryPickerTitle": "Category",
+      "typePickerTitle": "Exercise type",
+      "allCategories": "All categories"
     },
     "reviewQueue": {
       "title": "Review Queue",
@@ -2415,6 +2447,35 @@
       "neutral_0": "Calm and steady progress wins.",
       "neutral_1": "Steady progress is the goal.",
       "neutral_2": "One step at a time."
+    },
+    "lesson": {
+      "reading_0": "Take your time with this part—there’s no rush.",
+      "reading_1": "Read at your own pace. Each idea builds on the last.",
+      "reading_2": "Breathe, read, and tap Continue when you’re ready.",
+      "exerciseNeutral_0": "When you’re ready, submit your answer.",
+      "exerciseNeutral_1": "Focus on the prompt, then choose or enter your answer.",
+      "exerciseNeutral_2": "You’ve got this—give the exercise a try.",
+      "sectionCompleted_0": "Nice—section complete! Keep the momentum.",
+      "sectionCompleted_1": "That section is done. Onward!",
+      "sectionCompleted_2": "Great work finishing that step.",
+      "courseCompleted_0": "Course finished! Celebrate the win.",
+      "courseCompleted_1": "You made it through—time for a breather or the quiz.",
+      "courseCompleted_2": "Huge progress. Well done!"
+    },
+    "practice": {
+      "neutral_0": "Pick a drill and practice at your pace.",
+      "neutral_1": "Steady reps build real skill.",
+      "neutral_2": "Ready when you are—choose the next exercise."
+    },
+    "quiz": {
+      "complete_0": "Quiz complete—you earned it!",
+      "complete_1": "Strong finish on the quiz!",
+      "complete_2": "All set. Nice work on the quiz."
+    },
+    "missions": {
+      "progress_0": "Keep chipping away—small wins add up.",
+      "progress_1": "Steady habits beat perfect days.",
+      "progress_2": "You’re building momentum—nice."
     }
   }
 }

@@ -37,6 +37,7 @@
     "typecheck:web": "pnpm --filter @garzoni/web exec tsc --noEmit",
     "typecheck:mobile": "pnpm --filter @garzoni/mobile exec tsc --noEmit",
     "typecheck": "pnpm run typecheck:core && pnpm run typecheck:web && pnpm run typecheck:mobile",
+    "test:core": "pnpm --filter @garzoni/core test",
     "precommit": "pnpm run typecheck && pnpm lint && pnpm --filter @garzoni/web format:check",
     "upload:cloudinary": "node scripts/upload-cloudinary-images.js",
     "upload:cloudinary:dry-run": "node scripts/upload-cloudinary-images.js --dry-run"

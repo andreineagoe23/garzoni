@@ -55,6 +55,14 @@ from gamification.models import MissionCompletion
 logger = logging.getLogger(__name__)
 
 
+def _catalog_request_force_learner(request) -> bool:
+    """True when client asks for the same exercise catalog rules as learners (e.g. mobile/web practice)."""
+    v = request.query_params.get("as_learner")
+    if v is None:
+        return False
+    return str(v).strip().lower() in ("1", "true", "yes", "on")
+
+
 def _user_is_staff(user) -> bool:
     return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
 
@@ -1057,7 +1065,11 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
 
-        return apply_learner_exercise_filters(queryset, self.request.user)
+        return apply_learner_exercise_filters(
+            queryset,
+            self.request.user,
+            force_learner=_catalog_request_force_learner(self.request),
+        )
 
     @action(detail=False, methods=["get"])
     def categories(self, request):
@@ -1065,6 +1077,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         base = apply_learner_exercise_filters(
             Exercise.objects.all().only(*EXERCISE_SAFE_FIELDS),
             request.user,
+            force_learner=_catalog_request_force_learner(request),
         )
         categories = base.values_list("category", flat=True).distinct().order_by("category")
         return Response(list(categories))

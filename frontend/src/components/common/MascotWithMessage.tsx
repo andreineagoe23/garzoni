@@ -3,11 +3,15 @@ import MascotMedia from "components/common/MascotMedia";
 import {
   useMascotMessage,
   type MascotMood,
+  type MascotSituation,
   type MascotType,
 } from "hooks/useMascotMessage";
+import { useMascotMotionSimplify } from "hooks/useMascotMotionSimplify";
 
 type MascotWithMessageProps = {
   mood: MascotMood;
+  /** When set, overrides `mood` for message pool resolution (learner context). */
+  situation?: MascotSituation;
   /** If provided, keep the same mascot while mood/message changes. */
   fixedMascot?: MascotType;
   /** When true, rotate through message pool using rotationKey */
@@ -26,6 +30,7 @@ type MascotWithMessageProps = {
 
 const MascotWithMessage = ({
   mood,
+  situation,
   fixedMascot,
   rotateMessages = false,
   rotationKey = 0,
@@ -35,15 +40,23 @@ const MascotWithMessage = ({
   messageStyle = "bubble",
   customMessage,
 }: MascotWithMessageProps) => {
+  const motionSimplify = useMascotMotionSimplify();
+  const effectiveMessageStyle =
+    motionSimplify && messageStyle === "bubble" ? "plain" : messageStyle;
+
   const { mascot, message: pooledMessage } = useMascotMessage(mood, {
     rotateMessages,
     rotationKey,
     mascotOverride: fixedMascot,
+    situation,
   });
   const message = customMessage || pooledMessage;
 
   return (
-    <div className={`mt-3 flex justify-center text-center ${className ?? ""}`}>
+    <div
+      className={`mt-3 flex justify-center text-center ${className ?? ""}`}
+      data-mascot-simplified={motionSimplify ? "true" : undefined}
+    >
       {/* Mobile: single row – small mascot left, bubble right (containerized, centered, limited width) */}
       <div className="flex w-full max-w-full items-center justify-center gap-2 py-1 lg:hidden">
         <MascotMedia
@@ -52,7 +65,7 @@ const MascotWithMessage = ({
         />
         {showMessage &&
           message &&
-          (messageStyle === "plain" ? (
+          (effectiveMessageStyle === "plain" ? (
             <p className="tooltip--inline-wrapper text-xs text-content-muted">
               {message}
             </p>
@@ -66,7 +79,7 @@ const MascotWithMessage = ({
       {/* Desktop: original layout (bubble top-right, mascot bottom-left) */}
       <div className="relative hidden h-40 w-full max-w-[14rem] lg:block">
         {showMessage &&
-          (messageStyle === "plain" ? (
+          (effectiveMessageStyle === "plain" ? (
             <p className="absolute right-0 top-0 mb-2 text-xs text-content-muted">
               {message}
             </p>
