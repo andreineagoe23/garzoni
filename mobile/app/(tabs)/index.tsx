@@ -585,6 +585,7 @@ function DashboardInner() {
             activeMissionsCount={summary.activeMissions.length}
             dailyGoalProgress={summary.dailyGoalProgress}
             streakCount={Number(profile?.streak ?? 0)}
+            streakMeta={profile?.streak_meta}
             reviewError={reviewQuery.isError ? reviewQuery.error : undefined}
             missionsError={
               missionsQuery.isError ? missionsQuery.error : undefined

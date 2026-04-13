@@ -2,6 +2,19 @@
   "common": {
     "dismiss": "Poate mai târziu"
   },
+  "gamification": {
+    "ledger": {
+      "streak_milestone": "Bonus pentru prag de serie",
+      "streak_freeze_used": "Îngheț de serie folosit",
+      "mission_completed": "Misiune finalizată",
+      "lesson_reward": "Progres la lecție",
+      "quiz_reward": "Progres la quiz",
+      "path_reward": "Recompensă traseu de învățare",
+      "section_reward": "Recompensă secțiune",
+      "exercise_reward": "Recompensă exercițiu",
+      "generic_reward": "Recompensă"
+    }
+  },
   "nav": {
     "dashboard": "Acasă",
     "learn": "Învață",
@@ -80,6 +93,8 @@
       "reviewsDue": "Recapitulări restante",
       "activeMissions": "Misiuni active",
       "streak": "Serie",
+      "streakAtRisk": "Seria e în pericol — finalizează astăzi o lecție scurtă.",
+      "streakNextMilestone": "{{days}} zile până la pragul de {{milestone}} zile",
       "failedLoadReviews": "Nu s-au putut încărca recapitulările",
       "couldNotFetchReviews": "Nu am putut încărca coada de recapitulări.",
       "failedLoadMissions": "Nu s-au putut încărca misiunile",
@@ -1671,6 +1686,8 @@
     "errors": {
       "loadFailed": "Nu s-au putut încărca exercițiile. Te rugăm să încerci din nou.",
       "submissionFailed": "Trimiterea a eșuat. Te rugăm să încerci din nou.",
+      "submissionAuth": "Sesiunea a expirat sau accesul a fost refuzat. Autentifică-te din nou și reîncearcă.",
+      "submissionNotFound": "Acest exercițiu nu este disponibil (șters sau s-au schimbat drepturile).",
       "submitAnswer": "Te rugăm să trimiți un răspuns înainte de a continua.",
       "invalidFormat": "Format de exercițiu invalid",
       "unsupportedType": "Tip de exercițiu neacceptat.",

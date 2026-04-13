@@ -46,6 +46,10 @@ app.conf.beat_schedule = {
         "task": "gamification.models.reset_weekly_missions",
         "schedule": crontab(hour=0, minute=0, day_of_week=1),
     },
+    "spawn-streak-rescue-missions": {
+        "task": "gamification.tasks.spawn_streak_rescue_missions",
+        "schedule": crontab(hour=18, minute=0),
+    },
     "refresh-finance-news-cache": {
         "task": "finance.tasks.refresh_news_feed_cache_task",
         "schedule": crontab(minute="*/3"),

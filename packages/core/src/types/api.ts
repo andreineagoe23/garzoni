@@ -27,6 +27,22 @@ export type UserProfile = {
   avatar_url?: string;
   referral_code?: string;
   streak?: number;
+  streak_meta?: {
+    next_milestone?: number | null;
+    days_to_next_milestone?: number;
+    streak_at_risk?: boolean;
+  };
+  daily_goal?: {
+    target_xp?: number;
+    earned_xp_today?: number;
+    progress_pct?: number;
+  };
+  weekly_recap?: {
+    week_start?: string;
+    xp_earned?: number;
+    missions_completed?: number;
+    streak_days?: number;
+  };
   earned_money?: number | string;
   stripe_subscription_id?: string | null;
   reviews_due?: number;

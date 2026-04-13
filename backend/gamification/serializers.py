@@ -23,6 +23,7 @@ class BadgeSerializer(serializers.ModelSerializer):
             "description",
             "image_url",
             "criteria_type",
+            "criteria_slug",
             "threshold",
             "badge_level",
         ]

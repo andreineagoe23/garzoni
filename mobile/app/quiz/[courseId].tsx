@@ -315,7 +315,30 @@ export default function QuizScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
-        options={{ title: activeQuiz.title ?? "Quiz", headerShown: true }}
+        options={{
+          title: activeQuiz.title ?? "Quiz",
+          headerShown: true,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={{ paddingHorizontal: 12, paddingVertical: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t("courses.quiz.exitQuizAria")}
+            >
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: "300",
+                  color: colors.textMuted,
+                  lineHeight: 30,
+                }}
+              >
+                ×
+              </Text>
+            </Pressable>
+          ),
+        }}
       />
       <View style={styles.header}>
         <View style={styles.headerMid}>

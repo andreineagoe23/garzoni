@@ -181,7 +181,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     path_title = serializers.CharField(source="path.title")
     lessons = LessonSerializer(many=True, read_only=True)
-    quizzes = QuizSerializer(many=True, read_only=True)
+    quizzes = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     completed_lessons = serializers.SerializerMethodField()
     total_lessons = serializers.SerializerMethodField()
@@ -215,6 +215,25 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_total_lessons(self, obj):
         return obj.lessons.count()
+
+    def get_quizzes(self, obj):
+        """Capstone course quizzes only (exclude per-lesson checkpoint rows)."""
+        request = self.context.get("request")
+        qs = Quiz.objects.filter(course=obj, source_lesson_section__isnull=True).prefetch_related(
+            "translations"
+        )
+        completed_ids: frozenset[int] = frozenset()
+        if request and getattr(request.user, "is_authenticated", False):
+            completed_ids = frozenset(
+                QuizCompletion.objects.filter(
+                    user=request.user,
+                    quiz__course=obj,
+                    quiz__source_lesson_section__isnull=True,
+                ).values_list("quiz_id", flat=True)
+            )
+        return QuizSerializer(
+            qs, many=True, context={**self.context, "quiz_completed_ids": completed_ids}
+        ).data
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

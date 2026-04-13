@@ -2,10 +2,12 @@ from decimal import Decimal
 import logging
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from finance.models import SimulatedSavingsAccount
 from gamification.models import MissionCompletion
+from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,8 @@ def add_savings_and_update_missions(user, amount):
         if not created:
             account.add_to_balance(amount)
 
+        d_id = daily_cycle_id()
+        w_id = weekly_cycle_id()
         missions = (
             MissionCompletion.objects.select_related("mission")
             .select_for_update()
@@ -32,6 +36,13 @@ def add_savings_and_update_missions(user, amount):
                 mission__goal_type="add_savings",
                 status__in=["not_started", "in_progress"],
             )
+            .filter(
+                Q(mission__mission_type="daily", cycle_id=d_id)
+                | Q(mission__mission_type="daily", cycle_id="")
+                | Q(mission__mission_type="weekly", cycle_id=w_id)
+                | Q(mission__mission_type="weekly", cycle_id="")
+            )
+            .exclude(cycle_id__startswith="x")
         )
 
         for completion in missions:

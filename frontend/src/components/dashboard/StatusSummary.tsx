@@ -12,6 +12,11 @@ type StatusSummaryProps = {
   activeMissionsCount: number;
   dailyGoalProgress: number;
   streakCount?: number;
+  streakMeta?: {
+    next_milestone?: number | null;
+    days_to_next_milestone?: number;
+    streak_at_risk?: boolean;
+  };
   reviewError?: unknown;
   missionsError?: unknown;
   refetchReview?: () => void;
@@ -29,6 +34,7 @@ const StatusSummary = ({
   activeMissionsCount,
   dailyGoalProgress,
   streakCount = 0,
+  streakMeta,
   reviewError,
   missionsError,
   refetchReview,
@@ -144,6 +150,19 @@ const StatusSummary = ({
         <p className="mt-2 text-2xl font-bold text-content-primary">
           {formatNumber(streakCount, locale)}
         </p>
+        {streakMeta?.streak_at_risk ? (
+          <p className="mt-1 text-xs font-semibold text-amber-700">
+            {t("dashboard.statusSummary.streakAtRisk")}
+          </p>
+        ) : null}
+        {streakMeta?.next_milestone != null && streakMeta.next_milestone > 0 ? (
+          <p className="mt-1 text-xs text-content-muted">
+            {t("dashboard.statusSummary.streakNextMilestone", {
+              days: streakMeta.days_to_next_milestone ?? 0,
+              milestone: streakMeta.next_milestone,
+            })}
+          </p>
+        ) : null}
       </div>
     </div>
   );
