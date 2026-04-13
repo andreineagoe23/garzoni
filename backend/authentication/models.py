@@ -22,7 +22,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     earned_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     points = models.IntegerField(default=0)
-    profile_avatar = models.URLField(null=True, blank=True)
+    # Google (and other) avatar URLs can exceed URLField's default max_length=200.
+    profile_avatar = models.URLField(max_length=2000, null=True, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
     recommendations_generated_at = models.DateTimeField(null=True, blank=True)
     referral_code = models.CharField(
