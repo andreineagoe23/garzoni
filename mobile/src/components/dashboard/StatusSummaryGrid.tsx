@@ -3,7 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassButton from "../ui/GlassButton";
-import KPIScrollRow, { KPITile } from "./KPIScrollRow";
+import { KPITile } from "./KPIScrollRow";
 import { spacing, typography, radius } from "../../theme/tokens";
 
 function formatPct(n: number, locale?: string) {
@@ -55,8 +55,9 @@ export default function StatusSummaryGrid({
 
   return (
     <View style={styles.wrap}>
-      <KPIScrollRow>
-        <KPITile>
+      {/* 2×2 grid */}
+      <View style={styles.grid}>
+        <KPITile style={styles.gridTile}>
           <Text style={[styles.label, { color: c.textMuted }]}>
             {t("dashboard.dailyGoal.label")}
           </Text>
@@ -65,7 +66,7 @@ export default function StatusSummaryGrid({
           </Text>
         </KPITile>
 
-        <KPITile>
+        <KPITile style={styles.gridTile}>
           <Text style={[styles.label, { color: c.textMuted }]}>
             {t("dashboard.statusSummary.overallProgress")}
           </Text>
@@ -74,7 +75,7 @@ export default function StatusSummaryGrid({
           </Text>
         </KPITile>
 
-        <KPITile>
+        <KPITile style={styles.gridTile}>
           <Text style={[styles.label, { color: c.textMuted }]}>
             {t("dashboard.statusSummary.coursesCompleted")}
           </Text>
@@ -83,95 +84,10 @@ export default function StatusSummaryGrid({
           </Text>
         </KPITile>
 
-        {reviewError ? null : (
-          <KPITile
-            urgent={reviewsDue > 0}
-            onPress={
-              reviewsDue > 0 && onOpenReviews ? onOpenReviews : undefined
-            }
-          >
-            <View style={styles.rowBetween}>
-              <View style={styles.iconRow}>
-                <MaterialCommunityIcons
-                  name="sync"
-                  size={16}
-                  color={reviewsDue > 0 ? c.error : c.textMuted}
-                />
-                <Text
-                  style={[
-                    styles.label,
-                    {
-                      color: reviewsDue > 0 ? c.error : c.textMuted,
-                      marginBottom: 0,
-                    },
-                  ]}
-                >
-                  {t("dashboard.statusSummary.reviewsDue")}
-                </Text>
-              </View>
-              {reviewsDue > 0 ? (
-                <Text
-                  style={[
-                    styles.urgentPill,
-                    { color: c.error, borderColor: `${c.error}55` },
-                  ]}
-                >
-                  {t("dashboard.statusSummary.urgent")}
-                </Text>
-              ) : null}
-            </View>
-            <Text
-              style={[
-                styles.value,
-                { color: reviewsDue > 0 ? c.error : c.text },
-              ]}
-            >
-              {formatNum(reviewsDue, locale)}
-            </Text>
-            {reviewTopSkill ? (
-              <Text
-                style={[styles.meta, { color: c.textMuted }]}
-                numberOfLines={2}
-              >
-                {t("dashboard.statusSummary.nextReviewSkill", {
-                  skill: reviewTopSkill,
-                })}
-              </Text>
-            ) : null}
-            {onOpenReviews && reviewsDue > 0 ? (
-              <GlassButton variant="primary" size="sm" onPress={onOpenReviews}>
-                {t("dashboard.statusSummary.startReviews")}
-              </GlassButton>
-            ) : null}
-          </KPITile>
-        )}
-
-        {missionsError ? null : (
-          <KPITile onPress={onOpenMissions}>
-            <View style={styles.iconRow}>
-              <MaterialCommunityIcons
-                name="rocket-launch"
-                size={16}
-                color={c.textMuted}
-              />
-              <Text
-                style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}
-              >
-                {t("dashboard.statusSummary.activeMissions")}
-              </Text>
-            </View>
-            <Text style={[styles.value, { color: c.text }]}>
-              {formatNum(activeMissionsCount, locale)}
-            </Text>
-          </KPITile>
-        )}
-
-        <KPITile>
+        <KPITile style={styles.gridTile}>
           <View style={styles.iconRow}>
             <MaterialCommunityIcons name="fire" size={16} color={c.textMuted} />
-            <Text
-              style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}
-            >
+            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
               {t("dashboard.statusSummary.streak")}
             </Text>
           </View>
@@ -179,15 +95,58 @@ export default function StatusSummaryGrid({
             {formatNum(streakCount, locale)}
           </Text>
         </KPITile>
-      </KPIScrollRow>
+      </View>
+
+      {/* Reviews Due — full width, only when relevant */}
+      {!reviewError && reviewsDue > 0 ? (
+        <KPITile
+          urgent
+          onPress={onOpenReviews}
+        >
+          <View style={styles.rowBetween}>
+            <View style={styles.iconRow}>
+              <MaterialCommunityIcons name="sync" size={16} color={c.error} />
+              <Text style={[styles.label, { color: c.error, marginBottom: 0 }]}>
+                {t("dashboard.statusSummary.reviewsDue")}
+              </Text>
+            </View>
+            <Text style={[styles.urgentPill, { color: c.error, borderColor: `${c.error}55` }]}>
+              {t("dashboard.statusSummary.urgent")}
+            </Text>
+          </View>
+          <Text style={[styles.value, { color: c.error }]}>
+            {formatNum(reviewsDue, locale)}
+          </Text>
+          {reviewTopSkill ? (
+            <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={2}>
+              {t("dashboard.statusSummary.nextReviewSkill", { skill: reviewTopSkill })}
+            </Text>
+          ) : null}
+          {onOpenReviews ? (
+            <GlassButton variant="primary" size="sm" onPress={onOpenReviews}>
+              {t("dashboard.statusSummary.startReviews")}
+            </GlassButton>
+          ) : null}
+        </KPITile>
+      ) : null}
+
+      {/* Active Missions — full width, only when relevant */}
+      {!missionsError && activeMissionsCount > 0 ? (
+        <KPITile onPress={onOpenMissions}>
+          <View style={styles.iconRow}>
+            <MaterialCommunityIcons name="rocket-launch" size={16} color={c.textMuted} />
+            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
+              {t("dashboard.statusSummary.activeMissions")}
+            </Text>
+          </View>
+          <Text style={[styles.value, { color: c.text }]}>
+            {formatNum(activeMissionsCount, locale)}
+          </Text>
+        </KPITile>
+      ) : null}
 
       {reviewError ? (
-        <View
-          style={[
-            styles.errorTile,
-            { borderColor: c.border, backgroundColor: c.surface },
-          ]}
-        >
+        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
           <Text style={[styles.label, { color: c.error }]}>
             {t("dashboard.statusSummary.failedLoadReviews")}
           </Text>
@@ -203,12 +162,7 @@ export default function StatusSummaryGrid({
       ) : null}
 
       {missionsError ? (
-        <View
-          style={[
-            styles.errorTile,
-            { borderColor: c.border, backgroundColor: c.surface },
-          ]}
-        >
+        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
           <Text style={[styles.label, { color: c.error }]}>
             {t("dashboard.statusSummary.failedLoadMissions")}
           </Text>
@@ -230,6 +184,15 @@ const styles = StyleSheet.create({
   wrap: {
     marginTop: spacing.lg,
     gap: spacing.md,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+  },
+  gridTile: {
+    flexBasis: "47%",
+    flexGrow: 1,
   },
   errorTile: {
     borderRadius: radius.lg,

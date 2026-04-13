@@ -44,6 +44,9 @@ import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboa
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import GlassCard from "../../src/components/ui/GlassCard";
 import { spacing, typography } from "../../src/theme/tokens";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 type WeakSkill = {
   skill: string;
@@ -352,9 +355,19 @@ function DashboardInner() {
 
   const reviewTopSkill = reviewQuery.data?.due?.[0]?.skill ?? null;
 
+  const headerBar = (
+    <TabScreenHeader
+      title="Home"
+      left={<HeaderAvatarButton />}
+      right={<HeaderRightButtons />}
+    />
+  );
+
   if (!authReady) {
     return (
-      <ScreenScroll
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        {headerBar}
+        <ScreenScroll
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       >
         <Skeleton
@@ -368,12 +381,15 @@ function DashboardInner() {
           style={{ marginBottom: spacing.md }}
         />
       </ScreenScroll>
+      </View>
     );
   }
 
   if (!accessToken) {
     return (
-      <ScreenScroll
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        {headerBar}
+        <ScreenScroll
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       >
         <Text style={[styles.greeting, { color: c.text }]}>
@@ -383,12 +399,15 @@ function DashboardInner() {
           Sign in on the Profile tab to see your dashboard.
         </Text>
       </ScreenScroll>
+      </View>
     );
   }
 
   if (progressQuery.isPending || profileQuery.isPending) {
     return (
-      <ScreenScroll
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        {headerBar}
+        <ScreenScroll
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       >
         <Skeleton
@@ -423,20 +442,26 @@ function DashboardInner() {
           style={{ marginBottom: spacing.md }}
         />
       </ScreenScroll>
+      </View>
     );
   }
 
   if (progressQuery.isError) {
     return (
-      <ErrorState
-        message="Could not load your dashboard."
-        onRetry={() => void progressQuery.refetch()}
-      />
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        {headerBar}
+        <ErrorState
+          message="Could not load your dashboard."
+          onRetry={() => void progressQuery.refetch()}
+        />
+      </View>
     );
   }
 
   return (
-    <ScreenScroll
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      {headerBar}
+      <ScreenScroll
       contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       refreshControl={
         <RefreshControl
@@ -575,6 +600,7 @@ function DashboardInner() {
         <PrimaryCTAMobile primaryCTA={primaryCTA} />
       </GlassCard>
     </ScreenScroll>
+    </View>
   );
 }
 
