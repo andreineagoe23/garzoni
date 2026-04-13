@@ -166,7 +166,7 @@ function Login() {
       <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
       <div
-        className="relative flex min-h-screen flex-col overflow-hidden bg-cover bg-center bg-fixed"
+        className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: Images.loginBg
             ? `url(${Images.loginBg})`
