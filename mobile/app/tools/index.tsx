@@ -7,6 +7,7 @@ import ToolCard from "../../src/components/tools/ToolCard";
 import { MOBILE_TOOLS } from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 
 export default function ToolsHubScreen() {
   const c = useThemeColors();
@@ -22,9 +23,11 @@ export default function ToolsHubScreen() {
   const hasPlus = plan === "plus" || plan === "pro";
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-    >
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <TabScreenHeader title="Tools" />
+      <ScrollView
+        contentContainerStyle={styles.container}
+      >
       <Text style={[styles.sub, { color: c.textMuted }]}>
         Native tools — no web browser required.
       </Text>
@@ -49,7 +52,8 @@ export default function ToolsHubScreen() {
           </View>
         );
       })}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

@@ -7,8 +7,6 @@ import { useTheme } from "../../src/theme/ThemeContext";
 import { navIcons } from "../../src/theme/navIcons";
 import { typography } from "../../src/theme/tokens";
 import AccountTabMenuModal from "../../src/components/navigation/AccountTabMenuModal";
-import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
-import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 const TAB_ICON: Record<
   string,
@@ -36,24 +34,18 @@ export default function TabsLayout() {
       />
       <Tabs
         screenOptions={({ route }) => ({
+          headerShown: false,
           sceneStyle: { backgroundColor: colors.bg },
-          headerTitleAlign: "center",
-          headerTitleStyle: {
-            fontWeight: "700",
-            fontSize: typography.md,
-            color: colors.text,
-          },
-          headerStyle: { backgroundColor: colors.surface },
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textMuted,
           tabBarStyle: {
             borderTopColor: colors.border,
-            borderTopWidth: 1,
+            borderTopWidth: 0.5,
             backgroundColor: colors.surface,
-            height: 72,
-            paddingBottom: 12,
-            paddingTop: 8,
+            paddingBottom: 4,
+            paddingTop: 6,
           },
+          tabBarHideOnKeyboard: true,
           tabBarLabelStyle: {
             fontSize: typography.xs,
             fontWeight: "600",
@@ -94,11 +86,7 @@ export default function TabsLayout() {
       >
         <Tabs.Screen
           name="index"
-          options={{
-            title: t("nav.dashboard", { defaultValue: "Home" }),
-            headerLeft: () => <HeaderAvatarButton />,
-            headerRight: () => <HeaderRightButtons />,
-          }}
+          options={{ title: t("nav.dashboard", { defaultValue: "Home" }) }}
         />
         <Tabs.Screen
           name="learn"
@@ -112,18 +100,8 @@ export default function TabsLayout() {
           name="tools"
           options={{ title: t("nav.tools", { defaultValue: "Tools" }) }}
         />
-        <Tabs.Screen
-          name="missions"
-          options={{
-            href: null,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            href: null,
-          }}
-        />
+        <Tabs.Screen name="missions" options={{ href: null }} />
+        <Tabs.Screen name="profile" options={{ href: null }} />
         <Tabs.Screen
           name="account-menu"
           options={{

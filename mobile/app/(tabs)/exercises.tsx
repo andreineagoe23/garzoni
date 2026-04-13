@@ -4,10 +4,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type ComponentProps,
 } from "react";
 import {
-  FlatList,
   Modal,
   Pressable,
   RefreshControl,
@@ -33,11 +31,7 @@ import {
   staleTimes,
 } from "@garzoni/core";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
-import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import ExerciseTimer from "../../src/components/exercises/ExerciseTimer";
-import StreakBanner from "../../src/components/exercises/StreakBanner";
-import SwipeableExerciseCard from "../../src/components/exercises/SwipeableExerciseCard";
-import { exerciseTypeIconName } from "../../src/components/exercises/exerciseTypeIcon";
 import {
   Button,
   ErrorState,
@@ -48,6 +42,9 @@ import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 type ExerciseListItem = {
   id: number;
@@ -65,13 +62,17 @@ type ReviewDueItem = {
 
 type PracticeMode = "normal" | "review";
 
-const TAB_BAR_CONTENT_PAD = 72;
+const SESSION_BATCH = 5;
 
-function truncateText(s: string, max: number) {
-  const t = s.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, Math.max(0, max - 1))}…`;
-}
+const EXERCISE_TYPES = [
+  { value: undefined, label: "All Types" },
+  { value: "multiple-choice", label: "Multiple Choice" },
+  { value: "numeric", label: "Numeric" },
+  { value: "drag-and-drop", label: "Drag & Drop" },
+  { value: "budget-allocation", label: "Budget" },
+  { value: "fill-in-table", label: "Fill Table" },
+  { value: "scenario-simulation", label: "Scenario" },
+];
 
 function labelForExerciseType(
   type: string | undefined,
@@ -104,7 +105,16 @@ function labelForDifficulty(
   return map[k] ? t(map[k]) : difficulty;
 }
 
-const SESSION_BATCH = 5;
+function difficultyColor(
+  difficulty: string | undefined,
+  colors: { success: string; accent: string; error: string },
+) {
+  const d = (difficulty ?? "").toLowerCase();
+  if (d === "beginner") return colors.success;
+  if (d === "intermediate") return colors.accent;
+  if (d === "advanced") return colors.error;
+  return colors.success;
+}
 
 function ExercisesInner() {
   const c = useThemeColors();
@@ -119,22 +129,25 @@ function ExercisesInner() {
     category?: string;
     skill?: string;
   }>();
+
   const [category, setCategory] = useState<string | undefined>(undefined);
+  const [exerciseType, setExerciseType] = useState<string | undefined>(undefined);
   const [pickedId, setPickedId] = useState<number | null>(null);
   const [mode, setMode] = useState<PracticeMode>("normal");
   const [reviewItems, setReviewItems] = useState<ExerciseListItem[]>([]);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewDone, setReviewDone] = useState<Record<number, true>>({});
   const [feedbackLine, setFeedbackLine] = useState("");
-  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(
-    null,
-  );
+  const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(null);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     completed: 0,
     correctFirstTry: 0,
     startTime: Date.now(),
   });
+  const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [hintIndex, setHintIndex] = useState(0);
 
   useEffect(() => {
     if (categoryParam) setCategory(categoryParam);
@@ -144,6 +157,7 @@ function ExercisesInner() {
     hadIncorrectRef.current = false;
     setFeedbackLine("");
     setFeedbackTone(null);
+    setHintIndex(0);
   }, [pickedId]);
 
   useEffect(() => {
@@ -167,12 +181,13 @@ function ExercisesInner() {
     setCategory(exact ?? decoded);
   }, [skillParam, categoryParam, categoriesQuery.data]);
 
-  const initialCategory = categoryParam ?? category;
+  const mergedCategory = categoryParam || category;
+
   const listQuery = useQuery({
-    queryKey: [...queryKeys.exercises(), initialCategory ?? "all"],
+    queryKey: [...queryKeys.exercises(), mergedCategory ?? "all"],
     queryFn: () =>
       fetchExercisesList(
-        initialCategory ? { category: initialCategory } : undefined,
+        mergedCategory ? { category: mergedCategory } : undefined,
       ).then((r) => r.data as ExerciseListItem[]),
     staleTime: staleTimes.progressSummary,
   });
@@ -204,57 +219,53 @@ function ExercisesInner() {
   });
 
   const list = listQuery.data ?? [];
-  const mergedCategory = categoryParam || category;
 
   const filteredList = useMemo(() => {
     if (mode === "review") return reviewItems;
-    if (!mergedCategory) return list;
-    return list.filter(
-      (x) => (x.category || "").toLowerCase() === mergedCategory.toLowerCase(),
-    );
-  }, [list, mergedCategory, mode, reviewItems]);
+    let items = list;
+    if (exerciseType) items = items.filter((x) => x.type === exerciseType);
+    return items;
+  }, [list, exerciseType, mode, reviewItems]);
 
-  const isListPending =
-    (mode === "normal" && listQuery.isPending) ||
-    (mode === "review" && reviewLoading);
-  const isListError = mode === "normal" && listQuery.isError;
-  const isReviewEmpty =
-    mode === "review" && !reviewItems.length && !reviewLoading;
-  const isFilteredEmpty =
-    mode === "normal" && list.length > 0 && filteredList.length === 0;
-  const listReady =
-    !isListPending && !isListError && !isReviewEmpty && !isFilteredEmpty;
-
-  const pickRandom = useCallback(() => {
-    const pool = filteredList;
-    if (!pool.length) return;
-    const choice = pool[Math.floor(Math.random() * pool.length)];
-    setPickedId(choice.id);
+  // Auto-pick first exercise when filtered list changes
+  useEffect(() => {
+    if (filteredList.length > 0 && pickedId == null) {
+      setPickedId(filteredList[0].id);
+    } else if (filteredList.length > 0 && pickedId != null) {
+      const stillInList = filteredList.some((x) => x.id === pickedId);
+      if (!stillInList) setPickedId(filteredList[0].id);
+    }
   }, [filteredList]);
 
-  const skipToNext = useCallback(
-    (currentId: number) => {
-      const idx = filteredList.findIndex((x) => x.id === currentId);
-      const next = filteredList[idx + 1] ?? filteredList[0];
-      if (next && next.id !== currentId) setPickedId(next.id);
-    },
-    [filteredList],
+  const pickedItem = useMemo(
+    () => filteredList.find((x) => x.id === pickedId) ?? null,
+    [filteredList, pickedId],
   );
 
-  const streak = Number(
-    (profileQuery.data as { streak?: number } | undefined)?.streak ?? 0,
-  );
+  const pickedIndex = useMemo(() => {
+    if (pickedId == null) return -1;
+    return filteredList.findIndex((x) => x.id === pickedId);
+  }, [filteredList, pickedId]);
+
+  const progressFraction =
+    pickedIndex >= 0 && filteredList.length > 0
+      ? (pickedIndex + 1) / filteredList.length
+      : 0;
 
   const timerSeconds = useMemo(() => {
     const d = detailQuery.data as Record<string, unknown> | undefined;
     if (!d) return 0;
-    const raw =
-      d.time_limit_seconds ??
-      d.time_limit ??
-      d.duration_seconds ??
-      d.timer_seconds;
+    const raw = d.time_limit_seconds ?? d.time_limit ?? d.duration_seconds ?? d.timer_seconds;
     const n = Number(raw);
     return Number.isFinite(n) && n > 0 ? Math.min(3600, Math.floor(n)) : 0;
+  }, [detailQuery.data]);
+
+  const hints = useMemo(() => {
+    const d = detailQuery.data as Record<string, unknown> | undefined;
+    const ed = d?.exercise_data as Record<string, unknown> | undefined;
+    const h = ed?.hints;
+    if (Array.isArray(h) && h.length > 0) return h as string[];
+    return [];
   }, [detailQuery.data]);
 
   const fireConfetti = useCallback(() => {
@@ -263,18 +274,19 @@ function ExercisesInner() {
 
   const resetSessionTracking = useCallback(() => {
     uniqueCompletedRef.current = new Set();
-    setSessionStats({
-      completed: 0,
-      correctFirstTry: 0,
-      startTime: Date.now(),
-    });
+    setSessionStats({ completed: 0, correctFirstTry: 0, startTime: Date.now() });
     setSummaryVisible(false);
     summaryShownRef.current = false;
   }, []);
 
-  const dismissSummary = useCallback(() => {
-    setSummaryVisible(false);
-  }, []);
+  const dismissSummary = useCallback(() => setSummaryVisible(false), []);
+
+  const skipToNext = useCallback(() => {
+    if (pickedId == null) return;
+    const idx = filteredList.findIndex((x) => x.id === pickedId);
+    const next = filteredList[idx + 1] ?? filteredList[0];
+    if (next && next.id !== pickedId) setPickedId(next.id);
+  }, [filteredList, pickedId]);
 
   const exitReviewMode = useCallback(() => {
     setMode("normal");
@@ -318,16 +330,6 @@ function ExercisesInner() {
   const reviewDue = reviewQuery.data?.due ?? [];
   const reviewCount = reviewQuery.data?.count ?? reviewDue.length;
 
-  const pickedIndex = useMemo(() => {
-    if (pickedId == null) return -1;
-    return filteredList.findIndex((x) => x.id === pickedId);
-  }, [filteredList, pickedId]);
-
-  const progressFraction =
-    pickedIndex >= 0 && filteredList.length > 0
-      ? (pickedIndex + 1) / filteredList.length
-      : 0;
-
   const reviewCaughtUp =
     mode === "review" &&
     reviewItems.length > 0 &&
@@ -344,13 +346,9 @@ function ExercisesInner() {
 
     setSessionStats((s) => {
       const completed = s.completed + 1;
-      const correctFirstTry =
-        s.correctFirstTry + (hadIncorrectRef.current ? 0 : 1);
+      const correctFirstTry = s.correctFirstTry + (hadIncorrectRef.current ? 0 : 1);
       const next = { ...s, completed, correctFirstTry };
-
-      if (pickedId != null) {
-        uniqueCompletedRef.current.add(pickedId);
-      }
+      if (pickedId != null) uniqueCompletedRef.current.add(pickedId);
       const uniq = uniqueCompletedRef.current.size;
       const total = filteredList.length;
       const allTouched = total > 0 && uniq >= total;
@@ -358,12 +356,18 @@ function ExercisesInner() {
       if (batchDone || allTouched) {
         queueMicrotask(() => setSummaryVisible(true));
       }
-
       return next;
     });
 
     void reviewQuery.refetch();
     void profileQuery.refetch();
+
+    // Auto-advance after 1.2s
+    setTimeout(() => {
+      skipToNext();
+      setFeedbackLine("");
+      setFeedbackTone(null);
+    }, 1200);
   }, [
     filteredList.length,
     fireConfetti,
@@ -371,6 +375,7 @@ function ExercisesInner() {
     pickedId,
     profileQuery,
     reviewQuery,
+    skipToNext,
     t,
   ]);
 
@@ -382,317 +387,103 @@ function ExercisesInner() {
 
   const accuracyPct =
     sessionStats.completed > 0
-      ? Math.round(
-          (sessionStats.correctFirstTry / sessionStats.completed) * 100,
-        )
+      ? Math.round((sessionStats.correctFirstTry / sessionStats.completed) * 100)
       : 0;
   const elapsedSec = Math.max(
     0,
     Math.round((Date.now() - sessionStats.startTime) / 1000),
   );
 
-  const renderExerciseItem = useCallback(
-    ({ item: ex }: { item: ExerciseListItem }) => {
-      const selected = pickedId === ex.id;
-      const typeLabel = labelForExerciseType(ex.type, t);
-      const diffLabel = labelForDifficulty(ex.difficulty, t);
-      const iconName = exerciseTypeIconName(ex.type) as ComponentProps<
-        typeof MaterialCommunityIcons
-      >["name"];
+  const isListPending = mode === "normal" ? listQuery.isPending : reviewLoading;
+  const isListError = mode === "normal" && listQuery.isError;
+  const isFilteredEmpty =
+    !isListPending && mode === "normal" && list.length > 0 && filteredList.length === 0;
 
-      return (
-        <SwipeableExerciseCard
-          onStart={() => setPickedId(ex.id)}
-          onSkipNext={() => skipToNext(ex.id)}
-        >
+  // Category label for dropdown button
+  const categoryLabel = mergedCategory ?? "All Categories";
+  const typeLabel =
+    EXERCISE_TYPES.find((x) => x.value === exerciseType)?.label ?? "All Types";
+
+  return (
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <TabScreenHeader
+        title="Exercises"
+        left={<HeaderAvatarButton />}
+        right={<HeaderRightButtons />}
+      />
+
+      <ScrollView
+        style={{ flex: 1, backgroundColor: c.bg }}
+        contentContainerStyle={[styles.container, { paddingBottom: 40 }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        refreshControl={
+          <RefreshControl
+            refreshing={listQuery.isFetching || profileQuery.isFetching || reviewQuery.isFetching}
+            onRefresh={onRefresh}
+            tintColor={c.primary}
+          />
+        }
+      >
+        {/* ── Filters ── */}
+        <View style={styles.filtersRow}>
           <Pressable
-            onPress={() => setPickedId(ex.id)}
-            style={[
-              styles.row,
-              {
-                borderColor: selected ? c.primary : c.border,
-                backgroundColor: selected ? c.accentMuted : c.surface,
-                borderWidth: selected ? 2 : StyleSheet.hairlineWidth,
-              },
-            ]}
+            onPress={() => setCategoryPickerOpen(true)}
+            style={[styles.filterBtn, { backgroundColor: c.surface, borderColor: c.border }]}
           >
-            <View
-              style={[
-                styles.typeIconWrap,
-                { backgroundColor: selected ? c.surface : c.surfaceOffset },
-              ]}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-            >
-              <MaterialCommunityIcons
-                name={iconName}
-                size={22}
-                color={c.primary}
-              />
-            </View>
-            <View style={styles.rowMain}>
-              <Text
-                style={{
-                  color: c.text,
-                  fontWeight: "800",
-                  fontSize: typography.md,
-                }}
-                numberOfLines={2}
-              >
-                {typeLabel}
-              </Text>
-              <View style={styles.metaRow}>
-                <View style={[styles.tag, { backgroundColor: c.surface }]}>
-                  <Text
-                    style={{ color: c.textMuted, fontSize: typography.xs }}
-                    numberOfLines={1}
-                  >
-                    {ex.category ?? "—"}
-                  </Text>
-                </View>
-                {diffLabel ? (
-                  <View style={[styles.tag, { backgroundColor: c.surface }]}>
-                    <Text
-                      style={{ color: c.textMuted, fontSize: typography.xs }}
-                    >
-                      {diffLabel}
-                    </Text>
-                  </View>
-                ) : null}
-                <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
-                  #{ex.id}
-                </Text>
-              </View>
-            </View>
+            <Text style={[styles.filterBtnText, { color: c.text }]} numberOfLines={1}>
+              {categoryLabel}
+            </Text>
+            <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
           </Pressable>
-        </SwipeableExerciseCard>
-      );
-    },
-    [c, pickedId, skipToNext, t],
-  );
 
-  const listEmptyCopy = useMemo(() => {
-    if (!listReady) return null;
-    if (filteredList.length > 0) return null;
-    if (list.length === 0) return t("exercises.practiceHub.emptyDrills");
-    return t("exercises.emptyFiltered.subtitle");
-  }, [filteredList.length, list.length, listReady, t]);
-
-  const listHeader = useMemo(
-    () => (
-      <>
-        <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-          <View style={styles.heroRow}>
-            <View style={styles.heroLeft}>
-              <View style={styles.heroTitleRow}>
-                <Text style={[styles.title, { color: c.text }]}>
-                  {t("exercises.practiceHub.title")}
-                </Text>
-                {mode === "review" ? (
-                  <View
-                    style={[
-                      styles.modeBadge,
-                      { backgroundColor: c.accentMuted },
-                    ]}
-                  >
-                    <Text style={[styles.modeBadgeText, { color: c.accent }]}>
-                      {t("exercises.practiceHub.reviewMode")}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text style={[styles.sub, { color: c.textMuted }]}>
-                {t("exercises.practiceHub.subtitle")}
-              </Text>
-              <StreakBanner streakCount={streak} style={{ marginBottom: 0 }} />
-            </View>
-            <View style={styles.heroMascot}>
-              <MascotWithMessage
-                mood="encourage"
-                rotationKey={2}
-                embedded
-                mascotSize={52}
-              />
-            </View>
-          </View>
-        </GlassCard>
-
-        {mergedCategory && mode === "normal" ? (
-          <View
-            style={[styles.practicingPill, { backgroundColor: c.accentMuted }]}
+          <Pressable
+            onPress={() => setTypePickerOpen(true)}
+            style={[styles.filterBtn, { backgroundColor: c.surface, borderColor: c.border }]}
           >
-            <Text
-              style={[styles.practicingPillText, { color: c.text }]}
-              numberOfLines={1}
-            >
-              {t("exercises.practiceHub.practicing", {
-                category: mergedCategory,
-              })}
+            <Text style={[styles.filterBtnText, { color: c.text }]} numberOfLines={1}>
+              {typeLabel}
             </Text>
-          </View>
-        ) : null}
+            <Text style={{ color: c.textMuted, fontSize: 12 }}>▾</Text>
+          </Pressable>
+        </View>
 
-        {accessToken ? (
-          <GlassCard padding="sm" style={{ marginBottom: spacing.md }}>
-            {reviewCount > 0 ? (
-              <>
-                <Text style={[styles.reviewLine, { color: c.text }]}>
-                  {t("exercises.practiceHub.reviewsDue", {
-                    count: reviewCount,
-                  })}
-                </Text>
-                {reviewDue[0] ? (
-                  <Text
-                    style={[styles.reviewNext, { color: c.textMuted }]}
-                    numberOfLines={3}
-                  >
-                    {t("exercises.reviewQueue.nextUp", {
-                      skill: reviewDue[0].skill ?? "",
-                      question: truncateText(reviewDue[0].question ?? "—", 120),
-                    })}
-                  </Text>
-                ) : null}
-                <Button
-                  onPress={() => void startReviewMode()}
-                  disabled={reviewLoading || !reviewDue.length}
-                  style={{ marginTop: spacing.sm }}
-                >
-                  {reviewLoading ? "…" : t("exercises.practiceHub.doReviews")}
-                </Button>
-              </>
-            ) : (
-              <Text style={{ color: c.textMuted, fontSize: typography.sm }}>
-                {t("exercises.reviewQueue.emptyTitle")}
-              </Text>
-            )}
-          </GlassCard>
-        ) : null}
-
+        {/* ── Review mode banner ── */}
         {mode === "review" ? (
-          <Button
-            variant="secondary"
-            onPress={exitReviewMode}
-            style={{ marginBottom: spacing.md }}
-          >
-            {t("exercises.practiceHub.backToNormal")}
-          </Button>
-        ) : null}
-
-        {mode === "normal" ? (
-          <>
-            <Text style={[styles.section, { color: c.accent }]}>
-              {t("exercises.practiceHub.pickSkillArea")}
+          <View style={[styles.reviewBanner, { backgroundColor: c.accentMuted }]}>
+            <Text style={[styles.reviewBannerText, { color: c.text }]}>
+              Review Mode — {reviewItems.length} due
             </Text>
-            <ScrollView
-              horizontal
-              nestedScrollEnabled
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: spacing.sm }}
-            >
-              <Pressable
-                onPress={() => setCategory(undefined)}
-                style={[
-                  styles.chip,
-                  {
-                    borderColor: c.border,
-                    backgroundColor: !mergedCategory ? c.primary : c.surface,
-                    minHeight: 44,
-                    justifyContent: "center",
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: !mergedCategory ? c.textOnPrimary : c.text,
-                    fontWeight: !mergedCategory ? "800" : "600",
-                  }}
-                >
-                  {t("exercises.practiceHub.allChip")}
-                </Text>
-              </Pressable>
-              {(categoriesQuery.data ?? []).map((cat) => {
-                const selected = mergedCategory === cat;
-                return (
-                  <Pressable
-                    key={cat}
-                    onPress={() => setCategory(cat)}
-                    style={[
-                      styles.chip,
-                      {
-                        borderColor: c.border,
-                        backgroundColor: selected ? c.primary : c.surface,
-                        minHeight: 44,
-                        justifyContent: "center",
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        color: selected ? c.textOnPrimary : c.text,
-                        fontWeight: selected ? "800" : "600",
-                      }}
-                      numberOfLines={1}
-                    >
-                      {cat}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-            <Pressable
-              onPress={pickRandom}
-              style={[
-                styles.randomPill,
-                {
-                  borderColor: c.border,
-                  backgroundColor: c.surface,
-                  marginBottom: spacing.md,
-                  minHeight: 44,
-                  justifyContent: "center",
-                },
-              ]}
-            >
-              <Text style={{ color: c.text, fontWeight: "700" }}>
-                {t("exercises.practiceHub.randomExercise")}
+            <Pressable onPress={exitReviewMode}>
+              <Text style={{ color: c.primary, fontWeight: "700", fontSize: typography.sm }}>
+                Exit
               </Text>
             </Pressable>
-          </>
+          </View>
         ) : null}
 
-        {reviewCaughtUp ? (
-          <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
-            <Text
-              style={{ color: c.text, fontSize: typography.sm, lineHeight: 20 }}
-            >
-              {t("exercises.practiceHub.reviewUpToDate")}
+        {/* ── Start review button ── */}
+        {mode === "normal" && reviewCount > 0 && accessToken ? (
+          <Pressable
+            onPress={() => void startReviewMode()}
+            style={[styles.reviewPrompt, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}
+          >
+            <MaterialCommunityIcons name="sync" size={16} color={c.error} />
+            <Text style={{ color: c.error, fontWeight: "700", fontSize: typography.sm }}>
+              {reviewCount} review{reviewCount !== 1 ? "s" : ""} due — tap to start
             </Text>
-            <Button
-              onPress={exitReviewMode}
-              style={{ marginTop: spacing.sm }}
-              variant="secondary"
-            >
-              {t("exercises.practiceHub.backToNormal")}
-            </Button>
-          </GlassCard>
+          </Pressable>
         ) : null}
 
+        {/* ── Loading / Error / Empty ── */}
         {isListPending ? (
-          <Skeleton
-            width="100%"
-            height={120}
-            style={{ marginBottom: spacing.md }}
-          />
+          <Skeleton width="100%" height={200} style={{ marginBottom: spacing.md }} />
         ) : null}
         {isListError ? (
           <ErrorState
             message={t("exercises.errors.loadFailed")}
             onRetry={() => void listQuery.refetch()}
           />
-        ) : null}
-        {isReviewEmpty ? (
-          <Text style={{ color: c.textMuted, marginBottom: spacing.md }}>
-            {t("exercises.reviewQueue.emptySubtitle")}
-          </Text>
         ) : null}
         {isFilteredEmpty ? (
           <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
@@ -704,64 +495,47 @@ function ExercisesInner() {
             </Text>
           </GlassCard>
         ) : null}
-      </>
-    ),
-    [
-      accessToken,
-      c,
-      categoriesQuery.data,
-      exitReviewMode,
-      isFilteredEmpty,
-      isListError,
-      isListPending,
-      isReviewEmpty,
-      listQuery,
-      mergedCategory,
-      mode,
-      pickRandom,
-      reviewCaughtUp,
-      reviewCount,
-      reviewDue,
-      reviewLoading,
-      startReviewMode,
-      streak,
-      t,
-    ],
-  );
 
-  const listFooter = useMemo(
-    () => (
-      <>
-        {pickedId != null && detailQuery.isPending ? (
-          <Skeleton
-            width="100%"
-            height={200}
-            style={{ marginTop: spacing.lg }}
-          />
-        ) : null}
-        {pickedId != null && detailQuery.data ? (
-          <GlassCard padding="md" style={{ marginTop: spacing.xl }}>
-            <View style={styles.activeHeader}>
-              <Text
-                style={{
-                  color: c.textMuted,
-                  fontSize: typography.sm,
-                  fontWeight: "600",
-                }}
-              >
-                {t("exercises.practiceHub.progressLabel", {
-                  current: pickedIndex >= 0 ? pickedIndex + 1 : 0,
-                  total: filteredList.length || 0,
-                })}
-              </Text>
-              {timerSeconds > 0 ? (
-                <ExerciseTimer
-                  key={pickedId ?? 0}
-                  totalSeconds={timerSeconds}
-                  active
-                />
-              ) : null}
-            </View>
+        {/* ── Active exercise ── */}
+        {!isListPending && !isListError && filteredList.length > 0 ? (
+          <>
+            {/* Meta row */}
+            {pickedItem ? (
+              <View style={styles.metaRow}>
+                <View style={[styles.tag, { backgroundColor: c.surfaceOffset }]}>
+                  <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
+                    {pickedItem.category ?? "—"}
+                  </Text>
+                </View>
+                {pickedItem.difficulty ? (
+                  <View
+                    style={[
+                      styles.tag,
+                      {
+                        backgroundColor: `${difficultyColor(pickedItem.difficulty, c)}22`,
+                        borderColor: `${difficultyColor(pickedItem.difficulty, c)}55`,
+                        borderWidth: 0.5,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: difficultyColor(pickedItem.difficulty, c),
+                        fontSize: typography.xs,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {labelForDifficulty(pickedItem.difficulty, t)}
+                    </Text>
+                  </View>
+                ) : null}
+                <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
+                  {pickedIndex + 1} / {filteredList.length}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Progress bar */}
             <View style={[styles.progressTrack, { backgroundColor: c.border }]}>
               <View
                 style={[
@@ -773,103 +547,176 @@ function ExercisesInner() {
                 ]}
               />
             </View>
-            <ExerciseSection
-              exerciseType={String(detailQuery.data.type ?? "")}
-              exerciseData={
-                (detailQuery.data.exercise_data as Record<string, unknown>) ??
-                {}
-              }
-              exerciseId={detailQuery.data.id as number}
-              onAttempt={({ correct }) => {
-                if (!correct) {
-                  hadIncorrectRef.current = true;
-                  setFeedbackLine(t("exercises.practiceHub.feedbackTryAgain"));
-                  setFeedbackTone("error");
-                  void Haptics.notificationAsync(
-                    Haptics.NotificationFeedbackType.Error,
-                  );
-                }
-              }}
-              onComplete={handleExerciseComplete}
-            />
-            {feedbackLine ? (
-              <Text
-                style={[
-                  styles.feedbackLine,
-                  {
-                    color:
-                      feedbackTone === "success"
-                        ? c.success
-                        : feedbackTone === "error"
-                          ? c.error
-                          : c.textMuted,
-                  },
-                ]}
-              >
-                {feedbackLine}
-              </Text>
+
+            {/* Exercise card */}
+            <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
+              {pickedId != null && timerSeconds > 0 ? (
+                <ExerciseTimer key={pickedId} totalSeconds={timerSeconds} active />
+              ) : null}
+
+              {pickedId != null && detailQuery.isPending ? (
+                <Skeleton width="100%" height={180} />
+              ) : null}
+
+              {pickedId != null && detailQuery.data ? (
+                <ExerciseSection
+                  exerciseType={String(detailQuery.data.type ?? "")}
+                  exerciseData={
+                    (detailQuery.data.exercise_data as Record<string, unknown>) ?? {}
+                  }
+                  exerciseId={detailQuery.data.id as number}
+                  onAttempt={({ correct }) => {
+                    if (!correct) {
+                      hadIncorrectRef.current = true;
+                      setFeedbackLine(t("exercises.practiceHub.feedbackTryAgain"));
+                      setFeedbackTone("error");
+                      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                    }
+                  }}
+                  onComplete={handleExerciseComplete}
+                />
+              ) : null}
+
+              {feedbackLine ? (
+                <Text
+                  style={[
+                    styles.feedbackLine,
+                    {
+                      color:
+                        feedbackTone === "success"
+                          ? c.success
+                          : feedbackTone === "error"
+                            ? c.error
+                            : c.textMuted,
+                    },
+                  ]}
+                >
+                  {feedbackLine}
+                </Text>
+              ) : null}
+            </GlassCard>
+
+            {/* Hints */}
+            {hints.length > 0 ? (
+              <View style={{ marginBottom: spacing.md }}>
+                <Pressable
+                  onPress={() => setHintIndex((i) => Math.min(i + 1, hints.length))}
+                  style={[styles.hintBtn, { borderColor: c.border, backgroundColor: c.surface }]}
+                >
+                  <MaterialCommunityIcons name="lightbulb-outline" size={16} color={c.accent} />
+                  <Text style={{ color: c.text, fontWeight: "600", fontSize: typography.sm }}>
+                    {hintIndex < hints.length ? "Show hint" : "All hints shown"}
+                  </Text>
+                </Pressable>
+                {hints.slice(0, hintIndex).map((h, i) => (
+                  <View
+                    key={i}
+                    style={[styles.hintCard, { backgroundColor: c.surfaceOffset, borderColor: c.border }]}
+                  >
+                    <Text style={{ color: c.textMuted, fontSize: typography.sm, lineHeight: 20 }}>
+                      {h}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             ) : null}
+
+            {/* Skip button */}
+            <Button variant="secondary" onPress={skipToNext}>
+              Skip →
+            </Button>
+          </>
+        ) : null}
+
+        {/* Review caught up */}
+        {reviewCaughtUp ? (
+          <GlassCard padding="md" style={{ marginTop: spacing.md }}>
+            <Text style={{ color: c.text, fontSize: typography.sm, lineHeight: 20 }}>
+              {t("exercises.practiceHub.reviewUpToDate")}
+            </Text>
+            <Button onPress={exitReviewMode} style={{ marginTop: spacing.sm }} variant="secondary">
+              {t("exercises.practiceHub.backToNormal")}
+            </Button>
           </GlassCard>
         ) : null}
-      </>
-    ),
-    [
-      c,
-      detailQuery.data,
-      detailQuery.isPending,
-      feedbackLine,
-      feedbackTone,
-      filteredList.length,
-      handleExerciseComplete,
-      pickedId,
-      pickedIndex,
-      progressFraction,
-      t,
-      timerSeconds,
-    ],
-  );
+      </ScrollView>
 
-  return (
-    <>
-      <FlatList
-        data={listReady ? filteredList : []}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderExerciseItem}
-        ListHeaderComponent={listHeader}
-        ListFooterComponent={listFooter}
-        ListEmptyComponent={
-          listEmptyCopy ? (
-            <Text style={{ color: c.textMuted, paddingVertical: spacing.md }}>
-              {listEmptyCopy}
-            </Text>
-          ) : null
-        }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        contentContainerStyle={[
-          styles.container,
-          {
-            backgroundColor: c.bg,
-            paddingBottom: TAB_BAR_CONTENT_PAD + spacing.xl,
-          },
-        ]}
-        style={{ flex: 1, backgroundColor: c.bg }}
-        showsVerticalScrollIndicator
-        nestedScrollEnabled
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        refreshControl={
-          <RefreshControl
-            refreshing={
-              listQuery.isFetching ||
-              profileQuery.isFetching ||
-              reviewQuery.isFetching
-            }
-            onRefresh={onRefresh}
-            tintColor={c.primary}
+      {/* Category picker modal */}
+      <Modal
+        visible={categoryPickerOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCategoryPickerOpen(false)}
+      >
+        <View style={styles.modalRoot}>
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
+            onPress={() => setCategoryPickerOpen(false)}
           />
-        }
-      />
+          <View style={[styles.pickerSheet, { backgroundColor: c.surface }]}>
+            <View style={[styles.dragHandle, { backgroundColor: c.border }]} />
+            <Text style={[styles.pickerTitle, { color: c.text }]}>Category</Text>
+            <ScrollView>
+              <Pressable
+                onPress={() => { setCategory(undefined); setCategoryPickerOpen(false); }}
+                style={styles.pickerOption}
+              >
+                <Text style={{ color: c.text, fontSize: typography.base }}>All Categories</Text>
+                {!mergedCategory ? (
+                  <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                ) : null}
+              </Pressable>
+              {(categoriesQuery.data ?? []).map((cat) => (
+                <Pressable
+                  key={cat}
+                  onPress={() => { setCategory(cat); setCategoryPickerOpen(false); }}
+                  style={styles.pickerOption}
+                >
+                  <Text style={{ color: c.text, fontSize: typography.base }}>{cat}</Text>
+                  {mergedCategory === cat ? (
+                    <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
+      {/* Type picker modal */}
+      <Modal
+        visible={typePickerOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTypePickerOpen(false)}
+      >
+        <View style={styles.modalRoot}>
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
+            onPress={() => setTypePickerOpen(false)}
+          />
+          <View style={[styles.pickerSheet, { backgroundColor: c.surface }]}>
+            <View style={[styles.dragHandle, { backgroundColor: c.border }]} />
+            <Text style={[styles.pickerTitle, { color: c.text }]}>Exercise Type</Text>
+            <ScrollView>
+              {EXERCISE_TYPES.map((opt) => (
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => { setExerciseType(opt.value); setTypePickerOpen(false); }}
+                  style={styles.pickerOption}
+                >
+                  <Text style={{ color: c.text, fontSize: typography.base }}>{opt.label}</Text>
+                  {exerciseType === opt.value ? (
+                    <MaterialCommunityIcons name="check" size={18} color={c.primary} />
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Session summary modal */}
       <Modal
         visible={summaryVisible}
         transparent
@@ -878,25 +725,15 @@ function ExercisesInner() {
       >
         <View style={styles.modalRoot}>
           <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: c.overlay }]}
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.45)" }]}
             onPress={dismissSummary}
-            accessibilityRole="button"
-            accessibilityLabel={t(
-              "exercises.practiceHub.sessionSummaryDismiss",
-            )}
           />
           <View style={styles.modalSheet}>
             <GlassCard padding="lg">
               <Text style={[styles.summaryTitle, { color: c.text }]}>
                 {t("exercises.practiceHub.sessionSummaryTitle")}
               </Text>
-              <Text
-                style={{
-                  color: c.textMuted,
-                  marginTop: spacing.xs,
-                  lineHeight: 20,
-                }}
-              >
+              <Text style={{ color: c.textMuted, marginTop: spacing.xs, lineHeight: 20 }}>
                 {t("exercises.practiceHub.sessionSummaryBody", {
                   completed: sessionStats.completed,
                   accuracy: accuracyPct,
@@ -906,20 +743,12 @@ function ExercisesInner() {
               <View style={styles.summaryActions}>
                 <Button
                   variant="secondary"
-                  onPress={() => {
-                    resetSessionTracking();
-                    void startReviewMode();
-                  }}
+                  onPress={() => { resetSessionTracking(); void startReviewMode(); }}
                   disabled={!reviewCount}
                 >
                   {t("exercises.practiceHub.doReviews")}
                 </Button>
-                <Button
-                  onPress={() => {
-                    resetSessionTracking();
-                    pickRandom();
-                  }}
-                >
+                <Button onPress={() => { resetSessionTracking(); skipToNext(); }}>
                   {t("exercises.practiceHub.moreExercises")}
                 </Button>
                 <Button variant="ghost" onPress={dismissSummary}>
@@ -939,7 +768,7 @@ function ExercisesInner() {
         autoStart={false}
         colors={["#ffd700", c.primary, "#ffffff", c.accent]}
       />
-    </>
+    </View>
   );
 }
 
@@ -953,108 +782,116 @@ export default function ExercisesTab() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl },
-  modalRoot: { flex: 1, justifyContent: "flex-end" },
-  modalSheet: { padding: spacing.md, paddingBottom: spacing.xxl },
-  heroRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md },
-  heroLeft: { flex: 1, minWidth: 0 },
-  heroMascot: { maxWidth: 140 },
-  heroTitleRow: {
+  filtersRow: {
     flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
     gap: spacing.sm,
-  },
-  title: { fontSize: typography.xl, fontWeight: "800" },
-  sub: {
-    fontSize: typography.sm,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
-    lineHeight: 20,
-  },
-  modeBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.full,
-  },
-  modeBadgeText: {
-    fontSize: 11,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
-  practicingPill: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
     marginBottom: spacing.md,
   },
-  practicingPillText: { fontSize: typography.sm, fontWeight: "700" },
-  reviewLine: { fontSize: typography.sm, fontWeight: "700" },
-  reviewNext: { fontSize: typography.sm, marginTop: spacing.xs },
-  section: {
-    fontSize: typography.sm,
-    fontWeight: "700",
-    marginBottom: spacing.sm,
-  },
-  chip: {
+  filterBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginRight: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 0.5,
+    gap: spacing.xs,
+    minHeight: 44,
   },
-  randomPill: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.lg,
+  filterBtnText: {
+    flex: 1,
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
+  reviewBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.md,
     borderRadius: radius.md,
-    gap: spacing.md,
+    marginBottom: spacing.md,
   },
-  typeIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rowMain: { flex: 1, minWidth: 0, gap: spacing.xs },
-  metaRow: {
+  reviewBannerText: { fontSize: typography.sm, fontWeight: "700" },
+  reviewPrompt: {
     flexDirection: "row",
-    flexWrap: "wrap",
     alignItems: "center",
     gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 0.5,
+    marginBottom: spacing.md,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+    flexWrap: "wrap",
   },
   tag: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.sm,
   },
-  activeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-    flexWrap: "wrap",
-  },
   progressTrack: {
-    height: 4,
-    borderRadius: 2,
+    height: 6,
+    borderRadius: 3,
     overflow: "hidden",
     marginBottom: spacing.md,
   },
-  progressFill: { height: "100%", borderRadius: 2 },
+  progressFill: { height: "100%", borderRadius: 3 },
   feedbackLine: {
     marginTop: spacing.md,
     fontSize: typography.sm,
     fontWeight: "600",
+  },
+  hintBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 0.5,
+    marginBottom: spacing.sm,
+  },
+  hintCard: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 0.5,
+    marginBottom: spacing.sm,
+  },
+  modalRoot: { flex: 1, justifyContent: "flex-end" },
+  modalSheet: { padding: spacing.md, paddingBottom: spacing.xxl },
+  pickerSheet: {
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    paddingBottom: 40,
+    maxHeight: "70%",
+  },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  pickerTitle: {
+    fontSize: typography.md,
+    fontWeight: "700",
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  pickerOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
   },
   summaryTitle: { fontSize: typography.md, fontWeight: "800" },
   summaryActions: {

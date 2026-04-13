@@ -5,6 +5,11 @@ import Toast from "react-native-toast-message";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { I18nextProvider } from "react-i18next";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
+} from "@react-navigation/native";
 import { i18n, queryClient } from "@garzoni/core";
 import { AuthProvider } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
@@ -19,30 +24,46 @@ initI18nMobile();
 
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
+
+  const navTheme = {
+    ...(resolved === "dark" ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(resolved === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.bg,
+      card: colors.surface,
+      border: colors.border,
+      text: colors.text,
+      primary: colors.primary,
+      notification: colors.primary,
+    },
+  };
+
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <StatusBar style={resolved === "dark" ? "light" : "dark"} />
-      <OfflineBanner />
-      <View style={styles.stackHost}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="lesson" options={{ headerShown: false }} />
-          <Stack.Screen name="course" options={{ headerShown: false }} />
-          <Stack.Screen name="flow" options={{ headerShown: false }} />
-          <Stack.Screen name="path" options={{ headerShown: false }} />
-          <Stack.Screen name="quiz" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="change-password"
-            options={{ headerShown: true, title: "Change password" }}
-          />
-          <Stack.Screen name="feedback" options={{ headerShown: false }} />
-        </Stack>
+    <NavigationThemeProvider value={navTheme}>
+      <View style={[styles.root, { backgroundColor: colors.bg }]}>
+        <StatusBar style={resolved === "dark" ? "light" : "dark"} />
+        <OfflineBanner />
+        <View style={styles.stackHost}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" options={{ title: "Home" }} />
+            <Stack.Screen name="lesson" options={{ headerShown: false }} />
+            <Stack.Screen name="course" options={{ headerShown: false }} />
+            <Stack.Screen name="flow" options={{ headerShown: false }} />
+            <Stack.Screen name="path" options={{ headerShown: false }} />
+            <Stack.Screen name="quiz" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="change-password"
+              options={{ headerShown: true, title: "Change password" }}
+            />
+            <Stack.Screen name="feedback" options={{ headerShown: false }} />
+          </Stack>
+        </View>
+        <Toast />
       </View>
-      <Toast />
-    </View>
+    </NavigationThemeProvider>
   );
 }
 

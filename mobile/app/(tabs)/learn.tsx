@@ -52,6 +52,7 @@ import {
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 
 type LearnActiveView = "all-topics" | "personalized-path";
 
@@ -841,7 +842,10 @@ function LearnInner() {
 export default function LearnScreen() {
   return (
     <TabErrorBoundary>
-      <LearnInner />
+      <View style={{ flex: 1 }}>
+        <TabScreenHeader title="Learn" />
+        <LearnInner />
+      </View>
     </TabErrorBoundary>
   );
 }
