@@ -392,6 +392,9 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@22.19.15)(happy-dom@20.8.9)(jiti@1.21.7)(jsdom@25.0.1)(lightningcss@1.32.0)(sass@1.98.0)(terser@5.46.1)(yaml@2.8.3)
 
 packages:
   "@0no-co/graphql.web@1.2.0":
@@ -13112,11 +13115,6 @@ snapshots:
       "@ckeditor/ckeditor5-paste-from-office": 41.4.2
       "@ckeditor/ckeditor5-table": 41.4.2
       "@ckeditor/ckeditor5-typing": 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   "@ckeditor/ckeditor5-build-multi-root@41.4.2":
     dependencies:
@@ -13218,11 +13216,6 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   "@ckeditor/ckeditor5-editor-multi-root@41.4.2":
     dependencies:
@@ -13299,11 +13292,6 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   "@ckeditor/ckeditor5-image@41.4.2":
     dependencies:
@@ -15017,9 +15005,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - "@babel/core"
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   "@react-native/normalize-colors@0.76.2": {}
 

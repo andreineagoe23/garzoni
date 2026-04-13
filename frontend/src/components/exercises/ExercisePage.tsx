@@ -16,6 +16,7 @@ import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
 import { useAnalytics } from "hooks/useAnalytics";
+import type { MascotSituation } from "hooks/useMascotMessage";
 import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
 import ExerciseIntentBanner from "./ExerciseIntentBanner";
 import ExerciseIntentLessonEmpty from "./ExerciseIntentLessonEmpty";
@@ -86,7 +87,6 @@ const ExercisePage = () => {
   const skillInsightTimeoutRef = useRef(null);
   const isDevelopment = import.meta.env.DEV;
   const mascotTimeoutRef = useRef(null);
-  const mascotInteractionCountRef = useRef(0);
   const exercisesBootRef = useRef(false);
   const exercisesFetchGenerationRef = useRef(0);
   const exercisesAbortRef = useRef<AbortController | null>(null);
@@ -149,6 +149,7 @@ const ExercisePage = () => {
   const [mascotMood, setMascotMood] = useState<
     "neutral" | "celebrate" | "encourage"
   >("neutral");
+  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   const logError = useCallback(
     (...args) => {
       if (isDevelopment) {
@@ -161,12 +162,18 @@ const ExercisePage = () => {
     if (mascotTimeoutRef.current) {
       clearTimeout(mascotTimeoutRef.current);
     }
-    mascotInteractionCountRef.current += 1;
+    setMascotRotationKey((n) => n + 1);
     setMascotMood(nextMood);
     mascotTimeoutRef.current = setTimeout(() => {
       setMascotMood("neutral");
     }, 3500);
   }, []);
+
+  const practiceMascotSituation = useMemo((): MascotSituation => {
+    if (mascotMood === "celebrate") return "practice_correct";
+    if (mascotMood === "encourage") return "practice_incorrect";
+    return "practice_neutral";
+  }, [mascotMood]);
 
   const currentExercise = useMemo(
     () => exercises[currentExerciseIndex] || null,
@@ -459,6 +466,7 @@ const ExercisePage = () => {
         if (snapshot.category) params.append("category", snapshot.category);
         if (snapshot.difficulty)
           params.append("difficulty", snapshot.difficulty);
+        params.append("as_learner", "1");
 
         const response = await apiClient.get("/exercises/", {
           params,
@@ -513,7 +521,9 @@ const ExercisePage = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await apiClient.get("/exercises/categories/");
+      const response = await apiClient.get("/exercises/categories/", {
+        params: { as_learner: "1" },
+      });
       setCategories(response.data);
     } catch (err) {
       logError("Failed to load categories:", err);
@@ -2444,6 +2454,9 @@ const ExercisePage = () => {
               <div className="pointer-events-none sticky bottom-6">
                 <MascotWithMessage
                   mood={mascotMood}
+                  situation={practiceMascotSituation}
+                  rotateMessages
+                  rotationKey={mascotRotationKey}
                   mascotClassName="h-24 w-24 object-contain"
                 />
                 {recentSkillInsight && (

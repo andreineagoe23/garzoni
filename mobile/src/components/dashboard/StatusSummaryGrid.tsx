@@ -87,7 +87,9 @@ export default function StatusSummaryGrid({
         <KPITile style={styles.gridTile}>
           <View style={styles.iconRow}>
             <MaterialCommunityIcons name="fire" size={16} color={c.textMuted} />
-            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
+            <Text
+              style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}
+            >
               {t("dashboard.statusSummary.streak")}
             </Text>
           </View>
@@ -99,10 +101,7 @@ export default function StatusSummaryGrid({
 
       {/* Reviews Due — full width, only when relevant */}
       {!reviewError && reviewsDue > 0 ? (
-        <KPITile
-          urgent
-          onPress={onOpenReviews}
-        >
+        <KPITile urgent onPress={onOpenReviews}>
           <View style={styles.rowBetween}>
             <View style={styles.iconRow}>
               <MaterialCommunityIcons name="sync" size={16} color={c.error} />
@@ -110,7 +109,12 @@ export default function StatusSummaryGrid({
                 {t("dashboard.statusSummary.reviewsDue")}
               </Text>
             </View>
-            <Text style={[styles.urgentPill, { color: c.error, borderColor: `${c.error}55` }]}>
+            <Text
+              style={[
+                styles.urgentPill,
+                { color: c.error, borderColor: `${c.error}55` },
+              ]}
+            >
               {t("dashboard.statusSummary.urgent")}
             </Text>
           </View>
@@ -118,8 +122,13 @@ export default function StatusSummaryGrid({
             {formatNum(reviewsDue, locale)}
           </Text>
           {reviewTopSkill ? (
-            <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={2}>
-              {t("dashboard.statusSummary.nextReviewSkill", { skill: reviewTopSkill })}
+            <Text
+              style={[styles.meta, { color: c.textMuted }]}
+              numberOfLines={2}
+            >
+              {t("dashboard.statusSummary.nextReviewSkill", {
+                skill: reviewTopSkill,
+              })}
             </Text>
           ) : null}
           {onOpenReviews ? (
@@ -134,8 +143,14 @@ export default function StatusSummaryGrid({
       {!missionsError && activeMissionsCount > 0 ? (
         <KPITile onPress={onOpenMissions}>
           <View style={styles.iconRow}>
-            <MaterialCommunityIcons name="rocket-launch" size={16} color={c.textMuted} />
-            <Text style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}>
+            <MaterialCommunityIcons
+              name="rocket-launch"
+              size={16}
+              color={c.textMuted}
+            />
+            <Text
+              style={[styles.label, { color: c.textMuted, marginBottom: 0 }]}
+            >
               {t("dashboard.statusSummary.activeMissions")}
             </Text>
           </View>
@@ -146,7 +161,12 @@ export default function StatusSummaryGrid({
       ) : null}
 
       {reviewError ? (
-        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.errorTile,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <Text style={[styles.label, { color: c.error }]}>
             {t("dashboard.statusSummary.failedLoadReviews")}
           </Text>
@@ -162,7 +182,12 @@ export default function StatusSummaryGrid({
       ) : null}
 
       {missionsError ? (
-        <View style={[styles.errorTile, { borderColor: c.border, backgroundColor: c.surface }]}>
+        <View
+          style={[
+            styles.errorTile,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
           <Text style={[styles.label, { color: c.error }]}>
             {t("dashboard.statusSummary.failedLoadMissions")}
           </Text>

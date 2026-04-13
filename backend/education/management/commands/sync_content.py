@@ -56,10 +56,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Compatibility flag for non-interactive deploy hooks.",
         )
+        parser.add_argument(
+            "--prune-orphans",
+            action="store_true",
+            help="With exercises scope: unpublish DB exercises not in exercises_release.json.",
+        )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
         force = options["force"]
+        prune_orphans = options["prune_orphans"]
         raw_scopes = [s.strip().lower() for s in (options["only"] or "").split(",") if s.strip()]
         if not raw_scopes:
             raise CommandError("--only cannot be empty.")
@@ -89,6 +95,11 @@ class Command(BaseCommand):
             call_command("sync_content_release", dry_run=dry_run, force=force)
 
         if "exercises" in scopes:
-            call_command("sync_exercises_release", dry_run=dry_run, force=force)
+            call_command(
+                "sync_exercises_release",
+                dry_run=dry_run,
+                force=force,
+                prune_orphans=prune_orphans,
+            )
 
         self.stdout.write(self.style.SUCCESS("sync_content finished successfully."))

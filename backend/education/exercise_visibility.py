@@ -16,13 +16,21 @@ from education.models import ExerciseTranslation
 INTERNAL_EXERCISE_CATEGORY = "General"
 
 
-def apply_learner_exercise_filters(qs: QuerySet, user) -> QuerySet:
+def apply_learner_exercise_filters(
+    qs: QuerySet, user, *, force_learner: bool = False
+) -> QuerySet:
     """
     Restrict queryset to exercises safe to show in product surfaces (list, categories,
     recommendations, etc.).
+
+    Staff/superusers normally bypass filters so QA can see drafts. When ``force_learner``
+    is True (e.g. ``?as_learner=1`` from the learner app), the same rules as learners apply
+    so counts match production.
     """
-    if user is not None and (
-        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+    if (
+        not force_learner
+        and user is not None
+        and (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
     ):
         return qs
 
@@ -44,4 +52,6 @@ def learner_can_access_exercise(user, exercise_id: int) -> bool:
     """True if this user may load or submit answers for the given exercise id."""
     from education.models import Exercise  # local import avoids circular import at module load
 
-    return apply_learner_exercise_filters(Exercise.objects.filter(pk=exercise_id), user).exists()
+    return apply_learner_exercise_filters(
+        Exercise.objects.filter(pk=exercise_id), user, force_learner=False
+    ).exists()

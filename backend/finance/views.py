@@ -1254,12 +1254,15 @@ def _stripe_subscription_ui_snapshot(profile) -> dict:
     stripe.api_key = stripe_key
     sub = None
     sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+    attempted_stripe = False
     try:
         if sub_id:
+            attempted_stripe = True
             sub = stripe.Subscription.retrieve(sub_id)
         else:
             cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
             if cid:
+                attempted_stripe = True
                 subs = stripe.Subscription.list(customer=cid, status="all", limit=10)
                 for s in subs.data:
                     if getattr(s, "status", None) in ("active", "trialing", "past_due"):
@@ -1278,11 +1281,26 @@ def _stripe_subscription_ui_snapshot(profile) -> dict:
                 ),
             }
     except stripe.error.StripeError as e:
-        logger.warning(
-            "Stripe subscription UI snapshot failed for user %s: %s",
-            getattr(profile, "user_id", None),
-            e,
+        msg = str(e).lower()
+        mode_mismatch = (
+            "similar object exists in test mode" in msg
+            or "similar object exists in live mode" in msg
         )
+        uid = getattr(profile, "user_id", None)
+        if mode_mismatch:
+            logger.info(
+                "Stripe subscription UI snapshot skipped for user %s: subscription id or customer "
+                "does not match STRIPE_SECRET_KEY mode (test vs live). Use test keys with test data, "
+                "or live keys with live data; clear stripe_subscription_id on the profile if needed. "
+                "Stripe said: %s",
+                uid,
+                e,
+            )
+        else:
+            logger.warning("Stripe subscription UI snapshot failed for user %s: %s", uid, e)
+        if attempted_stripe:
+            # Negative cache so entitlements polling does not hammer Stripe / spam logs.
+            cache.set(cache_key, {}, 300)
 
     if out:
         cache.set(cache_key, out, 90)

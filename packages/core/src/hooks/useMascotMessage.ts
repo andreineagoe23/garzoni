@@ -1,13 +1,10 @@
 import { useTranslation } from "react-i18next";
-
-export type MascotMood = "celebrate" | "encourage" | "neutral";
-export type MascotType = "owl" | "bull" | "bear";
-
-const MOOD_TO_MASCOT: Record<MascotMood, MascotType> = {
-  celebrate: "owl",
-  encourage: "bull",
-  neutral: "bear",
-};
+import {
+  resolveMascotPresentation,
+  type MascotSituation,
+} from "../engagement/mascotPresentation";
+import type { MascotMood, MascotType } from "../engagement/mascotTypes";
+import { MOOD_TO_MASCOT } from "../engagement/mascotTypes";
 
 const POOL_KEYS: Record<MascotType, Record<string, string[]>> = {
   owl: {
@@ -33,6 +30,9 @@ const POOL_KEYS: Record<MascotType, Record<string, string[]>> = {
   },
 };
 
+export type { MascotMood, MascotType } from "../engagement/mascotTypes";
+export type { MascotSituation } from "../engagement/mascotPresentation";
+
 export type UseMascotMessageOptions = {
   /** When true, pick from message pool using rotationKey. When false, use first message. */
   rotateMessages?: boolean;
@@ -40,22 +40,38 @@ export type UseMascotMessageOptions = {
   rotationKey?: number;
   /** Force a specific mascot (prevents mood-based mascot switching). */
   mascotOverride?: MascotType;
+  /**
+   * When set, mood/message pools come from {@link resolveMascotPresentation} and the
+   * `mood` argument is ignored for resolution (callers may pass `"neutral"` as a placeholder).
+   */
+  situation?: MascotSituation;
 };
 
 /**
- * Returns mascot type and message for a given mood.
- * Supports message pools for variety when rotateMessages is true.
+ * Returns mascot type and message for a given mood or situation.
  */
 export function useMascotMessage(
   mood: MascotMood,
   options: UseMascotMessageOptions = {},
 ): { mascot: MascotType; message: string } {
   const { t } = useTranslation("common");
-  const { rotateMessages = false, rotationKey = 0, mascotOverride } = options;
+  const {
+    rotateMessages = false,
+    rotationKey = 0,
+    mascotOverride,
+    situation,
+  } = options;
 
-  const mascot = mascotOverride ?? MOOD_TO_MASCOT[mood];
-  const moodKey = mood as keyof typeof MOOD_TO_MASCOT;
-  const pool = POOL_KEYS[mascot]?.[moodKey];
+  const resolved = situation ? resolveMascotPresentation(situation) : null;
+  const effectiveMood = resolved ? resolved.mood : mood;
+  const mascot =
+    mascotOverride ?? resolved?.fixedMascot ?? MOOD_TO_MASCOT[effectiveMood];
+  const moodKey = effectiveMood as keyof typeof MOOD_TO_MASCOT;
+
+  const situationPool = resolved?.messagePoolKeys;
+  const legacyPool = POOL_KEYS[mascot]?.[moodKey];
+  const pool =
+    situationPool && situationPool.length > 0 ? situationPool : legacyPool;
 
   let message: string;
   if (pool && pool.length > 0) {
@@ -66,7 +82,7 @@ export function useMascotMessage(
     message = t(pool[index]);
   } else {
     message = t(
-      `exercises.mascot.${mood === "celebrate" ? "correct" : mood === "encourage" ? "encourage" : "neutral"}`,
+      `exercises.mascot.${effectiveMood === "celebrate" ? "correct" : effectiveMood === "encourage" ? "encourage" : "neutral"}`,
     );
   }
 

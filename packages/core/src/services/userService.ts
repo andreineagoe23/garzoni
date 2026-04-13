@@ -35,17 +35,63 @@ export const fetchCourseById = (courseId: string | number) =>
 
 export const fetchExercises = () => apiClient.get(`/exercises/`);
 
-export const fetchExerciseCategories = () =>
-  apiClient.get<string[]>("/exercises/categories/");
+export const fetchExerciseCategories = (opts?: { asLearner?: boolean }) =>
+  apiClient.get<string[]>("/exercises/categories/", {
+    params: opts?.asLearner ? { as_learner: "1" } : undefined,
+  });
 
 export const fetchExercisesList = (params?: {
   type?: string;
   category?: string;
   difficulty?: string;
-}) => apiClient.get("/exercises/", { params });
+  /** Match production learner catalog (published, non–internal category) even for staff. */
+  asLearner?: boolean;
+}) => {
+  const { asLearner, ...rest } = params ?? {};
+  const q: Record<string, string> = {};
+  if (rest.type) q.type = rest.type;
+  if (rest.category) q.category = rest.category;
+  if (rest.difficulty) q.difficulty = rest.difficulty;
+  if (asLearner) q.as_learner = "1";
+  return apiClient.get("/exercises/", { params: q });
+};
 
 export const fetchExerciseById = (id: string | number) =>
   apiClient.get(`/exercises/${id}/`);
+
+/** POST /exercises/:id/submit/ — same contract as web ExercisePage. */
+export type ExerciseSubmitResponse = {
+  correct: boolean;
+  attempts?: number;
+  explanation?: string | null;
+  feedback?: string | null;
+  xp_delta?: number;
+  due_at?: string | null;
+  proficiency?: number;
+  level_band?: string;
+  level_label?: string;
+  skill?: string;
+  first_unlock?: boolean;
+  coins_delta?: number;
+};
+
+export const submitExerciseAnswer = (
+  exerciseId: string | number,
+  body: { user_answer: unknown; hints_used?: number; confidence?: string },
+) =>
+  apiClient.post<ExerciseSubmitResponse>(
+    `/exercises/${exerciseId}/submit/`,
+    body,
+  );
+
+export type ExerciseProgressPayload = {
+  completed?: boolean;
+  attempts?: number;
+  user_answer?: unknown;
+};
+
+export const fetchExerciseProgress = (exerciseId: string | number) =>
+  apiClient.get<ExerciseProgressPayload>(`/exercises/progress/${exerciseId}/`);
 
 export type LeaderboardEntry = {
   user?: {

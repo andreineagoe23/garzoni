@@ -1649,6 +1649,25 @@
     "reloadPage": "Reîncarcă pagina"
   },
   "exercises": {
+    "widgets": {
+      "submit": "Trimite",
+      "checkAnswer": "Verifică răspunsul",
+      "checkOrder": "Verifică ordinea",
+      "saving": "Se salvează…",
+      "chooseBest": "Alege cel mai bun răspuns.",
+      "correctShort": "Corect!",
+      "greatOrder": "Ordine perfectă!",
+      "greatAllocation": "Alocare foarte bună!",
+      "greatChoice": "Alegere bună!",
+      "tryAgainAdjust": "Nu chiar. Încearcă din nou.",
+      "couldNotSave": "Nu s-a putut salva progresul.",
+      "undo": "Anulează",
+      "dragPrompt": "Atinge elementele în ordinea corectă",
+      "wrongOrder": "Ordinea nu e corectă. Încearcă din nou.",
+      "cellsWrong": "Unele celule sunt greșite. Încearcă din nou.",
+      "budgetTotalHint": "Totalul trebuie să fie {{total}}. Acum: {{current}}",
+      "notQuiteTryAgain": "Nu chiar. Încearcă din nou."
+    },
     "errors": {
       "loadFailed": "Nu s-au putut încărca exercițiile. Te rugăm să încerci din nou.",
       "submissionFailed": "Trimiterea a eșuat. Te rugăm să încerci din nou.",
@@ -1687,7 +1706,20 @@
       "genericDrill": "Drill rapid",
       "loadReviewsError": "Nu s-au putut încărca exercițiile de recapitulare.",
       "sessionSummaryDismiss": "Închide",
-      "emptyDrills": "Nu sunt drill-uri disponibile acum. Trage pentru reîmprospătare sau încearcă mai târziu."
+      "emptyDrills": "Nu sunt drill-uri disponibile acum. Trage pentru reîmprospătare sau încearcă mai târziu.",
+      "practiceSession": "Sesiune de practică",
+      "listProgress": "{{current}} din {{total}} în această listă",
+      "prevExercise": "Înapoi",
+      "skipExercise": "Omite",
+      "reviewModeBanner": "Mod recapitulare — {{count}} restante",
+      "exitReview": "Ieșire",
+      "reviewsDueTap_one": "{{count}} recapitulare restantă — atinge pentru a începe",
+      "reviewsDueTap_other": "{{count}} recapitulări restante — atinge pentru a începe",
+      "showHint": "Arată indiciu",
+      "allHintsShown": "Toate indiciile afișate",
+      "categoryPickerTitle": "Categorie",
+      "typePickerTitle": "Tip exercițiu",
+      "allCategories": "Toate categoriile"
     },
     "reviewQueue": {
       "title": "Coada de recapitulări",
@@ -2415,6 +2447,35 @@
       "neutral_0": "Progresul constant câștigă.",
       "neutral_1": "Progresul constant este obiectivul.",
       "neutral_2": "Pas cu pas."
+    },
+    "lesson": {
+      "reading_0": "Ia-ți timpul cu această parte—nu e grabă.",
+      "reading_1": "Citește în ritmul tău. Fiecare idee se leagă de cea dinainte.",
+      "reading_2": "Respiră, citește, apoi apasă Continuă când ești gata.",
+      "exerciseNeutral_0": "Când ești gata, trimite răspunsul.",
+      "exerciseNeutral_1": "Concentrează-te pe întrebare, apoi alege sau scrie răspunsul.",
+      "exerciseNeutral_2": "Poți reuși—încearcă exercițiul.",
+      "sectionCompleted_0": "Bravo—secțiune finalizată! Continuă așa.",
+      "sectionCompleted_1": "Secțiunea e gata. Înainte!",
+      "sectionCompleted_2": "Foarte bine că ai terminat acest pas.",
+      "courseCompleted_0": "Curs terminat! Merită să sărbătorești.",
+      "courseCompleted_1": "Ai ajuns la final—pauză sau quiz, tu alegi.",
+      "courseCompleted_2": "Progres mare. Felicitări!"
+    },
+    "practice": {
+      "neutral_0": "Alege un exercițiu și exersează în ritmul tău.",
+      "neutral_1": "Repetițiile regulate construiesc skill real.",
+      "neutral_2": "Gata când ești tu—alege următorul exercițiu."
+    },
+    "quiz": {
+      "complete_0": "Quiz finalizat—ai meritat!",
+      "complete_1": "Final puternic la quiz!",
+      "complete_2": "Gata. Foarte bine la quiz."
+    },
+    "missions": {
+      "progress_0": "Continuă pas cu pas—micile victorii contează.",
+      "progress_1": "Obiceiurile stabile bat zilele perfecte.",
+      "progress_2": "Construiești elan—bravo."
     }
   }
 }
