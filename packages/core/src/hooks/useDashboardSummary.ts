@@ -18,7 +18,14 @@ type DashboardSummaryArgs = {
     }>;
   };
   entitlements?: { features?: Record<string, unknown> };
-  profile?: { points?: number };
+  profile?: {
+    points?: number;
+    daily_goal?: {
+      target_xp?: number;
+      earned_xp_today?: number;
+      progress_pct?: number;
+    };
+  };
 };
 
 export const useDashboardSummary = ({
@@ -74,6 +81,19 @@ export const useDashboardSummary = ({
 
   const { dailyGoalProgress, dailyGoalCurrentXP, dailyGoalTargetXP } =
     useMemo(() => {
+      const dg = profile?.daily_goal;
+      if (
+        dg &&
+        typeof dg.target_xp === "number" &&
+        dg.target_xp > 0 &&
+        typeof dg.earned_xp_today === "number"
+      ) {
+        return {
+          dailyGoalProgress: Math.min(100, dg.progress_pct ?? 0),
+          dailyGoalCurrentXP: dg.earned_xp_today,
+          dailyGoalTargetXP: dg.target_xp,
+        };
+      }
       const targetXP = 30;
       const totalXP = profile?.points || 0;
       const currentXP = totalXP % targetXP;
@@ -83,7 +103,7 @@ export const useDashboardSummary = ({
         dailyGoalCurrentXP: currentXP,
         dailyGoalTargetXP: targetXP,
       };
-    }, [profile?.points]);
+    }, [profile?.points, profile?.daily_goal]);
 
   const resume = progressData.resume ?? null;
   const startHere = progressData.start_here ?? null;

@@ -1,9 +1,14 @@
-from django.db import models
-from django.contrib.auth.models import User
-from decimal import Decimal
-from django.utils import timezone
+import logging
 import uuid
+from datetime import timedelta
+from decimal import Decimal
+
+from django.contrib.auth.models import User
 from django.core import signing
+from django.db import models
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 class UserProfile(models.Model):
@@ -113,23 +118,89 @@ class UserProfile(models.Model):
         self.points += points
         self.save()
 
+    def _try_bridge_one_gap_day_with_freeze(self, today) -> bool:
+        """
+        If the profile is more than one calendar day behind `today`, consume one
+        streak freeze (if available) and advance `last_completed_date` by one day.
+        Emits a zero-value ledger row for auditing.
+        """
+        if not self.last_completed_date:
+            return False
+        if (today - self.last_completed_date).days <= 1:
+            return False
+
+        from gamification.services.rewards import grant_reward
+        from gamification.services.streak_freezes import consume_one_streak_freeze
+
+        if not consume_one_streak_freeze(self.user):
+            return False
+
+        old = self.last_completed_date
+        self.last_completed_date = old + timedelta(days=1)
+        self.save(update_fields=["last_completed_date"])
+
+        evt = (
+            f"streak_freeze_used:{self.user_id}:"
+            f"{today.isoformat()}:{old.isoformat()}->{self.last_completed_date.isoformat()}"
+        )
+        try:
+            grant_reward(
+                self.user,
+                evt[:220],
+                points=0,
+                coins=Decimal("0"),
+                bump_streak="none",
+                evaluate_badges=False,
+                record_zero_ledger=True,
+            )
+        except Exception:
+            logger.debug("streak freeze ledger skipped", exc_info=True)
+        return True
+
+    def _bridge_gap_days_with_freezes(self, today) -> None:
+        while self._try_bridge_one_gap_day_with_freeze(today):
+            pass
+
     def update_streak(self):
-        today = timezone.now().date()
+        """
+        Canonical learning streak on the profile. Consumes streak freezes one day
+        at a time when the user returns after a gap.
+        """
+        today = timezone.localdate()
 
         if self.last_completed_date == today:
             return
 
-        if self.last_completed_date:
-            difference = (today - self.last_completed_date).days
-            if difference == 1:
-                self.streak += 1
-            else:
-                self.streak = 1
-        else:
+        if not self.last_completed_date:
             self.streak = 1
+            self.last_completed_date = today
+            self.save(update_fields=["streak", "last_completed_date"])
+            return
 
+        self._bridge_gap_days_with_freezes(today)
+
+        difference = (today - self.last_completed_date).days
+        if difference <= 0:
+            return
+        if difference == 1:
+            self.streak = int(self.streak or 0) + 1
+            self.last_completed_date = today
+            self.save(update_fields=["streak", "last_completed_date"])
+            return
+
+        self.streak = 1
         self.last_completed_date = today
-        self.save()
+        self.save(update_fields=["streak", "last_completed_date"])
+
+    def apply_manual_streak_freezes(self, max_uses: int = 1) -> int:
+        """Use up to `max_uses` freezes without requiring a lesson completion."""
+        today = timezone.localdate()
+        used = 0
+        for _ in range(max(0, int(max_uses))):
+            if not self._try_bridge_one_gap_day_with_freeze(today):
+                break
+            used += 1
+        return used
 
     def save(self, *args, **kwargs):
         if not self.referral_code or self.referral_code.strip() == "":

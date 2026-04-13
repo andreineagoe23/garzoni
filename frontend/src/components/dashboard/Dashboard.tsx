@@ -704,6 +704,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               activeMissionsCount={activeMissions.length}
               dailyGoalProgress={dailyGoalProgress}
               streakCount={(profile as UserProfile)?.streak ?? 0}
+              streakMeta={(profile as UserProfile | undefined)?.streak_meta}
               reviewError={reviewError}
               missionsError={missionsError}
               refetchReview={refetchReview}

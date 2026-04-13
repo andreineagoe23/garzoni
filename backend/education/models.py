@@ -160,8 +160,11 @@ class UserProgress(models.Model):
     completed_sections = models.ManyToManyField(
         LessonSection, through="SectionCompletion", blank=True
     )
-    last_completed_date = models.DateField(null=True, blank=True)
-    streak = models.PositiveIntegerField(default=0)
+    last_course_activity_date = models.DateField(null=True, blank=True)
+    learning_session_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Consecutive days of activity on this course (not the global streak).",
+    )
     # Persist immersive course/lesson flow position (section index within flattened flow)
     flow_current_index = models.PositiveIntegerField(default=0)
     flow_updated_at = models.DateTimeField(auto_now=True)
@@ -177,25 +180,28 @@ class UserProgress(models.Model):
         db_table = "core_userprogress"
 
     def update_streak(self):
-        """Update the streak for the user progress."""
+        """Update per-course activity counters and bump the canonical profile streak."""
+        if not self.user_id:
+            return
         today = timezone.localtime().date()
 
-        if self.last_completed_date == today:
+        if self.last_course_activity_date == today:
+            if hasattr(self.user, "profile"):
+                self.user.profile.update_streak()
             return
 
-        if self.last_completed_date:
-            difference = (today - self.last_completed_date).days
-            if difference == 1:  # Consecutive day
-                self.streak += 1
-            elif difference > 1:  # Streak broken
-                self.streak = 1
+        if self.last_course_activity_date:
+            difference = (today - self.last_course_activity_date).days
+            if difference == 1:
+                self.learning_session_count += 1
+            elif difference > 1:
+                self.learning_session_count = 1
         else:
-            self.streak = 1
+            self.learning_session_count = 1
 
-        self.last_completed_date = today
-        self.save()
+        self.last_course_activity_date = today
+        self.save(update_fields=["learning_session_count", "last_course_activity_date"])
 
-        # Also update the global streak in the UserProfile
         if hasattr(self.user, "profile"):
             self.user.profile.update_streak()
 
@@ -278,9 +284,29 @@ class Quiz(models.Model):
     """
     The Quiz model represents a quiz associated with a course.
     It includes the quiz title, question, multiple choices, and the correct answer.
+
+    Lesson checkpoints (Duolingo-style) reuse this model: rows with ``source_lesson_section``
+    set are auto-built from that section's multiple-choice exercise and are excluded from
+    the end-of-course quiz list.
     """
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="checkpoint_quizzes",
+        help_text="When set, this quiz belongs to a lesson checkpoint (not the course capstone).",
+    )
+    source_lesson_section = models.OneToOneField(
+        LessonSection,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="sourced_checkpoint_quiz",
+        help_text="Lesson section this checkpoint question was materialized from.",
+    )
     title = models.CharField(max_length=200)
     question = models.TextField()
     choices = models.JSONField()

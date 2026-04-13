@@ -992,12 +992,16 @@ const ExercisePage = () => {
         { user_answer: userAnswer, hints_used: hintIndex }
       );
 
+      const data = response.data ?? {};
+      const isCorrect = Boolean(data.correct);
+      const attemptsVal = Number(data.attempts ?? 0);
+
       const updated = [...progress];
       updated[currentExerciseIndex] = {
         exerciseId: currentExercise.id,
-        correct: response.data.correct,
-        attempts: response.data.attempts,
-        status: response.data.correct ? "completed" : "attempted",
+        correct: isCorrect,
+        attempts: attemptsVal,
+        status: isCorrect ? "completed" : "attempted",
         user_answer: userAnswer,
       };
 
@@ -1008,23 +1012,27 @@ const ExercisePage = () => {
           exercise_id: currentExercise.id,
         });
       }
-      setExplanation(response.data.explanation || "");
-      setSubmissionFeedback(response.data.feedback || "");
+      const explanationText =
+        typeof data.explanation === "string" ? data.explanation : "";
+      const feedbackText =
+        typeof data.feedback === "string" ? data.feedback : "";
+      setExplanation(explanationText);
+      setSubmissionFeedback(feedbackText);
       playFeedbackChime({
         enabled: Boolean(soundEnabled ?? true),
-        correct: Boolean(response.data.correct),
+        correct: isCorrect,
       });
-      pulseMascot(response.data.correct ? "celebrate" : "encourage");
-      setXpTotal((prev) => prev + (response.data.xp_delta || 0));
-      if (typeof response.data.coins_delta === "number") {
-        setCoinsEarned((prev) => prev + response.data.coins_delta);
+      pulseMascot(isCorrect ? "celebrate" : "encourage");
+      setXpTotal((prev) => prev + (Number(data.xp_delta) || 0));
+      if (typeof data.coins_delta === "number") {
+        setCoinsEarned((prev) => prev + data.coins_delta);
       }
       fetchReviewQueue();
       setShowCorrection(true);
 
       const inlineMessage =
-        response.data.explanation ||
-        (response.data.correct
+        explanationText ||
+        (isCorrect
           ? t("exercises.inline.correct")
           : t("exercises.inline.incorrect"));
       setInlineHint(inlineMessage);
@@ -1040,11 +1048,11 @@ const ExercisePage = () => {
           ? firstTryCorrect + 1
           : firstTryCorrect;
 
-      if (response.data.correct && wasFreshAttempt) {
+      if (isCorrect && wasFreshAttempt) {
         setFirstTryCorrect((prev) => prev + 1);
       }
 
-      if (response.data.correct) {
+      if (isCorrect) {
         const newStreak = streak + 1;
         setStreak(newStreak);
         setStreakMultiplier(newStreak >= 3 ? 1.2 : 1);
@@ -1055,7 +1063,8 @@ const ExercisePage = () => {
 
       const skill = currentExercise.category || t("exercises.skillFallback");
       const before = skillProficiency[skill] || 0;
-      const after = response.data.proficiency ?? before;
+      const after =
+        typeof data.proficiency === "number" ? data.proficiency : before;
       const skillDelta = after - before;
       setSkillProficiency((prev) => ({ ...prev, [skill]: after }));
       if (skillDelta > 0) {
@@ -1065,16 +1074,16 @@ const ExercisePage = () => {
         }));
       }
 
-      const skillInsightMessage = response.data.first_unlock
+      const skillInsightMessage = data.first_unlock
         ? t("exercises.skillInsight.firstUnlock", { skill })
         : skillDelta > 0
           ? t("exercises.skillInsight.levelUp", {
               skill,
               level:
-                response.data.level_label ||
+                (typeof data.level_label === "string" && data.level_label) ||
                 t("exercises.skillInsight.building"),
             })
-          : response.data.correct
+          : isCorrect
             ? t("exercises.skillInsight.keepBuilding", { skill })
             : "";
       if (skillInsightMessage) {
@@ -1113,15 +1122,35 @@ const ExercisePage = () => {
         setShowStats(true);
       }
     } catch (err: unknown) {
-      const status = (
-        err as { response?: { status?: number; data?: { error?: string } } }
-      )?.response?.status;
-      const detail = (err as { response?: { data?: { error?: string } } })
-        ?.response?.data?.error;
-      if (status === 429 && typeof detail === "string" && detail.trim()) {
+      logError("Exercise submit failed", err);
+      const ax = err as {
+        response?: {
+          status?: number;
+          data?: { error?: string; detail?: string; message?: string };
+        };
+        message?: string;
+      };
+      const status = ax.response?.status;
+      const body = ax.response?.data;
+      const detail =
+        (typeof body?.detail === "string" && body.detail) ||
+        (typeof body?.error === "string" && body.error) ||
+        (typeof body?.message === "string" && body.message) ||
+        "";
+      if (status === 429 && detail.trim()) {
         setError(detail);
+      } else if (detail.trim()) {
+        setError(`${t("exercises.errors.submissionFailed")}: ${detail}`);
+      } else if (status === 401 || status === 403) {
+        setError(t("exercises.errors.submissionAuth"));
+      } else if (status === 404) {
+        setError(t("exercises.errors.submissionNotFound"));
       } else {
-        setError(t("exercises.errors.submissionFailed"));
+        setError(
+          ax.message
+            ? `${t("exercises.errors.submissionFailed")}: ${ax.message}`
+            : t("exercises.errors.submissionFailed")
+        );
       }
     } finally {
       submitInFlightRef.current = false;

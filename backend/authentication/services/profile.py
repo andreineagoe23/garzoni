@@ -1,11 +1,13 @@
+from django.conf import settings
 from django.core.cache import cache
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
-from django.conf import settings
 
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
 from education.models import ExerciseCompletion, LessonCompletion, SectionCompletion
+from gamification.models import MissionCompletion, RewardLedgerEntry
 from onboarding.models import QuestionnaireProgress
 
 
@@ -195,6 +197,62 @@ def build_profile_payload(user, profile: UserProfile):
             "year": first_day.year,
         },
     }
+
+    milestones = (3, 7, 14, 30)
+    streak_val = int(profile.streak or 0)
+    next_milestone = next((m for m in milestones if streak_val < m), None)
+    days_to_next = (next_milestone - streak_val) if next_milestone is not None else 0
+    yesterday = today - timezone.timedelta(days=1)
+    streak_at_risk = bool(streak_val >= 3 and profile.last_completed_date == yesterday)
+
+    target_xp = int(getattr(settings, "GAMIFICATION_DAILY_GOAL_TARGET_XP", 50))
+    today_xp = (
+        RewardLedgerEntry.objects.filter(user=user, created_at__date=today).aggregate(
+            total=Sum("points")
+        )["total"]
+        or 0
+    )
+    today_xp = int(today_xp)
+    daily_goal = {
+        "target_xp": target_xp,
+        "earned_xp_today": today_xp,
+        "progress_pct": min(100, int(today_xp / target_xp * 100)) if target_xp else 0,
+    }
+
+    streak_meta = {
+        "next_milestone": next_milestone,
+        "days_to_next_milestone": days_to_next,
+        "streak_at_risk": streak_at_risk,
+    }
+    payload["streak_meta"] = streak_meta
+    payload["daily_goal"] = daily_goal
+    payload["user_data"]["streak_meta"] = streak_meta
+    payload["user_data"]["daily_goal"] = daily_goal
+
+    if getattr(settings, "GAMIFICATION_RETENTION_V2", False):
+        week_start = today - timezone.timedelta(days=today.weekday())
+        missions_week = MissionCompletion.objects.filter(
+            user=user,
+            status="completed",
+            completed_at__date__gte=week_start,
+            completed_at__date__lte=today,
+        ).count()
+        xp_week = (
+            RewardLedgerEntry.objects.filter(
+                user=user,
+                created_at__date__gte=week_start,
+                created_at__date__lte=today,
+            ).aggregate(total=Sum("points"))["total"]
+            or 0
+        )
+        weekly_recap = {
+            "week_start": week_start.isoformat(),
+            "xp_earned": int(xp_week),
+            "missions_completed": missions_week,
+            "streak_days": streak_val,
+        }
+        payload["weekly_recap"] = weekly_recap
+        payload["user_data"]["weekly_recap"] = weekly_recap
 
     cache.set(cache_key, payload, timeout=cache_ttl)
     return payload

@@ -10,7 +10,7 @@ import random
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Avg
+from django.db.models import Avg, Q, Sum
 from django.core.cache import cache
 import hashlib
 import json
@@ -34,6 +34,13 @@ from gamification.serializers import (
 from authentication.models import UserProfile
 from decimal import Decimal
 
+from gamification.services.ledger_labels import describe_ledger_event
+from gamification.services.mission_cycles import (
+    daily_cycle_id,
+    get_or_create_current_mission_completion,
+    weekly_cycle_id,
+    cycle_id_for_mission,
+)
 from gamification.services.rewards import grant_reward
 from education.models import (
     LessonCompletion,
@@ -74,15 +81,19 @@ class MissionView(APIView):
         """
         user = request.user
         try:
+            d_id = daily_cycle_id()
+            w_id = weekly_cycle_id()
             daily_completions = list(
-                MissionCompletion.objects.filter(
-                    user=user, mission__mission_type="daily"
-                ).select_related("mission")
+                MissionCompletion.objects.filter(user=user, mission__mission_type="daily")
+                .filter(Q(cycle_id=d_id) | Q(cycle_id=""))
+                .exclude(cycle_id__startswith="x")
+                .select_related("mission")
             )
             weekly_completions = list(
-                MissionCompletion.objects.filter(
-                    user=user, mission__mission_type="weekly"
-                ).select_related("mission")
+                MissionCompletion.objects.filter(user=user, mission__mission_type="weekly")
+                .filter(Q(cycle_id=w_id) | Q(cycle_id=""))
+                .exclude(cycle_id__startswith="x")
+                .select_related("mission")
             )
 
             def _build_payload(completion):
@@ -100,26 +111,28 @@ class MissionView(APIView):
                     ),
                 }
 
-            # One entry per mission (keep highest progress if duplicate MissionCompletion rows exist)
-            daily_by_mission = {}
-            for completion in daily_completions:
-                mid = completion.mission.id
-                if (
-                    mid not in daily_by_mission
-                    or completion.progress >= daily_by_mission[mid]["progress"]
-                ):
-                    daily_by_mission[mid] = _build_payload(completion)
-            daily_missions = list(daily_by_mission.values())
+            def _pick_best(completions, current_cid):
+                best = {}
+                for c in completions:
+                    mid = c.mission_id
+                    prev = best.get(mid)
 
-            weekly_by_mission = {}
-            for completion in weekly_completions:
-                mid = completion.mission.id
-                if (
-                    mid not in weekly_by_mission
-                    or completion.progress >= weekly_by_mission[mid]["progress"]
-                ):
-                    weekly_by_mission[mid] = _build_payload(completion)
-            weekly_missions = list(weekly_by_mission.values())
+                    def score(obj):
+                        s = obj.progress
+                        if obj.cycle_id == current_cid:
+                            s += 1000
+                        return s
+
+                    if prev is None or score(c) > score(prev):
+                        best[mid] = c
+                return best
+
+            daily_missions = [
+                _build_payload(c) for c in _pick_best(daily_completions, d_id).values()
+            ]
+            weekly_missions = [
+                _build_payload(c) for c in _pick_best(weekly_completions, w_id).values()
+            ]
 
             now = timezone.now()
             today_str = now.date().isoformat()
@@ -160,7 +173,12 @@ class MissionView(APIView):
             return Response({"error": "Mission ID is required."}, status=400)
 
         try:
-            mission_completion = MissionCompletion.objects.get(user=user, mission_id=mission_id)
+            mission = Mission.objects.get(pk=mission_id)
+            mission_completion, _ = get_or_create_current_mission_completion(
+                user,
+                mission,
+                defaults={"progress": 0, "status": "not_started"},
+            )
             increment = request.data.get("progress", 0)
 
             if not isinstance(increment, (int, float)):
@@ -175,8 +193,8 @@ class MissionView(APIView):
                 status=200,
             )
 
-        except MissionCompletion.DoesNotExist:
-            return Response({"error": "Mission not found for this user."}, status=404)
+        except Mission.DoesNotExist:
+            return Response({"error": "Mission not found."}, status=404)
         except Exception as e:
             logger.error(f"Error updating mission progress for user {user.username}: {str(e)}")
             return Response(
@@ -229,7 +247,13 @@ class MissionCompleteView(APIView):
                         status=200,
                     )
 
-                mission_completion = MissionCompletion.objects.get(user=user, mission_id=mission_id)
+                mission = Mission.objects.select_for_update().get(pk=mission_id)
+                mc, _ = get_or_create_current_mission_completion(
+                    user,
+                    mission,
+                    defaults={"progress": 0, "status": "not_started"},
+                )
+                mission_completion = MissionCompletion.objects.select_for_update().get(pk=mc.pk)
 
                 if mission_completion.status == "completed":
                     return Response(
@@ -320,7 +344,7 @@ class MissionCompleteView(APIView):
                     status=200,
                 )
 
-        except MissionCompletion.DoesNotExist:
+        except Mission.DoesNotExist:
             return Response({"error": "Mission not found for this user."}, status=404)
         except Exception as e:
             logger.error(f"Error completing mission for user {user.username}: {str(e)}")
@@ -450,10 +474,26 @@ class RecentActivityView(APIView):
         user = request.user
         activities = []
 
-        # Fetch completed lessons and add them to the activity list
-        lesson_completions = LessonCompletion.objects.filter(
-            user_progress__user=user
-        ).select_related("lesson", "user_progress__course")
+        for entry in RewardLedgerEntry.objects.filter(user=user).order_by("-created_at")[:40]:
+            desc = describe_ledger_event(entry.event_key, entry.points, entry.coins)
+            activities.append(
+                {
+                    "type": desc["type"],
+                    "action": desc["action"],
+                    "title": desc["title"],
+                    "label_key": desc["label_key"],
+                    "name": desc["title"],
+                    "timestamp": entry.created_at,
+                    "points": desc["points"],
+                    "coins": desc["coins"],
+                }
+            )
+
+        lesson_completions = (
+            LessonCompletion.objects.filter(user_progress__user=user)
+            .select_related("lesson", "user_progress__course")
+            .order_by("-completed_at")[:15]
+        )
         for lc in lesson_completions:
             activities.append(
                 {
@@ -467,9 +507,8 @@ class RecentActivityView(APIView):
                 }
             )
 
-        # Fetch completed quizzes and add them to the activity list
         quiz_completions = QuizCompletion.objects.filter(user=user).select_related("quiz")
-        for qc in quiz_completions:
+        for qc in quiz_completions.order_by("-completed_at")[:10]:
             activities.append(
                 {
                     "type": "quiz",
@@ -479,9 +518,10 @@ class RecentActivityView(APIView):
                 }
             )
 
-        # Fetch completed missions and add them to the activity list
-        missions = MissionCompletion.objects.filter(user=user, status="completed").exclude(
-            completed_at__isnull=True
+        missions = (
+            MissionCompletion.objects.filter(user=user, status="completed")
+            .exclude(completed_at__isnull=True)
+            .order_by("-completed_at")[:10]
         )
         for mc in missions:
             activities.append(
@@ -489,14 +529,16 @@ class RecentActivityView(APIView):
                     "type": "mission",
                     "action": "completed",
                     "name": normalize_text_encoding(mc.mission.name),
+                    "title": normalize_text_encoding(mc.mission.name),
                     "timestamp": mc.completed_at,
                 }
             )
 
-        # Fetch completed courses and add them to the activity list
-        course_completions = UserProgress.objects.filter(
-            user=user, is_course_complete=True
-        ).exclude(course_completed_at__isnull=True)
+        course_completions = (
+            UserProgress.objects.filter(user=user, is_course_complete=True)
+            .exclude(course_completed_at__isnull=True)
+            .order_by("-course_completed_at")[:10]
+        )
         for cc in course_completions:
             activities.append(
                 {
@@ -507,10 +549,84 @@ class RecentActivityView(APIView):
                 }
             )
 
-        # Sort activities by timestamp in descending order and limit to the 5 most recent
-        sorted_activities = sorted(activities, key=lambda x: x["timestamp"], reverse=True)[:5]
+        sorted_activities = sorted(activities, key=lambda x: x["timestamp"], reverse=True)[:10]
 
         return Response({"recent_activities": sorted_activities})
+
+
+class RewardLedgerFeedView(APIView):
+    """Paginated reward ledger entries with stable label keys for clients."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            limit = max(1, min(int(request.query_params.get("limit", 30)), 100))
+            offset = max(0, int(request.query_params.get("offset", 0)))
+        except (TypeError, ValueError):
+            limit, offset = 30, 0
+
+        qs = RewardLedgerEntry.objects.filter(user=request.user).order_by("-created_at")[
+            offset : offset + limit
+        ]
+        results = []
+        for entry in qs:
+            desc = describe_ledger_event(entry.event_key, entry.points, entry.coins)
+            results.append(
+                {
+                    "id": entry.id,
+                    "created_at": entry.created_at,
+                    "event_key": entry.event_key,
+                    **desc,
+                }
+            )
+        return Response({"count": len(results), "offset": offset, "results": results})
+
+
+class WeeklyRecapView(APIView):
+    """ISO-week recap (missions + ledger XP + streak) — gated by GAMIFICATION_RETENTION_V2."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.conf import settings as dj_settings
+
+        if not getattr(dj_settings, "GAMIFICATION_RETENTION_V2", False):
+            return Response({"enabled": False, "recap": None})
+
+        user = request.user
+        profile = user.profile
+        today = timezone.localdate()
+        week_start = today - timedelta(days=today.weekday())
+
+        xp_sum = (
+            RewardLedgerEntry.objects.filter(
+                user=user,
+                created_at__date__gte=week_start,
+                created_at__date__lte=today,
+            ).aggregate(total=Sum("points"))["total"]
+            or 0
+        )
+
+        missions_done = MissionCompletion.objects.filter(
+            user=user,
+            status="completed",
+            completed_at__date__gte=week_start,
+            completed_at__date__lte=today,
+        ).count()
+
+        return Response(
+            {
+                "enabled": True,
+                "recap": {
+                    "week_start": week_start.isoformat(),
+                    "week_end": today.isoformat(),
+                    "xp_earned": int(xp_sum),
+                    "missions_completed": missions_done,
+                    "streak_days": int(profile.streak or 0),
+                },
+            }
+        )
 
 
 class MissionSwapView(APIView):
@@ -528,25 +644,25 @@ class MissionSwapView(APIView):
 
         try:
             with transaction.atomic():
-                # Use filter().first() to handle potential duplicates
-                # If duplicates exist, get the most recent one
-                mission_completions = MissionCompletion.objects.filter(
-                    user=user, mission_id=mission_id
-                ).order_by(
-                    "-id"
-                )  # Get most recent first
+                mission = Mission.objects.select_for_update().get(pk=mission_id)
+                mc, _ = get_or_create_current_mission_completion(
+                    user,
+                    mission,
+                    defaults={"progress": 0, "status": "not_started"},
+                )
+                cid = cycle_id_for_mission(mission)
+                mission_completion = MissionCompletion.objects.select_for_update().get(pk=mc.pk)
+                mission_completions = MissionCompletion.objects.select_for_update().filter(
+                    user=user, mission_id=mission_id, cycle_id=cid
+                ).order_by("-id")
 
-                if not mission_completions.exists():
-                    return Response({"error": "Mission not found for this user."}, status=404)
-
-                mission_completion = mission_completions.first()
-
-                # If there are duplicates, log and clean them up (keep the most recent)
                 if mission_completions.count() > 1:
                     logger.warning(
-                        f"Found {mission_completions.count()} duplicate MissionCompletion records for user {user.id}, mission {mission_id}. Keeping most recent."
+                        "Found %s duplicate MissionCompletion records for user %s, mission %s. Keeping most recent.",
+                        mission_completions.count(),
+                        user.id,
+                        mission_id,
                     )
-                    # Delete older duplicates
                     mission_completions.exclude(id=mission_completion.id).delete()
 
                 # Check if already swapped this cycle
@@ -573,9 +689,10 @@ class MissionSwapView(APIView):
                     )
 
                 # Create new completion
-                new_completion = MissionCompletion.objects.create(
+                _new_completion = MissionCompletion.objects.create(
                     user=user,
                     mission=new_mission,
+                    cycle_id=cycle_id_for_mission(new_mission),
                     progress=0,
                     status="not_started",
                     swapped_from_mission=mission_completion,
@@ -600,7 +717,7 @@ class MissionSwapView(APIView):
                     status=200,
                 )
 
-        except MissionCompletion.DoesNotExist:
+        except Mission.DoesNotExist:
             return Response({"error": "Mission not found."}, status=404)
         except Exception as e:
             logger.error(f"Error swapping mission: {str(e)}")
@@ -691,20 +808,22 @@ class StreakItemView(APIView):
                     return Response({"error": f"No {item_type} items available."}, status=400)
 
                 if item_type == "streak_freeze":
-                    # Preserve streak if user missed a day
-                    user_profile = user.profile
-                    today = timezone.now().date()
-                    if (
-                        user_profile.last_completed_date
-                        and user_profile.last_completed_date < today
-                    ):
-                        # Streak would be broken, preserve it
-                        user_profile.streak = max(1, user_profile.streak)
-                        user_profile.last_completed_date = today
-                        user_profile.save()
+                    used = user.profile.apply_manual_streak_freezes(max_uses=1)
+                    if not used:
+                        return Response(
+                            {"error": "No streak gap to repair, or no freezes available."},
+                            status=400,
+                        )
+                    item.refresh_from_db(fields=["quantity"])
+                    return Response(
+                        {
+                            "message": f"{item_type} used successfully.",
+                            "remaining": item.quantity,
+                        }
+                    )
 
                 item.quantity -= 1
-                item.save()
+                item.save(update_fields=["quantity"])
 
                 return Response(
                     {
@@ -773,10 +892,9 @@ class MissionGenerationView(APIView):
                 },
             )
 
-            # Create completion if doesn't exist
-            completion, _ = MissionCompletion.objects.get_or_create(
-                user=user,
-                mission=mission,
+            get_or_create_current_mission_completion(
+                user,
+                mission,
                 defaults={
                     "progress": 0,
                     "status": "not_started",

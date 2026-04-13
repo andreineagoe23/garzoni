@@ -16,6 +16,8 @@ from django.conf import settings
 from finance.utils import record_funnel_event
 from authentication.services.profile import invalidate_profile_cache
 
+from education.services.checkpoint_quizzes import ensure_checkpoint_quizzes_for_lesson
+
 from education.models import (
     Path,
     Course,
@@ -549,7 +551,10 @@ class QuizViewSet(viewsets.ModelViewSet):
         if not course_id:
             return Quiz.objects.none()
 
-        quizzes = Quiz.objects.filter(course_id=course_id).prefetch_related("translations")
+        quizzes = Quiz.objects.filter(
+            course_id=course_id,
+            source_lesson_section__isnull=True,
+        ).prefetch_related("translations")
         return quizzes
 
     def list(self, request, *args, **kwargs):
@@ -562,6 +567,44 @@ class QuizViewSet(viewsets.ModelViewSet):
         if course.path and not _user_can_access_path(request.user, course.path):
             return _path_access_denied_response(course.path)
         return super().list(request, *args, **kwargs)
+
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated], url_path="checkpoint")
+    def checkpoint(self, request):
+        """
+        Lesson checkpoint: up to 3 multiple-choice questions materialized from the lesson's
+        own exercise sections (Duolingo-style). Empty when the lesson has no suitable MC sections.
+        """
+        lesson_id = request.query_params.get("lesson")
+        if not lesson_id:
+            return Response({"error": "lesson is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            lesson_id_int = int(lesson_id)
+        except (TypeError, ValueError):
+            return Response({"error": "lesson must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        lesson = (
+            Lesson.objects.select_related("course", "course__path").filter(pk=lesson_id_int).first()
+        )
+        if not lesson:
+            return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
+        course = lesson.course
+        if course and course.path and not _user_can_access_path(request.user, course.path):
+            return _path_access_denied_response(course.path)
+
+        ensure_checkpoint_quizzes_for_lesson(lesson)
+        qs = (
+            Quiz.objects.filter(lesson=lesson, source_lesson_section__isnull=False)
+            .select_related("course", "source_lesson_section")
+            .prefetch_related("translations")
+            .order_by("source_lesson_section__order")
+        )
+        completed_ids = frozenset(
+            QuizCompletion.objects.filter(user=request.user, quiz__in=qs).values_list(
+                "quiz_id", flat=True
+            )
+        )
+        ctx = {**self.get_serializer_context(), "quiz_completed_ids": completed_ids}
+        return Response(QuizSerializer(qs, many=True, context=ctx).data)
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def complete(self, request):
@@ -680,6 +723,20 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                         bump_streak="user_progress",
                         user_progress=user_progress,
                     )
+
+                    # Per-section economy is normally granted from `complete_section`. When a lesson
+                    # is completed first (bulk section M2M), those calls never happened — backfill
+                    # section grants here. Idempotent: sections already rewarded individually skip.
+                    for section in lesson_sections:
+                        grant_reward(
+                            request.user,
+                            f"section_first_completion:{request.user.id}:{section.id}",
+                            points=XP_SECTION_FIRST_COMPLETION,
+                            coins=COINS_SECTION_FIRST_COMPLETION,
+                            bump_streak="none",
+                            user_progress=user_progress,
+                            evaluate_badges=False,
+                        )
 
                     lesson_missions = MissionCompletion.objects.filter(
                         user=request.user,

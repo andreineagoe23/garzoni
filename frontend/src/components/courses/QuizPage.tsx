@@ -282,6 +282,16 @@ function QuizPage() {
 
   return (
     <PageContainer maxWidth="4xl">
+      <div className="mb-2 flex justify-end">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] text-xl font-light leading-none text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/50 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+          aria-label={t("courses.quiz.exitQuizAria")}
+        >
+          ×
+        </button>
+      </div>
       <header className="space-y-2 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
           {t("courses.quiz.progress", {

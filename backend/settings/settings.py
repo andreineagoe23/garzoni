@@ -123,6 +123,10 @@ INSTALLED_APPS = [
 if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
     INSTALLED_APPS += ["django_extensions"]
 
+# Gamification retention layer (weekly recap API, streak-rescue Celery job, richer profile extras).
+GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
+GAMIFICATION_DAILY_GOAL_TARGET_XP = int(os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50"))
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

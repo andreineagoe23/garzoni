@@ -22,7 +22,11 @@ from education.models import (
     Quiz,
 )
 from gamification.models import RewardLedgerEntry
-from gamification.services.rewards import grant_reward
+from gamification.services.rewards import (
+    XP_LESSON_FIRST_COMPLETION,
+    XP_SECTION_FIRST_COMPLETION,
+    grant_reward,
+)
 
 
 class RewardLedgerTests(APITestCase):
@@ -76,6 +80,91 @@ class SectionRewardIdempotencyTests(APITestCase):
         self.assertEqual(self.client.post(url, {"section_id": self.section.id}, format="json").status_code, 200)
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.points, pts)
+
+
+class LessonCompleteBackfillsSectionRewardsTests(APITestCase):
+    """First lesson completion bulk-adds sections; section grants must still be recorded."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="lessonreward", password="test-pass-123!")
+        self.client.force_authenticate(self.user)
+        self.path = Path.objects.create(title="Path", description="")
+        self.course = Course.objects.create(title="Course", description="", path=self.path)
+        self.lesson = Lesson.objects.create(
+            course=self.course, title="Lesson", detailed_content="x"
+        )
+        self.section_a = LessonSection.objects.create(
+            lesson=self.lesson,
+            order=1,
+            title="A",
+            content_type="text",
+            text_content="",
+            is_published=True,
+        )
+        self.section_b = LessonSection.objects.create(
+            lesson=self.lesson,
+            order=2,
+            title="B",
+            content_type="text",
+            text_content="",
+            is_published=True,
+        )
+
+    def test_lesson_complete_grants_section_xp_once_each(self):
+        self.user.profile.refresh_from_db()
+        before_pts = self.user.profile.points
+        url = reverse("userprogress-complete")
+        self.assertEqual(
+            self.client.post(url, {"lesson_id": self.lesson.id}, format="json").status_code, 200
+        )
+        self.user.profile.refresh_from_db()
+        min_delta = XP_LESSON_FIRST_COMPLETION + 2 * XP_SECTION_FIRST_COMPLETION
+        self.assertGreaterEqual(self.user.profile.points - before_pts, min_delta)
+        for sid in (self.section_a.id, self.section_b.id):
+            self.assertTrue(
+                RewardLedgerEntry.objects.filter(
+                    user=self.user,
+                    event_key=f"section_first_completion:{self.user.id}:{sid}",
+                ).exists()
+            )
+
+    def test_lesson_complete_after_individual_section_no_double_section_xp(self):
+        sec_url = reverse("userprogress-complete-section")
+        self.assertEqual(
+            self.client.post(sec_url, {"section_id": self.section_a.id}, format="json").status_code,
+            200,
+        )
+        self.assertEqual(
+            RewardLedgerEntry.objects.filter(
+                user=self.user,
+                event_key=f"section_first_completion:{self.user.id}:{self.section_a.id}",
+            ).count(),
+            1,
+        )
+
+        self.user.profile.refresh_from_db()
+        before_lesson = self.user.profile.points
+        url = reverse("userprogress-complete")
+        self.assertEqual(
+            self.client.post(url, {"lesson_id": self.lesson.id}, format="json").status_code, 200
+        )
+        self.user.profile.refresh_from_db()
+        # Lesson grant + only section B (A is duplicate / idempotent).
+        min_delta = XP_LESSON_FIRST_COMPLETION + XP_SECTION_FIRST_COMPLETION
+        self.assertGreaterEqual(self.user.profile.points - before_lesson, min_delta)
+        self.assertEqual(
+            RewardLedgerEntry.objects.filter(
+                user=self.user,
+                event_key=f"section_first_completion:{self.user.id}:{self.section_a.id}",
+            ).count(),
+            1,
+        )
+        self.assertTrue(
+            RewardLedgerEntry.objects.filter(
+                user=self.user,
+                event_key=f"section_first_completion:{self.user.id}:{self.section_b.id}",
+            ).exists()
+        )
 
 
 class QuizRewardIdempotencyTests(APITestCase):

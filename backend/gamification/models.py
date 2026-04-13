@@ -33,6 +33,13 @@ class Badge(models.Model):
     threshold = models.IntegerField()
     badge_level = models.CharField(max_length=10, choices=BADGE_LEVELS, default="bronze")
     is_active = models.BooleanField(default=True)
+    criteria_slug = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Optional content-specific criterion (e.g. path:slug). Evaluated in addition to criteria_type.",
+    )
 
     def __str__(self):
         return self.name
@@ -78,6 +85,7 @@ class Mission(models.Model):
         ("read_fact", "Read Finance Fact"),
         ("complete_path", "Complete Path"),
         ("clear_review_queue", "Clear Review Queue"),
+        ("streak_rescue", "Streak Rescue"),
     ]
 
     name = models.CharField(max_length=100)
@@ -154,6 +162,9 @@ class Mission(models.Model):
             # Fact reading doesn't need specific goal_reference
             pass
 
+        elif self.goal_type == "streak_rescue":
+            pass
+
     def save(self, *args, **kwargs):
         """Override save to run validation and normalize user-facing text."""
         self.name = normalize_text_encoding(self.name) or ""
@@ -175,6 +186,13 @@ class MissionCompletion(models.Model):
 
     user = models.ForeignKey(User, related_name="mission_completions", on_delete=models.CASCADE)
     mission = models.ForeignKey(Mission, related_name="completions", on_delete=models.CASCADE)
+    cycle_id = models.CharField(
+        max_length=40,
+        default="",
+        blank=True,
+        db_index=True,
+        help_text="Period key for this row (daily ISO date, weekly ISO week). Empty = legacy rolling row.",
+    )
     progress = models.IntegerField(default=0)
     status = models.CharField(
         max_length=20,
@@ -218,6 +236,15 @@ class MissionCompletion(models.Model):
     class Meta:
         db_table = "core_missioncompletion"
         unique_together = [("user", "mission", "completion_idempotency_key")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "mission", "cycle_id"],
+                name="missioncompletion_user_mission_cycle_uniq",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["user", "cycle_id"], name="core_missio_user_cycle_idx"),
+        ]
 
     def update_progress(self, increment=0):
         if self.status == "completed":
@@ -275,6 +302,9 @@ class MissionCompletion(models.Model):
                 completed = target - due_count
                 self.progress = min(int((completed / target) * 100), 100)
 
+        elif goal_type == "streak_rescue":
+            self.progress = min(self.progress + max(float(increment), 1.0), 100)
+
         # Finalize mission if complete
         if self.progress >= 100:
             self.status = "completed"
@@ -289,7 +319,7 @@ class MissionCompletion(models.Model):
                 if base_xp > 0:
                     result = grant_reward(
                         self.user,
-                        f"mission_auto_complete:{self.user_id}:{self.mission_id}",
+                        f"mission_auto_complete:{self.user_id}:{self.mission_id}:{self.cycle_id}",
                         points=base_xp,
                         coins=Decimal("0"),
                         bump_streak="none",
@@ -312,23 +342,64 @@ class MissionCompletion(models.Model):
 @shared_task
 def reset_daily_missions():
     """
-    Resets the progress and status of all daily missions at the start of a new day.
-    This ensures that users can attempt daily missions again.
+    Rotate daily mission cycles: archive prior cycle rows and open a fresh row per user/mission.
+    Historical rows remain queryable (no destructive wipe).
     """
-    today = now().date()
-    completions = MissionCompletion.objects.filter(mission__mission_type="daily")
-    completions.update(progress=0, status="not_started", completed_at=None)
+    from gamification.services.mission_cycles import daily_cycle_id
+
+    today_id = daily_cycle_id()
+
+    daily_rows = (
+        MissionCompletion.objects.filter(mission__mission_type="daily")
+        .exclude(cycle_id=today_id)
+        .exclude(cycle_id__startswith="x")
+    )
+    for mc in daily_rows.iterator(chunk_size=500):
+        archive_id = f"x{mc.pk}"[:40]
+        MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
+        MissionCompletion.objects.get_or_create(
+            user_id=mc.user_id,
+            mission_id=mc.mission_id,
+            cycle_id=today_id,
+            defaults={
+                "progress": 0,
+                "status": "not_started",
+                "completed_at": None,
+                "completion_idempotency_key": None,
+                "xp_awarded": 0,
+            },
+        )
 
 
 @shared_task
 def reset_weekly_missions():
     """
-    Resets the progress and status of all weekly missions at the start of a new week.
-    This ensures that users can attempt weekly missions again.
+    Rotate weekly mission cycles similarly to daily rotation.
     """
-    today = now().date()
-    completions = MissionCompletion.objects.filter(mission__mission_type="weekly")
-    completions.update(progress=0, status="not_started", completed_at=None)
+    from gamification.services.mission_cycles import weekly_cycle_id
+
+    wk = weekly_cycle_id()
+
+    weekly_rows = (
+        MissionCompletion.objects.filter(mission__mission_type="weekly")
+        .exclude(cycle_id=wk)
+        .exclude(cycle_id__startswith="x")
+    )
+    for mc in weekly_rows.iterator(chunk_size=500):
+        archive_id = f"x{mc.pk}"[:40]
+        MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
+        MissionCompletion.objects.get_or_create(
+            user_id=mc.user_id,
+            mission_id=mc.mission_id,
+            cycle_id=wk,
+            defaults={
+                "progress": 0,
+                "status": "not_started",
+                "completed_at": None,
+                "completion_idempotency_key": None,
+                "xp_awarded": 0,
+            },
+        )
 
 
 class RewardLedgerEntry(models.Model):

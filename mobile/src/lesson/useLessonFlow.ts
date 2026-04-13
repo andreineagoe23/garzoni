@@ -173,8 +173,8 @@ export function useLessonFlow(courseId: number) {
     },
   });
 
-  const handleCompleteCurrent = useCallback(async () => {
-    if (!currentItem) return;
+  const handleCompleteCurrent = useCallback(async (): Promise<boolean> => {
+    if (!currentItem) return false;
     try {
       if (currentItem.kind === "section") {
         const sectionId = currentItem.section.id;
@@ -186,8 +186,9 @@ export function useLessonFlow(courseId: number) {
           new Set(prev).add(`l-${currentItem.lessonId}`),
         );
       }
+      return true;
     } catch {
-      // handled by caller
+      return false;
     }
   }, [currentItem, completeSectionMutation, completeLessonMutation]);
 
@@ -212,6 +213,7 @@ export function useLessonFlow(courseId: number) {
     isLast,
     totalSteps,
     completedSteps,
+    completedIds,
     courseComplete,
     setCourseComplete,
     goNext,

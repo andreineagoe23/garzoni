@@ -24,6 +24,11 @@ type Props = {
   activeMissionsCount: number;
   dailyGoalProgress: number;
   streakCount?: number;
+  streakMeta?: {
+    next_milestone?: number | null;
+    days_to_next_milestone?: number;
+    streak_at_risk?: boolean;
+  };
   reviewError?: unknown;
   missionsError?: unknown;
   refetchReview?: () => void;
@@ -41,6 +46,7 @@ export default function StatusSummaryGrid({
   activeMissionsCount,
   dailyGoalProgress,
   streakCount = 0,
+  streakMeta,
   reviewError,
   missionsError,
   refetchReview,
@@ -96,6 +102,23 @@ export default function StatusSummaryGrid({
           <Text style={[styles.value, { color: c.text }]}>
             {formatNum(streakCount, locale)}
           </Text>
+          {streakMeta?.streak_at_risk ? (
+            <Text style={[styles.meta, { color: "#b45309" }]}>
+              {t("dashboard.statusSummary.streakAtRisk")}
+            </Text>
+          ) : null}
+          {streakMeta?.next_milestone != null &&
+          streakMeta.next_milestone > 0 ? (
+            <Text
+              style={[styles.meta, { color: c.textMuted }]}
+              numberOfLines={2}
+            >
+              {t("dashboard.statusSummary.streakNextMilestone", {
+                days: streakMeta.days_to_next_milestone ?? 0,
+                milestone: streakMeta.next_milestone,
+              })}
+            </Text>
+          ) : null}
         </KPITile>
       </View>
 

@@ -36,6 +36,7 @@
     "practiceCompleteHeart": "Exercițiu complet - +1 inimă",
     "heartsRefilled": "Inimile reîncărcate",
     "saveProgressFailed": "Nu s-a putut salva progresul. Te rugăm să încerci din nou.",
+    "saveProgressAlertTitle": "Nu s-a putut salva progresul",
     "couldNotCreateSection": "Nu s-a putut crea secțiunea.",
     "newSection": "Secțiune nouă",
     "failedToDeleteSection": "Nu s-a putut șterge secțiunea.",
@@ -58,7 +59,13 @@
     "skillInsightSection": "Ai consolidat {{section}}.",
     "skillInsightLesson": "Progres la {{lesson}}.",
     "thisSection": "această secțiune",
-    "thisLesson": "această lecție"
+    "thisLesson": "această lecție",
+    "checkpointTitle": "Recapitulare rapidă",
+    "checkpointSubtitle": "Câteva întrebări din ce tocmai ai învățat — un mini quiz.",
+    "checkpointProgress": "Întrebarea {{current}} din {{total}}",
+    "checkpointDismissAria": "Închide — sari peste recapitulare și continuă (fără recompense pentru întrebările sărite)",
+    "checkpointLoadTitle": "Nu s-a putut încărca recapitularea",
+    "checkpointLoadFailed": "Nu am putut încărca întrebările de recapitulare. Poți continua — încearcă din nou mai târziu din lecție."
   },
   "quiz": {
     "loading": "Se încarcă quiz-ul...",
@@ -82,7 +89,8 @@
     "recapSubtitle": "Ai finalizat toate quiz-urile din acest curs.",
     "recapXpLine": "XP total din această sesiune: {{points}}",
     "recapCoinsLine": "Monede câștigate în această sesiune: {{amount}}",
-    "backToCourses": "Înapoi la învățare"
+    "backToCourses": "Înapoi la învățare",
+    "exitQuizAria": "Ieși din quiz — poți reveni mai târziu; întrebările nefinalizate rămân necompletate"
   },
   "coursePage": {
     "title": "Cursuri",

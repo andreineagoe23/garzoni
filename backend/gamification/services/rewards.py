@@ -111,6 +111,7 @@ def grant_reward(
     bump_streak: BumpStreakMode = "none",
     user_progress: UserProgress | None = None,
     evaluate_badges: bool = True,
+    record_zero_ledger: bool = False,
 ) -> GrantResult:
     """
     Atomically record a ledger row and apply profile points/coins if new.
@@ -124,7 +125,12 @@ def grant_reward(
     if points < 0 or coins_dec < 0:
         raise ValueError("points and coins must be non-negative")
 
-    if points == 0 and coins_dec == 0 and bump_streak == "none":
+    if (
+        points == 0
+        and coins_dec == 0
+        and bump_streak == "none"
+        and not record_zero_ledger
+    ):
         return GrantResult(
             granted=False, duplicate=False, points=0, coins=Decimal("0.00")
         )
@@ -140,12 +146,13 @@ def grant_reward(
                     user, bump_streak, user_progress
                 )
 
-            RewardLedgerEntry.objects.create(
-                user=user,
-                event_key=event_key[:220],
-                points=points,
-                coins=coins_dec,
-            )
+            if points or coins_dec > 0 or record_zero_ledger:
+                RewardLedgerEntry.objects.create(
+                    user=user,
+                    event_key=event_key[:220],
+                    points=points,
+                    coins=coins_dec,
+                )
             profile = user.profile
             if points:
                 profile.add_points(points)
@@ -171,7 +178,13 @@ def grant_reward(
         if evaluate_badges:
             from gamification.utils import evaluate_badges_for_user
 
-            evaluate_badges_for_user(user)
+            try:
+                evaluate_badges_for_user(user)
+            except Exception:
+                logger.exception(
+                    "evaluate_badges_for_user failed",
+                    extra={"user_id": getattr(user, "id", None)},
+                )
 
         return GrantResult(
             granted=True, duplicate=False, points=points, coins=coins_dec

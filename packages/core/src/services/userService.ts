@@ -226,6 +226,14 @@ export const completeSection = (sectionId: string | number) =>
 export const completeLesson = (lessonId: string | number) =>
   apiClient.post(`/userprogress/complete/`, { lesson_id: lessonId });
 
+/** Lesson checkpoint quizzes (materialized from in-flow multiple-choice sections). */
+export const fetchLessonCheckpointQuizzes = (lessonId: string | number) =>
+  apiClient.get<unknown[]>(`/quizzes/checkpoint/`, {
+    params: { lesson: lessonId },
+    /** Host shows its own checkpoint UX; avoid duplicate global error alerts (mobile). */
+    skipGlobalErrorToast: true,
+  });
+
 export const reorderLessonSections = (
   lessonId: string | number,
   order: Array<string | number>,

@@ -572,8 +572,8 @@ class UserProgressAdmin(admin.ModelAdmin):
         "is_course_complete",
         "completed_lessons_count",
         "completed_sections_count",
-        "streak",
-        "last_completed_date",
+        "learning_session_count",
+        "last_course_activity_date",
     )
     list_filter = ("course", "is_course_complete")
     search_fields = ("user__username", "course__title")

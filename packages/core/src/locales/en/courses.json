@@ -36,6 +36,7 @@
     "practiceCompleteHeart": "Practice complete - +1 heart",
     "heartsRefilled": "Hearts refilled",
     "saveProgressFailed": "Failed to save progress. Please try again.",
+    "saveProgressAlertTitle": "Couldn't save progress",
     "couldNotCreateSection": "Could not create section.",
     "newSection": "New section",
     "failedToDeleteSection": "Failed to delete section.",
@@ -58,7 +59,13 @@
     "skillInsightSection": "Strengthened {{section}}.",
     "skillInsightLesson": "Progress in {{lesson}}.",
     "thisSection": "this section",
-    "thisLesson": "this lesson"
+    "thisLesson": "this lesson",
+    "checkpointTitle": "Quick review",
+    "checkpointSubtitle": "A few questions from what you just learned — like a mini quiz.",
+    "checkpointProgress": "Question {{current}} of {{total}}",
+    "checkpointDismissAria": "Close — skip this review and continue (no quiz rewards for skipped questions)",
+    "checkpointLoadTitle": "Couldn't load review",
+    "checkpointLoadFailed": "We couldn’t load the quick review questions. You can keep going — try again later from the lesson."
   },
   "quiz": {
     "loading": "Loading quiz...",
@@ -82,7 +89,8 @@
     "recapSubtitle": "You finished every quiz in this course.",
     "recapXpLine": "Total XP from this session: {{points}}",
     "recapCoinsLine": "Coins earned this session: {{amount}}",
-    "backToCourses": "Back to learning"
+    "backToCourses": "Back to learning",
+    "exitQuizAria": "Exit quiz — you can return later; unfinished questions stay incomplete"
   },
   "coursePage": {
     "title": "Courses",

@@ -18,6 +18,11 @@ type TextSectionProps = {
   fallbackText?: string;
   /** Multiplier for body / HTML text (reading comfort). */
   fontScale?: number;
+  /**
+   * When the parent already renders a native video player for this URL, strip duplicate YouTube
+   * iframes from HTML and skip the extra bottom player when it matches the same clip.
+   */
+  leadingVideoUrl?: string;
 };
 
 function fixImagePaths(html: string): string {
@@ -30,6 +35,21 @@ function fixImagePaths(html: string): string {
 
 function extractYoutubeId(html: string): string | null {
   const m = html.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
+  );
+  return m?.[1] ?? null;
+}
+
+/** CKEditor often embeds the same clip as an iframe; strip so we don't stack native players. */
+function stripYoutubeIframes(html: string): string {
+  return html.replace(
+    /<iframe\b[^>]*\bsrc=["'][^"']*(?:youtube\.com\/embed|youtube-nocookie\.com\/embed|youtu\.be\/)[^"']*["'][^>]*>\s*<\/iframe>/gi,
+    "",
+  );
+}
+
+function youtubeIdFromWatchUrl(url: string): string | null {
+  const m = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
   );
   return m?.[1] ?? null;
@@ -63,6 +83,7 @@ export default function TextSection({
   html,
   fallbackText,
   fontScale = 1,
+  leadingVideoUrl,
 }: TextSectionProps) {
   const c = useThemeColors();
   const { width } = useWindowDimensions();
@@ -73,8 +94,23 @@ export default function TextSection({
   );
 
   const sourceHtml = html ?? fallbackText ?? "";
-  const prepared = useMemo(() => fixImagePaths(sourceHtml), [sourceHtml]);
+  const prepared = useMemo(() => {
+    let h = fixImagePaths(sourceHtml);
+    if (leadingVideoUrl?.trim()) {
+      h = stripYoutubeIframes(h);
+    }
+    return h;
+  }, [sourceHtml, leadingVideoUrl]);
+  const leadingYoutubeId = useMemo(
+    () =>
+      leadingVideoUrl?.trim()
+        ? youtubeIdFromWatchUrl(leadingVideoUrl.trim())
+        : null,
+    [leadingVideoUrl],
+  );
   const youtubeId = useMemo(() => extractYoutubeId(prepared), [prepared]);
+  const showSupplementalYoutube =
+    Boolean(youtubeId) && (!leadingYoutubeId || youtubeId !== leadingYoutubeId);
 
   const tagsStyles = useMemo(
     () => ({
@@ -137,12 +173,12 @@ export default function TextSection({
         baseStyle={htmlBase}
         tagsStyles={tagsStyles}
       />
-      {youtubeId ? (
+      {showSupplementalYoutube ? (
         <View style={plainStyles.videoBox}>
           <YoutubePlayer
             height={200}
             width={contentWidth}
-            videoId={youtubeId}
+            videoId={youtubeId!}
           />
         </View>
       ) : null}
