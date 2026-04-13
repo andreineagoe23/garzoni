@@ -68,8 +68,21 @@
     "submitAnswer": "Trimite răspunsul",
     "noQuizData": "Nu există date de quiz.",
     "youEarned": "Ai câștigat {{amount}}!",
+    "youEarnedXp": "+{{points}} XP",
     "mascotCorrect": "Felicitări! Ai răspuns corect.",
-    "mascotIncorrect": "Păstrează optimismul. Încearcă din nou."
+    "mascotIncorrect": "Păstrează optimismul. Încearcă din nou.",
+    "introTitle": "Quiz curs",
+    "introSubtitle": "{{count}} întrebări — le parcurgi în ordine. Poți reîncerca răspunsurile greșite.",
+    "introStart": "Începe quiz-ul",
+    "progress": "Quiz {{current}} din {{total}}",
+    "alreadyCompletedShort": "Ai completat deja acest quiz.",
+    "nextQuiz": "Întrebarea următoare",
+    "reviewFinish": "Vezi rezumatul",
+    "recapTitle": "Rezumat quiz",
+    "recapSubtitle": "Ai finalizat toate quiz-urile din acest curs.",
+    "recapXpLine": "XP total din această sesiune: {{points}}",
+    "recapCoinsLine": "Monede câștigate în această sesiune: {{amount}}",
+    "backToCourses": "Înapoi la învățare"
   },
   "coursePage": {
     "title": "Cursuri",

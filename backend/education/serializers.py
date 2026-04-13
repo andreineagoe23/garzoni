@@ -41,9 +41,30 @@ def _get_translation(instance, language, rel_name="translations"):
 
 # Serializer for quizzes, including fields for course association and question details.
 class QuizSerializer(serializers.ModelSerializer):
+    is_completed = serializers.SerializerMethodField()
+
     class Meta:
         model = Quiz
-        fields = ["id", "course", "title", "question", "choices", "correct_answer"]
+        fields = [
+            "id",
+            "course",
+            "title",
+            "question",
+            "choices",
+            "correct_answer",
+            "is_completed",
+        ]
+
+    def get_is_completed(self, obj):
+        done = self.context.get("quiz_completed_ids")
+        if isinstance(done, (set, frozenset)):
+            return obj.id in done
+        req = self.context.get("request")
+        if req and getattr(req.user, "is_authenticated", False):
+            from education.models import QuizCompletion
+
+            return QuizCompletion.objects.filter(user=req.user, quiz=obj).exists()
+        return False
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

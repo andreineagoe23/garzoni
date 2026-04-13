@@ -32,6 +32,9 @@ from gamification.serializers import (
     LeaderboardSerializer,
 )
 from authentication.models import UserProfile
+from decimal import Decimal
+
+from gamification.services.rewards import grant_reward
 from education.models import (
     LessonCompletion,
     QuizCompletion,
@@ -284,9 +287,14 @@ class MissionCompleteView(APIView):
 
                 mission_completion.save()
 
-                # Award XP to user profile (server-side only)
-                user_profile = user.profile
-                user_profile.add_points(final_xp)
+                grant_reward(
+                    user,
+                    f"mission_manual:{idempotency_key}",
+                    points=final_xp,
+                    coins=Decimal("0"),
+                    bump_streak="none",
+                    evaluate_badges=True,
+                )
 
                 # Track performance
                 _track_mission_performance(user, mission_completion, request.data)
