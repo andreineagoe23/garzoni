@@ -187,6 +187,8 @@ def _set_refresh_cookie(response, token: str):
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+# Must stay within UserProfile.profile_avatar max_length (see authentication migrations).
+GOOGLE_PROFILE_PICTURE_MAX_LEN = 2000
 SCOPES = "openid email profile"
 
 
@@ -326,7 +328,9 @@ class GoogleOAuthCallbackView(APIView):
         family_name = (userinfo.get("family_name") or "").strip()
         picture = (userinfo.get("picture") or "").strip()
 
-        user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
+        user, is_new_user = _get_or_create_google_user(
+            email, given_name, family_name, picture
+        )
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
@@ -355,6 +359,8 @@ def _get_or_create_google_user(email: str, given_name: str, family_name: str, pi
     Get existing user by email or create one. Returns (user, is_new_user).
     Used by both OAuth callback and One Tap / credential verification.
     """
+    if picture:
+        picture = picture[:GOOGLE_PROFILE_PICTURE_MAX_LEN]
     user = User.objects.filter(email__iexact=email).first()
     is_new_user = False
     if user:
