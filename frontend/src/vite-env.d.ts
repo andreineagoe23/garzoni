@@ -12,7 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_BACKEND_PORT?: string;
   readonly VITE_GOOGLE_OAUTH_CLIENT_ID?: string;
   readonly VITE_AMPLITUDE_API_KEY?: string;
-  /** Cloudinary cloud name for `@garzoni/core` `Images` (auth/landing URLs). */
+  /** Cloudinary cloud name for `@garzoni/core` `Images`, `mascotImageUrl`, etc. */
   readonly VITE_CLOUDINARY_CLOUD_NAME?: string;
   /**
    * RevenueCat Web SDK public API key.

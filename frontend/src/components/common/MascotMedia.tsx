@@ -1,5 +1,5 @@
 import React from "react";
-import { getMediaBaseUrl } from "services/backendUrl";
+import { mascotImageUrl } from "@garzoni/core";
 
 type MascotType = "owl" | "bull" | "bear";
 
@@ -8,16 +8,15 @@ type MascotMediaProps = {
   className?: string;
 };
 
-const MASCOT_FILES: Record<MascotType, { file: string; alt: string }> = {
-  owl: { file: "garzoni-owl.png", alt: "Owl mascot" },
-  bull: { file: "garzoni-bull.png", alt: "Bull mascot" },
-  bear: { file: "garzoni-bear.png", alt: "Bear mascot" },
+const MASCOT_FILES: Record<MascotType, { alt: string }> = {
+  owl: { alt: "Owl mascot" },
+  bull: { alt: "Bull mascot" },
+  bear: { alt: "Bear mascot" },
 };
 
 const MascotMedia = ({ mascot, className }: MascotMediaProps) => {
-  const base = getMediaBaseUrl();
-  const { file, alt } = MASCOT_FILES[mascot];
-  const image = `${base}/media/mascots/${file}`;
+  const { alt } = MASCOT_FILES[mascot];
+  const image = mascotImageUrl(mascot, { width: 384 });
   return (
     <img
       src={image}
