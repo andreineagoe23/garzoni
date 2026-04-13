@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
-import MascotMedia from "components/common/MascotMedia";
+import MascotWithMessage from "components/common/MascotWithMessage";
+import type { MascotSituation } from "hooks/useMascotMessage";
 import { GlassCard } from "components/ui";
 import { formatCurrency, getLocale } from "utils/format";
 
@@ -32,7 +33,14 @@ function QuizPage() {
   const [earnedMoney, setEarnedMoney] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   useAuth();
+
+  const quizFeedbackSituation = useMemo((): MascotSituation | undefined => {
+    if (feedbackCorrect === true) return "quiz_correct";
+    if (feedbackCorrect === false) return "quiz_incorrect";
+    return undefined;
+  }, [feedbackCorrect]);
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -70,6 +78,7 @@ function QuizPage() {
     if (!quiz) return;
 
     if (selectedAnswer === null) {
+      setFeedbackCorrect(null);
       setFeedback(t("shared.pleaseSelectAnswer"));
       return;
     }
@@ -83,6 +92,7 @@ function QuizPage() {
       setFeedback(response.data.message);
       setFeedbackCorrect(response.data.correct ?? false);
       setEarnedMoney(response.data.earned_money || 0);
+      setMascotRotationKey((n) => n + 1);
 
       // If answer is incorrect, don't treat it as an error
       if (!response.data.correct) {
@@ -92,6 +102,7 @@ function QuizPage() {
     } catch (err) {
       console.error("Error submitting answer:", err);
       setFeedbackCorrect(false);
+      setMascotRotationKey((n) => n + 1);
       if (axios.isAxiosError(err)) {
         setFeedback(
           err.response?.data?.message || t("shared.somethingWentWrong")
@@ -187,7 +198,7 @@ function QuizPage() {
 
         {feedback && (
           <div
-            className={`flex flex-col gap-4 sm:flex-row sm:items-start rounded-2xl border px-5 py-4 text-sm shadow-inner ${
+            className={`rounded-2xl border px-5 py-4 text-sm shadow-inner ${
               earnedMoney > 0
                 ? "border-[color:var(--accent,#ffd700)]/45 bg-[color:var(--accent,#ffd700)]/12 text-[color:var(--accent,#ffd700)]"
                 : feedback.includes("Incorrect")
@@ -195,30 +206,30 @@ function QuizPage() {
                   : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
             }`}
           >
-            <div className="flex shrink-0 flex-col items-center gap-2 sm:items-start">
-              <MascotMedia
-                mascot={feedbackCorrect ? "owl" : "bull"}
-                className="h-16 w-16 object-contain"
-              />
-              <p className="text-xs font-medium opacity-90">
-                {feedbackCorrect
-                  ? t("courses.quiz.mascotCorrect")
-                  : t("courses.quiz.mascotIncorrect")}
+            <MascotWithMessage
+              mood={
+                feedbackCorrect === true
+                  ? "celebrate"
+                  : feedbackCorrect === false
+                    ? "encourage"
+                    : "neutral"
+              }
+              situation={quizFeedbackSituation}
+              customMessage={feedback}
+              rotateMessages={quizFeedbackSituation != null}
+              rotationKey={mascotRotationKey}
+              className="mt-0"
+            />
+            {earnedMoney > 0 && (
+              <p className="mt-2 text-center font-semibold sm:text-left">
+                {t("courses.quiz.youEarned", {
+                  amount: formatCurrency(earnedMoney, "GBP", locale, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                })}
               </p>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p>{feedback}</p>
-              {earnedMoney > 0 && (
-                <p className="mt-1 font-semibold">
-                  {t("courses.quiz.youEarned", {
-                    amount: formatCurrency(earnedMoney, "GBP", locale, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }),
-                  })}
-                </p>
-              )}
-            </div>
+            )}
           </div>
         )}
       </GlassCard>

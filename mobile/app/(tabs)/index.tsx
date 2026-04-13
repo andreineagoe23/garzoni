@@ -368,19 +368,19 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-      >
-        <Skeleton
-          width="60%"
-          height={28}
-          style={{ marginBottom: spacing.lg }}
-        />
-        <Skeleton
-          width="100%"
-          height={100}
-          style={{ marginBottom: spacing.md }}
-        />
-      </ScreenScroll>
+          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        >
+          <Skeleton
+            width="60%"
+            height={28}
+            style={{ marginBottom: spacing.lg }}
+          />
+          <Skeleton
+            width="100%"
+            height={100}
+            style={{ marginBottom: spacing.md }}
+          />
+        </ScreenScroll>
       </View>
     );
   }
@@ -390,15 +390,15 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-      >
-        <Text style={[styles.greeting, { color: c.text }]}>
-          {t("dashboard.header.welcomeBack")}
-        </Text>
-        <Text style={{ color: c.textMuted, marginBottom: spacing.lg }}>
-          Sign in on the Profile tab to see your dashboard.
-        </Text>
-      </ScreenScroll>
+          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        >
+          <Text style={[styles.greeting, { color: c.text }]}>
+            {t("dashboard.header.welcomeBack")}
+          </Text>
+          <Text style={{ color: c.textMuted, marginBottom: spacing.lg }}>
+            Sign in on the Profile tab to see your dashboard.
+          </Text>
+        </ScreenScroll>
       </View>
     );
   }
@@ -408,40 +408,40 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-      >
-        <Skeleton
-          width="60%"
-          height={28}
-          style={{ marginBottom: spacing.lg }}
-        />
-        <Skeleton
-          width="100%"
-          height={88}
-          style={{ marginBottom: spacing.md }}
-        />
-        <View
-          style={{
-            flexDirection: "row",
-            gap: spacing.md,
-            marginBottom: spacing.lg,
-          }}
+          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
         >
-          <Skeleton width={158} height={120} />
-          <Skeleton width={158} height={120} />
-          <Skeleton width={158} height={120} />
-        </View>
-        <Skeleton
-          width="100%"
-          height={100}
-          style={{ marginBottom: spacing.md }}
-        />
-        <Skeleton
-          width="100%"
-          height={100}
-          style={{ marginBottom: spacing.md }}
-        />
-      </ScreenScroll>
+          <Skeleton
+            width="60%"
+            height={28}
+            style={{ marginBottom: spacing.lg }}
+          />
+          <Skeleton
+            width="100%"
+            height={88}
+            style={{ marginBottom: spacing.md }}
+          />
+          <View
+            style={{
+              flexDirection: "row",
+              gap: spacing.md,
+              marginBottom: spacing.lg,
+            }}
+          >
+            <Skeleton width={158} height={120} />
+            <Skeleton width={158} height={120} />
+            <Skeleton width={158} height={120} />
+          </View>
+          <Skeleton
+            width="100%"
+            height={100}
+            style={{ marginBottom: spacing.md }}
+          />
+          <Skeleton
+            width="100%"
+            height={100}
+            style={{ marginBottom: spacing.md }}
+          />
+        </ScreenScroll>
       </View>
     );
   }
@@ -462,144 +462,144 @@ function DashboardInner() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {headerBar}
       <ScreenScroll
-      contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={c.primary}
-        />
-      }
-    >
-      <GlassCard
-        padding="lg"
-        style={{ borderColor: c.border, marginBottom: spacing.lg }}
+        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={c.primary}
+          />
+        }
       >
-        <DashboardHeaderMobile displayName={displayName || undefined} />
+        <GlassCard
+          padding="lg"
+          style={{ borderColor: c.border, marginBottom: spacing.lg }}
+        >
+          <DashboardHeaderMobile displayName={displayName || undefined} />
 
-        {!questionnaireCompletedForUi ? (
-          <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
-            <QuestionnaireReminderBanner
-              hasPaid={hasPaid}
-              authReady={authReady && Boolean(accessToken)}
+          {!questionnaireCompletedForUi ? (
+            <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
+              <QuestionnaireReminderBanner
+                hasPaid={hasPaid}
+                authReady={authReady && Boolean(accessToken)}
+              />
+            </View>
+          ) : null}
+
+          {questionnaireCompletedForUi ? (
+            <View
+              style={[
+                styles.resumeRow,
+                !resumeTilesSideBySide && styles.resumeRowStacked,
+              ]}
+            >
+              <View
+                style={[
+                  styles.resumeCol,
+                  !resumeTilesSideBySide && styles.resumeColFullWidth,
+                ]}
+              >
+                <DashboardResumeRow
+                  style={
+                    !resumeTilesSideBySide
+                      ? styles.resumeCardFullWidth
+                      : styles.resumeCardFill
+                  }
+                  resume={summary.resume}
+                  startHere={summary.startHere}
+                />
+              </View>
+              <View
+                style={[
+                  styles.resumeCol,
+                  !resumeTilesSideBySide && styles.resumeColFullWidth,
+                ]}
+              >
+                <WeakSkillsQuickCardMobile
+                  style={
+                    !resumeTilesSideBySide
+                      ? styles.resumeCardFullWidth
+                      : styles.resumeCardFill
+                  }
+                  locale={i18n.language}
+                  topSkill={weakSkillItems[0] ?? null}
+                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                  onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
+                />
+              </View>
+            </View>
+          ) : (
+            <WeakSkillsQuickCardMobile
+              locale={i18n.language}
+              topSkill={weakSkillItems[0] ?? null}
+              onRecommendedSkillExercises={handleQuickCardSkillExercises}
+              onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
             />
-          </View>
-        ) : null}
+          )}
 
-        {questionnaireCompletedForUi ? (
+          <WeakSkillsSectionMobile
+            show
+            masteryError={masteryQuery.isError ? masteryQuery.error : undefined}
+            weakestSkills={weakSkillItems}
+            hasAnyMasteryData={(masteryQuery.data?.masteries?.length ?? 0) > 0}
+            refetchMastery={() => void masteryQuery.refetch()}
+            locale={i18n.language}
+            completedSections={summary.completedSections}
+            totalSections={summary.totalSections}
+            completedLessons={summary.completedLessons}
+            totalLessons={summary.totalLessons}
+            onSkillClick={handleWeakSkillClick}
+            onPracticeClick={handleWeakSkillPractice}
+          />
+
           <View
             style={[
-              styles.resumeRow,
-              !resumeTilesSideBySide && styles.resumeRowStacked,
+              styles.heatmapCard,
+              { backgroundColor: c.surfaceOffset, borderColor: c.border },
             ]}
           >
-            <View
-              style={[
-                styles.resumeCol,
-                !resumeTilesSideBySide && styles.resumeColFullWidth,
-              ]}
-            >
-              <DashboardResumeRow
-                style={
-                  !resumeTilesSideBySide
-                    ? styles.resumeCardFullWidth
-                    : styles.resumeCardFill
-                }
-                resume={summary.resume}
-                startHere={summary.startHere}
-              />
-            </View>
-            <View
-              style={[
-                styles.resumeCol,
-                !resumeTilesSideBySide && styles.resumeColFullWidth,
-              ]}
-            >
-              <WeakSkillsQuickCardMobile
-                style={
-                  !resumeTilesSideBySide
-                    ? styles.resumeCardFullWidth
-                    : styles.resumeCardFill
-                }
-                locale={i18n.language}
-                topSkill={weakSkillItems[0] ?? null}
-                onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
-              />
-            </View>
+            <Text style={[styles.sectionTitle, { color: c.text }]}>
+              Your consistency
+            </Text>
+            <Text style={[styles.sectionSub, { color: c.textMuted }]}>
+              {heatmapDates.monthLabel}
+            </Text>
+            <DashboardActivityHeatmap
+              activityMap={heatmapMap}
+              firstDay={heatmapDates.firstDay}
+              lastDay={heatmapDates.lastDay}
+              colors={c}
+              selectedDate={selectedHeatmapDay}
+              onDaySelected={(s) =>
+                setSelectedHeatmapDay((prev) =>
+                  prev === (s?.date ?? null) ? null : (s?.date ?? null),
+                )
+              }
+            />
           </View>
-        ) : (
-          <WeakSkillsQuickCardMobile
-            locale={i18n.language}
-            topSkill={weakSkillItems[0] ?? null}
-            onRecommendedSkillExercises={handleQuickCardSkillExercises}
-            onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
-          />
-        )}
 
-        <WeakSkillsSectionMobile
-          show
-          masteryError={masteryQuery.isError ? masteryQuery.error : undefined}
-          weakestSkills={weakSkillItems}
-          hasAnyMasteryData={(masteryQuery.data?.masteries?.length ?? 0) > 0}
-          refetchMastery={() => void masteryQuery.refetch()}
-          locale={i18n.language}
-          completedSections={summary.completedSections}
-          totalSections={summary.totalSections}
-          completedLessons={summary.completedLessons}
-          totalLessons={summary.totalLessons}
-          onSkillClick={handleWeakSkillClick}
-          onPracticeClick={handleWeakSkillPractice}
-        />
-
-        <View
-          style={[
-            styles.heatmapCard,
-            { backgroundColor: c.surfaceOffset, borderColor: c.border },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: c.text }]}>
-            Your consistency
-          </Text>
-          <Text style={[styles.sectionSub, { color: c.textMuted }]}>
-            {heatmapDates.monthLabel}
-          </Text>
-          <DashboardActivityHeatmap
-            activityMap={heatmapMap}
-            firstDay={heatmapDates.firstDay}
-            lastDay={heatmapDates.lastDay}
-            colors={c}
-            selectedDate={selectedHeatmapDay}
-            onDaySelected={(s) =>
-              setSelectedHeatmapDay((prev) =>
-                prev === (s?.date ?? null) ? null : (s?.date ?? null),
-              )
+          <StatusSummaryGrid
+            coursesCompleted={summary.coursesCompleted}
+            overallProgress={summary.overallProgress}
+            reviewsDue={summary.reviewsDue}
+            activeMissionsCount={summary.activeMissions.length}
+            dailyGoalProgress={summary.dailyGoalProgress}
+            streakCount={Number(profile?.streak ?? 0)}
+            reviewError={reviewQuery.isError ? reviewQuery.error : undefined}
+            missionsError={
+              missionsQuery.isError ? missionsQuery.error : undefined
             }
+            refetchReview={() => void reviewQuery.refetch()}
+            refetchMissions={() => void missionsQuery.refetch()}
+            reviewTopSkill={reviewTopSkill}
+            onOpenReviews={() => router.push(href("/(tabs)/exercises"))}
+            onOpenMissions={() => router.push(href("/(tabs)/missions"))}
+            locale={i18n.language}
           />
-        </View>
 
-        <StatusSummaryGrid
-          coursesCompleted={summary.coursesCompleted}
-          overallProgress={summary.overallProgress}
-          reviewsDue={summary.reviewsDue}
-          activeMissionsCount={summary.activeMissions.length}
-          dailyGoalProgress={summary.dailyGoalProgress}
-          streakCount={Number(profile?.streak ?? 0)}
-          reviewError={reviewQuery.isError ? reviewQuery.error : undefined}
-          missionsError={
-            missionsQuery.isError ? missionsQuery.error : undefined
-          }
-          refetchReview={() => void reviewQuery.refetch()}
-          refetchMissions={() => void missionsQuery.refetch()}
-          reviewTopSkill={reviewTopSkill}
-          onOpenReviews={() => router.push(href("/(tabs)/exercises"))}
-          onOpenMissions={() => router.push(href("/(tabs)/missions"))}
-          locale={i18n.language}
-        />
-
-        <PrimaryCTAMobile primaryCTA={primaryCTA} />
-      </GlassCard>
-    </ScreenScroll>
+          <PrimaryCTAMobile primaryCTA={primaryCTA} />
+        </GlassCard>
+      </ScreenScroll>
     </View>
   );
 }

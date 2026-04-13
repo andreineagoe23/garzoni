@@ -39,6 +39,7 @@ import FillInTableExercise from "components/exercises/FillInTableExercise";
 import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationExercise";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
+import type { MascotSituation } from "hooks/useMascotMessage";
 import type { LessonSection } from "./lessonEditorTypes";
 
 const LessonSectionEditorPanel = React.lazy(
@@ -927,15 +928,14 @@ function CourseFlowPage() {
     [navigate, pathIdNumber, persistFlowIndex]
   );
 
-  const mascotTimeoutRef = useRef<number | null>(null);
+  const attemptMascotTimeoutRef = useRef<number | null>(null);
   const mascotHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
-  const mascotInteractionCountRef = useRef(0);
+  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
-  const [mascotMood, setMascotMood] = useState<
-    "neutral" | "celebrate" | "encourage"
-  >("neutral");
+  const [attemptMascotSituation, setAttemptMascotSituation] =
+    useState<MascotSituation | null>(null);
   const [sectionInsight, setSectionInsight] = useState<string>("");
 
   // Hide mascot after a few seconds (only shown when user completes a section)
@@ -964,14 +964,25 @@ function CourseFlowPage() {
     const idx = n % 3;
     return idx === 0 ? "owl" : idx === 1 ? "bull" : "bear";
   }, [currentItem?.lessonId]);
-  const pulseMascot = useCallback((nextMood: "celebrate" | "encourage") => {
-    if (mascotTimeoutRef.current) {
-      window.clearTimeout(mascotTimeoutRef.current);
+  const clearAttemptMascotSituation = useCallback(() => {
+    if (attemptMascotTimeoutRef.current) {
+      window.clearTimeout(attemptMascotTimeoutRef.current);
+      attemptMascotTimeoutRef.current = null;
     }
-    mascotInteractionCountRef.current += 1;
-    setMascotMood(nextMood);
-    mascotTimeoutRef.current = window.setTimeout(() => {
-      setMascotMood("neutral");
+    setAttemptMascotSituation(null);
+  }, []);
+
+  const pulseAttemptMascot = useCallback((correct: boolean) => {
+    if (attemptMascotTimeoutRef.current) {
+      window.clearTimeout(attemptMascotTimeoutRef.current);
+    }
+    setMascotRotationKey((n) => n + 1);
+    setAttemptMascotSituation(
+      correct ? "lesson_exercise_correct" : "lesson_exercise_incorrect"
+    );
+    attemptMascotTimeoutRef.current = window.setTimeout(() => {
+      setAttemptMascotSituation(null);
+      attemptMascotTimeoutRef.current = null;
     }, 3500);
   }, []);
 
@@ -980,21 +991,25 @@ function CourseFlowPage() {
       if (!adminMode && heartsEnabled && !correct) {
         decrementHeart();
       }
-      pulseMascot(correct ? "celebrate" : "encourage");
+      pulseAttemptMascot(correct);
     },
-    [adminMode, decrementHeart, heartsEnabled, pulseMascot]
+    [adminMode, decrementHeart, heartsEnabled, pulseAttemptMascot]
   );
 
   useEffect(() => {
     return () => {
-      if (mascotTimeoutRef.current)
-        window.clearTimeout(mascotTimeoutRef.current);
+      if (attemptMascotTimeoutRef.current)
+        window.clearTimeout(attemptMascotTimeoutRef.current);
       if (mascotHideTimeoutRef.current) {
         clearTimeout(mascotHideTimeoutRef.current);
         mascotHideTimeoutRef.current = null;
       }
     };
   }, []);
+
+  useEffect(() => {
+    clearAttemptMascotSituation();
+  }, [currentIndex, clearAttemptMascotSituation]);
 
   const scrollToTop = useCallback(() => {
     const el = contentScrollRef.current;
@@ -1031,6 +1046,9 @@ function CourseFlowPage() {
     if (!currentItem) return;
     if (isBlocked) return;
 
+    clearAttemptMascotSituation();
+    setMascotRotationKey((n) => n + 1);
+
     if (currentItem.kind === "section") {
       const sectionId = currentItem.section?.id;
       if (typeof sectionId === "number") {
@@ -1054,15 +1072,14 @@ function CourseFlowPage() {
       }
     }
 
-    pulseMascot("celebrate");
     handleNavigateForward();
   }, [
+    clearAttemptMascotSituation,
     completeLessonMutation,
     completeSectionMutation,
     currentItem,
     handleNavigateForward,
     isBlocked,
-    pulseMascot,
     t,
   ]);
 
@@ -1589,15 +1606,30 @@ function CourseFlowPage() {
             <div className="flex flex-col gap-3 lg:flex-row lg:gap-8">
               <div className="flex-1 space-y-6 lg:space-y-8">
                 {renderSectionBody()}
+                {attemptMascotSituation ? (
+                  <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 p-4 shadow-inner shadow-black/5">
+                    <MascotWithMessage
+                      mood="neutral"
+                      situation={attemptMascotSituation}
+                      fixedMascot={stableLessonMascot}
+                      rotateMessages
+                      rotationKey={mascotRotationKey}
+                      mascotClassName="h-24 w-24 object-contain"
+                    />
+                  </div>
+                ) : null}
               </div>
               {sectionInsight && (
                 <aside className="w-full shrink-0 lg:w-64">
                   <div className="relative">
                     <div className="pointer-events-none sticky bottom-6 lg:bottom-6">
                       <MascotWithMessage
-                        mood={mascotMood}
+                        mood="celebrate"
+                        situation="lesson_section_completed"
                         fixedMascot={stableLessonMascot}
                         customMessage={sectionInsight}
+                        rotateMessages
+                        rotationKey={mascotRotationKey}
                         mascotClassName="h-28 w-28 object-contain"
                       />
                     </div>

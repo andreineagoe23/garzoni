@@ -10,7 +10,7 @@ import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
 import apiClient from "services/httpClient";
-import { getBackendUrl } from "services/backendUrl";
+import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 
 type ReferralValidationState = "idle" | "checking" | "valid" | "invalid";
@@ -409,7 +409,7 @@ function Register() {
                   </div>
                 </div>
                 <a
-                  href={`${getBackendUrl()}/auth/google/?state=onboarding`}
+                  href={buildGoogleOAuthInitHref("onboarding")}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-content-primary shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
                 >
                   <svg

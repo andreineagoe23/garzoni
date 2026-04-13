@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import confetti from "canvas-confetti";
 import { GlassButton } from "components/ui";
-import MascotMedia from "components/common/MascotMedia";
+import MascotWithMessage from "components/common/MascotWithMessage";
 
 interface QuestionnaireCompletionModalProps {
   isOpen: boolean;
@@ -89,10 +89,15 @@ const QuestionnaireCompletionModal: React.FC<
       <div className="relative z-10 w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#1d5330)]/10 p-8 text-center shadow-2xl">
         {/* Mascot */}
         <div className="mx-auto mb-4 flex flex-col items-center gap-2">
-          <MascotMedia mascot="owl" className="h-20 w-20 object-contain" />
-          <p className="text-sm text-content-muted">
-            {t("onboarding.completionModal.mascotMessage")}
-          </p>
+          <MascotWithMessage
+            mood="celebrate"
+            situation="onboarding_complete"
+            customMessage={t("onboarding.completionModal.mascotMessage")}
+            rotateMessages
+            rotationKey={rewards.xp + rewards.coins}
+            mascotClassName="h-20 w-20 object-contain"
+            className="mt-0"
+          />
         </div>
 
         {/* Title */}

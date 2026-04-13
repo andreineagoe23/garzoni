@@ -1,9 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { submitExerciseAnswer } from "@garzoni/core";
 import { Card, Button } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
+import type {
+  ExerciseGradingMode,
+  StandaloneSubmitResult,
+} from "../lesson/ExerciseSection";
 
 type Choice = { id: string | number; label: string };
 
@@ -14,6 +20,9 @@ type Props = {
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
   onComplete?: () => Promise<void> | void;
+  gradingMode?: ExerciseGradingMode;
+  hintsUsed?: number;
+  onStandaloneSubmitResult?: (r: StandaloneSubmitResult) => void;
 };
 
 function createStyles(c: ThemeColors) {
@@ -61,19 +70,45 @@ function createStyles(c: ThemeColors) {
   });
 }
 
+function normalizeChoices(raw: unknown[]): Choice[] {
+  return raw.map((ch, i) => {
+    if (ch && typeof ch === "object" && "id" in ch) {
+      const o = ch as { id: unknown; label?: unknown; text?: unknown };
+      const id = o.id ?? i;
+      const label =
+        typeof o.label === "string"
+          ? o.label
+          : typeof o.text === "string"
+            ? o.text
+            : String(id);
+      return { id: id as string | number, label };
+    }
+    return { id: i, label: String(ch) };
+  });
+}
+
 export default function ScenarioSimulation({
   data,
+  exerciseId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
   onComplete,
+  gradingMode = "lesson",
+  hintsUsed = 0,
+  onStandaloneSubmitResult,
 }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createStyles(c), [c]);
 
   const scenario = data?.scenario as string | undefined;
   const question = data?.question as string | undefined;
-  const choices = (data?.choices ?? data?.options ?? []) as Choice[];
+  const choicesRaw = data?.choices ?? data?.options ?? [];
+  const choices = useMemo(
+    () => normalizeChoices(Array.isArray(choicesRaw) ? choicesRaw : []),
+    [data],
+  );
   const correctId = data?.correctAnswer ?? data?.correct_choice;
   const explanation = data?.explanation as string | undefined;
 
@@ -83,25 +118,81 @@ export default function ScenarioSimulation({
     null,
   );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setSelected(null);
+    setFeedback("");
+    setFeedbackType(null);
+    setIsCompleted(Boolean(isCompletedProp));
+    setSubmitting(false);
+  }, [exerciseId, isCompletedProp, data]);
 
   const handleSubmit = async () => {
-    if (disabled || selected === null) return;
+    if (disabled || selected === null || submitting) return;
+
+    if (gradingMode === "standalone" && exerciseId != null) {
+      setSubmitting(true);
+      try {
+        const { data: res } = await submitExerciseAnswer(exerciseId, {
+          user_answer: selected,
+          hints_used: hintsUsed,
+        });
+        const fb =
+          (typeof res.feedback === "string" && res.feedback) ||
+          (typeof res.explanation === "string" && res.explanation) ||
+          (res.correct
+            ? t("exercises.widgets.greatChoice")
+            : t("exercises.widgets.tryAgainAdjust"));
+        onStandaloneSubmitResult?.({
+          correct: res.correct,
+          feedback: fb,
+          xpDelta: res.xp_delta,
+        });
+        onAttempt?.({ correct: res.correct });
+        if (res.correct) {
+          setFeedback("");
+          setFeedbackType("success");
+          setIsCompleted(true);
+          try {
+            await onComplete?.();
+          } catch {
+            onStandaloneSubmitResult?.({
+              correct: false,
+              feedback: t("exercises.widgets.couldNotSave"),
+            });
+            setIsCompleted(false);
+          }
+        } else {
+          setFeedback("");
+          setFeedbackType("error");
+        }
+      } catch {
+        const msg = t("exercises.errors.submissionFailed");
+        onStandaloneSubmitResult?.({ correct: false, feedback: msg });
+        onAttempt?.({ correct: false });
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     const correct = selected === correctId;
     onAttempt?.({ correct });
 
     if (correct) {
-      setFeedback("Great choice!");
+      setFeedback(t("exercises.widgets.greatChoice"));
       setFeedbackType("success");
       setIsCompleted(true);
       try {
         await onComplete?.();
       } catch {
-        setFeedback("Could not save.");
+        setFeedback(t("exercises.widgets.couldNotSave"));
         setFeedbackType("error");
         setIsCompleted(false);
       }
     } else {
-      setFeedback("Not the best option. Try again.");
+      setFeedback(t("exercises.widgets.tryAgainAdjust"));
       setFeedbackType("error");
     }
   };
@@ -109,7 +200,7 @@ export default function ScenarioSimulation({
   return (
     <Card>
       {scenario ? <Text style={styles.scenario}>{scenario}</Text> : null}
-      <Text style={styles.question}>{question}</Text>
+      {question ? <Text style={styles.question}>{question}</Text> : null}
 
       <View style={styles.choices}>
         {choices.map((ch) => {
@@ -126,14 +217,14 @@ export default function ScenarioSimulation({
               style={[styles.choice, isSel && styles.choiceSelected]}
             >
               <Text style={[styles.choiceText, isSel && styles.choiceTextSel]}>
-                {ch.label}
+                {ch.label ?? String(ch.id)}
               </Text>
             </Pressable>
           );
         })}
       </View>
 
-      {feedback ? (
+      {gradingMode === "lesson" && feedback ? (
         <Text
           style={[
             styles.feedback,
@@ -153,8 +244,11 @@ export default function ScenarioSimulation({
           size="sm"
           onPress={() => void handleSubmit()}
           style={{ marginTop: spacing.md }}
+          loading={submitting}
         >
-          Submit
+          {gradingMode === "standalone"
+            ? t("exercises.widgets.checkAnswer")
+            : t("exercises.widgets.submit")}
         </Button>
       ) : null}
     </Card>

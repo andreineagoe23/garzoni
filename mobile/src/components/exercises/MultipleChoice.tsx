@@ -1,11 +1,17 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
+import { useTranslation } from "react-i18next";
+import { submitExerciseAnswer } from "@garzoni/core";
 import { safeNotificationAsync } from "../../utils/safeHaptics";
 import { Card, Button } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
+import type {
+  ExerciseGradingMode,
+  StandaloneSubmitResult,
+} from "../lesson/ExerciseSection";
 
 type Props = {
   data: Record<string, unknown>;
@@ -14,6 +20,9 @@ type Props = {
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
   onComplete?: () => Promise<void> | void;
+  gradingMode?: ExerciseGradingMode;
+  hintsUsed?: number;
+  onStandaloneSubmitResult?: (r: StandaloneSubmitResult) => void;
 };
 
 function createStyles(c: ThemeColors) {
@@ -65,12 +74,17 @@ function createStyles(c: ThemeColors) {
 
 export default function MultipleChoice({
   data,
+  exerciseId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
   onComplete,
+  gradingMode = "lesson",
+  hintsUsed = 0,
+  onStandaloneSubmitResult,
 }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createStyles(c), [c]);
 
   const question = data?.question as string | undefined;
@@ -84,35 +98,99 @@ export default function MultipleChoice({
     null,
   );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setSelected(null);
+    setFeedback("");
+    setFeedbackType(null);
+    setIsCompleted(Boolean(isCompletedProp));
+    setSubmitting(false);
+  }, [exerciseId, isCompletedProp, data]);
 
   const handleSubmit = async () => {
-    if (disabled || selected === null) return;
+    if (disabled || selected === null || submitting) return;
+
+    if (gradingMode === "standalone" && exerciseId != null) {
+      setSubmitting(true);
+      try {
+        const { data: res } = await submitExerciseAnswer(exerciseId, {
+          user_answer: selected,
+          hints_used: hintsUsed,
+        });
+        const fb =
+          (typeof res.feedback === "string" && res.feedback) ||
+          (typeof res.explanation === "string" && res.explanation) ||
+          (res.correct
+            ? t("exercises.widgets.correctShort")
+            : t("exercises.widgets.tryAgainAdjust"));
+        onStandaloneSubmitResult?.({
+          correct: res.correct,
+          feedback: fb,
+          xpDelta: res.xp_delta,
+        });
+        onAttempt?.({ correct: res.correct });
+        if (res.correct) {
+          void safeNotificationAsync(NotificationFeedbackType.Success);
+          setFeedback("");
+          setFeedbackType("success");
+          setIsCompleted(true);
+          try {
+            await onComplete?.();
+          } catch {
+            onStandaloneSubmitResult?.({
+              correct: false,
+              feedback: t("exercises.widgets.couldNotSave"),
+            });
+            setIsCompleted(false);
+          }
+        } else {
+          void safeNotificationAsync(NotificationFeedbackType.Error);
+          setFeedback("");
+          setFeedbackType("error");
+        }
+      } catch {
+        const msg = t("exercises.errors.submissionFailed");
+        onStandaloneSubmitResult?.({ correct: false, feedback: msg });
+        onAttempt?.({ correct: false });
+        setFeedback("");
+        setFeedbackType("error");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
 
     const correct = selected === correctAnswer;
     onAttempt?.({ correct });
 
     if (correct) {
       void safeNotificationAsync(NotificationFeedbackType.Success);
-      setFeedback("Correct!");
+      setFeedback(t("exercises.widgets.correctShort"));
       setFeedbackType("success");
       setIsCompleted(true);
       try {
         await onComplete?.();
       } catch {
-        setFeedback("Could not save progress.");
+        setFeedback(t("exercises.widgets.couldNotSave"));
         setFeedbackType("error");
         setIsCompleted(false);
       }
     } else {
       void safeNotificationAsync(NotificationFeedbackType.Error);
-      setFeedback("Not quite. Try again.");
+      setFeedback(t("exercises.widgets.notQuiteTryAgain"));
       setFeedbackType("error");
     }
   };
 
   return (
     <Card>
-      <Text style={styles.question}>{question}</Text>
+      {question ? <Text style={styles.question}>{question}</Text> : null}
+      {gradingMode === "lesson" ? (
+        <Text style={[styles.explanation, { marginBottom: spacing.sm }]}>
+          {t("exercises.widgets.chooseBest")}
+        </Text>
+      ) : null}
       <View style={styles.options}>
         {options.map((opt, i) => {
           const isSelected = selected === i;
@@ -148,7 +226,7 @@ export default function MultipleChoice({
         })}
       </View>
 
-      {feedback ? (
+      {gradingMode === "lesson" && feedback ? (
         <Text
           style={[
             styles.feedback,
@@ -170,8 +248,11 @@ export default function MultipleChoice({
           size="sm"
           onPress={() => void handleSubmit()}
           style={{ marginTop: spacing.md }}
+          loading={submitting}
         >
-          Submit
+          {gradingMode === "standalone"
+            ? t("exercises.widgets.checkAnswer")
+            : t("exercises.widgets.submit")}
         </Button>
       ) : null}
     </Card>

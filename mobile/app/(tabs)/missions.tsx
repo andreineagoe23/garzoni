@@ -31,7 +31,7 @@ import {
 import MissionCard from "../../src/components/engagement/MissionCard";
 import AnimatedMissionCard from "../../src/components/engagement/AnimatedMissionCard";
 import RewardClaimModal from "../../src/components/engagement/RewardClaimModal";
-import MascotImage from "../../src/components/common/MascotImage";
+import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import GlassCard from "../../src/components/ui/GlassCard";
@@ -587,12 +587,13 @@ function MissionsInner() {
               <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
                 <View style={styles.wrapRow}>
                   <View style={styles.wrapMascot}>
-                    <MascotImage mascot="bear" size={80} />
-                    <Text
-                      style={[styles.wrapMascotCap, { color: c.textMuted }]}
-                    >
-                      {t("missions.wrapup.mascotMessage")}
-                    </Text>
+                    <MascotWithMessage
+                      mood="celebrate"
+                      situation="missions_wrapup_all_done"
+                      rotationKey={dailyXpEarned}
+                      embedded
+                      mascotSize={80}
+                    />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.wrapKicker, { color: c.textMuted }]}>
@@ -717,12 +718,6 @@ const styles = StyleSheet.create({
   },
   wrapRow: { flexDirection: "column", gap: spacing.md },
   wrapMascot: { alignItems: "center" },
-  wrapMascotCap: {
-    fontSize: typography.xs,
-    fontWeight: "600",
-    marginTop: spacing.xs,
-    textAlign: "center",
-  },
   wrapKicker: {
     fontSize: 10,
     fontWeight: "800",

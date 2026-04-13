@@ -8,7 +8,7 @@ import React, {
 import apiClient from "services/httpClient";
 import Loader from "components/common/Loader";
 import StatBadge from "components/common/StatBadge";
-import MascotMedia from "components/common/MascotMedia";
+import MascotWithMessage from "components/common/MascotWithMessage";
 import { useAuth } from "contexts/AuthContext";
 import type { Mission, UserProfile } from "types/api";
 import { GlassCard } from "components/ui";
@@ -539,13 +539,14 @@ function Missions() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex shrink-0 flex-col items-center gap-2">
-                      <MascotMedia
-                        mascot="bear"
-                        className="h-20 w-20 object-contain"
+                      <MascotWithMessage
+                        mood="celebrate"
+                        situation="missions_wrapup_all_done"
+                        rotateMessages
+                        rotationKey={dailyXpEarned}
+                        mascotClassName="h-20 w-20 object-contain"
+                        className="mt-0"
                       />
-                      <p className="text-xs font-medium text-content-muted">
-                        {t("missions.wrapup.mascotMessage")}
-                      </p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-wide text-content-muted">

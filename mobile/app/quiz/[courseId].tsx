@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -12,6 +12,7 @@ import ConfettiCannon from "react-native-confetti-cannon";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { MascotSituation } from "@garzoni/core";
 import {
   completeCourseQuiz,
   fetchQuizzesForCourse,
@@ -27,7 +28,7 @@ import {
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
-import MascotImage from "../../src/components/common/MascotImage";
+import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import {
   colors,
   spacing,
@@ -62,7 +63,14 @@ export default function QuizScreen() {
   const [correctAnswerSnapshot, setCorrectAnswerSnapshot] = useState<
     string | null
   >(null);
+  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   const confettiRef = useRef<ConfettiCannon>(null);
+
+  const quizFeedbackSituation = useMemo((): MascotSituation | undefined => {
+    if (correct === true) return "quiz_correct";
+    if (correct === false) return "quiz_incorrect";
+    return undefined;
+  }, [correct]);
 
   const { hearts, maxHearts, decrementHeart } = useHearts({
     enabled: true,
@@ -104,10 +112,12 @@ export default function QuizScreen() {
     setSelected(null);
     setFeedback("");
     setCorrect(null);
+    setMascotRotationKey(0);
   }, []);
 
   const submit = useCallback(async () => {
     if (!quiz || selected == null) {
+      setCorrect(null);
       setFeedback("Select an answer first.");
       return;
     }
@@ -119,6 +129,7 @@ export default function QuizScreen() {
       const isOk = res.data.correct === true;
       setCorrect(isOk);
       setFeedback(res.data.message ?? "");
+      setMascotRotationKey((n) => n + 1);
       if (isOk) {
         void safeNotificationAsync(NotificationFeedbackType.Success);
         setEarned(Number(res.data.earned_money ?? 0));
@@ -131,6 +142,7 @@ export default function QuizScreen() {
     } catch {
       setFeedback("Something went wrong.");
       setCorrect(null);
+      setMascotRotationKey((n) => n + 1);
     }
   }, [quiz, selected, decrementHeart]);
 
@@ -191,9 +203,14 @@ export default function QuizScreen() {
           fadeOut
           autoStart={false}
         />
-        <MascotImage mascot="owl" size={88} />
+        <MascotWithMessage
+          situation="quiz_complete"
+          customMessage={feedback.trim() ? feedback : undefined}
+          rotationKey={courseId}
+          embedded
+          mascotSize={88}
+        />
         <Text style={styles.resultTitle}>Quiz complete!</Text>
-        <Text style={styles.resultSub}>{feedback}</Text>
         {earned > 0 ? (
           <Text style={styles.earn}>+{earned.toFixed(2)} earned</Text>
         ) : null}
@@ -299,20 +316,26 @@ export default function QuizScreen() {
           ) : null}
 
           {feedback ? (
-            <View style={styles.feedbackRow}>
-              <MascotImage
-                mascot={correct === true ? "owl" : "bull"}
-                size={56}
-                style={{ marginRight: spacing.md }}
+            <View
+              style={[
+                styles.feedbackRow,
+                correct === false ? styles.feedbackRowWarn : null,
+              ]}
+            >
+              <MascotWithMessage
+                mood={
+                  correct === true
+                    ? "celebrate"
+                    : correct === false
+                      ? "encourage"
+                      : "neutral"
+                }
+                situation={quizFeedbackSituation}
+                customMessage={feedback}
+                rotationKey={mascotRotationKey}
+                embedded
+                mascotSize={56}
               />
-              <Text
-                style={[
-                  styles.feedbackText,
-                  correct !== true && styles.feedbackBad,
-                ]}
-              >
-                {feedback}
-              </Text>
             </View>
           ) : null}
         </Animated.View>
@@ -371,6 +394,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.surfaceOffset,
     borderRadius: radius.lg,
+  },
+  feedbackRowWarn: {
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.errorBg,
   },
   feedbackText: {
     flex: 1,

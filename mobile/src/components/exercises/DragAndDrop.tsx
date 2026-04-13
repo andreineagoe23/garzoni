@@ -1,9 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { submitExerciseAnswer } from "@garzoni/core";
 import { Card, Button, Badge } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
+import type {
+  ExerciseGradingMode,
+  StandaloneSubmitResult,
+} from "../lesson/ExerciseSection";
 
 type Item = { id: string | number; label?: string };
 type Target = { id: string | number; label?: string };
@@ -15,6 +21,9 @@ type Props = {
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
   onComplete?: () => Promise<void> | void;
+  gradingMode?: ExerciseGradingMode;
+  hintsUsed?: number;
+  onStandaloneSubmitResult?: (r: StandaloneSubmitResult) => void;
 };
 
 function createStyles(c: ThemeColors) {
@@ -67,12 +76,17 @@ function createStyles(c: ThemeColors) {
 
 export default function DragAndDrop({
   data,
+  exerciseId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
   onComplete,
+  gradingMode = "lesson",
+  hintsUsed = 0,
+  onStandaloneSubmitResult,
 }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createStyles(c), [c]);
 
   const items = (data?.items ?? []) as Item[];
@@ -85,13 +99,25 @@ export default function DragAndDrop({
     null,
   );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setOrder([]);
+    setFeedback("");
+    setFeedbackType(null);
+    setIsCompleted(Boolean(isCompletedProp));
+    setSubmitting(false);
+  }, [exerciseId, isCompletedProp, data]);
 
   const available = useMemo(
     () => items.filter((it) => !order.includes(it.id)),
     [items, order],
   );
 
-  const correctOrder = useMemo(() => targets.map((t) => t.id), [targets]);
+  const correctOrder = useMemo(() => {
+    if (targets.length > 0) return targets.map((t) => t.id);
+    return items.map((it) => it.id);
+  }, [targets, items]);
 
   const handleTap = (id: string | number) => {
     if (isCompleted || disabled) return;
@@ -106,8 +132,61 @@ export default function DragAndDrop({
     setFeedbackType(null);
   };
 
+  const orderToIndices = (): number[] =>
+    order.map((id) => items.findIndex((it) => it.id === id));
+
   const handleSubmit = async () => {
-    if (disabled) return;
+    if (disabled || submitting) return;
+    if (order.length !== items.length) return;
+
+    if (gradingMode === "standalone" && exerciseId != null) {
+      const userAnswer = orderToIndices();
+      if (userAnswer.some((ix) => ix < 0)) return;
+      setSubmitting(true);
+      try {
+        const { data: res } = await submitExerciseAnswer(exerciseId, {
+          user_answer: userAnswer,
+          hints_used: hintsUsed,
+        });
+        const fb =
+          (typeof res.feedback === "string" && res.feedback) ||
+          (typeof res.explanation === "string" && res.explanation) ||
+          (res.correct
+            ? t("exercises.widgets.greatOrder")
+            : t("exercises.widgets.wrongOrder"));
+        onStandaloneSubmitResult?.({
+          correct: res.correct,
+          feedback: fb,
+          xpDelta: res.xp_delta,
+        });
+        onAttempt?.({ correct: res.correct });
+        if (res.correct) {
+          setFeedback("");
+          setFeedbackType("success");
+          setIsCompleted(true);
+          try {
+            await onComplete?.();
+          } catch {
+            onStandaloneSubmitResult?.({
+              correct: false,
+              feedback: t("exercises.widgets.couldNotSave"),
+            });
+            setIsCompleted(false);
+          }
+        } else {
+          setFeedback("");
+          setFeedbackType("error");
+        }
+      } catch {
+        const msg = t("exercises.errors.submissionFailed");
+        onStandaloneSubmitResult?.({ correct: false, feedback: msg });
+        onAttempt?.({ correct: false });
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     const allCorrect =
       order.length === correctOrder.length &&
       order.every((id, i) => id === correctOrder[i]);
@@ -115,18 +194,18 @@ export default function DragAndDrop({
     onAttempt?.({ correct: allCorrect });
 
     if (allCorrect) {
-      setFeedback("Perfect order!");
+      setFeedback(t("exercises.widgets.greatOrder"));
       setFeedbackType("success");
       setIsCompleted(true);
       try {
         await onComplete?.();
       } catch {
-        setFeedback("Could not save.");
+        setFeedback(t("exercises.widgets.couldNotSave"));
         setFeedbackType("error");
         setIsCompleted(false);
       }
     } else {
-      setFeedback("That's not the right order. Try again.");
+      setFeedback(t("exercises.widgets.wrongOrder"));
       setFeedbackType("error");
       setOrder([]);
     }
@@ -138,7 +217,7 @@ export default function DragAndDrop({
   return (
     <Card>
       <Text style={styles.question}>
-        {(data?.question as string) ?? "Tap items in the correct order"}
+        {(data?.question as string) ?? t("exercises.widgets.dragPrompt")}
       </Text>
 
       {order.length > 0 ? (
@@ -152,7 +231,7 @@ export default function DragAndDrop({
           ))}
           {!isCompleted ? (
             <Pressable onPress={handleUndo}>
-              <Text style={styles.undo}>Undo</Text>
+              <Text style={styles.undo}>{t("exercises.widgets.undo")}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -173,7 +252,7 @@ export default function DragAndDrop({
         </View>
       ) : null}
 
-      {feedback ? (
+      {gradingMode === "lesson" && feedback ? (
         <Text
           style={[
             styles.feedback,
@@ -188,13 +267,14 @@ export default function DragAndDrop({
         <Text style={styles.explanation}>{explanation}</Text>
       ) : null}
 
-      {!isCompleted && order.length === items.length ? (
+      {!isCompleted && order.length === items.length && items.length > 0 ? (
         <Button
           size="sm"
           onPress={() => void handleSubmit()}
           style={{ marginTop: spacing.md }}
+          loading={submitting}
         >
-          Check order
+          {t("exercises.widgets.checkOrder")}
         </Button>
       ) : null}
     </Card>

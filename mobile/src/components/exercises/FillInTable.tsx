@@ -1,9 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { submitExerciseAnswer } from "@garzoni/core";
 import { Card, Button } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
+import type {
+  ExerciseGradingMode,
+  StandaloneSubmitResult,
+} from "../lesson/ExerciseSection";
 
 type Props = {
   data: Record<string, unknown>;
@@ -12,6 +18,9 @@ type Props = {
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
   onComplete?: () => Promise<void> | void;
+  gradingMode?: ExerciseGradingMode;
+  hintsUsed?: number;
+  onStandaloneSubmitResult?: (r: StandaloneSubmitResult) => void;
 };
 
 function createStyles(c: ThemeColors) {
@@ -59,12 +68,17 @@ function createStyles(c: ThemeColors) {
 
 export default function FillInTable({
   data,
+  exerciseId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
   onComplete,
+  gradingMode = "lesson",
+  hintsUsed = 0,
+  onStandaloneSubmitResult,
 }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createStyles(c), [c]);
 
   const question = data?.question as string | undefined;
@@ -86,9 +100,70 @@ export default function FillInTable({
     null,
   );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
+  const [submitting, setSubmitting] = useState(false);
+
+  const rowsKey = rows.map((r) => r.id).join("|");
+  const colsKey = columns.join("|");
+
+  useEffect(() => {
+    setAnswers(
+      Object.fromEntries(rows.map((r) => [r.id, columns.map(() => "")])),
+    );
+    setFeedback("");
+    setFeedbackType(null);
+    setIsCompleted(Boolean(isCompletedProp));
+    setSubmitting(false);
+  }, [exerciseId, isCompletedProp, rowsKey, colsKey]);
 
   const handleSubmit = async () => {
-    if (disabled) return;
+    if (disabled || submitting) return;
+
+    if (gradingMode === "standalone" && exerciseId != null) {
+      setSubmitting(true);
+      try {
+        const { data: res } = await submitExerciseAnswer(exerciseId, {
+          user_answer: answers,
+          hints_used: hintsUsed,
+        });
+        const fb =
+          (typeof res.feedback === "string" && res.feedback) ||
+          (typeof res.explanation === "string" && res.explanation) ||
+          (res.correct
+            ? t("exercises.widgets.correctShort")
+            : t("exercises.widgets.cellsWrong"));
+        onStandaloneSubmitResult?.({
+          correct: res.correct,
+          feedback: fb,
+          xpDelta: res.xp_delta,
+        });
+        onAttempt?.({ correct: res.correct });
+        if (res.correct) {
+          setFeedback("");
+          setFeedbackType("success");
+          setIsCompleted(true);
+          try {
+            await onComplete?.();
+          } catch {
+            onStandaloneSubmitResult?.({
+              correct: false,
+              feedback: t("exercises.widgets.couldNotSave"),
+            });
+            setIsCompleted(false);
+          }
+        } else {
+          setFeedback("");
+          setFeedbackType("error");
+        }
+      } catch {
+        const msg = t("exercises.errors.submissionFailed");
+        onStandaloneSubmitResult?.({ correct: false, feedback: msg });
+        onAttempt?.({ correct: false });
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     const isCorrect =
       correctAnswer &&
       Object.entries(correctAnswer).every(([rowId, expected]) =>
@@ -106,26 +181,36 @@ export default function FillInTable({
     onAttempt?.({ correct: Boolean(isCorrect) });
 
     if (isCorrect) {
-      setFeedback("Correct!");
+      setFeedback(t("exercises.widgets.correctShort"));
       setFeedbackType("success");
       setIsCompleted(true);
       try {
         await onComplete?.();
       } catch {
-        setFeedback("Could not save.");
+        setFeedback(t("exercises.widgets.couldNotSave"));
         setFeedbackType("error");
         setIsCompleted(false);
       }
     } else {
-      setFeedback("Some cells are incorrect. Try again.");
+      setFeedback(t("exercises.widgets.cellsWrong"));
       setFeedbackType("error");
     }
   };
 
+  if (!columns.length || !rows.length) {
+    return (
+      <Card>
+        <Text style={[styles.question, { color: c.textMuted }]}>
+          {t("exercises.errors.invalidFormat")}
+        </Text>
+      </Card>
+    );
+  }
+
   return (
     <Card padded={false}>
       <View style={{ padding: spacing.lg }}>
-        <Text style={styles.question}>{question}</Text>
+        {question ? <Text style={styles.question}>{question}</Text> : null}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator>
         <View>
@@ -165,7 +250,7 @@ export default function FillInTable({
       </ScrollView>
 
       <View style={{ padding: spacing.lg }}>
-        {feedback ? (
+        {gradingMode === "lesson" && feedback ? (
           <Text
             style={[
               styles.feedback,
@@ -180,8 +265,11 @@ export default function FillInTable({
             size="sm"
             onPress={() => void handleSubmit()}
             style={{ marginTop: spacing.sm }}
+            loading={submitting}
           >
-            Submit
+            {gradingMode === "standalone"
+              ? t("exercises.widgets.checkAnswer")
+              : t("exercises.widgets.submit")}
           </Button>
         ) : null}
       </View>
