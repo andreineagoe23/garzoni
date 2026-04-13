@@ -20,6 +20,7 @@ import { queryKeys, staleTimes } from "lib/reactQuery";
 import {
   completeLesson,
   completeSection,
+  fetchLessonCheckpointQuizzes,
   createLessonSection,
   deleteLessonSection,
   fetchCourseFlowState,
@@ -48,6 +49,9 @@ const LessonSectionEditorPanel = React.lazy(
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
+import LessonCheckpointQuizModal, {
+  type CheckpointQuizRow,
+} from "./LessonCheckpointQuizModal";
 
 type CourseFlowSection = {
   id: number | string;
@@ -110,6 +114,23 @@ type FlowItem =
       lessonExerciseData?: Record<string, unknown>;
       lessonDetailedContent?: string;
     };
+
+function resolveCheckpointLessonId(
+  flowSections: FlowItem[],
+  index: number,
+  item: FlowItem | null
+): number | null {
+  if (!item) return null;
+  if (item.kind === "lesson-text" || item.kind === "lesson-exercise") {
+    return Number.isFinite(item.lessonId) ? item.lessonId : null;
+  }
+  if (item.kind !== "section") return null;
+  const next = flowSections[index + 1];
+  if (!next || next.lessonId !== item.lessonId) {
+    return Number.isFinite(item.lessonId) ? item.lessonId : null;
+  }
+  return null;
+}
 
 function formatCountdown(ms: number) {
   if (!Number.isFinite(ms) || ms <= 0) return "00:00";
@@ -193,6 +214,11 @@ function CourseFlowPage() {
     (number | string)[]
   >([]);
   const [courseComplete, setCourseComplete] = useState(false);
+  const [checkpointOpen, setCheckpointOpen] = useState(false);
+  const [checkpointQuizzes, setCheckpointQuizzes] = useState<
+    CheckpointQuizRow[]
+  >([]);
+  const [checkpointFetching, setCheckpointFetching] = useState(false);
 
   const heartsEnabled = preferences?.heartsEnabled !== false;
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -470,6 +496,7 @@ function CourseFlowPage() {
         prev.includes(normalizedId) ? prev : [...prev, normalizedId]
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     },
     onError: () => toast.error(t("courses.flow.saveProgressFailed")),
   });
@@ -478,6 +505,7 @@ function CourseFlowPage() {
     mutationFn: completeLesson,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     },
     onError: () => toast.error(t("courses.flow.saveProgressFailed")),
   });
@@ -1042,44 +1070,104 @@ function CourseFlowPage() {
     setCourseComplete,
   ]);
 
+  const maybeCheckpointThenContinue = useCallback(
+    async (lessonId: number | null) => {
+      if (adminMode) {
+        handleNavigateForward();
+        return;
+      }
+      if (lessonId == null || !Number.isFinite(lessonId)) {
+        handleNavigateForward();
+        return;
+      }
+      setCheckpointFetching(true);
+      try {
+        const res = await fetchLessonCheckpointQuizzes(lessonId);
+        const raw = Array.isArray(res.data) ? res.data : [];
+        const rows: CheckpointQuizRow[] = raw
+          .map((q: Record<string, unknown>) => ({
+            id: Number(q.id),
+            title: String(q.title ?? ""),
+            question: String(q.question ?? ""),
+            choices: (q.choices as { text: string }[]) ?? [],
+            correct_answer: String(q.correct_answer ?? ""),
+            is_completed: Boolean(q.is_completed),
+          }))
+          .filter((q) => Number.isFinite(q.id));
+        const pending = rows.filter((q) => !q.is_completed);
+        if (pending.length === 0) {
+          handleNavigateForward();
+          return;
+        }
+        setCheckpointQuizzes(pending);
+        setCheckpointOpen(true);
+      } catch {
+        toast.error(t("courses.flow.checkpointLoadFailed"));
+        handleNavigateForward();
+      } finally {
+        setCheckpointFetching(false);
+      }
+    },
+    [adminMode, handleNavigateForward, t]
+  );
+
   const handleCompleteCurrent = useCallback(async () => {
-    if (!currentItem) return;
+    const item = currentItem;
+    const idx = currentIndex;
+    const sectionsSnap = flowSections;
+    if (!item) return;
     if (isBlocked) return;
+
+    const checkpointLessonId = resolveCheckpointLessonId(
+      sectionsSnap,
+      idx,
+      item
+    );
 
     clearAttemptMascotSituation();
     setMascotRotationKey((n) => n + 1);
 
-    if (currentItem.kind === "section") {
-      const sectionId = currentItem.section?.id;
-      if (typeof sectionId === "number") {
-        await completeSectionMutation.mutateAsync(sectionId);
-        setSectionInsight(
-          t("courses.flow.skillInsightSection", {
-            section:
-              currentItem.section?.title || t("courses.flow.thisSection"),
-          })
-        );
+    try {
+      if (item.kind === "section") {
+        const sectionId = item.section?.id;
+        const sectionIdNum =
+          typeof sectionId === "number" ? sectionId : Number(sectionId);
+        if (Number.isFinite(sectionIdNum)) {
+          await completeSectionMutation.mutateAsync(sectionIdNum);
+          setSectionInsight(
+            t("courses.flow.skillInsightSection", {
+              section: item.section?.title || t("courses.flow.thisSection"),
+            })
+          );
+        }
+      } else {
+        const lessonId = item.lessonId;
+        const lessonIdNum =
+          typeof lessonId === "number" ? lessonId : Number(lessonId);
+        if (Number.isFinite(lessonIdNum)) {
+          await completeLessonMutation.mutateAsync(lessonIdNum);
+          setSectionInsight(
+            t("courses.flow.skillInsightLesson", {
+              lesson: item.lessonTitle || t("courses.flow.thisLesson"),
+            })
+          );
+        }
       }
-    } else {
-      const lessonId = currentItem.lessonId;
-      if (typeof lessonId === "number") {
-        await completeLessonMutation.mutateAsync(lessonId);
-        setSectionInsight(
-          t("courses.flow.skillInsightLesson", {
-            lesson: currentItem.lessonTitle || t("courses.flow.thisLesson"),
-          })
-        );
-      }
+    } catch {
+      toast.error(t("courses.flow.saveProgressFailed"));
+      return;
     }
 
-    handleNavigateForward();
+    await maybeCheckpointThenContinue(checkpointLessonId);
   }, [
     clearAttemptMascotSituation,
     completeLessonMutation,
     completeSectionMutation,
+    currentIndex,
     currentItem,
-    handleNavigateForward,
+    flowSections,
     isBlocked,
+    maybeCheckpointThenContinue,
     t,
   ]);
 
@@ -1685,17 +1773,35 @@ function CourseFlowPage() {
                   disabled={
                     isHeartsMutating ||
                     completeLessonMutation.isPending ||
-                    completeSectionMutation.isPending
+                    completeSectionMutation.isPending ||
+                    checkpointOpen ||
+                    checkpointFetching
                   }
                   onClick={() => {
                     const isExercise =
                       currentItem.kind === "section" &&
                       currentItem.section?.content_type === "exercise";
                     if (isExercise) {
-                      handleNavigateForward();
-                    } else {
-                      handleCompleteCurrent();
+                      const sid = currentItem.section?.id;
+                      const sidNum =
+                        typeof sid === "number" ? sid : Number(sid);
+                      const done =
+                        Number.isFinite(sidNum) &&
+                        completedSectionIds.includes(sidNum);
+                      if (!done) {
+                        handleNavigateForward();
+                        return;
+                      }
+                      void maybeCheckpointThenContinue(
+                        resolveCheckpointLessonId(
+                          flowSections,
+                          currentIndex,
+                          currentItem
+                        )
+                      );
+                      return;
                     }
+                    void handleCompleteCurrent();
                   }}
                 >
                   {isLast
@@ -1766,17 +1872,34 @@ function CourseFlowPage() {
               disabled={
                 isHeartsMutating ||
                 completeLessonMutation.isPending ||
-                completeSectionMutation.isPending
+                completeSectionMutation.isPending ||
+                checkpointOpen ||
+                checkpointFetching
               }
               onClick={() => {
                 const isExercise =
                   currentItem.kind === "section" &&
                   currentItem.section?.content_type === "exercise";
                 if (isExercise) {
-                  handleNavigateForward();
-                } else {
-                  handleCompleteCurrent();
+                  const sid = currentItem.section?.id;
+                  const sidNum = typeof sid === "number" ? sid : Number(sid);
+                  const done =
+                    Number.isFinite(sidNum) &&
+                    completedSectionIds.includes(sidNum);
+                  if (!done) {
+                    handleNavigateForward();
+                    return;
+                  }
+                  void maybeCheckpointThenContinue(
+                    resolveCheckpointLessonId(
+                      flowSections,
+                      currentIndex,
+                      currentItem
+                    )
+                  );
+                  return;
                 }
+                void handleCompleteCurrent();
               }}
             >
               {isLast
@@ -1935,6 +2058,17 @@ function CourseFlowPage() {
           </div>
         </div>
       )}
+
+      <LessonCheckpointQuizModal
+        open={checkpointOpen}
+        quizzes={checkpointQuizzes}
+        courseId={courseIdNumber}
+        onFinished={() => {
+          setCheckpointOpen(false);
+          setCheckpointQuizzes([]);
+          handleNavigateForward();
+        }}
+      />
     </div>
   );
 }

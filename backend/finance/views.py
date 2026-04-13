@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Count, Sum, F, DecimalField, ExpressionWrapper, Case, When
+from django.db.models import Count, Sum, F, DecimalField, ExpressionWrapper, Case, When, Q
 from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -50,6 +50,7 @@ from authentication.services.subscriptions import apply_subscription_to_profile
 from authentication.tasks import send_subscription_cancelled_email
 from authentication.user_display import normalize_display_string
 from gamification.models import MissionCompletion
+from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
 from finance.utils import record_funnel_event
 from django.apps import apps
 from authentication.entitlements import get_entitlements_for_user, get_user_plan, normalize_plan_id
@@ -366,11 +367,22 @@ class SavingsAccountView(APIView):
                     account.balance += amount
                     account.save()
 
-                # Fetch all savings-related missions
-                missions = MissionCompletion.objects.select_related("mission").filter(
-                    user=user,
-                    mission__goal_type="add_savings",
-                    status__in=["not_started", "in_progress"],
+                d_id = daily_cycle_id()
+                w_id = weekly_cycle_id()
+                missions = (
+                    MissionCompletion.objects.select_related("mission")
+                    .filter(
+                        user=user,
+                        mission__goal_type="add_savings",
+                        status__in=["not_started", "in_progress"],
+                    )
+                    .filter(
+                        Q(mission__mission_type="daily", cycle_id=d_id)
+                        | Q(mission__mission_type="daily", cycle_id="")
+                        | Q(mission__mission_type="weekly", cycle_id=w_id)
+                        | Q(mission__mission_type="weekly", cycle_id="")
+                    )
+                    .exclude(cycle_id__startswith="x")
                 )
 
                 for completion in missions:
@@ -717,12 +729,23 @@ class FinanceFactView(APIView):
             # Log the fact as read
             UserFactProgress.objects.create(user=request.user, fact=fact)
 
-            # Progress both daily and weekly missions
-            completions = MissionCompletion.objects.filter(
-                user=request.user,
-                mission__goal_type="read_fact",
-                status__in=["not_started", "in_progress"],
-            ).select_related("mission")
+            d_id = daily_cycle_id()
+            w_id = weekly_cycle_id()
+            completions = (
+                MissionCompletion.objects.filter(
+                    user=request.user,
+                    mission__goal_type="read_fact",
+                    status__in=["not_started", "in_progress"],
+                )
+                .filter(
+                    Q(mission__mission_type="daily", cycle_id=d_id)
+                    | Q(mission__mission_type="daily", cycle_id="")
+                    | Q(mission__mission_type="weekly", cycle_id=w_id)
+                    | Q(mission__mission_type="weekly", cycle_id="")
+                )
+                .exclude(cycle_id__startswith="x")
+                .select_related("mission")
+            )
 
             for completion in completions:
                 if completion.mission.mission_type == "daily":

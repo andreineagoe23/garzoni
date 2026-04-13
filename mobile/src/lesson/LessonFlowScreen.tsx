@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -29,6 +30,10 @@ import TextSection from "../components/lesson/TextSection";
 import VideoSection from "../components/lesson/VideoSection";
 import ExerciseSection from "../components/lesson/ExerciseSection";
 import { useLessonFlow, type FlowItem } from "./useLessonFlow";
+import LessonCheckpointModal, {
+  type CheckpointQuizRow,
+} from "./LessonCheckpointModal";
+import { fetchLessonCheckpointQuizzes } from "@garzoni/core";
 import { spacing, typography, radius, shadows } from "../theme/tokens";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
@@ -37,7 +42,9 @@ import { useTranslation } from "react-i18next";
 
 const LESSON_FONT_SCALE_KEY = "garzoni:lesson_font_scale";
 
-function isExerciseItem(item: FlowItem | null): boolean {
+function isExerciseItem(
+  item: FlowItem | null,
+): item is Extract<FlowItem, { kind: "section" }> {
   if (!item || item.kind !== "section") return false;
   const s = item.section;
   return s.content_type === "exercise" || Boolean(s.exercise_type);
@@ -216,6 +223,7 @@ export default function LessonFlowScreen({
     isLast,
     totalSteps,
     completedSteps,
+    completedIds,
     courseComplete,
     goNext,
     goPrev,
@@ -250,6 +258,106 @@ export default function LessonFlowScreen({
   const transientLessonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const checkpointResolveRef = useRef<(() => void) | null>(null);
+  const checkpointGatePromiseRef = useRef<Promise<void> | null>(null);
+  const [checkpointVisible, setCheckpointVisible] = useState(false);
+  const [checkpointRows, setCheckpointRows] = useState<CheckpointQuizRow[]>([]);
+  const [checkpointBusy, setCheckpointBusy] = useState(false);
+
+  const resolveCheckpointLessonId = useCallback(
+    (
+      items: FlowItem[],
+      index: number,
+      item: FlowItem | null,
+    ): number | null => {
+      if (!item) return null;
+      if (item.kind === "lesson-text") {
+        return Number.isFinite(item.lessonId) ? item.lessonId : null;
+      }
+      if (item.kind !== "section") return null;
+      const next = items[index + 1];
+      if (!next || next.lessonId !== item.lessonId) {
+        return Number.isFinite(item.lessonId) ? item.lessonId : null;
+      }
+      return null;
+    },
+    [],
+  );
+
+  const waitLessonCheckpoint = useCallback(
+    (lessonId: number | null) => {
+      if (lessonId == null || !Number.isFinite(lessonId)) {
+        return Promise.resolve();
+      }
+      if (checkpointGatePromiseRef.current) {
+        return checkpointGatePromiseRef.current;
+      }
+      setCheckpointBusy(true);
+      const p = new Promise<void>((resolve) => {
+        void fetchLessonCheckpointQuizzes(lessonId)
+          .then((res) => {
+            const raw = Array.isArray(res.data) ? res.data : [];
+            const rows: CheckpointQuizRow[] = raw
+              .map((q: unknown) => {
+                const row = q as Record<string, unknown>;
+                return {
+                  id: Number(row.id),
+                  title: String(row.title ?? ""),
+                  question: String(row.question ?? ""),
+                  choices: (row.choices as { text: string }[]) ?? [],
+                  correct_answer: String(row.correct_answer ?? ""),
+                  is_completed: Boolean(row.is_completed),
+                };
+              })
+              .filter((q) => Number.isFinite(q.id));
+            const pending = rows.filter((q) => !q.is_completed);
+            if (pending.length === 0) {
+              setCheckpointBusy(false);
+              checkpointGatePromiseRef.current = null;
+              resolve();
+              return;
+            }
+            const finish = () => {
+              setCheckpointBusy(false);
+              checkpointGatePromiseRef.current = null;
+              resolve();
+            };
+            checkpointResolveRef.current = finish;
+            setCheckpointRows(pending);
+            setCheckpointVisible(true);
+          })
+          .catch(() => {
+            setCheckpointBusy(false);
+            checkpointGatePromiseRef.current = null;
+            Alert.alert(
+              t("courses.flow.checkpointLoadTitle"),
+              t("courses.flow.checkpointLoadFailed"),
+            );
+            resolve();
+          });
+      });
+      checkpointGatePromiseRef.current = p;
+      return p;
+    },
+    [t],
+  );
+
+  const finishCheckpointModal = useCallback(() => {
+    setCheckpointVisible(false);
+    setCheckpointRows([]);
+    const r = checkpointResolveRef.current;
+    checkpointResolveRef.current = null;
+    r?.();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const r = checkpointResolveRef.current;
+      checkpointResolveRef.current = null;
+      checkpointGatePromiseRef.current = null;
+      r?.();
+    };
+  }, []);
 
   const clearTransientLessonMascot = useCallback(() => {
     if (transientLessonTimerRef.current) {
@@ -350,9 +458,29 @@ export default function LessonFlowScreen({
   );
 
   const onExerciseComplete = useCallback(async () => {
-    await handleCompleteCurrent();
+    const idx = currentIndex;
+    const items = flowItems;
+    const item = items[idx] ?? null;
+    const ok = await handleCompleteCurrent();
+    if (!ok) {
+      Alert.alert(
+        t("courses.flow.saveProgressAlertTitle"),
+        t("courses.flow.saveProgressFailed"),
+      );
+      return;
+    }
+    const cid = resolveCheckpointLessonId(items, idx, item);
+    await waitLessonCheckpoint(cid);
     goNext();
-  }, [handleCompleteCurrent, goNext]);
+  }, [
+    currentIndex,
+    flowItems,
+    goNext,
+    handleCompleteCurrent,
+    resolveCheckpointLessonId,
+    t,
+    waitLessonCheckpoint,
+  ]);
 
   const stepHeading = useMemo(() => {
     if (!currentItem) return "";
@@ -368,15 +496,48 @@ export default function LessonFlowScreen({
 
   const handleContinuePress = useCallback(async () => {
     if (!currentItem || continueBusy) return;
+    const idx = currentIndex;
+    const items = flowItems;
+    const item = items[idx] ?? null;
+
     if (isExerciseItem(currentItem)) {
+      const sid = currentItem.section.id;
+      const sidNum = typeof sid === "number" ? sid : Number(sid);
+      const done =
+        Number.isFinite(sidNum) &&
+        (currentItem.isCompleted || completedIds.has(`s-${sid}`));
+      if (!done) {
+        goNext();
+        return;
+      }
+      await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
       goNext();
       return;
     }
     if (!currentItem.isCompleted) {
-      await handleCompleteCurrent();
+      const ok = await handleCompleteCurrent();
+      if (!ok) {
+        Alert.alert(
+          t("courses.flow.saveProgressAlertTitle"),
+          t("courses.flow.saveProgressFailed"),
+        );
+        return;
+      }
     }
+    await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
     goNext();
-  }, [currentItem, continueBusy, handleCompleteCurrent, goNext]);
+  }, [
+    completedIds,
+    continueBusy,
+    currentIndex,
+    currentItem,
+    flowItems,
+    goNext,
+    handleCompleteCurrent,
+    resolveCheckpointLessonId,
+    t,
+    waitLessonCheckpoint,
+  ]);
 
   const themeColors = useThemeColors();
   const styles = useMemo(
@@ -606,10 +767,16 @@ export default function LessonFlowScreen({
 
         <Pressable
           onPress={() => void handleContinuePress()}
-          disabled={continueBusy || !currentItem}
+          disabled={
+            continueBusy || !currentItem || checkpointVisible || checkpointBusy
+          }
           style={[
             styles.continueBtn,
-            (continueBusy || !currentItem) && styles.continueBtnDisabled,
+            (continueBusy ||
+              !currentItem ||
+              checkpointVisible ||
+              checkpointBusy) &&
+              styles.continueBtnDisabled,
           ]}
         >
           <Text style={styles.continueBtnText}>
@@ -697,6 +864,13 @@ export default function LessonFlowScreen({
           </View>
         </View>
       </Modal>
+
+      <LessonCheckpointModal
+        visible={checkpointVisible}
+        quizzes={checkpointRows}
+        courseId={courseId}
+        onDone={finishCheckpointModal}
+      />
     </SafeAreaView>
   );
 }
@@ -725,9 +899,18 @@ function FlowItemRenderer({
   const section = item.section;
 
   if (section.content_type === "video" && section.video_url) {
+    const body = section.text_content?.trim();
     return (
       <View>
         <VideoSection url={section.video_url} title={section.title} />
+        {body ? (
+          <TextSection
+            html={section.text_content}
+            fallbackText={section.text_content}
+            fontScale={fontScale}
+            leadingVideoUrl={section.video_url}
+          />
+        ) : null}
       </View>
     );
   }
@@ -747,12 +930,17 @@ function FlowItemRenderer({
     );
   }
 
+  const hasLeadingVideo = Boolean(section.video_url?.trim());
   return (
     <View>
+      {hasLeadingVideo ? (
+        <VideoSection url={section.video_url} title={section.title} />
+      ) : null}
       <TextSection
         html={section.text_content}
         fallbackText={section.text_content}
         fontScale={fontScale}
+        leadingVideoUrl={hasLeadingVideo ? section.video_url : undefined}
       />
     </View>
   );

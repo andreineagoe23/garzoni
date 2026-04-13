@@ -32,7 +32,7 @@ def reset_inactive_streaks():
     from education.models import UserProgress
 
     users = User.objects.annotate(
-        last_active=Max("userprogress__last_completed_date")
+        last_active=Max("userprogress__last_course_activity_date")
     ).select_related("profile")
 
     for user in users:
@@ -41,7 +41,7 @@ def reset_inactive_streaks():
             days_inactive = (today - user.last_active).days
             if days_inactive > 1:
                 previous_streak = getattr(getattr(user, "profile", None), "streak", 0)
-                UserProgress.objects.filter(user=user).update(streak=0)
+                UserProgress.objects.filter(user=user).update(learning_session_count=0)
                 if previous_streak and previous_streak > 3:
                     from authentication.tasks import send_streak_broken_email
 

@@ -9,6 +9,8 @@ from .views import (
     BadgeViewSet,
     UserBadgeViewSet,
     RecentActivityView,
+    RewardLedgerFeedView,
+    WeeklyRecapView,
     MissionSwapView,
     StreakItemView,
     MissionGenerationView,
@@ -35,4 +37,6 @@ urlpatterns = [
     path("leaderboard/", LeaderboardViewSet.as_view(), name="leaderboard"),
     path("leaderboard/rank/", UserRankView.as_view(), name="user-rank"),
     path("recent-activity/", RecentActivityView.as_view(), name="recent-activity"),
+    path("reward-ledger/", RewardLedgerFeedView.as_view(), name="reward-ledger"),
+    path("weekly-recap/", WeeklyRecapView.as_view(), name="weekly-recap"),
 ]

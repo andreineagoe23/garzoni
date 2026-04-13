@@ -2,6 +2,19 @@
   "common": {
     "dismiss": "Maybe later"
   },
+  "gamification": {
+    "ledger": {
+      "streak_milestone": "Streak milestone bonus",
+      "streak_freeze_used": "Streak freeze applied",
+      "mission_completed": "Mission completed",
+      "lesson_reward": "Lesson progress",
+      "quiz_reward": "Quiz progress",
+      "path_reward": "Learning path reward",
+      "section_reward": "Section reward",
+      "exercise_reward": "Exercise reward",
+      "generic_reward": "Reward"
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "learn": "Learn",
@@ -80,6 +93,8 @@
       "reviewsDue": "Reviews Due",
       "activeMissions": "Active Missions",
       "streak": "Streak",
+      "streakAtRisk": "Streak at risk — complete a short lesson today.",
+      "streakNextMilestone": "{{days}} day(s) to {{milestone}}-day milestone",
       "failedLoadReviews": "Failed to load reviews",
       "couldNotFetchReviews": "We couldn't fetch your review queue.",
       "failedLoadMissions": "Failed to load missions",
@@ -1671,6 +1686,8 @@
     "errors": {
       "loadFailed": "Failed to load exercises. Please try again later.",
       "submissionFailed": "Submission failed. Please try again.",
+      "submissionAuth": "Session expired or access denied. Sign in again and retry.",
+      "submissionNotFound": "This exercise is not available (removed or access changed).",
       "submitAnswer": "Please submit an answer before continuing.",
       "invalidFormat": "Invalid exercise format",
       "unsupportedType": "Unsupported exercise type.",
