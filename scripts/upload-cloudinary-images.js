@@ -9,6 +9,10 @@
  *   node scripts/upload-cloudinary-images.js --dry-run
  *
  * After upload, optional DB remap: backend migrate_cloudinary_images (uses cloudinary-upload-results.json).
+ *
+ * Mascots: place PNGs under backend/media/mascots/ (e.g. garzoni-owl.png). They upload as
+ * garzoni/mascots/garzoni-owl — used by @garzoni/core mascotImageUrl when VITE_CLOUDINARY_CLOUD_NAME
+ * / EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME is set on web / mobile builds.
  */
 const fs = require("fs");
 const path = require("path");
