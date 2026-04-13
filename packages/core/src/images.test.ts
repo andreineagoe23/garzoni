@@ -9,7 +9,9 @@ describe("mascotImageUrl", () => {
   it("uses Cloudinary when cloud name is configured", () => {
     configureCloudinaryCloudName("myfixturecloud");
     const u = mascotImageUrl("owl");
-    expect(u).toContain("https://res.cloudinary.com/myfixturecloud/image/upload/");
+    expect(u).toContain(
+      "https://res.cloudinary.com/myfixturecloud/image/upload/",
+    );
     expect(u).toContain("garzoni/mascots/garzoni-owl");
   });
 
