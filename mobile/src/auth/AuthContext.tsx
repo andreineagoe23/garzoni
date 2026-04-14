@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from "react";
 import { attachToken } from "@garzoni/core";
+import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
 import { tokenStorage } from "./tokenStorage";
+import { clearPlanChosenCache } from "./firstRunFlags";
 
 type AuthSessionValue = {
   hydrated: boolean;
@@ -46,6 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearSession = useCallback(async () => {
+    await clearRevenueCatSession();
+    await clearPlanChosenCache();
     await tokenStorage.clearAll();
     attachToken(null);
     setAccessToken(null);

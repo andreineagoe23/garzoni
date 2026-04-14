@@ -19,7 +19,10 @@ export type HttpClientCallbacks = {
   /** Called when a 401/403 is received and the request did not set skipAuthRedirect. Host should navigate to login, clear local session, etc. */
   onAuthFailure: () => void;
   /** Called for failed API responses when skipGlobalErrorToast / skipAuthRedirect do not apply. */
-  onError: (message: string) => void;
+  onError: (
+    message: string,
+    meta?: { status?: number; method?: string; url?: string },
+  ) => void;
 };
 
 const noop = () => {};
@@ -95,7 +98,11 @@ apiClient.interceptors.response.use(
         error.response?.data?.error ||
         error.message ||
         getApiErrorFallbackMessage();
-      callbacks.onError(String(message));
+      callbacks.onError(String(message), {
+        status: error.response?.status,
+        method: String(cfg?.method || "get").toUpperCase(),
+        url: String(cfg?.url || ""),
+      });
     }
     return Promise.reject(error);
   },

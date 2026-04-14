@@ -2,32 +2,87 @@ import { useEffect, useState } from "react";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthSession } from "../src/auth/AuthContext";
-import { fetchQuestionnaireProgress } from "@garzoni/core";
+import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";
 import { colors } from "../src/theme/tokens";
+import { getPlanChosenCache, getWelcomeSeen, setPlanChosenCache } from "../src/auth/firstRunFlags";
 
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";
+type WelcomeStatus = "pending" | "seen" | "unseen";
+type PlanStatus = "pending" | "chosen" | "not_chosen";
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
+  const [welcomeStatus, setWelcomeStatus] = useState<WelcomeStatus>("pending");
   const [onboardingStatus, setOnboardingStatus] =
     useState<OnboardingStatus>("pending");
+  const [planStatus, setPlanStatus] = useState<PlanStatus>("pending");
 
   useEffect(() => {
-    if (!hydrated || !accessToken) return;
+    if (!hydrated) return;
+    let cancelled = false;
+
+    if (!accessToken) {
+      void (async () => {
+        const seen = await getWelcomeSeen();
+        if (!cancelled) {
+          setWelcomeStatus(seen ? "seen" : "unseen");
+          setOnboardingStatus("done");
+          setPlanStatus("chosen");
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     void (async () => {
       try {
         const progress = await fetchQuestionnaireProgress();
-        setOnboardingStatus(
-          progress.status === "completed" ? "done" : "needs_onboarding",
-        );
+        if (cancelled) return;
+        const needsOnboarding = progress.status !== "completed";
+        setOnboardingStatus(needsOnboarding ? "needs_onboarding" : "done");
+        if (needsOnboarding) {
+          setPlanStatus("chosen");
+          return;
+        }
       } catch {
-        // If endpoint missing / error → don't block; go straight to app
-        setOnboardingStatus("done");
+        if (!cancelled) setOnboardingStatus("done");
+      }
+
+      try {
+        const planCached = await getPlanChosenCache();
+        if (cancelled) return;
+        if (planCached) {
+          setPlanStatus("chosen");
+          return;
+        }
+        const profile = (await fetchProfile()).data;
+        const chosen =
+          Boolean(profile.subscription_plan_id) ||
+          Boolean(
+            (profile.user_data as { subscription_plan_id?: string | null } | undefined)
+              ?.subscription_plan_id,
+          );
+        setPlanStatus(chosen ? "chosen" : "not_chosen");
+        if (chosen) await setPlanChosenCache();
+      } catch {
+        if (!cancelled) {
+          // Don't trap users in startup loop on transient profile failures.
+          setPlanStatus("chosen");
+        }
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [hydrated, accessToken]);
 
-  if (!hydrated || (accessToken && onboardingStatus === "pending")) {
+  if (
+    !hydrated ||
+    (!accessToken && welcomeStatus === "pending") ||
+    (accessToken &&
+      (onboardingStatus === "pending" || planStatus === "pending"))
+  ) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -36,11 +91,15 @@ export default function Index() {
   }
 
   if (!accessToken) {
-    return <Redirect href="/login" />;
+    return <Redirect href={welcomeStatus === "seen" ? "/login" : "/welcome"} />;
   }
 
   if (onboardingStatus === "needs_onboarding") {
     return <Redirect href="/onboarding" />;
+  }
+
+  if (planStatus === "not_chosen") {
+    return <Redirect href="/subscriptions?onboarding=true" />;
   }
 
   return <Redirect href="/(tabs)" />;

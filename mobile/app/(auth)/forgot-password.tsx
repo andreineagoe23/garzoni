@@ -5,13 +5,22 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput as RNTextInput,
   View,
 } from "react-native";
+import { Link } from "expo-router";
 import { requestPasswordReset } from "@garzoni/core";
-import { Button, FormInput } from "../../src/components/ui";
-import { colors, spacing, typography, radius } from "../../src/theme/tokens";
+import { useTranslation } from "react-i18next";
+import AuthLogoMark from "../../src/components/auth/AuthLogoMark";
+import AuthScreenLayout from "../../src/components/auth/AuthScreenLayout";
+import GlassAuthCard from "../../src/components/auth/GlassAuthCard";
+import GlassButton from "../../src/components/ui/GlassButton";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import { radius, spacing, typography } from "../../src/theme/tokens";
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation("common");
+  const c = useThemeColors();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,11 +30,11 @@ export default function ForgotPasswordScreen() {
     setError("");
     const trimmed = email.trim();
     if (!trimmed) {
-      setError("Please enter your email address.");
+      setError(t("auth.validation.emailRequired"));
       return;
     }
     if (!/\S+@\S+\.\S+/.test(trimmed)) {
-      setError("Enter a valid email address.");
+      setError(t("auth.validation.emailInvalid"));
       return;
     }
     setLoading(true);
@@ -33,7 +42,7 @@ export default function ForgotPasswordScreen() {
       await requestPasswordReset(trimmed);
       setSent(true);
     } catch {
-      setError("Could not send reset link. Please try again.");
+      setError(t("auth.forgotPassword.error"));
     } finally {
       setLoading(false);
     }
@@ -41,14 +50,31 @@ export default function ForgotPasswordScreen() {
 
   if (sent) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={styles.checkIcon}>📬</Text>
-        <Text style={styles.title}>Check your email</Text>
-        <Text style={styles.subtitle}>
-          We sent a password reset link to{"\n"}
-          <Text style={styles.emailHighlight}>{email.trim()}</Text>
-        </Text>
-      </View>
+      <AuthScreenLayout mode="minimal">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <GlassAuthCard>
+            <AuthLogoMark />
+            <Text style={[styles.title, { color: c.text }]}>
+              {t("auth.forgotPassword.sentTitle")}
+            </Text>
+            <Text style={[styles.subtitle, { color: c.textMuted }]}>
+              {t("auth.forgotPassword.sentBody", {
+                email: email.trim(),
+              })}
+            </Text>
+            <Link href="/login" style={styles.backLink}>
+              <Text style={[styles.backLinkText, { color: c.primary }]}>
+                {t("auth.forgotPassword.backToLogin")}
+              </Text>
+            </Link>
+          </GlassAuthCard>
+        </ScrollView>
+      </AuthScreenLayout>
     );
   }
 
@@ -57,72 +83,143 @@ export default function ForgotPasswordScreen() {
       style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.title}>Reset password</Text>
-        <Text style={styles.subtitle}>
-          Enter the email associated with your account and we'll send a reset
-          link.
-        </Text>
+      <AuthScreenLayout mode="minimal">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <GlassAuthCard>
+            <AuthLogoMark />
 
-        {error ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
+            <Text style={[styles.titleAccent, { color: c.primary }]}>
+              {t("auth.forgotPassword.title")}
+            </Text>
+            <Text style={[styles.subtitle, { color: c.textMuted }]}>
+              {t("auth.forgotPassword.subtitle")}
+            </Text>
 
-        <FormInput
-          label="Email"
-          placeholder="you@example.com"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoFocus
-          returnKeyType="done"
-          value={email}
-          onChangeText={setEmail}
-          onSubmitEditing={() => void onSubmit()}
-        />
+            {error ? (
+              <View
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: c.errorBg, borderColor: c.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
+              </View>
+            ) : null}
 
-        <Button loading={loading} onPress={() => void onSubmit()}>
-          Send reset link
-        </Button>
-      </ScrollView>
+            <View style={styles.fieldWrap}>
+              <Text style={[styles.label, { color: c.textMuted }]}>
+                {t("auth.forgotPassword.email")}
+              </Text>
+              <RNTextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: c.border,
+                    backgroundColor: c.inputBg,
+                    color: c.text,
+                  },
+                ]}
+                placeholder={t("auth.forgotPassword.emailPlaceholder")}
+                placeholderTextColor={c.textFaint}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoFocus
+                returnKeyType="done"
+                value={email}
+                onChangeText={setEmail}
+                onSubmitEditing={() => void onSubmit()}
+              />
+            </View>
+
+            <GlassButton
+              variant="active"
+              size="lg"
+              loading={loading}
+              onPress={() => void onSubmit()}
+            >
+              {loading
+                ? t("auth.forgotPassword.submitting")
+                : t("auth.forgotPassword.submit")}
+            </GlassButton>
+
+            <Link href="/login" style={styles.backWrap}>
+              <Text style={[styles.backLinkText, { color: c.primary }]}>
+                {t("auth.forgotPassword.backToLogin")}
+              </Text>
+            </Link>
+          </GlassAuthCard>
+        </ScrollView>
+      </AuthScreenLayout>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: spacing.xxl, paddingTop: spacing.xxxxl },
-  centered: {
-    flex: 1,
-    alignItems: "center",
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     justifyContent: "center",
-    backgroundColor: colors.bg,
+    paddingBottom: spacing.xxxxl,
+    paddingTop: spacing.md,
   },
-  checkIcon: { fontSize: 56, marginBottom: spacing.lg },
+
   title: {
     fontSize: typography.xxl,
     fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.sm,
     textAlign: "center",
+    marginBottom: spacing.md,
+  },
+  titleAccent: {
+    fontSize: typography.xxl,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    marginBottom: spacing.xxl,
-    lineHeight: 22,
+    fontSize: typography.sm,
     textAlign: "center",
+    marginBottom: spacing.xxl,
+    lineHeight: 20,
   },
-  emailHighlight: { fontWeight: "600", color: colors.text },
-  errorBanner: {
-    backgroundColor: colors.errorBg,
+
+  fieldWrap: { marginBottom: spacing.lg },
+  label: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    marginBottom: spacing.xs,
+  },
+  input: {
+    borderWidth: 1,
     borderRadius: radius.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 13,
+    fontSize: typography.base,
+  },
+
+  errorBanner: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     marginBottom: spacing.lg,
   },
-  errorText: { color: colors.error, fontSize: typography.sm },
+  errorText: { fontSize: typography.sm },
+
+  backWrap: {
+    alignSelf: "center",
+    marginTop: spacing.xl,
+  },
+  backLink: {
+    alignSelf: "center",
+    marginTop: spacing.lg,
+  },
+  backLinkText: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
 });

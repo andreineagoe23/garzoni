@@ -19,6 +19,7 @@ import type {
   FilterOption,
 } from "../../../src/types/economic-calendar";
 import { EventCard } from "../../../src/components/tools/calendar/EventCard";
+import { logDevError } from "../../../src/lib/logDevError";
 import { FilterChips } from "../../../src/components/tools/calendar/FilterChips";
 import { CalendarSkeleton } from "../../../src/components/tools/calendar/CalendarSkeleton";
 
@@ -36,7 +37,8 @@ export default function EconomicCalendarScreen() {
       const data: CalendarEvent[] = res.data ?? [];
       setEvents(data);
       setError(null);
-    } catch {
+    } catch (e) {
+      logDevError("tools/calendar", e);
       setError("Could not load calendar events.");
     } finally {
       setLoading(false);

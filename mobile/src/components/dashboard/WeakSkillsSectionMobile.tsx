@@ -177,7 +177,12 @@ export default function WeakSkillsSectionMobile({
                 </Text>
                 <View style={styles.skillHeaderRight}>
                   {justUnlockedSkills.has(skill.skill) ? (
-                    <Text style={styles.badge}>
+                    <Text
+                      style={[
+                        styles.badge,
+                        { color: c.success, backgroundColor: c.successBg },
+                      ]}
+                    >
                       {t("dashboard.skillInsights.justUnlocked")}
                     </Text>
                   ) : null}
@@ -253,8 +258,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "800",
     textTransform: "uppercase",
-    color: "#059669",
-    backgroundColor: "#d1fae5",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,

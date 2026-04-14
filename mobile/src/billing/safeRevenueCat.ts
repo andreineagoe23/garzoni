@@ -3,10 +3,12 @@ import { NativeModules, Platform } from "react-native";
 type PurchasesModule = typeof import("react-native-purchases").default;
 type PurchasesErrorCodes =
   typeof import("react-native-purchases").PURCHASES_ERROR_CODE;
+type PurchasesLogLevel = typeof import("react-native-purchases").LOG_LEVEL;
 
 export type RevenueCatPurchasesApi = {
   Purchases: PurchasesModule;
   PURCHASES_ERROR_CODE: PurchasesErrorCodes;
+  LOG_LEVEL: PurchasesLogLevel;
 };
 
 let cached: RevenueCatPurchasesApi | null | undefined;
@@ -35,6 +37,7 @@ export function getRevenueCatPurchases(): RevenueCatPurchasesApi | null {
   cached = {
     Purchases: mod.default,
     PURCHASES_ERROR_CODE: mod.PURCHASES_ERROR_CODE,
+    LOG_LEVEL: mod.LOG_LEVEL,
   };
   return cached;
 }

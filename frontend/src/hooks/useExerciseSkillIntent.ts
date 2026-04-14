@@ -8,7 +8,7 @@ import {
 } from "react";
 import type { NavigateFunction, Location } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { resolveCategoryFromSkill } from "utils/resolveCategoryFromSkill";
+import { resolveCategoryFromSkill } from "@garzoni/core";
 import { useExerciseSkillIntentSource } from "hooks/useExerciseSkillIntentSource";
 import type { ExerciseIntentBannerModel } from "components/exercises/ExerciseIntentBanner";
 import type { AnalyticsEvent } from "types/analytics";

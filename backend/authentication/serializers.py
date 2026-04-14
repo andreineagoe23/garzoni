@@ -60,9 +60,15 @@ class UserProfileSettingsSerializer(serializers.ModelSerializer):
     Includes fields for managing user preferences such as email reminders.
     """
 
+    subscription_plan_id = serializers.ChoiceField(
+        choices=["starter", "plus", "pro"],
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = UserProfile
-        fields = ["email_reminder_preference"]
+        fields = ["email_reminder_preference", "subscription_plan_id"]
 
 
 class UserEmailPreferenceSerializer(serializers.ModelSerializer):

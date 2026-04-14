@@ -7,7 +7,8 @@ import {
   type SocialAuthSuccessMeta,
 } from "./GoogleSignInButton";
 import { isGoogleSignInConfigured } from "../bootstrap/googleOAuthConfig";
-import { colors, spacing, typography } from "../theme/tokens";
+import { spacing, typography } from "../theme/tokens";
+import { useThemeColors } from "../theme/ThemeContext";
 
 type Props = {
   onSuccess: (
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function AuthSocialSection({ onSuccess, onError }: Props) {
+  const c = useThemeColors();
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
@@ -33,13 +35,7 @@ export function AuthSocialSection({ onSuccess, onError }: Props) {
   }
 
   return (
-    <>
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerLabel}>or</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
+    <View style={styles.stack}>
       {googleConfigured ? (
         <GoogleSignInButton onSuccess={onSuccess} onError={onError} />
       ) : null}
@@ -47,36 +43,22 @@ export function AuthSocialSection({ onSuccess, onError }: Props) {
         <AppleSignInButton onSuccess={onSuccess} onError={onError} />
       ) : null}
       {Platform.OS === "ios" && googleConfigured && !appleAvailable ? (
-        <Text style={styles.appleHint}>
+        <Text style={[styles.appleHint, { color: c.textMuted }]}>
           Sign in with Apple is not available in this build (use a dev client
           with the Sign in with Apple capability, signed into iCloud, or
           continue with Google).
         </Text>
       ) : null}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: spacing.xxl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-  },
-  dividerLabel: {
-    marginHorizontal: spacing.md,
-    fontSize: typography.sm,
-    color: colors.textMuted,
-  },
+  /** Slightly more space between native controls (matches common auth stacks). */
+  stack: { width: "100%", gap: spacing.md },
   appleHint: {
     marginTop: spacing.md,
     fontSize: typography.xs,
-    color: colors.textMuted,
     lineHeight: 18,
     textAlign: "center",
   },
