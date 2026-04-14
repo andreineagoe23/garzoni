@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
-import { colors, spacing, typography } from "../../theme/tokens";
+import { useTranslation } from "react-i18next";
+import { spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
 
 export default function OfflineBanner() {
   const [offline, setOffline] = useState(false);
+  const c = useThemeColors();
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     const sub = NetInfo.addEventListener((state) => {
@@ -17,9 +21,12 @@ export default function OfflineBanner() {
   if (!offline) return null;
 
   return (
-    <View style={styles.banner} accessibilityRole="alert">
-      <Text style={styles.text}>
-        You're offline — some actions may not sync.
+    <View
+      style={[styles.banner, { backgroundColor: c.error }]}
+      accessibilityRole="alert"
+    >
+      <Text style={[styles.text, { color: c.white }]}>
+        {t("mobile.offlineBanner.message")}
       </Text>
     </View>
   );
@@ -27,12 +34,10 @@ export default function OfflineBanner() {
 
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: colors.error,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   text: {
-    color: colors.white,
     fontSize: typography.sm,
     fontWeight: "600",
     textAlign: "center",

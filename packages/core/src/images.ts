@@ -66,9 +66,68 @@ export function mascotImageUrl(
 }
 
 /**
- * Shared marketing / auth image URLs (upload public IDs under `garzoni/` in Cloudinary).
- * Set `VITE_CLOUDINARY_CLOUD_NAME` (web) or `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` (native).
+ * Garzoni wordmark (black rectangular), same asset as web forgot-password.
+ * Prefers Cloudinary `garzoni/logo/garzoni-logo-black-rectangular`; falls back to Django media.
  */
+export function authLogoBlackRectangularUrl(opts?: { width?: number }): string {
+  const w = opts?.width;
+  const transforms =
+    w != null && Number.isFinite(w) && w > 0
+      ? `f_auto,q_auto,w_${Math.min(800, Math.round(w))}`
+      : "f_auto,q_auto,w_320";
+  const cdn = cloudinaryImageUrl(
+    "garzoni/logo/garzoni-logo-black-rectangular",
+    transforms,
+  );
+  if (cdn) return cdn;
+  return `${getMediaBaseUrl()}/media/logo/garzoni-logo-black-rectangular.png`;
+}
+
+/** White rectangular wordmark for dark UI surfaces (e.g. mobile auth glass in dark mode). */
+export function authLogoWhiteRectangularUrl(opts?: { width?: number }): string {
+  const w = opts?.width;
+  const transforms =
+    w != null && Number.isFinite(w) && w > 0
+      ? `f_auto,q_auto,w_${Math.min(800, Math.round(w))}`
+      : "f_auto,q_auto,w_320";
+  const cdn = cloudinaryImageUrl(
+    "garzoni/logo/garzoni-logo-white-rectangular",
+    transforms,
+  );
+  if (cdn) return cdn;
+  return `${getMediaBaseUrl()}/media/logo/garzoni-logo-white-rectangular.png`;
+}
+
+/**
+ * Garzoni rectangular wordmark on transparent background (`garzoni-logo-rectangle-no-bg` upload tree).
+ * Public ID: `garzoni/logo/garzoni-logo-rectangle-no-bg`.
+ */
+export function authLogoRectangleNoBgUrl(opts?: { width?: number }): string {
+  const w = opts?.width;
+  const transforms =
+    w != null && Number.isFinite(w) && w > 0
+      ? `f_auto,q_auto,w_${Math.min(900, Math.round(w))}`
+      : "f_auto,q_auto,w_480";
+  const cdn = cloudinaryImageUrl(
+    "garzoni/logo/garzoni-logo-rectangle-no-bg",
+    transforms,
+  );
+  if (cdn) return cdn;
+  return `${getMediaBaseUrl()}/media/logo/garzoni-logo-rectangle-no-bg.png`;
+}
+
+/** White padded tile behind mark — reads well on grey / frosted auth cards. */
+export function authLogoWhiteBgUrl(opts?: { width?: number }): string {
+  const w = opts?.width;
+  const transforms =
+    w != null && Number.isFinite(w) && w > 0
+      ? `f_auto,q_auto,w_${Math.min(900, Math.round(w))}`
+      : "f_auto,q_auto,w_480";
+  const cdn = cloudinaryImageUrl("garzoni/logo/garzoni-logo-white-bg", transforms);
+  if (cdn) return cdn;
+  return `${getMediaBaseUrl()}/media/logo/garzoni-logo-white-bg.png`;
+}
+
 export const Images = {
   get loginBg() {
     return cloudinaryImageUrl("garzoni/login-bg", "f_auto,q_auto,w_1200");

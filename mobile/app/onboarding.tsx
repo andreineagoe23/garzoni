@@ -2,18 +2,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ImpactFeedbackStyle, NotificationFeedbackType } from "expo-haptics";
 import {
   safeImpactAsync,
@@ -24,7 +23,7 @@ import {
   fetchNextQuestion,
   saveQuestionnaireAnswer,
   completeQuestionnaire,
-  abandonQuestionnaire,
+  queryKeys,
   type QuestionnaireQuestion,
   type NextQuestionResponse,
 } from "@garzoni/core";
@@ -35,13 +34,9 @@ import QuestionnaireSingleChoice from "../src/components/onboarding/steps/Questi
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
-import {
-  colors,
-  spacing,
-  typography,
-  radius,
-  shadows,
-} from "../src/theme/tokens";
+import { href } from "../src/navigation/href";
+import { spacing, typography, radius, shadows } from "../src/theme/tokens";
+import { useThemeColors } from "../src/theme/ThemeContext";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
@@ -61,6 +56,12 @@ function useSlideAnim() {
 type AnswerValue = string | string[] | null;
 
 export default function OnboardingScreen() {
+  const c = useThemeColors();
+  const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ reason?: string | string[] }>();
+  const reasonParam = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const personalizedPathReason =
+    String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const [phase, setPhase] = useState<
     "checking" | "intro" | "questionnaire" | "done" | "error"
   >("checking");
@@ -110,6 +111,12 @@ export default function OnboardingScreen() {
           router.replace("/(tabs)");
           return;
         }
+        if (progress.status === "in_progress" || progress.status === "abandoned") {
+          await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
+          await loadNextQuestion();
+          setPhase("questionnaire");
+          return;
+        }
         const introSeen = await AsyncStorage.getItem(INTRO_STORAGE_KEY);
         if (introSeen !== "1") {
           setPhase("intro");
@@ -133,31 +140,6 @@ export default function OnboardingScreen() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const confirmSkipPersonalisation = useCallback(() => {
-    Alert.alert(
-      "Skip personalisation?",
-      "You can still use the app, but we won't tailor your path until you complete this questionnaire.",
-      [
-        { text: "Keep going", style: "cancel" },
-        {
-          text: "Skip",
-          style: "destructive",
-          onPress: () => {
-            void (async () => {
-              void safeImpactAsync(ImpactFeedbackStyle.Light);
-              try {
-                await abandonQuestionnaire();
-              } catch {
-                // ignore
-              }
-              router.replace("/(tabs)");
-            })();
-          },
-        },
-      ],
-    );
   }, []);
 
   const handleSubmit = async () => {
@@ -186,6 +168,14 @@ export default function OnboardingScreen() {
 
       if (questionData.is_last_question) {
         const result = await completeQuestionnaire();
+        await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.questionnaireProgress(),
+        });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.personalizedPath(),
+        });
         void safeNotificationAsync(NotificationFeedbackType.Success);
         setCompletionRewards(result.rewards);
         setPhase("done");
@@ -210,20 +200,31 @@ export default function OnboardingScreen() {
 
   if (phase === "checking") {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={c.primary} />
       </SafeAreaView>
     );
   }
 
   if (phase === "error") {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Text style={styles.errorText}>{errorMsg}</Text>
-        <Button variant="secondary" onPress={() => router.replace("/(tabs)")}>
-          Skip to app
+        <Text style={[styles.errorText, { color: c.error }]}>{errorMsg}</Text>
+        <Button
+          variant="secondary"
+          onPress={() =>
+            router.replace(
+              href(
+                personalizedPathReason
+                  ? "/onboarding?reason=personalized_path"
+                  : "/onboarding",
+              ),
+            )
+          }
+        >
+          Try again
         </Button>
       </SafeAreaView>
     );
@@ -231,13 +232,14 @@ export default function OnboardingScreen() {
 
   if (phase === "intro") {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Welcome</Text>
-          <Pressable onPress={confirmSkipPersonalisation} hitSlop={12}>
-            <Text style={styles.skipLink}>Skip</Text>
-          </Pressable>
+          <Text style={[styles.headerTitle, { color: c.text }]}>
+            {personalizedPathReason
+              ? "Complete your financial profile"
+              : "Welcome"}
+          </Text>
         </View>
         <OnboardingIntroPager
           onDone={() => void beginQuestionnaireAfterIntro()}
@@ -248,7 +250,7 @@ export default function OnboardingScreen() {
 
   if (phase === "done" && completionRewards) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <OnboardingCompletionOverlay
           xp={completionRewards.xp}
@@ -260,14 +262,15 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Personalise your journey</Text>
-        <Pressable onPress={confirmSkipPersonalisation} hitSlop={12}>
-          <Text style={styles.skipLink}>Skip</Text>
-        </Pressable>
+        <Text style={[styles.headerTitle, { color: c.text }]}>
+          {personalizedPathReason
+            ? "Complete your financial profile"
+            : "Personalise your journey"}
+        </Text>
       </View>
 
       <ProgressBar
@@ -286,13 +289,17 @@ export default function OnboardingScreen() {
         >
           {loading ? (
             <View style={styles.centeredLoader}>
-              <ActivityIndicator color={colors.primary} />
+              <ActivityIndicator color={c.primary} />
             </View>
           ) : question ? (
             <Animated.View style={{ transform: [{ translateY }] }}>
-              <Text style={styles.questionText}>{question.text}</Text>
+              <Text style={[styles.questionText, { color: c.text }]}>
+                {question.text}
+              </Text>
               {question.description ? (
-                <Text style={styles.questionDesc}>{question.description}</Text>
+                <Text style={[styles.questionDesc, { color: c.textMuted }]}>
+                  {question.description}
+                </Text>
               ) : null}
 
               {question.type === "single_choice" && (
@@ -327,7 +334,7 @@ export default function OnboardingScreen() {
               )}
 
               {errorMsg ? (
-                <Text style={styles.errorText}>{errorMsg}</Text>
+                <Text style={[styles.errorText, { color: c.error }]}>{errorMsg}</Text>
               ) : null}
 
               <View style={styles.actions}>
@@ -355,7 +362,12 @@ export default function OnboardingScreen() {
       </KeyboardAvoidingView>
 
       {questionData ? (
-        <Text style={styles.stepCounter}>
+        <Text
+          style={[
+            styles.stepCounter,
+            { color: c.textMuted, backgroundColor: c.bg },
+          ]}
+        >
           Question {questionData.current_question_number ?? "—"} of{" "}
           {questionData.total_questions ?? "—"}
         </Text>
@@ -377,7 +389,7 @@ function hasAnswer(v: AnswerValue): boolean {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   centered: {
     alignItems: "center",
     justifyContent: "center",
@@ -396,11 +408,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: typography.md,
     fontWeight: "700",
-    color: colors.text,
   },
   skipLink: {
     fontSize: typography.sm,
-    color: colors.textMuted,
     fontWeight: "600",
   },
   progressBar: {
@@ -417,20 +427,17 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: typography.xl,
     fontWeight: "700",
-    color: colors.text,
     marginBottom: spacing.sm,
     lineHeight: 30,
   },
   questionDesc: {
     fontSize: typography.base,
-    color: colors.textMuted,
     marginBottom: spacing.xl,
     lineHeight: 22,
   },
 
   errorText: {
     fontSize: typography.sm,
-    color: colors.error,
     marginTop: spacing.md,
   },
   actions: { marginTop: spacing.xxl, gap: spacing.sm },
@@ -438,8 +445,6 @@ const styles = StyleSheet.create({
   stepCounter: {
     textAlign: "center",
     fontSize: typography.xs,
-    color: colors.textMuted,
     paddingBottom: spacing.md,
-    backgroundColor: colors.bg,
   },
 });

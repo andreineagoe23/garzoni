@@ -24,6 +24,7 @@ from gamification.models import (
     MissionCompletion,
     StreakItem,
     MissionPerformance,
+    RewardLedgerEntry,
 )
 from gamification.serializers import (
     BadgeSerializer,

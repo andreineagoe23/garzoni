@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Count, F, Prefetch
+from django.db.models import Count, F, Prefetch, Q
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 import json
@@ -136,14 +136,27 @@ class PathViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == "list":
+            user = self.request.user
+            course_qs = Course.objects.annotate(
+                lesson_count=Count("lessons"),
+                total_sections=Count(
+                    "lessons__sections",
+                    filter=Q(lessons__sections__is_published=True),
+                ),
+            ).prefetch_related("translations")
+            if getattr(user, "is_authenticated", False):
+                course_qs = course_qs.prefetch_related(
+                    Prefetch(
+                        "progress_courses",
+                        queryset=UserProgress.objects.filter(user=user).prefetch_related(
+                            "completed_lessons",
+                            "completed_sections",
+                        ),
+                    ),
+                )
             return Path.objects.prefetch_related(
                 "translations",
-                Prefetch(
-                    "courses",
-                    queryset=Course.objects.annotate(
-                        lesson_count=Count("lessons")
-                    ).prefetch_related("translations"),
-                ),
+                Prefetch("courses", queryset=course_qs),
             ).order_by("sort_order", "id")
         return Path.objects.prefetch_related("translations").order_by("sort_order", "id")
 

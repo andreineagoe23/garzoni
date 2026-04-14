@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Pressable,
   ScrollView,
@@ -22,6 +23,7 @@ import {
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import GlassCard from "../../src/components/ui/GlassCard";
 
 const ALL_GROUPS: ToolGroup[] = [
   "understand-world",
@@ -45,6 +47,7 @@ type Section = {
 
 export default function ToolsHubScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
@@ -74,6 +77,27 @@ export default function ToolsHubScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TabScreenHeader title="Tools" />
+
+      <GlassCard
+        padding="md"
+        style={{ marginHorizontal: spacing.xl, marginBottom: spacing.sm }}
+      >
+        <Text
+          style={{ color: c.text, fontSize: typography.sm, fontWeight: "700" }}
+        >
+          {t("tools.hub.mobileWebParityTitle")}
+        </Text>
+        <Text
+          style={{
+            color: c.textMuted,
+            fontSize: typography.xs,
+            marginTop: spacing.xs,
+            lineHeight: 18,
+          }}
+        >
+          {t("tools.hub.mobileWebParityBody")}
+        </Text>
+      </GlassCard>
 
       {/* Group pill filter */}
       <ScrollView

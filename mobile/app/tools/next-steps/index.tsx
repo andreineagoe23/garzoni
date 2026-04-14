@@ -21,6 +21,7 @@ import type {
 import { SwipeCard } from "../../../src/components/tools/next-steps/SwipeCard";
 import { ProgressBar } from "../../../src/components/tools/next-steps/ProgressBar";
 import { EmptyState } from "../../../src/components/tools/next-steps/EmptyState";
+import { logDevError } from "../../../src/lib/logDevError";
 
 export default function NextStepsScreen() {
   const c = useThemeColors();
@@ -39,7 +40,8 @@ export default function NextStepsScreen() {
       setSteps(data.steps ?? []);
       setCompletedToday(data.completed_today ?? 0);
       setDailyLimit(data.limit ?? 3);
-    } catch {
+    } catch (e) {
+      logDevError("tools/next-steps/fetch", e);
       // Fallback to local demo steps
       setSteps(DEMO_STEPS);
       setCompletedToday(0);
@@ -84,7 +86,8 @@ export default function NextStepsScreen() {
 
     try {
       await (apiClient as any).post(`/next-steps/${step.id}/complete/`);
-    } catch {
+    } catch (e) {
+      logDevError("tools/next-steps/complete", e);
       // continue regardless
     }
 

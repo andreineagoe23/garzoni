@@ -1,28 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Linking,
+  BackHandler,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { Stack, router } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Constants from "expo-constants";
 import { useTranslation } from "react-i18next";
-import type {
-  PurchasesOffering,
-  PurchasesPackage,
-} from "react-native-purchases";
-import axios from "axios";
+import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
   fetchQuestionnaireProgress,
   fetchSubscriptionPlans,
-  postSubscriptionCheckout,
+  patchUserProfile,
   queryKeys,
   staleTimes,
   type Entitlements,
@@ -30,30 +25,19 @@ import {
 import GlassButton from "../src/components/ui/GlassButton";
 import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../src/theme/tokens";
+import { radius, spacing, typography } from "../src/theme/tokens";
 import { getRevenueCatPurchases } from "../src/billing/safeRevenueCat";
+import GarzoniRevenueCatPaywall from "../src/components/billing/GarzoniRevenueCatPaywall";
+import {
+  configureRevenueCatForUser,
+  fetchRevenueCatPaywallOffering,
+  PRODUCT_TO_PLAN,
+  refreshSubscriptionQueries,
+  waitForActiveSubscription,
+} from "../src/billing/subscriptionRuntime";
 import { href } from "../src/navigation/href";
 import { useAuthSession } from "../src/auth/AuthContext";
-
-const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
-  "tech.garzoni.app.plus_monthly": "plus",
-  "tech.garzoni.app.plus_yearly": "plus",
-  "tech.garzoni.app.pro_monthly": "pro",
-  "tech.garzoni.app.pro_yearly": "pro",
-};
-
-let revenueCatConfiguredGlobal = false;
-
-function configureRevenueCat(userId?: string) {
-  const rc = getRevenueCatPurchases();
-  if (!rc) return;
-  const apiKey = Constants.expoConfig?.extra?.revenueCatApiKeyIos as
-    | string
-    | undefined;
-  if (!apiKey || revenueCatConfiguredGlobal) return;
-  revenueCatConfiguredGlobal = true;
-  rc.Purchases.configure({ apiKey, appUserID: userId ?? null });
-}
+import { setPlanChosenCache } from "../src/auth/firstRunFlags";
 
 type PlanFeature = {
   name?: string;
@@ -86,51 +70,21 @@ function formatFeatureValue(
   return t("subscriptions.included");
 }
 
-function RcPackageRow({
-  pkg,
-  onPress,
-  loading,
-  c,
-  subscribeLabel,
-}: {
-  pkg: PurchasesPackage;
-  onPress: (pkg: PurchasesPackage) => void;
-  loading: boolean;
-  c: ReturnType<typeof useThemeColors>;
-  subscribeLabel: string;
-}) {
-  const planKey = PRODUCT_TO_PLAN[pkg.product.identifier] ?? "plus";
-  const isYearly = pkg.product.identifier.includes("yearly");
-  return (
-    <GlassCard padding="md" style={{ marginBottom: spacing.sm }}>
-      <View style={styles.pkgRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.pkgTitle, { color: c.text }]}>
-            {planKey === "pro" ? "Pro" : "Plus"} —{" "}
-            {isYearly ? "Yearly" : "Monthly"}
-          </Text>
-          <Text style={[styles.pkgPrice, { color: c.textMuted }]}>
-            {pkg.product.priceString}
-            {isYearly ? " / year" : " / month"}
-          </Text>
-        </View>
-        <GlassButton
-          variant="active"
-          size="sm"
-          onPress={() => onPress(pkg)}
-          loading={loading}
-        >
-          {subscribeLabel}
-        </GlassButton>
-      </View>
-    </GlassCard>
-  );
-}
-
 export default function SubscriptionsScreen() {
   const c = useThemeColors();
   const { t, i18n } = useTranslation("common");
   const { accessToken } = useAuthSession();
+  const params = useLocalSearchParams<{
+    onboarding?: string | string[];
+    reason?: string | string[];
+  }>();
+  const onboardingParam = Array.isArray(params.onboarding)
+    ? params.onboarding[0]
+    : params.onboarding;
+  const reasonParam = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const onboardingMode = String(onboardingParam ?? "").toLowerCase() === "true";
+  const personalizedPathReason =
+    String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const queryClient = useQueryClient();
   const revenueCatNative = useMemo(() => getRevenueCatPurchases() !== null, []);
 
@@ -138,10 +92,11 @@ export default function SubscriptionsScreen() {
     "yearly",
   );
   const [selectionError, setSelectionError] = useState("");
-  const [busyPlanId, setBusyPlanId] = useState<string | null>(null);
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loadingOffering, setLoadingOffering] = useState(false);
+  const [offeringLoadFailed, setOfferingLoadFailed] = useState(false);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  const [activatingPurchase, setActivatingPurchase] = useState(false);
   const profileLoaded = useRef(false);
 
   const profileQ = useQuery({
@@ -174,26 +129,28 @@ export default function SubscriptionsScreen() {
 
   const plans = plansQ.data ?? [];
 
+  const loadRevenueCatOffering = useCallback(async () => {
+    if (!getRevenueCatPurchases()) return;
+    setLoadingOffering(true);
+    setOfferingLoadFailed(false);
+    try {
+      setOffering(await fetchRevenueCatPaywallOffering());
+    } catch (e) {
+      setOfferingLoadFailed(true);
+      if (__DEV__) console.warn("[Subscriptions] getOfferings:", e);
+    } finally {
+      setLoadingOffering(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (profileLoaded.current) return;
     const userId = profileQ.data?.user?.toString();
     if (!revenueCatNative || !profileQ.isFetched) return;
     profileLoaded.current = true;
-    configureRevenueCat(userId);
-    void (async () => {
-      const rc = getRevenueCatPurchases();
-      if (!rc) return;
-      setLoadingOffering(true);
-      try {
-        const offerings = await rc.Purchases.getOfferings();
-        setOffering(offerings.current);
-      } catch (e) {
-        if (__DEV__) console.warn("[Subscriptions] getOfferings:", e);
-      } finally {
-        setLoadingOffering(false);
-      }
-    })();
-  }, [profileQ.isFetched, profileQ.data, revenueCatNative]);
+    configureRevenueCatForUser(userId);
+    void loadRevenueCatOffering();
+  }, [loadRevenueCatOffering, profileQ.isFetched, profileQ.data, revenueCatNative]);
 
   const questionnaireComplete = questionnaireQ.data?.status === "completed";
 
@@ -253,6 +210,17 @@ export default function SubscriptionsScreen() {
     });
   }, [plans, t]);
 
+  const persistPlanChoice = useCallback(async (planId: string) => {
+    if (planId !== "starter" && planId !== "plus" && planId !== "pro") return;
+    try {
+      await patchUserProfile({ subscription_plan_id: planId });
+      await setPlanChosenCache();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+    } catch {
+      /* best-effort; gate will still use server profile on next load */
+    }
+  }, [queryClient]);
+
   const onRcPurchase = useCallback(
     async (pkg: PurchasesPackage) => {
       const rc = getRevenueCatPurchases();
@@ -261,26 +229,50 @@ export default function SubscriptionsScreen() {
       setPurchasingId(pkg.product.identifier);
       try {
         await rc.Purchases.purchasePackage(pkg);
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.entitlements(),
-        });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        const mapped =
+          PRODUCT_TO_PLAN[pkg.product.identifier] ??
+          (pkg.product.identifier.includes("pro") ? "pro" : "plus");
+        await persistPlanChoice(mapped);
+        setActivatingPurchase(true);
+        const activated = await waitForActiveSubscription(queryClient);
         Alert.alert(
           t("billing.purchaseSuccessTitle"),
-          t("billing.purchaseSuccessBody"),
+          activated
+            ? t("billing.purchaseSuccessBody")
+            : t("subscriptions.activationDelayed"),
         );
-        router.replace(href("/personalized-path"));
+        router.replace(href(onboardingMode ? "/(tabs)" : "/personalized-path"));
       } catch (e: unknown) {
         const code = (e as { code?: string }).code;
         if (code !== rc.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
           setSelectionError(t("subscriptions.checkoutFailed"));
         }
       } finally {
+        setActivatingPurchase(false);
         setPurchasingId(null);
       }
     },
-    [queryClient, t],
+    [onboardingMode, persistPlanChoice, queryClient, t],
   );
+
+  const onRestoreRc = useCallback(async () => {
+    const rc = getRevenueCatPurchases();
+    if (!rc) return;
+    setSelectionError("");
+    try {
+      await rc.Purchases.restorePurchases();
+      await waitForActiveSubscription(queryClient, {
+        maxAttempts: 3,
+        delayMs: 1000,
+      });
+      Alert.alert(
+        t("billing.restoreSuccessTitle"),
+        t("billing.restoreSuccessBody"),
+      );
+    } catch {
+      setSelectionError(t("billing.restoreFailed"));
+    }
+  }, [queryClient, t]);
 
   const handlePlanSelect = useCallback(
     async (plan: Plan | null) => {
@@ -296,79 +288,58 @@ export default function SubscriptionsScreen() {
       const isStarter =
         plan.plan_id === "starter" || Number(plan.price_amount || 0) === 0;
       if (isStarter) {
+        await persistPlanChoice("starter");
         await queryClient.invalidateQueries({
           queryKey: queryKeys.entitlements(),
         });
-        router.replace(href("/(tabs)/index"));
+        router.replace(href(onboardingMode ? "/(tabs)" : "/(tabs)/index"));
         return;
       }
       if (!questionnaireComplete) {
         setSelectionError(t("subscriptions.completeOnboardingFirst"));
-        router.push(href("/onboarding"));
+        router.push(href("/onboarding?reason=personalized_path"));
         return;
       }
 
-      if (revenueCatNative && getRevenueCatPurchases()) {
-        const pkgs = offering?.availablePackages ?? [];
-        if (pkgs.length === 0) {
-          setSelectionError(t("subscriptions.paymentNotConfigured"));
-          return;
-        }
-        const wantYearly = plan.billing_interval === "yearly";
-        const match =
-          pkgs.find((p) => {
-            const id = p.product.identifier;
-            const isY = id.includes("yearly");
-            const tier =
-              PRODUCT_TO_PLAN[id] ?? (id.includes("pro") ? "pro" : "plus");
-            return tier === plan.plan_id && isY === wantYearly;
-          }) ?? pkgs[0];
-        await onRcPurchase(match);
+      if (!revenueCatNative || !getRevenueCatPurchases()) {
+        setSelectionError(t("subscriptions.rcRequiredBody"));
         return;
       }
 
-      setBusyPlanId(plan.plan_id);
-      try {
-        const r = await postSubscriptionCheckout({
-          plan_id: plan.plan_id,
-          billing_interval: plan.billing_interval,
-        });
-        const url = r.data?.redirect_url;
-        if (url) {
-          const can = await Linking.canOpenURL(url);
-          if (can) await Linking.openURL(url);
-          else setSelectionError(t("subscriptions.checkoutFailed"));
-          return;
-        }
-        setSelectionError(t("subscriptions.checkoutFailed"));
-      } catch (err: unknown) {
-        const status = axios.isAxiosError(err)
-          ? err.response?.status
-          : undefined;
-        const message = axios.isAxiosError(err)
-          ? String(
-              err.response?.data?.error ?? err.response?.data?.detail ?? "",
-            )
-          : "";
-        if (status === 503) {
-          setSelectionError(message || t("subscriptions.paymentNotConfigured"));
-        } else {
-          setSelectionError(message || t("subscriptions.checkoutFailed"));
-        }
-      } finally {
-        setBusyPlanId(null);
+      const pkgs = offering?.availablePackages ?? [];
+      if (pkgs.length === 0) {
+        setSelectionError(t("subscriptions.paymentNotConfigured"));
+        return;
       }
+
+      await persistPlanChoice(plan.plan_id);
+      const wantYearly = plan.billing_interval === "yearly";
+      const match =
+        pkgs.find((p) => {
+          const id = p.product.identifier;
+          const isY = id.includes("yearly");
+          const tier =
+            PRODUCT_TO_PLAN[id] ?? (id.includes("pro") ? "pro" : "plus");
+          return tier === plan.plan_id && isY === wantYearly;
+        }) ?? pkgs[0];
+      await onRcPurchase(match);
     },
     [
       accessToken,
       offering?.availablePackages,
       onRcPurchase,
+      persistPlanChoice,
       questionnaireComplete,
-      queryClient,
       revenueCatNative,
       t,
     ],
   );
+
+  useEffect(() => {
+    if (!onboardingMode) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => sub.remove();
+  }, [onboardingMode]);
 
   const formatMoney = (plan: Plan) => {
     const raw = plan.price_amount;
@@ -386,24 +357,44 @@ export default function SubscriptionsScreen() {
   };
 
   const packages = offering?.availablePackages ?? [];
+  const showNativePaywall =
+    revenueCatNative &&
+    !onboardingMode &&
+    !hasPaid &&
+    (packages.length > 0 || loadingOffering || offeringLoadFailed);
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: t("footer.subscriptions"),
+          title: personalizedPathReason
+            ? t("subscriptions.personalizedPathTitle")
+            : onboardingMode
+              ? "Choose your plan to get started"
+              : t("footer.subscriptions"),
           headerShown: true,
           headerTintColor: c.primary,
+          headerBackVisible: !onboardingMode,
+          gestureEnabled: !onboardingMode,
+          headerLeft: onboardingMode ? () => null : undefined,
         }}
       />
       <ScrollView
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       >
-        <Text style={[styles.title, { color: c.text }]}>
-          {t("subscriptions.choosePlan")}
-        </Text>
+        {!showNativePaywall ? (
+          <Text style={[styles.title, { color: c.text }]}>
+            {personalizedPathReason
+              ? t("subscriptions.personalizedPathTitle")
+              : t("subscriptions.choosePlan")}
+          </Text>
+        ) : null}
         <Text style={[styles.intro, { color: c.textMuted }]}>
-          {t("subscriptions.intro")}
+          {personalizedPathReason
+            ? t("subscriptions.personalizedPathIntro")
+            : showNativePaywall
+            ? t("subscriptions.paywallPageIntro")
+            : t("subscriptions.intro")}
         </Text>
 
         {ent?.fallback ? (
@@ -416,6 +407,18 @@ export default function SubscriptionsScreen() {
           <Text style={[styles.error, { color: c.error }]}>
             {selectionError}
           </Text>
+        ) : null}
+        {activatingPurchase ? (
+          <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
+            <Text style={{ color: c.text, fontWeight: "700" }}>
+              {t("subscriptions.activatingTitle")}
+            </Text>
+            <Text
+              style={{ color: c.textMuted, marginTop: spacing.xs, lineHeight: 20 }}
+            >
+              {t("subscriptions.activatingBody")}
+            </Text>
+          </GlassCard>
         ) : null}
 
         {hasPaid ? (
@@ -446,22 +449,34 @@ export default function SubscriptionsScreen() {
 
         {!hasPaid ? (
           <>
-            <View style={styles.intervalRow}>
-              <GlassButton
-                variant={billingInterval === "yearly" ? "active" : "ghost"}
-                size="sm"
-                onPress={() => setBillingInterval("yearly")}
-              >
-                {t("subscriptions.billingYearly")}
-              </GlassButton>
-              <GlassButton
-                variant={billingInterval === "monthly" ? "active" : "ghost"}
-                size="sm"
-                onPress={() => setBillingInterval("monthly")}
-              >
-                {t("subscriptions.billingMonthly")}
-              </GlassButton>
-            </View>
+            {!revenueCatNative ? (
+              <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+                <Text style={[styles.sectionTitle, { color: c.text }]}>
+                  {t("subscriptions.rcRequiredTitle")}
+                </Text>
+                <Text style={{ color: c.textMuted, lineHeight: 20 }}>
+                  {t("subscriptions.rcRequiredBody")}
+                </Text>
+              </GlassCard>
+            ) : null}
+            {!showNativePaywall ? (
+              <View style={styles.intervalRow}>
+                <GlassButton
+                  variant={billingInterval === "yearly" ? "active" : "ghost"}
+                  size="sm"
+                  onPress={() => setBillingInterval("yearly")}
+                >
+                  {t("subscriptions.billingYearly")}
+                </GlassButton>
+                <GlassButton
+                  variant={billingInterval === "monthly" ? "active" : "ghost"}
+                  size="sm"
+                  onPress={() => setBillingInterval("monthly")}
+                >
+                  {t("subscriptions.billingMonthly")}
+                </GlassButton>
+              </View>
+            ) : null}
 
             {plansQ.isPending ? (
               <Text style={{ color: c.textMuted }}>
@@ -469,35 +484,19 @@ export default function SubscriptionsScreen() {
               </Text>
             ) : null}
 
-            {revenueCatNative && packages.length > 0 ? (
-              <View style={{ marginTop: spacing.md }}>
-                <Text style={[styles.sectionTitle, { color: c.text }]}>
-                  {t("subscriptions.comparePlans")}
-                </Text>
-                {packages.map((pkg) => (
-                  <RcPackageRow
-                    key={pkg.product.identifier}
-                    pkg={pkg}
-                    onPress={onRcPurchase}
-                    loading={purchasingId === pkg.product.identifier}
-                    c={c}
-                    subscribeLabel={t("subscriptions.choosePlanCheckout", {
-                      name:
-                        PRODUCT_TO_PLAN[pkg.product.identifier] === "pro"
-                          ? "Pro"
-                          : "Plus",
-                    })}
-                  />
-                ))}
-                <GlassButton
-                  variant="ghost"
-                  size="sm"
-                  style={{ marginTop: spacing.sm }}
-                  onPress={() => router.push(href("/billing"))}
-                >
-                  {t("billing.manageSubscription")}
-                </GlassButton>
-              </View>
+            {showNativePaywall ? (
+              <GarzoniRevenueCatPaywall
+                variant="hero"
+                style={{ marginTop: spacing.md }}
+                offering={offering}
+                loading={loadingOffering}
+                loadError={offeringLoadFailed}
+                purchasingId={purchasingId}
+                onPurchase={onRcPurchase}
+                onRetryLoad={() => void loadRevenueCatOffering()}
+                onRestore={() => void onRestoreRc()}
+                onManagePress={() => router.push(href("/billing"))}
+              />
             ) : (
               <View style={{ marginTop: spacing.md }}>
                 {revenueCatNative && loadingOffering ? (
@@ -521,12 +520,31 @@ export default function SubscriptionsScreen() {
                     : t("subscriptions.choosePlanCheckout", {
                         name: plan.name || plan.plan_id,
                       });
+                  const paidPlanDisabled =
+                    !isStarter &&
+                    (!revenueCatNative || loadingOffering || packages.length === 0);
                   return (
                     <GlassCard
                       key={`${plan.plan_id}-${plan.billing_interval}`}
                       padding="md"
-                      style={{ marginBottom: spacing.sm }}
+                      style={{
+                        marginBottom: spacing.sm,
+                        borderWidth: isStarter ? 1 : 0,
+                        borderColor: isStarter ? c.primary : undefined,
+                      }}
                     >
+                      {isStarter ? (
+                        <View
+                          style={[
+                            styles.starterBadge,
+                            { backgroundColor: c.primary + "1f" },
+                          ]}
+                        >
+                          <Text style={[styles.starterBadgeText, { color: c.primary }]}>
+                            Free forever
+                          </Text>
+                        </View>
+                      ) : null}
                       <Text style={[styles.planName, { color: c.text }]}>
                         {plan.name || plan.plan_id}
                       </Text>
@@ -543,7 +561,8 @@ export default function SubscriptionsScreen() {
                         variant="active"
                         size="sm"
                         style={{ marginTop: spacing.sm }}
-                        loading={busyPlanId === plan.plan_id}
+                        loading={Boolean(purchasingId) && !isStarter}
+                        disabled={paidPlanDisabled}
                         onPress={() => void handlePlanSelect(plan)}
                       >
                         {label}
@@ -655,8 +674,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  pkgRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  pkgTitle: { fontSize: typography.sm, fontWeight: "600", marginBottom: 2 },
   pkgPrice: { fontSize: typography.xs },
   planName: { fontSize: typography.md, fontWeight: "700" },
   compHeaderRow: {
@@ -666,6 +683,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 4,
   },
+  starterBadge: {
+    alignSelf: "flex-start",
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    marginBottom: spacing.xs,
+  },
+  starterBadgeText: { fontSize: typography.xs, fontWeight: "700" },
   compColFeature: { flex: 2.2, fontSize: typography.xs, fontWeight: "600" },
   compCol: { flex: 1, fontSize: typography.xs, textAlign: "center" },
   legal: {

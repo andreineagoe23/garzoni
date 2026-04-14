@@ -1,13 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import MascotWithMessage from "../../common/MascotWithMessage";
 import { Button } from "../../ui";
-import {
-  colors,
-  radius,
-  shadows,
-  spacing,
-  typography,
-} from "../../../theme/tokens";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { radius, shadows, spacing, typography } from "../../../theme/tokens";
 
 type Props = {
   xp: number;
@@ -20,6 +15,8 @@ export default function OnboardingCompletionOverlay({
   coins,
   onContinue,
 }: Props) {
+  const c = useThemeColors();
+
   return (
     <View style={styles.completionOverlay}>
       <View style={styles.mascotBlock}>
@@ -30,21 +27,39 @@ export default function OnboardingCompletionOverlay({
           rotationKey={xp + coins}
         />
       </View>
-      <Text style={styles.completionTitle}>You're all set!</Text>
-      <Text style={styles.completionSub}>
+      <Text style={[styles.completionTitle, { color: c.text }]}>
+        You're all set!
+      </Text>
+      <Text style={[styles.completionSub, { color: c.textMuted }]}>
         We've personalised your learning path based on your goals.
       </Text>
       <View style={styles.rewardRow}>
         {xp > 0 ? (
-          <View style={styles.rewardBadge}>
-            <Text style={styles.rewardValue}>+{xp}</Text>
-            <Text style={styles.rewardLabel}>XP</Text>
+          <View
+            style={[
+              styles.rewardBadge,
+              { backgroundColor: c.surface, borderColor: c.primary },
+            ]}
+          >
+            <Text style={[styles.rewardValue, { color: c.primary }]}>
+              +{xp}
+            </Text>
+            <Text style={[styles.rewardLabel, { color: c.textMuted }]}>XP</Text>
           </View>
         ) : null}
         {coins > 0 ? (
-          <View style={[styles.rewardBadge, styles.rewardBadgeGold]}>
-            <Text style={styles.rewardValue}>+{coins}</Text>
-            <Text style={styles.rewardLabel}>Coins</Text>
+          <View
+            style={[
+              styles.rewardBadge,
+              { backgroundColor: c.surface, borderColor: c.accent },
+            ]}
+          >
+            <Text style={[styles.rewardValue, { color: c.accent }]}>
+              +{coins}
+            </Text>
+            <Text style={[styles.rewardLabel, { color: c.textMuted }]}>
+              Coins
+            </Text>
           </View>
         ) : null}
       </View>
@@ -65,13 +80,11 @@ const styles = StyleSheet.create({
   completionTitle: {
     fontSize: typography.xxl,
     fontWeight: "700",
-    color: colors.text,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
   completionSub: {
     fontSize: typography.base,
-    color: colors.textMuted,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: spacing.xxl,
@@ -83,23 +96,18 @@ const styles = StyleSheet.create({
   },
   rewardBadge: {
     alignItems: "center",
-    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary,
     ...shadows.sm,
   },
-  rewardBadgeGold: { borderColor: colors.accent },
   rewardValue: {
     fontSize: typography.xl,
     fontWeight: "700",
-    color: colors.primaryDark,
   },
   rewardLabel: {
     fontSize: typography.xs,
-    color: colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: 2,
