@@ -48,6 +48,7 @@ import { HoldingCard } from "../../../src/components/tools/portfolio/HoldingCard
 import { InsightCard as InsightCardComponent } from "../../../src/components/tools/portfolio/InsightCard";
 import { AddEntrySheet } from "../../../src/components/tools/portfolio/AddEntrySheet";
 import { AiExplanationSheet } from "../../../src/components/tools/portfolio/AiExplanationSheet";
+import { logDevError } from "../../../src/lib/logDevError";
 
 // ─── Allocation bar component ────────────────────────────────────────────────
 
@@ -254,7 +255,8 @@ export default function PortfolioScreen() {
           params: { symbol },
         });
         return res.data?.price ?? null;
-      } catch {
+      } catch (e) {
+        logDevError("tools/portfolio/stock-price", e);
         return null;
       }
     },
@@ -270,7 +272,8 @@ export default function PortfolioScreen() {
           params: { id },
         });
         return res.data?.price ?? null;
-      } catch {
+      } catch (e) {
+        logDevError("tools/portfolio/crypto-price", e);
         return null;
       }
     },
@@ -335,7 +338,8 @@ export default function PortfolioScreen() {
           allocation,
         });
         setError(null);
-      } catch {
+      } catch (e) {
+        logDevError("tools/portfolio/fetch", e);
         setError("Failed to load portfolio. Pull down to retry.");
       } finally {
         setLoading(false);
@@ -368,7 +372,8 @@ export default function PortfolioScreen() {
         try {
           await (apiClient as any).delete(`/portfolio/${id}/`);
           void fetchPortfolio(true);
-        } catch {
+        } catch (e) {
+          logDevError("tools/portfolio/delete", e);
           Alert.alert("Error", "Could not delete holding. Please try again.");
         }
       })();
@@ -629,7 +634,8 @@ export default function PortfolioScreen() {
       const response = await requestAiTutorResponse(prompt);
       if (!response) throw new Error("Empty response");
       setAiText(response);
-    } catch {
+    } catch (e) {
+      logDevError("tools/portfolio/ai-tutor", e);
       setAiError(
         "Could not generate AI explanation right now. Please try again.",
       );

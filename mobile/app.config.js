@@ -114,9 +114,17 @@ module.exports = ({ config }) => ({
     /** RevenueCat iOS API key (public key from RevenueCat dashboard → API keys). */
     revenueCatApiKeyIos:
       process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY?.trim() || undefined,
+    /** RevenueCat Android API key (public key from RevenueCat dashboard → API keys). */
+    revenueCatApiKeyAndroid:
+      process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY?.trim() || undefined,
+    /** Optional RevenueCat Targeting placement id for the in-app paywall offering. */
+    revenueCatPaywallPlacement:
+      process.env.EXPO_PUBLIC_REVENUECAT_PAYWALL_PLACEMENT?.trim() ||
+      undefined,
   },
   plugins: [
     "expo-router",
+    "expo-video",
     "expo-secure-store",
     "expo-font",
     "expo-apple-authentication",

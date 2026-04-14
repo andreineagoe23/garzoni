@@ -36,6 +36,8 @@ class UserProfileView(generics.GenericAPIView):
             payload = {}
             if "email_reminder_preference" in request.data:
                 payload["email_reminder_preference"] = request.data.get("email_reminder_preference")
+            if "subscription_plan_id" in request.data:
+                payload["subscription_plan_id"] = request.data.get("subscription_plan_id")
             serializer = UserProfileSettingsSerializer(user_profile, data=payload, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()

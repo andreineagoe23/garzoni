@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../lib/reactQuery";
+import { invalidateOnlineDependentQueries } from "../lib/onlineSyncInvalidate";
 
 export const useOnlineSync = () => {
   const queryClient = useQueryClient();
@@ -14,8 +14,7 @@ export const useOnlineSync = () => {
     }
 
     const handleOnline = () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.reviewQueue() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
+      invalidateOnlineDependentQueries(queryClient);
     };
 
     window.addEventListener("online", handleOnline);

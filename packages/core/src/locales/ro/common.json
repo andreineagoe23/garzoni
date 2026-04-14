@@ -41,6 +41,11 @@
       "es": "Spaniolă (în curând)"
     }
   },
+  "mobile": {
+    "offlineBanner": {
+      "message": "Ești offline — unele acțiuni s-ar putea să nu se sincronizeze."
+    }
+  },
   "dashboard": {
     "skipToContent": "Sari la conținut",
     "nav": {
@@ -274,11 +279,13 @@
     "subscriptionsLegalIos": "Abonamentele se reînnoiesc automat. Anulează oricând din setările Apple ID. Plata se încarcă la contul tău Apple ID la confirmarea achiziției.",
     "openCustomerPortal": "Gestionează facturarea (web)",
     "manageInAppStore": "Setări abonament Apple",
+    "manageInPlayStore": "Setări abonament Google Play",
     "restorePurchases": "Restaurează achizițiile",
     "purchaseError": "Achiziția nu a putut fi finalizată. Te rugăm să încerci din nou.",
     "explorePlansMobile": "Compară planurile",
     "stripePortalFallback": "Deschide portalul pentru clienți în browser pentru a actualiza plata sau a anula.",
     "noNativePlansHint": "Compară planurile disponibile sau abonează-te cu Apple ID când achizițiile în aplicație sunt activate.",
+    "starterPlanBody": "Ești pe planul Starter gratuit. Fă upgrade la Plus sau Pro pentru a debloca traseul personalizat.",
     "restoreSuccessTitle": "Restaurat",
     "restoreSuccessBody": "Achizițiile tale au fost restaurate.",
     "restoreFailed": "Nu am putut restaura achizițiile. Te rugăm să încerci din nou."
@@ -330,6 +337,7 @@
     "refresh": "Reîmprospătează",
     "refreshing": "Se reîmprospătează...",
     "refreshed": "Traseul personalizat a fost reîmprospătat.",
+    "buildingPath": "Îți construim traseul personalizat. Revino în câteva momente sau reîmprospătează pentru a-l genera din nou.",
     "continue": "Continuă de unde ai rămas",
     "recommendedForYou": "Recomandat pentru tine",
     "eta": "~{{minutes}} min",
@@ -376,7 +384,9 @@
       "plusOnlyHint": "Doar Plus",
       "signalStrip": {
         "nextSteps": "Ce ar trebui să învăț în continuare?"
-      }
+      },
+      "mobileWebParityTitle": "Instrumente doar pe web",
+      "mobileWebParityBody": "Economic Map și News Context sunt momentan pe web, până finalizăm autentificarea WebView nativă. Tot ce e listat mai jos rulează în aplicație."
     },
     "disclaimer": {
       "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
@@ -1407,11 +1417,23 @@
     "actions": {
       "cancel": "Anulează",
       "save": "Salvează modificările"
+    },
+    "mobile": {
+      "pushNote": "Notificările push și vizibilitatea inimilor sunt în fila Profil.",
+      "appearance": "Aspect"
     }
   },
   "auth": {
     "signInWithGoogle": "Conectare cu Google",
     "orContinueWith": "sau continuă cu",
+    "validation": {
+      "usernameRequired": "Introdu numele de utilizator.",
+      "passwordRequired": "Introdu parola.",
+      "emailRequired": "Introdu adresa de email.",
+      "emailInvalid": "Introdu o adresă de email validă.",
+      "passwordMinLength": "Folosește cel puțin 8 caractere.",
+      "passwordMismatch": "Parolele nu coincid."
+    },
     "recaptcha": {
       "verifying": "Verificăm că ești om...",
       "protectedBy": "Protejat de reCAPTCHA"
@@ -1445,6 +1467,8 @@
       "username": "Nume de utilizator",
       "email": "Email",
       "password": "Parolă",
+      "confirmPassword": "Confirmă parola",
+      "confirmPasswordPlaceholder": "Introdu din nou parola",
       "referralCode": "Cod de recomandare",
       "optional": "opțional",
       "firstNamePlaceholder": "Introdu prenumele",
@@ -1469,6 +1493,8 @@
     "forgotPassword": {
       "title": "Ai uitat parola",
       "logoAlt": "Logo Garzoni",
+      "sentTitle": "Verifică emailul",
+      "sentBody": "Am trimis un link de resetare a parolei la {{email}}.",
       "subtitle": "Introdu adresa de email și îți vom trimite un link pentru resetarea parolei.",
       "email": "Email",
       "emailPlaceholder": "Introdu emailul",
@@ -1495,7 +1521,14 @@
   },
   "subscriptions": {
     "choosePlan": "Alege planul tău",
-    "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium prin checkout securizat Stripe.",
+    "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium direct prin App Store sau Google Play.",
+    "personalizedPathTitle": "Traseul personalizat necesită Plus",
+    "personalizedPathIntro": "Finalizează profilul financiar, apoi alege Plus sau Pro pentru a debloca traseul personalizat.",
+    "rcRequiredTitle": "Este necesară o versiune instalată",
+    "rcRequiredBody": "Planurile plătite folosesc achiziții App Store sau Google Play prin RevenueCat. Instalează un dev build, TestFlight sau versiunea din magazin pentru a te abona.",
+    "activatingTitle": "Activăm abonamentul tău",
+    "activatingBody": "Sincronizăm achiziția și actualizăm drepturile contului tău.",
+    "activationDelayed": "Achiziția ta a fost înregistrată. Activarea abonamentului poate dura câteva momente.",
     "paymentConfirmed": "Plata a fost confirmată! Abonamentul tău este acum activ.",
     "fallbackEntitlements": "Se folosesc drepturi de rezervă. Contactează suportul dacă problema persistă.",
     "loadingPlans": "Se încarcă planurile...",
@@ -1507,7 +1540,7 @@
     "perYear": "an",
     "billingYearly": "Anual",
     "billingMonthly": "Lunar",
-    "unlocksPath": "Deblochează traseul personalizat + checkout securizat Stripe",
+    "unlocksPath": "Deblochează traseul personalizat și funcțiile premium",
     "startStarter": "Începe cu Starter (gratuit)",
     "choosePlanCheckout": "Alege {{name}}",
     "premiumLearningAccess": "Acces premium la învățare",
@@ -1515,6 +1548,10 @@
     "completeOnboardingFirst": "Te rugăm să finalizezi onboardingul înainte de a alege un plan.",
     "paymentNotConfigured": "Plata nu este configurată încă. Te rugăm să încerci mai târziu sau contactează suportul.",
     "checkoutFailed": "Nu s-a putut porni plata. Te rugăm să încerci din nou.",
+    "checkoutSyncFailed": "Nu am putut actualiza încă statusul abonamentului. Te rugăm să mai încerci peste câteva secunde.",
+    "checkoutPendingTitle": "Checkout deschis în browser",
+    "checkoutPendingBody": "După ce finalizezi în browser, revino aici și îți actualizăm abonamentul.",
+    "checkoutCompletedCta": "Am finalizat checkout-ul",
     "paymentSuccess": {
       "title": "Plată reușită",
       "ariaLabel": "Configurarea contului tău",
@@ -1543,6 +1580,35 @@
     "unlimited": "Nelimitat",
     "perDay": "{{count}} / zi",
     "included": "Inclus",
+    "paywallKicker": "GARZONI",
+    "paywallTitle": "Deblochează experiența completă",
+    "paywallSubtitle": "Planurile și prețurile de mai jos se încarcă direct din App Store sau Google Play. Echipa ta poate schimba ofertele din RevenueCat fără să publice o versiune nouă a aplicației.",
+    "paywallOfferingHint": "Ofertă: {{identifier}}",
+    "paywallCompactTitle": "Abonează-te în aplicație",
+    "paywallCompactSubtitle": "Facturarea recurentă se face prin contul tău din magazin până la anulare.",
+    "paywallPageIntro": "Alege un plan mai jos. Prețurile, perioadele de probă și textele pot fi actualizate oricând din RevenueCat.",
+    "paywallFeatureTools": "Instrumente premium, exerciții și calculatoare",
+    "paywallFeaturePath": "Traseu de învățare personalizat pentru tine",
+    "paywallFeatureCancel": "Gestionează sau anulează oricând din {{store}}",
+    "paywallStoreApple": "App Store",
+    "paywallStoreGoogle": "Google Play",
+    "paywallBestValue": "Cea mai bună ofertă",
+    "paywallEquivMonthly": "Aproximativ {{price}}/lună echivalent",
+    "paywallIntroLine": "Preț introductiv de la {{price}}, unde este disponibil",
+    "paywallRetry": "Nu am putut încărca opțiunile de abonament. Verifică conexiunea și încearcă din nou.",
+    "paywallRefreshPlans": "Reîmprospătează ofertele",
+    "paywallPeriodWeek": "săptămână",
+    "paywallPeriodMonth": "lună",
+    "paywallPeriodThreeMonths": "3 luni",
+    "paywallPeriodSixMonths": "6 luni",
+    "paywallPeriodYear": "an",
+    "paywallPackageAnnual": "Acces anual",
+    "paywallPackageMonthly": "Acces lunar",
+    "paywallPackageWeekly": "Acces săptămânal",
+    "paywallPackageLifetime": "Acces pe viață",
+    "paywallPackageMultiMonth": "Acces pe mai multe luni",
+    "paywallPackageCustom": "Abonament",
+    "paywallSubscribe": "Continuă",
     "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>."
   },
   "onboarding": {
@@ -1605,7 +1671,27 @@
       "choosePlan": "Alege un plan →",
       "close": "Închide"
     },
-    "aria": "Chestionar de onboarding"
+    "aria": "Chestionar de onboarding",
+    "introButtonNext": "Înainte",
+    "introButtonStart": "Începe",
+    "introSlides": {
+      "welcome": {
+        "title": "Bine ai venit la Garzoni",
+        "body": "Construiești abilități financiare reale cu lecții scurte, quizuri și exerciții."
+      },
+      "personalize": {
+        "title": "Personalizat pentru tine",
+        "body": "Răspunde la câteva întrebări ca să potrivim conținutul cu obiectivele și nivelul tău."
+      },
+      "earn": {
+        "title": "Câștigi în timp ce înveți",
+        "body": "Colectezi XP, monede și insigne pe măsură ce avansezi."
+      },
+      "plans": {
+        "title": "Planuri când ești pregătit",
+        "body": "Starter e gratuit ca să începi imediat. Plus deblochează traseul personalizat de învățare și lecții extinse. Pro adaugă întregul set de instrumente financiare și analize mai detaliate când vrei să mergi mai departe."
+      }
+    }
   },
   "footer": {
     "tagline": "Învață abilități financiare cu lecții, misiuni și exerciții.",

@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { router } from "expo-router";
 import { href } from "../../navigation/href";
 import { useQuery } from "@tanstack/react-query";
@@ -15,11 +15,11 @@ export default function WeakSkillsCard() {
       fetchMasterySummary().then(
         (r) =>
           r.data as {
-            masteries?: Array<{
+            masteries?: {
               skill?: string;
               proficiency?: number;
               level_label?: string;
-            }>;
+            }[];
           },
       ),
     staleTime: staleTimes.progressSummary,
@@ -70,7 +70,7 @@ export default function WeakSkillsCard() {
             onPress={() =>
               router.push(
                 href(
-                  `/(tabs)/exercises?category=${encodeURIComponent(m.skill ?? "")}`,
+                  `/(tabs)/exercises?skill=${encodeURIComponent(m.skill ?? "")}&intentReason=${encodeURIComponent("weak_skill_practice")}`,
                 ),
               )
             }

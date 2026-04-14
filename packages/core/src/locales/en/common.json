@@ -41,6 +41,11 @@
       "es": "Spanish (coming soon)"
     }
   },
+  "mobile": {
+    "offlineBanner": {
+      "message": "You're offline — some actions may not sync."
+    }
+  },
   "dashboard": {
     "skipToContent": "Skip to content",
     "nav": {
@@ -274,11 +279,13 @@
     "subscriptionsLegalIos": "Subscriptions renew automatically. Cancel anytime in your Apple ID settings. Payment is charged to your Apple ID account at purchase confirmation.",
     "openCustomerPortal": "Manage billing (web)",
     "manageInAppStore": "Apple subscription settings",
+    "manageInPlayStore": "Google Play subscription settings",
     "restorePurchases": "Restore purchases",
     "purchaseError": "Purchase could not be completed. Please try again.",
     "explorePlansMobile": "Compare plans",
     "stripePortalFallback": "Open the customer portal in your browser to update payment method or cancel.",
     "noNativePlansHint": "Compare available plans or subscribe using your Apple ID when in-app purchases are enabled.",
+    "starterPlanBody": "You're on the free Starter plan. Upgrade to Plus or Pro to unlock your personalized path.",
     "restoreSuccessTitle": "Restored",
     "restoreSuccessBody": "Your purchases have been restored.",
     "restoreFailed": "Could not restore purchases. Please try again."
@@ -330,6 +337,7 @@
     "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "refreshed": "Personalized path refreshed.",
+    "buildingPath": "We're building your personalized path. Check back in a moment or refresh to generate it again.",
     "continue": "Continue where you left off",
     "recommendedForYou": "Recommended for you",
     "eta": "~{{minutes}} min",
@@ -376,7 +384,9 @@
       "plusOnlyHint": "Plus only",
       "signalStrip": {
         "nextSteps": "What should I learn next?"
-      }
+      },
+      "mobileWebParityTitle": "Web-only tools",
+      "mobileWebParityBody": "Economic Map and News Context currently live in the web app while we finish native WebView sign-in. Everything listed below runs in the app."
     },
     "disclaimer": {
       "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
@@ -1407,11 +1417,23 @@
     "actions": {
       "cancel": "Cancel",
       "save": "Save Changes"
+    },
+    "mobile": {
+      "pushNote": "Push notifications and hearts visibility are managed on the Profile tab.",
+      "appearance": "Appearance"
     }
   },
   "auth": {
     "signInWithGoogle": "Sign in with Google",
     "orContinueWith": "or continue with",
+    "validation": {
+      "usernameRequired": "Please enter your username.",
+      "passwordRequired": "Please enter your password.",
+      "emailRequired": "Please enter your email address.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordMinLength": "Use at least 8 characters.",
+      "passwordMismatch": "Passwords do not match."
+    },
     "recaptcha": {
       "verifying": "Verifying you're human...",
       "protectedBy": "Protected by reCAPTCHA"
@@ -1445,6 +1467,8 @@
       "username": "Username",
       "email": "Email",
       "password": "Password",
+      "confirmPassword": "Confirm password",
+      "confirmPasswordPlaceholder": "Re-enter your password",
       "referralCode": "Referral Code",
       "optional": "optional",
       "firstNamePlaceholder": "Enter your first name",
@@ -1469,6 +1493,8 @@
     "forgotPassword": {
       "title": "Forgot Password",
       "logoAlt": "Garzoni logo",
+      "sentTitle": "Check your email",
+      "sentBody": "We sent a password reset link to {{email}}.",
       "subtitle": "Enter your email address and we'll send you a link to reset your password.",
       "email": "Email",
       "emailPlaceholder": "Enter your email",
@@ -1496,6 +1522,13 @@
   "subscriptions": {
     "choosePlan": "Build Your Path",
     "intro": "Start free — no credit card needed. Upgrade to Plus or Pro when you're ready to unlock your personalized learning path and the full suite of tools.",
+    "personalizedPathTitle": "Personalized Path Requires Plus",
+    "personalizedPathIntro": "Complete your financial profile, then choose Plus or Pro to unlock your personalized path.",
+    "rcRequiredTitle": "Production build required",
+    "rcRequiredBody": "Paid plans use App Store or Google Play purchases through RevenueCat. Install a dev build, TestFlight build, or the store app to subscribe.",
+    "activatingTitle": "Activating your subscription",
+    "activatingBody": "We're syncing your purchase and refreshing your entitlements.",
+    "activationDelayed": "Your purchase was recorded. It can take a moment for your subscription to activate.",
     "paymentConfirmed": "Payment confirmed! Your subscription is now active.",
     "fallbackEntitlements": "Using fallback entitlements. Please contact support if this persists.",
     "loadingPlans": "Loading plans...",
@@ -1515,6 +1548,10 @@
     "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
     "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
     "checkoutFailed": "Could not start checkout. Please try again.",
+    "checkoutSyncFailed": "Could not refresh your subscription status yet. Please try again in a few seconds.",
+    "checkoutPendingTitle": "Checkout opened in browser",
+    "checkoutPendingBody": "When you're done in the browser, come back here and we'll refresh your subscription.",
+    "checkoutCompletedCta": "I completed checkout",
     "paymentSuccess": {
       "title": "Payment successful",
       "ariaLabel": "Setting up your account",
@@ -1543,6 +1580,35 @@
     "unlimited": "Unlimited",
     "perDay": "{{count}} / day",
     "included": "Included",
+    "paywallKicker": "GARZONI",
+    "paywallTitle": "Unlock the full experience",
+    "paywallSubtitle": "Plans and prices below are loaded live from the App Store or Google Play. Your team can change offerings remotely in RevenueCat without shipping a new app build.",
+    "paywallOfferingHint": "Offering: {{identifier}}",
+    "paywallCompactTitle": "Subscribe in the app",
+    "paywallCompactSubtitle": "Billing recurs through your store account until you cancel.",
+    "paywallPageIntro": "Choose a plan below. Store prices, trials, and copy can change anytime from RevenueCat.",
+    "paywallFeatureTools": "Premium tools, exercises, and calculators",
+    "paywallFeaturePath": "Personalized learning path tailored to you",
+    "paywallFeatureCancel": "Manage or cancel anytime in the {{store}}",
+    "paywallStoreApple": "App Store",
+    "paywallStoreGoogle": "Google Play",
+    "paywallBestValue": "Best value",
+    "paywallEquivMonthly": "About {{price}}/mo equivalent",
+    "paywallIntroLine": "Intro pricing from {{price}} where eligible",
+    "paywallRetry": "We could not load subscription options. Check your connection and try again.",
+    "paywallRefreshPlans": "Refresh offerings",
+    "paywallPeriodWeek": "week",
+    "paywallPeriodMonth": "month",
+    "paywallPeriodThreeMonths": "3 months",
+    "paywallPeriodSixMonths": "6 months",
+    "paywallPeriodYear": "year",
+    "paywallPackageAnnual": "Yearly access",
+    "paywallPackageMonthly": "Monthly access",
+    "paywallPackageWeekly": "Weekly access",
+    "paywallPackageLifetime": "Lifetime access",
+    "paywallPackageMultiMonth": "Multi-month access",
+    "paywallPackageCustom": "Subscription",
+    "paywallSubscribe": "Continue",
     "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   },
   "onboarding": {
@@ -1605,7 +1671,27 @@
       "choosePlan": "Choose a Plan →",
       "close": "Close"
     },
-    "aria": "Onboarding Questionnaire"
+    "aria": "Onboarding Questionnaire",
+    "introButtonNext": "Next",
+    "introButtonStart": "Get started",
+    "introSlides": {
+      "welcome": {
+        "title": "Welcome to Garzoni",
+        "body": "Build real money skills with bite-sized lessons, quizzes, and practice."
+      },
+      "personalize": {
+        "title": "Tailored for you",
+        "body": "Answer a few questions so we can match content to your goals and level."
+      },
+      "earn": {
+        "title": "Earn as you learn",
+        "body": "Collect XP, coins, and badges while you progress."
+      },
+      "plans": {
+        "title": "Plans when you're ready",
+        "body": "Starter is free so you can begin right away. Plus unlocks your personalized learning path and expanded lessons. Pro adds the full financial toolkit and deeper analytics when you want to go further."
+      }
+    }
   },
   "footer": {
     "tagline": "Learn money skills with lessons, missions, and practice.",

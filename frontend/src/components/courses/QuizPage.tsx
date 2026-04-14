@@ -190,7 +190,7 @@ function QuizPage() {
       <PageContainer maxWidth="4xl" layout="centered">
         <div className="flex items-center gap-3 text-content-muted">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
-          {t("quiz.loading")}
+          {t("courses.quiz.loading")}
         </div>
       </PageContainer>
     );

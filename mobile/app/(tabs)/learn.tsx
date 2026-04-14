@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   FlatList,
   Image,
   LayoutAnimation,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -210,10 +212,21 @@ function LearnInner() {
   const { t } = useTranslation("common");
 
   const [activeView, setActiveView] = useState<LearnActiveView>("all-topics");
-  const { expandPath, view } = useLocalSearchParams<{
+  const { expandPath, view, session_id } = useLocalSearchParams<{
     expandPath?: string;
     view?: string;
+    session_id?: string | string[];
+    redirect?: string | string[];
   }>();
+
+  const sessionId =
+    session_id == null
+      ? undefined
+      : Array.isArray(session_id)
+        ? session_id[0]
+        : session_id;
+
+  const webCheckoutReturnHandled = useRef<string | undefined>(undefined);
 
   useLayoutEffect(() => {
     const v = String(view ?? "").toLowerCase();
@@ -221,6 +234,19 @@ function LearnInner() {
       setActiveView("personalized-path");
     }
   }, [view]);
+
+  /** Web-only checkout return: refresh identity data once when a session_id comes back. */
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    if (!sessionId || !hydrated || !accessToken) return;
+    if (webCheckoutReturnHandled.current === sessionId) return;
+    webCheckoutReturnHandled.current = sessionId;
+    void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.questionnaireProgress(),
+    });
+  }, [sessionId, hydrated, accessToken, queryClient]);
 
   const [expandedPathId, setExpandedPathId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -314,12 +340,12 @@ function LearnInner() {
       setActiveView("personalized-path");
       return;
     }
-    if (!isQuestionnaireCompleted) {
-      router.push(href("/onboarding"));
+    if (!questionnaireCompletedForUi) {
+      router.push(href("/onboarding?reason=personalized_path"));
       return;
     }
-    router.push(href("/subscriptions"));
-  }, [accessToken, hasPlusAccess, isQuestionnaireCompleted]);
+    router.push(href("/subscriptions?reason=personalized_path"));
+  }, [accessToken, hasPlusAccess, questionnaireCompletedForUi]);
 
   useEffect(() => {
     if (activeView !== "personalized-path") return;
@@ -336,17 +362,17 @@ function LearnInner() {
       return;
     }
     if (hasPlusAccess) return;
-    if (!isQuestionnaireCompleted) {
-      router.replace(href("/onboarding"));
+    if (!questionnaireCompletedForUi) {
+      router.replace(href("/onboarding?reason=personalized_path"));
       return;
     }
-    router.replace(href("/subscriptions"));
+    router.replace(href("/subscriptions?reason=personalized_path"));
   }, [
     activeView,
     hydrated,
     accessToken,
     hasPlusAccess,
-    isQuestionnaireCompleted,
+    questionnaireCompletedForUi,
     profileQuery.isPending,
     entitlementsQuery.isPending,
     questionnaireQuery.isPending,

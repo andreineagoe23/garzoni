@@ -5,8 +5,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "lint": "expo lint",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "ios:prebuild-clean": "expo prebuild --clean -p ios",
+    "ios:rebuild-purchases": "expo prebuild --clean -p ios && expo run:ios",
     "web": "expo start --web",
     "eas:init": "eas init",
     "build:ios:dev": "eas build --platform ios --profile development",
@@ -23,7 +26,6 @@
     "axios": "^1.7.9",
     "expo": "~54.0.33",
     "expo-apple-authentication": "~8.0.8",
-    "expo-av": "~16.0.8",
     "expo-blur": "~15.0.8",
     "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.13",
@@ -36,6 +38,7 @@
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
+    "expo-video": "~3.0.16",
     "i18next": "^23.16.0",
     "lottie-react-native": "~7.3.6",
     "react": "19.1.0",
@@ -44,7 +47,8 @@
     "react-native": "0.81.5",
     "react-native-confetti-cannon": "^1.5.2",
     "react-native-gesture-handler": "~2.28.0",
-    "react-native-purchases": "^8.10.0",
+    "react-native-purchases": "^9.15.2",
+    "react-native-purchases-ui": "^9.15.2",
     "react-native-reanimated": "~4.1.7",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "~5.6.0",
@@ -59,6 +63,8 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "eas-cli": "^18.5.0",
+    "eslint": "^9.39.4",
+    "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
   }
 }

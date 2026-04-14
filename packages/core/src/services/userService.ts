@@ -8,6 +8,11 @@ import type {
 
 export const fetchProfile = () => apiClient.get<UserProfile>("/userprofile/");
 
+export const patchUserProfile = (body: {
+  email_reminder_preference?: string;
+  subscription_plan_id?: "starter" | "plus" | "pro" | null;
+}) => apiClient.patch<{ message?: string }>("/userprofile/", body);
+
 export const fetchLearningPaths = () => apiClient.get("/paths/");
 
 export const fetchLesson = (lessonId: string | number) =>
@@ -179,7 +184,17 @@ export const postSubscriptionSync = () =>
 export const postSubscriptionCheckout = (body: {
   plan_id: string;
   billing_interval: string;
-}) => apiClient.post<{ redirect_url?: string }>("/subscriptions/create/", body);
+}) => {
+  if (
+    typeof navigator !== "undefined" &&
+    String((navigator as { product?: string }).product || "") === "ReactNative"
+  ) {
+    throw new Error(
+      "[garzoni/core] postSubscriptionCheckout must not be called from native. Use RevenueCat.",
+    );
+  }
+  return apiClient.post<{ redirect_url?: string }>("/subscriptions/create/", body);
+};
 
 export const fetchSubscriptionPlans = () =>
   apiClient.get<{ plans?: unknown[] }>("/plans/");

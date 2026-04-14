@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,32 +9,21 @@ import {
   TextInput as RNTextInput,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import { loginSecure, obtainTokenPair } from "@garzoni/core";
+import { Images, loginSecure, obtainTokenPair } from "@garzoni/core";
+import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
 import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
 import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
-import { FormInput } from "../../src/components/ui";
+import AuthLogoMark from "../../src/components/auth/AuthLogoMark";
+import AuthScreenLayout from "../../src/components/auth/AuthScreenLayout";
+import GlassAuthCard from "../../src/components/auth/GlassAuthCard";
+import GlassButton from "../../src/components/ui/GlassButton";
+import { useThemeColors } from "../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../src/theme/tokens";
-
-// Brand tokens matching the web auth screens
-const brand = {
-  primary: "#1d5330",
-  primaryPressed: "#163d26",
-  accent: "#ffd700",
-  text: "#111827",
-  textMuted: "#6b7280",
-  textLabel: "#374151",
-  border: "#e5e7eb",
-  inputBg: "#ffffff",
-  error: "#dc2626",
-  errorBg: "rgba(220,38,38,0.1)",
-  errorBorder: "rgba(220,38,38,0.4)",
-  glassFill: "rgba(255,255,255,0.95)",
-  overlay: "rgba(0,0,0,0.60)",
-};
 
 type TokenResponseLike = {
   access?: string;
@@ -68,6 +56,8 @@ function extractTokens(payload: TokenResponseLike): {
 }
 
 export default function LoginScreen() {
+  const { t } = useTranslation("common");
+  const c = useThemeColors();
   const { applyTokens } = useAuthSession();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -77,14 +67,16 @@ export default function LoginScreen() {
 
   const passwordRef = useRef<RNTextInput>(null);
 
+  const bgUri = Images.loginBg || undefined;
+
   const onSubmit = async () => {
     setError("");
     if (!username.trim()) {
-      setError("Username is required.");
+      setError(t("auth.validation.usernameRequired"));
       return;
     }
     if (!password) {
-      setError("Password is required.");
+      setError(t("auth.validation.passwordRequired"));
       return;
     }
     setLoading(true);
@@ -98,7 +90,7 @@ export default function LoginScreen() {
       const { access, refresh } = extractTokens(data as TokenResponseLike);
       if (access) {
         await applyTokens(access, refresh);
-        router.replace("/(tabs)");
+        router.replace("/");
       } else {
         const fallback = await obtainTokenPair({
           username: username.trim(),
@@ -107,7 +99,7 @@ export default function LoginScreen() {
         const fallbackAccess = fallback.data?.access;
         if (fallbackAccess) {
           await applyTokens(fallbackAccess, fallback.data?.refresh);
-          router.replace("/(tabs)");
+          router.replace("/");
         } else {
           const keys =
             data && typeof data === "object"
@@ -120,7 +112,7 @@ export default function LoginScreen() {
       }
     } catch (e: unknown) {
       setError(
-        formatAuthRequestError(e, "Could not sign in. Check your credentials."),
+        formatAuthRequestError(e, t("auth.login.loginFailed")),
       );
     } finally {
       setLoading(false);
@@ -128,59 +120,54 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.root}>
-      {/* Full-screen background image */}
-      <Image
-        source={require("../../assets/login-bg.jpg")}
-        style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-      />
-      {/* Dark overlay matching web's bg-black/60 */}
-      <View style={[StyleSheet.absoluteFill, styles.overlay]} />
-
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <AuthScreenLayout mode="login" backgroundUri={bgUri}>
         <ScrollView
+          style={styles.flex}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
-          <View style={styles.logoRow}>
-            <Image
-              source={require("../../assets/garzoni-logo.png")}
-              style={styles.logoMark}
-              resizeMode="contain"
-            />
-            <Image
-              source={require("../../assets/garzoni-text.png")}
-              style={styles.logoText}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Glass card */}
-          <View style={styles.card}>
+          <GlassAuthCard>
+            <AuthLogoMark />
             <AuthBackendBanner />
 
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to continue learning</Text>
+            <Text style={[styles.title, { color: c.text }]}>
+              {t("auth.login.title")}
+            </Text>
+            <Text style={[styles.subtitle, { color: c.textMuted }]}>
+              {t("auth.login.subtitle")}
+            </Text>
 
             {error ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: c.errorBg, borderColor: c.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
               </View>
             ) : null}
 
-            {/* Username */}
             <View style={styles.fieldWrap}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={[styles.label, { color: c.textMuted }]}>
+                {t("auth.login.username")}
+              </Text>
               <RNTextInput
-                style={styles.input}
-                placeholder="Enter your username"
-                placeholderTextColor={brand.textMuted}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: c.border,
+                    backgroundColor: c.inputBg,
+                    color: c.text,
+                  },
+                ]}
+                placeholder={t("auth.login.usernamePlaceholder")}
+                placeholderTextColor={c.textFaint}
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoFocus
@@ -191,15 +178,24 @@ export default function LoginScreen() {
               />
             </View>
 
-            {/* Password */}
             <View style={styles.fieldWrap}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: c.textMuted }]}>
+                {t("auth.login.password")}
+              </Text>
               <View style={styles.passwordWrap}>
                 <RNTextInput
                   ref={passwordRef}
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="Enter your password"
-                  placeholderTextColor={brand.textMuted}
+                  style={[
+                    styles.input,
+                    styles.passwordInput,
+                    {
+                      borderColor: c.border,
+                      backgroundColor: c.inputBg,
+                      color: c.text,
+                    },
+                  ]}
+                  placeholder={t("auth.login.passwordPlaceholder")}
+                  placeholderTextColor={c.textFaint}
                   secureTextEntry={!showPassword}
                   returnKeyType="done"
                   value={password}
@@ -210,39 +206,43 @@ export default function LoginScreen() {
                   style={styles.eyeBtn}
                   onPress={() => setShowPassword((v) => !v)}
                   hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword
+                      ? t("auth.login.hidePassword")
+                      : t("auth.login.showPassword")
+                  }
                 >
-                  <Text style={styles.eyeText}>
-                    {showPassword ? "🙈" : "👁"}
-                  </Text>
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color={c.textMuted}
+                  />
                 </Pressable>
               </View>
             </View>
 
-            {/* Forgot password */}
             <Link href="/(auth)/forgot-password" style={styles.forgotWrap}>
-              <Text style={styles.forgotText}>Forgot password?</Text>
+              <Text style={[styles.forgotText, { color: c.primary }]}>
+                {t("auth.login.forgotPassword")}
+              </Text>
             </Link>
 
-            {/* Submit */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.primaryBtn,
-                pressed && styles.primaryBtnPressed,
-                loading && styles.primaryBtnDisabled,
-              ]}
+            <GlassButton
+              variant="active"
+              size="lg"
+              loading={loading}
               onPress={() => void onSubmit()}
-              disabled={loading}
             >
-              <Text style={styles.primaryBtnText}>
-                {loading ? "Signing in…" : "Sign in"}
-              </Text>
-            </Pressable>
+              {loading ? t("auth.login.submitting") : t("auth.login.submit")}
+            </GlassButton>
 
-            {/* Divider */}
             <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <Text style={[styles.dividerText, { color: c.textMuted }]}>
+                {t("auth.orContinueWith")}
+              </Text>
+              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
             </View>
 
             <AuthSocialSection
@@ -254,97 +254,64 @@ export default function LoginScreen() {
             />
 
             <View style={styles.bottomRow}>
-              <Text style={styles.bottomText}>Don't have an account? </Text>
+              <Text style={[styles.bottomText, { color: c.textMuted }]}>
+                {t("auth.login.noAccount")}{" "}
+              </Text>
               <Link href="/register">
-                <Text style={styles.bottomLink}>Sign up</Text>
+                <Text style={[styles.bottomLink, { color: c.primary }]}>
+                  {t("auth.login.signUpNow")}
+                </Text>
               </Link>
             </View>
-          </View>
+          </GlassAuthCard>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+      </AuthScreenLayout>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   flex: { flex: 1 },
-  overlay: { backgroundColor: brand.overlay },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: spacing.xxl,
-    paddingTop: 60,
     paddingBottom: spacing.xxxxl,
-  },
-
-  // Logo
-  logoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xxl,
-    gap: 10,
-  },
-  logoMark: { width: 36, height: 36 },
-  logoText: { width: 110, height: 28 },
-
-  // Glass card — matches web GlassCard: white/95, rounded-3xl, backdrop blur
-  card: {
-    backgroundColor: brand.glassFill,
-    borderRadius: 24,
-    paddingHorizontal: spacing.xxl,
-    paddingVertical: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 12,
+    paddingTop: spacing.md,
   },
 
   title: {
     fontSize: typography.xxl,
     fontWeight: "700",
-    color: brand.text,
     textAlign: "center",
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: typography.sm,
-    color: brand.textMuted,
     textAlign: "center",
     marginBottom: spacing.xxl,
   },
 
-  // Error banner
   errorBanner: {
-    backgroundColor: brand.errorBg,
     borderWidth: 1,
-    borderColor: brand.errorBorder,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     marginBottom: spacing.lg,
   },
-  errorText: { color: brand.error, fontSize: typography.sm },
+  errorText: { fontSize: typography.sm },
 
-  // Fields
   fieldWrap: { marginBottom: spacing.md },
   label: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: brand.textLabel,
     marginBottom: spacing.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: brand.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: 13,
     fontSize: typography.base,
-    color: brand.text,
-    backgroundColor: brand.inputBg,
   },
   passwordWrap: { position: "relative" },
   passwordInput: { paddingRight: 48 },
@@ -357,33 +324,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  eyeText: { fontSize: 16 },
 
-  // Forgot
   forgotWrap: { alignSelf: "flex-end", marginBottom: spacing.lg },
   forgotText: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: brand.primary,
   },
 
-  // Primary button — pill, forest green, full width
-  primaryBtn: {
-    backgroundColor: brand.primary,
-    borderRadius: radius.full,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: spacing.xs,
-  },
-  primaryBtnPressed: { backgroundColor: brand.primaryPressed },
-  primaryBtnDisabled: { opacity: 0.6 },
-  primaryBtnText: {
-    color: "#ffffff",
-    fontSize: typography.base,
-    fontWeight: "600",
-  },
-
-  // Divider
   divider: {
     flexDirection: "row",
     alignItems: "center",
@@ -392,24 +339,21 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: brand.border,
   },
   dividerText: {
     marginHorizontal: spacing.md,
     fontSize: typography.xs,
-    color: brand.textMuted,
   },
 
-  // Bottom link
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
+    flexWrap: "wrap",
     marginTop: spacing.xl,
   },
-  bottomText: { fontSize: typography.sm, color: brand.textMuted },
+  bottomText: { fontSize: typography.sm },
   bottomLink: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: brand.primary,
   },
 });

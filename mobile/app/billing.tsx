@@ -10,16 +10,11 @@ import {
 } from "react-native";
 import { Stack, router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Constants from "expo-constants";
 import { useTranslation } from "react-i18next";
-import type {
-  PurchasesOffering,
-  PurchasesPackage,
-} from "react-native-purchases";
+import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
-  postSubscriptionPortal,
   postSubscriptionSync,
   queryKeys,
   staleTimes,
@@ -30,27 +25,14 @@ import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 import { getRevenueCatPurchases } from "../src/billing/safeRevenueCat";
+import GarzoniRevenueCatPaywall from "../src/components/billing/GarzoniRevenueCatPaywall";
+import {
+  configureRevenueCatForUser,
+  fetchRevenueCatPaywallOffering,
+  refreshSubscriptionQueries,
+  waitForActiveSubscription,
+} from "../src/billing/subscriptionRuntime";
 import { href } from "../src/navigation/href";
-
-const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
-  "tech.garzoni.app.plus_monthly": "plus",
-  "tech.garzoni.app.plus_yearly": "plus",
-  "tech.garzoni.app.pro_monthly": "pro",
-  "tech.garzoni.app.pro_yearly": "pro",
-};
-
-let revenueCatConfigured = false;
-
-function configureRevenueCat(userId?: string) {
-  const rc = getRevenueCatPurchases();
-  if (!rc) return;
-  const apiKey = Constants.expoConfig?.extra?.revenueCatApiKeyIos as
-    | string
-    | undefined;
-  if (!apiKey || revenueCatConfigured) return;
-  revenueCatConfigured = true;
-  rc.Purchases.configure({ apiKey, appUserID: userId ?? null });
-}
 
 function PlanBadge({
   label,
@@ -83,47 +65,6 @@ function PlanBadge({
   );
 }
 
-function PackageRow({
-  pkg,
-  onPress,
-  loading,
-  c,
-  subscribeLabel,
-}: {
-  pkg: PurchasesPackage;
-  onPress: (pkg: PurchasesPackage) => void;
-  loading: boolean;
-  c: ReturnType<typeof useThemeColors>;
-  subscribeLabel: string;
-}) {
-  const planKey = PRODUCT_TO_PLAN[pkg.product.identifier] ?? "plus";
-  const isYearly = pkg.product.identifier.includes("yearly");
-  return (
-    <GlassCard padding="md" style={{ marginBottom: spacing.sm }}>
-      <View style={styles.pkgRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.pkgTitle, { color: c.text }]}>
-            {planKey === "pro" ? "Pro" : "Plus"} —{" "}
-            {isYearly ? "Yearly" : "Monthly"}
-          </Text>
-          <Text style={[styles.pkgPrice, { color: c.textMuted }]}>
-            {pkg.product.priceString}
-            {isYearly ? " / year" : " / month"}
-          </Text>
-        </View>
-        <GlassButton
-          variant="active"
-          size="sm"
-          onPress={() => onPress(pkg)}
-          loading={loading}
-        >
-          {subscribeLabel}
-        </GlassButton>
-      </View>
-    </GlassCard>
-  );
-}
-
 export default function BillingScreen() {
   const c = useThemeColors();
   const { t } = useTranslation("common");
@@ -131,8 +72,8 @@ export default function BillingScreen() {
   const queryClient = useQueryClient();
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loadingOffering, setLoadingOffering] = useState(false);
+  const [offeringLoadFailed, setOfferingLoadFailed] = useState(false);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
-  const [portalBusy, setPortalBusy] = useState(false);
   const [err, setErr] = useState("");
   const profileLoaded = useRef(false);
 
@@ -147,16 +88,6 @@ export default function BillingScreen() {
     queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
     staleTime: staleTimes.entitlements,
   });
-
-  const profilePayload = profileQ.data;
-  const stripeSubscriptionId = useMemo(() => {
-    if (!profilePayload) return null;
-    const top = (profilePayload as { stripe_subscription_id?: string | null })
-      .stripe_subscription_id;
-    const ud = profilePayload.user_data as Record<string, unknown> | undefined;
-    const nested = ud?.stripe_subscription_id as string | null | undefined;
-    return top ?? nested ?? null;
-  }, [profilePayload]);
 
   const plan = entQ.data?.plan ?? "starter";
   const status = String(entQ.data?.status ?? "inactive");
@@ -192,23 +123,23 @@ export default function BillingScreen() {
     const userId = profileQ.data?.user?.toString();
     if (profileQ.isFetched) {
       profileLoaded.current = true;
-      configureRevenueCat(userId);
-      loadOffering();
+      configureRevenueCatForUser(userId);
+      void loadOffering();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileQ.isFetched, profileQ.data]);
 
   async function loadOffering() {
-    const rc = getRevenueCatPurchases();
-    if (!rc) {
+    if (!getRevenueCatPurchases()) {
       setLoadingOffering(false);
       return;
     }
     setLoadingOffering(true);
+    setOfferingLoadFailed(false);
     try {
-      const offerings = await rc.Purchases.getOfferings();
-      setOffering(offerings.current);
+      setOffering(await fetchRevenueCatPaywallOffering());
     } catch (e) {
+      setOfferingLoadFailed(true);
       if (__DEV__) console.warn("[Billing] RevenueCat getOfferings failed:", e);
     } finally {
       setLoadingOffering(false);
@@ -223,10 +154,7 @@ export default function BillingScreen() {
       setPurchasingId(pkg.product.identifier);
       try {
         await rc.Purchases.purchasePackage(pkg);
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.entitlements(),
-        });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        await waitForActiveSubscription(queryClient);
         Alert.alert(
           t("billing.purchaseSuccessTitle"),
           t("billing.purchaseSuccessBody"),
@@ -249,10 +177,10 @@ export default function BillingScreen() {
     setErr("");
     try {
       await rc.Purchases.restorePurchases();
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.entitlements(),
+      await waitForActiveSubscription(queryClient, {
+        maxAttempts: 3,
+        delayMs: 1000,
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       Alert.alert(
         t("billing.restoreSuccessTitle"),
         t("billing.restoreSuccessBody"),
@@ -262,25 +190,24 @@ export default function BillingScreen() {
     }
   }, [queryClient, t]);
 
-  const onManageAppStore = useCallback(() => {
-    void Linking.openURL("https://apps.apple.com/account/subscriptions");
-  }, []);
-
-  const onOpenStripePortal = useCallback(async () => {
+  const onManageStore = useCallback(async () => {
     setErr("");
-    setPortalBusy(true);
+    const rc = getRevenueCatPurchases();
+    const showManageSubscriptions = (rc?.Purchases as {
+      showManageSubscriptions?: () => Promise<void>;
+    } | null)?.showManageSubscriptions;
     try {
-      const r = await postSubscriptionPortal();
-      const url = r.data?.url;
-      if (url && (await Linking.canOpenURL(url))) {
-        await Linking.openURL(url);
-      } else {
-        setErr(t("billing.failedPortal"));
+      if (showManageSubscriptions) {
+        await showManageSubscriptions();
+        return;
       }
+      const url =
+        Platform.OS === "ios"
+          ? "https://apps.apple.com/account/subscriptions"
+          : "https://play.google.com/store/account/subscriptions";
+      await Linking.openURL(url);
     } catch {
       setErr(t("billing.failedPortal"));
-    } finally {
-      setPortalBusy(false);
     }
   }, [t]);
 
@@ -318,14 +245,14 @@ export default function BillingScreen() {
           <Text style={[styles.statusText, { color: c.textMuted }]}>
             {label} · {status}
           </Text>
-          {stripeSubscriptionId ? (
+          {plan === "starter" ? (
             <Text
               style={[
                 styles.hint,
                 { color: c.textFaint, marginTop: spacing.xs },
               ]}
             >
-              {t("billing.stripePortalFallback")}
+              {t("billing.starterPlanBody")}
             </Text>
           ) : null}
         </GlassCard>
@@ -335,16 +262,17 @@ export default function BillingScreen() {
             <Text style={[styles.sectionTitle, { color: c.text }]}>
               {t("billing.unlockPremium")}
             </Text>
-            {packages.map((pkg) => (
-              <PackageRow
-                key={pkg.product.identifier}
-                pkg={pkg}
-                onPress={onPurchase}
-                loading={purchasingId === pkg.product.identifier}
-                c={c}
-                subscribeLabel={t("billing.startPlan")}
-              />
-            ))}
+            <GarzoniRevenueCatPaywall
+              variant="compact"
+              offering={offering}
+              loading={loadingOffering}
+              loadError={offeringLoadFailed}
+              purchasingId={purchasingId}
+              onPurchase={onPurchase}
+              onRetryLoad={() => void loadOffering()}
+              showRestore={false}
+              onManagePress={() => router.push(href("/subscriptions"))}
+            />
           </View>
         )}
 
@@ -354,7 +282,29 @@ export default function BillingScreen() {
           </Text>
         ) : null}
 
-        {!loadingOffering && packages.length === 0 && !isSubscribed ? (
+        {!loadingOffering &&
+        packages.length === 0 &&
+        !isSubscribed &&
+        offeringLoadFailed ? (
+          <GlassCard padding="md" style={{ marginBottom: spacing.xl }}>
+            <Text
+              style={[
+                styles.hint,
+                { color: c.textMuted, marginBottom: spacing.md },
+              ]}
+            >
+              {t("subscriptions.paywallRetry")}
+            </Text>
+            <GlassButton variant="active" size="md" onPress={() => void loadOffering()}>
+              {t("onboarding.tryAgain")}
+            </GlassButton>
+          </GlassCard>
+        ) : null}
+
+        {!loadingOffering &&
+        packages.length === 0 &&
+        !isSubscribed &&
+        !offeringLoadFailed ? (
           <GlassCard padding="md" style={{ marginBottom: spacing.xl }}>
             <Text
               style={[
@@ -379,25 +329,15 @@ export default function BillingScreen() {
         ) : null}
 
         <View style={styles.actions}>
-          {Boolean(stripeSubscriptionId) && portalEligible ? (
-            <GlassButton
-              variant="active"
-              size="lg"
-              loading={portalBusy}
-              onPress={() => void onOpenStripePortal()}
-              style={{ marginBottom: spacing.sm }}
-            >
-              {t("billing.openCustomerPortal")}
+          {isSubscribed && revenueCatNative ? (
+            <GlassButton variant="active" size="lg" onPress={() => void onManageStore()}>
+              {Platform.OS === "ios"
+                ? t("billing.manageInAppStore")
+                : t("billing.manageInPlayStore")}
             </GlassButton>
           ) : null}
 
-          {isSubscribed && Platform.OS === "ios" && revenueCatNative ? (
-            <GlassButton variant="active" size="lg" onPress={onManageAppStore}>
-              {t("billing.manageInAppStore")}
-            </GlassButton>
-          ) : null}
-
-          {Platform.OS === "ios" && revenueCatNative ? (
+          {revenueCatNative ? (
             <GlassButton
               variant="ghost"
               size="md"
@@ -442,9 +382,6 @@ const styles = StyleSheet.create({
   },
   planBadgeText: { fontSize: typography.xs, fontWeight: "600" },
   statusText: { fontSize: typography.sm, marginTop: spacing.xs },
-  pkgRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  pkgTitle: { fontSize: typography.sm, fontWeight: "600", marginBottom: 2 },
-  pkgPrice: { fontSize: typography.xs },
   hint: { fontSize: typography.sm, lineHeight: 20, marginBottom: spacing.md },
   error: { fontSize: typography.sm, marginBottom: spacing.md },
   actions: { marginTop: spacing.lg, gap: spacing.sm },

@@ -21,7 +21,6 @@ import {
   deleteAccount,
   fetchBadges,
   fetchEntitlements,
-  fetchMissions,
   fetchProfile,
   fetchProgressSummary,
   fetchRecentActivity,
@@ -76,7 +75,6 @@ function ProfileInner() {
   const [badgeFilter, setBadgeFilter] = useState<"all" | "earned" | "locked">(
     "all",
   );
-  const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
 
   const enabled = Boolean(accessToken);
@@ -99,13 +97,6 @@ function ProfileInner() {
     queryKey: queryKeys.entitlements(),
     queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
     staleTime: staleTimes.entitlements,
-    enabled,
-  });
-
-  const missionsQuery = useQuery({
-    queryKey: queryKeys.missions(),
-    queryFn: () => fetchMissions().then((r) => r.data),
-    staleTime: 30_000,
     enabled,
   });
 
@@ -160,33 +151,6 @@ function ProfileInner() {
       /* user dismissed share sheet */
     }
   }, [profileQuery.data]);
-
-  const pickAvatar = useCallback(async () => {
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        Alert.alert(
-          "Photos",
-          "Allow photo library access in Settings to pick a profile picture.",
-        );
-        return;
-      }
-      const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      if (!res.canceled && res.assets[0]?.uri)
-        setLocalAvatarUri(res.assets[0].uri);
-    } catch {
-      Alert.alert(
-        "Photos",
-        "Image picking needs a dev build that includes expo-image-picker. Run `pnpm exec expo run:ios` (or android) from the mobile app folder.",
-      );
-    }
-  }, []);
 
   const onDeleteAccount = useCallback(() => {
     Alert.alert(
@@ -293,20 +257,19 @@ function ProfileInner() {
   );
 
   const goals = useMemo(() => {
-    const dailyLessonMission = missionsQuery.data?.daily_missions?.find(
-      (m) => m.goal_type === "complete_lesson",
-    );
-    const dailyCurrent = dailyLessonMission
-      ? Math.round(dailyLessonMission.progress ?? 0)
-      : 0;
+    const dailyGoal = (merged?.daily_goal as
+      | { earned_xp_today?: number; target_xp?: number }
+      | undefined) ?? { earned_xp_today: 0, target_xp: 50 };
+    const dailyCurrent = Math.round(Number(dailyGoal.earned_xp_today ?? 0));
+    const dailyTarget = Math.max(1, Math.round(Number(dailyGoal.target_xp ?? 50)));
     const pts = typeof merged?.points === "number" ? merged.points : 0;
     const weeklyTarget = 500;
     return {
       daily: {
         label: t("profile.goals.dailyLabel"),
         current: dailyCurrent,
-        target: 1,
-        completed: dailyLessonMission?.status === "completed",
+        target: dailyTarget,
+        completed: dailyCurrent >= dailyTarget,
       },
       weekly: {
         label: t("profile.goals.weeklyLabel"),
@@ -315,13 +278,12 @@ function ProfileInner() {
         completed: pts >= weeklyTarget,
       },
     };
-  }, [missionsQuery.data?.daily_missions, merged?.points, t]);
+  }, [merged?.daily_goal, merged?.points, t]);
 
   const onRefresh = useCallback(() => {
     void profileQuery.refetch();
     void progressQuery.refetch();
     void entitlementsQuery.refetch();
-    void missionsQuery.refetch();
     void recentActivityQuery.refetch();
     void badgesCatalogQuery.refetch();
     void userBadgesQuery.refetch();
@@ -329,7 +291,6 @@ function ProfileInner() {
     profileQuery,
     progressQuery,
     entitlementsQuery,
-    missionsQuery,
     recentActivityQuery,
     badgesCatalogQuery,
     userBadgesQuery,
@@ -339,7 +300,6 @@ function ProfileInner() {
     profileQuery.isFetching ||
     progressQuery.isFetching ||
     entitlementsQuery.isFetching ||
-    missionsQuery.isFetching ||
     recentActivityQuery.isFetching ||
     badgesCatalogQuery.isFetching ||
     userBadgesQuery.isFetching;
@@ -458,13 +418,7 @@ function ProfileInner() {
       }
     >
       <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
-        <Pressable onPress={() => void pickAvatar()} accessibilityRole="button">
-          <Avatar
-            username={displayName || username}
-            uri={localAvatarUri ?? avatarUri}
-            size={64}
-          />
-        </Pressable>
+        <Avatar username={displayName || username} uri={avatarUri} size={64} />
         <View style={styles.nameCol}>
           <Text style={[styles.displayName, { color: colors.text }]}>
             {displayName || username || t("profile.fallbackUser")}

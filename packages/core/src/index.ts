@@ -52,6 +52,10 @@ export {
 
 export {
   Images,
+  authLogoBlackRectangularUrl,
+  authLogoRectangleNoBgUrl,
+  authLogoWhiteBgUrl,
+  authLogoWhiteRectangularUrl,
   cloudinaryImageUrl,
   configureCloudinaryCloudName,
   mascotImageUrl,
@@ -104,8 +108,13 @@ export {
   SUPPORTED_LANGUAGES,
 } from "./constants/i18n";
 
+export { MASTERY_SKILL_TO_EXERCISE_CATEGORY } from "./constants/skillToExerciseCategory";
+
 export { getUserLevel } from "./utils/userLevel";
 export type { UserLevel } from "./utils/userLevel";
+
+export { resolveCategoryFromSkill } from "./utils/resolveCategoryFromSkill";
+export { invalidateOnlineDependentQueries } from "./lib/onlineSyncInvalidate";
 
 export { buildStandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";
 export type { StandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";

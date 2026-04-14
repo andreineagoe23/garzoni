@@ -18,7 +18,7 @@ services:
         condition: service_started
 
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-garzoni}
       POSTGRES_USER: ${POSTGRES_USER:-garzoni}

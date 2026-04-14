@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -25,6 +25,7 @@ import {
   fetchProfile,
   fetchReviewQueue,
   queryKeys,
+  resolveCategoryFromSkill,
   staleTimes,
 } from "@garzoni/core";
 import ExerciseSection from "../../src/components/lesson/ExerciseSection";
@@ -38,6 +39,10 @@ import {
 } from "../../src/components/ui";
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
+import ExerciseSkillIntentBanner, {
+  type ExerciseIntentBannerModel,
+} from "../../src/components/exercises/ExerciseSkillIntentBanner";
+import { href } from "../../src/navigation/href";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../src/theme/tokens";
@@ -72,6 +77,11 @@ const EXERCISE_TYPES = [
   { value: "fill-in-table", label: "Fill Table" },
   { value: "scenario-simulation", label: "Scenario" },
 ];
+
+function firstParam(v: string | string[] | undefined): string | undefined {
+  if (v == null) return undefined;
+  return Array.isArray(v) ? v[0] : v;
+}
 
 function labelForExerciseType(
   type: string | undefined,
@@ -125,10 +135,14 @@ function ExercisesInner() {
   const uniqueCompletedRef = useRef<Set<number>>(new Set());
   const summaryShownRef = useRef(false);
 
-  const { category: categoryParam, skill: skillParam } = useLocalSearchParams<{
-    category?: string;
-    skill?: string;
+  const params = useLocalSearchParams<{
+    category?: string | string[];
+    skill?: string | string[];
+    intentReason?: string | string[];
   }>();
+  const categoryParam = firstParam(params.category);
+  const skillParam = firstParam(params.skill);
+  const intentReasonParam = firstParam(params.intentReason);
 
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [exerciseType, setExerciseType] = useState<string | undefined>(
@@ -153,10 +167,19 @@ function ExercisesInner() {
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
+  const [intentBannerDismissed, setIntentBannerDismissed] = useState(false);
 
   useEffect(() => {
     if (categoryParam) setCategory(categoryParam);
   }, [categoryParam]);
+
+  useEffect(() => {
+    if (!categoryParam && !skillParam) setCategory(undefined);
+  }, [categoryParam, skillParam]);
+
+  useEffect(() => {
+    setIntentBannerDismissed(false);
+  }, [skillParam]);
 
   useEffect(() => {
     hadIncorrectRef.current = false;
@@ -182,15 +205,54 @@ function ExercisesInner() {
     staleTime: staleTimes.content,
   });
 
+  const decodedSkill = useMemo(() => {
+    if (!skillParam) return "";
+    try {
+      return decodeURIComponent(skillParam);
+    } catch {
+      return skillParam;
+    }
+  }, [skillParam]);
+
   useEffect(() => {
     if (!skillParam || categoryParam) return;
-    const decoded = decodeURIComponent(skillParam);
-    const cats = categoriesQuery.data ?? [];
-    const exact = cats.find((x) => x.toLowerCase() === decoded.toLowerCase());
-    setCategory(exact ?? decoded);
-  }, [skillParam, categoryParam, categoriesQuery.data]);
+    const cats = categoriesQuery.data;
+    if (!cats) return;
+    const resolved = resolveCategoryFromSkill(decodedSkill, cats);
+    setCategory(resolved || undefined);
+  }, [skillParam, categoryParam, categoriesQuery.data, decodedSkill]);
 
   const mergedCategory = categoryParam || category;
+
+  const intentModel = useMemo((): ExerciseIntentBannerModel | null => {
+    if (!skillParam || categoryParam) return null;
+    const cats = categoriesQuery.data;
+    if (!cats?.length) return null;
+    if (!decodedSkill.trim()) return null;
+    const resolved = resolveCategoryFromSkill(decodedSkill, cats);
+    if (resolved) {
+      return {
+        kind: "applied",
+        skill: decodedSkill,
+        category: resolved,
+        differsFromSkill:
+          resolved.trim().toLowerCase() !== decodedSkill.trim().toLowerCase(),
+      };
+    }
+    return { kind: "unmapped", skill: decodedSkill };
+  }, [skillParam, categoryParam, categoriesQuery.data, decodedSkill]);
+
+  const intentContextSubtitle = useMemo(() => {
+    if (!intentModel) return "";
+    if (
+      intentReasonParam === "weak_skill_click" ||
+      intentReasonParam === "weak_skill_practice" ||
+      intentReasonParam === "quick_card_exercises"
+    ) {
+      return t(`exercises.skillIntent.context.${intentReasonParam}`);
+    }
+    return t("exercises.skillIntent.context.default");
+  }, [intentModel, intentReasonParam, t]);
 
   const listQuery = useQuery({
     queryKey: [...queryKeys.exercises(), mergedCategory ?? "all", "learner"],
@@ -438,6 +500,19 @@ function ExercisesInner() {
     list.length > 0 &&
     filteredList.length === 0;
 
+  const showEmptyMappedZero =
+    mode === "normal" &&
+    !isListPending &&
+    !isListError &&
+    list.length === 0 &&
+    Boolean(mergedCategory) &&
+    intentModel?.kind === "applied";
+
+  const clearSkillIntentNav = useCallback(() => {
+    setIntentBannerDismissed(false);
+    router.replace(href("/(tabs)/exercises"));
+  }, []);
+
   // Category label for dropdown button
   const categoryLabel =
     mergedCategory ?? t("exercises.practiceHub.allCategories");
@@ -522,6 +597,16 @@ function ExercisesInner() {
             </Pressable>
           </View>
 
+          {intentModel && skillParam && !categoryParam && !intentBannerDismissed ? (
+            <ExerciseSkillIntentBanner
+              model={intentModel}
+              contextSubtitle={intentContextSubtitle || undefined}
+              onClearFilter={clearSkillIntentNav}
+              onDismiss={() => setIntentBannerDismissed(true)}
+              onChangeCategory={() => setCategoryPickerOpen(true)}
+            />
+          ) : null}
+
           {/* ── Review mode banner ── */}
           {mode === "review" ? (
             <View
@@ -583,6 +668,34 @@ function ExercisesInner() {
               message={t("exercises.errors.loadFailed")}
               onRetry={() => void listQuery.refetch()}
             />
+          ) : null}
+          {showEmptyMappedZero ? (
+            <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
+              <Text style={{ color: c.text, fontWeight: "700" }}>
+                {t("exercises.emptyMappedZero.title", {
+                  category: mergedCategory ?? "",
+                })}
+              </Text>
+              <Text style={{ color: c.textMuted, marginTop: spacing.xs }}>
+                {t("exercises.emptyMappedZero.subtitle")}
+              </Text>
+              <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+                <Button variant="secondary" onPress={clearSkillIntentNav}>
+                  {t("exercises.emptyMappedZero.clearFilter")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={() => setCategoryPickerOpen(true)}
+                >
+                  {t("exercises.emptyMappedZero.pickAnother")}
+                </Button>
+                <Button
+                  onPress={() => router.push(href("/(tabs)/learn"))}
+                >
+                  {t("exercises.emptyMappedZero.goToLessons")}
+                </Button>
+              </View>
+            </GlassCard>
           ) : null}
           {isFilteredEmpty ? (
             <GlassCard padding="md" style={{ marginBottom: spacing.md }}>

@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,31 +8,23 @@ import {
   Text,
   TextInput as RNTextInput,
   View,
+  type TextInputProps,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import { obtainTokenPair, registerSecure } from "@garzoni/core";
+import { Images, obtainTokenPair, registerSecure } from "@garzoni/core";
+import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
 import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
 import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
+import AuthLogoMark from "../../src/components/auth/AuthLogoMark";
+import AuthScreenLayout from "../../src/components/auth/AuthScreenLayout";
+import GlassAuthCard from "../../src/components/auth/GlassAuthCard";
+import GlassButton from "../../src/components/ui/GlassButton";
+import { useThemeColors } from "../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../src/theme/tokens";
-
-const brand = {
-  primary: "#1d5330",
-  primaryPressed: "#163d26",
-  accent: "#ffd700",
-  text: "#111827",
-  textMuted: "#6b7280",
-  textLabel: "#374151",
-  border: "#e5e7eb",
-  inputBg: "#ffffff",
-  error: "#dc2626",
-  errorBg: "rgba(220,38,38,0.1)",
-  errorBorder: "rgba(220,38,38,0.4)",
-  glassFill: "rgba(255,255,255,0.95)",
-  overlay: "rgba(0,0,0,0.60)",
-};
 
 type TokenResponseLike = {
   access?: string;
@@ -73,7 +64,38 @@ type FieldKey =
   | "first_name"
   | "last_name";
 
+const Field = forwardRef<
+  RNTextInput,
+  TextInputProps & { label: string; error?: string }
+>(({ label, error, ...rest }, ref) => {
+  const c = useThemeColors();
+  return (
+    <View style={styles.fieldWrap}>
+      <Text style={[styles.label, { color: c.textMuted }]}>{label}</Text>
+      <RNTextInput
+        ref={ref}
+        style={[
+          styles.input,
+          {
+            borderColor: error ? c.error : c.border,
+            backgroundColor: c.inputBg,
+            color: c.text,
+          },
+        ]}
+        placeholderTextColor={c.textFaint}
+        {...rest}
+      />
+      {error ? (
+        <Text style={[styles.fieldError, { color: c.error }]}>{error}</Text>
+      ) : null}
+    </View>
+  );
+});
+Field.displayName = "Field";
+
 export default function RegisterScreen() {
+  const { t } = useTranslation("common");
+  const c = useThemeColors();
   const { applyTokens } = useAuthSession();
   const [form, setForm] = useState({
     username: "",
@@ -96,6 +118,8 @@ export default function RegisterScreen() {
   const firstRef = useRef<RNTextInput>(null);
   const lastRef = useRef<RNTextInput>(null);
 
+  const bgUri = Images.registerBg || undefined;
+
   const update = (key: FieldKey, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
     setFieldErrors((prev) => {
@@ -107,15 +131,16 @@ export default function RegisterScreen() {
 
   const validate = (): boolean => {
     const errs: Partial<Record<FieldKey, string>> = {};
-    if (!form.username.trim()) errs.username = "Username is required.";
-    if (!form.email.trim()) errs.email = "Email is required.";
+    if (!form.username.trim())
+      errs.username = t("auth.validation.usernameRequired");
+    if (!form.email.trim()) errs.email = t("auth.validation.emailRequired");
     else if (!/\S+@\S+\.\S+/.test(form.email.trim()))
-      errs.email = "Enter a valid email address.";
-    if (!form.password) errs.password = "Password is required.";
+      errs.email = t("auth.validation.emailInvalid");
+    if (!form.password) errs.password = t("auth.validation.passwordRequired");
     else if (form.password.length < 8)
-      errs.password = "Use at least 8 characters.";
+      errs.password = t("auth.validation.passwordMinLength");
     if (form.password !== form.confirmPassword)
-      errs.confirmPassword = "The two entries do not match.";
+      errs.confirmPassword = t("auth.validation.passwordMismatch");
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -137,7 +162,7 @@ export default function RegisterScreen() {
       const { access, refresh } = extractTokens(data as TokenResponseLike);
       if (access) {
         await applyTokens(access, refresh);
-        router.replace("/onboarding");
+        router.replace("/");
       } else {
         const fallback = await obtainTokenPair({
           username: form.username.trim(),
@@ -146,7 +171,7 @@ export default function RegisterScreen() {
         const fallbackAccess = fallback.data?.access;
         if (fallbackAccess) {
           await applyTokens(fallbackAccess, fallback.data?.refresh);
-          router.replace("/onboarding");
+          router.replace("/");
         } else {
           const keys =
             data && typeof data === "object"
@@ -162,7 +187,7 @@ export default function RegisterScreen() {
         response?: { data?: { detail?: string; [k: string]: unknown } };
       };
       if (!err.response) {
-        setError(formatAuthRequestError(e, "Could not register."));
+        setError(formatAuthRequestError(e, t("auth.register.registerFailed")));
       } else {
         const detail = err.response?.data?.detail;
         if (typeof detail === "string") {
@@ -172,9 +197,9 @@ export default function RegisterScreen() {
             .filter(([k]) => k !== "detail")
             .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
             .join("\n");
-          setError(msgs || "Could not register.");
+          setError(msgs || t("auth.register.registerFailed"));
         } else {
-          setError("Could not register.");
+          setError(t("auth.register.registerFailed"));
         }
       }
     } finally {
@@ -182,62 +207,56 @@ export default function RegisterScreen() {
     }
   };
 
-  return (
-    <View style={styles.root}>
-      <Image
-        source={require("../../assets/register-bg.jpg")}
-        style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-      />
-      <View style={[StyleSheet.absoluteFill, styles.overlay]} />
+  const inputStyle = {
+    borderColor: c.border,
+    backgroundColor: c.inputBg,
+    color: c.text,
+  };
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+  return (
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <AuthScreenLayout mode="register" backgroundUri={bgUri}>
         <ScrollView
+          style={styles.flex}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
-          <View style={styles.logoRow}>
-            <Image
-              source={require("../../assets/garzoni-logo.png")}
-              style={styles.logoMark}
-              resizeMode="contain"
-            />
-            <Image
-              source={require("../../assets/garzoni-text.png")}
-              style={styles.logoText}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Glass card */}
-          <View style={styles.card}>
+          <GlassAuthCard>
+            <AuthLogoMark />
             <AuthBackendBanner />
 
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>
-              Start your financial learning journey
+            <Text style={[styles.title, { color: c.text }]}>
+              {t("auth.register.title")}
+            </Text>
+            <Text style={[styles.subtitle, { color: c.textMuted }]}>
+              {t("auth.register.subtitle")}
             </Text>
 
             {error ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: c.errorBg, borderColor: c.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
               </View>
             ) : null}
 
-            {/* First + Last name row */}
             <View style={styles.nameRow}>
               <View style={styles.nameField}>
-                <Text style={styles.label}>First name</Text>
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {t("auth.register.firstName")}
+                </Text>
                 <RNTextInput
                   ref={firstRef}
-                  style={styles.input}
-                  placeholder="First"
-                  placeholderTextColor={brand.textMuted}
+                  style={[styles.input, inputStyle]}
+                  placeholder={t("auth.register.firstNamePlaceholder")}
+                  placeholderTextColor={c.textFaint}
                   returnKeyType="next"
                   value={form.first_name}
                   onChangeText={(v) => update("first_name", v)}
@@ -245,12 +264,14 @@ export default function RegisterScreen() {
                 />
               </View>
               <View style={styles.nameField}>
-                <Text style={styles.label}>Last name</Text>
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  {t("auth.register.lastName")}
+                </Text>
                 <RNTextInput
                   ref={lastRef}
-                  style={styles.input}
-                  placeholder="Last"
-                  placeholderTextColor={brand.textMuted}
+                  style={[styles.input, inputStyle]}
+                  placeholder={t("auth.register.lastNamePlaceholder")}
+                  placeholderTextColor={c.textFaint}
                   returnKeyType="next"
                   value={form.last_name}
                   onChangeText={(v) => update("last_name", v)}
@@ -260,8 +281,8 @@ export default function RegisterScreen() {
             </View>
 
             <Field
-              label="Username"
-              placeholder="Choose a username"
+              label={t("auth.register.username")}
+              placeholder={t("auth.register.usernamePlaceholder")}
               autoCapitalize="none"
               autoCorrect={false}
               autoFocus
@@ -274,8 +295,8 @@ export default function RegisterScreen() {
 
             <Field
               ref={emailRef}
-              label="Email"
-              placeholder="you@example.com"
+              label={t("auth.register.email")}
+              placeholder={t("auth.register.emailPlaceholder")}
               autoCapitalize="none"
               keyboardType="email-address"
               returnKeyType="next"
@@ -285,19 +306,21 @@ export default function RegisterScreen() {
               onSubmitEditing={() => passwordRef.current?.focus()}
             />
 
-            {/* Password with show/hide */}
             <View style={styles.fieldWrap}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: c.textMuted }]}>
+                {t("auth.register.password")}
+              </Text>
               <View style={styles.passwordWrap}>
                 <RNTextInput
                   ref={passwordRef}
                   style={[
                     styles.input,
                     styles.passwordInput,
-                    fieldErrors.password && styles.inputError,
+                    inputStyle,
+                    fieldErrors.password && { borderColor: c.error },
                   ]}
-                  placeholder="At least 8 characters"
-                  placeholderTextColor={brand.textMuted}
+                  placeholder={t("auth.register.passwordPlaceholder")}
+                  placeholderTextColor={c.textFaint}
                   secureTextEntry={!showPassword}
                   returnKeyType="next"
                   value={form.password}
@@ -308,21 +331,31 @@ export default function RegisterScreen() {
                   style={styles.eyeBtn}
                   onPress={() => setShowPassword((v) => !v)}
                   hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword
+                      ? t("auth.login.hidePassword")
+                      : t("auth.login.showPassword")
+                  }
                 >
-                  <Text style={styles.eyeText}>
-                    {showPassword ? "🙈" : "👁"}
-                  </Text>
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color={c.textMuted}
+                  />
                 </Pressable>
               </View>
               {fieldErrors.password ? (
-                <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+                <Text style={[styles.fieldError, { color: c.error }]}>
+                  {fieldErrors.password}
+                </Text>
               ) : null}
             </View>
 
             <Field
               ref={confirmRef}
-              label="Confirm password"
-              placeholder="Re-enter password"
+              label={t("auth.register.confirmPassword")}
+              placeholder={t("auth.register.confirmPasswordPlaceholder")}
               secureTextEntry
               returnKeyType="done"
               value={form.confirmPassword}
@@ -331,24 +364,21 @@ export default function RegisterScreen() {
               onSubmitEditing={() => void onSubmit()}
             />
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.primaryBtn,
-                pressed && styles.primaryBtnPressed,
-                loading && styles.primaryBtnDisabled,
-              ]}
+            <GlassButton
+              variant="active"
+              size="lg"
+              loading={loading}
               onPress={() => void onSubmit()}
-              disabled={loading}
             >
-              <Text style={styles.primaryBtnText}>
-                {loading ? "Creating account…" : "Sign up"}
-              </Text>
-            </Pressable>
+              {loading ? t("auth.register.submitting") : t("auth.register.submit")}
+            </GlassButton>
 
             <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <Text style={[styles.dividerText, { color: c.textMuted }]}>
+                {t("auth.orContinueWith")}
+              </Text>
+              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
             </View>
 
             <AuthSocialSection
@@ -360,99 +390,52 @@ export default function RegisterScreen() {
             />
 
             <View style={styles.bottomRow}>
-              <Text style={styles.bottomText}>Already have an account? </Text>
+              <Text style={[styles.bottomText, { color: c.textMuted }]}>
+                {t("auth.register.hasAccount")}{" "}
+              </Text>
               <Link href="/login">
-                <Text style={styles.bottomLink}>Sign in</Text>
+                <Text style={[styles.bottomLink, { color: c.primary }]}>
+                  {t("auth.register.loginHere")}
+                </Text>
               </Link>
             </View>
-          </View>
+          </GlassAuthCard>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+      </AuthScreenLayout>
+    </KeyboardAvoidingView>
   );
 }
 
-// Small inline field component to avoid repetition
-import { forwardRef } from "react";
-import type { TextInputProps } from "react-native";
-
-const Field = forwardRef<
-  RNTextInput,
-  TextInputProps & { label: string; error?: string }
->(({ label, error, ...rest }, ref) => (
-  <View style={styles.fieldWrap}>
-    <Text style={styles.label}>{label}</Text>
-    <RNTextInput
-      ref={ref}
-      style={[styles.input, error && styles.inputError]}
-      placeholderTextColor={brand.textMuted}
-      {...rest}
-    />
-    {error ? <Text style={styles.fieldError}>{error}</Text> : null}
-  </View>
-));
-Field.displayName = "Field";
-
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   flex: { flex: 1 },
-  overlay: { backgroundColor: brand.overlay },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: spacing.xxl,
-    paddingTop: 60,
     paddingBottom: spacing.xxxxl,
-  },
-
-  logoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xxl,
-    gap: 10,
-  },
-  logoMark: { width: 36, height: 36 },
-  logoText: { width: 110, height: 28 },
-
-  card: {
-    backgroundColor: brand.glassFill,
-    borderRadius: 24,
-    paddingHorizontal: spacing.xxl,
-    paddingVertical: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 12,
+    paddingTop: spacing.md,
   },
 
   title: {
     fontSize: typography.xxl,
     fontWeight: "700",
-    color: brand.text,
     textAlign: "center",
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: typography.sm,
-    color: brand.textMuted,
     textAlign: "center",
     marginBottom: spacing.xxl,
   },
 
   errorBanner: {
-    backgroundColor: brand.errorBg,
     borderWidth: 1,
-    borderColor: brand.errorBorder,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     marginBottom: spacing.lg,
   },
-  errorText: { color: brand.error, fontSize: typography.sm },
+  errorText: { fontSize: typography.sm },
 
-  // Name row (2 columns like web)
   nameRow: {
     flexDirection: "row",
     gap: spacing.md,
@@ -464,23 +447,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: brand.textLabel,
     marginBottom: spacing.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: brand.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: 13,
     fontSize: typography.base,
-    color: brand.text,
-    backgroundColor: brand.inputBg,
   },
-  inputError: { borderColor: brand.error },
   fieldError: {
     fontSize: typography.xs,
-    color: brand.error,
     marginTop: spacing.xs,
   },
   passwordWrap: { position: "relative" },
@@ -494,22 +471,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  eyeText: { fontSize: 16 },
-
-  primaryBtn: {
-    backgroundColor: brand.primary,
-    borderRadius: radius.full,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: spacing.xs,
-  },
-  primaryBtnPressed: { backgroundColor: brand.primaryPressed },
-  primaryBtnDisabled: { opacity: 0.6 },
-  primaryBtnText: {
-    color: "#ffffff",
-    fontSize: typography.base,
-    fontWeight: "600",
-  },
 
   divider: {
     flexDirection: "row",
@@ -519,23 +480,21 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: brand.border,
   },
   dividerText: {
     marginHorizontal: spacing.md,
     fontSize: typography.xs,
-    color: brand.textMuted,
   },
 
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
+    flexWrap: "wrap",
     marginTop: spacing.xl,
   },
-  bottomText: { fontSize: typography.sm, color: brand.textMuted },
+  bottomText: { fontSize: typography.sm },
   bottomLink: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: brand.primary,
   },
 });

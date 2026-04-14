@@ -25,6 +25,7 @@ import type {
 import { TabBar } from "../../../src/components/tools/market-explorer/TabBar";
 import { AssetCard } from "../../../src/components/tools/market-explorer/AssetCard";
 import { QuoteSheet } from "../../../src/components/tools/market-explorer/QuoteSheet";
+import { logDevError } from "../../../src/lib/logDevError";
 
 const PLACEHOLDER: Record<MarketTab, string> = {
   stocks: "Search stocks (e.g. AAPL)",
@@ -54,7 +55,8 @@ export default function MarketExplorerScreen() {
         params: { q: q.trim(), type: t },
       });
       setResults(res.data?.results ?? []);
-    } catch {
+    } catch (e) {
+      logDevError("tools/market-explorer/search", e);
       setResults([]);
     } finally {
       setSearching(false);
@@ -89,7 +91,8 @@ export default function MarketExplorerScreen() {
         `/market/quote/${asset.ticker}/`,
       );
       setSelectedAsset(res.data ?? asset);
-    } catch {
+    } catch (e) {
+      logDevError("tools/market-explorer/quote", e);
       setSelectedAsset({ ...asset });
     } finally {
       setQuoteLoading(false);

@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { ResizeMode, Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { spacing, typography } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
@@ -38,6 +38,36 @@ function createVideoStyles(c: ThemeColors) {
   });
 }
 
+function InlineVideoPlayer({
+  uri,
+  width,
+  height,
+  onPlaybackError,
+}: {
+  uri: string;
+  width: number;
+  height: number;
+  onPlaybackError: () => void;
+}) {
+  const player = useVideoPlayer(uri);
+
+  useEffect(() => {
+    const sub = player.addListener("statusChange", ({ status }) => {
+      if (status === "error") onPlaybackError();
+    });
+    return () => sub.remove();
+  }, [player, onPlaybackError]);
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width, height }}
+      nativeControls
+      contentFit="contain"
+    />
+  );
+}
+
 export default function VideoSection({ url, title }: Props) {
   const c = useThemeColors();
   const styles = useMemo(() => createVideoStyles(c), [c]);
@@ -47,8 +77,18 @@ export default function VideoSection({ url, title }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   const yid = useMemo(() => (url ? youtubeIdFromUrl(url) : null), [url]);
+  const trimmed = url?.trim() ?? "";
 
-  if (!url?.trim()) {
+  useEffect(() => {
+    setErr(null);
+  }, [trimmed]);
+
+  const onPlaybackError = useMemo(
+    () => () => setErr("Could not play this video."),
+    [],
+  );
+
+  if (!trimmed) {
     return <Text style={styles.muted}>No video URL.</Text>;
   }
 
@@ -60,13 +100,14 @@ export default function VideoSection({ url, title }: Props) {
           <YoutubePlayer height={h} width={w} videoId={yid} />
         </View>
       ) : (
-        <Video
-          style={[styles.box, { width: w, height: h }]}
-          source={{ uri: url }}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          onError={() => setErr("Could not play this video.")}
-        />
+        <View style={[styles.box, { width: w, height: h }]}>
+          <InlineVideoPlayer
+            uri={trimmed}
+            width={w}
+            height={h}
+            onPlaybackError={onPlaybackError}
+          />
+        </View>
       )}
       {err ? <Text style={styles.err}>{err}</Text> : null}
     </View>

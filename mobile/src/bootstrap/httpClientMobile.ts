@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
@@ -73,8 +73,27 @@ export function initHttpClientMobile() {
     onAuthFailure: () => {
       // Handled by the refresh interceptor below.
     },
-    onError: (msg) => {
-      Alert.alert("Error", String(msg));
+    onError: (msg, meta) => {
+      const text = String(msg);
+      const status = meta?.status;
+      const method = String(meta?.method || "").toUpperCase();
+      const isGenericServerReadFailure =
+        method === "GET" &&
+        status === 500 &&
+        /^Request failed with status code 500$/i.test(text);
+      if (isGenericServerReadFailure) {
+        if (__DEV__) {
+          console.warn("[Garzoni][silent-read-500]", meta?.url || "", text);
+        }
+        return;
+      }
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: text.length > 280 ? `${text.slice(0, 277)}…` : text,
+        position: "top",
+        visibilityTime: 4500,
+      });
     },
   });
 

@@ -13,6 +13,8 @@ __pycache__/
 
 # Backend
 /backend/.env
+# Local Postgres dumps (may contain production data)
+/db-backups/
 backend/cache/__pycache__/
 .pyc
 # Frontend

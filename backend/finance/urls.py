@@ -1,6 +1,12 @@
 # finance/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
+from .mobile_tools_api import (
+    EconomicCalendarMobileView,
+    NextStepCompleteMobileView,
+    NextStepsMobileView,
+)
 from .views import (
     SavingsAccountView,
     FinanceFactView,
@@ -30,6 +36,17 @@ router.register(r"portfolio", PortfolioViewSet, basename="portfolio")
 router.register(r"financial-goals", FinancialGoalViewSet, basename="financial-goals")
 
 urlpatterns = [
+    path(
+        "economic-calendar/",
+        EconomicCalendarMobileView.as_view(),
+        name="economic-calendar-mobile",
+    ),
+    path("next-steps/", NextStepsMobileView.as_view(), name="next-steps-mobile"),
+    path(
+        "next-steps/<str:step_id>/complete/",
+        NextStepCompleteMobileView.as_view(),
+        name="next-step-complete-mobile",
+    ),
     path("", include(router.urls)),
     # Compatibility prefix for clients hitting /api/finance/entitlements/
     path(

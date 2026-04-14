@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { WebView } from "react-native-webview";
 import { getWebAppBaseUrl } from "../../src/bootstrap/webAppUrl";
+import { webViewDevLoggingProps } from "../../src/bootstrap/webViewDevLogging";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
 
@@ -30,6 +31,7 @@ export default function ToolWebScreen() {
         ) : (
           <WebView
             source={{ uri }}
+            {...webViewDevLoggingProps()}
             startInLoadingState
             renderLoading={() => (
               <View style={styles.center}>

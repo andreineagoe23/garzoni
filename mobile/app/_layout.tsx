@@ -16,6 +16,7 @@ import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
 import { initI18nMobile } from "../src/bootstrap/i18nMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
+import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
 initStorageMobile();
@@ -24,6 +25,7 @@ initI18nMobile();
 
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
+  useNativeOnlineSync();
 
   const navTheme = {
     ...(resolved === "dark" ? DarkTheme : DefaultTheme),
@@ -59,6 +61,10 @@ function ThemedRoot() {
               options={{ headerShown: true, title: "Change password" }}
             />
             <Stack.Screen name="feedback" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="payment-success"
+              options={{ headerShown: true }}
+            />
           </Stack>
         </View>
         <Toast />

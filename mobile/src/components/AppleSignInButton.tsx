@@ -1,15 +1,15 @@
 import { useState } from "react";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import * as AppleAuthentication from "expo-apple-authentication";
+  AppleAuthenticationButton,
+  AppleAuthenticationButtonStyle,
+  AppleAuthenticationButtonType,
+  AppleAuthenticationScope,
+  signInAsync,
+} from "expo-apple-authentication";
 import { appleVerifyIdentity, getBackendUrl } from "@garzoni/core";
 import type { SocialAuthSuccessMeta } from "./GoogleSignInButton";
+import { useTheme } from "../theme/ThemeContext";
 
 type Props = {
   onSuccess: (
@@ -20,20 +20,34 @@ type Props = {
   onError: (message: string) => void;
 };
 
+const BUTTON_HEIGHT = 50;
+const CORNER_RADIUS = 12;
+
+/**
+ * System Sign in with Apple — white filled control on dark UI, black on light (matches Apple HIG
+ * on grey surfaces and flips with in-app theme).
+ */
 export function AppleSignInButton({ onSuccess, onError }: Props) {
+  const { resolved } = useTheme();
   const [busy, setBusy] = useState(false);
 
   if (Platform.OS !== "ios") {
     return null;
   }
 
+  const useDarkAppearance = resolved === "dark";
+  const buttonStyle = useDarkAppearance
+    ? AppleAuthenticationButtonStyle.WHITE
+    : AppleAuthenticationButtonStyle.BLACK;
+
   const handlePress = async () => {
+    if (busy) return;
     setBusy(true);
     try {
-      const credential = await AppleAuthentication.signInAsync({
+      const credential = await signInAsync({
         requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuthenticationScope.FULL_NAME,
+          AppleAuthenticationScope.EMAIL,
         ],
       });
       const identityToken = credential.identityToken;
@@ -73,30 +87,45 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
   };
 
   return (
-    <View style={styles.wrap}>
-      <Pressable
-        style={[styles.btn, busy && styles.btnDisabled]}
-        onPress={() => void handlePress()}
-        disabled={busy}
-      >
+    <View style={styles.outer}>
+      <View style={[styles.slot, busy && styles.slotBusy]}>
+        <AppleAuthenticationButton
+          buttonType={AppleAuthenticationButtonType.SIGN_IN}
+          buttonStyle={buttonStyle}
+          cornerRadius={CORNER_RADIUS}
+          style={styles.appleNative}
+          onPress={() => void handlePress()}
+        />
         {busy ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>Continue with Apple</Text>
-        )}
-      </Pressable>
+          <View style={styles.busyOverlay} pointerEvents="auto">
+            <ActivityIndicator color={useDarkAppearance ? "#000" : "#fff"} />
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 12, width: "100%" },
-  btn: {
-    backgroundColor: "#000",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
+  outer: {
+    width: "100%",
+    alignItems: "stretch",
   },
-  btnDisabled: { opacity: 0.6 },
-  btnText: { fontSize: 16, fontWeight: "600", color: "#fff" },
+  slot: {
+    position: "relative",
+    minHeight: BUTTON_HEIGHT,
+    width: "100%",
+  },
+  slotBusy: { opacity: 0.88 },
+  appleNative: {
+    width: "100%",
+    height: BUTTON_HEIGHT,
+  },
+  busyOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+    borderRadius: CORNER_RADIUS,
+  },
 });

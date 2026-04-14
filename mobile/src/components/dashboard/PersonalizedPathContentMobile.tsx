@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -8,6 +8,7 @@ import {
   fetchPersonalizedPath,
   fetchProfile,
   fetchProgressSummary,
+  fetchQuestionnaireProgress,
   postPersonalizedPathRefresh,
   queryKeys,
   staleTimes,
@@ -59,15 +60,23 @@ export default function PersonalizedPathContentMobile({
   });
 
   const profilePayload = profileQuery.data;
-  const questionnaireCompleted = Boolean(
-    profilePayload?.is_questionnaire_completed ??
-    (
-      profilePayload?.user_data as
-        | { is_questionnaire_completed?: boolean }
-        | undefined
-    )?.is_questionnaire_completed ??
-    false,
-  );
+  const questionnaireQuery = useQuery({
+    queryKey: queryKeys.questionnaireProgress(),
+    queryFn: fetchQuestionnaireProgress,
+    enabled: isAuthenticated,
+    staleTime: 0,
+  });
+
+  const questionnaireCompleted =
+    Boolean(
+      profilePayload?.is_questionnaire_completed ??
+      (
+        profilePayload?.user_data as
+          | { is_questionnaire_completed?: boolean }
+          | undefined
+      )?.is_questionnaire_completed ??
+      false,
+    ) || questionnaireQuery.data?.status === "completed";
 
   const personalizedQuery = useQuery({
     queryKey: queryKeys.personalizedPath(),
@@ -87,15 +96,18 @@ export default function PersonalizedPathContentMobile({
   });
 
   const refreshMutation = useMutation({
-    mutationFn: () => postPersonalizedPathRefresh(),
-    onSuccess: async () => {
+    mutationFn: async (_opts?: { silent?: boolean }) => postPersonalizedPathRefresh(),
+    onSuccess: async (_data, variables) => {
       await personalizedQuery.refetch();
-      Alert.alert("", t("personalizedPath.refreshed"));
+      if (!variables?.silent) {
+        Alert.alert("", t("personalizedPath.refreshed"));
+      }
     },
     onError: () => {
       Alert.alert("", t("personalizedPath.errors.recommendationsFailed"));
     },
   });
+  const autoRefreshTriggered = useRef(false);
 
   const progressByCourse = useMemo(() => {
     const entries = progressSummaryQuery.data?.paths || [];
@@ -135,9 +147,23 @@ export default function PersonalizedPathContentMobile({
   const reviewQueue = personalizedQuery.data?.review_queue || [];
   const isPreview = Boolean(personalizedQuery.data?.meta?.preview);
 
+  useEffect(() => {
+    if (!questionnaireCompleted) return;
+    if (!personalizedQuery.isSuccess) return;
+    if (courses.length > 0) return;
+    if (refreshMutation.isPending || autoRefreshTriggered.current) return;
+    autoRefreshTriggered.current = true;
+    refreshMutation.mutate({ silent: true });
+  }, [
+    courses.length,
+    personalizedQuery.isSuccess,
+    questionnaireCompleted,
+    refreshMutation,
+  ]);
+
   const openCourse = (course: PersonalizedPathCourse) => {
     if (course.locked) {
-      router.push(href("/subscriptions"));
+      router.push(href("/subscriptions?reason=personalized_path"));
       return;
     }
     if (onCourseClick) {
@@ -208,7 +234,7 @@ export default function PersonalizedPathContentMobile({
         <GlassButton
           variant="primary"
           size="sm"
-          onPress={() => router.push(href("/onboarding"))}
+          onPress={() => router.push(href("/onboarding?reason=personalized_path"))}
         >
           {t("onboarding.reminderBanner.start")}
         </GlassButton>
@@ -222,6 +248,27 @@ export default function PersonalizedPathContentMobile({
         <Text style={{ color: c.error }}>
           {t("personalizedPath.errors.recommendationsFailed")}
         </Text>
+      </GlassCard>
+    );
+  }
+
+  if (!heroCourse && !refreshMutation.isPending) {
+    return (
+      <GlassCard padding="md" style={{ gap: spacing.md }}>
+        <Text style={[styles.heroTitle, { color: c.text }]}>
+          {t("personalizedPath.title")}
+        </Text>
+        <Text style={[styles.heroSub, { color: c.textMuted }]}>
+          {t("personalizedPath.buildingPath")}
+        </Text>
+        <GlassButton
+          variant="primary"
+          size="sm"
+          loading={refreshMutation.isPending}
+          onPress={() => refreshMutation.mutate(undefined)}
+        >
+          {t("personalizedPath.refresh")}
+        </GlassButton>
       </GlassCard>
     );
   }
@@ -258,7 +305,7 @@ export default function PersonalizedPathContentMobile({
                       variant="ghost"
                       size="sm"
                       loading={refreshMutation.isPending}
-                      onPress={() => refreshMutation.mutate()}
+                      onPress={() => refreshMutation.mutate(undefined)}
                     >
                       {refreshMutation.isPending
                         ? t("personalizedPath.refreshing")
@@ -511,7 +558,7 @@ export default function PersonalizedPathContentMobile({
           <GlassButton
             variant="primary"
             size="sm"
-            onPress={() => router.push(href("/subscriptions"))}
+            onPress={() => router.push(href("/subscriptions?reason=personalized_path"))}
           >
             {t("personalizedPath.upgrade")}
           </GlassButton>
@@ -524,7 +571,7 @@ export default function PersonalizedPathContentMobile({
         >
           {t("personalizedPath.basedOnOnboarding")}{" "}
           <Text
-            onPress={() => router.push(href("/onboarding"))}
+            onPress={() => router.push(href("/onboarding?reason=personalized_path"))}
             style={{ color: c.primary, fontWeight: "700" }}
           >
             {t("personalizedPath.updatePreferences")}

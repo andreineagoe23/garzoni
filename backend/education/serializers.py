@@ -253,11 +253,17 @@ class CourseSerializer(serializers.ModelSerializer):
 class CourseSummarySerializer(serializers.ModelSerializer):
     """
     Lightweight course serializer for list views (no lessons/quizzes).
+
+    Includes per-user progress so mobile/web path cards can show completion
+    without a separate /courses/?path= request.
     """
 
     image = serializers.SerializerMethodField()
     lesson_count = serializers.IntegerField(read_only=True)
     total_lessons = serializers.SerializerMethodField()
+    completed_lessons = serializers.SerializerMethodField()
+    completed_sections = serializers.SerializerMethodField()
+    total_sections = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -268,6 +274,9 @@ class CourseSummarySerializer(serializers.ModelSerializer):
             "image",
             "lesson_count",
             "total_lessons",
+            "completed_lessons",
+            "completed_sections",
+            "total_sections",
         ]
 
     def get_image(self, obj):
@@ -279,6 +288,44 @@ class CourseSummarySerializer(serializers.ModelSerializer):
         if getattr(obj, "lesson_count", None) is not None:
             return int(obj.lesson_count or 0)
         return obj.lessons.count()
+
+    def _progress_snapshot(self, obj):
+        cache = self.context.setdefault("_course_summary_progress", {})
+        if obj.id in cache:
+            return cache[obj.id]
+        progress = None
+        rel = getattr(obj, "progress_courses", None)
+        if rel is not None:
+            rows = list(rel.all())
+            progress = rows[0] if rows else None
+        if progress is None:
+            request = self.context.get("request")
+            user = getattr(request, "user", None) if request else None
+            if user and getattr(user, "is_authenticated", False):
+                progress = UserProgress.objects.filter(user=user, course=obj).first()
+        if progress:
+            snap = (
+                len(list(progress.completed_lessons.all())),
+                len(list(progress.completed_sections.all())),
+            )
+        else:
+            snap = (0, 0)
+        cache[obj.id] = snap
+        return snap
+
+    def get_completed_lessons(self, obj):
+        return self._progress_snapshot(obj)[0]
+
+    def get_completed_sections(self, obj):
+        return self._progress_snapshot(obj)[1]
+
+    def get_total_sections(self, obj):
+        annotated = getattr(obj, "total_sections", None)
+        if annotated is not None:
+            return int(annotated)
+        return LessonSection.objects.filter(
+            lesson__course=obj, is_published=True
+        ).count()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
