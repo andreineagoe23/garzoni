@@ -9,7 +9,10 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { getBackendUrl, googleVerifyCredential } from "@garzoni/core";
 import {
   getGoogleIosClientId,

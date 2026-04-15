@@ -74,7 +74,10 @@ export default function ExerciseSkillIntentBanner({
           <>
             <Pressable
               onPress={onChangeCategory}
-              style={[styles.btn, { borderColor: c.border, backgroundColor: c.surface }]}
+              style={[
+                styles.btn,
+                { borderColor: c.border, backgroundColor: c.surface },
+              ]}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, { color: c.primary }]}>
@@ -83,7 +86,10 @@ export default function ExerciseSkillIntentBanner({
             </Pressable>
             <Pressable
               onPress={onClearFilter}
-              style={[styles.btn, { borderColor: c.border, backgroundColor: c.surface }]}
+              style={[
+                styles.btn,
+                { borderColor: c.border, backgroundColor: c.surface },
+              ]}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, { color: c.primary }]}>
@@ -94,7 +100,10 @@ export default function ExerciseSkillIntentBanner({
         ) : (
           <Pressable
             onPress={onChangeCategory}
-            style={[styles.btn, { borderColor: c.border, backgroundColor: c.surface }]}
+            style={[
+              styles.btn,
+              { borderColor: c.border, backgroundColor: c.surface },
+            ]}
             accessibilityRole="button"
           >
             <Text style={[styles.btnText, { color: c.primary }]}>
@@ -140,5 +149,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   btnText: { fontSize: typography.xs, fontWeight: "700" },
-  dismiss: { fontSize: typography.xs, fontWeight: "600", marginLeft: spacing.xs },
+  dismiss: {
+    fontSize: typography.xs,
+    fontWeight: "600",
+    marginLeft: spacing.xs,
+  },
 });

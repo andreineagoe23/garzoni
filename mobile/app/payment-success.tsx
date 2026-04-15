@@ -32,7 +32,8 @@ export default function PaymentSuccessScreen() {
   const params = useLocalSearchParams<{
     session_id?: string | string[];
   }>();
-  const sessionId = Platform.OS === "web" ? firstParam(params.session_id) : undefined;
+  const sessionId =
+    Platform.OS === "web" ? firstParam(params.session_id) : undefined;
 
   const [stepIndex, setStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -92,17 +93,16 @@ export default function PaymentSuccessScreen() {
       <View style={[styles.root, { backgroundColor: c.bg }]}>
         <GlassCard padding="lg" style={styles.card}>
           <View
-            style={[
-              styles.iconWrap,
-              { backgroundColor: c.primary + "22" },
-            ]}
+            style={[styles.iconWrap, { backgroundColor: c.primary + "22" }]}
           >
             <MaterialCommunityIcons name="check" size={32} color={c.primary} />
           </View>
           <Text style={[styles.title, { color: c.text }]}>
             {t("subscriptions.paymentSuccess.title")}
           </Text>
-          <Text style={[styles.message, { color: c.textMuted }]}>{message}</Text>
+          <Text style={[styles.message, { color: c.textMuted }]}>
+            {message}
+          </Text>
           <ProgressBar
             value={progress / 100}
             height={8}

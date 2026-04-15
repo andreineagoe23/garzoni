@@ -437,7 +437,9 @@ export default function MissionsScreen() {
                   {t("missions.summary.title")}
                 </Text>
                 <Text style={[styles.summaryMain, { color: c.accent }]}>
-                  {t("missions.summary.remaining", { count: missionsRemaining })}
+                  {t("missions.summary.remaining", {
+                    count: missionsRemaining,
+                  })}
                 </Text>
                 <Text style={[styles.summaryXp, { color: c.textMuted }]}>
                   {t("missions.summary.xp", {
@@ -488,7 +490,10 @@ export default function MissionsScreen() {
                 {streakItems.map((item, index) => (
                   <View
                     key={`${item.type}-${index}`}
-                    style={[styles.streakPill, { borderColor: `${c.accent}66` }]}
+                    style={[
+                      styles.streakPill,
+                      { borderColor: `${c.accent}66` },
+                    ]}
                   >
                     <Text style={[styles.streakPillText, { color: c.accent }]}>
                       {item.type} ×{item.quantity}
@@ -509,7 +514,10 @@ export default function MissionsScreen() {
               }}
             >
               {errorMessages.map((msg, i) => (
-                <Text key={i} style={{ color: c.error, fontSize: typography.sm }}>
+                <Text
+                  key={i}
+                  style={{ color: c.error, fontSize: typography.sm }}
+                >
                   {msg}
                 </Text>
               ))}
@@ -532,7 +540,9 @@ export default function MissionsScreen() {
               <Text style={[styles.sectionTitle, { color: c.accent }]}>
                 {t("missions.header.title")}
               </Text>
-              <Text style={[styles.sub, { color: c.textMuted, marginBottom: 0 }]}>
+              <Text
+                style={[styles.sub, { color: c.textMuted, marginBottom: 0 }]}
+              >
                 No daily or weekly missions are available yet. Pull to refresh.
               </Text>
             </GlassCard>
@@ -552,7 +562,9 @@ export default function MissionsScreen() {
                         canSwap={canSwap}
                         onSwap={handleMissionSwap}
                         showSavingsMenu={showSavingsMenu}
-                        onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
+                        onToggleSavingsMenu={() =>
+                          setShowSavingsMenu((p) => !p)
+                        }
                         virtualBalance={virtualBalance}
                         currentFact={currentFact}
                         factLoading={factQuery.isFetching && !currentFact}
@@ -584,7 +596,9 @@ export default function MissionsScreen() {
                         canSwap={canSwap}
                         onSwap={handleMissionSwap}
                         showSavingsMenu={showSavingsMenu}
-                        onToggleSavingsMenu={() => setShowSavingsMenu((p) => !p)}
+                        onToggleSavingsMenu={() =>
+                          setShowSavingsMenu((p) => !p)
+                        }
                         virtualBalance={virtualBalance}
                         currentFact={currentFact}
                         factLoading={factQuery.isFetching && !currentFact}

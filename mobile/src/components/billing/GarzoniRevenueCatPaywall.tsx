@@ -1,7 +1,17 @@
 import { useMemo } from "react";
-import { Platform, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { useTranslation } from "react-i18next";
-import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 import { PACKAGE_TYPE } from "react-native-purchases";
 import GlassButton from "../ui/GlassButton";
 import GlassCard from "../ui/GlassCard";
@@ -141,8 +151,7 @@ export default function GarzoniRevenueCatPaywall({
         const best = shouldMarkAnnualBestValue(sorted, pkg);
         const intro = product.introPrice;
         const equiv =
-          pkg.packageType === PACKAGE_TYPE.ANNUAL &&
-          product.pricePerMonthString
+          pkg.packageType === PACKAGE_TYPE.ANNUAL && product.pricePerMonthString
             ? t("subscriptions.paywallEquivMonthly", {
                 price: product.pricePerMonthString,
               })
@@ -164,10 +173,7 @@ export default function GarzoniRevenueCatPaywall({
           >
             {best ? (
               <View
-                style={[
-                  styles.ribbon,
-                  { backgroundColor: c.primary + "28" },
-                ]}
+                style={[styles.ribbon, { backgroundColor: c.primary + "28" }]}
               >
                 <Text style={[styles.ribbonText, { color: c.primary }]}>
                   {t("subscriptions.paywallBestValue")}

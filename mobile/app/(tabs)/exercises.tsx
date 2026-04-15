@@ -597,7 +597,10 @@ function ExercisesInner() {
             </Pressable>
           </View>
 
-          {intentModel && skillParam && !categoryParam && !intentBannerDismissed ? (
+          {intentModel &&
+          skillParam &&
+          !categoryParam &&
+          !intentBannerDismissed ? (
             <ExerciseSkillIntentBanner
               model={intentModel}
               contextSubtitle={intentContextSubtitle || undefined}
@@ -689,9 +692,7 @@ function ExercisesInner() {
                 >
                   {t("exercises.emptyMappedZero.pickAnother")}
                 </Button>
-                <Button
-                  onPress={() => router.push(href("/(tabs)/learn"))}
-                >
+                <Button onPress={() => router.push(href("/(tabs)/learn"))}>
                   {t("exercises.emptyMappedZero.goToLessons")}
                 </Button>
               </View>

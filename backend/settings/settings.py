@@ -185,7 +185,9 @@ if not database_url:
 
 # Require SSL only for truly external connections (DATABASE_PUBLIC_URL from outside Railway).
 # Railway's internal private URL and local Docker hosts don't need SSL.
-_is_local_db = any(host in database_url for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1"))
+_is_local_db = any(
+    host in database_url for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1")
+)
 _is_external_db = not _is_local_db
 default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=_is_external_db)
 if "OPTIONS" not in default_db:
@@ -368,6 +370,7 @@ if _railway_public_domain:
 _backend_url_env = (os.getenv("BACKEND_URL") or "").strip().rstrip("/")
 if _backend_url_env:
     from urllib.parse import urlparse as _urlparse
+
     _parsed = _urlparse(_backend_url_env)
     _origin = f"{_parsed.scheme}://{_parsed.netloc}"
     if _origin not in CSRF_TRUSTED_ORIGINS:
@@ -747,7 +750,10 @@ CKEDITOR_5_CONFIGS = {
                 {"name": "br"},
                 {"name": "hr"},
                 {"name": "a", "attributes": {"href": True, "target": True, "rel": True}},
-                {"name": "img", "attributes": {"src": True, "alt": True, "width": True, "height": True}},
+                {
+                    "name": "img",
+                    "attributes": {"src": True, "alt": True, "width": True, "height": True},
+                },
                 {"name": "table"},
                 {"name": "thead"},
                 {"name": "tbody"},

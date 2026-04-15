@@ -95,11 +95,7 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const x = e.nativeEvent.contentOffset.x;
       const next = Math.round(x / SCREEN_W);
-      if (
-        next !== page &&
-        next >= 0 &&
-        next < resolvedSlides.length
-      ) {
+      if (next !== page && next >= 0 && next < resolvedSlides.length) {
         void safeImpactAsync(ImpactFeedbackStyle.Light);
         setPage(next);
       }

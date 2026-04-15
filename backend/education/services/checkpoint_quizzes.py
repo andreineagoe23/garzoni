@@ -74,10 +74,7 @@ def get_or_create_quiz_from_mc_section(section: LessonSection) -> Quiz | None:
     Build a single Quiz row from a lesson section's multiple-choice exercise_data.
     Returns None if the section is not suitable.
     """
-    if (
-        section.content_type != "exercise"
-        or section.exercise_type != "multiple-choice"
-    ):
+    if section.content_type != "exercise" or section.exercise_type != "multiple-choice":
         return None
     data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
     options = _mc_options_from_exercise_data(data)
@@ -128,14 +125,11 @@ def ensure_checkpoint_quizzes_for_lesson(lesson: Lesson) -> list[Quiz]:
     Ensure up to CHECKPOINT_MAX_QUESTIONS checkpoint quizzes exist for this lesson.
     Returns ordered Quiz instances (section order).
     """
-    sections = (
-        lesson.sections.filter(
-            is_published=True,
-            content_type="exercise",
-            exercise_type="multiple-choice",
-        )
-        .order_by("order")[:CHECKPOINT_MAX_QUESTIONS]
-    )
+    sections = lesson.sections.filter(
+        is_published=True,
+        content_type="exercise",
+        exercise_type="multiple-choice",
+    ).order_by("order")[:CHECKPOINT_MAX_QUESTIONS]
     out: list[Quiz] = []
     for section in sections:
         try:

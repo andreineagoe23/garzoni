@@ -51,9 +51,7 @@ describe("authLogoBlackRectangularUrl", () => {
   it("falls back to media path when Cloudinary is not configured", () => {
     configureCloudinaryCloudName("");
     const u = authLogoBlackRectangularUrl();
-    expect(u).toMatch(
-      /\/media\/logo\/garzoni-logo-black-rectangular\.png$/,
-    );
+    expect(u).toMatch(/\/media\/logo\/garzoni-logo-black-rectangular\.png$/);
   });
 });
 
@@ -67,9 +65,7 @@ describe("authLogoWhiteRectangularUrl", () => {
   it("falls back to media path when Cloudinary is not configured", () => {
     configureCloudinaryCloudName("");
     const u = authLogoWhiteRectangularUrl();
-    expect(u).toMatch(
-      /\/media\/logo\/garzoni-logo-white-rectangular\.png$/,
-    );
+    expect(u).toMatch(/\/media\/logo\/garzoni-logo-white-rectangular\.png$/);
   });
 });
 

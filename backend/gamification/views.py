@@ -103,9 +103,7 @@ class MissionView(APIView):
             daily_has_current = any(c.cycle_id == d_id for c in daily_completions)
             weekly_has_current = any(c.cycle_id == w_id for c in weekly_completions)
             daily_current_ids = {c.mission_id for c in daily_completions if c.cycle_id == d_id}
-            weekly_current_ids = {
-                c.mission_id for c in weekly_completions if c.cycle_id == w_id
-            }
+            weekly_current_ids = {c.mission_id for c in weekly_completions if c.cycle_id == w_id}
             daily_pool_count = Mission.objects.filter(mission_type="daily").count()
             weekly_pool_count = Mission.objects.filter(mission_type="weekly").count()
             if (
