@@ -8,18 +8,27 @@ Legacy rows use cycle_id="" (empty) until the next scheduled rotation archives t
 from __future__ import annotations
 
 from django.utils import timezone
+from django.db.models import QuerySet
 
 from gamification.models import Mission, MissionCompletion
 
 
+def local_cycle_date(dt=None):
+    """Resolve the local calendar date used for mission cycles."""
+    if dt is None:
+        return timezone.localdate()
+    if hasattr(dt, "date") and hasattr(dt, "tzinfo"):
+        return timezone.localtime(dt).date() if dt.tzinfo else dt.date()
+    return dt
+
+
 def daily_cycle_id(dt=None) -> str:
-    dt = dt or timezone.now()
-    return dt.date().isoformat()
+    return local_cycle_date(dt).isoformat()
 
 
 def weekly_cycle_id(dt=None) -> str:
-    dt = dt or timezone.now()
-    y, w, _ = dt.isocalendar()
+    d = local_cycle_date(dt)
+    y, w, _ = d.isocalendar()
     return f"{y}-W{w:02d}"
 
 
@@ -54,3 +63,25 @@ def get_or_create_current_mission_completion(
         cycle_id=cid,
         defaults=defaults or {"progress": 0, "status": "not_started"},
     )
+
+
+def ensure_current_cycle_mission_completions(
+    user,
+    mission_type: str,
+    defaults: dict | None = None,
+) -> int:
+    """
+    Ensure the user has a current-cycle MissionCompletion row for all missions
+    of the given type. Returns number of rows created.
+    """
+    missions: QuerySet[Mission] = Mission.objects.filter(mission_type=mission_type)
+    created_count = 0
+    for mission in missions.iterator(chunk_size=200):
+        _, created = get_or_create_current_mission_completion(
+            user,
+            mission,
+            defaults=defaults,
+        )
+        if created:
+            created_count += 1
+    return created_count

@@ -4,9 +4,10 @@
  * Wraps @revenuecat/purchases-js with a singleton pattern so the SDK is
  * configured once per user session and reused across all billing components.
  *
- * Entitlement:  "Garzoni Educational Pro"
- * Products:     monthly · yearly · lifetime  (configured in RC Dashboard)
- * API key:      VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
+ * Entitlements / offerings mirror the native app (RevenueCat Dashboard):
+ *   - Garzoni Educational Plus  → offering `default` (SDK: current)
+ *   - Garzoni Educational Pro   → offering `pro`
+ * API key: VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
  */
 
 import {
@@ -17,15 +18,33 @@ import {
   LogLevel,
 } from "@revenuecat/purchases-js";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants (keep aligned with mobile `subscriptionRuntime.ts`) ──────────
 
-/** Entitlement identifier as configured in the RevenueCat Dashboard. */
-export const RC_ENTITLEMENT = "Garzoni Educational Pro";
+export const RC_ENTITLEMENT_PRO = "Garzoni Educational Pro";
+export const RC_ENTITLEMENT_PLUS = "Garzoni Educational Plus";
+/** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS */
+export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
+
+export const RC_OFFERING_PLUS = "default";
+export const RC_OFFERING_PRO = "pro";
 
 /**
- * Expected offering identifiers in the RevenueCat Dashboard.
- * The default offering is "default"; products inside it should have these
- * package identifiers (or use RC's built-in $rc_monthly, $rc_annual, $rc_lifetime).
+ * App Store product IDs for parity with native (`mobile/.../subscriptionRuntime.ts`).
+ * RevenueCat references the same strings as App Store Connect—there are no separate “RC-only” store SKUs.
+ */
+export const APPLE_PRODUCT_IDS = {
+  plus: {
+    monthly: "app.garzoni.mobile.plus_monthly",
+    yearly: "app.garzoni.mobile.plus_yearly",
+  },
+  pro: {
+    monthly: "app.garzoni.mobile.pro_monthly",
+    yearly: "app.garzoni.mobile.pro_yearly",
+  },
+} as const;
+
+/**
+ * Expected package identifiers in offerings (RevenueCat defaults).
  */
 export const RC_PACKAGE_IDS = {
   monthly: "$rc_monthly",
@@ -98,6 +117,17 @@ function sdk(): Purchases {
 /** Fetch all available offerings from RevenueCat. */
 export const rcGetOfferings = (): Promise<Offerings> => sdk().getOfferings();
 
+export async function rcGetPackagesForOffering(
+  offeringId: string
+): Promise<Package[]> {
+  const offerings = await sdk().getOfferings();
+  const offering =
+    offeringId === RC_OFFERING_PLUS || offeringId === "default"
+      ? offerings.current
+      : offerings.all[offeringId];
+  return offering?.availablePackages ?? [];
+}
+
 /** Fetch the current customer info (entitlements, active subscriptions, …). */
 export const rcGetCustomerInfo = (): Promise<CustomerInfo> =>
   sdk().getCustomerInfo();
@@ -122,12 +152,23 @@ export const rcRestorePurchases = async (): Promise<CustomerInfo> => {
   return sdk().getCustomerInfo();
 };
 
-/**
- * Returns true when the customer holds an active "Garzoni Educational Pro"
- * entitlement.
- */
+export const rcIsProEntitled = (customerInfo: CustomerInfo): boolean =>
+  RC_ENTITLEMENT_PRO in customerInfo.entitlements.active;
+
+export const rcIsPlusEntitled = (customerInfo: CustomerInfo): boolean =>
+  RC_ENTITLEMENT_PLUS in customerInfo.entitlements.active;
+
+/** True when Plus or Pro entitlement is active. */
 export const rcIsEntitled = (customerInfo: CustomerInfo): boolean =>
-  RC_ENTITLEMENT in customerInfo.entitlements.active;
+  rcIsProEntitled(customerInfo) || rcIsPlusEntitled(customerInfo);
+
+export function rcGetActivePlan(
+  customerInfo: CustomerInfo
+): "pro" | "plus" | "starter" {
+  if (rcIsProEntitled(customerInfo)) return "pro";
+  if (rcIsPlusEntitled(customerInfo)) return "plus";
+  return "starter";
+}
 
 /**
  * Open subscription management (Web SDK v1: use CustomerInfo.managementURL in a new tab).

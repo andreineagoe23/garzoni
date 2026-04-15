@@ -16,7 +16,8 @@
  *   - VITE_REVENUECAT_API_KEY must be set in frontend/.env
  *   - Products configured in RC Dashboard with identifiers:
  *       $rc_monthly · $rc_annual · $rc_lifetime
- *   - Entitlement "Garzoni Educational Pro" linked to those products
+ *   - Entitlements "Garzoni Educational Plus" / "Garzoni Educational Pro"
+ *   - Plus: default offering (`offerings.current`). Pro: offering id `pro`.
  */
 
 import React, { useCallback, useEffect, useState } from "react";
@@ -28,9 +29,11 @@ import {
   rcPurchase,
   rcRestorePurchases,
   rcIsEntitled,
+  rcGetActivePlan,
   formatRCPackagePrice,
   rcPackagePeriodLabel,
-  RC_ENTITLEMENT,
+  RC_OFFERING_PLUS,
+  RC_OFFERING_PRO,
 } from "services/revenueCatService";
 import { GlassButton, GlassCard } from "components/ui";
 
@@ -106,6 +109,10 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
   const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState("");
   const [alreadyEntitled, setAlreadyEntitled] = useState(false);
+  const [entitledInfo, setEntitledInfo] = useState<CustomerInfo | null>(null);
+
+  const unlockHeadline =
+    offeringIdentifier === RC_OFFERING_PRO ? "Garzoni Pro" : "Garzoni Plus";
 
   // ── Initialize SDK + fetch offerings ────────────────────────────────────────
   useEffect(() => {
@@ -118,9 +125,12 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         configureRevenueCat(userId);
         const offerings = await rcGetOfferings();
 
-        const offering = offeringIdentifier
-          ? offerings.all[offeringIdentifier]
-          : offerings.current;
+        const offering =
+          !offeringIdentifier ||
+          offeringIdentifier === RC_OFFERING_PLUS ||
+          offeringIdentifier === "default"
+            ? offerings.current
+            : offerings.all[offeringIdentifier];
 
         if (!offering || !offering.availablePackages.length) {
           setError("No plans available at the moment. Please try again later.");
@@ -188,6 +198,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     try {
       const customerInfo = await rcRestorePurchases();
       if (rcIsEntitled(customerInfo)) {
+        setEntitledInfo(customerInfo);
         setAlreadyEntitled(true);
         onSuccess?.(customerInfo);
       } else {
@@ -205,11 +216,12 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
   // ── Render ───────────────────────────────────────────────────────────────────
 
   if (alreadyEntitled) {
+    const activePlan = entitledInfo ? rcGetActivePlan(entitledInfo) : "plus";
     return (
       <GlassCard padding="lg" className="space-y-4 text-center">
         <p className="text-3xl">✅</p>
         <h2 className="text-xl font-bold text-content-primary">
-          {RC_ENTITLEMENT} active
+          Garzoni {activePlan === "pro" ? "Pro" : "Plus"} active
         </h2>
         <p className="text-sm text-content-muted">
           Your subscription has been restored successfully.
@@ -228,7 +240,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
       {/* Header */}
       <div className="space-y-1 text-center">
         <h2 className="text-2xl font-bold text-content-primary">
-          Unlock {RC_ENTITLEMENT}
+          Unlock {unlockHeadline}
         </h2>
         <p className="text-sm text-content-muted">
           Get unlimited access to all courses, exercises, and premium features.

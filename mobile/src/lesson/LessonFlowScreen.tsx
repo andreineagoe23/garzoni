@@ -42,6 +42,20 @@ import { useTranslation } from "react-i18next";
 
 const LESSON_FONT_SCALE_KEY = "garzoni:lesson_font_scale";
 
+/** DB `Exercise.id` embedded in lesson section JSON, when the flow should grade via `/exercises/:id/submit/`. */
+function catalogExerciseIdFromData(
+  data: Record<string, unknown> | undefined | null,
+): number | null {
+  if (!data || typeof data !== "object") return null;
+  const raw =
+    data.catalog_exercise_id ??
+    data.exercise_id ??
+    data.exerciseId ??
+    data.linkedExerciseId;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function isExerciseItem(
   item: FlowItem | null,
 ): item is Extract<FlowItem, { kind: "section" }> {
@@ -916,12 +930,16 @@ function FlowItemRenderer({
   }
 
   if (section.content_type === "exercise" || section.exercise_type) {
+    const catalogId = catalogExerciseIdFromData(section.exercise_data);
+    const useCatalogSubmit = catalogId != null;
     return (
       <View>
         <ExerciseSection
           exerciseType={section.exercise_type}
           exerciseData={section.exercise_data}
-          exerciseId={section.id}
+          exerciseId={useCatalogSubmit ? catalogId : section.id}
+          sectionId={useCatalogSubmit ? section.id : undefined}
+          gradingMode={useCatalogSubmit ? "standalone" : "lesson"}
           isCompleted={item.isCompleted}
           onAttempt={onAttempt}
           onComplete={onExerciseComplete}

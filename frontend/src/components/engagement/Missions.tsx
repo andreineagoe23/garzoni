@@ -51,6 +51,7 @@ function Missions() {
   const [streakItems, setStreakItems] = useState<StreakItem[]>([]);
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [missionScope, setMissionScope] = useState<"daily" | "weekly">("daily");
   const [adaptiveSuggestions, setAdaptiveSuggestions] = useState<{
     suggestedSavingsTarget: number;
     learningStyle: string;
@@ -370,10 +371,19 @@ function Missions() {
   const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
 
   const allDailyCompleted = dailyMissions.length > 0 && missionsRemaining === 0;
+  const noMissionsAvailable =
+    dailyMissions.length === 0 && weeklyMissions.length === 0;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
   const reviewDue = profile?.reviews_due ?? 0;
+
+  useEffect(() => {
+    if (missionScope !== "daily") return;
+    if (dailyMissions.length > 0) return;
+    if (weeklyMissions.length === 0) return;
+    setMissionScope("weekly");
+  }, [missionScope, dailyMissions.length, weeklyMissions.length]);
 
   // Rendered via memoized component to avoid rebuilding a long JSX tree
   // on every parent state change.
@@ -503,38 +513,119 @@ function Missions() {
           </GlassCard>
         )}
 
+        {!missionsLoading && !noMissionsAvailable && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setMissionScope("daily")}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                missionScope === "daily"
+                  ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
+                  : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
+              }`}
+            >
+              {t("missions.badge.daily")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMissionScope("weekly")}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                missionScope === "weekly"
+                  ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
+                  : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
+              }`}
+            >
+              {t("missions.badge.weekly")}
+            </button>
+          </div>
+        )}
+
         {missionsLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader message={t("missions.loading")} />
           </div>
+        ) : noMissionsAvailable ? (
+          <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
+            <p className="text-sm text-content-muted">
+              No daily or weekly missions are available yet. Pull to refresh.
+            </p>
+          </GlassCard>
         ) : (
           <>
-            <div className="grid gap-6 md:grid-cols-2">
-              {dailyMissions.map((mission, index) => (
-                <React.Fragment key={`daily-${mission.id}-${index}`}>
-                  <MissionCard
-                    mission={mission}
-                    isDaily
-                    t={t}
-                    canSwap={canSwap}
-                    onSwap={handleMissionSwap}
-                    showSavingsMenu={showSavingsMenu}
-                    setShowSavingsMenu={setShowSavingsMenu}
-                    virtualBalance={virtualBalance}
-                    currentFact={currentFact}
-                    onMarkFactRead={markFactRead}
-                    onLoadFact={loadNewFact}
-                    savingsAmount={savingsAmount}
-                    setSavingsAmount={setSavingsAmount}
-                    onSavingsSubmit={handleSavingsSubmit}
-                    getLessonRequirement={getLessonRequirement}
-                    purposeStatement={purposeStatement}
-                  />
-                </React.Fragment>
-              ))}
-            </div>
+            {missionScope === "daily" ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {dailyMissions.length > 0 ? (
+                  dailyMissions.map((mission, index) => (
+                    <React.Fragment key={`daily-${mission.id}-${index}`}>
+                      <MissionCard
+                        mission={mission}
+                        isDaily
+                        t={t}
+                        canSwap={canSwap}
+                        onSwap={handleMissionSwap}
+                        showSavingsMenu={showSavingsMenu}
+                        setShowSavingsMenu={setShowSavingsMenu}
+                        virtualBalance={virtualBalance}
+                        currentFact={currentFact}
+                        onMarkFactRead={markFactRead}
+                        onLoadFact={loadNewFact}
+                        savingsAmount={savingsAmount}
+                        setSavingsAmount={setSavingsAmount}
+                        onSavingsSubmit={handleSavingsSubmit}
+                        getLessonRequirement={getLessonRequirement}
+                        purposeStatement={purposeStatement}
+                      />
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <GlassCard padding="md" className="md:col-span-2">
+                    <p className="text-sm text-content-muted">
+                      No daily missions are available right now.
+                    </p>
+                  </GlassCard>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-[color:var(--accent)]">
+                  {t("missions.weekly.title")}
+                </h2>
+                {weeklyMissions.length > 0 ? (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {weeklyMissions.map((mission, index) => (
+                      <React.Fragment key={`weekly-${mission.id}-${index}`}>
+                        <MissionCard
+                          mission={mission}
+                          isDaily={false}
+                          t={t}
+                          canSwap={canSwap}
+                          onSwap={handleMissionSwap}
+                          showSavingsMenu={showSavingsMenu}
+                          setShowSavingsMenu={setShowSavingsMenu}
+                          virtualBalance={virtualBalance}
+                          currentFact={currentFact}
+                          onMarkFactRead={markFactRead}
+                          onLoadFact={loadNewFact}
+                          savingsAmount={savingsAmount}
+                          setSavingsAmount={setSavingsAmount}
+                          onSavingsSubmit={handleSavingsSubmit}
+                          getLessonRequirement={getLessonRequirement}
+                          purposeStatement={purposeStatement}
+                        />
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : (
+                  <GlassCard padding="md">
+                    <p className="text-sm text-content-muted">
+                      No weekly missions are available right now.
+                    </p>
+                  </GlassCard>
+                )}
+              </div>
+            )}
 
-            {allDailyCompleted && (
+            {missionScope === "daily" && allDailyCompleted && (
               <GlassCard padding="lg" className="bg-[color:var(--card-bg)]/80">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -571,38 +662,6 @@ function Missions() {
                   </div>
                 </div>
               </GlassCard>
-            )}
-
-            {weeklyMissions.length > 0 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-[color:var(--accent)]">
-                  {t("missions.weekly.title")}
-                </h2>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {weeklyMissions.map((mission, index) => (
-                    <React.Fragment key={`weekly-${mission.id}-${index}`}>
-                      <MissionCard
-                        mission={mission}
-                        isDaily={false}
-                        t={t}
-                        canSwap={canSwap}
-                        onSwap={handleMissionSwap}
-                        showSavingsMenu={showSavingsMenu}
-                        setShowSavingsMenu={setShowSavingsMenu}
-                        virtualBalance={virtualBalance}
-                        currentFact={currentFact}
-                        onMarkFactRead={markFactRead}
-                        onLoadFact={loadNewFact}
-                        savingsAmount={savingsAmount}
-                        setSavingsAmount={setSavingsAmount}
-                        onSavingsSubmit={handleSavingsSubmit}
-                        getLessonRequirement={getLessonRequirement}
-                        purposeStatement={purposeStatement}
-                      />
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
             )}
           </>
         )}

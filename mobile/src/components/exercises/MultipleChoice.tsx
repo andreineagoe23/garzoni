@@ -16,6 +16,7 @@ import type {
 type Props = {
   data: Record<string, unknown>;
   exerciseId?: string | number;
+  sectionId?: string | number;
   isCompleted?: boolean;
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
@@ -75,6 +76,7 @@ function createStyles(c: ThemeColors) {
 export default function MultipleChoice({
   data,
   exerciseId,
+  sectionId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
@@ -106,7 +108,7 @@ export default function MultipleChoice({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
-  }, [exerciseId, isCompletedProp, data]);
+  }, [exerciseId, sectionId, isCompletedProp, data]);
 
   const handleSubmit = async () => {
     if (disabled || selected === null || submitting) return;
@@ -117,6 +119,7 @@ export default function MultipleChoice({
         const { data: res } = await submitExerciseAnswer(exerciseId, {
           user_answer: selected,
           hints_used: hintsUsed,
+          ...(sectionId != null ? { section_id: sectionId } : {}),
         });
         const fb =
           (typeof res.feedback === "string" && res.feedback) ||
