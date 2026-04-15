@@ -3,10 +3,8 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography } from "../../theme/tokens";
+import { spacing } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
-
-const MEDAL = ["🥇", "🥈", "🥉"] as const;
 
 const PODIUM_BORDER = [
   ["#fbbf24", "rgba(251,191,36,0.35)"],
@@ -47,19 +45,11 @@ export default function LeaderboardPodium({
       {podiumOrder.map((entry) => {
         const idxInTopThree = entries.indexOf(entry);
         const rank = rankForEntry(entry, idxInTopThree + 1);
-        const medal = MEDAL[idxInTopThree] ?? "🏅";
         const uid = entry.user?.id;
         const isYou = currentUserId !== null && uid === currentUserId;
         const uri = leaderboardAvatarUri(entry.user?.profile_avatar ?? null);
         const border =
           PODIUM_BORDER[Math.min(idxInTopThree, 2)] ?? PODIUM_BORDER[2];
-        const placeLabel =
-          rank === 1
-            ? t("leaderboard.podium.place1")
-            : rank === 2
-              ? t("leaderboard.podium.place2")
-              : t("leaderboard.podium.place3");
-
         return (
           <GlassCard
             key={entry.user?.id ?? `${rank}-${entry.user?.username}`}
@@ -74,19 +64,6 @@ export default function LeaderboardPodium({
               },
             ]}
           >
-            <Text style={styles.medal} accessibilityLabel={placeLabel}>
-              {medal}
-            </Text>
-            <View
-              style={[
-                styles.rankCircle,
-                {
-                  backgroundColor: border[0],
-                },
-              ]}
-            >
-              <Text style={styles.rankCircleText}>#{rank}</Text>
-            </View>
             {uri ? (
               <Image source={{ uri }} style={styles.avatar} />
             ) : (
@@ -136,16 +113,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     maxWidth: "34%",
   },
-  medal: { fontSize: 28, marginBottom: 4 },
-  rankCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.sm,
-  },
-  rankCircleText: { color: "#fff", fontWeight: "800", fontSize: typography.sm },
   avatar: {
     width: 56,
     height: 56,

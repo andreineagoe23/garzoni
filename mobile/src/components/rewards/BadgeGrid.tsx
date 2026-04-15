@@ -70,11 +70,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
+    justifyContent: "center",
   },
   cell: {
-    width: "31%",
-    minWidth: 100,
-    maxWidth: 120,
+    width: "30%",
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
   },

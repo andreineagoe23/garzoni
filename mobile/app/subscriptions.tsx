@@ -24,6 +24,7 @@ import {
   staleTimes,
   type Entitlements,
 } from "@garzoni/core";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import GlassButton from "../src/components/ui/GlassButton";
 import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
@@ -111,7 +112,6 @@ export default function SubscriptionsScreen() {
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [activatingPurchase, setActivatingPurchase] = useState(false);
   const lastPaywallTierRef = useRef<"plus" | "pro">("plus");
-  /** Avoid resetting manual Plus/Pro choice when `loadRevenueCatOffering` identity changes. */
   const lastUrlSyncedTierRef = useRef<"plus" | "pro" | null>(null);
 
   const profileQ = useQuery({
@@ -258,7 +258,7 @@ export default function SubscriptionsScreen() {
         await setPlanChosenCache();
         await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       } catch {
-        /* best-effort; gate will still use server profile on next load */
+        /* best-effort */
       }
     },
     [queryClient],
@@ -423,64 +423,65 @@ export default function SubscriptionsScreen() {
         }}
       />
       <ScrollView
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        style={{ flex: 1, backgroundColor: c.bg }}
+        contentContainerStyle={[styles.container, { paddingBottom: 56 }]}
       >
+        {/* ── Header ── */}
         {!showNativePaywall ? (
-          <Text style={[styles.title, { color: c.text }]}>
-            {personalizedPathReason
-              ? t("subscriptions.personalizedPathTitle")
-              : t("subscriptions.choosePlan")}
-          </Text>
-        ) : null}
-        {personalizedPathReason ? (
-          <Text style={[styles.intro, { color: c.textMuted }]}>
-            {t("subscriptions.personalizedPathIntro")}
-          </Text>
-        ) : !showNativePaywall ? (
-          <Text style={[styles.intro, { color: c.textMuted }]}>
-            {t("subscriptions.intro")}
-          </Text>
+          <View style={styles.header}>
+            <View style={[styles.divider, { backgroundColor: c.primary + "44" }]} />
+            <Text style={[styles.title, { color: c.text }]}>
+              {personalizedPathReason
+                ? t("subscriptions.personalizedPathTitle")
+                : t("subscriptions.choosePlan")}
+            </Text>
+            <Text style={[styles.subtitle, { color: c.textMuted }]}>
+              {personalizedPathReason
+                ? t("subscriptions.personalizedPathIntro")
+                : t("subscriptions.intro")}
+            </Text>
+          </View>
         ) : null}
 
+        {/* ── Alerts ── */}
         {ent?.fallback ? (
-          <Text style={[styles.warn, { color: c.accent }]}>
-            {t("subscriptions.fallbackEntitlements")}
-          </Text>
+          <View style={[styles.alertBanner, { backgroundColor: c.accent + "22" }]}>
+            <Text style={[styles.alertText, { color: c.accent }]}>
+              {t("subscriptions.fallbackEntitlements")}
+            </Text>
+          </View>
         ) : null}
-
         {selectionError ? (
-          <Text style={[styles.error, { color: c.error }]}>
-            {selectionError}
-          </Text>
+          <View style={[styles.alertBanner, { backgroundColor: c.error + "18" }]}>
+            <Text style={[styles.alertText, { color: c.error }]}>
+              {selectionError}
+            </Text>
+          </View>
         ) : null}
         {activatingPurchase ? (
           <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
-            <Text style={{ color: c.text, fontWeight: "700" }}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>
               {t("subscriptions.activatingTitle")}
             </Text>
-            <Text
-              style={{
-                color: c.textMuted,
-                marginTop: spacing.xs,
-                lineHeight: 20,
-              }}
-            >
+            <Text style={[styles.cardBody, { color: c.textMuted }]}>
               {t("subscriptions.activatingBody")}
             </Text>
           </GlassCard>
         ) : null}
 
+        {/* ── Already paid ── */}
         {hasPaid ? (
           <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
-            <Text style={[styles.sectionTitle, { color: c.text }]}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>
               {t("subscriptions.subscriptionStatus")}
             </Text>
-            <Text style={{ color: c.textMuted, marginBottom: spacing.md }}>
+            <Text style={[styles.cardBody, { color: c.textMuted }]}>
               {t("subscriptions.statusPaid")}
             </Text>
             <GlassButton
               variant="active"
               size="md"
+              style={{ marginTop: spacing.md }}
               onPress={() => router.push(href("/billing"))}
             >
               {t("billing.manageSubscription")}
@@ -500,27 +501,23 @@ export default function SubscriptionsScreen() {
           <>
             {!revenueCatNative ? (
               <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-                <Text style={[styles.sectionTitle, { color: c.text }]}>
+                <Text style={[styles.cardTitle, { color: c.text }]}>
                   {t("subscriptions.rcRequiredTitle")}
                 </Text>
-                <Text style={{ color: c.textMuted, lineHeight: 20 }}>
+                <Text style={[styles.cardBody, { color: c.textMuted }]}>
                   {t("subscriptions.rcRequiredBody")}
                 </Text>
               </GlassCard>
             ) : null}
+
+            {/* ── Tier + billing toggles ── */}
             {revenueCatNative ? (
-              <>
+              <View style={styles.togglesWrap}>
                 {showNativePaywall ? (
                   <View
                     style={[
-                      styles.intervalRow,
-                      {
-                        borderWidth: StyleSheet.hairlineWidth,
-                        borderColor: c.border,
-                        borderRadius: radius.md,
-                        padding: spacing.xs,
-                        backgroundColor: c.surface,
-                      },
+                      styles.segmentPill,
+                      { backgroundColor: c.surface, borderColor: c.border },
                     ]}
                   >
                     <GlassButton
@@ -549,14 +546,8 @@ export default function SubscriptionsScreen() {
                 ) : null}
                 <View
                   style={[
-                    styles.intervalRow,
-                    {
-                      borderWidth: StyleSheet.hairlineWidth,
-                      borderColor: c.border,
-                      borderRadius: radius.md,
-                      padding: spacing.xs,
-                      backgroundColor: c.surface,
-                    },
+                    styles.segmentPill,
+                    { backgroundColor: c.surface, borderColor: c.border },
                   ]}
                 >
                   <GlassButton
@@ -576,15 +567,10 @@ export default function SubscriptionsScreen() {
                     {t("subscriptions.billingMonthly")}
                   </GlassButton>
                 </View>
-              </>
+              </View>
             ) : null}
 
-            {plansQ.isPending ? (
-              <Text style={{ color: c.textMuted }}>
-                {t("subscriptions.loadingPlans")}
-              </Text>
-            ) : null}
-
+            {/* ── Native paywall ── */}
             {showNativePaywall ? (
               <GarzoniRevenueCatPaywall
                 variant="hero"
@@ -601,159 +587,221 @@ export default function SubscriptionsScreen() {
                 onManagePress={() => router.push(href("/billing"))}
               />
             ) : (
-              <View style={{ marginTop: spacing.md }}>
+              /* ── Plan cards ── */
+              <View style={{ marginTop: spacing.sm }}>
+                {plansQ.isPending ? (
+                  <Text style={[styles.cardBody, { color: c.textMuted, textAlign: "center" }]}>
+                    {t("subscriptions.loadingPlans")}
+                  </Text>
+                ) : null}
                 {revenueCatNative && loadingOffering ? (
-                  <Text
-                    style={{ color: c.textMuted, marginBottom: spacing.md }}
-                  >
+                  <Text style={[styles.cardBody, { color: c.textMuted, marginBottom: spacing.md }]}>
                     {t("subscriptions.loadingPlans")}
                   </Text>
                 ) : null}
                 {planCards.length === 0 && !plansQ.isPending ? (
-                  <Text style={{ color: c.textMuted }}>
+                  <Text style={[styles.cardBody, { color: c.textMuted }]}>
                     {t("subscriptions.paymentNotConfigured")}
                   </Text>
                 ) : null}
+
                 {planCards.map((plan) => {
                   const isStarter =
                     plan.plan_id === "starter" ||
                     Number(plan.price_amount || 0) === 0;
-                  const label = isStarter
-                    ? t("subscriptions.startStarter")
-                    : t("subscriptions.choosePlanCheckout", {
-                        name: plan.name || plan.plan_id,
-                      });
+                  const isHighlight = plan.plan_id === "plus";
+                  const name =
+                    plan.name ||
+                    plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+                  const features = Object.values(plan.features || {})
+                    .map((f) => f?.description || f?.name)
+                    .filter(Boolean) as string[];
                   const paidPlanDisabled =
                     !isStarter &&
                     (!revenueCatNative ||
                       loadingOffering ||
                       packages.length === 0);
+                  const ctaLabel = isStarter
+                    ? t("subscriptions.startStarter")
+                    : t("subscriptions.choosePlanCheckout", { name });
+
                   return (
-                    <GlassCard
+                    <View
                       key={`${plan.plan_id}-${plan.billing_interval}`}
-                      padding="md"
-                      style={{
-                        marginBottom: spacing.sm,
-                        borderWidth: isStarter ? 1 : 0,
-                        borderColor: isStarter ? c.primary : undefined,
-                      }}
+                      style={[
+                        styles.planCard,
+                        {
+                          backgroundColor: c.surface,
+                          borderColor: isHighlight
+                            ? "#E6C87A88"
+                            : c.border,
+                          borderWidth: isHighlight ? 2 : StyleSheet.hairlineWidth,
+                        },
+                      ]}
                     >
-                      {isStarter ? (
-                        <View
-                          style={[
-                            styles.starterBadge,
-                            { backgroundColor: c.primary + "1f" },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.starterBadgeText,
-                              { color: c.primary },
-                            ]}
-                          >
-                            Free forever
-                          </Text>
+                      {/* Recommended badge */}
+                      {isHighlight ? (
+                        <View style={styles.recommendedWrap}>
+                          <View style={styles.recommendedBadge}>
+                            <Text style={styles.recommendedText}>
+                              Recommended
+                            </Text>
+                          </View>
                         </View>
                       ) : null}
-                      <Text style={[styles.planName, { color: c.text }]}>
-                        {plan.name || plan.plan_id}
-                      </Text>
-                      <Text style={[styles.pkgPrice, { color: c.textMuted }]}>
-                        {formatMoney(plan)} /{" "}
-                        {plan.billing_interval === "yearly"
-                          ? t("subscriptions.perYear")
-                          : t("subscriptions.perMonth")}
-                        {plan.trial_days
-                          ? ` · ${t("subscriptions.trialDays", { count: plan.trial_days })}`
-                          : ""}
-                      </Text>
+
+                      {/* Plan name + free badge */}
+                      <View style={styles.planNameRow}>
+                        <Text style={[styles.planName, { color: c.text }]}>
+                          {name}
+                        </Text>
+                        {isStarter ? (
+                          <View
+                            style={[
+                              styles.freeBadge,
+                              { backgroundColor: c.success + "22" },
+                            ]}
+                          >
+                            <Text style={[styles.freeBadgeText, { color: c.success }]}>
+                              {t("subscriptions.free")}
+                            </Text>
+                          </View>
+                        ) : plan.trial_days ? (
+                          <View
+                            style={[
+                              styles.freeBadge,
+                              { backgroundColor: c.primary + "18" },
+                            ]}
+                          >
+                            <Text style={[styles.freeBadgeText, { color: c.primary }]}>
+                              {t("subscriptions.trialDays", { count: plan.trial_days })}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+
+                      {/* Price */}
+                      <View style={styles.priceRow}>
+                        <Text style={[styles.priceAmount, { color: c.text }]}>
+                          {formatMoney(plan)}
+                        </Text>
+                        {!isStarter ? (
+                          <Text style={[styles.pricePer, { color: c.textMuted }]}>
+                            {" / "}
+                            {plan.billing_interval === "yearly"
+                              ? t("subscriptions.perYear")
+                              : t("subscriptions.perMonth")}
+                          </Text>
+                        ) : null}
+                      </View>
+
+                      {/* Feature list */}
+                      {features.length > 0 ? (
+                        <View style={styles.featureList}>
+                          {features.map((fe) => (
+                            <View key={fe} style={styles.featureRow}>
+                              <MaterialCommunityIcons
+                                name="check-circle"
+                                size={15}
+                                color={c.primary}
+                                style={{ marginTop: 1 }}
+                              />
+                              <Text style={[styles.featureText, { color: c.text }]}>
+                                {fe}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+
+                      {/* CTA */}
                       <GlassButton
-                        variant="active"
-                        size="sm"
-                        style={{ marginTop: spacing.sm }}
+                        variant={isHighlight ? "active" : "ghost"}
+                        size="md"
+                        style={{ marginTop: spacing.md }}
                         loading={Boolean(purchasingId) && !isStarter}
                         disabled={paidPlanDisabled}
                         onPress={() => void handlePlanSelect(plan)}
                       >
-                        {label}
+                        {ctaLabel}
                       </GlassButton>
-                    </GlassCard>
+                    </View>
                   );
                 })}
               </View>
             )}
 
+            {/* ── Feature comparison table ── */}
             {comparisonRows.length > 0 &&
             !revenueCatNative &&
             packages.length === 0 ? (
-              <View style={{ marginTop: spacing.xl }}>
-                <Text style={[styles.sectionTitle, { color: c.text }]}>
+              <GlassCard padding="md" style={{ marginTop: spacing.xl }}>
+                <Text style={[styles.compareLabel, { color: c.textMuted }]}>
+                  {t("subscriptions.comparePlans")}
+                </Text>
+                <Text style={[styles.cardTitle, { color: c.text }]}>
                   {t("subscriptions.seeWhatChanges")}
                 </Text>
                 <View
                   style={[
-                    styles.compHeaderRow,
-                    { borderBottomColor: c.border },
+                    styles.tableHeader,
+                    {
+                      backgroundColor: c.surfaceOffset,
+                      borderRadius: radius.sm,
+                      marginTop: spacing.md,
+                    },
                   ]}
                 >
-                  <Text style={[styles.compColFeature, { color: c.textMuted }]}>
+                  <Text style={[styles.colFeature, { color: c.textMuted }]}>
                     {t("subscriptions.feature")}
                   </Text>
-                  <Text style={[styles.compCol, { color: c.textMuted }]}>
+                  <Text style={[styles.col, { color: c.textMuted }]}>
                     {t("subscriptions.starter")}
                   </Text>
-                  <Text style={[styles.compCol, { color: c.textMuted }]}>
+                  <Text style={[styles.col, { color: c.textMuted }]}>
                     {t("subscriptions.plus")}
                   </Text>
-                  <Text style={[styles.compCol, { color: c.textMuted }]}>
+                  <Text style={[styles.col, { color: c.textMuted }]}>
                     {t("subscriptions.pro")}
                   </Text>
                 </View>
-                {comparisonRows.slice(0, 12).map((row) => (
+                {comparisonRows.slice(0, 12).map((row, i) => (
                   <View
                     key={row.feature}
                     style={[
-                      styles.compHeaderRow,
-                      { borderBottomColor: c.border },
+                      styles.tableRow,
+                      {
+                        borderBottomColor: c.border,
+                        borderBottomWidth:
+                          i < comparisonRows.slice(0, 12).length - 1
+                            ? StyleSheet.hairlineWidth
+                            : 0,
+                      },
                     ]}
                   >
                     <Text
-                      style={[styles.compColFeature, { color: c.text }]}
+                      style={[styles.colFeature, { color: c.text }]}
                       numberOfLines={3}
                     >
                       {row.feature}
                     </Text>
-                    <Text
-                      style={[
-                        styles.compCol,
-                        { color: c.textMuted, fontSize: typography.xs },
-                      ]}
-                    >
+                    <Text style={[styles.col, { color: c.textMuted }]}>
                       {row.starter}
                     </Text>
-                    <Text
-                      style={[
-                        styles.compCol,
-                        { color: c.textMuted, fontSize: typography.xs },
-                      ]}
-                    >
+                    <Text style={[styles.col, { color: c.primary, fontWeight: "600" }]}>
                       {row.plus}
                     </Text>
-                    <Text
-                      style={[
-                        styles.compCol,
-                        { color: c.textMuted, fontSize: typography.xs },
-                      ]}
-                    >
+                    <Text style={[styles.col, { color: c.textMuted }]}>
                       {row.pro}
                     </Text>
                   </View>
                 ))}
-              </View>
+              </GlassCard>
             ) : null}
           </>
         ) : null}
 
+        {/* ── Legal ── */}
         {revenueCatNative ? (
           <Text style={[styles.legal, { color: c.textFaint }]}>
             {t("billing.subscriptionsLegalIos")}
@@ -765,44 +813,156 @@ export default function SubscriptionsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.xl, paddingBottom: 48 },
+  container: {
+    padding: spacing.xl,
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: spacing.xl,
+  },
+  divider: {
+    width: 48,
+    height: 1,
+    marginBottom: spacing.md,
+    borderRadius: 1,
+  },
   title: {
     fontSize: typography.xl,
     fontWeight: "800",
+    textAlign: "center",
     marginBottom: spacing.sm,
   },
-  intro: { fontSize: typography.sm, lineHeight: 20, marginBottom: spacing.lg },
-  warn: { fontSize: typography.sm, marginBottom: spacing.md },
-  error: { fontSize: typography.sm, marginBottom: spacing.md },
-  sectionTitle: {
+  subtitle: {
+    fontSize: typography.sm,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  alertBanner: {
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  alertText: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
+  cardTitle: {
     fontSize: typography.base,
     fontWeight: "700",
-    marginBottom: spacing.md,
-  },
-  intervalRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  pkgPrice: { fontSize: typography.xs },
-  planName: { fontSize: typography.md, fontWeight: "700" },
-  compHeaderRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 4,
-  },
-  starterBadge: {
-    alignSelf: "flex-start",
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
     marginBottom: spacing.xs,
   },
-  starterBadgeText: { fontSize: typography.xs, fontWeight: "700" },
-  compColFeature: { flex: 2.2, fontSize: typography.xs, fontWeight: "600" },
-  compCol: { flex: 1, fontSize: typography.xs, textAlign: "center" },
+  cardBody: {
+    fontSize: typography.sm,
+    lineHeight: 20,
+  },
+  togglesWrap: {
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  segmentPill: {
+    flexDirection: "row",
+    gap: spacing.xs,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.xs,
+  },
+  planCard: {
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  recommendedWrap: {
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  recommendedBadge: {
+    backgroundColor: "#E6C87A",
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 3,
+  },
+  recommendedText: {
+    color: "#0B0F14",
+    fontSize: typography.xs,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  planNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
+  planName: {
+    fontSize: typography.lg,
+    fontWeight: "700",
+  },
+  freeBadge: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  freeBadgeText: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: spacing.sm,
+  },
+  priceAmount: {
+    fontSize: typography.xxl,
+    fontWeight: "800",
+  },
+  pricePer: {
+    fontSize: typography.xs,
+    fontWeight: "500",
+    marginLeft: 2,
+  },
+  featureList: {
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  featureText: {
+    fontSize: typography.sm,
+    lineHeight: 20,
+    flex: 1,
+  },
+  compareLabel: {
+    fontSize: typography.xs,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  tableRow: {
+    flexDirection: "row",
+    paddingVertical: spacing.sm,
+    alignItems: "flex-start",
+  },
+  colFeature: {
+    flex: 2,
+    fontSize: typography.xs,
+    fontWeight: "600",
+  },
+  col: {
+    flex: 1,
+    fontSize: typography.xs,
+    textAlign: "center",
+  },
   legal: {
     fontSize: typography.xs,
     lineHeight: 16,
