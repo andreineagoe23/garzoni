@@ -111,14 +111,12 @@ type FilterMode = "all" | "in_progress" | "completed";
 
 function createLearnStyles(c: ThemeColors) {
   return StyleSheet.create({
-    /** List body: edge-to-edge width so path cards align with the screen (grey only in gaps). */
     listContent: {
+      paddingHorizontal: spacing.xl,
       paddingBottom: spacing.xxxl,
       backgroundColor: c.bg,
     },
-    /** Horizontal inset for controls + copy above the path list only. */
     headerPad: {
-      paddingHorizontal: spacing.md,
       paddingTop: spacing.xs,
     },
     loadingWrap: {
@@ -766,7 +764,7 @@ function LearnInner() {
         return (
           <GlassCard
             padding="none"
-            style={{ marginBottom: spacing.lg, overflow: "hidden" }}
+            style={{ marginBottom: spacing.lg }}
           >
             <Pressable
               onPress={() => {
