@@ -22,6 +22,8 @@ type ExerciseSectionProps = {
   exerciseType?: string;
   exerciseData?: Record<string, unknown>;
   exerciseId?: string | number;
+  /** LessonSection id when grading via catalog submit from lesson flow. */
+  sectionId?: string | number;
   isCompleted?: boolean;
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
@@ -53,6 +55,7 @@ export default function ExerciseSection({
   exerciseType,
   exerciseData,
   exerciseId,
+  sectionId,
   isCompleted,
   disabled,
   onAttempt,
@@ -67,6 +70,7 @@ export default function ExerciseSection({
   const props = {
     data: exerciseData ?? {},
     exerciseId,
+    sectionId,
     isCompleted,
     disabled,
     onAttempt,

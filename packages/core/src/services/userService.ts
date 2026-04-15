@@ -8,6 +8,20 @@ import type {
 
 export const fetchProfile = () => apiClient.get<UserProfile>("/userprofile/");
 
+/** Last N calendar days with separate lesson / section / exercise counts (dashboard heatmap). */
+export type ActivityHeatmapDay = {
+  date: string;
+  totalActivities?: number;
+  lessonsCompleted?: number;
+  sectionsCompleted?: number;
+  exercisesCompleted?: number;
+};
+
+export const fetchActivityHeatmap = (days = 90) =>
+  apiClient.get<ActivityHeatmapDay[]>("/activity-heatmap/", {
+    params: { days: Math.max(1, Math.min(365, days)) },
+  });
+
 export const patchUserProfile = (body: {
   email_reminder_preference?: string;
   subscription_plan_id?: "starter" | "plus" | "pro" | null;
@@ -80,9 +94,17 @@ export type ExerciseSubmitResponse = {
   coins_delta?: number;
 };
 
+export type ExerciseSubmitBody = {
+  user_answer: unknown;
+  hints_used?: number;
+  confidence?: string;
+  /** Lesson section when submitting from in-lesson practice (catalog exercise). */
+  section_id?: string | number;
+};
+
 export const submitExerciseAnswer = (
   exerciseId: string | number,
-  body: { user_answer: unknown; hints_used?: number; confidence?: string },
+  body: ExerciseSubmitBody,
 ) =>
   apiClient.post<ExerciseSubmitResponse>(
     `/exercises/${exerciseId}/submit/`,

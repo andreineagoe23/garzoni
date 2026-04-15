@@ -111,12 +111,22 @@ type FilterMode = "all" | "in_progress" | "completed";
 
 function createLearnStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: {
-      padding: spacing.xl,
+    /** List body: edge-to-edge width so path cards align with the screen (grey only in gaps). */
+    listContent: {
       paddingBottom: spacing.xxxl,
       backgroundColor: c.bg,
     },
-    loadingWrap: { flex: 1, padding: spacing.xl, backgroundColor: c.bg },
+    /** Horizontal inset for controls + copy above the path list only. */
+    headerPad: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.xs,
+    },
+    loadingWrap: {
+      flex: 1,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      backgroundColor: c.bg,
+    },
     headerBlock: { marginBottom: spacing.md },
     heading: {
       fontSize: typography.xl,
@@ -603,7 +613,7 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isPending) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
           {segmentRow}
         </View>
         <View style={styles.loadingWrap}>
@@ -623,7 +633,7 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isError) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
           {segmentRow}
         </View>
         <ErrorState
@@ -643,7 +653,7 @@ function LearnInner() {
 
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.container, { paddingBottom: spacing.sm }]}>
+        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
           {segmentRow}
         </View>
         {personalizedGatingWait ? (
@@ -654,7 +664,7 @@ function LearnInner() {
           <ScrollView
             style={{ flex: 1 }}
             contentContainerStyle={{
-              paddingHorizontal: spacing.xl,
+              paddingHorizontal: spacing.md,
               paddingBottom: spacing.xxxl,
             }}
             refreshControl={
@@ -686,11 +696,11 @@ function LearnInner() {
 
   return (
     <FlatList
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: c.bg }}
       data={displayPaths}
       keyExtractor={(item, i) => String(item.id ?? i)}
       nestedScrollEnabled
-      contentContainerStyle={styles.container}
+      contentContainerStyle={styles.listContent}
       refreshControl={
         <RefreshControl
           refreshing={pathsQuery.isFetching || progressQuery.isFetching}
@@ -711,7 +721,7 @@ function LearnInner() {
         </View>
       }
       ListHeaderComponent={
-        <View style={styles.headerBlock}>
+        <View style={[styles.headerPad, styles.headerBlock]}>
           {segmentRow}
           <ContinueLearningCard resume={progressQuery.data?.resume} />
           <Text style={styles.heading}>Learning paths</Text>

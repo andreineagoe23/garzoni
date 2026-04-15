@@ -163,7 +163,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
 
               <Pressable
                 style={menuRowStyle}
-                onPress={() => go("/(tabs)/missions")}
+                onPress={() => go("/missions")}
                 accessibilityRole="button"
               >
                 <Ionicons

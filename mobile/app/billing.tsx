@@ -29,7 +29,7 @@ import GarzoniRevenueCatPaywall from "../src/components/billing/GarzoniRevenueCa
 import {
   configureRevenueCatForUser,
   fetchRevenueCatPaywallOffering,
-  refreshSubscriptionQueries,
+  RC_OFFERING_PRO,
   waitForActiveSubscription,
 } from "../src/billing/subscriptionRuntime";
 import { href } from "../src/navigation/href";
@@ -75,6 +75,11 @@ export default function BillingScreen() {
   const [offeringLoadFailed, setOfferingLoadFailed] = useState(false);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [err, setErr] = useState("");
+  const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">(
+    "yearly",
+  );
+  const [storefrontTier, setStorefrontTier] = useState<"plus" | "pro">("plus");
+  const storefrontTierRef = useRef<"plus" | "pro">("plus");
   const profileLoaded = useRef(false);
 
   const profileQ = useQuery({
@@ -118,33 +123,43 @@ export default function BillingScreen() {
     };
   }, [portalEligible, queryClient]);
 
-  useEffect(() => {
-    if (profileLoaded.current) return;
-    const userId = profileQ.data?.user?.toString();
-    if (profileQ.isFetched) {
-      profileLoaded.current = true;
-      configureRevenueCatForUser(userId);
-      void loadOffering();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileQ.isFetched, profileQ.data]);
-
-  async function loadOffering() {
+  const loadOffering = useCallback(async (tier?: "plus" | "pro") => {
     if (!getRevenueCatPurchases()) {
       setLoadingOffering(false);
       return;
     }
+    const uid = profileQ.data?.user?.toString();
+    if (!configureRevenueCatForUser(uid)) {
+      setOfferingLoadFailed(true);
+      setLoadingOffering(false);
+      return;
+    }
+    const resolved = tier ?? storefrontTierRef.current;
+    storefrontTierRef.current = resolved;
+    setStorefrontTier(resolved);
     setLoadingOffering(true);
     setOfferingLoadFailed(false);
     try {
-      setOffering(await fetchRevenueCatPaywallOffering());
+      setOffering(
+        await fetchRevenueCatPaywallOffering(
+          resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
+        ),
+      );
     } catch (e) {
       setOfferingLoadFailed(true);
       if (__DEV__) console.warn("[Billing] RevenueCat getOfferings failed:", e);
     } finally {
       setLoadingOffering(false);
     }
-  }
+  }, [profileQ.data?.user]);
+
+  useEffect(() => {
+    if (profileLoaded.current) return;
+    if (profileQ.isFetched) {
+      profileLoaded.current = true;
+      void loadOffering();
+    }
+  }, [profileQ.isFetched, profileQ.data, loadOffering]);
 
   const onPurchase = useCallback(
     async (pkg: PurchasesPackage) => {
@@ -212,6 +227,10 @@ export default function BillingScreen() {
   }, [t]);
 
   const packages = offering?.availablePackages ?? [];
+  const showUpgradePaywall =
+    revenueCatNative &&
+    !isSubscribed &&
+    (packages.length > 0 || loadingOffering || offeringLoadFailed);
 
   return (
     <>
@@ -257,14 +276,68 @@ export default function BillingScreen() {
           ) : null}
         </GlassCard>
 
-        {!isSubscribed && packages.length > 0 && (
+        {showUpgradePaywall ? (
           <View style={{ marginBottom: spacing.xl }}>
             <Text style={[styles.sectionTitle, { color: c.text }]}>
               {t("billing.unlockPremium")}
             </Text>
+            <View
+              style={[
+                styles.billingIntervalShell,
+                {
+                  borderColor: c.border,
+                  backgroundColor: c.surface,
+                },
+              ]}
+            >
+              <GlassButton
+                variant={storefrontTier === "plus" ? "active" : "ghost"}
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={() => void loadOffering("plus")}
+              >
+                {t("subscriptions.plus")}
+              </GlassButton>
+              <GlassButton
+                variant={storefrontTier === "pro" ? "active" : "ghost"}
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={() => void loadOffering("pro")}
+              >
+                {t("subscriptions.pro")}
+              </GlassButton>
+            </View>
+            <View
+              style={[
+                styles.billingIntervalShell,
+                {
+                  borderColor: c.border,
+                  backgroundColor: c.surface,
+                },
+              ]}
+            >
+              <GlassButton
+                variant={billingInterval === "yearly" ? "active" : "ghost"}
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={() => setBillingInterval("yearly")}
+              >
+                {t("subscriptions.billingYearly")}
+              </GlassButton>
+              <GlassButton
+                variant={billingInterval === "monthly" ? "active" : "ghost"}
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={() => setBillingInterval("monthly")}
+              >
+                {t("subscriptions.billingMonthly")}
+              </GlassButton>
+            </View>
             <GarzoniRevenueCatPaywall
               variant="compact"
               offering={offering}
+              billingInterval={billingInterval}
+              hideMarketingHeader
               loading={loadingOffering}
               loadError={offeringLoadFailed}
               purchasingId={purchasingId}
@@ -274,7 +347,7 @@ export default function BillingScreen() {
               onManagePress={() => router.push(href("/subscriptions"))}
             />
           </View>
-        )}
+        ) : null}
 
         {loadingOffering ? (
           <Text style={[styles.hint, { color: c.textMuted }]}>
@@ -368,6 +441,14 @@ export default function BillingScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingBottom: 48 },
+  billingIntervalShell: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    padding: spacing.xs,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   sectionTitle: {
     fontSize: typography.base,
     fontWeight: "700",

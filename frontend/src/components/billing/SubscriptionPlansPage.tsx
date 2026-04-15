@@ -18,7 +18,11 @@ import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
-import { isRevenueCatEnabled, rcIsEntitled } from "services/revenueCatService";
+import {
+  isRevenueCatEnabled,
+  rcIsEntitled,
+  RC_OFFERING_PRO,
+} from "services/revenueCatService";
 import type { CustomerInfo } from "@revenuecat/purchases-js";
 import RevenueCatPaywall from "components/billing/RevenueCatPaywall";
 
@@ -82,6 +86,10 @@ const SubscriptionPlansPage = () => {
   // when the RC Web SDK is configured (VITE_REVENUECAT_API_KEY is set).
   const rcEnabled = isRevenueCatEnabled();
   const [showRCPaywall, setShowRCPaywall] = useState(false);
+  /** When set, loads the Pro storefront; omit for Plus (default / current offering). */
+  const [rcPaywallOfferingId, setRcPaywallOfferingId] = useState<
+    string | undefined
+  >(undefined);
 
   const handleRCSuccess = useCallback(
     (customerInfo: CustomerInfo) => {
@@ -89,6 +97,7 @@ const SubscriptionPlansPage = () => {
         setSubscriptionInfo({ hasPaid: true });
         reloadEntitlements?.();
         setShowRCPaywall(false);
+        setRcPaywallOfferingId(undefined);
         navigate("/personalized-path");
       }
     },
@@ -190,6 +199,9 @@ const SubscriptionPlansPage = () => {
 
       // ── RevenueCat flow (preferred when SDK is configured) ──────────────────
       if (rcEnabled) {
+        setRcPaywallOfferingId(
+          plan.plan_id === "pro" ? RC_OFFERING_PRO : undefined
+        );
         setShowRCPaywall(true);
         return;
       }
@@ -610,8 +622,12 @@ const SubscriptionPlansPage = () => {
                 (profile as { id?: number } | null)?.id ??
                 "anonymous"
             )}
+            offeringIdentifier={rcPaywallOfferingId}
             onSuccess={handleRCSuccess}
-            onClose={() => setShowRCPaywall(false)}
+            onClose={() => {
+              setRcPaywallOfferingId(undefined);
+              setShowRCPaywall(false);
+            }}
           />
         </div>
       )}

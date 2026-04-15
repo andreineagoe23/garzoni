@@ -28,6 +28,7 @@ from education.models import (
     LessonCompletion,
     QuizCompletion,
     Exercise,
+    ExerciseCompletion,
     UserExerciseProgress,
     Question,
     Mastery,
@@ -127,6 +128,50 @@ EXERCISE_SAFE_FIELDS = [
     "created_at",
     "is_published",
 ]
+
+
+def _resolve_exercise_submit_section(request, exercise: Exercise):
+    """
+    Optional section_id ties a catalog exercise completion to a lesson section.
+    Returns LessonSection or None; raises ValueError on invalid client input.
+    """
+    raw = request.data.get("section_id")
+    if raw is None or raw == "":
+        return None
+    try:
+        section_pk = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid section_id") from exc
+
+    section = LessonSection.objects.select_related("lesson", "lesson__course", "lesson__course__path").filter(pk=section_pk).first()
+    if not section:
+        raise ValueError("Section not found")
+    user = request.user
+    if not section.is_published and not _user_is_staff(user):
+        raise ValueError("Section not available")
+    course = getattr(section.lesson, "course", None)
+    path = getattr(course, "path", None) if course else None
+    if path and not _user_can_access_path(user, path):
+        raise ValueError("Section not available for this account")
+
+    if section.content_type != "exercise":
+        raise ValueError("Section is not an exercise section")
+
+    data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
+    linked = None
+    for key in ("catalog_exercise_id", "exercise_id", "exerciseId", "linkedExerciseId"):
+        v = data.get(key)
+        if v is None:
+            continue
+        try:
+            linked = int(v)
+        except (TypeError, ValueError):
+            continue
+        break
+    if linked is not None and linked != exercise.id:
+        raise ValueError("section_id does not match this exercise")
+
+    return section
 
 
 class PathViewSet(viewsets.ModelViewSet):
@@ -1354,10 +1399,30 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             except (TypeError, ValueError):
                 is_correct = correct_answer == user_answer
 
+        completion_section = None
+        if is_correct and not already_completed:
+            try:
+                completion_section = _resolve_exercise_submit_section(request, exercise)
+            except ValueError as exc:
+                return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
         if is_correct:
             progress.completed = True
 
         progress.save()
+
+        if is_correct and not already_completed:
+            _, ec_created = ExerciseCompletion.objects.get_or_create(
+                user=request.user,
+                exercise=exercise,
+                section=completion_section,
+                defaults={
+                    "attempts": progress.attempts,
+                    "user_answer": user_answer,
+                },
+            )
+            if ec_created:
+                invalidate_profile_cache(request.user)
 
         mastery = _get_or_create_mastery(request.user, _select_skill(exercise))
         mastery_before = mastery.proficiency

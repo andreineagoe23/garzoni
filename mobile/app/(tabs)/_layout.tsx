@@ -100,7 +100,6 @@ export default function TabsLayout() {
           name="tools"
           options={{ title: t("nav.tools", { defaultValue: "Tools" }) }}
         />
-        <Tabs.Screen name="missions" options={{ href: null }} />
         <Tabs.Screen name="profile" options={{ href: null }} />
         <Tabs.Screen
           name="account-menu"

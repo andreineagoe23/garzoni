@@ -14,6 +14,7 @@ import type {
 type Props = {
   data: Record<string, unknown>;
   exerciseId?: string | number;
+  sectionId?: string | number;
   isCompleted?: boolean;
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
@@ -69,6 +70,7 @@ function createStyles(c: ThemeColors) {
 export default function FillInTable({
   data,
   exerciseId,
+  sectionId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
@@ -113,7 +115,7 @@ export default function FillInTable({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
-  }, [exerciseId, isCompletedProp, rowsKey, colsKey]);
+  }, [exerciseId, sectionId, isCompletedProp, rowsKey, colsKey]);
 
   const handleSubmit = async () => {
     if (disabled || submitting) return;
@@ -124,6 +126,7 @@ export default function FillInTable({
         const { data: res } = await submitExerciseAnswer(exerciseId, {
           user_answer: answers,
           hints_used: hintsUsed,
+          ...(sectionId != null ? { section_id: sectionId } : {}),
         });
         const fb =
           (typeof res.feedback === "string" && res.feedback) ||

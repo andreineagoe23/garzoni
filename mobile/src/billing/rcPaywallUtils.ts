@@ -26,6 +26,23 @@ export function sortPackagesForPaywall(
   });
 }
 
+/**
+ * Keep only annual or only monthly packages (matches web billing interval toggle).
+ * If the offering has no matching packages, returns the original list so the UI can still show something.
+ */
+export function filterPackagesByBillingInterval(
+  packages: PurchasesPackage[],
+  interval: "yearly" | "monthly",
+): PurchasesPackage[] {
+  const wantAnnual = interval === "yearly";
+  const filtered = packages.filter((p) =>
+    wantAnnual
+      ? p.packageType === PACKAGE_TYPE.ANNUAL
+      : p.packageType === PACKAGE_TYPE.MONTHLY,
+  );
+  return filtered.length > 0 ? filtered : packages;
+}
+
 export function paywallPackageTypeI18nKey(
   packageType: PACKAGE_TYPE,
 ): string {

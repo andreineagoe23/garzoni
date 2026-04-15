@@ -21,6 +21,7 @@ import type {
 type Props = {
   data: Record<string, unknown>;
   exerciseId?: string | number;
+  sectionId?: string | number;
   isCompleted?: boolean;
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
@@ -44,6 +45,7 @@ function isWithinTolerance(
 export default function NumericInput({
   data,
   exerciseId,
+  sectionId,
   isCompleted,
   disabled,
   onAttempt,
@@ -62,7 +64,7 @@ export default function NumericInput({
     setValue("");
     setResult(null);
     setSubmitting(false);
-  }, [exerciseId, data]);
+  }, [exerciseId, sectionId, data]);
 
   const question = String(data.question ?? "");
   const prompt = data.prompt ? String(data.prompt) : null;
@@ -92,6 +94,7 @@ export default function NumericInput({
           const { data: res } = await submitExerciseAnswer(exerciseId, {
             user_answer: userNum,
             hints_used: hintsUsed,
+            ...(sectionId != null ? { section_id: sectionId } : {}),
           });
           const fb =
             (typeof res.feedback === "string" && res.feedback) ||

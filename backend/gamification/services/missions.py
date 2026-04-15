@@ -160,8 +160,6 @@ def generate_mastery_aware_mission(user, mission_type):
             .first()
         )
 
-    target_skill = weakest_skills.first().skill
-
     mission = (
         Mission.objects.filter(
             mission_type=mission_type,
@@ -174,10 +172,8 @@ def generate_mastery_aware_mission(user, mission_type):
     )
 
     if mission:
-        goal_ref = mission.goal_reference or {}
-        goal_ref["target_skill"] = target_skill
-        mission.goal_reference = goal_ref
-        mission.save(update_fields=["goal_reference"])
+        # Do not mutate shared Mission templates with user-specific targeting.
+        # Personalized targeting belongs on user-scoped assignment state.
         return mission
 
     return (
@@ -222,7 +218,7 @@ def swap_mission(user, mission_id):
             )
             mission_completions.exclude(id=mission_completion.id).delete()
 
-        today = timezone.now().date()
+        today = timezone.localdate()
         swapped_today = MissionCompletion.objects.filter(user=user, swapped_at__date=today).exists()
         if swapped_today:
             return {"error": "You can only swap one mission per day."}, 400

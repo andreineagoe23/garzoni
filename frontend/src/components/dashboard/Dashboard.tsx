@@ -490,22 +490,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface-page pb-10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
-          <GlassCard className="relative overflow-hidden" padding="lg">
+      <div className="min-h-screen bg-surface-page pb-10 pt-4 sm:pt-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 lg:px-6">
+          <div className="space-y-4">
             <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-2 h-4 w-72" />
-            <div className="mt-6 flex gap-3">
+            <Skeleton className="h-4 w-72 max-w-full" />
+            <div className="flex gap-3">
               <Skeleton className="h-10 w-28" />
               <Skeleton className="h-10 w-40" />
             </div>
-          </GlassCard>
-          <div className="flex flex-col gap-6">
-            <SkeletonGroup>
-              <Skeleton className="h-40 w-full rounded-2xl" />
-              <Skeleton className="h-40 w-full rounded-2xl" />
-            </SkeletonGroup>
           </div>
+          <SkeletonGroup>
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-40 w-full rounded-2xl" />
+          </SkeletonGroup>
         </div>
       </div>
     );
@@ -550,7 +548,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface-page via-surface-page to-surface-page pb-10">
+    <div className="min-h-screen bg-surface-page pb-10 pt-4 sm:pt-6">
       {/* Skip to content link */}
       <a
         href="#main-content"
@@ -562,13 +560,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       >
         {t("dashboard.skipToContent")}
       </a>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 lg:px-6">
-        <GlassCard
-          padding="none"
-          className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] backdrop-blur-lg transition-all px-6 py-8 hover:shadow-xl hover:shadow-[color:var(--shadow-color,rgba(0,0,0,0.12))] relative overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent opacity-50 pointer-events-none" />
-          <div className="relative">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 lg:px-6">
+        <div className="flex flex-col gap-6">
+          <div>
             <DashboardHeader
               displayName={displayName}
               canAdminister={canAdminister}
@@ -673,12 +667,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                 />
               </div>
             ) : (
-              <WeakSkillsQuickCard
-                locale={locale}
-                topSkill={weakSkillItems[0] ?? null}
-                onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                onOpenExercises={() => navigate("/exercises")}
-              />
+              <div className="mt-6">
+                <WeakSkillsQuickCard
+                  locale={locale}
+                  topSkill={weakSkillItems[0] ?? null}
+                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
+                  onOpenExercises={() => navigate("/exercises")}
+                />
+              </div>
             )}
 
             <WeakSkills
@@ -717,7 +713,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
             <PrimaryCTA primaryCTA={primaryCTA} />
           </div>
-        </GlassCard>
+        </div>
 
         <div id="main-content" ref={mainContentRef} tabIndex={-1} role="main">
           {activePage === "all-topics" ? (
